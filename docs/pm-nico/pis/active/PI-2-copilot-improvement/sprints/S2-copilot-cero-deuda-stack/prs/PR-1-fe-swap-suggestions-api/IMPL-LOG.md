@@ -52,3 +52,72 @@
 ---
 
 <!-- @pm: implementación BE done. Próximo paso: ejecutar prompts/03-auditor-start.md. -->
+
+---
+
+## 2026-04-30 — FE builder (nicolify-frontend)
+
+### Contexto cargado
+- `PR.md` ✓
+- `CONTRACT.md` ✓ (16 decisiones architect-empowered)
+- Skills: `copilot-expert` ✓, `frontend-expert` ✓
+- Reglas: `frontend-fsd.md`, `frontend-quality.md`, `tdd-mandatory.md`, `parallel-safety.md`, `git-safety.md`, `spanish-text.md`
+- Archivos existentes leídos: `voice-api.ts`, `use-suggestions.ts`, `types/suggestions.ts`, `SuggestedChips.tsx`, `SuggestedActions.tsx`, `copilot-store.ts`
+
+### Decisiones implementación
+
+1. **TDD estricto**: Tests RED escritos antes de implementación. 4 archivos de test creados/actualizados. 21 tests nuevos, todos verdes. Suite copilot completa: 285/285.
+
+2. **Mock paths en tests de componentes**: Tests en `components/composer/__tests__/` requieren paths `../../../hooks/...` (relativos al test), no `../../hooks/...` (relativos al componente). Detectado al verificar RED state.
+
+3. **D-9 voice adapter**: URL swap + shape adapter en `voice-api.ts`. Firma pública `TranscriptionResponse` intacta — consumers (composer voice button) sin cambios necesarios.
+
+4. **useSuggestions rewrite**: ROUTE_SUGGESTIONS map eliminado completamente. React Query con `queryKey: ["copilot", "suggestions", currentRoute, conversationId]`, `staleTime: 5min`, `retry: false` (D-10), `gcTime: 10min`.
+
+5. **useSuggestionAccept**: Fire-and-forget, NO invalida queries (D-13). `onError` = `console.warn`, no re-throws.
+
+6. **react-perf warnings**: 3 warnings en archivos modificados son patrones pre-existentes en los componentes originales (inline style maskImage, onClick arrow functions). No incrementan baseline.
+
+7. **Deuda D-14 verificada**: `grep -rn "ROUTE_SUGGESTIONS" frontend/src/` = 0 definiciones de map. `grep -rn "voice/transcribe" frontend/src/` = 0 llamadas activas.
+
+### Sub-deliverables completados
+
+- [x] `types/suggestions.ts` extendido con Request/Response types
+- [x] `api/suggestions-api.ts` (nuevo): fetchSuggestions + acceptSuggestion
+- [x] `api/voice-api.ts` modificado: D-9 URL swap + shape adapter
+- [x] `hooks/use-suggestions.ts` reescrito: React Query, drop ROUTE_SUGGESTIONS
+- [x] `hooks/use-suggestion-accept.ts` (nuevo): fire-and-forget mutation
+- [x] `components/composer/SuggestedChips.tsx`: accept mutation wired onClick
+- [x] `components/SuggestedActions.tsx`: ROUTE_SUGGESTIONS eliminado, consume hooks
+
+### Tests escritos (TDD RED-first)
+
+- `hooks/__tests__/use-suggestions.test.ts` — 6 tests: chips from API, graceful on failure, no token, re-fetch on route/convId change, correct body params
+- `hooks/__tests__/use-suggestion-accept.test.ts` — 4 tests (nuevo): payload, ISO UTC, no query invalidation, onError warning
+- `api/__tests__/voice-api.test.ts` — 5 tests (nuevo): URL adapter, shape adapter, null fields, non-ok throws, Authorization
+- `components/composer/__tests__/SuggestedChips.test.tsx` — 6 tests (nuevo): renders, null when empty, null when loading, accept+onClick, order, stable keys
+
+### Quality gates
+
+- [x] ESLint verde (0 errors; 3 warnings react-perf pre-existentes)
+- [x] TSC verde (0 errors)
+- [x] Vitest verde (285/285 copilot, 39/39 arch fitness)
+- [x] Arch fitness 20 tests verde
+
+### Surface real entregada
+
+| Tipo | Path | Estado |
+|---|---|---|
+| FE types | `frontend/src/features/copilot/types/suggestions.ts` | MODIFICADO |
+| FE api | `frontend/src/features/copilot/api/suggestions-api.ts` | NUEVO |
+| FE api | `frontend/src/features/copilot/api/voice-api.ts` | MODIFICADO (D-9) |
+| FE hook | `frontend/src/features/copilot/hooks/use-suggestions.ts` | REESCRITO |
+| FE hook | `frontend/src/features/copilot/hooks/use-suggestion-accept.ts` | NUEVO |
+| FE component | `frontend/src/features/copilot/components/composer/SuggestedChips.tsx` | MODIFICADO |
+| FE component | `frontend/src/features/copilot/components/SuggestedActions.tsx` | MODIFICADO |
+| FE tests | 4 test files (21 tests nuevos) | TODOS VERDE |
+
+---
+
+<!-- @pm: FE builder done. Tanto BE como FE implementaciones completas para PR-1. -->
+
