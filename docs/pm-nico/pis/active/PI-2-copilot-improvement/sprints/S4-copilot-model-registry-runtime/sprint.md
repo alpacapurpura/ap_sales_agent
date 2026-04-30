@@ -6,7 +6,7 @@
 |---|---|
 | Sprint ID | S4-copilot-model-registry-runtime |
 | PI padre | PI-2-copilot-improvement |
-| Estado | not-started — depends S3 shipped |
+| Estado | in-progress — S3 shipped 2026-04-30, PR-1 claimed |
 | Inicio estimado | post S3 |
 | Cierre estimado | S3+1 semana |
 | Owner PM | /pm |
