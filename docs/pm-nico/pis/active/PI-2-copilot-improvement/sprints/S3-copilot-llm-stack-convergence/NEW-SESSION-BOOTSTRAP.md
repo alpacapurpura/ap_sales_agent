@@ -169,7 +169,34 @@ Empezá con Phase 0 (git status + read state archivos listados). NO me confirmes
 | A: Process prevention (CONTRACT/PR template + skill + docs/domains/llm-routing + arch fitness test guard + process-learnings) | ✅ shipped | `7ffd7650` |
 | B: S3+S4+S5 sprint folders + 6 PR.md detailed skeletons | ✅ shipped | `1082d9bb` |
 | C: PI-2 PI.md + roadmap + decisions update | ✅ shipped | `34023325` |
-| D: NEW-SESSION-BOOTSTRAP.md (este archivo) | ✅ shipped | (próximo commit) |
+| D: NEW-SESSION-BOOTSTRAP.md (este archivo) | ✅ shipped | `cf2c822d` |
+| **E: S3 PR-1 cleanup-modeltier-convergence shipped end-to-end** | ✅ **shipped 2026-04-30** | `6a3541c5` (claim) → `c9a8cae6` (CONTRACT) → `d079f13b` (refactor 14 archivos) → `773604ab` (deletes + migration 115 + tests + .env.example) → `d1f21725` (RESULT + lineage) |
+
+## Estado verificable post-PR-1 (next session start)
+
+```bash
+# Allowlist target alcanzado
+cd backend && .venv/bin/pytest tests/architecture/test_llm_routing_ssot.py -v
+# 3/3 PASSED — KNOWN_LEGACY_LLM_FILES = set() (0 entries)
+
+cd backend && grep -rn "ModelTier" src/modules/copilot/
+# (cero hits)
+
+cd backend && find src/modules/copilot/infrastructure/llm/
+# find: 'src/modules/copilot/infrastructure/llm/': No such file or directory
+
+cat .env.example | grep -E "^AI_(MODEL|PROVIDER)_(NANO|FAST)"
+# AI_MODEL_NANO=deepseek-v4-flash
+# AI_MODEL_FAST=deepseek-v4-flash
+# AI_PROVIDER_NANO=deepseek
+# AI_PROVIDER_FAST=deepseek
+```
+
+## Continuación PR-2..PR-6 (5 PRs remaining)
+
+S3 PR-2 LiteLLM Proxy → **ready next session** (PR.md + sprint.md updated). Workflow standard: claim → spawn architect → CONTRACT.md commit → spawn builder con expectativa main thread takeover post-truncate → REVIEW + RESULT + close.
+
+S4 PR-1+2 + S5 PR-1+2 = 4 PRs remaining después S3 PR-2. PR.md skeletons completos en sprint folders.
 
 ## Stack actual de partida (verificable hoy)
 

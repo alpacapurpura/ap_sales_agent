@@ -5,7 +5,7 @@
 | Campo | Valor |
 |---|---|
 | PI ID | PI-2-copilot-improvement |
-| Estado | active — S1 shipped, S2 candidato cross-stack FE swap |
+| Estado | active — S1+S2 shipped, S3 in-progress (PR-1 shipped 2026-04-30) |
 | Tema | Mejoras al copilot — interfaz primaria Nicolify |
 | Owner PM | /pm |
 | Inicio | 2026-04-29 |
@@ -81,9 +81,9 @@ Pendientes discovery. Posibles:
 
 **Discovery audit failure PR-3** (Chris detectó capa LLM duplicada al preguntar "para qué se usan AI_MODEL/AI_PROVIDER actuales") cambió plan original "S3-copilot-llm-wiring-runtime" → 3 sprints encadenados con SSoT correcto.
 
-**S3-copilot-llm-stack-convergence** (next):
-- PR-1 cleanup PR-3 + convergencia ModelTier→ModelRole + activar DeepSeek V4-Flash NANO+FAST — esfuerzo M-L
-- PR-2 LiteLLM Proxy intro como motor multi-provider centralizado — esfuerzo M
+**S3-copilot-llm-stack-convergence** (in-progress):
+- PR-1 cleanup PR-3 + convergencia ModelTier→ModelRole + activar DeepSeek V4-Flash NANO+FAST — **shipped 2026-04-30** ✅ (allowlist 19→0, cost reduction 4-15x activated)
+- PR-2 LiteLLM Proxy intro como motor multi-provider centralizado — esfuerzo M, **ready next session**
 
 **S4-copilot-model-registry-runtime** (after S3):
 - PR-1 DB registry `llm_role_binding` + admin Streamlit `/admin/llm-models` hot-swap <60s — esfuerzo L

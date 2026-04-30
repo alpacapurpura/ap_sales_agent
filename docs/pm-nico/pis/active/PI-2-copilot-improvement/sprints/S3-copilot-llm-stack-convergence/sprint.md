@@ -6,7 +6,7 @@
 |---|---|
 | Sprint ID | S3-copilot-llm-stack-convergence |
 | PI padre | PI-2-copilot-improvement |
-| Estado | in-progress — PR-1 claimed 2026-04-30 |
+| Estado | in-progress — PR-1 **shipped** 2026-04-30, PR-2 ready next session |
 | Inicio estimado | 2026-04-30+ |
 | Cierre estimado | 2026-05-07 |
 | Owner PM | /pm |
@@ -30,8 +30,8 @@ Cerrar deuda PR-3 PI-2 S2 (capa LLM duplicada) + convergir copilot ModelTier→M
 
 | PR | Folder | Descripción | Agentes/skills | Esfuerzo | Estado |
 |---|---|---|---|---|---|
-| PR-1 | `prs/PR-1-cleanup-modeltier-convergence/` | Eliminar capa duplicada PR-3 + convergir ModelTier consumers a ModelRole + activar DeepSeek V4-Flash NANO+FAST via .env. Mantener evals package + migration 114 + arch fitness test SSoT. | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` + `sales-agent-expert` (verify NO touch §3) | M-L | not-started |
-| PR-2 | `prs/PR-2-litellm-proxy-integration/` | Introducir LiteLLM Proxy (BerriAI) como motor multi-provider centralizado. Docker svc + admin UI + virtual keys per-tenant. Refactor `shared/infrastructure/llm/router.py` para dispatch via LiteLLM. Cero deuda multi-provider chain. | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` | M | not-started |
+| PR-1 | `prs/PR-1-cleanup-modeltier-convergence/` | Eliminar capa duplicada PR-3 + convergir ModelTier consumers a ModelRole + activar DeepSeek V4-Flash NANO+FAST via .env. Mantener evals package + migration 114 + arch fitness test SSoT. | `nicolify-architect` → `nicolify-backend` → PM main thread takeover (builder truncate L-PROC) + `copilot-expert` + `sales-agent-expert` | M-L | **shipped** 2026-04-30 |
+| PR-2 | `prs/PR-2-litellm-proxy-integration/` | Introducir LiteLLM Proxy (BerriAI) como motor multi-provider centralizado. Docker svc + admin UI + virtual keys per-tenant. Refactor `shared/infrastructure/llm/router.py` para dispatch via LiteLLM. Cero deuda multi-provider chain. | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` | M | **ready next session** (depende PR-1 shipped ✅) |
 
 ## Criterio éxito sprint
 
