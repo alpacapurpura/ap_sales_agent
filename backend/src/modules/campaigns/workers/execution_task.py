@@ -32,7 +32,7 @@ from uuid import UUID
 import structlog
 
 from src.modules.campaigns.domain.audit_log import AuditEventType
-from src.modules.campaigns.domain.enums import TaskStatus
+from src.modules.campaigns.domain.enums import StepType, TaskStatus
 from src.modules.campaigns.infrastructure.channels.errors import (
     ChannelComplianceBlocked,
     ChannelFatalError,
@@ -62,11 +62,35 @@ async def run_campaign_execution_task(ctx: dict, campaign_task_id: str) -> dict[
     db_factory = ctx["db_factory"]
 
     async with db_factory() as session:
-        return await _process_task(session, task_uuid)
+        return await _process_task(session, task_uuid, ctx)
 
 
-async def _process_task(session: object, task_id: UUID) -> dict[str, str]:  # noqa: C901, PLR0911, PLR0915
-    """Inner logic scoped to a single AsyncSession."""
+def _task_row_to_domain(row: object) -> object:
+    """Convert a CampaignTaskModel ORM row to a CampaignTask domain entity.
+
+    Used by the CALL_SUBAGENT_BRIEF dispatch branch to pass a typed domain
+    object to SalesAgentAdapter without importing models into the domain layer.
+
+    Args:
+        row: A ``CampaignTaskModel`` instance (already loaded from DB).
+
+    Returns:
+        ``CampaignTask`` domain entity built from the ORM row.
+    """
+    from src.modules.campaigns.domain.campaign_task import CampaignTask
+
+    return CampaignTask.model_validate(row, from_attributes=True)
+
+
+async def _process_task(session: object, task_id: UUID, ctx: dict | None = None) -> dict[str, str]:  # noqa: C901, PLR0911, PLR0912, PLR0915
+    """Inner logic scoped to a single AsyncSession.
+
+    Args:
+        session: Open AsyncSession for this worker execution.
+        task_id: UUID of the CampaignTask to process.
+        ctx: Optional ARQ context dict — used to pass ``budget_guard`` to
+             SalesAgentAdapter for CALL_SUBAGENT_BRIEF steps.
+    """
     from sqlalchemy import select
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -118,6 +142,7 @@ async def _process_task(session: object, task_id: UUID) -> dict[str, str]:  # no
         # ── Step 3: Resolve channel ────────────────────────────────────────────
         channel = "telegram"
         content: dict = {}
+        step = None
         if row.step_id is not None:
             step = await step_repo.get_by_id(row.step_id, tenant_id, session=session)
             if step is not None:
@@ -127,6 +152,88 @@ async def _process_task(session: object, task_id: UUID) -> dict[str, str]:  # no
                     channel = channel_override
                 if step.step_config:
                     content = dict(step.step_config)
+
+        # ── PR-7 Sub-D: CALL_SUBAGENT_BRIEF branch (before channel router) ─────
+        # Dispatches via SalesAgentAdapter → OutboundOrchestrator → LangGraph.
+        # Channel send + LLM are owned by the orchestrator. Worker only marks
+        # task status and writes audit log.
+        if step is not None and step.step_type == StepType.CALL_SUBAGENT_BRIEF:
+            from src.modules.campaigns.infrastructure.external.sales_agent_adapter import (
+                SalesAgentAdapter,
+            )
+
+            budget_guard = (ctx or {}).get("budget_guard")
+            sa_result = await SalesAgentAdapter.dispatch(
+                session=session,
+                task=_task_row_to_domain(row),
+                step=step,
+                budget_guard=budget_guard,
+            )
+
+            if sa_result.success:
+                await task_repo.mark_sent(
+                    task_id,
+                    tenant_id,
+                    external_message_id=sa_result.external_message_id,
+                    channel_used="telegram",
+                    session=session,
+                )
+                await _audit(
+                    audit_svc,
+                    session,
+                    tenant_id=tenant_id,
+                    event_type=AuditEventType.TASK_SENT,
+                    actor="execution_worker",
+                    campaign_id=campaign_id,
+                    campaign_task_id=task_id,
+                    payload={
+                        "external_message_id": sa_result.external_message_id or "",
+                        "channel": "telegram",
+                        "via": "sales_agent_adapter",
+                    },
+                )
+                logger.info(
+                    "campaign_execution_task_sent_via_sales_agent",
+                    tenant_id=str(tenant_id),
+                    task_id=str(task_id),
+                    campaign_id=str(campaign_id),
+                    external_message_id=sa_result.external_message_id or "",
+                )
+                return {
+                    "id": str(task_id),
+                    "status": "sent",
+                    "external_id": sa_result.external_message_id or "",
+                }
+
+            await task_repo.mark_failed(
+                task_id,
+                tenant_id,
+                error_code=sa_result.error_code or "sales_agent_dispatch_failed",
+                error_message=sa_result.error_message or "",
+                session=session,
+            )
+            await _audit(
+                audit_svc,
+                session,
+                tenant_id=tenant_id,
+                event_type=AuditEventType.TASK_FAILED,
+                actor="execution_worker",
+                campaign_id=campaign_id,
+                campaign_task_id=task_id,
+                payload={
+                    "error_code": sa_result.error_code or "sales_agent_dispatch_failed",
+                    "error_message": sa_result.error_message or "",
+                    "via": "sales_agent_adapter",
+                },
+            )
+            logger.warning(
+                "campaign_execution_task_sales_agent_failed",
+                tenant_id=str(tenant_id),
+                task_id=str(task_id),
+                campaign_id=str(campaign_id),
+                error_code=sa_result.error_code,
+            )
+            return {"id": str(task_id), "status": "failed", "external_id": ""}
 
         registry = ChannelRouterRegistry()
         if not registry.has(channel):
