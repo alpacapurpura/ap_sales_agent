@@ -166,6 +166,32 @@
 
 **Próximo paso:** S3 PR-2 LiteLLM Proxy integration.
 
+## 2026-04-30 — S3 PR-2 litellm-proxy-integration shipped
+
+**Decisión:** S3 PR-2 ship cero deuda — LiteLLM Proxy v1.83.10-stable como motor multi-provider centralizado. Docker svc `visionarias_litellm` + `LiteLLMService` adapter único reemplaza dispatch interno per-provider (cuando toggle `LITELLM_PROXY_ENABLED=True` default). Cero breaking change consumers — `Settings.get_model` + `LLMFactory.get_service` interface idéntica.
+
+**Decisiones técnicas relevantes (top 5 de CONTRACT 18 D-decisions):**
+- D-1: DB separada `visionarias_litellm_db` (Prisma vs Alembic isolation, migration 116 idempotente)
+- D-6: Wrap completo via LiteLLM, legacy adapters deprecated S3 toggle ON, eliminación física S4 PR-1 post-verification 1 sprint en prod
+- D-7: `copilot_llm_call.model` strip prefix `<provider>/<model>` → bare model name (preserve queries Streamlit existentes `/costo-copilot` + `/marketing-kb`)
+- D-9: `model_pricing_snapshot` SSoT inmutable mantenido. LiteLLM `LiteLLM_SpendLogs` DISABLED (PII guard §13)
+- D-18: Arch fitness AST scan `router.py` module-level imports — forbids `OpenAIService`/`KimiService`/`DeepSeekService`/`QwenService` at module level (lazy inside `build_provider_service` rollback OK)
+
+**Surface entregada:** 22 archivos (9 modified + 13 new). 24 tests nuevos verde (5 service + 3 router + 4 recorder + 5 migration + 7 admin smoke). 791 tests total verde. Arch fitness 4 tests verde.
+
+**Aprendizaje proceso:** L-PROC-MAIN-THREAD-TAKEOVER 3rd cementado PI-2 (S2 PR-3, S3 PR-1, S3 PR-2). Builder agent truncó ~488s/74 tool uses. PM main thread completó: 6 lint cleanup + 24 tests + format + parallel session compliance verification (M8). Patrón reproducible.
+
+**Aprendizaje proceso 2:** L-PROC-PARALLEL-SESSION-FILE-PRESENCE-DETECTION (NEW). Builder spawn observó WIP de sesión paralela PI-1 PR-7 outbound + Sub-G billing helper en `git status`. PM identificó vía grep "PR-7" + lectura inline + dejó intactos per regla M8. Stage por nombre obligatorio confirma scope correcto.
+
+**Métricas:**
+- Allowlist `KNOWN_LEGACY_LLM_FILES`: 0 (mantenido shrunk post-PR-1)
+- SSoT LLM dispatch: 1 sistema (LiteLLM Proxy) ✅
+- Cost reduction NANO+FAST: 4-15x activo (DeepSeek V4-Flash via LiteLLM dispatch)
+- Arch fitness: 791/791 verde (incluye D-18 nuevo)
+- Cero deuda funcional. Defers documentados scope cohesivo S4 PR-1.
+
+**Próximo paso:** S3 sprint close (learnings + handoff + sprint Estado: done) → S4 PR-1 DB registry + admin UI hot-swap.
+
 ## Pendientes registrar
 
 _Aquí se irán registrando decisiones tomadas durante discovery + ejecución._

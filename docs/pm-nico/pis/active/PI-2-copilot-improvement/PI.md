@@ -5,14 +5,14 @@
 | Campo | Valor |
 |---|---|
 | PI ID | PI-2-copilot-improvement |
-| Estado | active — S1+S2 shipped, S3 in-progress (PR-1 shipped 2026-04-30) |
+| Estado | active — S1+S2+S3 shipped (PR-1 + PR-2 shipped 2026-04-30), S4 next |
 | Tema | Mejoras al copilot — interfaz primaria Nicolify |
 | Owner PM | /pm |
 | Inicio | 2026-04-29 |
 | Cierre estimado | TBD según S2 (cross-stack FE swap) o decisión cierre PI |
 | Cierre real | — |
-| Sprints completados | S1-copilot-maintenance-batch (3/3 PRs shipped 2026-04-29) · S2-copilot-cero-deuda-stack (3/3 PRs shipped 2026-04-30, PR-3 PARTIAL DEUDA detectada → S3 cleanup) |
-| Sprints planificados | S3-copilot-llm-stack-convergence (cleanup + LiteLLM, 2 PRs ready) · S4-copilot-model-registry-runtime (DB registry + GrowthBook, 2 PRs ready) · S5-copilot-eval-gate-pre-promote (eval gate UI + final cleanup, 2 PRs ready) |
+| Sprints completados | S1-copilot-maintenance-batch (3/3 PRs shipped 2026-04-29) · S2-copilot-cero-deuda-stack (3/3 PRs shipped 2026-04-30, PR-3 PARTIAL DEUDA detectada → S3 cleanup) · S3-copilot-llm-stack-convergence (2/2 PRs shipped 2026-04-30, ModelRole único + LiteLLM Proxy live) |
+| Sprints planificados | S4-copilot-model-registry-runtime (DB registry + GrowthBook, 2 PRs ready) · S5-copilot-eval-gate-pre-promote (eval gate UI + final cleanup, 2 PRs ready) |
 
 ## Outcome esperado
 
@@ -81,9 +81,9 @@ Pendientes discovery. Posibles:
 
 **Discovery audit failure PR-3** (Chris detectó capa LLM duplicada al preguntar "para qué se usan AI_MODEL/AI_PROVIDER actuales") cambió plan original "S3-copilot-llm-wiring-runtime" → 3 sprints encadenados con SSoT correcto.
 
-**S3-copilot-llm-stack-convergence** (in-progress):
-- PR-1 cleanup PR-3 + convergencia ModelTier→ModelRole + activar DeepSeek V4-Flash NANO+FAST — **shipped 2026-04-30** ✅ (allowlist 19→0, cost reduction 4-15x activated)
-- PR-2 LiteLLM Proxy intro como motor multi-provider centralizado — esfuerzo M, **ready next session**
+**S3-copilot-llm-stack-convergence** (DONE 2026-04-30):
+- PR-1 cleanup PR-3 + convergencia ModelTier→ModelRole + activar DeepSeek V4-Flash NANO+FAST — **shipped** ✅ (allowlist 19→0, cost reduction 4-15x activated)
+- PR-2 LiteLLM Proxy intro como motor multi-provider centralizado — **shipped** ✅ (Docker svc visionarias_litellm v1.83.10-stable + 18 D-decisions + 24 tests)
 
 **S4-copilot-model-registry-runtime** (after S3):
 - PR-1 DB registry `llm_role_binding` + admin Streamlit `/admin/llm-models` hot-swap <60s — esfuerzo L

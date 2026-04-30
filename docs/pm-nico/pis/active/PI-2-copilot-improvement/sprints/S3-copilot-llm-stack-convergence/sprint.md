@@ -6,7 +6,7 @@
 |---|---|
 | Sprint ID | S3-copilot-llm-stack-convergence |
 | PI padre | PI-2-copilot-improvement |
-| Estado | in-progress — PR-1 **shipped** 2026-04-30, PR-2 ready next session |
+| Estado | done — PR-1 + PR-2 shipped 2026-04-30 |
 | Inicio estimado | 2026-04-30+ |
 | Cierre estimado | 2026-05-07 |
 | Owner PM | /pm |
@@ -31,7 +31,7 @@ Cerrar deuda PR-3 PI-2 S2 (capa LLM duplicada) + convergir copilot ModelTier→M
 | PR | Folder | Descripción | Agentes/skills | Esfuerzo | Estado |
 |---|---|---|---|---|---|
 | PR-1 | `prs/PR-1-cleanup-modeltier-convergence/` | Eliminar capa duplicada PR-3 + convergir ModelTier consumers a ModelRole + activar DeepSeek V4-Flash NANO+FAST via .env. Mantener evals package + migration 114 + arch fitness test SSoT. | `nicolify-architect` → `nicolify-backend` → PM main thread takeover (builder truncate L-PROC) + `copilot-expert` + `sales-agent-expert` | M-L | **shipped** 2026-04-30 |
-| PR-2 | `prs/PR-2-litellm-proxy-integration/` | Introducir LiteLLM Proxy (BerriAI) como motor multi-provider centralizado. Docker svc + admin UI + virtual keys per-tenant. Refactor `shared/infrastructure/llm/router.py` para dispatch via LiteLLM. Cero deuda multi-provider chain. | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` | M | **ready next session** (depende PR-1 shipped ✅) |
+| PR-2 | `prs/PR-2-litellm-proxy-integration/` | Introducir LiteLLM Proxy (BerriAI) v1.83.10-stable como motor multi-provider centralizado. Docker svc visionarias_litellm + admin Streamlit virtual keys read-only + refactor router toggle-based + cost tracking dual-source. 18 D-decisions ejecutadas. | `nicolify-architect` → `nicolify-backend` (truncate) → PM main thread takeover + `copilot-expert` + `sales-agent-expert` | M | **shipped 2026-04-30** |
 
 ## Criterio éxito sprint
 

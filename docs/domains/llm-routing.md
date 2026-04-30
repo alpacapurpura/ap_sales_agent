@@ -18,6 +18,27 @@ provider = settings.get_provider_for_role(ModelRole.NANO)  # AIProvider enum
 
 NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PROVIDER`, `model_config.py` o `provider_factory.py` en `modules/copilot/infrastructure/llm/` — **es deuda técnica deprecada en migración**. NO consumir, NO extender, reportar a `/pm`.
 
+## Capa 5 — LiteLLM Proxy motor multi-provider (S3 PR-2 shipped 2026-04-30)
+
+**Docker svc `visionarias_litellm` v1.83.10-stable** expone `LITELLM_BASE_URL=http://visionarias_litellm:4000/v1` (OpenAI-compat). Routing dispatch único via `LiteLLMService` adapter → reemplaza per-provider adapters interno cuando `LITELLM_PROXY_ENABLED=True` (default).
+
+| Aspecto | Detalle |
+|---|---|
+| Image | `ghcr.io/berriai/litellm-database:v1.83.10-stable` |
+| DB | `visionarias_litellm_db` separada (Prisma vs Alembic isolation) |
+| Healthcheck | `GET /health/readiness` (Docker `service_healthy` gate) |
+| Models declared | 6 (deepseek-v4-flash, deepseek-reasoner, kimi-k2.6, gpt-4o-mini, gpt-4o, text-embedding-3-large) |
+| Fallback chains | deepseek-v4-flash → gpt-4o-mini · deepseek-reasoner → gpt-4o · kimi-k2.6 → gpt-4o |
+| `drop_params` | True (auto-filter unsupported kwargs per provider) |
+| `request_timeout` | 30s |
+| `store_model_in_db` | True (forward-compat S4 admin UI hot-swap) |
+| `disable_spend_logs` | True (PII guard — Nicolify usa `model_pricing_snapshot` SSoT inmutable) |
+| Toggle rollback | `LITELLM_PROXY_ENABLED=False` → fallback per-provider legacy adapters (deprecated, eliminación física S4) |
+
+**Recorder D-7:** `copilot_llm_call.model` strip prefix `<provider>/<model>` → bare model name. Preserve queries Streamlit existentes (`/costo-copilot`, `/marketing-kb`).
+
+**Admin Streamlit:** `/admin/llm-virtual-keys` read-only S3 (lista keys via `/key/info`). CRUD UI completo S4 PR-1.
+
 ## Arquitectura — capas
 
 ### Capa 1 — Domain (qué necesitás)
@@ -145,7 +166,7 @@ NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PRO
 | Sprint | PRs | Resultado |
 |---|---|---|
 | S2-copilot-cero-deuda-stack (shipped 2026-04-30) | PR-3 PARTIAL | Infra duplicada introducida — DEUDA |
-| S3-copilot-llm-stack-convergence (planning) | PR-1 cleanup + convergencia, PR-2 LiteLLM Proxy intro | ModelRole único SSoT, DeepSeek V4-Flash activo NANO+FAST |
+| S3-copilot-llm-stack-convergence (in-progress) | PR-1 shipped 2026-04-30, PR-2 shipped 2026-04-30 | ModelRole único SSoT + DeepSeek V4-Flash NANO+FAST + **LiteLLM Proxy motor multi-provider live** (visionarias_litellm Docker svc) |
 | S4-copilot-model-registry-runtime (planning) | PR-1 DB registry + admin UI, PR-2 GrowthBook per-tenant | Hot-swap modelo <60s sin deploy + per-tenant override |
 | S5-copilot-eval-gate-pre-promote (planning) | PR-1 eval gate wiring admin UI | NO promote sin score ≥0.95 |
 

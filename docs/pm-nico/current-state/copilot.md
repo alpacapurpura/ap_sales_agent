@@ -188,3 +188,16 @@ _Pendiente captura entrevistas users actuales._
 - `.env.example`: AI_MODEL_NANO + AI_MODEL_FAST = deepseek-v4-flash + AI_PROVIDER_*=deepseek (cost reduction esperado 4-15x). Eval gate S5 = guardrail forward.
 - SSoT doc: `docs/domains/llm-routing.md`. Arch fitness: `tests/architecture/test_llm_routing_ssot.py` 3/3 verde + allowlist 0.
 
+### Cap: LiteLLM Proxy motor multi-provider centralizado (S3 PR-2 PI-2)
+- Introducida: S3 PR-2 (PI-2, S3-copilot-llm-stack-convergence, commit `06065f6c`, 2026-04-30)
+- Estado: shipped — Docker svc `visionarias_litellm` v1.83.10-stable + healthcheck `GET /health/readiness`
+- Operable copilot: indirecto — todos los consumers `LLMFactory.get_service()` ahora dispatch via LiteLLM Proxy endpoint OpenAI-compat (`http://visionarias_litellm:4000/v1`)
+- Surface: `shared/infrastructure/llm/providers/litellm.py` (197 LOC) + `router.py` refactor toggle-based + `litellm_config.yaml` SSoT 6 modelos + `docker-compose.yml` svc append
+- Architecture: 18 D-decisions ejecutadas. Dispatch único `LiteLLMService` cuando `LITELLM_PROXY_ENABLED=True` (default). Toggle `False` → rollback emergency a per-provider legacy adapters (lazy imports, eliminación física S4 PR-1).
+- Fallback chain transparente: `deepseek-v4-flash → openai/gpt-4o-mini`, `deepseek-reasoner → gpt-4o`, `kimi-k2.6 → gpt-4o`. `drop_params:True` auto-filter unsupported kwargs. `request_timeout 30s`.
+- DB separada `visionarias_litellm_db` (Prisma vs Alembic isolation, migration 116 idempotente). Cost tracking SSoT inmutable `model_pricing_snapshot` preservado, LiteLLM `LiteLLM_SpendLogs` DISABLED (PII guard).
+- Recorder `copilot_llm_call.model` strip prefix `<provider>/<model>` → `<model>` (preserve queries Streamlit `/costo-copilot` + `/marketing-kb`).
+- Admin Streamlit `/admin/llm-virtual-keys` read-only (CRUD UI completo S4 PR-1).
+- Habilita: S4 PR-1 (DB registry + admin UI hot-swap <60s sin deploy), S4 PR-2 (GrowthBook per-tenant override + A/B), S5 (eval gate pre-promote).
+- Tests: 24 nuevos verde (5 service + 3 router + 4 recorder + 5 migration + 7 admin smoke). Arch fitness D-18 nuevo (AST scan module-level imports). 791 PASS total.
+
