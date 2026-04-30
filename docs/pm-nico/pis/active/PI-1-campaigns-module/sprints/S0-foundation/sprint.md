@@ -6,7 +6,7 @@
 |---|---|
 | Sprint ID | S0-foundation |
 | PI padre | PI-1-campaigns-module |
-| Estado | in-progress (PR-0 shipped 2026-04-29; plan reescrito a Opus 1M sizing) |
+| Estado | in-progress (PR-0 shipped; PR-1 + PR-2 refined ready 2026-04-29 noche) |
 | Inicio | 2026-04-29 |
 | Cierre estimado | 2026-05-13 (2 semanas) |
 | Cierre real | — |
@@ -33,8 +33,8 @@ Primer sprint del PI. Input desde:
 | PR | Folder | Descripción | Agentes/skills | Esfuerzo | Estado |
 |---|---|---|---|---|---|
 | PR-0 | `prs/PR-0-research-migration/` | Saneamiento research legacy → opportunities/ + research synthesis + current-state update | PM solo | S | shipped 2026-04-29 |
-| PR-1 | `prs/PR-1-foundation-event-driven-core/` | **Event-driven primitives:** outbox global (refactor `event_bus`, tabla `domain_event_outbox`, dispatcher) + IdempotencyStore Redis-backed + observability spec (registrar `agent_kind="campaign"` en `shared/agent_observability/`). Migrar 3 emisores existentes (sales_agent + copilot + brand) | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` | L | not-started |
-| PR-2 | `prs/PR-2-billing-and-compliance/` | **Billing + compliance gate:** plan_config + tenant_subscription + BudgetGuard (con reservación 50% sales_agent invariant) + OutboundRateLimiter Redis sliding window + Streamlit admin `/planes-billing` + ComplianceService (WABA-24h + opt-in + blacklist + country-block) | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` | L | not-started |
+| PR-1 | `prs/PR-1-foundation-event-driven-core/` | **Event-driven primitives:** outbox global (refactor `event_bus`, tabla `domain_event_outbox`, dispatcher) + IdempotencyStore Redis-backed + observability spec (registrar `agent_kind="campaign"` en `shared/agent_observability/`). Migrar 3 emisores existentes (sales_agent + copilot + brand) | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` | L | **ready** (PR.md + prompts/* refined 2026-04-29) |
+| PR-2 | `prs/PR-2-billing-and-compliance/` | **Billing + compliance gate:** plan_config + tenant_subscription + BudgetGuard (con reservación 50% sales_agent invariant) + OutboundRateLimiter Redis sliding window + Streamlit admin `/planes-billing` + ComplianceService (WABA-24h + opt-in + blacklist + country-block) | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` | L | **ready** (PR.md + prompts/* refined 2026-04-29; bloqueado por PR-1) |
 
 PR-1 bloquea PR-2 (BudgetGuard usa outbox para event emission; ComplianceService depende de idempotency para webhook delivery).
 

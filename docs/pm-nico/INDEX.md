@@ -57,7 +57,7 @@
 
 | PI | Tema | Estado | Archivo |
 |---|---|---|---|
-| PI-1 | campaigns-module | planning, S0 in-progress | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
+| PI-1 | campaigns-module | S0 in-progress (PR-0 shipped, PR-1+PR-2 ready); S1/S2/S3/S4 sprint.md macros refined | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
 | PI-2 | copilot-improvement | discovery | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
 | PI-3 | sales-agent-improvement | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 
