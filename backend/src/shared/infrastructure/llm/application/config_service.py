@@ -106,11 +106,19 @@ class LLMConfigService:
         return self._resolve_from_env(role)
 
     async def resolve(self, role: ModelRole, tenant_id: UUID | None = None) -> ResolvedModel:
-        """Async resolution. Cache hit → return; miss → DB → cache; fallback env.
+        """Async resolution chain ordered by priority.
 
-        ``tenant_id`` reserved for S4 PR-2 GrowthBook per-tenant override.
-        PR-1 ignores tenant_id (only global bindings).
+        Order (S4 PR-2): per-tenant GrowthBook override → cache hit (global) →
+        DB global binding → env fallback.
+
+        Per-tenant overrides are NOT cached cross-tenant (would leak isolation).
         """
+        # 1. Per-tenant override (S4 PR-2 GrowthBook)
+        if tenant_id is not None:
+            tenant_override = await self._resolve_per_tenant_override(role, tenant_id)
+            if tenant_override is not None:
+                return tenant_override
+
         cached = self._cache_get(role)
         if cached is not None:
             return cached
@@ -157,6 +165,55 @@ class LLMConfigService:
             source="env_fallback",
             binding_id=None,
         )
+
+    async def _resolve_per_tenant_override(self, role: ModelRole, tenant_id: UUID) -> ResolvedModel | None:  # noqa: PLR0911
+        """S4 PR-2 — query GrowthBook for per-tenant flag override.
+
+        Returns ResolvedModel when flag set + valid; None otherwise (caller
+        falls through to global cache/DB/env chain).
+
+        Graceful degradation: GrowthBook unavailable / SDK not installed /
+        flag inactive → returns None silently. Cero impact on global path.
+        """
+        if not settings.GROWTHBOOK_API_HOST or not settings.GROWTHBOOK_CLIENT_KEY:
+            return None
+
+        try:
+            from growthbook import GrowthBook  # type: ignore[import-not-found]
+
+            gb = GrowthBook(
+                api_host=settings.GROWTHBOOK_API_HOST,
+                client_key=settings.GROWTHBOOK_CLIENT_KEY,
+                attributes={"tenant_id": str(tenant_id), "role": role.value},
+            )
+            await gb.load_features()  # type: ignore[func-returns-value]
+            flag_value = gb.eval_feature(f"llm_model_override_{role.value.lower()}")
+            if flag_value is None or flag_value.value is None:
+                return None
+            override = flag_value.value
+            if not isinstance(override, dict):
+                return None
+            provider = override.get("provider")
+            model = override.get("model")
+            if not provider or not model:
+                return None
+            return ResolvedModel(
+                provider=AIProvider(provider),
+                model=model,
+                config=override.get("config", {}),
+                source="db_binding",
+                binding_id=f"growthbook:tenant:{tenant_id}",
+            )
+        except ImportError:
+            return None
+        except Exception as exc:  # noqa: BLE001 — graceful degradation
+            logger.warning(
+                "llm_config_growthbook_eval_failed",
+                role=role.value,
+                tenant_id=str(tenant_id),
+                error=str(exc),
+            )
+            return None
 
     # ──────────────────────────────────────────────────────────────────
     # Pub/sub (mirror PlanService pattern)

@@ -7,7 +7,7 @@
 | PR ID | PR-2-growthbook-per-tenant-override |
 | Sprint padre | S4-copilot-model-registry-runtime |
 | PI padre | PI-2-copilot-improvement |
-| Estado | in-progress — claimed 2026-04-30 main thread (post PR-1 shipped) |
+| Estado | shipped 2026-04-30 — minimal viable scaffold (Settings + LLMConfigService.resolve tenant_id arg + Docker svc profile growthbook + 5 tests) |
 | Tipo | infra (feature flag service para per-tenant + A/B) |
 | Esfuerzo | M (~10 archivos) |
 | Owner PM | /pm |

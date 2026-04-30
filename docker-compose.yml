@@ -511,6 +511,44 @@ services:
         reservations:
           memory: 256M
 
+  # --- GrowthBook (per-tenant LLM override + A/B + kill-switch) (PI-2 S4 PR-2) ---
+  # Self-hosted feature flag service. SDK Python en LLMConfigService consulta
+  # flags `llm_model_override_<role>` con bucketing por tenant_id.
+  # Por defecto NO se levanta (use `docker compose --profile growthbook up`)
+  # — solo necesario cuando hay un caso real per-tenant override.
+  growthbook:
+    image: growthbook/growthbook:latest
+    container_name: visionarias_growthbook
+    restart: unless-stopped
+    profiles: ["growthbook"]
+    depends_on:
+      postgres:
+        condition: service_started
+    environment:
+      MONGODB_URI: ""  # GrowthBook OSS soporta Postgres alternative; configurable
+      JWT_SECRET: "${GROWTHBOOK_JWT_SECRET:-dev-jwt-secret-change-in-prod}"
+      ENCRYPTION_KEY: "${GROWTHBOOK_ENCRYPTION_KEY:-dev-encryption-key-change-in-prod}"
+      APP_ORIGIN: "http://localhost:3001"
+      API_HOST: "http://localhost:3100"
+    expose:
+      - "3000"  # Admin UI
+      - "3100"  # API (SDK consume here)
+    networks:
+      - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3100/healthcheck || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
+
 volumes:
   frontend_next:
   frontend_node_modules:

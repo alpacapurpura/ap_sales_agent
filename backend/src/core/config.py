@@ -232,6 +232,14 @@ class Settings(BaseSettings):
     # (SOLO para emergency rollback. Default ON post-merge).
     LITELLM_PROXY_ENABLED: bool = True
 
+    # ── GrowthBook per-tenant LLM override (PI-2 S4 PR-2) ────────────────
+    # Self-hosted Docker svc visionarias_growthbook expone API + admin UI.
+    # Empty string = disabled (LLMConfigService bypasses GrowthBook eval).
+    # Per-tenant override flag scheme: ``llm_model_override_<role_lower>``
+    # con value JSON ``{"provider": "openai", "model": "gpt-4o-mini"}``.
+    GROWTHBOOK_API_HOST: str = ""
+    GROWTHBOOK_CLIENT_KEY: str = ""
+
     # ── Copilot media + voice limits (PI-2 S1 PR-1) ──────────────────────
     # Applies to /media/upload and /voice/upload-and-transcribe.
     # Per-tenant overrides stored in copilot_tenant_limits table.
