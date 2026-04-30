@@ -101,6 +101,36 @@ _Pendiente captura entrevistas users actuales._
 - Idempotente: re-run = 0 rows updated. Optimistic lock `WHERE messages = :original` evita conflict mid-flight
 - Out of scope: DROP `content` column (safety wait, PR futuro tras N días sin warnings v1)
 
+### Cap: 4 suggestion providers — multi-route smart-chips
+- Introducida: PR-2 (PI-2, S2, commit `64374b55`, 2026-04-30)
+- Estado: live
+- Operable copilot: indirecto (chips habilitan exploración rápida cualquier route)
+- Providers registrados: offer (route `offer-studio`, priority=0), brand (route `brand-studio`, priority=10), sales_agent (route `sales`, priority=10), copilot (transversal, priority=5)
+- Heurísticas tabuladas per provider (CONTRACT D-3/D-4/D-5)
+- Cap engine total <11ms p99 con 4 providers (per CONTRACT D-15)
+
+### Cap: SalesAgentObservabilityPort cross-module read-only
+- Introducida: PR-2 (PI-2, S2, commit `64374b55`, 2026-04-30)
+- Estado: live
+- Operable copilot: indirecto (alimenta SalesAgentSuggestionProvider chips)
+- Path: `backend/src/shared/links/ports/sales_agent.py` (port + DTO PII-stripped + factory)
+- Adapter: `backend/src/modules/sales_agent/application/services/observability_adapter.py`
+- §3 protected: solo lectura `enrollments` + `messages`. NO toca Closer Studio API/WS, BufferService, OutputManager, FollowUp, PromptVersionModel, agent_state_checkpoint
+- Preserva ratchet F1 `copilot→sales_agent` 0 entries (port-mediated cross-module)
+
+### Cap: offer_section_tools pure expansion (cero deuda S1 PR-2)
+- Introducida: PR-2 (PI-2, S2, commit `64374b55`, 2026-04-30)
+- Estado: live
+- Cierra deuda S1 PR-2 D-9 (Q1 expansion vs additive trade-off pragmático)
+- Verificación: `grep -n '"suggestions": \[hint\]' offer_section_tools.py` = 0 hits hardcoded
+- Engine-driven: tools llaman `_engine_suggestions_for_context()` → engine.get_suggestions(ctx) → providers ranked
+
+### Cap: BrandDataPort extension additive
+- Introducida: PR-2 (PI-2, S2, commit `64374b55`, 2026-04-30)
+- Estado: live
+- 2 nuevos métodos abstract: `get_buyer_persona_count(tenant_id) -> int`, `get_active_personality_profile_present(tenant_id) -> bool`
+- Adapter `BrandDataAdapter` impl con repo soft-delete handling
+
 ### Cap: Smart-chips dinámicas FE consume engine + producer event
 - Introducida: PR-1 (PI-2, S2, commits `e53b7ef6` + `824c946a`, 2026-04-30)
 - Estado: live

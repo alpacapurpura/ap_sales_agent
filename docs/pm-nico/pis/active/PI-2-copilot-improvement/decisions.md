@@ -80,6 +80,21 @@
 
 **Aprendizaje proceso:** S1 learning #8 confirmado en S2 — FE auditor stalled 600s. PM main thread completó manualmente quality gates + REVIEW-frontend.md. Patrón consistente — para FE PRs L+ planear main thread takeover audit por default.
 
+## 2026-04-30 — PR-2 shipped
+
+**Decisión:** cierra deuda S1 PR-2 D-9 (Q1 expansion vs additive pragmatic). Verdict PASS (PM main thread audit post builder truncation S1 learning #8 confirmado).
+
+**Decisiones técnicas relevantes (CONTRACT 16 D-numbered, top 5):**
+- D-2: `SalesAgentObservabilityPort` cross-module via `shared/links/ports/` (preserva ratchet copilot→sales_agent 0 entries — sin direct imports)
+- D-6: `EnrollmentSummaryDTO` PII-stripped (sin contact_id, payment_link_url, pricing) — boundary §3 sales_agent
+- D-7: `_no_data_response` + `_ok_response` refactor — `suggestions: list[str]` (engine) vs `next_step_hint: str | None` (LLM guidance) separados
+- D-9: registry `_bootstrap_builtin` 4 providers orden estable (offer→brand→sales_agent→copilot)
+- D-13: ratchet copilot→módulo 22 frozen — port-mediated cross-module preserva
+
+**Surface entregada:** 26 archivos, 54 tests nuevos, 0 migrations DB, 0 schema changes. 3 providers nuevos + 1 port + 1 adapter + 2 abstract methods extension.
+
+**Aprendizaje proceso:** S1 learning #8 confirmado segunda vez (PR-2 builder truncó mid-fix iter 1). PM main thread completó: lazy imports → module level (test mocking), 6 type ignores defensivos documentados, test design alignment para resilience pattern. Patrón cementado — para PRs M+ planear PM main thread takeover post primer trunc.
+
 ## Pendientes registrar
 
 _Aquí se irán registrando decisiones tomadas durante discovery + ejecución._
