@@ -107,4 +107,49 @@
 
 ---
 
-<!-- @pm: implementación done. Próximo paso: ejecutar prompts/03-auditor-start.md o ejecutar /pm "PR-1 builder done" para review. -->
+## Post-REVIEW Fixes — Sesión 2026-04-29
+
+### Contexto
+
+Auditor (`nicolify-backend-auditor`) emitió veredicto FAIL con 4 findings (1 crítico, 2 altos, 1 medio). Builder resuelve los 4 en pasada única post-review.
+
+### Decisiones
+
+- **F-1: call-stack inference** — opción 1 del auditor ("adapter infers module"). Call-stack walk via `sys._getframe()` extrae el primer frame en `src/modules/{name}/`. Regex compilada + `@lru_cache` por filename → overhead ~0μs en steady state. `_reset_module_inference_cache()` exposé para tests (autouse fixture).
+
+- **F-2: async path** — simplificado como parte del refactor F-1 (`eb620d25`). Sin PR separado.
+
+- **F-3: PII best-effort** — `sanitize_payload` en ambos paths (sync + async), try/except + structlog warning, nunca bloquea insert. Consistente con patrón `copilot_observability` (best-effort rule).
+
+- **F-4: E2E sin `module=` kwarg** — tests usan `sys._getframe` mock vía `patch("sys._getframe")` para simular call-site de producción sin tocar los 38 archivos. Tests integration marker (no Postgres).
+
+### Commits post-REVIEW
+
+| Hash | Tipo | Descripción |
+|---|---|---|
+| `eb620d25` | fix | EventBusAdapter infers module from call-stack (F-1 + F-2) |
+| `ee6e279f` | test | adapter module inference + remove module= kwarg from integration tests |
+| `d0a40e01` | feat | outbox payload PII sanitization (F-3) |
+| `328c4d85` | test | outbox cutover E2E flag-flip per-module (F-4) |
+
+### Tests nuevos post-REVIEW
+
+- `tests/shared/domain_events/test_event_bus_adapter_infers_module.py` — 20 tests (F-1)
+- `tests/shared/domain_events/test_outbox_payload_sanitization.py` — 9 tests (F-3)
+- `tests/integration/test_outbox_cutover_e2e.py` — 8 tests integration (F-4)
+- 3 integration tests ajustados (module= kwarg eliminado — F-1 followup)
+
+### Quality gates post-REVIEW
+
+- [x] Pytest 109 tests: PASS (todos los tests WIP + suite existente)
+- [x] Ruff check + format: PASS
+- [x] Mypy `src/shared/domain_events`: PASS (0 issues)
+- [x] Cutover plan: UNBLOCKED — inferencia automática activa
+
+### Impacto arquitectural
+
+Ningún cambio de contrato externo. `EventBusAdapter.publish(event, session=...)` sigue siendo la API pública. El parámetro `module=` ahora es opcional-por-inferencia (backward compatible). Los 38 call-sites no requieren edición. Flag flip `USE_OUTBOX_PATTERN_SALES_AGENT=true` en S1 es operacional.
+
+---
+
+<!-- @pm: PR-1 fixes done (FAIL→PASS). Próximo paso: ejecutar prompts/04-pm-close.md o ejecutar /pm "PR-1 ready to close" para final. -->
