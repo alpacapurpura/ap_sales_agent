@@ -125,12 +125,23 @@ Todos los endpoints no-DELETE tienen `response_model=` (PII allowlist). Header `
 
 ---
 
-## S3 PENDIENTE — Wiring sales_agent + copilot tools
+## S3 PARTIAL SHIPPED — sales_agent outbound dispatch (PR-7)
+
+### Cap: SalesAgentAdapter + Outbound conversational dispatch (PR-7 PI-1 S3)
+- Introducida: PR-7 Sub-D (PI-1, S3, 2026-04-30) — **commit hash TBD (Sub-D corre paralelo en otra session al cierre Sub-K)**
+- Estado: live (al cierre paralelo session) — se actualiza hash post-merge
+- Bridge `CampaignTask` + `CampaignStep(step_type=CALL_SUBAGENT_BRIEF)` → `OutboundOrchestrator.send_outbound`. Adapter en `campaigns/infrastructure/external/sales_agent_adapter.py` (Decisión 31 — campaigns owns adapter, evita DDD violation `sales_agent → campaigns`).
+- Worker `execution_task._process_task` branch sobre `step.step_type`: `CALL_SUBAGENT_BRIEF` → `SalesAgentAdapter.dispatch`; otros → `ChannelRouter` directo (path PR-5 sin cambios).
+- Compliance + RateLimit + Idempotency siguen aplicando pre-dispatch (heredado worker PR-5 Sub-B).
+- DR-7 STUB `_resolve_telegram_id` cerrado (PR-7 Sub-E commit `4a3b7383` — lookup real CRM via `get_lead_telegram_id_async` port).
+- DR-7 placeholder `_resolve_tenant_locale` cerrado (PR-7 Sub-F commit `b308cbff` — lookup real `TenantModel.config_json["tenant_locale"]` con LRU cache 5min, fallback `TenantLocale.default()`).
+- `step_config` shape para `CALL_SUBAGENT_BRIEF`: `{"agent_kind": "sales_agent", "brief": str}`. PR-7 asserts `agent_kind == "sales_agent"` (otros agent_kind retornan `unsupported_agent_kind` error code; multi-agent S4+).
+
+## S3 PENDIENTE — Copilot tools wiring
 
 | Superficie | Estado | Sprint |
 |---|---|---|
-| copilot provider campaigns (campaign_get_status, campaign_pause, campaign_launch tools) | PENDIENTE | S3 |
-| sales_agent OutboundOrchestrator (usa CampaignService.launch() para outbound segmentado) | PENDIENTE | S3 |
+| copilot provider campaigns (campaign_get_status, campaign_pause, campaign_launch tools) | PENDIENTE | S3 PR-8 |
 | Copilot Marketing Campaign Subagent (deepagents, PI-2) | PENDIENTE | PI-2 |
 
 ---

@@ -43,6 +43,17 @@ AI SDR autónomo. Conversa con leads en canales conectados, pre-califica, maneja
 - Tests F-7 sin mocks: 13 verde (outbox cutover + budget_guard_wiring + SA pool isolation + soft-warn + proxy attrs)
 - Operable copilot: no PR-6 (infra cutover)
 
+### Cap: OutboundOrchestrator (PR-7 PI-1 S3)
+- Introducida: PR-7 Sub-B (PI-1, S3, commit `db9fa4b8`, 2026-04-30)
+- Estado: live
+- Static class paralelo a `ChatOrchestrator`. Reusa `ConversationPipeline` helpers (fetch_tenant_config / load_checkpoint / build_agent_identity / build_brand_voice / build_initial_state / save_checkpoint / sanitize_text) + `agent_app` LangGraph + slot system v2 + voice SSoT.
+- Single async entrypoint `OutboundOrchestrator.send_outbound(*, db, tenant_id, lead_id, campaign_id, campaign_instructions, channel_type, channel_adapter, budget_guard)`.
+- Slot 7 `CAMPAIGN_CONTEXT` en `compose.py` (Sub-A.5 commit `90ad4d64`) — emitted ONLY cuando `outbound_mode=True`. Cache prefix slots 1-6 byte-equal across inbound/outbound preservando hit rate ≥60% per-tenant.
+- Supervisor outbound skip-qualifier (Sub-C commit `32461f9c`): `outbound_mode=True` + `lead_score >= 40` → directo a closer (1000-clientes invariant, NO per-tenant tunable; ENV `SALES_AGENT_OUTBOUND_CLOSER_MIN_SCORE` follow-up adjustment si telemetry muestra falsos positivos).
+- Voice fidelity grader threshold prod ENV `SALES_AGENT_VOICE_FIDELITY_THRESHOLD` default `0.7` (Decision 30 — global invariant, NOT per-tenant).
+- AgentState additive (Sub-A commit `9200b6cc`): `campaign_id` / `campaign_instructions` / `outbound_mode` con defaults `None / None / False`. Inbound chat path NO se rompe. Arch tests `test_outbound_orchestrator_non_breaking.py` + `test_campaign_state_additive.py` (Sub-J commit `f58016d7`) enforzan invariantes 11/11 verde.
+- Operable copilot: no PR-7 (campaign launch tools queda PR-8 PI-1 S3 wiring).
+
 ## Capacidades operables desde copilot
 - Activar / pausar agente (sólido)
 - Ver últimas conversaciones (parcial)
