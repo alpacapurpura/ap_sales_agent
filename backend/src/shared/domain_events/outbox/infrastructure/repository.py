@@ -18,6 +18,7 @@ import structlog
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from src.shared.agent_observability.recording.sanitization import sanitize_payload
 from src.shared.domain_events.outbox.domain.outbox_entry import (
     OutboxEntry,
     OutboxStatus,
@@ -111,14 +112,31 @@ class OutboxRepositoryImpl(OutboxRepository):
         )
 
     async def append(self, entry: OutboxEntry, *, session: AsyncSession) -> None:
-        """Insert outbox entry. ON CONFLICT (tenant_id, idempotency_key) → skip."""
+        """Insert outbox entry. ON CONFLICT (tenant_id, idempotency_key) → skip.
+
+        PII sanitization (F-3, PI-1 S0 post-REVIEW):
+        Payload is run through ``sanitize_payload`` before insert to redact
+        emails, phones, national IDs, card numbers, and API tokens. Best-effort
+        — sanitization failure falls back to the raw payload so the outbox
+        insert is never blocked.
+        """
+        try:
+            safe_payload = sanitize_payload(entry.payload)
+        except Exception:  # noqa: BLE001 — best-effort, must not block insert
+            logger.warning(
+                "outbox_pii_sanitization_failed",
+                event_name=entry.event_name,
+                tenant_id=str(entry.tenant_id),
+            )
+            safe_payload = entry.payload
+
         stmt = (
             pg_insert(DomainEventOutboxModel)
             .values(
                 id=entry.id,
                 tenant_id=entry.tenant_id,
                 event_name=entry.event_name,
-                payload=entry.payload,
+                payload=safe_payload,
                 idempotency_key=entry.idempotency_key,
                 status=entry.status.value,
                 retry_count=entry.retry_count,
@@ -152,8 +170,24 @@ class OutboxRepositoryImpl(OutboxRepository):
 
         ON CONFLICT (tenant_id, idempotency_key) → skip.
         Caller responsible for session.commit().
+
+        PII sanitization (F-3, PI-1 S0 post-REVIEW):
+        Payload is run through ``sanitize_payload`` before insert to redact
+        emails, phones, national IDs, card numbers, and API tokens. Best-effort
+        — sanitization failure falls back to the raw payload so the outbox
+        insert is never blocked.
         """
         from sqlalchemy.dialects.postgresql import insert as pg_insert_sync
+
+        try:
+            safe_payload = sanitize_payload(entry.payload)
+        except Exception:  # noqa: BLE001 — best-effort, must not block insert
+            logger.warning(
+                "outbox_pii_sanitization_failed",
+                event_name=entry.event_name,
+                tenant_id=str(entry.tenant_id),
+            )
+            safe_payload = entry.payload
 
         stmt = (
             pg_insert_sync(DomainEventOutboxModel)
@@ -161,7 +195,7 @@ class OutboxRepositoryImpl(OutboxRepository):
                 id=entry.id,
                 tenant_id=entry.tenant_id,
                 event_name=entry.event_name,
-                payload=entry.payload,
+                payload=safe_payload,
                 idempotency_key=entry.idempotency_key,
                 status=entry.status.value,
                 retry_count=entry.retry_count,
