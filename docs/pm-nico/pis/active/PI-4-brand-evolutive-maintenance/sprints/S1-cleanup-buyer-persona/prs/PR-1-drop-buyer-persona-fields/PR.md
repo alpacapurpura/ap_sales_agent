@@ -7,11 +7,11 @@
 | PR ID | PR-1-drop-buyer-persona-fields |
 | Sprint padre | S1-cleanup-buyer-persona |
 | PI padre | PI-4-brand-evolutive-maintenance |
-| Estado | ready |
+| Estado | in-progress |
 | Tipo | refactor (cleanup schema + cross-stack) |
 | Esfuerzo | M |
 | Owner PM | /pm |
-| Claimed by session | — |
+| Claimed by session | builder BE + builder FE paralelo (claim 2026-04-29 post-architect, open questions resueltas) |
 
 ## Problema (user-facing)
 
