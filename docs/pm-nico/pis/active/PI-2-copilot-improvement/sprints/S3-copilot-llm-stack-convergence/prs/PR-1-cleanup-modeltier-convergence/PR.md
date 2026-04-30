@@ -7,7 +7,7 @@
 | PR ID | PR-1-cleanup-modeltier-convergence |
 | Sprint padre | S3-copilot-llm-stack-convergence |
 | PI padre | PI-2-copilot-improvement |
-| Estado | ready |
+| Estado | in-progress (claimed 2026-04-30) |
 | Tipo | refactor (cleanup deuda + convergencia SSoT) |
 | Esfuerzo | M-L (~12-15 archivos, 30 tests, target ≤15 archivos cohesivos) |
 | Owner PM | /pm |

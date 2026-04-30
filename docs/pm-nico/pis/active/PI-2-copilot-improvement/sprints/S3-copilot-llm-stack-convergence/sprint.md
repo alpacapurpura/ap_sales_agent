@@ -6,7 +6,7 @@
 |---|---|
 | Sprint ID | S3-copilot-llm-stack-convergence |
 | PI padre | PI-2-copilot-improvement |
-| Estado | not-started — ready para nueva conversación |
+| Estado | in-progress — PR-1 claimed 2026-04-30 |
 | Inicio estimado | 2026-04-30+ |
 | Cierre estimado | 2026-05-07 |
 | Owner PM | /pm |
