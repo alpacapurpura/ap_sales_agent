@@ -58,7 +58,7 @@ _LOGGER = structlog.get_logger(__name__)
 )
 async def copilot_telegram_webhook(
     update: TelegramUpdate,
-    x_telegram_bot_api_secret_token: Annotated[str | None, Header(convert_underscores=False)] = None,
+    x_telegram_bot_api_secret_token: Annotated[str | None, Header()] = None,
 ) -> WebhookAck:
     """Telegram → Nicolify webhook. NON-BLOCKING enqueue ARQ.
 
