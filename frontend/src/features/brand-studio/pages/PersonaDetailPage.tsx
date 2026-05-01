@@ -19,8 +19,6 @@ const EDITABLE_FIELDS = [
   "psychographics",
   "pain_points",
   "desires",
-  "objections",
-  "preferred_channels",
   "buyer_journey",
   "purchase_triggers",
   "anti_patterns",

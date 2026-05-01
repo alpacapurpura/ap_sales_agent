@@ -14,8 +14,6 @@ export interface BuyerPersona {
   psychographics: Record<string, unknown>;
   pain_points: Record<string, unknown>[];
   desires: Record<string, unknown>[];
-  objections: Record<string, unknown>[];
-  preferred_channels: Record<string, unknown>[];
   buyer_journey: Record<string, unknown>;
   purchase_triggers: string[];
   anti_patterns: string[];
@@ -40,8 +38,6 @@ export type BuyerPersonaSectionUpdateDTO = Partial<
     | "psychographics"
     | "pain_points"
     | "desires"
-    | "objections"
-    | "preferred_channels"
     | "buyer_journey"
     | "purchase_triggers"
     | "anti_patterns"

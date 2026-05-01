@@ -87,8 +87,6 @@ function makePersona(overrides: Partial<BuyerPersona> = {}): BuyerPersona {
     psychographics: {},
     pain_points: [],
     desires: [],
-    objections: [],
-    preferred_channels: [],
     buyer_journey: {},
     purchase_triggers: [],
     anti_patterns: [],

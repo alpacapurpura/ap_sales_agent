@@ -63,8 +63,6 @@ const FULL_PERSONA = {
   psychographics: {},
   pain_points: [],
   desires: [],
-  objections: [],
-  preferred_channels: [],
   buyer_journey: {},
   purchase_triggers: [],
   anti_patterns: [],

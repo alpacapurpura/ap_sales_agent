@@ -177,76 +177,8 @@ export const buyerPersonaSchema: SectionSchema = {
         ],
       },
     },
-    {
-      id: "objections",
-      label: "Objeciones",
-      type: "array",
-      path: "objections",
-      hint: "Las frases reales con las que este avatar evita comprar. El agente las detecta y responde.",
-      itemSchema: {
-        fields: [
-          {
-            id: "text",
-            label: "Objeción",
-            type: "textarea",
-            path: "text",
-            rows: 2,
-            required: true,
-            hint: "La frase textual que usaría este avatar para evitar avanzar. Sé específico, no genérico.",
-            examples: [
-              {
-                brand: "Avatar: profesional 35+ (Lima, PE)",
-                text: "Ya lo intenté antes y no me funcionó. No creo que esto sea para mí.",
-              },
-              {
-                brand: "Avatar: emprendedora 28-35 (CDMX)",
-                text: "Ahora no tengo tiempo, quizás en tres meses cuando esté más organizada.",
-              },
-              {
-                brand: "Avatar: consultor (Bogotá, CO)",
-                text: "Tengo que hablarlo con mi pareja antes de comprometer ese dinero.",
-              },
-            ],
-          },
-          {
-            id: "response",
-            label: "Respuesta sugerida",
-            type: "textarea",
-            path: "response",
-            rows: 3,
-            hint: "El argumento que el agente usa cuando el lead plantea esta objeción. Empático y concreto.",
-          },
-        ],
-      },
-    },
 
-    // ── Canales & journey ────────────────────────────────────────────────
-    {
-      id: "preferred_channels",
-      label: "Canales preferidos",
-      type: "array",
-      path: "preferred_channels",
-      hint: "Dónde está este avatar y cómo prefiere que le contacten. Guía la estrategia de captación.",
-      itemSchema: {
-        fields: [
-          {
-            id: "channel",
-            label: "Canal",
-            type: "text",
-            path: "channel",
-            required: true,
-            hint: "Nombre del canal: Instagram, WhatsApp, LinkedIn, email, TikTok, referidos, etc.",
-          },
-          {
-            id: "usage",
-            label: "Uso típico",
-            type: "text",
-            path: "usage",
-            hint: "Cómo usa ese canal: consume contenido, busca información, chatea con marcas, etc.",
-          },
-        ],
-      },
-    },
+    // ── Journey ──────────────────────────────────────────────────────────
     {
       id: "journey_awareness",
       label: "Etapa de awareness",
