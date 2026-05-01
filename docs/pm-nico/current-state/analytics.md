@@ -51,11 +51,21 @@ ETL + dashboards. Visualiza desempeño marketing/ventas end-to-end via diagrama 
 ## Dolor user / oportunidades detectadas
 _Pendiente captura. Hipótesis: action triggers → expansión es siguiente palanca de valor._
 
+## Capacidades corregidas
+
+### Cap: Growth Studio — drawer/bowtie layout correcto multi-viewport
+- Fix: PR-1 (PI-8, S1-drawer-bowtie-hotfix, commit `00bf51f6`, 2026-05-01)
+- Estado: live
+- Detalle: `DetailPanel` mobile `max-md:z-[60]` sobre copilot `z-50`. `StageSummaryRow` respeta `copilotWidth` via `useCopilotOffset`. Arch fitness ratchet (6 KNOWN_VIOLATIONS PI-9/PI-10 territory, shrink-only).
+- Operable copilot: no (layout-only)
+- Smoke manual: PENDIENTE Chris (5 stages × mobile + desktop)
+
 ## PIs históricos
 | PI | Cambio | Fecha cierre |
 |---|---|---|
 | ETL Google complete | GA4 + Ads, 5 bugs fixed | 2026 |
 | Verification layer | 4-layer protocol pipeline | 2026 |
+| PI-8-growth-studio-stability | Fix drawer/bowtie z-index + offset layout bugs (FE-only) | 2026-05-01 |
 
 ## Decisiones producto vinculadas
 | Fecha | Decisión | Razón |

@@ -7,7 +7,7 @@
 | PR ID | PR-1-drawer-bowtie-fixes |
 | Sprint padre | S1-drawer-bowtie-hotfix |
 | PI padre | PI-8-growth-studio-stability |
-| Estado | ready |
+| Estado | shipped |
 | Tipo | bug (FE-only, layout) |
 | Esfuerzo | S |
 | Owner PM | /pm |
