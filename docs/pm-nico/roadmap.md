@@ -10,9 +10,8 @@
 | ~~Campaigns module — Foundation + Telegram MVP~~ | PI-1 | **DONE 2026-04-30** — 5 sprints / 12 PRs shipped (S0+S1+S2+S3+S4). MVP 1 Telegram outbound end-to-end. CRM Hub Lite forward-compat → archived | [pis/archive/PI-1-campaigns-module/retro.md](pis/archive/PI-1-campaigns-module/retro.md) |
 | ~~PI-1 post-mortem hotfixes (#1+#2+#4+#8)~~ | PI-1.1 | **DONE 2026-05-01** — 2 sprints / 2 PRs shipped. Bugs #1+#2+#4+#8 fixed + 5-layer anti-duplication enforcement cementada. Cascade #7+#9 descubiertos handoff PI-7 | [pis/archive/PI-1.1-pi1-post-mortem/retro.md](pis/archive/PI-1.1-pi1-post-mortem/retro.md) |
 | **App stability restore (Bug #7 brand adapter + #9 LiteLLM)** | **PI-7** | **active 2026-05-01 — S1 ready architect spawn** | [pis/active/PI-7-app-stability-restore/PI.md](pis/active/PI-7-app-stability-restore/PI.md) |
-| Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
+| **Growth Studio stability (drawer + bowtie + copilot offset hotfix)** | **PI-8** | **active 2026-05-01 — S1 ready builder spawn** | [pis/active/PI-8-growth-studio-stability/PI.md](pis/active/PI-8-growth-studio-stability/PI.md) |
 | Copilot multicanal — Telegram MVP | PI-5 | S2 shipped (PR-2 commit `6bad657b` 2026-05-01) | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
-| Campaigns multi-canal (ManyChat WA + EMAIL_DRIP + commercial_director subagent) | PI-6 (placeholder) | next — abrir post PI-7 + manual gate Chris staging PI-1 | _placeholder_ |
 
 ## Maintenance (rolling, paralelo a Now — no compite cap)
 
@@ -26,12 +25,16 @@
 
 | Item | Tipo | Bloqueado por | Link |
 |---|---|---|---|
-| CRM Hub completo + Segment Builder Visual + Cards copilot CRM | PI-7 (placeholder) | PI-1 manual gate Chris + telemetría | _placeholder_ |
+| **Growth Studio architecture homologation** (registries SSoT + StageDispatcher + actions/schemas/tiers/) | **PI-9** | PI-8 ship | [pis/active/PI-9-growth-studio-architecture/PI.md](pis/active/PI-9-growth-studio-architecture/PI.md) |
+| Sales agent improvement | PI-3-sales | desplazado de Now por priorización Growth Studio (Chris 2026-05-01) — discovery, no execution-ready | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
+| Campaigns multi-canal (ManyChat WA + EMAIL_DRIP + commercial_director subagent) | PI-6 (placeholder) | post PI-7 + manual gate Chris staging PI-1 | _placeholder_ |
+| CRM Hub completo + Segment Builder Visual + Cards copilot CRM | (placeholder) | PI-1 manual gate Chris + telemetría | _placeholder_ |
 
 ## Later (capturado, sin priorizar)
 
 | Item | Tipo | Razón Later | Link contexto |
 |---|---|---|---|
+| **Growth Studio UX homologation (rediseño visual + decisión drawer-vs-route)** | **PI-10** | bloqueado por PI-9 ship | [pis/active/PI-10-growth-studio-ux-homologation/PI.md](pis/active/PI-10-growth-studio-ux-homologation/PI.md) |
 | Event campaigns (webinar/launch) + CRM Hub Frontend + Retargeting Meta Ads | PI-3-campaigns (placeholder) | Bloqueado por PI-2 multi-canal | [opportunities/event-campaign-orchestration.md](opportunities/event-campaign-orchestration.md), [retargeting-meta-ads.md](opportunities/retargeting-meta-ads.md) |
 | Web Push (OneSignal) + Referral / Afiliados | PI-4-campaigns (placeholder) | Tier 2 demanda no validada | [docs/pm/campaigns/03-otros-tipos/research.md] |
 | AI Voice follow-up (Vapi) | TBD | Cultural risk LATAM, opt-in only | [docs/pm/campaigns/03-otros-tipos/research.md] |
@@ -61,3 +64,4 @@
 | 2026-04-30 | Abierto **PI-5-copilot-multicanal-telegram** (discovery) | Capturado en retro PI-2 como next step ("Multicanal Bloque A — Telegram bridge"). Cap Now = 3 features (PI-1 + PI-3 + PI-5) — al límite. Scope: Telegram only (WA + IG DM = futuros PIs separados) |
 | 2026-04-30 | **PI-1 cerrado + archivado** post-S4 cierre. Outcome MVP 1 Telegram alcanzado. Manual gate Chris staging pendiente. PI-6 placeholder (multi-canal) sube a Now. Cap Now = 3 (PI-3 + PI-5 + PI-6 placeholder). | PI-1 5 sprints + 12 PRs shipped en 1 día Opus 4.7[1M] sprint sizing. Cero refactor confirmed strongly (H4) |
 | 2026-04-30 | **PI-5 S1 shipped** (PR-1 telegram-bot-foundation commit `c1fa2909`). **S2 abierto** con PR-2-telegram-orchestrator-hookup (single surface agentic, scope L cohesivo). | Foundation Telegram cross-stack lista (webhook + linking + tool subset registry + FE settings). S2 cablea orchestrator real + memory + cache fragment para reemplazar placeholder MVP. |
+| 2026-05-01 | **Abierto PI-8 (Growth Studio stability hotfix) + PI-9 (architecture homologation Next) + PI-10 (UX homologation Later) trío secuencial.** PI-3-sales-agent-improvement desplazado de Now → Next (era discovery puro, sin execution-ready). Cap Now feature = 3 (PI-5 + PI-7 + PI-8). | Chris reportó bug latente Growth Studio drawer + arquitectura no homologada con brand/offer. Architect tech sanity check (Opus read-only) verificó 3 fixes mecánicos drawer + diff arquitectónico (falta `pages/`+`actions/`+`schemas/`) + 177 components masa = 6x brand. Decisión Chris: 3 PIs granulares (estabilidad → arquitectura escalable → UX homologation) en lugar de mega-PI. Razón: cientos clientes proyectados 1 mes exigen arquitectura escalable (open-closed agregar canales sin refactor). Anti-patterns Chris-confirmados estrictos PI-8: NO tocar `metrics-dashboard/components/`, NO consolidar dual UX path, NO hardcodear "5 stages", NO crear `schemas/`/`actions/`/`pages/` en growth (PI-9 owns), NO promover 4-tier a shared, NO `strategy-canvas/` touch, NO reescribir `useCopilotOffset`, NO cambios visuales. |

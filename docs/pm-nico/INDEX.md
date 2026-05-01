@@ -57,9 +57,13 @@
 
 | PI | Tipo | Tema | Estado | Archivo |
 |---|---|---|---|---|
-| PI-3 | feature | sales-agent-improvement | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
+| PI-3 | feature | sales-agent-improvement | **Next** (desplazado de Now 2026-05-01 — discovery puro sin execution-ready) | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 | PI-4 | **maintenance** (rolling) | brand-evolutive-maintenance | S1 in-progress (PR-1-drop-buyer-persona-fields ready) | [pis/active/PI-4-brand-evolutive-maintenance/PI.md](pis/active/PI-4-brand-evolutive-maintenance/PI.md) |
 | PI-5 | feature | copilot-multicanal-telegram | S2 done (PR-2 shipped commits d09799b9+8b180584+a6c6ad3d) — S1 shipped, S3 HITL pending | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
+| PI-7 | mini-PI hotfix | app-stability-restore | active 2026-05-01 — S1 ready architect spawn | [pis/active/PI-7-app-stability-restore/PI.md](pis/active/PI-7-app-stability-restore/PI.md) |
+| **PI-8** | **mini-PI hotfix (FE)** | growth-studio-stability | **active 2026-05-01 — S1 ready builder spawn** | [pis/active/PI-8-growth-studio-stability/PI.md](pis/active/PI-8-growth-studio-stability/PI.md) |
+| PI-9 | feature (FE refactor) | growth-studio-architecture | discovery (skeleton, bloqueado por PI-8 ship) | [pis/active/PI-9-growth-studio-architecture/PI.md](pis/active/PI-9-growth-studio-architecture/PI.md) |
+| PI-10 | feature (UX redesign) | growth-studio-ux-homologation | placeholder (bloqueado por PI-9 ship) | [pis/active/PI-10-growth-studio-ux-homologation/PI.md](pis/active/PI-10-growth-studio-ux-homologation/PI.md) |
 
 ## PIs archivados (`pis/archive/`)
 
