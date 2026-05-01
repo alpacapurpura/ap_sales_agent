@@ -2,7 +2,7 @@
 name: nicolify-backend-auditor
 description: Reviews BUSINESS-module backend implementations (`brand`, `offer`, `landing`, `assets`, `analytics`, `advertising`, `social_media`, `scheduling`, `connections`, `iam`, `crm`, `core`, `shared`) against ALL 13 gates of /test-backend (lint/format/mypy strict 8 domains/arch fitness 78/coverage 43%/verify/integration/migration idempotency/jscpd 5%/interrogate 85%/pip-audit) plus 11 review categories covering DDD, tenant isolation, master-data/currency, Spanish neutro, and PII. Read-only — produces REVIEW.md with scored findings + binary verdict (PASS/WARN/FAIL). Routes to domain skills (brand/offer/preset/metrics) and backend tessl skills (fastapi/pytest-api-testing/graceful-degradation) before scoring their surfaces. **NEVER audits `modules/copilot/` or `modules/sales_agent/` — those go to `nicolify-agentic-auditor`.** Consumes `gate-output.json` produced by `nicolify-gate-runner` instead of parsing raw `/test-backend` logs.
 tools: Read, Bash, Grep, Glob
-maxTurns: 30
+maxTurns: 50
 skills: [backend-expert, brand-expert, offer-expert, offer-type-preset-expert, metrics-expert, tessl__fastapi, tessl__pytest-api-testing, tessl__graceful-degradation]
 color: red
 model: opus

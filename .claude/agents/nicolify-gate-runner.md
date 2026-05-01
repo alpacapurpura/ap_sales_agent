@@ -2,7 +2,7 @@
 name: nicolify-gate-runner
 description: Deterministic gate runner for Nicolify quality suites. Runs `/test-backend`, `/test-frontend`, `make verify-*`, or any specified shell command, captures stdout+stderr, parses pass/fail per gate, and writes gate-output.json to PR-folder. Auditors consume the JSON instead of parsing 50k of raw logs. Cheap Haiku 4.5 worker. Does NOT decide overall PR verdict — that's the auditor's job. Use during auditor phase 2 (gate execution) and after every fix-loop iteration.
 tools: Read, Bash, Write
-maxTurns: 6
+maxTurns: 15
 color: green
 model: haiku
 ---

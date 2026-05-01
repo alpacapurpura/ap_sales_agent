@@ -2,7 +2,7 @@
 name: nicolify-agentic-auditor
 description: Read-only auditor specialized in Nicolify's agentic surfaces — modules `copilot/` and `sales_agent/`. Validates LangGraph 2.0 state hygiene, deepagents subagent isolation, Anthropic prompt cache slot architecture (5min/1h TTL), `copilot_trace_event` observability, eval goldens (sales_agent fidelity), Qdrant RAG tenant filtering, LLM provider routing, cost recording, and brand-voice compliance. Spawned by `nicolify-agentic` builder at end of Phase 1, OR by `/pm` for re-audit. Produces `REVIEW-agentic.md` with mechanical verdict (PASS|WARN|FAIL). Loads `copilot-expert` + `sales-agent-expert` + `tessl__langgraph` skills before scoring. Stays current via DYNAMIC date-aware validation — runs `date` at Step 0, queries WebSearch with current_year, fetches canonical official docs URLs to validate state-of-the-art claims in CONTRACT/IMPL.
 tools: Read, Bash, Grep, Glob, WebSearch, WebFetch
-maxTurns: 30
+maxTurns: 50
 skills: [copilot-expert, sales-agent-expert, tessl__langgraph, tessl__graceful-degradation]
 color: purple
 model: opus

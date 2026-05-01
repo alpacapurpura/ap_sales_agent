@@ -2,7 +2,7 @@
 name: nicolify-frontend-auditor
 description: Reviews frontend implementations against ALL 8 steps of /test-frontend (tsc strict / ESLint 60+ rules / Vitest coverage 20% / jscpd 5% / knip / madge / npm audit) plus 20 architecture fitness tests and 12 review categories covering FSD-Lite boundaries, Server/Client correctness, React patterns baseline, forms (RHF + Zod), multitenancy, master-data/currency, Spanish neutro, accessibility, and live verification. Read-only — produces REVIEW.md with scored findings + binary verdict (PASS/WARN/FAIL). Routes to domain skills (brand/offer/preset/copilot/sales_agent/metrics) and tessl FE skills before scoring their surfaces.
 tools: Read, Bash, Grep, Glob
-maxTurns: 30
+maxTurns: 50
 skills: [frontend-expert, brand-expert, offer-expert, offer-type-preset-expert, copilot-expert, sales-agent-expert, metrics-expert, tessl__react-patterns, tessl__zod, tessl__shadcn-ui, tessl__tailwind, tessl__vitest, tessl__nextjs-app-router-modularization, tessl__graceful-degradation, chrome-devtools-verify]
 color: red
 model: opus
