@@ -81,10 +81,13 @@ function DetailPanel({ open, onClose, children, className, size = "sm" }: Detail
 
   return createPortal(
     <>
-      {/* Overlay — does NOT cover the copilot */}
+      {/* Overlay — does NOT cover the copilot.
+          Mobile (max-md): copilot drawer is `fixed z-50`, so the panel must
+          render ABOVE it (panel is the user's explicit focus when opened).
+          Desktop (md+): copilot is in flex column, no overlap → keep z-[45]. */}
       <div
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-[45] bg-black/50 transition-opacity duration-300",
+          "fixed top-0 bottom-0 left-0 z-[45] max-md:z-[60] bg-black/50 transition-opacity duration-300",
           visible ? "opacity-100" : "opacity-0",
         )}
         style={{ right: `${copilotWidth}px` }}
@@ -99,7 +102,7 @@ function DetailPanel({ open, onClose, children, className, size = "sm" }: Detail
         aria-modal="false"
         tabIndex={-1}
         className={cn(
-          `fixed top-0 bottom-0 z-[45] flex w-full flex-col overflow-y-auto border-l bg-background shadow-lg outline-none ${SIZE_CLASSES[size]}`,
+          `fixed top-0 bottom-0 z-[45] max-md:z-[60] flex w-full flex-col overflow-y-auto border-l bg-background shadow-lg outline-none ${SIZE_CLASSES[size]}`,
           "transition-transform duration-300 ease-in-out",
           visible ? "translate-x-0" : "translate-x-full",
           className,

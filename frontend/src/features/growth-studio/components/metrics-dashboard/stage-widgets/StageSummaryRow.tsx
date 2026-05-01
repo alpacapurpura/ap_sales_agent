@@ -1,9 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 
 import { useNavigation } from "@/components/shared/navigation";
+import { useCopilotOffset } from "@/hooks/use-copilot-offset";
 import { cn } from "@/lib/utils";
 
 import { STAGE_TO_SLUG } from "../context/GrowthStudioContext";
@@ -33,6 +34,12 @@ export const StageSummaryRow = memo(function StageSummaryRow({
 }: StageSummaryRowProps) {
   const { navigate } = useNavigation();
   const pathname = usePathname();
+  // Reserve the copilot column on the right so the bowtie clip-path does
+  // NOT extend behind the copilot drawer on tablet (640-767px) where copilot
+  // is `max-md:fixed` overlay AND the offset hook returns its open width.
+  // PI-8 PR-1.
+  const copilotWidth = useCopilotOffset();
+  const outerStyle = useMemo(() => ({ paddingRight: `${copilotWidth}px` }), [copilotWidth]);
 
   // Derive tenantId + base path from current pathname
   const segments = pathname?.split("/").filter(Boolean) ?? [];
@@ -49,7 +56,7 @@ export const StageSummaryRow = memo(function StageSummaryRow({
   );
 
   return (
-    <div className="w-full overflow-x-auto pb-4 scrollbar-thin">
+    <div className="w-full overflow-x-auto pb-4 scrollbar-thin" style={outerStyle}>
       <div
         className={cn(
           "min-w-[800px] flex items-stretch justify-center relative rounded-2xl overflow-hidden h-[120px]",
