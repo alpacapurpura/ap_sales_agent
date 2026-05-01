@@ -6,10 +6,10 @@
 |---|---|
 | Sprint ID | S4-crm-hub-lite |
 | PI padre | PI-1-campaigns-module |
-| Estado | not-started |
-| Inicio | tras S0 cierre (S2/S3 paralelo posible) |
+| Estado | done |
+| Inicio | 2026-04-30 |
 | Cierre estimado | +1 sem post-S3 inicio (paralelo, no serial) |
-| Cierre real | — |
+| Cierre real | 2026-04-30 (mismo día — Opus 4.7[1M] sprint sizing) |
 | Owner PM | /pm |
 
 ## Objetivo (1 línea)

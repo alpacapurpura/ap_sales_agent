@@ -5,8 +5,8 @@
 | Campo | Valor |
 |---|---|
 | Studio padre | Sales / Growth (PI-1 — Sales con hooks Growth) |
-| Estado | PI-1 S1 SHIPPED (PR-3 domain + PR-4 services/API) — S2 PR-5 SHIPPED partial (PR-6 pending) |
-| Ultima actualizacion | 2026-04-30 (PR-5 S2: orchestrator real + 4 ARQ workers + ChannelRouter Telegram + circuit breaker + audit log retention 90d) |
+| Estado | PI-1 COMPLETO SHIPPED (S0+S1+S2+S3+S4 todos cerrados) — MVP 1 Telegram end-to-end |
+| Ultima actualizacion | 2026-04-30 (S4 cerrado: PR-10 BE + PR-11 FE + PR-12 cross-stack — wire S4↔S3 completo, segment STATIC + campaign launch) |
 | Doc tecnico | `docs/domains/campaigns/` (en construccion) |
 
 ---

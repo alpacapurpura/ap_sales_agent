@@ -5,7 +5,7 @@
 |---|---|
 | Studio padre | Sales |
 | Estado | activo |
-| Última actualización | 2026-04-30 (PR-10 BE + PR-11 FE shipped — vista lite contactos operativa) |
+| Última actualización | 2026-04-30 (PR-10+PR-11+PR-12 shipped — sprint S4 cerrado, MVP 1 Telegram end-to-end) |
 | Doc técnico | `docs/domains/module_crm.md` |
 
 ## Qué hace por el user
@@ -45,6 +45,16 @@ CDP (Customer Data Platform) interno. Almacena contactos, eventos del journey, p
 - Drawer detail (Shadcn Sheet) responsive 4 breakpoints xl/lg/md/sm
 - 4 arch tests forward-compat + 1 E2E sanity + 101 Vitest verde
 - ADD dep `@tanstack/react-table@^8.21.3`
+
+### Cap: Crear segmento STATIC desde contactos seleccionados
+- Introducida: PR-12 (PI-1, S4-crm-hub-lite, commits `bac573ca` + `3726ffa3`, 2026-04-30)
+- Estado: live
+- Operable copilot: pendiente PI-3 (tool `crm_create_segment` wrappea API)
+- Endpoint BE: `POST /api/v1/campaigns/segments/` con `segment_type=STATIC` + `lead_ids`
+- Storage: `SegmentModel.filter_dsl` JSONB shape `{"_static": true, "lead_ids": [...]}` (REUSE existing column, 0 migration)
+- FE: `CreateSegmentDialog` (Shadcn + RHF + Zod) en `/sales/contactos`
+- Wire: SelectedContactsBar slot action → Dialog → POST → toast + `LaunchCampaignChoiceDialog`
+- 6 integration tests BE sin mocks + 4 Vitest FE
 
 ## Capacidades operables desde copilot
 - Buscar contacto (parcial)
