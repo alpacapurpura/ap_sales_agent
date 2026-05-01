@@ -13,7 +13,9 @@ preserves behavior ⇔ snapshot diff = 0 byte-equal.
 
 from __future__ import annotations
 
+import contextlib
 import json
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -152,8 +154,17 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         _FrozenDatetime,
     )
 
-    # 2. Deterministic uuid4 (session_id + observability turn_id)
-    monkeypatch.setattr(f"{chat_mod}.uuid.uuid4", _DeterministicUuid())
+    # 2. Deterministic uuid4 (session_id in state.py + observability turn_id
+    # in turn_envelope). chat.py no longer imports uuid directly post Bug #2
+    # hotfix — the envelope manages its own turn_id allocation.
+    monkeypatch.setattr(
+        "src.modules.sales_agent.application.orchestrator.state.uuid.uuid4",
+        _DeterministicUuid(),
+    )
+    monkeypatch.setattr(
+        "src.modules.sales_agent.observability.recording.turn_envelope.uuid4",
+        _DeterministicUuid(),
+    )
 
     # 3. Patch SessionLocal — return a MagicMock that stubs execute/flush/commit/rollback.
     fake_db = MagicMock(name="db_session")
@@ -291,12 +302,41 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         staticmethod(lambda _text, existing_signals, tenant_id: (None, 0.0, list(existing_signals))),
     )
 
-    # 13. Observability handler factory — return a sentinel so we can verify
-    #     the orchestrator forwards it as a callback.
+    # 13. Observability envelope factory — return a fake envelope whose
+    #     ``langchain_config()`` carries a sentinel callback so the snapshot
+    #     can verify the orchestrator forwards it. Replaces the legacy
+    #     ``build_sales_agent_callback_handler`` patch (post Bug #2 hotfix
+    #     the orchestrator builds an envelope, not a raw handler).
     handler_sentinel = SimpleNamespace(name="OBS_HANDLER")
+
+    # Stub class for the orchestrator's ``isinstance`` gate. We replace
+    # the real ``SalesAgentObservabilityContext`` symbol in its source
+    # module so the orchestrator's local import picks up the stub and
+    # the fake context (built as an instance of the stub) is recognised.
+    class _SalesAgentObservabilityContextStub:
+        def __init__(self) -> None:
+            self.callback_handler = handler_sentinel
+
+        def langchain_config(self) -> dict[str, Any]:
+            return {"callbacks": [handler_sentinel]}
+
+        @contextlib.asynccontextmanager
+        async def observe_turn(self, **_kwargs: Any) -> AsyncIterator[Any]:
+            yield self
+
+        def set_turn_summary(self, **_kwargs: Any) -> None:
+            return None
+
+        def set_turn_error(self, **_kwargs: Any) -> None:
+            return None
+
     monkeypatch.setattr(
-        "src.modules.sales_agent.observability.recording.factory.build_sales_agent_callback_handler",
-        lambda **_kw: handler_sentinel,
+        "src.modules.sales_agent.observability.recording.turn_envelope.SalesAgentObservabilityContext",
+        _SalesAgentObservabilityContextStub,
+    )
+    monkeypatch.setattr(
+        "src.modules.sales_agent.observability.recording.factory.build_sales_agent_observability_context",
+        lambda **_kw: _SalesAgentObservabilityContextStub(),
     )
 
     # 14. Tool dedup tracker — replace with a deterministic stand-in so the

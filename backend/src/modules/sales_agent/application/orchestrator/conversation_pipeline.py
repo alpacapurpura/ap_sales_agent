@@ -448,8 +448,20 @@ class ConversationPipeline:
         incoming: IncomingMessage,
         initial_state: dict,
         observability_handler: object | None = None,
+        langchain_config: dict | None = None,
     ) -> dict:
-        """Run the LangGraph subgraph while sending periodic typing indicators."""
+        """Run the LangGraph subgraph while sending periodic typing indicators.
+
+        ``langchain_config`` (preferred) is a fully-formed ``RunnableConfig``
+        dict — typically built via ``SalesAgentObservabilityContext.langchain_config()``
+        when the caller is bracketing the turn with the envelope. It takes
+        precedence over the legacy ``observability_handler`` shortcut.
+
+        ``observability_handler`` is kept as a back-compat shortcut: when
+        provided (and ``langchain_config`` is None) it is wrapped into
+        ``{"callbacks": [...]}`` exactly like before. New callers should
+        pass ``langchain_config`` instead.
+        """
 
         async def _keep_typing() -> None:
             while True:
@@ -459,7 +471,12 @@ class ConversationPipeline:
 
         typing_task = asyncio.create_task(_keep_typing())
         try:
-            config = {"callbacks": [observability_handler]} if observability_handler is not None else {}
+            if langchain_config is not None:
+                config = langchain_config
+            elif observability_handler is not None:
+                config = {"callbacks": [observability_handler]}
+            else:
+                config = {}
             return await agent_app.ainvoke(initial_state, config=config)
         finally:
             typing_task.cancel()

@@ -30,7 +30,6 @@ surface where a failure aborts the turn (returns
 from __future__ import annotations
 
 import contextlib
-import uuid
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import UUID
@@ -43,7 +42,7 @@ from src.modules.sales_agent.application.orchestrator.conversation_pipeline impo
 )
 from src.modules.sales_agent.application.orchestrator.graph import agent_app
 from src.modules.sales_agent.observability.recording.factory import (
-    build_sales_agent_callback_handler,
+    build_sales_agent_observability_context,
 )
 from src.shared.domain.messages import IncomingMessage
 
@@ -77,6 +76,90 @@ class OutboundResult:
 
 class OutboundOrchestrator:
     """Static class — single async entrypoint :meth:`send_outbound`."""
+
+    @staticmethod
+    async def _invoke_graph_with_envelope(
+        *,
+        observability_ctx: object | None,
+        initial_state: dict,
+        campaign_id: UUID,
+        tenant_uuid: UUID,
+        lead_id: UUID,
+    ) -> tuple[dict, str | None]:
+        """Run ``agent_app.ainvoke`` inside the observability envelope.
+
+        Returns ``(result, error_message)``. ``error_message`` is non-None
+        only when the graph invocation raised — the caller maps that to
+        ``OutboundResult(error_code='graph_invocation_failed')``.
+
+        Without ``observability_ctx`` (tenant/lead missing) we run a raw
+        ``ainvoke`` — the legacy degraded path.
+        """
+        from src.modules.sales_agent.observability.recording.turn_envelope import (
+            SalesAgentObservabilityContext,
+        )
+
+        if not isinstance(observability_ctx, SalesAgentObservabilityContext):
+            try:
+                result = await agent_app.ainvoke(initial_state, config={})
+            except Exception as exc:
+                logger.exception(
+                    "outbound_orchestrator_graph_failed",
+                    tenant_id=str(tenant_uuid),
+                    lead_id=str(lead_id),
+                    campaign_id=str(campaign_id),
+                )
+                return {}, str(exc)
+            return result, None
+
+        # Envelope present — bracket the invocation so trace rows commit.
+        async with observability_ctx.observe_turn(
+            message="[OUTBOUND_TRIGGER]",
+            route="outbound",
+            attachments=[],
+        ):
+            try:
+                result = await agent_app.ainvoke(
+                    initial_state,
+                    config=observability_ctx.langchain_config(),
+                )
+            except Exception as exc:
+                observability_ctx.set_turn_error(
+                    error_kind="graph_invocation_failed",
+                    error_message=str(exc),
+                )
+                logger.exception(
+                    "outbound_orchestrator_graph_failed",
+                    tenant_id=str(tenant_uuid),
+                    lead_id=str(lead_id),
+                    campaign_id=str(campaign_id),
+                )
+                # Return so the envelope's ``__aexit__`` can finalize the
+                # turn_end row with status='error'. The caller's check on
+                # ``graph_error`` short-circuits to the OutboundResult.
+                return {}, str(exc)
+
+            # Stash stream-shape totals BEFORE the envelope's ``__aexit__``
+            # writes ``turn_end``, so the row carries actual values
+            # instead of zeros (PR-1 hotfix Bug #2 iter 2 — F2).
+            # Best-effort: any error here is logged + swallowed; the
+            # envelope still finalizes turn_end cleanly via the
+            # ``async with`` exit.
+            try:
+                messages = result.get("messages", []) if isinstance(result, dict) else []
+                last_msg = messages[-1] if messages else {}
+                last_text = last_msg.get("content", "") if isinstance(last_msg, dict) else str(last_msg)
+                observability_ctx.set_turn_summary(
+                    response_length=len(last_text or ""),
+                    message_count=len(messages),
+                    block_count=0,
+                )
+            except Exception as exc:  # noqa: BLE001 — best-effort
+                logger.warning(
+                    "outbound_obs_set_turn_summary_failed",
+                    error=str(exc),
+                )
+        return result, None
 
     @staticmethod
     async def send_outbound(
@@ -221,28 +304,30 @@ class OutboundOrchestrator:
             },
         ]
 
-        # --- Step 6: observability handler (best-effort) ---
-        turn_id = uuid.uuid4()
-        handler = build_sales_agent_callback_handler(
+        # --- Step 6: observability envelope (PR-1 hotfix Bug #2) ---
+        # Bracket the turn so ``turn_start`` / ``turn_end`` rows are
+        # committed to ``sales_agent_trace_event`` and every callback row
+        # added during ``ainvoke`` is flushed. Without the envelope the
+        # callback ``session.add(...)`` calls pile up uncommitted in the
+        # orchestrator session and get discarded when ``db`` closes (see
+        # ``IMPL-LOG-agentic.md`` RCA).
+        observability_ctx = build_sales_agent_observability_context(
             db=db,
             tenant_id=tenant_uuid,
             lead_id=lead_row.id,
             channel_type=channel_type,
-            turn_id=turn_id,
             role="agent",
         )
 
-        # --- Step 7: dispatch via LangGraph ---
-        try:
-            config = {"callbacks": [handler]} if handler is not None else {}
-            result = await agent_app.ainvoke(initial_state, config=config)
-        except Exception as exc:
-            logger.exception(
-                "outbound_orchestrator_graph_failed",
-                tenant_id=str(tenant_uuid),
-                lead_id=str(lead_row.id),
-                campaign_id=str(campaign_id),
-            )
+        # --- Step 7: dispatch via LangGraph (inside envelope) ---
+        result, graph_error = await OutboundOrchestrator._invoke_graph_with_envelope(
+            observability_ctx=observability_ctx,
+            initial_state=initial_state,
+            campaign_id=campaign_id,
+            tenant_uuid=tenant_uuid,
+            lead_id=lead_row.id,
+        )
+        if graph_error is not None:
             return OutboundResult(
                 success=False,
                 tenant_id=tenant_id,
@@ -250,7 +335,7 @@ class OutboundOrchestrator:
                 campaign_id=campaign_id,
                 session_id=initial_state.get("session_id", ""),
                 error_code="graph_invocation_failed",
-                error_message=str(exc),
+                error_message=graph_error,
             )
 
         # --- Step 8: persist checkpoint ---
