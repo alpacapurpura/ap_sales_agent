@@ -18,6 +18,8 @@ import { filtersToSearchParams } from "../utils/url-state";
 
 import { ContactDetailContent } from "./ContactDetailContent";
 import { ContactFiltersPanel } from "./ContactFiltersPanel";
+import { CreateSegmentDialog } from "./CreateSegmentDialog";
+import { LaunchCampaignChoiceDialog } from "./LaunchCampaignChoiceDialog";
 import { LifecycleStageChip } from "./LifecycleStageChip";
 import { ScoreBadge } from "./ScoreBadge";
 import { SelectedContactsBar } from "./SelectedContactsBar";
@@ -30,8 +32,6 @@ interface ContactsPageClientProps {
   initialLimit: number;
   initialOffset: number;
 }
-
-const EMPTY_ACTIONS: SelectedContactsBarAction[] = [];
 
 function formatRelative(isoString: string | null): string {
   if (!isoString) return "—";
@@ -140,6 +140,7 @@ function buildColumns(
 /**
  * Componente cliente de la página de contactos.
  * Gestiona: filtros URL, paginación URL, selección local, drawer detalle.
+ * PR-12: inyecta "Crear segmento" en SelectedContactsBar + wire dialogs.
  * URL state via useRouter + useSearchParams (deep-link friendly).
  */
 export function ContactsPageClient({
@@ -159,6 +160,12 @@ export function ContactsPageClient({
     searchParams.get("contact"),
   );
   const [searchValue, setSearchValue] = React.useState(initialFilters.q ?? "");
+
+  // PR-12: segment creation + campaign choice dialog state
+  const [createSegmentOpen, setCreateSegmentOpen] = React.useState(false);
+  const [launchChoiceOpen, setLaunchChoiceOpen] = React.useState(false);
+  const [createdSegmentId, setCreatedSegmentId] = React.useState<string | null>(null);
+  const [createdSegmentName, setCreatedSegmentName] = React.useState<string>("");
 
   // -- Debounced URL sync --
   React.useEffect(() => {
@@ -197,6 +204,29 @@ export function ContactsPageClient({
   function handlePageChange(newOffset: number) {
     setOffset(Math.max(0, newOffset));
   }
+
+  // PR-12: callback invoked after segment successfully created (name passed from dialog form)
+  const handleSegmentCreated = React.useCallback((segmentId: string, segmentName: string) => {
+    setCreatedSegmentId(segmentId);
+    setCreatedSegmentName(segmentName);
+    setLaunchChoiceOpen(true);
+  }, []);
+
+  // PR-12: slot action injected into SelectedContactsBar
+  const barActions = React.useMemo<SelectedContactsBarAction[]>(
+    () => [
+      {
+        id: "create-segment",
+        label: "Crear segmento",
+        variant: "default",
+        requiresSelection: true,
+        onClick: () => {
+          setCreateSegmentOpen(true);
+        },
+      },
+    ],
+    [],
+  );
 
   // -- Data --
   const { data, isLoading, isError } = useContactsQuery({ filters, limit, offset });
@@ -319,12 +349,30 @@ export function ContactsPageClient({
         </SheetContent>
       </Sheet>
 
-      {/* SelectedContactsBar */}
+      {/* SelectedContactsBar — PR-12 injects "Crear segmento" action */}
       <SelectedContactsBar
         selectedIds={selectedIds}
-        actions={EMPTY_ACTIONS}
+        actions={barActions}
         onClearSelection={() => setSelectedIds([])}
       />
+
+      {/* PR-12: CreateSegmentDialog */}
+      <CreateSegmentDialog
+        open={createSegmentOpen}
+        onOpenChange={setCreateSegmentOpen}
+        selectedLeadIds={selectedIds}
+        onSuccess={handleSegmentCreated}
+      />
+
+      {/* PR-12: LaunchCampaignChoiceDialog (shown after segment created) */}
+      {createdSegmentId !== null && (
+        <LaunchCampaignChoiceDialog
+          open={launchChoiceOpen}
+          onOpenChange={setLaunchChoiceOpen}
+          segmentId={createdSegmentId}
+          segmentName={createdSegmentName}
+        />
+      )}
     </>
   );
 }

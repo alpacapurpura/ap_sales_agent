@@ -6,6 +6,12 @@ export { IdentityList } from "./components/IdentityList";
 export { LifecycleStageChip } from "./components/LifecycleStageChip";
 export { ScoreBadge } from "./components/ScoreBadge";
 export { SelectedContactsBar } from "./components/SelectedContactsBar";
+export { CreateSegmentDialog } from "./components/CreateSegmentDialog";
+export { LaunchCampaignChoiceDialog } from "./components/LaunchCampaignChoiceDialog";
+
+// API mutations
+export { useCreateSegmentMutation } from "./api/use-create-segment-mutation";
+export type { CreateSegmentPayload, SegmentResponse } from "./api/use-create-segment-mutation";
 
 // Types
 export type {
