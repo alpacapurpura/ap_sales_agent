@@ -6,10 +6,10 @@
 |---|---|
 | Sprint ID | S2-telegram-orchestrator-memory-cache |
 | PI padre | PI-5-copilot-multicanal-telegram |
-| Estado | in-progress |
+| Estado | done |
 | Inicio | 2026-04-30 |
 | Cierre estimado | 2026-04-30 (1 PR cohesivo amplio Opus 4.7[1M]) |
-| Cierre real | — |
+| Cierre real | 2026-05-01 |
 | Owner PM | /pm |
 
 ## Objetivo (1 línea)
@@ -53,7 +53,7 @@ Reemplazar placeholder MVP de PR-1 con copilot orchestrator real invocado por ca
 
 | PR | Folder | Descripción | Agentes/skills | Esfuerzo | Estado |
 |---|---|---|---|---|---|
-| PR-2 | `prs/PR-2-telegram-orchestrator-hookup/` | Worker linked branch invoca copilot orchestrator real con `channel='telegram'` + lookup conversation por `(channel_type='telegram', channel_chat_id)` + `TELEGRAM_CONTEXT_WINDOW_CONFIG` (3000/15/600/12000) + `TELEGRAM_CHANNEL_CONTEXT` cacheable fragment ≥1024 tokens en `system_prompt_layout.py` + `get_tools_for_context(context, channel='telegram')` filter runtime + `format_for_channel(channel='telegram', parse_mode='MarkdownV2')` adapter post-orchestrator + tests integration end-to-end (mock Telegram update → ARQ enqueue → worker → orchestrator → mock bot send) happy path linked + unlinked CTA + /start TOKEN + tests memory config inyección por channel + arch fitness test prefijo cacheable Telegram ≥1024 tokens | architect (Opus) → agentic builder (Opus) → agentic-auditor (Opus) | **L** | not-started |
+| PR-2 | `prs/PR-2-telegram-orchestrator-hookup/` | Worker linked branch invoca copilot orchestrator real con `channel='telegram'` + lookup conversation por `(channel_type='telegram', channel_chat_id)` + `TELEGRAM_CONTEXT_WINDOW_CONFIG` (3000/15/600/12000) + `TELEGRAM_CHANNEL_CONTEXT` cacheable fragment ≥2048 tokens (Sonnet floor) en `system_prompt_layout.py` + `get_tools_for_context(context, channel='telegram')` filter runtime + `format_for_channel_impl(channel_id='telegram')` adapter post-orchestrator + tests integration end-to-end (mock Telegram update → ARQ enqueue → worker → orchestrator → mock bot send) happy path linked + unlinked CTA + /start TOKEN + tests memory config inyección por channel + arch fitness test prefijo cacheable Telegram ≥2048 tokens | architect (Opus) → agentic builder (Opus) → agentic-auditor (Opus) | **L** | shipped (commits d09799b9 + 8b180584 + a6c6ad3d, 2026-05-01) |
 
 Detalle PR-2 en `prs/PR-2-telegram-orchestrator-hookup/PR.md`. Prompts pre-cocidos en `prs/PR-2-telegram-orchestrator-hookup/prompts/`.
 

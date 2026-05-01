@@ -7,7 +7,7 @@
 | PR ID | PR-2-telegram-orchestrator-hookup |
 | Sprint padre | S2-telegram-orchestrator-memory-cache |
 | PI padre | PI-5-copilot-multicanal-telegram |
-| Estado | in-progress |
+| Estado | shipped (2026-05-01, audit PASS iter-2) |
 | Tipo | feature |
 | Esfuerzo | L |
 | Owner PM | /pm |

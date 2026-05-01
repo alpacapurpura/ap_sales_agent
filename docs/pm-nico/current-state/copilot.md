@@ -5,7 +5,7 @@
 |---|---|
 | Studio padre | Supporting (transversal) |
 | Estado | activo (en mejora — PI-2) |
-| Última actualización | 2026-04-29 (bootstrap) |
+| Última actualización | 2026-05-01 (PR-2 PI-5 telegram orchestrator hookup live) |
 | Doc técnico | `docs/domains/module_copilot.md` |
 
 ## Qué hace por el user
@@ -13,7 +13,7 @@ Asistente in-app conversacional. Interfaz primaria de Nicolify. User configura, 
 
 ## Capacidades actuales
 - Chat UI in-app
-- **Canal Telegram (foundation)** — DMs linkeados magic link, webhook NON-BLOCKING + ARQ async, tool subset filtered, bot global Nicolify (1 token, separación física vs sales_agent). LLM orchestrator hookup pendiente S2 PR-2 (PI-5)
+- **Canal Telegram (live)** — DMs linkeados magic link + orchestrator real respondiendo + memory cost-aware (`TELEGRAM_CONTEXT_WINDOW_CONFIG` 3000/15/600/12000) + cache prefix ≥2048 tokens activo per-channel + tool subset filter runtime + format adapter MarkdownV2. PI-5 S2 PR-2 shipped 2026-05-01
 - LangGraph orchestrator + sub-agents (deepagents)
 - Tools transversales (extract_document_to_fields, propose_field_updates, format_for_channel)
 - Tool registry SSoT `ToolGroupMeta.available_channels` (PI-5 PR-1) — channel-aware filtering web|telegram|whatsapp
@@ -31,17 +31,33 @@ Asistente in-app conversacional. Interfaz primaria de Nicolify. User configura, 
 
 ### Cap: Canal Telegram — DMs linkeados magic link
 - Introducida: PR-1 (PI-5, S1, commit `c1fa2909`, 2026-04-30)
-- Estado: foundation live (LLM orchestrator hookup pendiente S2 PR-2)
-- Operable copilot: parcial (linking + tool subset registry; LLM responses = placeholder MVP, S2 hookup)
+- Última modificación: PR-2 (PI-5, S2, commit `d09799b9`, 2026-05-01) — orchestrator real reemplaza placeholder
+- Estado: **live (orchestrator real + memory cost-aware + cache fragment ≥2048 tokens activo)**
+- Operable copilot: sí (orchestrator real responde; tools telegram-allowed 12+ groups; cache prefix ahorro tokens activo)
 - Surface API: `/api/v1/copilot/telegram/{webhook,link-tokens,link-status,link}`
 - Surface FE: `/{tenantId}/settings/copilot/telegram` page + `<TelegramLinkingClient />`
 - Tablas: `copilot_channel_links` + `copilot_link_tokens` + `copilot_conversations` (cols `channel_type`, `channel_chat_id`)
 - Webhook: NON-BLOCKING enqueue ARQ <200ms, valida `X-Telegram-Bot-Api-Secret-Token`, filtra `chat.type='private'`
 - Bot adapter: global Nicolify (1 token env var `COPILOT_TELEGRAM_BOT_TOKEN`), rate-limited 30 msg/sec global + per-chat lock
 - Magic link: HMAC-SHA256, TTL 15 min, single-use, hash en DB (no plaintext)
-- Tool subset SSoT: `ToolGroupMeta.available_channels` (web-only: `navigation`, `guided`, `landing`, `offer_section`)
+- Tool subset SSoT: `ToolGroupMeta.available_channels` (web-only: `navigation`, `guided`, `landing.mutations`, `offer_section.mutations`) — runtime filter validado PR-2
 - Separación física vs sales_agent: 2 bots, 2 tokens, 2 webhooks, 2 schemas. Cero shared state. Arch fitness tests enforce
-- Operación pendiente Chris: BotFather `/newbot` crear `@nicolify_copilot_dev_bot` + `@nicolify_copilot_bot`, registrar webhooks via setWebhook con secret_token
+- Webhook dev live: `https://dev-api.nicolify.com/api/v1/copilot/telegram/webhook` → `@nicolify_dev_bot`. setWebhook configurado con secret_token
+- Operación pendiente Chris: BotFather setWebhook prod `@nicolify_bot` post-deploy
+
+### Cap: Canal Telegram — orchestrator real + memory cost-aware + prefijo cacheable Anthropic
+- Introducida: PR-2 (PI-5, S2, commits `d09799b9` + `8b180584` + `a6c6ad3d`, 2026-05-01)
+- Estado: live
+- Operable copilot: sí (orchestrator real, memory windowed cost-aware, cache prefix ≥2048 tokens activo per-channel)
+- Surface code: `modules/copilot/application/memory/` + `modules/copilot/application/orchestrator/{chat,graph,deep_agent,system_prompt_layout,invoke_result}.py` + `modules/copilot/infrastructure/workers/telegram_worker.py` + `modules/copilot/infrastructure/repositories/conversation_repository.py`
+- Memory: `TELEGRAM_CONTEXT_WINDOW_CONFIG` (RAW_WINDOW_TOKENS=3000, RAW_WINDOW_MAX_MESSAGES=15, RAW_WINDOW_MIN_MESSAGES=4, SUMMARY_MAX_CHARS=600, SUMMARY_TARGET_TOKENS=200, NUDGE_AFTER_TOTAL_TOKENS=12000, NUDGE_HARD_LIMIT_TOKENS=20000, NUDGE_AFTER_MESSAGE_COUNT=20). Inyección via `for_channel(channel)` classmethod
+- Cache: `TELEGRAM_CHANNEL_CONTEXT` fragment ~2200 tokens stable bytes Spanish prose. Sonnet floor + Kimi K2.6 ≥1024 cubierto. Web bytes byte-idénticos preservados (builder devuelve `""` cuando channel != telegram). Arch fitness `test_telegram_cache_prefix_meets_anthropic_threshold` ≥2048
+- Tool subset runtime filter: deep_agent passa `channel=ctx.channel or "web"` a `get_tools_for_context()`. Web-only excluded para channel=telegram
+- Format: MarkdownV2 escape via `format_for_channel_impl(channel_id='telegram')` shared reuso (NO new function)
+- Conversation lookup: `ConversationRepository.get_or_create_by_channel(tenant_id, user_id, channel_type, channel_chat_id)` tenant-scoped optimistic SELECT-then-INSERT. UNIQUE constraint deferred S5 PR-5
+- Orchestrator entrypoint: `CopilotOrchestrator.invoke_text(channel='web', ..., context: ClientContextDTO | None)` sibling de `stream_chat`. Comparte `_prepare_conversation` + `_run_graph_stream`. Dispatch canal: `context.channel or kwarg or "web"`
+- Resilience: 30s `asyncio.wait_for` orchestrator timeout + per-dependency try/except (lookup/orchestrator/format/bot send) + structured success log con cache metrics + fallback CTA template friendly
+- Deuda técnica explícita: DTO cache token fields hardcoded 0 (S5 wire-up); `invoke_text` outer except defensive `set_turn_error` (S5); UNIQUE constraint conversations multi-channel (S5 PR-5)
 
 ### Cap: Rate limit voice + per-tenant media/voice limits
 - Introducida: PR-1 (PI-2, S1, commits `2d0b9e0e` + `caacdffa`, 2026-04-29)
