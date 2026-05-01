@@ -59,6 +59,11 @@ class CopilotConversationModel(Base):
     # during cutover; see migration 071_copilot_workflow_state).
     workflow_state = Column(JSONB, nullable=True)
 
+    # PI-5 PR-1 — Telegram channel support (D-PI5-007).
+    # NULL = web (backward compat). 'telegram' = Telegram bot canal.
+    channel_type = Column(String(32), nullable=True)
+    channel_chat_id = Column(String(64), nullable=True)
+
     def __repr__(self) -> str:
         """Return string representation."""
         return f"<CopilotConversation id={self.id} tenant={self.tenant_id}>"

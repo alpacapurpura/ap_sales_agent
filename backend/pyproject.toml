@@ -484,6 +484,15 @@ disable_error_code = ["type-arg", "prop-decorator", "attr-defined"]
 module = "src.shared.domain_events.outbox.infrastructure.models"
 disable_error_code = ["misc"]
 
+# --- PI-2 S4 PR-1: LLM config infra SA models (Base subclass + generic JSONB dicts) ---
+[[tool.mypy.overrides]]
+module = "src.shared.infrastructure.llm.infrastructure.role_binding_model"
+disable_error_code = ["misc"]
+
+[[tool.mypy.overrides]]
+module = "src.shared.infrastructure.llm.infrastructure.audit_model"
+disable_error_code = ["misc"]
+
 # --- PR-3: campaigns module (Base subclass + generic dicts JSONB — domain layer) ---
 [[tool.mypy.overrides]]
 module = "src.modules.campaigns.*"

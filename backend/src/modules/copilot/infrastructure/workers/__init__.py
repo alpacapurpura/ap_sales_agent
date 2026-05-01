@@ -1,0 +1,1 @@
+"""Copilot infrastructure workers package."""

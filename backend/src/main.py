@@ -88,6 +88,7 @@ from src.modules.copilot.api import media as copilot_media
 from src.modules.copilot.api import nudge as copilot_nudge
 from src.modules.copilot.api import plan as copilot_plan
 from src.modules.copilot.api import suggestions as copilot_suggestions
+from src.modules.copilot.api import telegram as copilot_telegram
 from src.modules.copilot.api import voice as copilot_voice
 from src.modules.crm.api import cdp as crm_cdp
 from src.modules.crm.api import contacts as crm_contacts
@@ -854,6 +855,16 @@ app.include_router(
     prefix="/api/v1/copilot",
     tags=["Copilot - Plan"],
     dependencies=[Depends(get_tenant_context)],
+)
+# PI-5 PR-1 — Copilot Telegram channel.
+# Webhook endpoint is PUBLIC (validated via X-Telegram-Bot-Api-Secret-Token).
+# Link endpoints use Clerk JWT auth resolved by FastAPI deps in router.
+# NOT mounted under get_tenant_context dependency: webhook has no tenant
+# header (Telegram doesn't send it); link endpoints use tenant from the
+# authenticated User via Clerk middleware already.
+app.include_router(
+    copilot_telegram.router,
+    tags=["Copilot - Telegram"],
 )
 app.include_router(
     copilot_suggestions.router,

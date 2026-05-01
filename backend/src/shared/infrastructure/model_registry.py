@@ -110,3 +110,11 @@ from src.shared.agent_observability.persistence.models.pricing_snapshot_model im
 from src.shared.agent_observability.persistence.models.tenant_billing_config_model import (
     TenantBillingConfigModel,  # noqa: F401
 )
+
+# --- LLM config registry (PI-2 S4 PR-1) ---
+from src.shared.infrastructure.llm.infrastructure.audit_model import (
+    LLMConfigAuditModel,  # noqa: F401
+)
+from src.shared.infrastructure.llm.infrastructure.role_binding_model import (
+    LLMRoleBindingModel,  # noqa: F401
+)

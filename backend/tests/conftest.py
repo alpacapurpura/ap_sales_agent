@@ -285,6 +285,12 @@ def db_engine():
         from src.modules.tenant_profile.infrastructure.models.tenant_profile_model import (
             TenantProfileModel,
         )
+        from src.shared.infrastructure.llm.infrastructure.audit_model import (
+            LLMConfigAuditModel,
+        )
+        from src.shared.infrastructure.llm.infrastructure.role_binding_model import (
+            LLMRoleBindingModel,
+        )
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")
 

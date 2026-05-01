@@ -29,8 +29,23 @@ class Settings(BaseSettings):
     EVOLUTION_API_KEY: str = ""
     EVOLUTION_API_VERSION: str = "v1"  # Options: "v1", "v2"
 
-    # Telegram
+    # Telegram (sales_agent legacy global)
     TELEGRAM_BOT_TOKEN: str = ""
+
+    # ── Copilot Telegram bot (PI-5 PR-1) ─────────────────────────────────
+    # Global Nicolify copilot bot — DISTINTO de TELEGRAM_BOT_TOKEN (sales_agent).
+    # D-PI5-001 + D-PI5-005 separación física. NUNCA per-tenant.
+    COPILOT_TELEGRAM_BOT_TOKEN: str = ""
+    # Random secret validated en webhook header X-Telegram-Bot-Api-Secret-Token.
+    # Setear via setWebhook con secret_token (D-PI5-028 anti-pattern A10).
+    COPILOT_TELEGRAM_WEBHOOK_SECRET_TOKEN: str = ""
+    # TTL magic link en segundos — D-PI5-019 (15 min default)
+    COPILOT_TELEGRAM_LINK_TOKEN_TTL_SECONDS: int = 900
+    # Bot username (sin @) usado para construir deep link t.me/{username}?start=TOKEN
+    COPILOT_TELEGRAM_BOT_USERNAME: str = "nicolify_copilot_bot"
+
+    # Frontend URL pública (para construir CTA URLs hacia web from bot responses)
+    FRONTEND_URL: str = "https://app.nicolify.com"
 
     # Google Calendar
     GOOGLE_CLIENT_ID: str = ""

@@ -28,6 +28,9 @@ from src.modules.campaigns.workers.execution_task import run_campaign_execution_
 from src.modules.campaigns.workers.scheduler_tick import run_campaign_scheduler_tick
 from src.modules.campaigns.workers.segment_refresh_tick import run_segment_refresh_tick
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
+from src.modules.copilot.infrastructure.workers.telegram_worker import (
+    process_copilot_telegram_turn,
+)
 from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
     run_sales_agent_dual_write_reconcile,
@@ -89,6 +92,8 @@ class WorkerSettings:
         run_campaign_scheduler_tick,
         run_segment_refresh_tick,
         purge_old_campaigns_audit,
+        # PI-5 PR-1 — Copilot Telegram channel
+        process_copilot_telegram_turn,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10

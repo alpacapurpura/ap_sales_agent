@@ -7,7 +7,15 @@ Integrity invariant: a tool *name* may be exported from multiple groups only
 if the underlying tool object is the same. Two different objects sharing a
 name raise ``ToolNameCollisionError`` at registration time so divergent
 behavior can't be shadowed silently.
+
+PI-5 PR-1: ``ToolGroupMeta.available_channels`` SSoT — D-PI5-023..025.
+Web-only groups: ``navigation``, ``guided``, ``landing``,
+``offer_section``. Telegram filters via ``channel`` param in
+``get_tools_for_context()``.
 """
+
+from dataclasses import dataclass, field
+from typing import Final
 
 from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOLS
 from src.modules.copilot.application.tools.ask_tenant_data import ask_tenant_data
@@ -338,6 +346,42 @@ def get_all_tools() -> list:
     return tools
 
 
+# ── PI-5 PR-1: Tool group metadata SSoT (D-PI5-023..025) ────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class ToolGroupMeta:
+    """Metadata per tool group. PI-5 D-PI5-023..025.
+
+    ``available_channels`` enumera canales donde el group es operable.
+    Default = todos los canales. Restricción = subset explícito.
+    """
+
+    name: str
+    available_channels: frozenset[str] = field(default_factory=lambda: frozenset({"web", "telegram", "whatsapp"}))
+
+
+# SSoT explicit overrides for groups that are NOT available on Telegram.
+# Reference: research file §5 + D-PI5-024.
+TOOL_GROUP_META: Final[dict[str, ToolGroupMeta]] = {
+    "navigation": ToolGroupMeta("navigation", available_channels=frozenset({"web"})),
+    "guided": ToolGroupMeta("guided", available_channels=frozenset({"web"})),
+    "landing": ToolGroupMeta("landing", available_channels=frozenset({"web"})),
+    "offer_section": ToolGroupMeta("offer_section", available_channels=frozenset({"web"})),
+    # All other groups inherit default = {"web", "telegram", "whatsapp"}
+}
+
+
+def _meta_for_group(name: str) -> ToolGroupMeta:
+    """Return meta for ``name`` or default (all channels) if not configured."""
+    return TOOL_GROUP_META.get(name, ToolGroupMeta(name))
+
+
+def is_group_available_in_channel(group_name: str, channel: str) -> bool:
+    """``True`` if ``group_name`` is operable on ``channel``."""
+    return channel in _meta_for_group(group_name).available_channels
+
+
 def _collect_groups(group_names: tuple[str, ...]) -> list:
     """Collect tools from the given group names, deduplicating by name."""
     tools = []
@@ -350,30 +394,56 @@ def _collect_groups(group_names: tuple[str, ...]) -> list:
     return tools
 
 
-def get_tools_for_context(context: dict | None) -> list:
-    """Return tools based on context (guided flag > route-based).
+def _filter_groups_by_channel(group_names: tuple[str, ...], channel: str) -> tuple[str, ...]:
+    """Drop groups whose meta excludes ``channel`` (D-PI5-023)."""
+    return tuple(g for g in group_names if is_group_available_in_channel(g, channel))
+
+
+def get_tools_for_context(
+    context: dict | None,
+    channel: str = "web",
+) -> list:
+    """Return tools based on context (guided flag > route-based) + channel filter.
 
     * ``guided_mode=True`` in context → guided + knowledge + shared + document.
       The narrow tool set keeps the LLM focused on the structured flow.
     * Otherwise → route-based selection with the always-available groups
       (document, shared_tools, guided) merged in.
 
+    PI-5 PR-1: ``channel`` param filters web-only groups when ``channel !=
+    "web"``. Default ``"web"`` = backward compat.
+
     Focus mode was retired on 2026-04-21; the standalone interview engine was
     retired on 2026-04-22 (state now lives inside the conversation itself).
     """
     if not context:
-        return get_tools_for_route(None)
+        return _collect_groups(_filter_groups_by_channel(_match_route(None), channel))
 
     if context.get("guided_mode"):
         # Guided keeps its narrow toolset but must include ``extraction`` so the
         # LLM can dispatch URL/doc analysis when the user pastes a link mid-flow.
         # Without this, the model falls back to extract_structured loops because
         # extract_from_url/doc are not bound (observed traza 376850f5).
-        return _collect_groups(
-            ("guided", "extraction", "knowledge", "shared_tools", "document"),
+        guided_groups: tuple[str, ...] = (
+            "guided",
+            "extraction",
+            "knowledge",
+            "shared_tools",
+            "document",
         )
+        return _collect_groups(_filter_groups_by_channel(guided_groups, channel))
 
-    return get_tools_for_route(context.get("current_route"))
+    return _get_tools_for_route_filtered(context.get("current_route"), channel)
+
+
+def _get_tools_for_route_filtered(route: str | None, channel: str) -> list:
+    """Route-based tools filtered by channel (D-PI5-023)."""
+    matched = _match_route(route)
+    groups: tuple[str, ...] = tuple(matched)
+    for always in ALWAYS_AVAILABLE_GROUPS:
+        if always not in groups:
+            groups = (*groups, always)
+    return _collect_groups(_filter_groups_by_channel(groups, channel))
 
 
 def _match_route(route: str | None) -> list[str]:
