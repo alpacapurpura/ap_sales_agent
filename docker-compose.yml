@@ -484,6 +484,7 @@ services:
       DASHSCOPE_API_KEY: "${DASHSCOPE_API_KEY}"
       GEMINI_API_KEY: "${GEMINI_API_KEY}"
       DISABLE_SPEND_LOGS: "true"
+      LITELLM_ENVIRONMENT: "${LITELLM_ENVIRONMENT}"
     volumes:
       - ./litellm_config.yaml:/app/config.yaml:ro
     command:
@@ -507,9 +508,9 @@ services:
       resources:
         limits:
           cpus: '1.00'
-          memory: 768M
+          memory: 1536M
         reservations:
-          memory: 256M
+          memory: 512M
 
   # --- GrowthBook (per-tenant LLM override + A/B + kill-switch) (PI-2 S4 PR-2) ---
   # Self-hosted feature flag service. SDK Python en LLMConfigService consulta
