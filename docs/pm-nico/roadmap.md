@@ -9,7 +9,7 @@
 |---|---|---|---|
 | ~~Campaigns module — Foundation + Telegram MVP~~ | PI-1 | **DONE 2026-04-30** — 5 sprints / 12 PRs shipped (S0+S1+S2+S3+S4). MVP 1 Telegram outbound end-to-end. CRM Hub Lite forward-compat → archived | [pis/archive/PI-1-campaigns-module/retro.md](pis/archive/PI-1-campaigns-module/retro.md) |
 | Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
-| Copilot multicanal — Telegram MVP | PI-5 | discovery (research in progress) | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
+| Copilot multicanal — Telegram MVP | PI-5 | S2 in-progress (PR-2-telegram-orchestrator-hookup ready) — S1 shipped commit `c1fa2909` | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
 | Campaigns multi-canal (ManyChat WA + EMAIL_DRIP + commercial_director subagent) | PI-6 (placeholder) | next — abrir post manual gate Chris staging PI-1 | _placeholder_ |
 
 ## Maintenance (rolling, paralelo a Now — no compite cap)
@@ -58,3 +58,4 @@
 | 2026-04-29 | Creado track **Maintenance** paralelo a Now. Primer track: PI-4-brand-evolutive-maintenance | Chris pidió responder feedback usuarios brand en días sin encolar en feature PIs ni pelear cap Now. Patrón rolling = sprint = batch items micro |
 | 2026-04-30 | Abierto **PI-5-copilot-multicanal-telegram** (discovery) | Capturado en retro PI-2 como next step ("Multicanal Bloque A — Telegram bridge"). Cap Now = 3 features (PI-1 + PI-3 + PI-5) — al límite. Scope: Telegram only (WA + IG DM = futuros PIs separados) |
 | 2026-04-30 | **PI-1 cerrado + archivado** post-S4 cierre. Outcome MVP 1 Telegram alcanzado. Manual gate Chris staging pendiente. PI-6 placeholder (multi-canal) sube a Now. Cap Now = 3 (PI-3 + PI-5 + PI-6 placeholder). | PI-1 5 sprints + 12 PRs shipped en 1 día Opus 4.7[1M] sprint sizing. Cero refactor confirmed strongly (H4) |
+| 2026-04-30 | **PI-5 S1 shipped** (PR-1 telegram-bot-foundation commit `c1fa2909`). **S2 abierto** con PR-2-telegram-orchestrator-hookup (single surface agentic, scope L cohesivo). | Foundation Telegram cross-stack lista (webhook + linking + tool subset registry + FE settings). S2 cablea orchestrator real + memory + cache fragment para reemplazar placeholder MVP. |

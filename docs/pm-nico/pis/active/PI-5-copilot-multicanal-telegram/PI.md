@@ -5,7 +5,7 @@
 | Campo | Valor |
 |---|---|
 | PI ID | PI-5-copilot-multicanal-telegram |
-| Estado | discovery (research **done** — sprint planning) |
+| Estado | S2 in-progress (S1 shipped commit `c1fa2909`) |
 | Tema | Extender copilot al canal Telegram. Pattern multicanal extensible (WhatsApp + IG DM = futuros PIs separados, OUT OF SCOPE) |
 | Owner PM | /pm |
 | Inicio | 2026-04-30 |
@@ -100,8 +100,8 @@ Casos de uso típicos:
 
 | Sprint | Tema | PRs | Estado |
 |---|---|---|---|
-| **S1** | Foundation Telegram bot + linking + tool subset | PR-1 cross-stack bot adapter + webhook + magic link onboarding (BE+FE) + `copilot_channel_links` + `copilot_link_tokens` tables. Cohesivo cross-stack | not-started |
-| **S2** | Memory + tool subset + non-link UX | PR-2 `TELEGRAM_CONTEXT_WINDOW_CONFIG` + `channel_type/channel_chat_id` cols + `TELEGRAM_CHANNEL_CONTEXT` cacheable fragment + `ToolGroupMeta.available_channels` SSoT + redirect template tools no-disponibles | not-started |
+| **S1** | Foundation Telegram bot + linking + tool subset | PR-1 cross-stack bot adapter + webhook + magic link onboarding (BE+FE) + `copilot_channel_links` + `copilot_link_tokens` tables. Cohesivo cross-stack | **shipped** (commit `c1fa2909`, 2026-04-30) |
+| **S2** | Telegram orchestrator hookup + memory + cache fragment | PR-2 worker linked branch invoca copilot orchestrator real (reemplaza placeholder MVP) + `TELEGRAM_CONTEXT_WINDOW_CONFIG` + `TELEGRAM_CHANNEL_CONTEXT` cacheable fragment ≥1024 tokens + tool registry filter runtime + format adapter MarkdownV2 + tests integration end-to-end | **in-progress** (PR-2 ready, agentic-only) |
 | **S3** | HITL sales_agent ↔ copilot | PR-3 cross-module: `hitl_requests` tabla + `node_escalation` migration interrupt() + copilot HITL notification + resume worker + timeout cron | not-started |
 | **S4** | Notifs proactivas + encargos | PR-4 push engine alerts (métricas críticas, reminders) + `copilot_owner_todos` tabla + in-app inbox surface | not-started |
 | **S5** | Arch fitness + docs + observabilidad | PR-5 arch tests (token global, cero FK cruzada copilot↔sales_agent) + `current-state/copilot.md` + `current-state/sales-agent.md` actualizados + telemetría Telegram (latencia, rate limit hits, HITL timeout rate) | not-started |

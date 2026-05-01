@@ -59,7 +59,7 @@
 |---|---|---|---|---|
 | PI-3 | feature | sales-agent-improvement | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 | PI-4 | **maintenance** (rolling) | brand-evolutive-maintenance | S1 in-progress (PR-1-drop-buyer-persona-fields ready) | [pis/active/PI-4-brand-evolutive-maintenance/PI.md](pis/active/PI-4-brand-evolutive-maintenance/PI.md) |
-| PI-5 | feature | copilot-multicanal-telegram | discovery (research in progress) | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
+| PI-5 | feature | copilot-multicanal-telegram | S2 in-progress (PR-2-telegram-orchestrator-hookup ready) — S1 shipped | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
 
 ## PIs archivados (`pis/archive/`)
 
