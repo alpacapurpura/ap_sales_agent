@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -41,12 +41,11 @@ const DEFAULT_TIMEZONE = "America/Lima";
  */
 export function CampaignNewClient({ segmentId }: CampaignNewClientProps) {
   const router = useRouter();
+  const params = useParams<{ tenantId: string }>();
 
   const createCampaign = useCreateCampaignMutation();
-
-  const [campaignId, setCampaignId] = React.useState<string | null>(null);
-  const addStep = useAddCampaignStepMutation(campaignId ?? "");
-  const scheduleCampaign = useScheduleCampaignMutation(campaignId ?? "");
+  const addStep = useAddCampaignStepMutation();
+  const scheduleCampaign = useScheduleCampaignMutation();
 
   const form = useForm<CreateCampaignFormValues>({
     resolver: zodResolver(createCampaignFormSchema),
@@ -87,11 +86,9 @@ export function CampaignNewClient({ segmentId }: CampaignNewClientProps) {
         created_by_source: "manual",
       });
 
-      // Persist campaignId so the step/schedule mutations use it
-      setCampaignId(campaign.id);
-
-      // Step 2: Add CALL_SUBAGENT_BRIEF step
+      // Step 2: Add CALL_SUBAGENT_BRIEF step (campaignId per-call payload)
       await addStep.mutateAsync({
+        campaignId: campaign.id,
         step_type: "CALL_SUBAGENT_BRIEF",
         step_index: 0,
         step_config: {},
@@ -100,14 +97,13 @@ export function CampaignNewClient({ segmentId }: CampaignNewClientProps) {
       // Step 3 (optional): Schedule
       if (values.scheduled_for) {
         await scheduleCampaign.mutateAsync({
+          campaignId: campaign.id,
           scheduled_for: values.scheduled_for,
         });
       }
 
       toast.success(`Campaña "${values.name}" creada correctamente.`);
-      router.push(
-        `/${encodeURIComponent(window.location.pathname.split("/")[1])}/sales/campa%C3%B1as/${campaign.id}`,
-      );
+      router.push(`/${params.tenantId}/sales/campa%C3%B1as/${campaign.id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error al crear la campaña.";
       form.setError("root", { message });

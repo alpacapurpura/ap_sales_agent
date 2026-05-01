@@ -14,6 +14,7 @@ vi.mock("next/navigation", () => ({
     back: vi.fn(),
     replace: vi.fn(),
   }),
+  useParams: () => ({ tenantId: "test-tenant" }),
 }));
 
 // Mock campaign mutations

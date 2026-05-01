@@ -59,13 +59,16 @@ export function CreateSegmentDialog({
     },
   });
 
-  // Reset form when dialog closes
+  // Reset form when dialog closes.
+  // Why: form + mutation refs change cada render — incluirlos en deps causa loop infinito
+  // (form.reset triggers re-render → useEffect re-runs → infinite). Solo `open` es trigger real.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (!open) {
       form.reset({ name: "", description: "" });
       mutation.reset();
     }
-  }, [open, form, mutation]);
+  }, [open]);
 
   async function onSubmit(values: CreateSegmentFormValues) {
     try {
