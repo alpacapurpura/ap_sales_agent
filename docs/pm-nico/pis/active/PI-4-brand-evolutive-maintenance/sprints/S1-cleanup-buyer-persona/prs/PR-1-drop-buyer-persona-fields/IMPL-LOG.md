@@ -84,3 +84,43 @@
 ---
 
 <!-- @pm: BE implementation done. Próximo paso: cuando FE termine también, ejecutar prompts/03-auditor-start.md o ejecutar /pm "PR-1 BE builder done". -->
+
+---
+
+## FE implementation
+
+### Sesión 2026-05-01 — `nicolify-frontend` (recuperado por PM tras session hang)
+
+#### Contexto cargado
+- `PR.md` ✓, `CONTRACT.md` ✓, `current-state/brand.md` ✓
+- Rules: frontend-fsd, frontend-quality, form-runtime-array, tdd-mandatory, git-safety, parallel-safety ✓
+
+#### Decisiones implementación
+- **Schema drop limpio.** `buyer-persona.schema.ts` pierde 68 líneas (bloques `objections` + `preferred_channels` array fields).
+- **API types sincronizados con BE.** `BuyerPersona` interface + `BuyerPersonaSectionUpdateDTO` union drop ambos fields.
+- **EDITABLE_FIELDS sincronizado.** `PersonaDetailPage.tsx` lista de secciones editables actualizada.
+- **Test fixtures limpios.** `PersonaDetailPage.test.tsx` + `BuyerPersonasDashboard.test.tsx` mocks sin fields fantasma.
+- **Regression tests escritos.** 3 casos en `schemas/__tests__/buyer-persona-schema-cleanup.test.ts` — schema fields list no contiene dropped fields, pain_points/desires preservados.
+
+#### Sub-deliverables completados
+- [x] `frontend/src/features/brand-studio/schemas/buyer-persona.schema.ts` — objections + preferred_channels removed
+- [x] `frontend/src/lib/api/buyer-persona.ts` — BuyerPersona interface + DTO union cleaned
+- [x] `frontend/src/features/brand-studio/pages/PersonaDetailPage.tsx` — EDITABLE_FIELDS cleaned
+- [x] `frontend/src/features/brand-studio/pages/__tests__/PersonaDetailPage.test.tsx` — mock FULL_PERSONA cleaned
+- [x] `frontend/src/features/brand-studio/components/dashboard/__tests__/BuyerPersonasDashboard.test.tsx` — makePersona() cleaned
+- [x] `frontend/src/features/brand-studio/schemas/__tests__/buyer-persona-schema-cleanup.test.ts` — 3 regression cases (new)
+
+#### Quality gates
+- [x] TSC strict — 0 errors
+- [x] ESLint — 0 errors (185 warnings son baseline pre-existentes, no introducidos por este PR)
+- [x] Vitest brand-studio — 89/89 passed
+- [x] Arch fitness tests — 51/51 passed
+
+#### Bloqueadores encontrados
+- Session hang previa: builder completó todos los cambios pero murió antes de commit. Recuperado por PM en sesión 2026-05-01.
+
+#### Commit
+- `e4df74b8` — `refactor(brand-studio): remove objections + preferred_channels from buyer-persona FE`
+
+<!-- @pm: FE implementation done. Próximo: ejecutar auditor FE (Sonnet) con prompts/03-auditor-start.md -->
+
