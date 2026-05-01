@@ -17,11 +17,12 @@ from src.modules.copilot.application.orchestrator.system_prompt_layout import (
     PromptFragment,
 )
 
-# ── Frozen snapshot — the F8 §5.2 contract ────────────────────────────
+# ── Frozen snapshot — the F8 §5.2 contract (extended PI-5 PR-2 D-PI5-009) ─
 EXPECTED_CACHEABLE: tuple[PromptFragment, ...] = (
     PromptFragment.STATIC_IDENTITY,
     PromptFragment.STATIC_TOOLS_HINT,
     PromptFragment.MARKETING_KB_HINT,  # F10 — cite framework hint
+    PromptFragment.TELEGRAM_CHANNEL_CONTEXT,  # PI-5 PR-2 — cross-tenant per-channel cacheable
     PromptFragment.LIGHTHOUSE,
     PromptFragment.EDITABLE_CATALOG,
     PromptFragment.MODULES_LIST,
@@ -41,9 +42,13 @@ def test_cacheable_fragment_order_is_frozen() -> None:
         1. STATIC_IDENTITY — universally cacheable across tenants.
         2. STATIC_TOOLS_HINT — tools description, stable per-route.
         3. MARKETING_KB_HINT — F10 cite-framework instruction, stable.
-        4. LIGHTHOUSE — per-tenant brand summary.
-        5. EDITABLE_CATALOG — schema introspection result.
-        6. MODULES_LIST — module registry render.
+        4. TELEGRAM_CHANNEL_CONTEXT — PI-5 PR-2 (D-PI5-009): cross-tenant
+           per-channel cacheable Telegram conventions; emits "" for non-telegram
+           channels so web bytes stay byte-identical (cache prefix invariance
+           preserved per channel).
+        5. LIGHTHOUSE — per-tenant brand summary.
+        6. EDITABLE_CATALOG — schema introspection result.
+        7. MODULES_LIST — module registry render.
     """
     assert CACHEABLE_FRAGMENTS == EXPECTED_CACHEABLE
 
