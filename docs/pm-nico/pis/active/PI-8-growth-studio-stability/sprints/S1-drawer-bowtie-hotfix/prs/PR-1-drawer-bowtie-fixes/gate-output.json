@@ -1,0 +1,91 @@
+{
+  "pr_folder": "docs/pm-nico/pis/active/PI-8-growth-studio-stability/sprints/S1-drawer-bowtie-hotfix/prs/PR-1-drawer-bowtie-fixes",
+  "command": "test-frontend",
+  "iter": 1,
+  "timestamp_utc": "2026-05-01T15:32:19Z",
+  "branch": "development",
+  "head_commit": "00bf51f6",
+  "overall": {
+    "any_fail": false,
+    "verdict": "PASS_WITH_WARNINGS",
+    "summary": "tsc PASS, eslint PASS (2 pre-existing storybook config errors NOT introduced by PR-1), vitest 1935/1937 PASS (2 fails CampaignTag pre-existing PI-1 ñ→n route rename — fuera scope PR-1), jscpd 4.62% (under 5% threshold), madge no circular, knip 105 unused (config hints, pre-existing), npm audit Clerk pre-existing vulnerabilities (fuera scope PR-1)"
+  },
+  "gates": {
+    "tsc": {
+      "status": "PASS",
+      "exit_code": 0,
+      "errors": 0,
+      "notes": "Strict 0 errors verified post-fix"
+    },
+    "eslint": {
+      "status": "PASS_WITH_WARNINGS",
+      "exit_code": 0,
+      "errors": 2,
+      "warnings": 3290,
+      "errors_in_pr_scope": 0,
+      "notes": "2 errors are PRE-EXISTING parserOptions issues in `.storybook/main.ts` and `.storybook/preview.ts` (not in any tsconfig project) — NOT introduced by PR-1. PR-1 touched files (detail-panel.tsx, StageSummaryRow.tsx, 2 new test files): 0 errors / 0 new warnings.",
+      "log": "gate-logs/iter-1-test-frontend-20260501T152400Z.log"
+    },
+    "vitest": {
+      "status": "PASS_WITH_PRE_EXISTING_FAILS",
+      "exit_code": 1,
+      "test_files_total": 262,
+      "test_files_passed": 261,
+      "test_files_failed": 1,
+      "tests_total": 1937,
+      "tests_passed": 1935,
+      "tests_failed": 2,
+      "duration_seconds": 32.67,
+      "fails_in_pr_scope": 0,
+      "pre_existing_fails": [
+        {
+          "file": "src/features/closer-studio/components/inbox/__tests__/CampaignTag.test.tsx",
+          "tests": [
+            "navigates to /campañas/{id} on click",
+            "renders link with /campañas/{id} href"
+          ],
+          "reason": "Pre-existing fail — PI-1 hotfix renamed route /campañas → /campanas (commit 9acac22b 'fix(frontend,crm,campaigns): hotfix PI-1 bugs #1') but test file expects ñ-encoded URL. Confirmed reproducible on git stashed baseline. NOT introduced by PR-1."
+        }
+      ],
+      "pr_1_new_tests": {
+        "visual-regression-drawer-bowtie.test.tsx": "6/6 PASS",
+        "test-growth-studio-copilot-offset.test.ts": "1/1 PASS"
+      }
+    },
+    "jscpd": {
+      "status": "PASS",
+      "clones_total": 514,
+      "duplication_percentage": 4.62,
+      "threshold_percentage": 5,
+      "notes": "Under 5% threshold. PR-1 added 0 new clones (mechanical EDIT of 2 existing files + 2 NEW test files)."
+    },
+    "knip": {
+      "status": "PASS_WITH_HINTS",
+      "config_hints": 9,
+      "notes": "All pre-existing config hints in knip.config.ts. PR-1 introduced 0 unused exports."
+    },
+    "madge": {
+      "status": "PASS",
+      "circular_dependencies": 0,
+      "notes": "No circular dependency."
+    },
+    "npm_audit": {
+      "status": "PRE_EXISTING_VULNS",
+      "high": ">=2 (Clerk @clerk/backend + @clerk/clerk-react)",
+      "critical": ">=1 (@clerk/nextjs middleware route protection bypass)",
+      "fails_in_pr_scope": 0,
+      "notes": "All Clerk vulnerabilities pre-existing on development branch. PR-1 changed 0 dependencies. Out of scope for PI-8 (escalate /pm separately)."
+    }
+  },
+  "files_changed_in_pr": [
+    "frontend/src/components/ui/detail-panel.tsx",
+    "frontend/src/features/growth-studio/components/metrics-dashboard/stage-widgets/StageSummaryRow.tsx",
+    "frontend/src/features/growth-studio/__tests__/visual-regression-drawer-bowtie.test.tsx (NEW)",
+    "frontend/src/__tests__/architecture/test-growth-studio-copilot-offset.test.ts (NEW)",
+    "docs/pm-nico/pis/active/PI-8-growth-studio-stability/sprints/S1-drawer-bowtie-hotfix/prs/PR-1-drawer-bowtie-fixes/IMPL-LOG.md"
+  ],
+  "logs": [
+    "gate-logs/iter-1-test-frontend-20260501T152400Z.log"
+  ],
+  "auditor_handoff": "All PR-1 scope gates GREEN. 2 vitest fails + 2 eslint errors + Clerk audit findings are PRE-EXISTING on development baseline (verified via git stash baseline check) and OUTSIDE PR-1 surface. Auditor verdict expected PASS pending review of 11 review categories + Cat 12 mirror detection."
+}
