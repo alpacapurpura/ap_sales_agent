@@ -7,10 +7,10 @@
 
 | Item | Tipo | Estado | Link |
 |---|---|---|---|
-| Campaigns module — Foundation + Telegram MVP | PI-1 | planning, S0 in-progress | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
-| ~~Copilot improvement~~ | PI-2-copilot | **DONE 2026-04-30** — 5 sprints / 12 PRs shipped (S1+S2+S3+S4+S5). LLM stack convergencia completa: ModelRole único + LiteLLM Proxy + DB registry hot-swap + GrowthBook scaffold + eval gate. Allowlist arch fitness 0. → archived | [pis/archive/PI-2-copilot-improvement/retro.md](pis/archive/PI-2-copilot-improvement/retro.md) |
+| ~~Campaigns module — Foundation + Telegram MVP~~ | PI-1 | **DONE 2026-04-30** — 5 sprints / 12 PRs shipped (S0+S1+S2+S3+S4). MVP 1 Telegram outbound end-to-end. CRM Hub Lite forward-compat → archived | [pis/archive/PI-1-campaigns-module/retro.md](pis/archive/PI-1-campaigns-module/retro.md) |
 | Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 | Copilot multicanal — Telegram MVP | PI-5 | discovery (research in progress) | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
+| Campaigns multi-canal (ManyChat WA + EMAIL_DRIP + commercial_director subagent) | PI-6 (placeholder) | next — abrir post manual gate Chris staging PI-1 | _placeholder_ |
 
 ## Maintenance (rolling, paralelo a Now — no compite cap)
 
@@ -24,7 +24,7 @@
 
 | Item | Tipo | Bloqueado por | Link |
 |---|---|---|---|
-| Campaigns multi-canal (ManyChat bridge) + Copilot Marketing Subagent + EMAIL_DRIP | PI-2-campaigns (placeholder) | PI-1 cierre | _placeholder, abrir post PI-1_ |
+| CRM Hub completo + Segment Builder Visual + Cards copilot CRM | PI-7 (placeholder) | PI-1 manual gate Chris + telemetría | _placeholder_ |
 
 ## Later (capturado, sin priorizar)
 
@@ -39,6 +39,7 @@
 
 | PI | Cierre | Outcome | Retro |
 |---|---|---|---|
+| PI-1-campaigns-module | 2026-04-30 | Sistema Campañas end-to-end MVP 1 Telegram. 5 sprints / 12 PRs (S0 foundation + S1 dominio + S2 orchestrator + S3 Telegram outbound + S4 CRM Hub Lite). Forward-compat invariantes ratchet (PI-3 expand sin reescribir). 4 hipótesis validadas (H1+H3+H4 strong). 75 decisiones documentadas. Cero refactor cross-sprint. Manual gate Chris staging pendiente. | [pis/archive/PI-1-campaigns-module/retro.md](pis/archive/PI-1-campaigns-module/retro.md) |
 | PI-2-copilot-improvement | 2026-04-30 | LLM stack convergencia: ModelRole único SSoT + LiteLLM Proxy motor + DB registry runtime + admin UI hot-swap <60s + GrowthBook per-tenant scaffold + eval gate pre-promote + CI workflow. Cost reduction 4-15x NANO+FAST (DeepSeek V4-Flash). Allowlist arch fitness 19→0 entries. ~140 archivos surface, ~80 tests nuevos. | [pis/archive/PI-2-copilot-improvement/retro.md](pis/archive/PI-2-copilot-improvement/retro.md) |
 
 ## Reglas roadmap
@@ -56,3 +57,4 @@
 |---|---|---|
 | 2026-04-29 | Creado track **Maintenance** paralelo a Now. Primer track: PI-4-brand-evolutive-maintenance | Chris pidió responder feedback usuarios brand en días sin encolar en feature PIs ni pelear cap Now. Patrón rolling = sprint = batch items micro |
 | 2026-04-30 | Abierto **PI-5-copilot-multicanal-telegram** (discovery) | Capturado en retro PI-2 como next step ("Multicanal Bloque A — Telegram bridge"). Cap Now = 3 features (PI-1 + PI-3 + PI-5) — al límite. Scope: Telegram only (WA + IG DM = futuros PIs separados) |
+| 2026-04-30 | **PI-1 cerrado + archivado** post-S4 cierre. Outcome MVP 1 Telegram alcanzado. Manual gate Chris staging pendiente. PI-6 placeholder (multi-canal) sube a Now. Cap Now = 3 (PI-3 + PI-5 + PI-6 placeholder). | PI-1 5 sprints + 12 PRs shipped en 1 día Opus 4.7[1M] sprint sizing. Cero refactor confirmed strongly (H4) |

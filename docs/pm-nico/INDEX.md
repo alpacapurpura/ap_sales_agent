@@ -57,14 +57,16 @@
 
 | PI | Tipo | Tema | Estado | Archivo |
 |---|---|---|---|---|
-| PI-1 | feature | campaigns-module | S0 in-progress (PR-0 shipped, PR-1+PR-2 ready); S1/S2/S3/S4 sprint.md macros refined | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
 | PI-3 | feature | sales-agent-improvement | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 | PI-4 | **maintenance** (rolling) | brand-evolutive-maintenance | S1 in-progress (PR-1-drop-buyer-persona-fields ready) | [pis/active/PI-4-brand-evolutive-maintenance/PI.md](pis/active/PI-4-brand-evolutive-maintenance/PI.md) |
 | PI-5 | feature | copilot-multicanal-telegram | discovery (research in progress) | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
 
 ## PIs archivados (`pis/archive/`)
 
-(vacío — primer PI cerrado migrará aquí)
+| PI | Cierre | Retro |
+|---|---|---|
+| PI-1-campaigns-module | 2026-04-30 | [retro.md](pis/archive/PI-1-campaigns-module/retro.md) |
+| PI-2-copilot-improvement | 2026-04-30 | [retro.md](pis/archive/PI-2-copilot-improvement/retro.md) |
 
 ## Estructura PR-folder
 
