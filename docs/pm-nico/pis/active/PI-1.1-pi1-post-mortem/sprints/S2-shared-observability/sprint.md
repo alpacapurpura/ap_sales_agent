@@ -60,3 +60,18 @@ H2: shared base + concrete subclass es estructura right-sized para growth (comme
 - PR-1 RESULT.md (origen este sprint): `../S1-stabilization/prs/PR-1-pi1-bugs-hotfix/RESULT.md`
 - Anti-duplication rule: `.claude/rules/anti-duplication.md`
 - Process learning: `docs/pm-nico/process/process-learnings.md` § 2026-05-01
+
+## Cross-session coordination handshake (2026-05-01 Chris-mediated)
+
+PI-5 PR-2 (active session, modificando `modules/copilot/`) recibió aviso explícito Chris:
+
+> "otra sesión modificará la observabilidad de copilot, por lo que debes revisar los archivos del PM si quieres saber que hizo, en lo demás no debe interrumpirte para nada. No dupliques la observabilidad solo verá eso pero repito si algo falta revisa el WIP para que sepas que hace el otro. No branch no pull, no cambies ambiente los dos trabajan sobre el mismo codigo sin temor, si tocan el mismo archivo no hay problema, tocarían funciones diferentes"
+
+**Implicancia para PR-2 architect/builder/auditor:**
+- ✅ Proceder sin temor sobre `modules/copilot/observability/recording/turn_envelope.py` (lift to shared)
+- ✅ Si modificás archivo que PI-5 también editó → OK siempre que sean funciones distintas (regla M8 cementada)
+- ✅ Architect Step 0.4 sigue válido: chequear `git status` + `git diff` overlap, pero NO bloquea — coordinación humana ya hecha
+- ✅ Builder Step 0 grep gate sigue MANDATORY (no se relaja) — anti-duplication es disciplina interna independiente de coordination cross-session
+- 🔴 Si commit propio rompería commit ajeno (función misma, lógica conflicto) → STOP escalate Chris (regla M8 fallback)
+
+PI-5 PR-2 SSoT: `docs/pm-nico/pis/active/PI-5-copilot-multicanal-telegram/sprints/S2-telegram-orchestrator-memory-cache/prs/PR-2-telegram-orchestrator-hookup/`. Architect/builder PR-2 SHARED-OBSERVABILITY pueden leer ese folder para entender qué hace la otra sesión si encuentra archivo modificado.
