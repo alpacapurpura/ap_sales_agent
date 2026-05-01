@@ -7,7 +7,7 @@
 | PR ID | PR-1-telegram-bot-foundation |
 | Sprint padre | S1-foundation-telegram-bot |
 | PI padre | PI-5-copilot-multicanal-telegram |
-| Estado | discovery |
+| Estado | shipped (2026-04-30, commit `c1fa2909`) |
 | Tipo | feature (cross-stack BE+FE+agentic) |
 | Esfuerzo | **L** |
 | Owner PM | /pm |

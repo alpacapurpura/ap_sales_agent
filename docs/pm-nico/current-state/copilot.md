@@ -13,8 +13,10 @@ Asistente in-app conversacional. Interfaz primaria de Nicolify. User configura, 
 
 ## Capacidades actuales
 - Chat UI in-app
+- **Canal Telegram (foundation)** — DMs linkeados magic link, webhook NON-BLOCKING + ARQ async, tool subset filtered, bot global Nicolify (1 token, separación física vs sales_agent). LLM orchestrator hookup pendiente S2 PR-2 (PI-5)
 - LangGraph orchestrator + sub-agents (deepagents)
 - Tools transversales (extract_document_to_fields, propose_field_updates, format_for_channel)
+- Tool registry SSoT `ToolGroupMeta.available_channels` (PI-5 PR-1) — channel-aware filtering web|telegram|whatsapp
 - Module Registry → introspección Pydantic schemas
 - Route-based tool selection (solo tools relevantes a la ruta actual)
 - Cards (UI cards emitidas por tools)
@@ -26,6 +28,20 @@ Asistente in-app conversacional. Interfaz primaria de Nicolify. User configura, 
 - Subagent isolation (stream provenance classifier)
 - Outbox migration ready behind `USE_OUTBOX_PATTERN_COPILOT` flag (OFF default; PI-1 S0 PR-1) — emisores (`extraction_card_flow`, `domain_subscribers`, `chat orchestrator`, `extract_from_doc tool`) routean vía `EventBusAdapter` y enquean a `domain_event_outbox` cuando ON
 - `extraction_card_flow` usa `@idempotent` decorator (PI-1 S0 PR-1 Sub-D) reemplazando ad-hoc Redis SETEX → at-least-once dedup centralizado, soft-fail Redis, mismo TTL 86400s
+
+### Cap: Canal Telegram — DMs linkeados magic link
+- Introducida: PR-1 (PI-5, S1, commit `c1fa2909`, 2026-04-30)
+- Estado: foundation live (LLM orchestrator hookup pendiente S2 PR-2)
+- Operable copilot: parcial (linking + tool subset registry; LLM responses = placeholder MVP, S2 hookup)
+- Surface API: `/api/v1/copilot/telegram/{webhook,link-tokens,link-status,link}`
+- Surface FE: `/{tenantId}/settings/copilot/telegram` page + `<TelegramLinkingClient />`
+- Tablas: `copilot_channel_links` + `copilot_link_tokens` + `copilot_conversations` (cols `channel_type`, `channel_chat_id`)
+- Webhook: NON-BLOCKING enqueue ARQ <200ms, valida `X-Telegram-Bot-Api-Secret-Token`, filtra `chat.type='private'`
+- Bot adapter: global Nicolify (1 token env var `COPILOT_TELEGRAM_BOT_TOKEN`), rate-limited 30 msg/sec global + per-chat lock
+- Magic link: HMAC-SHA256, TTL 15 min, single-use, hash en DB (no plaintext)
+- Tool subset SSoT: `ToolGroupMeta.available_channels` (web-only: `navigation`, `guided`, `landing`, `offer_section`)
+- Separación física vs sales_agent: 2 bots, 2 tokens, 2 webhooks, 2 schemas. Cero shared state. Arch fitness tests enforce
+- Operación pendiente Chris: BotFather `/newbot` crear `@nicolify_copilot_dev_bot` + `@nicolify_copilot_bot`, registrar webhooks via setWebhook con secret_token
 
 ### Cap: Rate limit voice + per-tenant media/voice limits
 - Introducida: PR-1 (PI-2, S1, commits `2d0b9e0e` + `caacdffa`, 2026-04-29)
