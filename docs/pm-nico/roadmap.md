@@ -8,9 +8,11 @@
 | Item | Tipo | Estado | Link |
 |---|---|---|---|
 | ~~Campaigns module — Foundation + Telegram MVP~~ | PI-1 | **DONE 2026-04-30** — 5 sprints / 12 PRs shipped (S0+S1+S2+S3+S4). MVP 1 Telegram outbound end-to-end. CRM Hub Lite forward-compat → archived | [pis/archive/PI-1-campaigns-module/retro.md](pis/archive/PI-1-campaigns-module/retro.md) |
+| ~~PI-1 post-mortem hotfixes (#1+#2+#4+#8)~~ | PI-1.1 | **DONE 2026-05-01** — 2 sprints / 2 PRs shipped. Bugs #1+#2+#4+#8 fixed + 5-layer anti-duplication enforcement cementada. Cascade #7+#9 descubiertos handoff PI-7 | [pis/archive/PI-1.1-pi1-post-mortem/retro.md](pis/archive/PI-1.1-pi1-post-mortem/retro.md) |
+| **App stability restore (Bug #7 brand adapter + #9 LiteLLM)** | **PI-7** | **active 2026-05-01 — S1 ready architect spawn** | [pis/active/PI-7-app-stability-restore/PI.md](pis/active/PI-7-app-stability-restore/PI.md) |
 | Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
-| Copilot multicanal — Telegram MVP | PI-5 | S2 in-progress (PR-2-telegram-orchestrator-hookup ready) — S1 shipped commit `c1fa2909` | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
-| Campaigns multi-canal (ManyChat WA + EMAIL_DRIP + commercial_director subagent) | PI-6 (placeholder) | next — abrir post manual gate Chris staging PI-1 | _placeholder_ |
+| Copilot multicanal — Telegram MVP | PI-5 | S2 shipped (PR-2 commit `6bad657b` 2026-05-01) | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
+| Campaigns multi-canal (ManyChat WA + EMAIL_DRIP + commercial_director subagent) | PI-6 (placeholder) | next — abrir post PI-7 + manual gate Chris staging PI-1 | _placeholder_ |
 
 ## Maintenance (rolling, paralelo a Now — no compite cap)
 
