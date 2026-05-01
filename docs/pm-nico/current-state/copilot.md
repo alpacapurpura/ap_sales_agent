@@ -84,6 +84,7 @@ Asistente in-app conversacional. Interfaz primaria de Nicolify. User configura, 
 | Doc extraction | sólido | |
 | Tools registry | sólido | Route-based |
 | Observabilidad | sólido | Rebuild 2026-04 (`copilot_llm_call`, MV, retention) |
+| Observability lifecycle base | live | PR-2 (PI-1.1, S2, commit `d80d15f5`, 2026-05-01) — refactored `ObservabilityContext` to subclass `CopilotObservabilityContext(BaseObservabilityContext)` shared. Capability unchanged user-facing, 4260 traces preserved, back-compat alias |
 | Subagent isolation | sólido | Stream provenance fix |
 | Cost tracking | sólido | Cycle 25-25 implementado |
 | Mutaciones que persisten | sólido | mutation_journal |

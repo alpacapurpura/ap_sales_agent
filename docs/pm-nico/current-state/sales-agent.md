@@ -66,9 +66,12 @@ AI SDR autónomo. Conversa con leads en canales conectados, pre-califica, maneja
 | Conversación core | sólido | Redesign 2026-04 finalizado |
 | Voz marca | sólido | SSoT en `personality_profiles.system_instruction` |
 | Tools (scheduler, payment) | sólido | |
-| Observabilidad | sólido | trazas + cost tracking + cycle billing 25-25 |
+| **Observabilidad traces persistence** | **live** | PR-2 (PI-1.1, S2, commit `d80d15f5`, 2026-05-01) — wire `observe_turn` lifecycle around `agent_app.ainvoke`. Pre-PR: 0 rows globalmente. Post-PR: traces reales persistidos (smoke verified +4 trace_event +2 llm_call) |
+| Cost tracking sales_agent | live | PR-2 — captura cost_usd + fx_rate también en errors (best-effort) |
+| Routing decisions auditables | parcial | PR-2 — schema ready, populated cuando LLM functional (Bug #9 LiteLLM blocking actualmente) |
 | Multi-canal | parcial | IG/FB OK, WhatsApp pendiente |
 | Prompt cache | sólido | Per-tenant key |
+| LLM call functional (currently) | **degraded** | Bug #9 — `visionarias_litellm:4000` container exited mount conflict. Bug #7 — `PersonalityProfileModel.model_dump` brand adapter rompe knowledge_builder. Out-of-scope PR-2, separate PRs deferred |
 
 ## Conexiones cross-módulo
 - **Lee de:** crm, brand, offer, connections, scheduling
@@ -81,6 +84,7 @@ _Pendiente captura._
 | PI | Cambio | Fecha cierre |
 |---|---|---|
 | sales-agent-redesign-s12 | Redesign completo, 12 sprints | 2026-04 |
+| PI-1.1-pi1-post-mortem S2 PR-2 | Lift `BaseObservabilityContext` + Bug #2 traces persistence + Bug #8 FXResolver.default | 2026-05-01 |
 
 ## Decisiones producto vinculadas
 | Fecha | Decisión | Razón |

@@ -62,3 +62,43 @@ Bug #8 fix en PR-2 scope. 3 opciones consideradas:
 `backend/tests/architecture/test_sales_agent_anchors.py` recibió edit transient agregando `SALES-AGENT-TURN-RUNNER-PR1-HOTFIX` anchor. Tras revert WIP, anchor no aplica. Edit se revirtió `git checkout --`.
 
 **Aplica:** anchor registry maintenance happens at builder commit boundary, no en transit.
+
+## D-8 (2026-05-01) — 5-layer anti-duplication enforcement primer test PASSED en PR-2
+
+PR-2-shared-agent-observability fue primer PR del nuevo proceso (commits `b0700be9` + `3e84bb93`). Resultado:
+
+- Layer 1 (PR.md mandatory grep evidence) **catched PR.md outdated info**: PR.md decía "FXResolver() at lines 116, 168" — architect Opus ejecutando Step 0 grep CORRIGIÓ a "factory.py:78" (1 sitio único)
+- Layer 2 (builder Step 0 GATE) — IMPL-LOG-agentic § "Step 0 grep findings" sección obligatoria documentada
+- Layer 3 (auditor Cat 13 mirror detection) — REVIEW-agentic verdict PASS confirmó class distinct + 3 overrides + 2 fields = NOT byte-mirror per anti-duplication semantics
+- Layer 4 (architect mandatory) — CONTRACT.md producido por architect Opus ANTES builder (747 lines, 9 secciones)
+- Layer 5 (skills warning) — todos 5 mandatory invocados (copilot-expert + sales-agent-expert + tessl__langgraph + tessl__graceful-degradation + tessl__pytest-api-testing)
+
+**Aplica:** proceso anti-duplicación funciona end-to-end. Sin Step 0 GATE, error PR.md hubiera propagado al builder. Layer 1 trabajó como diseñado.
+
+## D-9 (2026-05-01) — Bug #2 fix verificado smoke real Telegram Chris-mediated
+
+2026-05-01 14:15 UTC — Chris mandó "holaaaa" al `visionarias_bot` Telegram:
+
+| Tabla | Pre | Post | Delta |
+|---|---|---|---|
+| `sales_agent_trace_event` | 0 | 4 | +4 ✅ |
+| `sales_agent_llm_call` | 0 | 2 | +2 ✅ |
+| `sales_agent_routing_log` | 0 | 0 | 0 (no routing decisions este turn — normal) |
+| `messages` visionarias | 69 | 70 | +1 ✅ |
+
+4 trace events: turn_start ok + 2 llm_call error + turn_end error. Lifecycle envelope funciona correctamente, captura turn_start ANTES del fallo LLM + cost tracking incluso en errors.
+
+**Aplica:** Bug #2 (sales_agent traces 0 globalmente) FIX VERIFIED end-to-end. Sales agent observability LIVE.
+
+## D-10 (2026-05-01) — Bot respondió error técnico durante smoke por Bug #7+#9 (out-of-scope PR-2)
+
+Bot respondió "Lo siento, ocurrió un error técnico interno" en lugar de mensaje normal porque:
+
+- **Bug #7** `PersonalityProfileModel.model_dump` brand_data_adapter.py:46 SQLA ORM treated as Pydantic → knowledge_builder.build_identity falla → agent_identity inválida
+- **Bug #9** LiteLLM container exited (mount config.yaml dir/file conflict) → `visionarias_litellm:4000` DNS unreachable → APIConnectionError todos LLM calls
+
+Estos 2 bugs son scope SEPARADO PR-2 — fueron descubiertos durante smoke runtime cuando el observability stack DESBLOQUEÓ visibilidad de los stack faltantes.
+
+**Aplica:** Bug #2 fix demonstrated correct INCLUSO bajo error LLM downstream — best-effort observability captura errors (4 trace rows incluyendo turn_end status='error'). Esos 2 bugs siguen pendientes en PRs separados:
+- Bug #7 → backend negocio brand module — abrir PR dedicado
+- Bug #9 → infra LiteLLM container restart + mount fix — abrir PR dedicado infra
