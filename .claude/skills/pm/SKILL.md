@@ -452,124 +452,27 @@ PROHIBIDO: worktrees git, feature branches/release/hotfix, `git pull` (cualquier
 
 ***
 
-## Live verification gate (FE PRs ≥ M)
+## Opus agent paused/killed — resume, never fallback
 
-**Origen rule:** S4 PI-1 audit failure 2026-04-30 — 9 quality bugs (3 CRITICAL: infinite loop useEffect, stale closure 404 routing, broken router.push tenantId-less) **pasaron PASS verdict gates** + 122 Vitest verde. Bugs solo emergieron al cargar Chrome. Tests mock-heavy (mock entire hooks under test) ocultaron runtime behavior real.
+**Origen rule:** S4 PI-1 audit failure 2026-04-30 — 3/3 PRs auditor `nicolify-frontend-auditor` (Opus) paused/killed mid-research. PM main session "se hizo el auditor" → 9 quality bugs slipped a producción. **PM no es auditor. Sonnet/Haiku no son Opus.** Bajar de modelo = bajar de calidad.
 
-**Regla obligatoria FE PR ≥ M (cualquier nueva page o feature components con interacciones):**
+**Regla operativa:**
 
-Antes de `/pm cerrar PR-N` con verdict PASS, PM **DEBE** invocar `chrome-devtools-verify` skill y verificar:
-1. Page nueva carga sin Build Error / Console Error
-2. NO `Maximum update depth exceeded` runtime
-3. Routing entre rutas con `[tenantId]` mantiene tenant prefix correctamente
-4. Click handlers happy path NO 404 al navegar
-5. Data fetching funciona contra BE real OR mock razonable
-6. Si dialog → submit → next dialog: chain completa sin re-render loops
+Cuando un agent **Opus** importante (architect, agentic, auditor cualquier surface) pausa/killed mid-task:
 
-**Cuándo skip:**
-- PR backend-only (no UI)
-- PR docs-only / config-only
-- Bug fix de un solo archivo trivial
+1. ✅ **Resume el mismo agent Opus via `SendMessage` con su agentId** — NO re-spawn fresh, NO fallback a PM solo
+2. ✅ Si el agent ID no está disponible en convo → re-spawn nuevo agent Opus mismo tipo con prompt enriquecido (avance previo + estado actual)
+3. ❌ **PROHIBIDO:** PM main session escribe REVIEW.md fallback en lugar del auditor Opus
+4. ❌ **PROHIBIDO:** PM degrada a Sonnet/Haiku por "ahorro" — esos modelos NO están a la altura de Opus para review/architect
+5. ❌ **PROHIBIDO:** marcar PR shipped sin output del agent Opus correspondiente
 
-**Cuándo NO skip:**
-- Cualquier PR que toque `frontend/src/features/**/components/`
-- Cualquier PR que agregue/modifique `frontend/src/app/**/page.tsx`
-- Cualquier PR que use `useEffect` con deps no triviales
-- Cualquier PR con `useRouter().push(...)` o links a otras rutas
-- Cualquier PR con dialog/modal chains (state mgmt across modals)
+**Excepción única:** si Opus agent re-spawn falla 2 veces consecutivas con el mismo error → escalate Chris (decisión humana sobre cómo continuar). PM NO inventa fallback.
 
-**Si chrome-devtools-verify NO disponible (Chris no levantó dev-app):**
-PM debe **escalate Chris staging gate manual** ANTES de marcar PR shipped. RESULT.md verdict = `PASS pending Chris staging gate manual`. NO marcar `shipped` hasta Chris confirma comportamiento.
-
-***
-
-## Auditor agent fallback rules (cuando agent paused/killed)
-
-**Origen rule:** S4 PI-1 — 3/3 PRs auditor agents `nicolify-frontend-auditor` paused/killed mid-research. PM main session se "hizo el auditor" pero solo validó gates mecánicos. Bugs runtime invisibles.
-
-**Cuándo auditor agent paused/killed:**
-
-PM **NO PUEDE** simplemente escribir REVIEW.md PASS basado en gates verde. Gates mecánicos (tsc, eslint, vitest) NO detectan:
-- useEffect infinite loops (mock estabiliza refs artificialmente)
-- Stale closures en hooks (mock ignora capturados params)
-- URL routing bugs (mock no valida full path)
-- Real React lifecycle bugs
-
-**Procedimiento obligatorio fallback PM:**
-
-1. ✅ Run gates locales nativo (tsc/eslint/vitest/pytest) — necesario pero NO suficiente
-2. ✅ **Read full file source PR-touched + buscar anti-patterns**:
-   - useEffect deps con `form`, `mutation`, `queryClient`, hook returns objects → flag CRITICAL
-   - Hooks que capturan `id` en constructor closure cuando `id` viene de state changing → flag CRITICAL
-   - `router.push(...)` strings literales sin `[tenantId]` prefix → flag CRITICAL
-   - Imports unused → flag HIGH
-   - useMemo deps incompletos → flag HIGH
-   - `window.location.pathname.split(...)` parsing en client → flag HIGH (use `useParams`)
-   - Skeleton arrays con `key={index}` → flag MEDIUM
-3. ✅ **Live verification** (sección anterior) — chrome-devtools-verify O escalate Chris staging
-4. ✅ Solo si pasos 1-3 verde → REVIEW.md PASS
-5. Si CUALQUIER bug encontrado en paso 2/3 → REVIEW.md WARN o FAIL + spawn builder fix loop OR PM resuelve directo si fix < 30 LOC
-
-**Anti-pattern:** PM escribió REVIEW.md PASS solo con `npx tsc --noEmit && npx vitest run` verde. Esto es lo que falló en S4. **Tests verde + lint verde NO es suficiente para FE — es necesario pero no suficiente.**
-
-***
-
-## Mock anti-patterns FE testing (lessons S4 PI-1)
-
-**Origen:** S4 PI-1 — 122 Vitest verde con bugs CRITICAL ocultos. Mock-heavy tests teatralizan coverage.
-
-**Anti-patterns prohibidos en tests FE:**
-
-❌ **Mock completo del hook que el componente usa** — esconde stale closures + infinite loops:
-```typescript
-// ANTI-PATTERN — mock devuelve refs estables artificiales
-vi.mock("../api/use-create-segment-mutation", () => ({
-  useCreateSegmentMutation: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false }))
-}));
-```
-
-✅ **Pattern preferido — usa MSW + react-query real**:
-```typescript
-// Usar MSW para mockear fetch, react-query corre real → useEffect deps correctos validados
-import { setupServer } from "msw/node";
-const server = setupServer(rest.post("/api/v1/segments/", (req, res, ctx) => res(ctx.json({ id: "seg-123" }))));
-// component usa useCreateSegmentMutation real
-```
-
-❌ **`expect(mockPush).toHaveBeenCalledWith(stringContaining("seg-id"))`** — no valida path completo
-✅ **`expect(mockPush).toHaveBeenCalledWith("/test-tenant/sales/campa%C3%B1as/nuevo?segment_id=seg-id")`** — full path enforced
-
-❌ **`vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }))` SIN `useParams`** — si componente usa useParams runtime → tests pasan, real browser falla
-
-✅ **Mock SIEMPRE incluye TODAS las exports usadas**:
-```typescript
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush, back: vi.fn(), replace: vi.fn() }),
-  useParams: () => ({ tenantId: "test-tenant" }),  // OBLIGATORIO si componente usa useParams
-}));
-```
-
-***
-
-## React useEffect deps checklist (lessons S4 PI-1)
-
-**Antes de approve cualquier `useEffect` en review:**
-
-| Pattern | Decisión |
-|---|---|
-| `useEffect(..., [open, form, mutation])` | ❌ FAIL — `form`/`mutation` refs unstable cada render → infinite loop |
-| `useEffect(..., [open])` con `form.reset()` adentro | ✅ OK con `// eslint-disable-next-line react-hooks/exhaustive-deps` + comment justificación |
-| `useEffect(() => router.replace(...), [filters, router])` | ⚠ OK si filters stable. Pero corre on mount → URL replace innecesario. Add `useRef(true)` skip-first-render pattern |
-| `useEffect(..., [])` con dependencies del scope | ❌ FAIL si captura stale state |
-| `useMemo(() => fn(handler), [otherDep])` con `handler` recreated cada render | ❌ FAIL — `handler` no in deps; útil solo si recreate intencional |
-
-**Pattern stable handlers via useCallback con setters como deps:**
-```typescript
-// ✅ React state setters son ESTABLES por design — useCallback con [] es correcto
-const stableHandler = React.useCallback((id: string) => {
-  setSelectedIds((prev) => [...prev, id]);  // setSelectedIds es stable
-}, []);
-```
+**Aplicación práctica:**
+- Builder Sonnet OK pausa → PM puede resume Sonnet (es Sonnet su nivel)
+- Auditor Opus pausa → SIEMPRE resume Opus (esa decisión necesita Opus)
+- Architect Opus pausa → SIEMPRE resume Opus (CONTRACT decisions necesitan Opus)
+- Context-builder Haiku pausa → re-spawn Haiku (es nivel correcto, work mecánico)
 
 ***
 
@@ -656,15 +559,10 @@ Cada respuesta tuya en convo debe:
 - ❌ Inyectar timestamps/conversation_id/hash dentro del BLOQUE FIJO de `prompts/0X-*.md` (rompe cache prefix silenciosamente)
 - ❌ PM spawnea auditor manual sin builder (auditor lo dispara EL builder; PM solo si fix-loop falló iter 3)
 - ❌ Cargar `nicolify-ux-designer` (eliminado 2026-04-30 — usar skill `ux-flow-architect` o `ux-disruptivo` directo)
-- ❌ **PM marca PR FE shipped sin live verification** (origen S4 PI-1 — ver "Live verification gate" sección)
-- ❌ **PM escribe REVIEW.md PASS solo con gates verde** cuando auditor agent paused (ver "Auditor agent fallback rules")
-- ❌ **Tests FE mock entire hook bajo prueba** (esconde infinite loops + stale closures — ver "Mock anti-patterns")
-- ❌ `expect(mockPush).toHaveBeenCalledWith(stringContaining(...))` para routing — usar full path enforcement
-- ❌ Mock `next/navigation` sin incluir `useParams` cuando componente lo usa
-- ❌ `useEffect(..., [open, form, mutation])` — `form`/`mutation` refs unstable → infinite loop garantizado
-- ❌ `useHook(idVariable)` cuando `idVariable` viene de state que cambia post-mount — closure stale captures `""` inicial
-- ❌ `router.push("/sales/...")` literal sin `[tenantId]` prefix en cualquier componente bajo `[tenantId]/...` route
-- ❌ `window.location.pathname.split("/")[1]` para extraer tenant — usar `useParams<{tenantId}>()`
+- ❌ **PM "se hace el auditor" cuando auditor Opus paused** — viola regla "Opus agent paused → resume Opus". PM no es auditor técnico.
+- ❌ **Bajar de Opus a Sonnet/Haiku** para "ahorrar" cuando Opus paused — Opus es la decisión que el rol requiere
+- ❌ **PM escribe REVIEW.md por auditor agent ausente** — PR no se cierra hasta auditor Opus produce REVIEW (regla "Opus agent paused → resume")
+- ❌ **PM marca PR shipped sin output del agent Opus correspondiente** (architect CONTRACT, auditor REVIEW)
 
 ***
 
@@ -692,8 +590,8 @@ Cada respuesta tuya en convo debe:
 - Antes de recomendar arquitectura cross-module → spawn `Explore`.
 - Decisión cuantitativa (precio, cuota, threshold, latencia) → research file con cálculo.
 - Cierre PR → `RESULT.md` obligatorio + `current-state/{m}.md` update con lineage.
-- **Cierre PR FE ≥ M → live verification OBLIGATORIA** (chrome-devtools-verify O escalate Chris staging gate antes de marcar shipped). Ver "Live verification gate".
-- **Auditor agent paused/killed → PM fallback NO es solo gates verde**. Read source + grep anti-patterns useEffect/closures/routing. Ver "Auditor agent fallback rules".
+- **Opus agent (architect/auditor/agentic) paused/killed → resume Opus (SendMessage agentId o re-spawn Opus mismo tipo).** Ver "Opus agent paused/killed". PM nunca degrada a Sonnet/Haiku ni se hace el auditor.
+- **Reglas técnicas FE (live verify, useEffect, mocks, routing) viven en `frontend-expert` skill** — `nicolify-frontend` builder/auditor las invoca obligatoriamente. PM no audita código.
 - Track B turn ends → ruta exacta del prompt en última línea.
 - Sesiones paralelas → respetar M1-M6 de `parallel-sessions-protocol.md`.
 

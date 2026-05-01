@@ -17,6 +17,8 @@ Sigue este orden para cualquier tarea frontend:
    Detente si el módulo no existe en INDEX — propón nombre y propósito, espera confirmación.
 5. **Crear/modificar componentes:** Usa la plantilla [component.tsx](frontend-expert/assets/templates/component.tsx) y las reglas de [component-rules.md](frontend-expert/references/component-rules.md).
 6. **Integrar datos:** Si necesita fetching/mutaciones, sigue [api-standards.md](frontend-expert/references/api-standards.md).
+7. **Quality runtime checklist OBLIGATORIO:** lee [runtime-quality-checklist.md](frontend-expert/references/runtime-quality-checklist.md) antes de commit Y antes de spawn auditor. Cubre: useEffect deps, stale closures, routing tenantId, mock anti-patterns, live verification gate.
+8. **Live verification:** invocá `chrome-devtools-verify` skill antes de marcar PR shipped (FE PR ≥ M). Si dev-app no disponible → escalate Chris staging gate manual.
 
 ## Arquitectura (FSD-Lite)
 
@@ -92,5 +94,6 @@ Estructura plana agrupada por dominio. Detalles completos en [fsd-cheatsheet.md]
 ## Project invariants (read on demand)
 
 - `references/frontend-quality.md` — ESLint 60+ rules, TS strict, Vitest, 10 arch tests
+- `references/runtime-quality-checklist.md` — **OBLIGATORIO leer antes commit y antes spawn auditor**. useEffect deps, stale closures, routing tenantId, mock anti-patterns, live verification gate (origen S4 PI-1)
 - `references/studio-section-pages.md` — lazy-loading per-section pattern (brand/offer/futuros)
 - `references/e2e-testing.md` — Playwright preflight, native execution, Clerk setup, mocks Growth Studio
