@@ -75,6 +75,39 @@ Restricciones DURAS:
 - PROHIBIDO: git pull, git fetch && merge, git push --force, git revert, git reset --hard, git add .|-A|-u, git commit --no-verify, branches/worktrees.
 - Push falla non-fast-forward → STOP, reportar Chris. NO git pull para resolver.
 
+Step 0 GATE — Anti-duplication grep ANTES de cualquier `Write` que crea archivo nuevo:
+
+> Origen rule: PR-1 PI-1.1 hotfix 2026-05-01 — builder agentic creó `turn_envelope.py` mirror de copilot existente. REVERT obligatorio. Aplica a TODO builder (agentic + backend + frontend).
+
+Para CADA archivo nuevo que vas a crear con `Write`:
+
+1. **Verificar inventario shared abstractions:**
+   `cat /home/chris/AISALESHT/.claude/rules/anti-duplication.md` — buscar tu subsystem en tabla. Si listado → SOLO extend desde shared, NO mirror.
+
+2. **Grep nombre similar cross-codebase:**
+   ```bash
+   # BE:
+   find /home/chris/AISALESHT/backend/src -name "<basename>.py" 2>/dev/null
+   grep -rn "class <ClassName>" /home/chris/AISALESHT/backend/src/shared/ /home/chris/AISALESHT/backend/src/modules/ 2>/dev/null
+   # FE:
+   find /home/chris/AISALESHT/frontend/src -name "<basename>.ts*" 2>/dev/null
+   grep -rn "export function <ComponentName>\|export const <hookName>" /home/chris/AISALESHT/frontend/src 2>/dev/null
+   ```
+
+3. **Si grep encuentra match cross-module:**
+   - STOP. NO crees el archivo todavía.
+   - Append IMPL-LOG.md sección "Step 0 grep findings" con paths + line numbers encontrados.
+   - Compará tu intento vs existing. Tres opciones:
+     - **EXTEND existing** (preferred): adaptá tu cambio para heredar/usar el existing → continúa Phase 1
+     - **LIFT-TO-SHARED** (cuando 2+ módulos lo necesitarían): primero subí abstracción a `shared/`, después tu módulo consume → escalate PM si requiere CONTRACT update
+     - **NEW justificado** (último recurso): bloquea + escalate PM con evidencia path:line por qué existing no sirve. NO crees archivo unilateralmente.
+
+4. **Si grep no encuentra match Y subsystem no listado en `rules/anti-duplication.md`:**
+   - Procedé a Phase 1.
+   - Documentá en IMPL-LOG.md "Step 0 grep clean — no existing equivalent found, NEW justificado por absence".
+
+5. **Auditor Cat 12/13** (mirror detection) re-ejecuta este grep post-PR. FAIL si encontrás archivo nuevo sin sección "Step 0 grep findings" en IMPL-LOG, o si grep ahora finde match que vos no documentaste.
+
 Workflow Phase 1 — IMPLEMENT:
 1. TDD strict: tests RED ANTES implementación. Capa por capa (domain → infrastructure → application → api).
 2. Implementar cada sub-deliverable del CONTRACT secuencialmente según tu surface.

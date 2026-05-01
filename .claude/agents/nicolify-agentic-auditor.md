@@ -185,6 +185,25 @@ Score each as **PASS / WARN / FAIL** with file:line evidence. Required output ta
 - Coverage threshold per arch fitness gate (`backend/tests/architecture/`)
 - **FAIL**: new graph node without integration test; new tool without unit test; coverage drop on new code without justification
 
+### Cat 13 — Mirror detection (cross-module duplication)
+
+> Origen: PR-1 PI-1.1 hotfix 2026-05-01. Builder agentic creó `modules/sales_agent/observability/recording/turn_envelope.py` mirror de `modules/copilot/observability/recording/turn_envelope.py` existente. REVERT obligatorio.
+
+Para CADA file nuevo en este PR (status `??` en git):
+1. **Nombre similar en otro módulo:** `find /home/chris/AISALESHT/backend/src -name "<basename>.py" 2>/dev/null` → si match en otro módulo paralelo (no test fixture, no documentación) → mirror sospechoso
+2. **Estructura similar (clases con mismo nombre):** `grep -rn "class <ClassName>" /home/chris/AISALESHT/backend/src/shared/ /home/chris/AISALESHT/backend/src/modules/` → si match cross-module → mirror sospechoso
+3. **Subsystem en inventario shared abstractions:** consultar `.claude/rules/anti-duplication.md` tabla — si subsystem listado, file debió ir a shared o heredar
+4. **PR.md "Existing systems audit" justification:** si claim "EXTEND/LIFT" pero archivo nuevo creado standalone sin import desde shared → claim no respaldado
+
+**FAIL** if:
+- File nuevo en `modules/X/<subsystem>/` cuya carpeta paralela existe en otro módulo SIN justificación NEW respaldada por path:line en PR.md sección "Existing systems audit"
+- Subsystem listado en `rules/anti-duplication.md` inventario canónico Y archivo NEW (no extending) Y PM no spawned `nicolify-architect`
+- Mismo lambda/factory/helper duplicated en 2+ call sites cross-module sin extracción a shared (e.g., `lambda: httpx.Client(timeout=10)` repetido)
+
+**WARN** if:
+- Una clase con suffix `Context` / `Handler` / `Resolver` / `Factory` / `Service` similar en otro módulo sin shared abstraction explicit
+- File nuevo con docstring que menciona "mirror del pattern X" o "similar a copilot/Y" — flag para considerar lift to shared
+
 </audit_categories>
 
 <verdict_math>
@@ -192,12 +211,13 @@ Score each as **PASS / WARN / FAIL** with file:line evidence. Required output ta
 Mechanical, no softening:
 
 - **FAIL** (overall) if:
-  - Any FAIL in cat 1, 2, 3, 5, 7, 8, 10, 11
+  - Any FAIL in cat 1, 2, 3, 5, 7, 8, 10, 11, **13** (mirror detection)
   - `gate-output.json` shows any failed gate in arch-fitness, ruff, mypy, pytest, pip-audit
   - Skill routing violation (skipped `copilot-expert` / `sales-agent-expert` / `tessl__langgraph`)
   - **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (copilot-expert/sales-agent-expert por surface + tessl__langgraph si graph + tessl__graceful-degradation si external calls + claude-api si Anthropic SDK changes) → "Skill routing violation — builder skipped mandatory skill invocation"
   - New LLM call without observability wrapper (cat 5 FAIL)
   - Any `[CROSS-SCOPE — escalate]` finding that the implementer DID modify (you flag, but verdict still FAIL because they touched out of agreed surface)
+  - **PR.md "Existing systems audit" section empty OR claims without grep evidence (paths + line numbers)** when PR creates new file in `shared/` or `modules/X/<subsystem>/` whose subsystem is listed in `.claude/rules/anti-duplication.md` inventory
 
 - **WARN** (overall) if:
   - Two or more cat scores are WARN

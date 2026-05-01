@@ -154,3 +154,57 @@
 6. 🔜 Crear sprints S3+S4+S5 con PR plan (cleanup PR-3 + convergencia ModelTier→ModelRole + DB registry runtime + eval gate pre-promote)
 7. 🔜 Update PI-2 PI.md + roadmap + decisions
 8. 🔜 NEW-SESSION-BOOTSTRAP.md handoff completo nueva conversación
+
+## 2026-05-01 — Sesión PR-1 PI-1.1 hotfix: turn_envelope mirror duplication
+
+**Contexto:** Manual gate Chris staging PI-1 ejecutado vía chrome-devtools. 4 bugs encontrados (#1+#2+#4+#6 + runtime #7+#8+#9 cascading). PR-1 mini-PI abierto. Builder agentic spawned para fix Bug #2 sales_agent observability traces 0 rows. Builder creó `modules/sales_agent/observability/recording/turn_envelope.py` mirror de `modules/copilot/observability/recording/turn_envelope.py` existente. Chris flagged anti-pattern: "no es la primera vez que duplicas trabajo, qué esta pasando?". REVERT obligatorio + audit proceso PM.
+
+### L-PROC-DUPLICATION-PM-PROCESS — 5 fallos PM cardinal cuando builder duplica
+
+**Síntoma de superficie:** builder agentic creó archivo nuevo cuando debería haber usado/extendido existente shared.
+
+**Causa raíz NO es del builder. Es del proceso PM en 5 puntos:**
+
+| # | Fallo PM | Evidencia |
+|---|---|---|
+| F1 | PM marcó "Existing systems audit" en PR.md como `EXTEND fix logic gap. NO new layer` SIN ejecutar el grep cross-module obligatorio del template | `PR.md` PR-1 línea "✅ #2 recording infra ya existe completa" — afirmación sin evidencia path:line |
+| F2 | PM skipeó architect Opus por "scope hotfix" — incorrecto cuando scope expand a shared infra (observability) | Prompts del PR-folder solo tienen `02-builder-*.md`, no `01-architect-start.md` |
+| F3 | Builder agentic recibió prompt que decía "fix root cause" SIN obligación pre-flight grep equivalente cross-module | `02-builder-agentic.md` Step 1 dice "leer callback_handler.py + copilot equivalent" — implica comparación, NO inheritance check explícito |
+| F4 | Auditor iter 1 nombró `copilot-expert (envelope precedent)` en skills usados, vio precedent, NO flagged como duplicación. Misclassified como "Strangler Fig extraction" cuando era "Mirror" | REVIEW-agentic.md no menciona "shared base" como alternativa |
+| F5 | PM no validó en Walking Skeleton "¿es nueva infra o extensión existente?" — pregunta cardinal omitida | PR.md walking skeleton enumera fixes sin auditoría dedup |
+
+**Patrón sistémico:** PM rule existing-systems-audit es BUEN diseño pero NO se enforza mecánicamente. Builder + auditor confían en PM marca, PM marca sin grep real → duplication slips.
+
+### Reglas derivadas (cementadas via commits separados)
+
+1. **Hard gate `nicolify-architect` mandatory** cuando PR toca `shared/` o `*/observability/` o `*/recording/` o crea archivo en `modules/X/Y/` cuya carpeta paralela existe en otro módulo. PM no puede skip por "scope hotfix".
+2. **PR.md template — "Existing systems audit" convertido a bloque obligatorio con paths grepped + line numbers** (no solo claims). PM no puede commitear PR-folder sin completar real grep output. Auditor Cat 12 FAIL si claims sin evidence.
+3. **Builder Step 0 GATE expandido** — `find` + `grep` antes de cualquier `Write` que crea file nuevo. Builder retorna escalate si match.
+4. **Auditor Cat 12 nuevo "Mirror detection"** — para cada archivo nuevo en MR, buscar similar name+structure en otros módulos. FAIL severity.
+5. **Skills `copilot-expert` + `sales-agent-expert`** — warning explícito + tabla shared abstractions canónicas referenciada (anti-duplication.md inventory).
+6. **rules/anti-duplication.md** — nueva rule cargada universal CLAUDE.md #12.
+7. **Process redundancy:** la duplication detection vive en 5 layers independientes (PM template + builder Step 0 + auditor Cat 12 + architect mandatory + skills loading rule). Si UN layer falla, otros catchean.
+
+### Acciones tomadas en esta sesión (post-detección)
+
+1. ✅ REVERT commit `73ae51d2` (turn_envelope duplicate + WIP relacionado)
+2. ✅ Crear `.claude/rules/anti-duplication.md` con inventario canónico shared abstractions
+3. ✅ Update `CLAUDE.md` agregar rule #12 anti-duplication universal
+4. ✅ Update `docs/pm-nico/process/pr-folder-template/PR.md` "Existing systems audit" mandatory bloque grep evidence
+5. ✅ Append este learning con 5 fallos PM cardinal + reglas derivadas
+6. 🔜 Update `.claude/agents/nicolify-agentic-auditor.md` + `nicolify-backend-auditor.md` + `nicolify-frontend-auditor.md` con Cat 12 mirror detection
+7. 🔜 Update `.claude/skills/copilot-expert/SKILL.md` + `sales-agent-expert/SKILL.md` con shared abstractions warning + reference anti-duplication.md
+8. 🔜 Update `02-builder-*.md` template prompts con Step 0 grep gate
+9. 🔜 Abrir `PR-2-shared-agent-observability` con architect-driven CONTRACT.md mandatory
+
+### Anti-pattern personal PM (auto-flag)
+
+**Cuando me siento "esto es solo un hotfix"** → primer red flag. Hotfix no exime audit. Especialmente cuando observability/cost/pricing/llm-routing son scope. Skip architect en esos = repetir error.
+
+**Pregunta de control PM antes commitear PR.md:**
+1. ¿Ejecuté grep cross-module REAL con paths embedded?
+2. ¿Si subsystem matches inventario shared abstractions → architect spawned?
+3. ¿Walking skeleton menciona "extend X existente" o "crear Y nuevo"?
+4. Si dice "crear Y nuevo" → ¿4-5 grep results lo respaldan?
+
+Si cualquiera de estos = NO → bloque PM, no spawn builder.

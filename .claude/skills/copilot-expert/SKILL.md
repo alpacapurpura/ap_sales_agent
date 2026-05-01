@@ -9,12 +9,15 @@ Copilot = "Claude Code de marketing": deep_agent harness sobre LangGraph, discov
 
 **Regla cero:** verificá que algo existe (grep + schema + registry + repo) ANTES de declarar "falta X" o "hay que crear Y". Si decís "no existe", grepeá primero.
 
+**Regla anti-duplicación cardinal:** observability/cost/pricing/channel-format/callback-handler patterns son **shared abstractions** que viven (o deben vivir) en `shared/agent_observability/`. Copilot **canónica** las define o consume. NUNCA mirror en `modules/copilot/observability/recording/<X>.py` cuando existe equivalente en `shared/` o cuando se vuelve cross-agent (sales_agent + copilot necesitan misma cosa). Inventario completo en `rules/anti-duplication.md`. Origen rule PR-1 PI-1.1 hotfix 2026-05-01 — builder duplicó `turn_envelope.py` cross-module, REVERT obligatorio.
+
 ---
 
 ## Stop. Lee primero, no asumas.
 
 | Concern | SSoT | Cuándo |
 |---|---|---|
+| **Anti-duplication (shared abstractions inventory)** | `.claude/rules/anti-duplication.md` | **siempre primero** antes de crear archivo nuevo en `observability/` `recording/` `cost/` `channels/` |
 | Debug runtime / trazas mintiendo / loop / card no aparece | `.claude/rules/copilot-resilience.md` | **siempre primero** en cualquier bug |
 | Observability module structure / costos / pricing / PII / retention | `.claude/rules/copilot-observability.md` | tocar `observability/` o queries de costo |
 | Mapa de docs internos | `docs/domains/copilot/INDEX.md` | navegar el módulo |

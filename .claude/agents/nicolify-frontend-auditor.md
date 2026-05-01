@@ -264,6 +264,26 @@ The 20 tests in `frontend/src/__tests__/architecture/`:
 
 ANY new failure = FAIL. Allowlists shrink only — growth without justified commit = FAIL.
 
+### Category 13: Mirror detection (cross-module duplication)
+
+> Origen: PR-1 PI-1.1 hotfix 2026-05-01. Cementada universal cross-auditor.
+
+Para CADA file nuevo en este PR (status `??` en git):
+1. **Nombre similar en otra feature:** `find /home/chris/AISALESHT/frontend/src -name "<basename>.ts*"` → si match cross-feature → mirror sospechoso
+2. **Component/hook estructura similar:** `grep -rn "export function <ComponentName>\|export const <hookName>" frontend/src/components/ frontend/src/features/ frontend/src/lib/`
+3. **Shared/lib/components opportunity:** si pattern emerges 2+ features → debió ir a `components/shared/` o `lib/`
+4. **PR.md "Existing systems audit" justification:** si claim "EXTEND/LIFT" pero archivo nuevo standalone sin import desde shared/lib → claim no respaldado
+
+**FAIL** if:
+- Component/hook nuevo en `features/X/components/` cuya implementación equivalente existe en `features/Y/` sin justificación NEW respaldada path:line en PR.md
+- Helper utility duplicada en 2+ features sin extracción a `lib/`
+- PR.md "Existing systems audit" empty OR claims sin grep evidence (paths + line numbers)
+- Same React pattern (form schema, card layout, list view) reimplemented despite shared component existing
+
+**WARN** if:
+- Component con suffix `Card` / `List` / `Form` / `Picker` similar en otra feature sin shared component explícito
+- File nuevo con docstring que menciona "similar to X feature" — flag para considerar lift to shared
+
 </audit_checklist>
 
 <review_format>

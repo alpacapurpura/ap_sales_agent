@@ -82,6 +82,7 @@ Rules siempre cargadas (universales):
 | 9 | Debugging | `.claude/rules/debugging.md` |
 | 10 | Spanish neutro LatAm | `.claude/rules/spanish-text.md` |
 | 11 | PII (`response_model=`) | `@AGENTS.md` → Tessl pii-sanitisation |
+| 12 | Anti-duplication (shared abstractions) | `.claude/rules/anti-duplication.md` |
 
 Rules condicionales (stub apunta a skill — invocar el skill carga detalle):
 

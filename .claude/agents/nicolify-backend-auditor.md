@@ -248,6 +248,26 @@ grep -rn "select(" backend/src/modules/{m}/ --include="*.py" | grep -v "tenant_i
 
 > **NOTE: Agentic hygiene** (LangGraph state, prompt cache slots, deepagents isolation, observability writes, eval goldens) is OUT OF SCOPE for this auditor. If diff touches `modules/copilot/` or `modules/sales_agent/`, those files are flagged `[CROSS-SCOPE — escalate nicolify-agentic-auditor]` and NOT scored here.
 
+### Category 12: Mirror detection (cross-module duplication)
+
+> Origen: PR-1 PI-1.1 hotfix 2026-05-01 `process-learnings.md`. Builder duplicó pattern existente en otro módulo. Cementada como Cat universal.
+
+Para CADA file nuevo en este PR (status `??` en git):
+1. **Nombre similar en otro módulo:** `find /home/chris/AISALESHT/backend/src -name "<basename>.py"` → si match cross-module → mirror sospechoso
+2. **Estructura similar (clases con mismo nombre):** `grep -rn "class <ClassName>" backend/src/shared/ backend/src/modules/`
+3. **Subsystem en inventario shared abstractions:** `.claude/rules/anti-duplication.md` tabla — si subsystem listado, file debió ir a shared o heredar
+4. **PR.md "Existing systems audit" justification:** si claim "EXTEND/LIFT" pero archivo nuevo standalone sin import desde shared → claim no respaldado
+
+**FAIL** if:
+- File nuevo en `modules/X/<subsystem>/` cuya carpeta paralela existe en otro módulo SIN justificación NEW respaldada path:line en PR.md
+- Subsystem listado `rules/anti-duplication.md` Y archivo NEW (no extending) Y PM no spawned `nicolify-architect`
+- Mismo lambda/factory/helper duplicado en 2+ call sites cross-module sin extracción a shared
+- PR.md "Existing systems audit" empty OR claims sin grep evidence (paths + line numbers)
+
+**WARN** if:
+- Clase con suffix `Service` / `Repository` / `Resolver` / `Factory` similar en otro módulo sin shared abstraction explícita
+- File nuevo con docstring que menciona "mirror del pattern X" o "similar a Y/Z" — flag para considerar lift to shared
+
 </audit_checklist>
 
 <review_format>

@@ -7,6 +7,23 @@ description: "Senior + arquitecto + CTO del módulo sales_agent post redesign 20
 
 Antes de codear: skill + plan + tech-debt-log. Plan: `docs/domains/sales-agent/redesign-2026-04/README.md` (S00–S12 cerrado).
 
+## §0 — Anti-duplication cardinal (read first)
+
+> Origen: PR-1 PI-1.1 hotfix 2026-05-01. Builder agentic creó `modules/sales_agent/observability/recording/turn_envelope.py` mirror de `modules/copilot/observability/recording/turn_envelope.py` existente. REVERT obligatorio.
+
+Observability + cost + pricing + channel-format + callback-handler + FX + tenant-billing + PII patterns son **shared abstractions**. Vivien (o deben vivir) en `shared/agent_observability/`.
+
+ANTES de crear archivo nuevo en `modules/sales_agent/observability/recording/<X>.py` o `modules/sales_agent/observability/<subsystem>/<X>.py`:
+
+1. Consultá inventario canónico: `cat .claude/rules/anti-duplication.md` — buscá tu subsystem en tabla
+2. Grep cross-codebase: `find /home/chris/AISALESHT/backend/src -name "<basename>.py"` + `grep -rn "class <ClassName>" backend/src/shared/ backend/src/modules/`
+3. Si match en `modules/copilot/<same-path>` o `shared/<subsystem>` → STOP, escalate `/pm`. Tres opciones:
+   - **EXTEND**: heredar desde shared base
+   - **LIFT-TO-SHARED**: subir abstracción a shared, después sales_agent + copilot consumen
+   - **NEW** (último recurso): justificar path:line por qué existing no sirve
+
+NUNCA mirror `turn_envelope.py` / `callback_handler.py` / `cost_calculator.py` / `fx_resolver.py` / similar de copilot a sales_agent. Si copilot lo tiene Y sales_agent lo necesita → la SEGUNDA invocación dispara LIFT-TO-SHARED, no MIRROR.
+
 ## §3 — NO se toca
 
 | Surface | Razón |

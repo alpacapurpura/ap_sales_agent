@@ -43,24 +43,75 @@
 
 (skip si scope XS/S sin riesgo arquitectónico)
 
-## Existing systems audit (architect-mandatory ANTES de proponer nueva capa)
+## Existing systems audit (MANDATORY — bloque con paths grepped)
 
-> **NO NEW LAYER rule**: si ya existe en el codebase un factory + protocol + providers que hace lo que este PR propone, EXTENDÉ no DUPLIQUES. Origen rule: PR-3 PI-2 S2 audit failure 2026-04-30 (introdujo `model_config.py + DeepSeekLLMProvider + provider_factory.py` paralelos a `core/config.py::Settings.get_model/get_provider_for_role` + `shared/infrastructure/llm/router.py + providers/` ya existentes). Capa duplicada = código orphan + drift + deuda escala.
+> **NO NEW LAYER rule**: si ya existe en el codebase un factory + protocol + providers que hace lo que este PR propone, EXTENDÉ no DUPLIQUES.
+> Origen rules:
+> - PR-3 PI-2 S2 audit failure 2026-04-30 (introdujo `model_config.py + DeepSeekLLMProvider + provider_factory.py` paralelos a `core/config.py + shared/infrastructure/llm/router.py + providers/`).
+> - PR-1 PI-1.1 hotfix 2026-05-01 (builder agentic creó `modules/sales_agent/observability/recording/turn_envelope.py` mirror de `modules/copilot/observability/recording/turn_envelope.py` existente — REVERT obligatorio).
+>
+> **PM no commitea PR-folder con esta sección incompleta o vacía.** Auditor FAIL si claims sin evidence.
 
-Para cada subsystem que el PR toca (LLM routing, cache, queue, auth, observability, billing, rate-limit, etc.):
+Para CADA subsystem que el PR toca (LLM routing, cache, queue, auth, observability, billing, rate-limit, channel format, callback handler, cost/pricing, FX, etc.):
 
-- [ ] **Grep cross-module obligatorio**:
-  - `grep -rn "settings\.get_\|<subsystem keyword>" src/core/ src/shared/` (sistema global existente)
-  - `grep -rn "from src.core.config\|from src.core.enums" src/modules/<target>/` (ya consumido)
-  - `find src/ -name "*.py" -path "*<subsystem>*"` (todos los archivos relacionados)
-- [ ] **Listar enums + config classes + factories + protocols + providers** encontrados (con paths exactos).
-- [ ] **Decisión explícita por sistema encontrado**:
-  - **EXTEND** (preferred): cómo ampliar el existente sin breaking changes
-  - **REPLACE** (riesgo alto): justificación cuantitativa por qué el existente debe morir + plan migración
-  - **NEW** (último recurso): evidencia que ninguno de los encontrados sirve + por qué
-- [ ] Si NEW → bloque "Por qué los existentes no sirven" con código real referenciado (path:line) + criterio Chris (escala 1000+ tenants, costo, calidad invariantes).
+### 1. Grep cross-module obligatorio (output completo embedido)
 
-(skip solo si grep cross-module devuelve cero resultados — no es scope ni atajo)
+Ejecutar y pegar SALIDA REAL aquí (no resumen):
+
+```bash
+# 1a. Buscar archivos con nombre o patrón similar al que vas a crear:
+find /home/chris/AISALESHT/backend/src -name "<filename>.py" 2>&1
+find /home/chris/AISALESHT/frontend/src -name "<filename>.ts*" 2>&1
+
+# 1b. Buscar clase/función/protocol equivalente en shared y modules paralelos:
+grep -rn "class <ClassName>\|def <function_name>" /home/chris/AISALESHT/backend/src/shared/ /home/chris/AISALESHT/backend/src/modules/ 2>/dev/null
+
+# 1c. Buscar imports cross-module del subsystem:
+grep -rn "from src.shared.<subsystem>\|import <subsystem>" /home/chris/AISALESHT/backend/src/ 2>/dev/null | head -20
+
+# 1d. Consultar inventario canónico shared abstractions:
+cat /home/chris/AISALESHT/.claude/rules/anti-duplication.md | grep -A 1 "<subsystem keyword>"
+```
+
+**Salida grep:**
+
+```
+[PASTE REAL OUTPUT HERE — paths + line numbers]
+```
+
+### 2. Inventario de existing patterns encontrados
+
+| Pattern existente | Path:line | Visible para mi módulo? | Status |
+|---|---|---|---|
+| ej: `BaseObservabilityContext` | `shared/agent_observability/recording/turn_envelope.py:142` | sí cross-module exception copilot | exists, EXTEND-via-inheritance |
+| ej: `FXResolver()` factory | `shared/agent_observability/cost/fx_resolver.py:38` | sí | exists, USE-AS-IS via `.default()` |
+
+### 3. Decisión explícita por sistema (EXTEND / LIFT / NEW)
+
+| Sistema | Decisión | Justificación con path:line |
+|---|---|---|
+| ej: turn envelope sales_agent | **EXTEND** vía herencia desde shared base | `shared/agent_observability/recording/turn_envelope.py::BaseObservabilityContext` ya define lifecycle. Sub-class añade only sales-specific fields |
+| ej: FX resolver call site | **USE-AS-IS** | `shared/agent_observability/cost/fx_resolver.py::FXResolver.default()` factory exists |
+
+**Categorías permitidas:**
+- **EXTEND** (preferred): cómo ampliar el existente sin breaking changes
+- **LIFT-TO-SHARED** (cuando 2+ módulos lo necesitarían): primer commit lift abstracción a `shared/`, después módulos consumen
+- **REPLACE** (riesgo alto): justificación cuantitativa por qué el existente debe morir + plan migración
+- **NEW** (último recurso): evidencia path:line que ninguno de los encontrados sirve + por qué
+
+### 4. Si decisión es NEW
+
+Bloque obligatorio "Por qué los existentes no sirven":
+
+- ¿Qué intentaste extender primero? Path:line del existente.
+- ¿Por qué falló extend? Razón técnica concreta (no "no me gusta el API").
+- ¿Criterio Chris satisfecho? Escala 1000+ tenants, costo, calidad invariantes.
+
+### 5. Auditor enforcement
+
+Auditor Cat 12 (mirror detection) busca duplicación post-implement. Si encuentra archivo con name+structure similar en módulo paralelo sin justificación NEW → verdict FAIL.
+
+(skip esta sección entera SOLO si grep en sección 1 devuelve cero resultados Y inventario `rules/anti-duplication.md` no lista subsystem — no es atajo, es consecuencia de evidencia)
 
 ## Decisiones diferidas (explícitas)
 
