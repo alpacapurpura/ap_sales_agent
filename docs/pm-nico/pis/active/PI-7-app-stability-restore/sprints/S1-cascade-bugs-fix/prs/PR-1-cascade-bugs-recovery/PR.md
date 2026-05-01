@@ -7,7 +7,7 @@
 | PR ID | PR-1-cascade-bugs-recovery |
 | Sprint padre | S1-cascade-bugs-fix |
 | PI padre | PI-7-app-stability-restore |
-| Estado | discovery (architect mandatory ANTES builder) |
+| Estado | in-progress (architect spawn 2026-05-01) |
 | Tipo | bug-fix cross-surface (backend negocio + infra) |
 | Esfuerzo | M |
 | Owner PM | /pm |

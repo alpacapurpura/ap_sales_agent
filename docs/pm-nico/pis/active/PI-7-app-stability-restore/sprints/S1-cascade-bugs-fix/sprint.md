@@ -7,7 +7,7 @@
 | Sprint ID | S1-cascade-bugs-fix |
 | PI padre | PI-7-app-stability-restore |
 | Inicio | 2026-05-01 |
-| Estado | discovery (architect spawn pendiente) |
+| Estado | in-progress (PR-1 architect spawn 2026-05-01) |
 
 ## Objetivo
 
