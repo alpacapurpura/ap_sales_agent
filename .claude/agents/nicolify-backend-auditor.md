@@ -338,6 +338,8 @@ grep -rn "select(" backend/src/modules/{m}/ --include="*.py" | grep -v "tenant_i
 - Any FAIL in categories 1 / 2 / 8 / 9 → **overall FAIL**
 - Allowlist grew without justified commit → **overall FAIL**
 - Any `/test-backend` gate FAIL (3-7, 11-13) → **overall FAIL**
+- **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (backend-expert + tessl__fastapi + tessl__pytest-api-testing baseline; + domain skill if domain touched; + tessl__graceful-degradation if external calls) → **overall FAIL** ("Skill routing violation — builder skipped mandatory skill invocation")
+- **`backend-expert/references/runtime-quality-checklist.md` not cited in IMPL-LOG** → **overall WARN** (next step → check for anti-patterns the checklist warns about; if any present → escalate to FAIL)
 - Two or more category WARNs → **overall WARN**
 - Otherwise → **PASS**
 

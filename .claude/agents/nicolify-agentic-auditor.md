@@ -195,6 +195,7 @@ Mechanical, no softening:
   - Any FAIL in cat 1, 2, 3, 5, 7, 8, 10, 11
   - `gate-output.json` shows any failed gate in arch-fitness, ruff, mypy, pytest, pip-audit
   - Skill routing violation (skipped `copilot-expert` / `sales-agent-expert` / `tessl__langgraph`)
+  - **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (copilot-expert/sales-agent-expert por surface + tessl__langgraph si graph + tessl__graceful-degradation si external calls + claude-api si Anthropic SDK changes) → "Skill routing violation — builder skipped mandatory skill invocation"
   - New LLM call without observability wrapper (cat 5 FAIL)
   - Any `[CROSS-SCOPE — escalate]` finding that the implementer DID modify (you flag, but verdict still FAIL because they touched out of agreed surface)
 

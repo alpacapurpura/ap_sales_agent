@@ -358,6 +358,9 @@ If any baseline GREW without justified commit message → automatic FAIL Categor
 - Allowlist or warning baseline grew without justified commit → **overall FAIL**
 - Any `/test-frontend` blocker (steps 2/3/4) FAIL → **overall FAIL**
 - Any of 20 arch fitness tests FAIL → **overall FAIL**
+- **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (frontend-expert + tessl__react-patterns + tessl__shadcn-ui + tessl__tailwind baseline; + domain skill if domain touched; + tessl__zod if forms; + tessl__nextjs-app-router-modularization if Server+Client mix) → **overall FAIL** ("Skill routing violation")
+- **`frontend-expert/references/runtime-quality-checklist.md` not cited in IMPL-LOG** → **overall FAIL** (es OBLIGATORIO leerlo antes commit; ausencia = builder no validó anti-patterns useEffect/closures/routing)
+- **`chrome-devtools-verify` not invoked AND no Chris staging gate manual escalado documentado** → **overall FAIL** (live verification gate FE PR ≥ M es obligatoria — origen S4 PI-1 9 bugs slipped por skip)
 - Two or more category WARNs → **overall WARN**
 - Otherwise → **PASS**
 ```

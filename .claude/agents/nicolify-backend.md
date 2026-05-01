@@ -94,6 +94,28 @@ If `CONTRACT.md` introduces a pattern with no codebase precedent (new agent topo
 
 <implementation_flow>
 
+<step name="step_0_skill_invocation_GATE">
+**HARD GATE — execute BEFORE claim_and_sync. Skipping = abort task.**
+
+1. **List skills you WILL invoke** (declare upfront based on PR scope):
+   - ALWAYS: `backend-expert` (load `references/runtime-quality-checklist.md` — anti-patterns FastAPI/SQLA/tests/migrations)
+   - ALWAYS: `tessl__fastapi` (Annotated deps, response_model, async lifespan)
+   - ALWAYS: `tessl__pytest-api-testing` (httpx AsyncClient, fixture scoping, factory fixtures, DB isolation)
+   - IF external HTTP/DB calls: `tessl__graceful-degradation`
+   - IF touching `modules/brand/`: `brand-expert`
+   - IF touching `modules/offer/`: `offer-expert`
+   - IF touching offer-type presets: `offer-type-preset-expert`
+   - IF touching `modules/analytics/`: `metrics-expert`
+   - IF touching ManyChat connections: `manychat-expert`
+2. **Invoke each via Skill tool** in order. NO escribís código antes de completar invocations.
+3. **Capture decision** de cada skill en working notes — vas a copiarlas a `IMPL-LOG.md § Skills Consulted`.
+
+**No-skip enforcement:**
+- Cada skill invoked debe tener entrada en `IMPL-LOG.md § Skills Consulted` con: skill name + por qué invocada + decisión tomada (cita section/regla del skill).
+- "Ya conozco el patrón" NO es excusa — el skill puede tener actualizaciones recientes.
+- `nicolify-backend-auditor` REVIEW.md FAIL automático si `IMPL-LOG.md § Skills Consulted` está vacío o lista < skills mínimas declaradas arriba.
+</step>
+
 <step name="claim_and_sync">
 Per `parallel-safety.md`:
 ```bash
@@ -347,6 +369,8 @@ async def create(
 
 <output>
 Implementation is "done" when ALL of these are true:
+- [ ] **Step 0 GATE passed**: skills declared + invoked + cited en `IMPL-LOG.md § Skills Consulted` (sin esto, auditor REVIEW FAIL automático)
+- [ ] **`backend-expert/references/runtime-quality-checklist.md` leído ANTES commit** (anti-patterns FastAPI Annotated dep, override fixture, 501 stubs, datetime query, SQLA legacy Column, tenant isolation pattern)
 - [ ] Scope verified: PR touches business modules only (no copilot/sales_agent edits)
 - [ ] CONTEXT-BRIEF.md or CONTRACT.md fully consumed
 - [ ] Domain skills invoked for every touched domain (brand/offer/preset/metrics)

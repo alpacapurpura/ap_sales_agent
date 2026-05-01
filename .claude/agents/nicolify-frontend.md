@@ -86,6 +86,34 @@ If `UI-SPEC.md` introduces a UX pattern with no codebase precedent (new layout t
 
 <implementation_flow>
 
+<step name="step_0_skill_invocation_GATE">
+**HARD GATE — execute BEFORE claim_and_sync. Skipping = abort task.**
+
+1. **List skills you WILL invoke** (declare upfront based on PR scope):
+   - ALWAYS: `frontend-expert` (load `references/runtime-quality-checklist.md` — useEffect deps, stale closures, routing tenantId, mock anti-patterns, live verification)
+   - ALWAYS: `tessl__react-patterns` (error boundaries, loading/error/empty states, accessible markup, stable keys, memoization)
+   - ALWAYS: `tessl__shadcn-ui` (component selection + customisation; never recreate primitives)
+   - ALWAYS: `tessl__tailwind` (utility classes + tokens, no inline style)
+   - IF forms: `tessl__zod` (form schemas + validation)
+   - IF Vitest tests new: `tessl__vitest` (test setup, async patterns)
+   - IF page mixes Server+Client: `tessl__nextjs-app-router-modularization`
+   - IF external HTTP/SSE: `tessl__graceful-degradation`
+   - IF touching `features/brand-studio/`: `brand-expert`
+   - IF touching `features/offer-studio/`: `offer-expert` / `offer-type-preset-expert`
+   - IF touching `features/copilot/`: `copilot-expert`
+   - IF touching `features/sales-agent/`: `sales-agent-expert`
+   - IF touching `features/growth-studio/`: `metrics-expert`
+   - **OBLIGATORIO antes de marcar PR shipped**: `chrome-devtools-verify` (live verification gate FE PR ≥ M)
+2. **Invoke each via Skill tool** in order. NO escribís código antes de completar invocations.
+3. **Capture decision** de cada skill en working notes — vas a copiarlas a `IMPL-LOG.md § Skills Consulted`.
+
+**No-skip enforcement:**
+- Cada skill invoked debe tener entrada en `IMPL-LOG.md § Skills Consulted` con: skill name + por qué invocada + decisión tomada (cita section/regla del skill).
+- "Ya conozco el patrón" NO es excusa.
+- `nicolify-frontend-auditor` REVIEW.md FAIL automático si `IMPL-LOG.md § Skills Consulted` está vacío o lista < skills mínimas declaradas arriba.
+- Live verification skip → REVIEW WARN (PR no se cierra hasta `chrome-devtools-verify` invocada O escalate Chris staging gate manual).
+</step>
+
 <step name="claim_and_sync">
 Per `parallel-safety.md`:
 ```bash
@@ -411,6 +439,9 @@ className={cn("base-classes", isActive && "active-classes", className)}
 
 <output>
 Implementation is "done" when ALL of these are true:
+- [ ] **Step 0 GATE passed**: skills declared + invoked + cited en `IMPL-LOG.md § Skills Consulted` (sin esto, auditor REVIEW FAIL automático)
+- [ ] **`frontend-expert/references/runtime-quality-checklist.md` leído ANTES commit** (useEffect deps, stale closures hooks state-derived, routing tenantId, mock anti-patterns, live verification)
+- [ ] **`chrome-devtools-verify` invocada O Chris staging gate manual escalado** (PR FE ≥ M no cierra sin esto)
 - [ ] CONTRACT.md TypeScript types fully reflected (camelCase, ISO 8601, optional fields explicit)
 - [ ] UI-SPEC.md component tree fully implemented (Server/Client boundaries correct)
 - [ ] Domain skills invoked for every touched domain (brand/offer/preset/copilot/sales_agent/metrics)

@@ -44,6 +44,10 @@ Antes de escribir codigo, ubicar el modulo destino:
 2. Escribir test de regresión que reproduce el bug (DEBE fallar RED). NO corregir hasta tener test rojo.
 3. Corregir en la capa mas profunda posible. Verificar con tests de regresion.
 
+### Quality runtime checklist OBLIGATORIO
+
+Antes de commit Y antes de spawn auditor, leer [runtime-quality-checklist.md](backend-expert/references/runtime-quality-checklist.md). Cubre anti-patterns que mypy + ruff + pytest NO catch: FastAPI Annotated dep type alias, override fixture sin Depends, 501 stubs Response param, datetime query parsing, SQLA legacy Column handling, multi-tenant test fixture pattern.
+
 ## Ubicacion de modulos
 
 - **Modulo no reconocido:** Comparar proposito de negocio en INDEX (15 dominios). Elegir por funcion, no por nombre.
@@ -98,6 +102,7 @@ def upgrade():
 
 ## Project invariants (read on demand)
 
+- `references/runtime-quality-checklist.md` — **OBLIGATORIO leer antes commit y antes spawn auditor**. FastAPI Annotated deps, override fixture pattern, 501 stubs JSONResponse, datetime query, SQLA legacy Column handling, tenant isolation, JSONB shape (origen S4 PI-1 PR-10)
 - `references/backend-quality.md` — Ruff 70+ rules, arch fitness gates, naming conventions
 - `references/master-data.md` — TenantLocale VO, currency+timezone, no hardcoded
 - `references/currency-handling.md` — currency from data source, formatMoney patterns

@@ -275,6 +275,26 @@ Only justified for active conversations expected to span >5 min between turns. D
 
 <implementation_flow>
 
+<step name="step_0_skill_invocation_GATE">
+**HARD GATE — execute BEFORE claim_and_sync. Skipping = abort task.**
+
+1. **List skills you WILL invoke** (declare upfront based on PR scope):
+   - IF touching `modules/copilot/`: `copilot-expert`
+   - IF touching `modules/sales_agent/`: `sales-agent-expert`
+   - IF touching ANY LangGraph code: `tessl__langgraph`
+   - IF external calls (LLM, Qdrant, third-party): `tessl__graceful-degradation`
+   - IF new pytest fixtures async: `tessl__pytest-api-testing`
+   - IF FastAPI routes touched: `tessl__fastapi`
+   - IF Anthropic SDK / prompt cache changes: `claude-api`
+2. **Invoke each via Skill tool** in order. NO escribís código antes de completar invocations.
+3. **Capture decision** de cada skill en working notes — vas a copiarlas a `IMPL-LOG.md § Skills Consulted`.
+
+**No-skip enforcement:**
+- Cada skill invoked debe tener entrada en `IMPL-LOG.md § Skills Consulted` con: skill name + por qué invocada + decisión tomada (cita section/regla del skill).
+- "Ya conozco LangGraph" NO es excusa — Opus knowledge cutoff Jan 2026; library evolves.
+- `nicolify-agentic-auditor` REVIEW.md FAIL automático si `IMPL-LOG.md § Skills Consulted` está vacío o lista < skills mínimas declaradas arriba.
+</step>
+
 <step name="claim_and_sync">
 Per `parallel-safety.md`:
 ```bash
@@ -722,6 +742,7 @@ NEVER `print()`, NEVER stdlib `logging`.
 
 <output>
 Implementation is "done" when ALL of these are true:
+- [ ] **Step 0 GATE passed**: skills declared + invoked + cited en `IMPL-LOG.md § Skills Consulted` (sin esto, auditor REVIEW FAIL automático)
 - [ ] CONTEXT-BRIEF.md or CONTRACT.md fully consumed
 - [ ] Domain skills invoked: `copilot-expert` (if copilot) and/or `sales-agent-expert` (if sales_agent)
 - [ ] `tessl__langgraph` invoked when graph modified
