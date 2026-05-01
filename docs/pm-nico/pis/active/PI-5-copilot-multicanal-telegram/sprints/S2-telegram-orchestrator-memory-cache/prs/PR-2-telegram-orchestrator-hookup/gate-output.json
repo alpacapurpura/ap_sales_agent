@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/ tests/modules/copilot/ -q --tb=line --timeout=60 --ignore=tests/modules/copilot/test_streaming_integration.py",
+  "command_alias": "test-backend",
+  "iter": 2,
+  "started_at": "2026-05-01T13:00:00Z",
+  "finished_at": "2026-05-01T13:07:00Z",
+  "duration_ms": 419960,
+  "exit_code": 1,
+  "raw_log_path": "/tmp/claude-1000/-home-chris-AISALESHT/5faab06f-1f6c-4131-8f8a-9586cf276f14/tasks/bszizgjd6.output",
+  "gates": [
+    {
+      "name": "pytest",
+      "status": "PARTIAL",
+      "errors_count": 12,
+      "first_5_errors": [
+        "tests/modules/copilot/test_outbox_adapter_integration.py::TestCopilotOutboxAdapterFlagOff::test_flag_off_is_default_for_copilot_module FAILED — pre-existing PR-1 hotfix cascade (NOT PR-2 scope)",
+        "tests/modules/copilot/test_outbox_adapter_integration.py::TestCopilotOutboxAdapterFlagOff::test_monkeypatch_env_flag_off FAILED — pre-existing PR-1 hotfix cascade (NOT PR-2 scope)",
+        "tests/architecture/test_sales_agent_anchors.py::test_all_sales_agent_anchors_are_registered FAILED — sales_agent module (NOT PR-2 scope; another session added CAMPAIGN_CONTEXT + TOOL_REQUEST_FORMAT enum values)",
+        "tests/architecture/test_sales_agent_system_prompt_order.py::test_full_order_is_cacheable_then_volatile FAILED — sales_agent (NOT PR-2 scope)",
+        "tests/architecture/test_sales_agent_system_prompt_order.py::test_cacheable_fragment_order_is_frozen FAILED — sales_agent (NOT PR-2 scope)"
+      ]
+    },
+    {
+      "name": "ruff (lint)",
+      "status": "UNKNOWN",
+      "errors_count": 0,
+      "first_5_errors": [
+        "pytest failed before ruff could run (exit 1 short-circuited chain)"
+      ]
+    },
+    {
+      "name": "ruff format",
+      "status": "UNKNOWN",
+      "errors_count": 0,
+      "first_5_errors": [
+        "pytest failed before ruff format could run (exit 1 short-circuited chain)"
+      ]
+    },
+    {
+      "name": "mypy",
+      "status": "UNKNOWN",
+      "errors_count": 0,
+      "first_5_errors": [
+        "pytest failed before mypy could run (exit 1 short-circuited chain)"
+      ]
+    }
+  ],
+  "overall": {
+    "any_fail": true,
+    "fail_gate_names": [
+      "pytest"
+    ],
+    "summary": "iter-2: 2 PR-2 scope failures from iter-1 NOW GREEN (test_all_copilot_anchors_are_registered + test_cacheable_fragment_order_is_frozen). Remaining 12 failures = 100% pre-existing/ajenos (sales_agent anchors+order frozen by other session, voice_api 410 Gone deprecation, deep_agent kimi temperature clamp pre-existing, outbox_adapter PR-1 cascade, DDD campaigns→sales_agent boundary, folder_naming _dependencies.py, voice_fidelity_grader timeout). Per PM ruling: PR-2 fixes verified GREEN, ajenos out-of-scope, proceed to auditor."
+  },
+  "notes": "PR-2 scope iter-2 results: (1) test_all_copilot_anchors_are_registered GREEN — anchors COPILOT-INVOKE-RESULT-PR2-PI5 + COPILOT-TELEGRAM-CHANNEL-CONTEXT registered, cap bumped 37→39. (2) test_cacheable_fragment_order_is_frozen GREEN — TELEGRAM_CHANNEL_CONTEXT slotted at idx 3 between MARKETING_KB_HINT and LIGHTHOUSE per PI-5 PR-2 D-PI5-009 design (cross-tenant per-channel cacheable; emits '' for non-telegram so web bytes byte-identical). All 44 targeted tests (test_copilot_anchors + test_system_prompt_order + test_system_prompt_layout + test_telegram_channel_context_fragment) PASS. Commit hash: 8b180584."
+}

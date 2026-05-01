@@ -266,3 +266,44 @@ I am NOT executing either option. Awaiting `/pm` decision.
 - Quality gates (ruff / mypy / pytest copilot module / arch fitness).
 - Commit + push + audit.
 
+---
+
+## Sesión iter-2 — gate fixes (2026-05-01, post gate-runner iter-1)
+
+### Findings PR-2 scope (FIXED iter-2)
+
+1. **`test_all_copilot_anchors_are_registered`** — 2 unregistered anchors:
+   - `COPILOT-INVOKE-RESULT-PR2-PI5` (from `application/orchestrator/invoke_result.py` PR-2 doc anchor)
+   - `COPILOT-TELEGRAM-CHANNEL-CONTEXT` (from `application/orchestrator/system_prompt_layout.py` PR-2 doc anchor + ratchet test cap)
+   - Fix: appended both to `ANCHOR_REGISTRY` in `tests/architecture/test_copilot_anchors.py`; bumped cap 37 → 39.
+2. **`test_cacheable_fragment_order_is_frozen`** — frozen tuple lacked TELEGRAM_CHANNEL_CONTEXT.
+   - Fix: extended `EXPECTED_CACHEABLE` ratchet in `tests/architecture/test_system_prompt_order.py` to insert `TELEGRAM_CHANNEL_CONTEXT` at idx 3 (between `MARKETING_KB_HINT` and `LIGHTHOUSE`) per PI-5 PR-2 D-PI5-009 design (cross-tenant per-channel cacheable; emits "" for non-telegram so web cache prefix bytes stay byte-identical).
+   - Updated docstring rationale block.
+
+### Verification
+
+44/44 PASS on targeted suites: `test_copilot_anchors.py` + `test_system_prompt_order.py` + `tests/modules/copilot/test_system_prompt_layout.py` + `tests/modules/copilot/application/orchestrator/test_telegram_channel_context_fragment.py`.
+
+### Findings ajenos (out-of-scope, ACCEPTED by PM)
+
+12 pre-existing failures left intact (per PM ruling "ajenos out-of-scope, proceed to auditor"):
+- `test_outbox_adapter_integration` flag-off x2 — PR-1 hotfix cascade
+- `test_sales_agent_anchors` + `test_sales_agent_system_prompt_order` x2 — sales_agent module session added `CAMPAIGN_CONTEXT` + `TOOL_REQUEST_FORMAT` enums (NOT PR-2)
+- `test_ddd_boundaries::test_no_new_cross_module_imports` — campaigns→sales_agent (other session)
+- `test_voice_api::test_transcribe_audio_*` x2 — endpoint returns 410 Gone (intentional deprecation per code log "endpoint legacy sera eliminado en S2")
+- `test_offer_section_tools::TestAdaptFromBrandIdentity::test_missing_brand` — pre-existing
+- `test_deep_agent_factory_wire::test_kimi_k2_temperature_clamped_for_agent_role` — Kimi K2.6 thinking-disabled clamp 0.6 expected got 1.0 (LLM router cross-module surface, NOT PR-2)
+- `test_voice_combined::test_legacy_transcribe_endpoint_still_works` — same legacy 410 Gone
+- `test_folder_naming::test_all_python_files_snake_case` — `copilot/api/_dependencies.py` (other session / pre-existing)
+- `test_voice_fidelity_grader` 30s timeout — PR-1 hotfix cascade
+
+### Commit iter-2
+
+`8b180584 fix(copilot): register PR-2 anchors + extend system_prompt_order ratchet`
+- 2 files changed (+13/-5).
+- Pushed to `development`.
+
+### Next
+
+Auditor spawn pending (Task tool not exposed in this session; parent agent spawns).
+
