@@ -611,8 +611,6 @@ class CopilotOrchestrator:
         ``ObservabilityContext`` whose callback handler the graph stream
         consumes via ``obs.langchain_config()``.
         """
-        import httpx
-
         from src.modules.copilot.observability.persistence.llm_call_repository import (
             LlmCallRepository,
         )
@@ -644,9 +642,10 @@ class CopilotOrchestrator:
             pricing_resolver=PricingResolver(
                 repo_factory=lambda: PricingSnapshotRepository(db),
             ),
-            fx_resolver=FXResolver(
-                http_client_factory=lambda: httpx.Client(timeout=10),
-            ),
+            # PR-2 PI-1.1: ``FXResolver.default()`` encapsulates the
+            # ``httpx.Client(timeout=10)`` boilerplate per
+            # ``tessl__graceful-degradation`` Rule 1 (explicit timeout).
+            fx_resolver=FXResolver.default(),
             tenant_currency=currency,
         )
 

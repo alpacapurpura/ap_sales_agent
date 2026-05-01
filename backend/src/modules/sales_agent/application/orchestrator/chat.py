@@ -314,17 +314,23 @@ class ChatOrchestrator:
                 tenant_uuid,
             )
 
-            # Per-turn observability handler (S1). Best-effort — ``None`` when
-            # tenant/lead is missing; legacy ``@trace_node`` still writes
-            # during the dual-write window.
+            # Per-turn observability context (S1 + PR-2 Bug #2 fix). Best-effort —
+            # ``None`` when tenant/lead is missing; legacy ``@trace_node`` still
+            # writes during the dual-write window.
+            #
+            # PR-2 PI-1.1: the envelope wraps ``ainvoke`` in
+            # ``async with observe_turn(...)`` so ``turn_start`` +
+            # ``turn_end`` rows persist on ``sales_agent_trace_event``.
+            # Pre-PR-2 only the callback handler ran, so turns without
+            # an LLM call (rare but real) wrote zero rows.
             from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
                 ToolCallDedupTracker,
             )
             from src.modules.sales_agent.observability.recording.factory import (
-                build_sales_agent_callback_handler,
+                build_sales_agent_observability_context,
             )
 
-            observability_handler = build_sales_agent_callback_handler(
+            observability_context = build_sales_agent_observability_context(
                 db=db,
                 tenant_id=tenant_uuid,
                 lead_id=user.id if user else None,
@@ -340,7 +346,7 @@ class ChatOrchestrator:
                 channel_adapter,
                 incoming,
                 initial_state,
-                observability_handler=observability_handler,
+                observability_context=observability_context,
             )
 
             if tenant_uuid and user:

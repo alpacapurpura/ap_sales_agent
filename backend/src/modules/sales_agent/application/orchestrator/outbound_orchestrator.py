@@ -43,7 +43,7 @@ from src.modules.sales_agent.application.orchestrator.conversation_pipeline impo
 )
 from src.modules.sales_agent.application.orchestrator.graph import agent_app
 from src.modules.sales_agent.observability.recording.factory import (
-    build_sales_agent_callback_handler,
+    build_sales_agent_observability_context,
 )
 from src.shared.domain.messages import IncomingMessage
 
@@ -221,9 +221,12 @@ class OutboundOrchestrator:
             },
         ]
 
-        # --- Step 6: observability handler (best-effort) ---
+        # --- Step 6: observability context (best-effort, PR-2 Bug #2 fix) ---
+        # The envelope wraps ``ainvoke`` in ``async with observe_turn(...)``
+        # so ``turn_start`` + ``turn_end`` rows persist alongside the
+        # callback handler's ``llm_call`` / ``tool_call`` rows.
         turn_id = uuid.uuid4()
-        handler = build_sales_agent_callback_handler(
+        observability_context = build_sales_agent_observability_context(
             db=db,
             tenant_id=tenant_uuid,
             lead_id=lead_row.id,
@@ -234,8 +237,18 @@ class OutboundOrchestrator:
 
         # --- Step 7: dispatch via LangGraph ---
         try:
-            config = {"callbacks": [handler]} if handler is not None else {}
-            result = await agent_app.ainvoke(initial_state, config=config)
+            if observability_context is not None:
+                async with observability_context.observe_turn(
+                    message=synthetic_incoming.text or "",
+                    route="sales_agent_outbound",
+                    attachments=[],
+                ):
+                    result = await agent_app.ainvoke(
+                        initial_state,
+                        config=observability_context.langchain_config(),
+                    )
+            else:
+                result = await agent_app.ainvoke(initial_state, config={})
         except Exception as exc:
             logger.exception(
                 "outbound_orchestrator_graph_failed",

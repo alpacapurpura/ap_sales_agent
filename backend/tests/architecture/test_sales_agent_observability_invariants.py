@@ -147,3 +147,50 @@ class TestPiiSanitizationOnTraceWrites:
             "Domain-event subscriber must run payload through sanitize_payload "
             "before persisting to sales_agent_trace_event."
         )
+
+
+class TestSalesAgentEnvelopeInheritance:
+    """PR-2 PI-1.1: ``SalesAgentObservabilityContext`` extends
+    ``BaseObservabilityContext`` (anti-duplication LIFT-TO-SHARED).
+    """
+
+    def test_envelope_module_imports_base_from_shared(self) -> None:
+        env_path = REPO / "src" / "modules" / "sales_agent" / "observability" / "recording" / "turn_envelope.py"
+        src = _read(env_path)
+        assert "from src.shared.agent_observability.recording.turn_envelope import" in src, (
+            "SalesAgentObservabilityContext MUST inherit from the shared base — "
+            "no parallel lifecycle implementation in sales_agent."
+        )
+        assert "BaseObservabilityContext" in src, (
+            "Envelope module must reference BaseObservabilityContext for inheritance."
+        )
+
+    def test_envelope_class_extends_base(self) -> None:
+        env_path = REPO / "src" / "modules" / "sales_agent" / "observability" / "recording" / "turn_envelope.py"
+        tree = _ast(env_path)
+        target = next(
+            (n for n in ast.walk(tree) if isinstance(n, ast.ClassDef) and n.name == "SalesAgentObservabilityContext"),
+            None,
+        )
+        assert target is not None, "SalesAgentObservabilityContext class missing"
+        base_names = {b.id for b in target.bases if isinstance(b, ast.Name)}
+        assert "BaseObservabilityContext" in base_names, (
+            f"SalesAgentObservabilityContext must extend BaseObservabilityContext, got bases: {base_names}"
+        )
+
+    def test_factory_uses_observability_context_builder(self) -> None:
+        """Bug #2 fix: factory exposes ``build_sales_agent_observability_context``."""
+        factory_path = REPO / "src" / "modules" / "sales_agent" / "observability" / "recording" / "factory.py"
+        src = _read(factory_path)
+        assert "def build_sales_agent_observability_context" in src, (
+            "Factory must expose ``build_sales_agent_observability_context`` so "
+            "the orchestrator can wrap ``ainvoke`` in ``observe_turn``."
+        )
+
+    def test_factory_uses_fxresolver_default(self) -> None:
+        """Bug #8 fix: ``factory.py`` calls ``FXResolver.default()``, not ``FXResolver()``."""
+        factory_path = REPO / "src" / "modules" / "sales_agent" / "observability" / "recording" / "factory.py"
+        src = _read(factory_path)
+        assert "FXResolver.default()" in src, (
+            "Bug #8 fix: factory must use FXResolver.default() — never the no-arg form."
+        )

@@ -48,6 +48,24 @@ class FXResolver:
     base_url: str = FRANKFURTER_URL
     _cache: dict[tuple[str, str], Decimal] = field(default_factory=dict)
 
+    @classmethod
+    def default(cls) -> FXResolver:
+        """Production default: ``httpx`` client with 10 s timeout per fetch.
+
+        Encapsulates the ``lambda: httpx.Client(timeout=10)`` boilerplate
+        duplicated across orchestrators (PR-2 PI-1.1, 2026-05-01). Tests
+        bypass this and instantiate via ``FXResolver(http_client_factory=mock)``
+        directly.
+
+        Per ``tessl__graceful-degradation`` Rule 1: explicit timeout on
+        every external call. ``_fetch`` already swallows exceptions and
+        returns ``None`` → ``resolve()`` falls back to
+        ``(Decimal(1), "fx_unavailable")``.
+        """
+        import httpx  # local import — only needed in this prod path
+
+        return cls(http_client_factory=lambda: httpx.Client(timeout=10))
+
     def resolve(self, *, currency_code: str, at_ts: dt.datetime) -> tuple[Decimal, str]:
         """Return ``(rate, source)`` — ``Decimal`` rate + provenance string.
 

@@ -1,4 +1,14 @@
-"""Turn envelope — the single entrypoint that chat.py talks to.
+"""Copilot concrete observability context — subclass of shared base.
+
+Anti-duplication LIFT (PR-2 PI-1.1, 2026-05-01): the lifecycle that
+used to live monolithically here is now in
+``src/shared/agent_observability/recording/turn_envelope.py``
+(:class:`BaseObservabilityContext`). This module keeps the copilot-
+specific concrete subclass plus a public alias for back-compat:
+
+    from src.modules.copilot.observability import ObservabilityContext
+
+continues to work — 4260 conversation import sites untouched.
 
 The Phase 2 atomic switch reduces the orchestrator's observability
 surface to two lines:
@@ -19,10 +29,7 @@ observability failure never bubbles out of the orchestrator.
 from __future__ import annotations
 
 import contextlib
-import time
-from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
@@ -30,21 +37,22 @@ from uuid import UUID, uuid4
 import structlog
 from sqlalchemy import func, select
 
-from src.modules.copilot.observability.persistence.llm_call_repository import LlmCallRepository
 from src.modules.copilot.observability.persistence.models.llm_call_model import (
     CopilotLlmCallModel,
-)
-from src.modules.copilot.observability.persistence.trace_event_repository import (
-    TraceEventRepository,
 )
 from src.modules.copilot.observability.recording.callback_handler import (
     ObservabilityCallbackHandler,
 )
-from src.shared.agent_observability.recording.sanitization import sanitize_payload, truncate
+from src.shared.agent_observability.recording.turn_envelope import (
+    BaseObservabilityContext,
+    _empty_totals,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
-
+    from src.modules.copilot.observability.persistence.llm_call_repository import LlmCallRepository
+    from src.modules.copilot.observability.persistence.trace_event_repository import (
+        TraceEventRepository,
+    )
     from src.shared.agent_observability.cost.fx_resolver import FXResolver
     from src.shared.agent_observability.pricing.resolver import PricingResolver
 
@@ -52,42 +60,30 @@ logger = structlog.get_logger()
 
 
 @dataclass
-class _TurnSummary:
-    """Stream-shape totals supplied by the orchestrator before turn close."""
+class CopilotObservabilityContext(BaseObservabilityContext):
+    """Concrete copilot context. Owns the callback handler + turn lifecycle.
 
-    response_length: int = 0
-    message_count: int = 0
-    block_count: int = 0
+    Inherits the entire lifecycle (``observe_turn``, ``_write_turn_*``,
+    ``set_turn_*``, ``langchain_config``, ``_commit_session``) from
+    :class:`BaseObservabilityContext`. Implements the three abstract
+    hooks:
 
-
-@dataclass
-class _TurnErrorFlag:
-    """Out-of-band error flag set by the orchestrator.
-
-    The orchestrator catches stream errors inside its own except blocks
-    so it can emit a user-friendly SSE message. That cleans the body
-    exit — without this flag, ``turn_end`` would record ``status='ok'``
-    even when the LLM run blew up (the 2026-04-27 incident).
+    * :meth:`_add_trace_event` — passes ``conversation_id`` + ``user_id``
+      kwargs to ``TraceEventRepository.add``.
+    * :meth:`_aggregate_totals` — sums :class:`CopilotLlmCallModel`
+      rows for the turn.
+    * :meth:`_legacy_compat_keys_or_empty` — returns the JSONB legacy
+      shape Streamlit ``/trazas`` + ``/copilot-routing`` consume.
     """
 
-    error_kind: str
-    error_message: str | None = None
-
-
-@dataclass
-class ObservabilityContext:
-    """One instance per turn. Owns the callback handler + turn lifecycle."""
-
-    tenant_id: UUID
-    conversation_id: UUID | None
-    user_id: UUID | None
-    turn_id: UUID
-    callback_handler: ObservabilityCallbackHandler
-    llm_call_repo: LlmCallRepository
-    trace_repo: TraceEventRepository
-    _summary: _TurnSummary = field(default_factory=_TurnSummary)
-    _turn_start_monotonic: float = field(default_factory=time.monotonic)
-    _error_flag: _TurnErrorFlag | None = None
+    conversation_id: UUID | None = None
+    user_id: UUID | None = None
+    # ``trace_repo`` / ``llm_call_repo`` are inherited but typed loosely; the
+    # copilot subclass narrows their concrete types for clarity. Mypy treats
+    # them as a redeclaration; runtime is unaffected (dataclass inheritance
+    # respects field order).
+    # NOTE: we don't redeclare here to avoid dataclass field-ordering
+    # warnings — base owns the fields, subclass uses them.
 
     @classmethod
     def start(
@@ -103,8 +99,8 @@ class ObservabilityContext:
         tenant_currency: str = "USD",
         role: str = "agent",
         turn_id: UUID | None = None,
-    ) -> ObservabilityContext:
-        """Build a fresh context. Turn id is allocated if not provided."""
+    ) -> CopilotObservabilityContext:
+        """Build a fresh copilot context. Turn id is allocated if not provided."""
         tid = turn_id or uuid4()
         handler = ObservabilityCallbackHandler(
             tenant_id=tenant_id,
@@ -120,95 +116,25 @@ class ObservabilityContext:
         )
         return cls(
             tenant_id=tenant_id,
-            conversation_id=conversation_id,
-            user_id=user_id,
             turn_id=tid,
             callback_handler=handler,
-            llm_call_repo=llm_call_repo,
             trace_repo=trace_repo,
+            llm_call_repo=llm_call_repo,
+            conversation_id=conversation_id,
+            user_id=user_id,
         )
 
-    def langchain_config(self) -> dict[str, Any]:
-        """Return a ``RunnableConfig``-shaped dict with the callback wired in."""
-        return {"callbacks": [self.callback_handler]}
+    # ── Abstract hook impls ────────────────────────────────────────────
 
-    def set_turn_summary(
+    def _add_trace_event(
         self,
         *,
-        response_length: int,
-        message_count: int,
-        block_count: int,
-    ) -> None:
-        """Stash the stream-shape totals so ``turn_end`` can include them.
-
-        Called by the orchestrator right before the ``observe_turn``
-        context manager exits.
-        """
-        self._summary = _TurnSummary(
-            response_length=int(response_length),
-            message_count=int(message_count),
-            block_count=int(block_count),
-        )
-
-    def set_turn_error(
-        self,
-        *,
-        error_kind: str,
-        error_message: str | None = None,
-    ) -> None:
-        """Flag the current turn as errored without raising.
-
-        The orchestrator catches stream errors (TimeoutError,
-        ToolCallLoopDetected, generic Exception) so it can emit a
-        user-facing SSE error and persist partial state. Those catches
-        used to leave the turn marked ``status='ok'`` — observability
-        lied. Calling this from the except block ensures ``turn_end``
-        records the truth (``status='error'`` + ``error_kind`` +
-        truncated message).
-        """
-        self._error_flag = _TurnErrorFlag(
-            error_kind=error_kind,
-            error_message=error_message,
-        )
-
-    @asynccontextmanager
-    async def observe_turn(
-        self,
-        *,
-        message: str,
-        route: str,
-        attachments: list[Any] | None = None,
-    ) -> AsyncIterator[ObservabilityContext]:
-        """Bracket the turn — write turn_start on enter, turn_end on exit.
-
-        The body MUST run the orchestrator graph with
-        ``config=self.langchain_config()`` so the callback handler sees
-        every LLM/tool/chain event. ``turn_end`` aggregates counts from
-        ``copilot_llm_call`` rows under ``self.turn_id`` and folds in the
-        legacy stream-shape keys (``model``/``prompt_tokens``/...) that
-        the existing Streamlit pages still consume.
-        """
-        self._write_turn_start(message=message, route=route, attachments=attachments or [])
-        error_for_end: BaseException | None = None
-        try:
-            yield self
-        except BaseException as exc:  # we MUST land turn_end even on CancelledError when FE drops the SSE
-            error_for_end = exc
-            raise
-        finally:
-            # ``finally`` so a client disconnect (asyncio.CancelledError —
-            # BaseException, not Exception) still leaves a turn_end row.
-            # Without this, dropped SSEs leak open turns.
-            self._write_turn_end(error=error_for_end if isinstance(error_for_end, Exception) else None)
-
-    # ── internals ───────────────────────────────────────────────────────
-
-    def _write_turn_start(
-        self,
-        *,
-        message: str,
-        route: str,
-        attachments: list[Any],
+        event_type: str,
+        name: str,
+        data: dict[str, Any],
+        duration_ms: int | None = None,
+        status: str = "ok",
+        span_id: UUID | None = None,
     ) -> None:
         try:
             self.trace_repo.add(
@@ -216,72 +142,15 @@ class ObservabilityContext:
                 user_id=self.user_id,
                 conversation_id=self.conversation_id,
                 turn_id=self.turn_id,
-                span_id=self.turn_id,
-                event_type="turn_start",
-                name=route,
-                data=sanitize_payload(
-                    {
-                        "message_preview": truncate(message),
-                        "route": route,
-                        "attachments": len(attachments),
-                    },
-                ),
-                status="ok",
-            )
-            self._commit_session()
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("obs_turn_start_failed", error=str(exc))
-
-    def _write_turn_end(self, *, error: BaseException | None) -> None:
-        duration_ms = max(int((time.monotonic() - self._turn_start_monotonic) * 1000), 0)
-        try:
-            totals = self._aggregate_totals()
-            data: dict[str, Any] = {
-                "ended_at": datetime.now(tz=UTC).isoformat(),
-                **totals,
-                **self._legacy_compat_keys(totals),
-            }
-            if error is not None:
-                data["error_type"] = type(error).__name__
-                data["error_message"] = truncate(str(error))
-            # Out-of-band error flag wins over a clean exit: the
-            # orchestrator caught the exception itself so the body
-            # returned normally, but the turn was still a failure.
-            if self._error_flag is not None:
-                data["error_kind"] = self._error_flag.error_kind
-                if self._error_flag.error_message is not None:
-                    data["error_message"] = truncate(self._error_flag.error_message)
-            is_error = error is not None or self._error_flag is not None
-            self.trace_repo.add(
-                tenant_id=self.tenant_id,
-                user_id=self.user_id,
-                conversation_id=self.conversation_id,
-                turn_id=self.turn_id,
-                span_id=uuid4(),
-                event_type="turn_end",
-                name="turn_end",
-                data=sanitize_payload(data),
+                span_id=span_id or uuid4(),
+                event_type=event_type,
+                name=name,
+                data=data,
                 duration_ms=duration_ms,
-                status="error" if is_error else "ok",
+                status=status,
             )
-            self._commit_session()
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("obs_turn_end_failed", error=str(exc))
-
-    def _commit_session(self) -> None:
-        """Commit the trace_repo session.
-
-        ``observe_turn`` writes turn_start at the very start of the turn
-        and turn_end at the very end — there's no other orchestrator
-        commit covering them, so the rows would be discarded when the
-        FastAPI request session closes. Best-effort: a failed commit is
-        logged but never propagated.
-        """
-        session = getattr(self.trace_repo, "db", None)
-        if session is None:
-            return
-        with contextlib.suppress(Exception):
-            session.commit()
+        except Exception as exc:  # noqa: BLE001 — best-effort
+            logger.warning("obs_add_trace_event_failed", event_type=event_type, error=str(exc))
 
     def _aggregate_totals(self) -> dict[str, Any]:
         """Sum the copilot_llm_call rows for this turn.
@@ -317,7 +186,7 @@ class ObservabilityContext:
                 "total_cost_usd": str(Decimal(row.cost_usd)),
                 "model_responded": self._most_used_model(session),
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001 — best-effort
             logger.warning("obs_aggregate_totals_failed", error=str(exc))
             return _empty_totals()
 
@@ -339,10 +208,10 @@ class ObservabilityContext:
             )
             row = session.execute(stmt).first()
             return str(row.model_responded) if row is not None else ""
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001 — best-effort
             return ""
 
-    def _legacy_compat_keys(self, totals: dict[str, Any]) -> dict[str, Any]:
+    def _legacy_compat_keys_or_empty(self, totals: dict[str, Any]) -> dict[str, Any]:
         """Fold aggregated totals + stream summary into the legacy JSONB shape.
 
         Keeps Streamlit ``/trazas`` and ``/copilot-routing`` working
@@ -372,15 +241,12 @@ class ObservabilityContext:
         }
 
 
-def _empty_totals() -> dict[str, Any]:
-    return {
-        "llm_call_count": 0,
-        "total_input_tokens": 0,
-        "total_output_tokens": 0,
-        "total_cached_read_tokens": 0,
-        "total_cost_usd": "0",
-        "model_responded": "",
-    }
+# ── Back-compat aliases ────────────────────────────────────────────────
+
+# 4260 conversation import sites depend on this name. The
+# ``observability/__init__.py`` re-export at line 43 reads this module-
+# level alias. Refactor preserves the public surface verbatim.
+ObservabilityContext = CopilotObservabilityContext
 
 
-__all__ = ["ObservabilityContext"]
+__all__ = ["CopilotObservabilityContext", "ObservabilityContext"]

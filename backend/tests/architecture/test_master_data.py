@@ -42,6 +42,14 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     # ``tenant_billing_config.billing_currency`` and falls back to "USD"
     # only when no row exists for the tenant.
     "src/modules/sales_agent/observability/recording/callback_handler.py",
+    # PR-2 PI-1.1 anti-duplication LIFT: sales-agent envelope subclass
+    # (NEW) plays the same fallback role as the copilot envelope (line
+    # 34 above) and the sales-agent callback handler (line 44 above).
+    # ``tenant_currency`` parameter on ``SalesAgentObservabilityContext.start(...)``
+    # defaults to "USD" only when the orchestrator hasn't wired
+    # tenant_billing_config.billing_currency. Same module-boundary
+    # fallback contract.
+    "src/modules/sales_agent/observability/recording/turn_envelope.py",
     # Phase 2 atomic switch: chat.py reads tenant currency from
     # ``tenant_billing_config`` and falls back to "USD" when no row
     # exists. Same role as the model + observability seams above —

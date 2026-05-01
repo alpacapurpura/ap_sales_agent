@@ -33,6 +33,9 @@ from src.modules.sales_agent.observability.persistence.trace_event_repository im
 from src.modules.sales_agent.observability.recording.callback_handler import (
     SalesAgentCallbackHandler,
 )
+from src.modules.sales_agent.observability.recording.turn_envelope import (
+    SalesAgentObservabilityContext,
+)
 from src.shared.agent_observability.cost.fx_resolver import FXResolver
 from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
     PricingSnapshotRepository,
@@ -75,7 +78,13 @@ def build_sales_agent_callback_handler(
         # Resolver factory keeps it session-agnostic — fresh repo per call,
         # bound to the same orchestrator session.
         pricing_resolver = PricingResolver(repo_factory=lambda: PricingSnapshotRepository(db))
-        fx_resolver = FXResolver()
+        # Bug #8 fix (PR-2 PI-1.1): ``FXResolver()`` no-arg crashed on
+        # construct (dataclass missing required ``http_client_factory``)
+        # → ``except`` block returned ``None`` → handler never wired →
+        # zero observability writes for sales_agent. ``FXResolver.default()``
+        # encapsulates ``httpx.Client(timeout=10)`` in shared per
+        # ``tessl__graceful-degradation`` Rule 1.
+        fx_resolver = FXResolver.default()
         billing_cfg = billing_repo.get(tenant_id=tenant_id)
         tenant_currency = billing_cfg.billing_currency if billing_cfg else "USD"
         return SalesAgentCallbackHandler(
@@ -101,4 +110,65 @@ def build_sales_agent_callback_handler(
         return None
 
 
-__all__ = ["build_sales_agent_callback_handler"]
+def build_sales_agent_observability_context(
+    *,
+    db: Session,
+    tenant_id: UUID,
+    lead_id: UUID,
+    channel_type: str,
+    turn_id: UUID,
+    role: str = "agent",
+) -> SalesAgentObservabilityContext | None:
+    """Build a turn-scoped observability context with bound callback handler.
+
+    Bug #2 fix (PR-2 PI-1.1): the orchestrator used to wire only the
+    callback handler via ``RunnableConfig(callbacks=[...])`` — that
+    captured LLM/tool events but never wrote ``turn_start`` /
+    ``turn_end`` rows. Wrapping ``agent_app.ainvoke`` in
+    ``async with ctx.observe_turn(...)`` lands the bracket rows on
+    ``sales_agent_trace_event``.
+
+    Returns ``None`` when ``tenant_id`` or ``lead_id`` is missing —
+    propagated to the orchestrator which then runs without observability
+    (turn still completes, no row written; same fail-mode as the legacy
+    callback factory).
+
+    Failures during construction are swallowed (best-effort) and logged.
+    """
+    if tenant_id is None or lead_id is None:
+        return None
+    try:
+        billing_repo = TenantBillingConfigRepository(db)
+        llm_call_repo = SalesAgentLlmCallRepository(db)
+        trace_repo = SalesAgentTraceEventRepository(db)
+        pricing_resolver = PricingResolver(repo_factory=lambda: PricingSnapshotRepository(db))
+        fx_resolver = FXResolver.default()
+        billing_cfg = billing_repo.get(tenant_id=tenant_id)
+        tenant_currency = billing_cfg.billing_currency if billing_cfg else "USD"
+        return SalesAgentObservabilityContext.start(
+            tenant_id=tenant_id,
+            lead_id=lead_id,
+            channel_type=channel_type,
+            llm_call_repo=llm_call_repo,
+            trace_repo=trace_repo,
+            pricing_resolver=pricing_resolver,
+            fx_resolver=fx_resolver,
+            db_session=db,
+            tenant_currency=tenant_currency,
+            role=role,
+            turn_id=turn_id,
+        )
+    except Exception as exc:  # noqa: BLE001 — best-effort observability
+        logger.warning(
+            "sales_agent_observability_context_factory_failed",
+            error=str(exc),
+            tenant_id=str(tenant_id),
+            lead_id=str(lead_id),
+        )
+        return None
+
+
+__all__ = [
+    "build_sales_agent_callback_handler",
+    "build_sales_agent_observability_context",
+]

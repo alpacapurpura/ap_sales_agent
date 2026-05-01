@@ -291,12 +291,33 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         staticmethod(lambda _text, existing_signals, tenant_id: (None, 0.0, list(existing_signals))),
     )
 
-    # 13. Observability handler factory — return a sentinel so we can verify
-    #     the orchestrator forwards it as a callback.
+    # 13. Observability context factory — PR-2 PI-1.1: orchestrator now
+    #     pulls ``observability_context`` (envelope + bound handler) and
+    #     wraps ``ainvoke`` in ``async with observe_turn(...)``. Snapshot
+    #     keeps the original ``OBS_HANDLER`` sentinel (returned via
+    #     ``langchain_config()``) so the callback shape stays stable —
+    #     orchestrator's behavior change (envelope wrap) does not bleed
+    #     into the captured ``callbacks_kind`` shape.
+    from contextlib import asynccontextmanager as _acm
+
     handler_sentinel = SimpleNamespace(name="OBS_HANDLER")
+
+    class _ObsContextSentinel:
+        """Stand-in for SalesAgentObservabilityContext in snapshot tests."""
+
+        callback_handler = handler_sentinel
+
+        def langchain_config(self) -> dict:
+            return {"callbacks": [handler_sentinel]}
+
+        @_acm
+        async def observe_turn(self, **_kw: Any):
+            yield self
+
+    obs_context_sentinel = _ObsContextSentinel()
     monkeypatch.setattr(
-        "src.modules.sales_agent.observability.recording.factory.build_sales_agent_callback_handler",
-        lambda **_kw: handler_sentinel,
+        "src.modules.sales_agent.observability.recording.factory.build_sales_agent_observability_context",
+        lambda **_kw: obs_context_sentinel,
     )
 
     # 14. Tool dedup tracker — replace with a deterministic stand-in so the

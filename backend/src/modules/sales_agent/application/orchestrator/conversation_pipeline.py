@@ -60,6 +60,9 @@ if TYPE_CHECKING:
     from src.modules.sales_agent.infrastructure.repositories.state_repository import (
         StateRepository,
     )
+    from src.modules.sales_agent.observability.recording.turn_envelope import (
+        SalesAgentObservabilityContext,
+    )
     from src.shared.billing.application.budget_guard import BudgetGuard
     from src.shared.domain.messages import IncomingMessage
     from src.shared.infrastructure.channels.base import BaseChannel
@@ -447,9 +450,18 @@ class ConversationPipeline:
         channel_adapter: BaseChannel,
         incoming: IncomingMessage,
         initial_state: dict,
-        observability_handler: object | None = None,
+        observability_context: SalesAgentObservabilityContext | None = None,
     ) -> dict:
-        """Run the LangGraph subgraph while sending periodic typing indicators."""
+        """Run the LangGraph subgraph while sending periodic typing indicators.
+
+        Bug #2 fix (PR-2 PI-1.1): when ``observability_context`` is not
+        ``None`` the dispatch is wrapped in ``async with
+        observability_context.observe_turn(...)`` so ``turn_start`` +
+        ``turn_end`` rows land on ``sales_agent_trace_event``. The
+        envelope's ``langchain_config()`` returns the
+        ``RunnableConfig`` with the bound callback handler — same path
+        the legacy ``observability_handler`` arg used to take.
+        """
 
         async def _keep_typing() -> None:
             while True:
@@ -459,8 +471,17 @@ class ConversationPipeline:
 
         typing_task = asyncio.create_task(_keep_typing())
         try:
-            config = {"callbacks": [observability_handler]} if observability_handler is not None else {}
-            return await agent_app.ainvoke(initial_state, config=config)
+            if observability_context is not None:
+                async with observability_context.observe_turn(
+                    message=incoming.text or "",
+                    route="sales_agent",
+                    attachments=getattr(incoming, "attachments", None) or [],
+                ):
+                    return await agent_app.ainvoke(
+                        initial_state,
+                        config=observability_context.langchain_config(),
+                    )
+            return await agent_app.ainvoke(initial_state, config={})
         finally:
             typing_task.cancel()
 

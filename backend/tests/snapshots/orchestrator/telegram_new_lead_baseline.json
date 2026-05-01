@@ -43,7 +43,7 @@
         "qualification_answers": {},
         "session_active": true,
         "session_gap_hours": null,
-        "session_id": "99999999-0000-0000-0000-000000000001",
+        "session_id": "99999999-0000-0000-0000-000000000003",
         "tenant_config": {
           "locale": "es-LA"
         },
@@ -129,7 +129,7 @@
       "lead_score": 5,
       "objection_history": [],
       "qualification_answers": {},
-      "session_id": "99999999-0000-0000-0000-000000000001",
+      "session_id": "99999999-0000-0000-0000-000000000003",
       "tenant_id": "44444444-4444-4444-4444-444444444444",
       "turn_count": 1
     }
