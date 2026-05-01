@@ -49,3 +49,63 @@
 | Razón | Más simple que routing runtime ("este mensaje para quién"). Auth + voz + observabilidad limpios. Schemas separados (`copilot_channel_link` ≠ `sales_agent_channel_link`) |
 | Mitigación edge case | Sales_agent bot detecta phone dueño → responde "andá a `@nicolify_copilot_bot`" con deep link |
 | Owner | /pm 2026-04-30 |
+
+## D-PI5-006..D-PI5-025 — Decisiones research-driven (post `2026-04-30-telegram-bot-copilot-patterns.md`)
+
+> Compactadas. Detalle full en research file (sección "Decisiones Recomendadas").
+
+### Memoria conversacional
+
+| ID | Decisión | Razón |
+|---|---|---|
+| D-PI5-006 | Reutilizar `ContextWindowBuilder` + `RollingSummarizer` con `TELEGRAM_CONTEXT_WINDOW_CONFIG` distinto (3000 raw tokens, 15 max msgs, summary 600 chars, nudge 12000 tokens) | Pattern hybrid ya implementado web. Telegram = sesiones más espaciadas → ventana más larga |
+| D-PI5-007 | Reutilizar `CopilotConversationModel` con cols nuevas `channel_type` + `channel_chat_id`. NO tabla separada | Single source of truth. 1 conversation por `(tenant, user, channel_type, channel_chat_id)` |
+| D-PI5-008 | NO vector retrieval Qdrant en MVP. Diferir hasta feedback "no me recuerda lo que le dije" | Overkill 1:1 lineal. Costo embed por turno innecesario MVP |
+| D-PI5-009 | Añadir fragmento `TELEGRAM_CHANNEL_CONTEXT` a `CACHEABLE_FRAGMENTS` para asegurar prefijo ≥1024 tokens (umbral cache Anthropic) | Sin studio_snapshot/form_data el prefijo Telegram es más corto → riesgo no activar cache |
+
+### HITL sales_agent ↔ copilot
+
+| ID | Decisión | Razón |
+|---|---|---|
+| D-PI5-010 | Tabla nueva `hitl_requests` (tenant_id, lead_id, sales_agent_thread_id, question, context, status, response, timeout_at) | Persistencia state machine handoff. Schema en research §2 |
+| D-PI5-011 | Sales_agent `node_escalation` migra de fire-and-forget → `interrupt()` LangGraph + `Command(resume=...)` | Pattern canonical LangGraph HITL. Lead recibe holding msg, dueño decide, graph resume con respuesta |
+| D-PI5-012 | Timeout default 15 min. Post-timeout sales_agent procede con `decision_fallback` configurable per tenant en `personality_profiles` | Balance UX (lead no espera más de 15 min) + safety (tenant define qué hacer si dueño no contesta) |
+| D-PI5-013 | Worker ARQ cada 5 min resuelve expirados (`status='timed_out'`, resume con `TIMEOUT_FALLBACK`) | Async cleanup, no bloquea graph |
+| D-PI5-014 | Reutilizar `AgentStateCheckpointModel` existente sales_agent como checkpointer. NO migrar a `PostgresCheckpointer` LangGraph en este PI | Reutiliza infra, no introduce nueva dependencia |
+
+### Multi-user roles arquitectura prep
+
+| ID | Decisión | Razón |
+|---|---|---|
+| D-PI5-015 | Tabla `copilot_channel_links` (tenant_id, user_id, channel_type, **channel_user_id (= `from_user.id` Telegram, identity inmutable**), channel_username (mutable, display only), role, linked_at, revoked_at) | Identity key = numérico inmutable. `username` cambia. Schema preparado multi-rol desde día 1 |
+| D-PI5-016 | UNIQUE constraint `(tenant_id, channel_type, channel_user_id)` — 1 chat_id = 1 rol por tenant | Mismo dueño en 2 tenants Nicolify → 2 chat_ids distintos (acepta edge case raro) |
+| D-PI5-017 | MVP solo `role='owner'`. Schema soporta `assistant`, `finance_admin`, `marketing_lead`. Implementación filtros tools por rol = futuro PI | Costo-cero ahora, evita migración futura |
+| D-PI5-018 | `ToolRegistry.get_tools_for_context()` recibe `user_role` futuro, MVP siempre owner | Hook listo, sin lógica MVP |
+
+### Onboarding + magic link
+
+| ID | Decisión | Razón |
+|---|---|---|
+| D-PI5-019 | Magic link `t.me/nicolify_copilot_bot?start=TOKEN`. Token = HMAC-SHA256(secrets.token_urlsafe(32)). TTL 15 min. Single-use. Hash en DB | Industry standard auth flow |
+| D-PI5-020 | Tabla `copilot_link_tokens` (token_hash, tenant_id, user_id, expires_at, used_at) | Persistencia tokens. Hash no plaintext (anti-leak DB) |
+| D-PI5-021 | FE polling cada 3s por 60s `/api/v1/copilot/telegram-link-status?token_id=X` para confirmar linked. WebSocket = futuro optim | Simple MVP, evita socket infra ahora |
+| D-PI5-022 | Bot sin link → response template friendly con URL directa onboarding. NO auth in-chat (anti-pattern + ToS Telegram) | UX claro + seguridad |
+
+### Tools + canal subset
+
+| ID | Decisión | Razón |
+|---|---|---|
+| D-PI5-023 | Metadata `available_channels: frozenset[str]` en `ToolGroupMeta` (nuevo dataclass). Default = `{"web","telegram","whatsapp"}`. Restricción = subset explícito | Single source of truth canal por tool group |
+| D-PI5-024 | Tools web-only MVP: `navigation`, `guided` (wizard), `landing` mutations, `offer_section` mutations. Telegram-allowed: `awareness`, `analytics`, `crm`, `sales_agent`, `extraction`, `knowledge_search`, `data_query`, `document`, `channel_format`, `pin_to_memory`, `mutation` (parcial), `offer_ladder` (consulta) | Clasificación research §5. Subset MVP amplio (~12 tool groups operables Telegram) |
+| D-PI5-025 | Tool no disponible → response template "Ese ajuste requiere el editor web. ¿Te mando link directo `app.nicolify.com/[tenant]/...`?" + LLM system prompt instruccion explícita | UX friendly, evita error técnico |
+
+### Escalabilidad + seguridad
+
+| ID | Decisión | Razón |
+|---|---|---|
+| D-PI5-026 | Webhook handler **NON-BLOCKING**. Encola en ARQ/Redis, devuelve 200 < 200ms. Worker procesa LLM async | Telegram retry timeout 5s. Inline LLM = mensajes duplicados |
+| D-PI5-027 | Rate limiting en worker: `asyncio.Semaphore(30)` global + `dict[chat_id, asyncio.Lock]` per-chat | Telegram limits: 30 msg/sec global, 1 msg/sec per chat |
+| D-PI5-028 | Validar `X-Telegram-Bot-Api-Secret-Token` header en webhook (configurar via `setWebhook` con secret_token) | Endpoint público — anti fake updates |
+| D-PI5-029 | Filtrar `update.message.chat.type == "private"` — IGNORAR grupos, supergrupos, canales | Bot solo DMs. Sales_agent territory grupos en futuro PI suyo |
+| D-PI5-030 | Sanitizar payload con `sanitize_payload()` existente antes persistir. Solo guardar `chat_id`, `text`, `message_id`. NO `username`/`first_name`/`phone` en logs | PII LGPD/GDPR. `username` solo en `copilot_channel_links` (mutable, display) |
+| D-PI5-031 | Files >20MB → reject con redirect web. ≤20MB → `getFile` API → mismo `document_processor` que web | Telegram bot limit. Reuso pipeline existente |

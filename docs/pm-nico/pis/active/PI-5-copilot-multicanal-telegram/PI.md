@@ -5,7 +5,7 @@
 | Campo | Valor |
 |---|---|
 | PI ID | PI-5-copilot-multicanal-telegram |
-| Estado | discovery (research in progress) |
+| Estado | discovery (research **done** — sprint planning) |
 | Tema | Extender copilot al canal Telegram. Pattern multicanal extensible (WhatsApp + IG DM = futuros PIs separados, OUT OF SCOPE) |
 | Owner PM | /pm |
 | Inicio | 2026-04-30 |
@@ -65,38 +65,48 @@ Casos de uso típicos:
 | Voz (audio messages Telegram) | Diferido; MVP texto + docs/PDFs (Telegram nativo file upload) |
 | Cards interactivas avanzadas | MVP usa Telegram inline keyboards básicos. Cards complejas → "lo vemos en web" |
 
-## Decisiones de arquitectura clave (preliminares — refinar post research)
+## Decisiones de arquitectura clave (post research)
 
-| Decisión | Propuesta | Razón |
+> Detalle full + razones en `decisions.md` D-PI5-001..031 + `research/2026-04-30-telegram-bot-copilot-patterns.md`.
+
+| Área | Decisión | Reuso codebase |
 |---|---|---|
-| **Bot identity** | Global único Nicolify (`@nicolify_copilot_bot`, 1 token) | Cero costo per-tenant. Pattern Linear/Notion. Escalable 1000+ |
-| **Sales_agent bot futuro** | Per-tenant (cada uno crea en BotFather) | Voz marca tenant + grupos venta = require identity propia |
-| **Routing webhook** | `/webhooks/telegram/copilot` (single, global) vs `/webhooks/telegram/sales-agent/{tenant_id}` (per-tenant futuro) | Separación física en URL — no decision runtime |
-| **Tabla canal** | `copilot_channel_link` (no compartida con sales_agent) | Cero FK cruzada. Schema separado |
-| **Conversation memory** | Hybrid (recent N + summary + vector Qdrant retrieval) | Cost-aware + UX permanente. Detalle research file |
-| **HITL pattern** | LangGraph `interrupt()` + checkpointer + wakeup callback | LangChain recomendado pattern, Nicolify ya usa LangGraph |
-| **Tool subset** | Decorator `@available_in("web", "telegram")` en tool registry | Single source of truth. Auto-doc |
-| **Open vs closed bot** | Open + auth in-message | Discovery + CTA signup. Sin link = sin leak |
+| **Bot identity** | Global único `@nicolify_copilot_bot`, env var `COPILOT_TELEGRAM_BOT_TOKEN`. Distinto de `TELEGRAM_BOT_TOKEN` (sales_agent). | `connections/infrastructure/channels/telegram.py` adapter pattern |
+| **Webhook routing** | `/api/v1/copilot/telegram/webhook` global. Sales_agent webhook futuro queda separado | `connections/api/telegram.py` referencia |
+| **Handler non-blocking** | Encola en ARQ/Redis < 200ms, devuelve 200. Worker async procesa LLM | Pattern existente sales_agent |
+| **Filtrado** | Solo `chat.type == "private"`. Ignora grupos/supergrupos/canales | — |
+| **Auth webhook** | `X-Telegram-Bot-Api-Secret-Token` header validado | Estándar Telegram |
+| **Identity user** | `from_user.id` (numérico, inmutable). `username` solo display, mutable | — |
+| **Schema canal** | Tabla nueva `copilot_channel_links` (separada de sales_agent). Identity = `from_user.id` | — |
+| **Conversation memory** | `ContextWindowBuilder` + `RollingSummarizer` con `TELEGRAM_CONTEXT_WINDOW_CONFIG` (3000 tokens, 15 msgs, summary 600 chars). Misma `CopilotConversationModel` con cols `channel_type`+`channel_chat_id`. NO vector retrieval MVP | `copilot/application/memory/*` |
+| **Cache prefijo** | Añadir `TELEGRAM_CHANNEL_CONTEXT` a `CACHEABLE_FRAGMENTS` ≥1024 tokens umbral Anthropic | `copilot/application/orchestrator/system_prompt_layout.py` |
+| **HITL escalation** | Tabla `hitl_requests`. Sales_agent `node_escalation` → `interrupt()` LangGraph. Copilot Telegram notifica → resume `Command(resume=...)`. Timeout 15 min → `decision_fallback` | `sales_agent/application/agents/sales/{nodes,tools}.py` + `AgentStateCheckpointModel` |
+| **Magic link** | `t.me/nicolify_copilot_bot?start=TOKEN`. HMAC-SHA256, TTL 15 min, single-use, hash en DB. Tabla `copilot_link_tokens` | `secrets.token_urlsafe`, HMAC stdlib |
+| **Onboarding UX** | FE in-app polling 3s × 60s `/api/v1/copilot/telegram-link-status?token_id=X`. Bot sin link → CTA template friendly, NO auth in-chat | — |
+| **Tool subset SSoT** | `ToolGroupMeta.available_channels: frozenset[str]` (default `{"web","telegram","whatsapp"}`). Web-only: `navigation`, `guided`, `landing` mutations, `offer_section` mutations | `copilot/application/tools/registry.py` extension |
+| **Multi-user roles** | Schema preparado (`role` enum `owner|assistant|finance_admin|marketing_lead`). MVP solo `owner`. Filtro por rol = futuro PI | — |
+| **Rate limit** | Worker `asyncio.Semaphore(30)` global + per-chat lock. NO en handler | `asyncio.Lock` stdlib |
+| **PII** | `sanitize_payload()` antes persistir. Solo `chat_id`/`text`/`message_id` en logs | `copilot/infrastructure/prompts/sanitizer.py` |
+| **Files** | ≤20MB `getFile` → `document_processor`. >20MB redirect web | `document_processor` existente |
+| **Switch sales_agent ↔ copilot** | Separación física: 2 bots, 2 tokens, 2 webhooks, 2 schemas. Cero shared state. Arch fitness test enforce | — |
 
 ## Research dependencies
 
 | File | Estado |
 |---|---|
-| `docs/pm-nico/research/2026-04-30-telegram-bot-copilot-patterns.md` | **in progress** (general-purpose subagent) — cubre conversation memory, HITL, multi-user roles, magic link, tool subset, escalabilidad 1000 tenants, anti-patterns |
+| `docs/pm-nico/research/2026-04-30-telegram-bot-copilot-patterns.md` | ✅ done. 7 secciones + 31 decisiones consolidadas + paths código referencia |
 
-PI.md se refina con findings concretos cuando research vuelva (tabla decisiones, tradeoffs, recomendación final por sección).
+## Sprints (refinados post research)
 
-## Sprints (preliminar — refinar post research)
-
-| Sprint | Tema | PRs estimados | Estado |
+| Sprint | Tema | PRs | Estado |
 |---|---|---|---|
-| **S1** | Foundation Telegram bot + linking | PR-1 webhook + bot adapter, PR-2 magic link onboarding flow, PR-3 tool subset registry + capability map | discovery |
-| **S2** | Conversation memory + cost-aware context | PR-4 hybrid memory pattern (recent + summary + vector retrieval) | discovery |
-| **S3** | HITL escalation sales_agent ↔ copilot | PR-5 LangGraph interrupt scaffold, PR-6 sales_agent HITL trigger, PR-7 timeout/resume handling | discovery |
-| **S4** | Notificaciones proactivas + encargos | PR-8 push notifications engine, PR-9 encargos table + in-app inbox surface, PR-10 reminders cycle | discovery |
-| **S5** | Multi-user roles prep + arch fitness | PR-11 `copilot_channel_link` table + role enum extensible, PR-12 arch tests + docs | discovery |
+| **S1** | Foundation Telegram bot + linking + tool subset | PR-1 cross-stack bot adapter + webhook + magic link onboarding (BE+FE) + `copilot_channel_links` + `copilot_link_tokens` tables. Cohesivo cross-stack | not-started |
+| **S2** | Memory + tool subset + non-link UX | PR-2 `TELEGRAM_CONTEXT_WINDOW_CONFIG` + `channel_type/channel_chat_id` cols + `TELEGRAM_CHANNEL_CONTEXT` cacheable fragment + `ToolGroupMeta.available_channels` SSoT + redirect template tools no-disponibles | not-started |
+| **S3** | HITL sales_agent ↔ copilot | PR-3 cross-module: `hitl_requests` tabla + `node_escalation` migration interrupt() + copilot HITL notification + resume worker + timeout cron | not-started |
+| **S4** | Notifs proactivas + encargos | PR-4 push engine alerts (métricas críticas, reminders) + `copilot_owner_todos` tabla + in-app inbox surface | not-started |
+| **S5** | Arch fitness + docs + observabilidad | PR-5 arch tests (token global, cero FK cruzada copilot↔sales_agent) + `current-state/copilot.md` + `current-state/sales-agent.md` actualizados + telemetría Telegram (latencia, rate limit hits, HITL timeout rate) | not-started |
 
-Sprint sizing target: 2-3 PRs/sprint. Total preliminar 12 PRs — refinar post research (puede shrink/expand).
+Sprint sizing target: 1 PR cohesivo amplio por sprint (Opus 4.7[1M] permite scope grande). Total 5 PRs.
 
 ## Riesgos identificados
 
@@ -136,8 +146,9 @@ Sprint sizing target: 2-3 PRs/sprint. Total preliminar 12 PRs — refinar post r
 
 ## Próximos pasos
 
-1. ⏳ Esperar research file (`2026-04-30-telegram-bot-copilot-patterns.md`)
-2. PM refina PI.md decisiones con findings concretos
-3. PM redacta `sprints/S1-foundation-telegram-bot/sprint.md` macro
-4. PM crea PR-1 folder skeleton (`prs/PR-1-telegram-webhook-bot-adapter/`) + prompts
-5. Chris reserva username Telegram + provee token cuando esté listo PR-1 architect
+1. ✅ Research done
+2. ✅ PI.md refinado (decisiones D-PI5-001..031)
+3. ✅ S1 sprint.md macro escrito (`sprints/S1-foundation-telegram-bot/sprint.md`)
+4. ✅ PR-1 folder skeleton creado (`prs/PR-1-telegram-bot-foundation/`) con prompts cocidos
+5. ⏳ Chris autoriza arrancar PR-1 architect → ejecutar prompt
+6. ⏳ Chris reserva `@nicolify_copilot_bot` BotFather + provee token al architect cuando lo pida (no urgente — architect solo diseña, no necesita token)
