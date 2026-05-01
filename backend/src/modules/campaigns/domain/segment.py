@@ -22,11 +22,15 @@ class Segment(BaseModel):
     - DYNAMIC default — service PR-4 SegmentService.resolve(at: datetime) -> set[lead_id]
       computes by querying CRM via shared/links/ports/crm.py at runtime.
     - STATIC — pinned to a SegmentSnapshot (audience locked at create time / launch time).
+      static_lead_ids is populated by the repository from the JSONB column when
+      filter_dsl stores {"_static": true, "lead_ids": [...]}.
 
     Invariants:
     - tenant_id MANDATORY
     - name UNIQUE per tenant (partial unique idx WHERE deleted_at IS NULL)
     - filter_dsl validated by Pydantic SegmentFilter (model_config extra='forbid')
+    - STATIC segments: static_lead_ids non-None, filter_dsl is empty sentinel
+    - DYNAMIC segments: filter_dsl is the evaluation DSL, static_lead_ids is None
     """
 
     model_config = ConfigDict(from_attributes=True, extra="forbid")
@@ -37,6 +41,9 @@ class Segment(BaseModel):
     description: str | None = Field(default=None, max_length=1000)
     segment_type: SegmentType = SegmentType.DYNAMIC
     filter_dsl: SegmentFilter
+
+    # PR-12: populated by repository for STATIC segments from JSONB filter_dsl
+    static_lead_ids: list[UUID] | None = Field(default=None)
 
     # Service PR-4 populates after resolve()
     estimated_size: int | None = Field(default=None, ge=0)

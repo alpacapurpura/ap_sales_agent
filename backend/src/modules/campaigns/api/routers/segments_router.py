@@ -27,6 +27,7 @@ from src.modules.campaigns.application.dtos.segment_dtos import (
 )
 from src.modules.campaigns.application.services.segment_service import (
     SegmentDuplicateNameError,
+    SegmentLeadOwnershipError,
     SegmentNotFoundError,
     SegmentService,
 )
@@ -55,6 +56,8 @@ def _map_segment_error(exc: Exception) -> HTTPException:
         return HTTPException(status_code=404, detail=str(exc) or "Segmento no encontrado.")
     if isinstance(exc, SegmentDuplicateNameError):
         return HTTPException(status_code=409, detail=str(exc) or "Ya existe un segmento con ese nombre.")
+    if isinstance(exc, SegmentLeadOwnershipError):
+        return HTTPException(status_code=422, detail=str(exc) or "Algunos lead_ids no pertenecen a este tenant.")
     return HTTPException(status_code=500, detail="Error interno del servidor.")
 
 

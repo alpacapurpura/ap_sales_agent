@@ -24,6 +24,20 @@ logger = structlog.get_logger()
 class SegmentRepositoryImpl(SegmentRepository):
     """Async SQLAlchemy 2.0 implementation of SegmentRepository."""
 
+    @staticmethod
+    def _build_filter_dsl_json(segment: Segment) -> dict:
+        """Serialize filter_dsl for JSONB storage.
+
+        STATIC segments store lead_ids snapshot as {"_static": true, "lead_ids": [...]}.
+        DYNAMIC segments store the PredefinedSegmentFilter as-is.
+        """
+        if segment.segment_type.value == "static" and segment.static_lead_ids is not None:
+            return {
+                "_static": True,
+                "lead_ids": [str(lid) for lid in segment.static_lead_ids],
+            }
+        return segment.filter_dsl.model_dump(mode="json")
+
     async def append(self, segment: Segment, *, session: AsyncSession) -> None:
         """Persist a new Segment. Raises on duplicate (tenant_id, name) if not deleted."""
         row = SegmentModel(
@@ -32,7 +46,7 @@ class SegmentRepositoryImpl(SegmentRepository):
             name=segment.name,
             description=segment.description,
             segment_type=segment.segment_type.value,
-            filter_dsl=segment.filter_dsl.model_dump(mode="json"),
+            filter_dsl=self._build_filter_dsl_json(segment),
             estimated_size=segment.estimated_size,
             last_calculated_at=segment.last_calculated_at,
             created_at=segment.created_at,
@@ -60,7 +74,7 @@ class SegmentRepositoryImpl(SegmentRepository):
                 name=segment.name,
                 description=segment.description,
                 segment_type=segment.segment_type.value,
-                filter_dsl=segment.filter_dsl.model_dump(mode="json"),
+                filter_dsl=self._build_filter_dsl_json(segment),
                 estimated_size=segment.estimated_size,
                 last_calculated_at=segment.last_calculated_at,
                 updated_at=segment.updated_at,
@@ -143,8 +157,28 @@ class SegmentRepositoryImpl(SegmentRepository):
 
     @staticmethod
     def _to_domain(row: SegmentModel) -> Segment:
-        """Map JSONB filter_dsl dict to PredefinedSegmentFilter."""
-        filter_dsl = PredefinedSegmentFilter.model_validate(row.filter_dsl or {})
+        """Map JSONB filter_dsl dict to PredefinedSegmentFilter.
+
+        STATIC segments store {"_static": true, "lead_ids": [...]} in filter_dsl.
+        For these, we use an empty sentinel PredefinedSegmentFilter() for the
+        typed field, and populate static_lead_ids from the JSONB payload.
+        This preserves the arch invariant that filter_dsl is always a valid
+        PredefinedSegmentFilter while allowing STATIC segments to carry their
+        lead_ids snapshot.
+        """
+        raw_filter = row.filter_dsl or {}
+        static_lead_ids: list | None = None
+
+        if raw_filter.get("_static") is True:
+            # STATIC segment: extract lead_ids from JSONB snapshot
+            from uuid import UUID as _UUID
+
+            raw_ids = raw_filter.get("lead_ids", [])
+            static_lead_ids = [_UUID(lid) if isinstance(lid, str) else lid for lid in raw_ids]
+            filter_dsl = PredefinedSegmentFilter()  # empty sentinel — never evaluated for STATIC
+        else:
+            filter_dsl = PredefinedSegmentFilter.model_validate(raw_filter)
+
         data = {
             "id": row.id,
             "tenant_id": row.tenant_id,
@@ -152,6 +186,7 @@ class SegmentRepositoryImpl(SegmentRepository):
             "description": row.description,
             "segment_type": row.segment_type,
             "filter_dsl": filter_dsl,
+            "static_lead_ids": static_lead_ids,
             "estimated_size": row.estimated_size,
             "last_calculated_at": row.last_calculated_at,
             "created_at": row.created_at,

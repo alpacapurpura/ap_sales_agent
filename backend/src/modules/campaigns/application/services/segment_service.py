@@ -2,6 +2,9 @@
 
 Production-grade: resolve() compiles SegmentFilter → SQL WHERE clauses
 (NEVER loads leads in Python). estimate_size cached 5min.
+
+PR-12: STATIC segment support — create() accepts lead_ids snapshot;
+resolve() short-circuits returning persisted UUIDs without SQL evaluation.
 """
 
 from __future__ import annotations
@@ -11,12 +14,15 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 import structlog
+from sqlalchemy import select
 
 from src.modules.campaigns.application.services._event_bridge import to_domain_event
+from src.modules.campaigns.domain.enums import SegmentType
 from src.modules.campaigns.domain.events import SegmentCreated, SegmentSnapshotted
 from src.modules.campaigns.domain.segment import Segment, SegmentSnapshot
 from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
 from src.shared.domain.datetime_utils import utc_now
+from src.shared.infrastructure.models.crm import LeadModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,6 +55,10 @@ class SegmentDuplicateNameError(Exception):
     """Raised when segment name already exists for tenant (→ 409)."""
 
 
+class SegmentLeadOwnershipError(Exception):
+    """Raised when lead_ids contain IDs not owned by the tenant (→ 422)."""
+
+
 class SegmentService:
     """CRUD + lazy resolve + estimate_size + opt-in snapshot.
 
@@ -76,6 +86,47 @@ class SegmentService:
         self._outbox_service = outbox_service
         self._cache = cache
 
+    async def _validate_lead_ids_belong_to_tenant(
+        self,
+        tenant_id: UUID,
+        lead_ids: list[UUID],
+        *,
+        session: AsyncSession,
+    ) -> None:
+        """Security gate: verify all lead_ids exist and belong to the tenant.
+
+        Raises SegmentLeadOwnershipError if any lead_id is unknown or belongs
+        to a different tenant. This prevents cross-tenant data poisoning.
+
+        Uses shared LeadModel from shared/infrastructure/models/crm.py —
+        DDD boundary respected (not importing from src.modules.crm.*).
+        """
+        if not lead_ids:
+            return
+
+        stmt = select(LeadModel.id).where(
+            LeadModel.id.in_(lead_ids),
+            LeadModel.tenant_id == tenant_id,
+        )
+        result = await session.execute(stmt)
+        found_ids = {row[0] for row in result.all()}
+
+        requested_ids = set(lead_ids)
+        unknown = requested_ids - found_ids
+        if unknown:
+            count = len(unknown)
+            msg = (
+                f"{count} lead_id(s) no pertenecen a este tenant o no existen: "
+                + ", ".join(str(lid) for lid in list(unknown)[:5])
+                + ("..." if count > 5 else "")
+            )
+            logger.warning(
+                "segment_create_static_lead_ids_ownership_violation",
+                tenant_id=str(tenant_id),
+                unknown_count=count,
+            )
+            raise SegmentLeadOwnershipError(msg)
+
     async def create(
         self,
         tenant_id: UUID,
@@ -83,18 +134,44 @@ class SegmentService:
         *,
         session: AsyncSession,
     ) -> Segment:
-        """Create segment. Raises SegmentDuplicateNameError on duplicate name."""
+        """Create segment. Raises SegmentDuplicateNameError on duplicate name.
+
+        PR-12: STATIC branch validates lead_ids belong to tenant (security gate),
+        then persists a snapshot via JSONB {"_static": true, "lead_ids": [...]}.
+        DYNAMIC branch preserves existing behavior.
+        """
         now = utc_now()
-        segment = Segment(
-            id=uuid4(),
-            tenant_id=tenant_id,
-            name=dto.name,
-            description=dto.description,
-            segment_type=dto.segment_type,
-            filter_dsl=dto.filter_dsl,
-            created_at=now,
-            updated_at=now,
-        )
+
+        if dto.segment_type == SegmentType.STATIC:
+            # Security gate: all lead_ids must belong to this tenant
+            await self._validate_lead_ids_belong_to_tenant(tenant_id, dto.lead_ids or [], session=session)
+            segment = Segment(
+                id=uuid4(),
+                tenant_id=tenant_id,
+                name=dto.name,
+                description=dto.description,
+                segment_type=SegmentType.STATIC,
+                filter_dsl=PredefinedSegmentFilter(),  # empty sentinel — stored as {"_static": true, ...}
+                static_lead_ids=dto.lead_ids or [],
+                estimated_size=len(dto.lead_ids or []),
+                last_calculated_at=now,
+                created_at=now,
+                updated_at=now,
+            )
+        else:
+            # DYNAMIC: existing path preserved. filter_dsl guaranteed non-None by DTO validator.
+            assert dto.filter_dsl is not None  # noqa: S101
+            segment = Segment(
+                id=uuid4(),
+                tenant_id=tenant_id,
+                name=dto.name,
+                description=dto.description,
+                segment_type=dto.segment_type,
+                filter_dsl=dto.filter_dsl,
+                created_at=now,
+                updated_at=now,
+            )
+
         try:
             await self._repo.append(segment, session=session)
         except Exception as exc:
@@ -120,6 +197,7 @@ class SegmentService:
             tenant_id=str(tenant_id),
             segment_id=str(segment.id),
             name=segment.name,
+            segment_type=segment.segment_type.value,
         )
         return segment
 
@@ -222,13 +300,33 @@ class SegmentService:
         limit: int = 10_000,
         session: AsyncSession,
     ) -> tuple[list[UUID], int, bool]:
-        """SQL-side filtering. NEVER loads leads in Python.
+        """SQL-side filtering for DYNAMIC. Direct return for STATIC.
+
+        PR-12: STATIC segments short-circuit — return persisted lead_ids
+        from JSONB snapshot without any SQL evaluation. DYNAMIC path preserved.
 
         Returns:
             (lead_ids, lead_count, truncated)
             truncated=True if total exceeds limit.
         """
         seg = await self.get(tenant_id, segment_id, session=session)
+
+        # PR-12 STATIC short-circuit: return persisted snapshot directly
+        if seg.segment_type == SegmentType.STATIC and seg.static_lead_ids is not None:
+            all_ids = seg.static_lead_ids
+            total = len(all_ids)
+            capped = all_ids[:limit]
+            truncated = total > limit
+            logger.info(
+                "segment_service_resolve_static",
+                tenant_id=str(tenant_id),
+                segment_id=str(segment_id),
+                lead_count=total,
+                returned=len(capped),
+                truncated=truncated,
+            )
+            return capped, total, truncated
+
         # 1. Compile filter_dsl → SQL predicate (pure function)
         filter_dsl = seg.filter_dsl
         if isinstance(filter_dsl, PredefinedSegmentFilter):
@@ -264,13 +362,25 @@ class SegmentService:
         *,
         session: AsyncSession,
     ) -> tuple[int, dt.datetime, bool]:
-        """Cached count. Returns (estimated_size, cached_at, cache_hit)."""
+        """Cached count. Returns (estimated_size, cached_at, cache_hit).
+
+        PR-12: STATIC segments return persisted estimated_size directly —
+        the snapshot size is fixed at creation time.
+        """
         cache_key = f"segments:estimate:{tenant_id}:{segment_id}"
         cached = await self._cache.get(cache_key)
         if cached is not None:
             return cached["size"], cached["at"], True
 
         seg = await self.get(tenant_id, segment_id, session=session)
+
+        # PR-12 STATIC short-circuit: size is the persisted snapshot length
+        if seg.segment_type == SegmentType.STATIC and seg.static_lead_ids is not None:
+            size = len(seg.static_lead_ids)
+            now = utc_now()
+            await self._cache.set(cache_key, {"size": size, "at": now}, ttl=self.ESTIMATE_CACHE_TTL)
+            return size, now, False
+
         filter_dsl = seg.filter_dsl
         if isinstance(filter_dsl, PredefinedSegmentFilter):
             predicate = self._filter_evaluator.to_sql_predicate(filter_dsl, tenant_id=tenant_id)
