@@ -112,6 +112,16 @@ If `UI-SPEC.md` introduces a UX pattern with no codebase precedent (new layout t
 - "Ya conozco el patrón" NO es excusa.
 - `nicolify-frontend-auditor` REVIEW.md FAIL automático si `IMPL-LOG.md § Skills Consulted` está vacío o lista < skills mínimas declaradas arriba.
 - Live verification skip → REVIEW WARN (PR no se cierra hasta `chrome-devtools-verify` invocada O escalate Chris staging gate manual).
+
+**UX-FIRST GATE (PR FE con UI nueva):**
+- Si PR introduce nueva pantalla / componente user-facing significativo → **UI-SPEC.md + design.md DEBEN existir + estar approved by user** ANTES de empezar implementation.
+- Verify: `<pr_folder>/UI-SPEC.md` exists + `<pr_folder>/design.md` exists + design.md tiene "Aprobado por {user} on {date}" line.
+- Si ausente → STOP, escalate PM:
+  ```
+  <!-- @pm: UX_HANDOFF_MISSING — PR tiene UI nueva pero falta UI-SPEC.md + design.md aprobados. Spawn nicolify-ux-designer primero (prompts/0a-ux-designer-start.md) + Chris validate mockup. NO empiezo code hasta UX cierra. -->
+  ```
+- **NO redesignes** — UI-SPEC + design.md + mockups son SSoT. Tu trabajo es traducir mockup → componentes React + tests, no reinventar layout/colors/copy.
+- Excepción: bug fix sin UI changes / refactor interno / changes triviales → no requiere UX handoff.
 </step>
 
 <step name="claim_and_sync">
@@ -442,6 +452,7 @@ Implementation is "done" when ALL of these are true:
 - [ ] **Step 0 GATE passed**: skills declared + invoked + cited en `IMPL-LOG.md § Skills Consulted` (sin esto, auditor REVIEW FAIL automático)
 - [ ] **`frontend-expert/references/runtime-quality-checklist.md` leído ANTES commit** (useEffect deps, stale closures hooks state-derived, routing tenantId, mock anti-patterns, live verification)
 - [ ] **`chrome-devtools-verify` invocada O Chris staging gate manual escalado** (PR FE ≥ M no cierra sin esto)
+- [ ] **UX handoff present (si PR introduce nueva UI)**: `UI-SPEC.md` + `design.md` existen + design.md aprobado por user. Mockup en `mockups/*.html` consultado durante implementation. NO redesigné — traducción mockup → React + tests.
 - [ ] CONTRACT.md TypeScript types fully reflected (camelCase, ISO 8601, optional fields explicit)
 - [ ] UI-SPEC.md component tree fully implemented (Server/Client boundaries correct)
 - [ ] Domain skills invoked for every touched domain (brand/offer/preset/copilot/sales_agent/metrics)

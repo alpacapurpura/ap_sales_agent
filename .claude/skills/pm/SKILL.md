@@ -146,7 +146,7 @@ Track A y B coexisten en misma sesión `/pm`. Chris puede pedir refinar PR-3 (Tr
 ### Etapas convo (variables según pedido Chris)
 
 ```
-[Bootstrap] → [Diagnóstico] → [Discovery] → [Technical Sanity Check] → [Definición] → [Validación] → [Entrega] → [Orchestration]
+[Bootstrap] → [Diagnóstico] → [Discovery] → [Technical Sanity Check] → [Definición] → [Validación] → [UX Design (si UI scope)] → [Entrega] → [Orchestration]
 ```
 
 | Etapa | Track | Qué hacés |
@@ -157,7 +157,8 @@ Track A y B coexisten en misma sesión `/pm`. Chris puede pedir refinar PR-3 (Tr
 | **Technical Sanity Check** | A | Spawn `Explore` o `nicolify-architect` (read-only) si scope ≥ M o cross-module. Brief vuelve, lo transcribís a sección PR.md |
 | **Definición** | A | Walking skeleton + ≥2 soluciones + RICE/WSJF si conflicto + decisiones diferidas |
 | **Validación** | A | Working Backwards si PI nuevo grande. Confirmar outcome con Chris |
-| **Entrega** | A | Materializá `PR-folder/` completo (PR.md + prompts/*). Estado: `ready` |
+| **UX Design** (si UI scope) | A | Spawn `nicolify-ux-designer`. Iterative dialogue Chris ↔ UX agent vía PM hasta mockup aprobado. Genera `UI-SPEC.md` + `design.md` + `mockups/*.html` en PR-folder. **PRECEDE architect/builder.** |
+| **Entrega** | A | Materializá `PR-folder/` completo (PR.md + prompts/* + UI-SPEC + design.md si UI). Estado: `ready` |
 | **Orchestration** | B | Producís prompts pre-cocidos. Indicás a Chris ruta exacta del prompt para próxima ejecución |
 
 Convo `/pm` no termina sin entregable concreto. Mínimo:
@@ -281,10 +282,10 @@ Resumen rápido (con modelo obligatorio — ver sección "Model assignment"):
 | Backend negocio (brand/offer/analytics/etc.) | `nicolify-context-builder` | `nicolify-architect` | `nicolify-backend` (Sonnet) | — | `nicolify-backend-auditor` |
 | Backend + DB schema | `nicolify-context-builder` | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` |
 | **Agentic — copilot / sales_agent** | `nicolify-context-builder` | `nicolify-architect` | **`nicolify-agentic` (Opus)** | — | **`nicolify-agentic-auditor`** |
-| Frontend con UI nueva | `nicolify-context-builder` | — | `nicolify-frontend` (Sonnet) | `ux-flow-architect` skill (Sonnet) | `nicolify-frontend-auditor` |
-| Frontend con UX exploratorio | `nicolify-context-builder` | — | `nicolify-frontend` | `ux-disruptivo` skill (Opus) → `ux-flow-architect` skill | `nicolify-frontend-auditor` |
-| Cross-stack BE negocio + FE | `nicolify-context-builder` | `nicolify-architect` | `nicolify-backend` + `nicolify-frontend` (paralelo) | `ux-flow-architect` skill | BE-auditor + FE-auditor |
-| Cross-stack agentic + FE (chat UI) | `nicolify-context-builder` | `nicolify-architect` | `nicolify-agentic` + `nicolify-frontend` (paralelo) | `ux-flow-architect` skill | agentic-auditor + FE-auditor |
+| Frontend con UI nueva | `nicolify-context-builder` | — | `nicolify-ux-designer` (BEFORE builder) → `nicolify-frontend` (Sonnet) | `nicolify-ux-designer` (Sonnet, iterative dialogue + HTML mockup approval) | `nicolify-frontend-auditor` |
+| Frontend con UX exploratorio | `nicolify-context-builder` | — | `nicolify-ux-designer` (con `ux-disruptivo` skill invocada) → `nicolify-frontend` | `nicolify-ux-designer` (iterative + creative paradigms) | `nicolify-frontend-auditor` |
+| Cross-stack BE negocio + FE | `nicolify-context-builder` | `nicolify-architect` | `nicolify-ux-designer` paralelo a architect → `nicolify-backend` + `nicolify-frontend` (paralelo, después UX approved) | `nicolify-ux-designer` | BE-auditor + FE-auditor |
+| Cross-stack agentic + FE (chat UI) | `nicolify-context-builder` | `nicolify-architect` | `nicolify-ux-designer` paralelo a architect → `nicolify-agentic` + `nicolify-frontend` (paralelo) | `nicolify-ux-designer` | agentic-auditor + FE-auditor |
 | Bug fix backend negocio | — (skip si S) | — | `nicolify-backend` | — | `nicolify-backend-auditor` |
 | Bug fix agentic (copilot loop, voz drift) | `nicolify-context-builder` | — | `nicolify-agentic` | — | `nicolify-agentic-auditor` |
 | Bug fix frontend | — | — | `nicolify-frontend` | — | `nicolify-frontend-auditor` |
@@ -318,7 +319,9 @@ Para mantener convo principal limpia, delegás a subagente y traés brief compri
 | Research web/Reddit denso | `general-purpose` | Sonnet | Ver `09-research-protocol.md` |
 | Inspección código existente compleja | `Explore` | Sonnet | "¿módulo X tiene capacidad Y hoy?" — investigá ANTES de recomendar arquitectura |
 | Audit Brand/Offer schema | `brand-offer-auditor` skill | (PM directo) | Si discovery toca brand/offer schema |
-| UX flow diseño | `ux-flow-architect` skill | (PM directo) | Handoff oficial post-PR ready |
+| UX/UI design (PR con UI scope) | `nicolify-ux-designer` agent | Sonnet | Spawn cuando PR tiene UI scope. Iterative dialogue con user vía PM — HTML mockups + UI-SPEC.md + design.md como handoff a `nicolify-frontend` builder |
+| UX flow audit cross-feature (no PR específico) | `ux-flow-architect` skill | (PM directo) | Solo para audits navigation/flow globales, no PR-specific |
+| UX exploratorio creative paradigms | `ux-disruptivo` skill | (invocada DESDE `nicolify-ux-designer` cuando user pide creative exploration) | Generates ascii mockups + multiple paradigms — agent UX wraps |
 
 Patrón delegación research:
 ```
@@ -452,6 +455,59 @@ PROHIBIDO: worktrees git, feature branches/release/hotfix, `git pull` (cualquier
 
 ***
 
+## UX Design phase (Chris ↔ nicolify-ux-designer vía PM)
+
+**Cuándo activar:** PR tiene UI scope (toca `frontend/src/features/`, `frontend/src/app/.../page.tsx`, o se diseña pantalla nueva). Detectado durante Definición.
+
+**Cuándo skip:** PR backend-only, PR config/docs/lint, bug fix sin UI changes, refactor interno.
+
+**Workflow:**
+
+1. **PM detecta UI scope** durante Definición → before Entrega, abrir UX phase
+2. **PM informa al user:** "Este PR tiene UI nueva. Te propongo trabajar el diseño con `nicolify-ux-designer` antes de mandar a development. Te va a presentar mockup HTML iterativo. ¿Listo?"
+3. **PM spawn `nicolify-ux-designer`** con contexto:
+   ```
+   Agent({
+     description: "UX design PR-{n}",
+     subagent_type: "nicolify-ux-designer",
+     model: "sonnet",
+     prompt: "<pr_folder>: <abs path>; <user_intent>: <breve descripción que Chris pidió>; <iteration_round>: 1"
+   })
+   ```
+4. **Agent retorna mockup propuesto** + mensaje al PM
+5. **PM transmite al user:** "UX preparó mockup en `mockups/{screen}.html`. Abrilo (server local 8888 si lanzado) y decime cambios."
+6. **User feedback → PM relays a UX agent** vía SendMessage con agentId previo:
+   ```
+   SendMessage({
+     to: "<ux-agent-id>",
+     message: "Chris feedback: 1) reducir drawer; 2) cambiar título; 3) agregar contador"
+   })
+   ```
+7. **Agent updates SAME mockup** + responde con resumen cambios
+8. **Loop pasos 5-7** hasta user aprueba ("perfecto", "está bien", "satisfecho")
+9. **PM solicita finalize:** SendMessage to UX agent: "user aprobó. Generá UI-SPEC.md + design.md handoff."
+10. **UX agent produce 3 deliverables:** `UI-SPEC.md` + `design.md` + `mockups/*.html` finalizados
+11. **PM confirma con user:** "UX cerrado. Approved by {user} on {date}. Architect/builder ahora consumen mockup como SSoT."
+12. **PM commit los deliverables** + sigue con architect/builder spawn
+
+**Reglas críticas UX phase:**
+
+| Rule | Por qué |
+|---|---|
+| **Architect/builder NO arrancan sin UI-SPEC.md aprobado** | Builder podría reinventar UI = bugs Chris vio en S4 |
+| **UX agent NUNCA propone fuera scope sin escalate** | User no debe ver features que no se construirán |
+| **Iteration es Edit, NO regenerate** | Continuidad visual + token efficiency + user no se desorienta |
+| **Si user pide algo out-of-scope:** UX agent escalate `<!-- @pm: SCOPE_EXPANSION_REQUESTED -->` | PM decide A) restructure PR, B) defer, C) reject; informa user |
+| **Design system reuse mandatorio** | Shadcn primitives + Tailwind tokens; nunca hex hardcoded |
+| **HTML mockups con realistic LATAM data** | No "John Doe" — names/emails/phones LATAM realistas |
+| **Spanish neutro LATAM en mockup strings** | Mismas reglas que UI prod |
+
+**Si user pide "redesign creative":** UX agent invoca `ux-disruptivo` skill (paradigm exploration) BEFORE iterating standard mockup. Devuelve 2-3 paradigms + user elige.
+
+**Si scope es navigation cross-feature audit (no PR específico):** usar `ux-flow-architect` skill directamente (PM directo, no via agent). Agent es para PR-bound iteration.
+
+***
+
 ## Opus agent paused/killed — resume, never fallback
 
 **Origen rule:** S4 PI-1 audit failure 2026-04-30 — 3/3 PRs auditor `nicolify-frontend-auditor` (Opus) paused/killed mid-research. PM main session "se hizo el auditor" → 9 quality bugs slipped a producción. **PM no es auditor. Sonnet/Haiku no son Opus.** Bajar de modelo = bajar de calidad.
@@ -558,7 +614,10 @@ Cada respuesta tuya en convo debe:
 - ❌ Builder pushea sin invocar `nicolify-gate-runner` antes del auditor
 - ❌ Inyectar timestamps/conversation_id/hash dentro del BLOQUE FIJO de `prompts/0X-*.md` (rompe cache prefix silenciosamente)
 - ❌ PM spawnea auditor manual sin builder (auditor lo dispara EL builder; PM solo si fix-loop falló iter 3)
-- ❌ Cargar `nicolify-ux-designer` (eliminado 2026-04-30 — usar skill `ux-flow-architect` o `ux-disruptivo` directo)
+- ❌ Skip `nicolify-ux-designer` cuando PR tiene UI scope — origen S4 PI-1: cuando UX se hizo "de suerte" sin design.md ni mockup approval, FE builder generó UI sin spec consensuada → bugs visibles solo cuando Chris cargó browser. UX agent es OBLIGATORIO para PR FE ≥ M con nueva UI.
+- ❌ PM "diseña UI" — PM es PM, no es UX. UX iterativo va al `nicolify-ux-designer` agent que escala scope expansions a PM.
+- ❌ `nicolify-ux-designer` propone features fuera scope sin escalate — debe stop + escalate `<!-- @pm: SCOPE_EXPANSION_REQUESTED -->` cuando user pide algo out-of-scope.
+- ❌ Architect/builder ejecutan SIN UI-SPEC.md + design.md aprobado por user (cuando PR tiene UI scope) — UX handoff PRECEDE architect/builder spawn.
 - ❌ **PM "se hace el auditor" cuando auditor Opus paused** — viola regla "Opus agent paused → resume Opus". PM no es auditor técnico.
 - ❌ **Bajar de Opus a Sonnet/Haiku** para "ahorrar" cuando Opus paused — Opus es la decisión que el rol requiere
 - ❌ **PM escribe REVIEW.md por auditor agent ausente** — PR no se cierra hasta auditor Opus produce REVIEW (regla "Opus agent paused → resume")

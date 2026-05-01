@@ -361,6 +361,8 @@ If any baseline GREW without justified commit message → automatic FAIL Categor
 - **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (frontend-expert + tessl__react-patterns + tessl__shadcn-ui + tessl__tailwind baseline; + domain skill if domain touched; + tessl__zod if forms; + tessl__nextjs-app-router-modularization if Server+Client mix) → **overall FAIL** ("Skill routing violation")
 - **`frontend-expert/references/runtime-quality-checklist.md` not cited in IMPL-LOG** → **overall FAIL** (es OBLIGATORIO leerlo antes commit; ausencia = builder no validó anti-patterns useEffect/closures/routing)
 - **`chrome-devtools-verify` not invoked AND no Chris staging gate manual escalado documentado** → **overall FAIL** (live verification gate FE PR ≥ M es obligatoria — origen S4 PI-1 9 bugs slipped por skip)
+- **PR introduce nueva UI Y `UI-SPEC.md` + `design.md` ausentes** → **overall FAIL** "UX_HANDOFF_MISSING — builder skipped UX phase" (PR FE con UI nueva DEBE tener mockup approved by user antes de implementation; origen S4 PI-1: cuando UX se hizo sin design.md ni mockup approval, FE builder generó UI sin spec consensuada → bugs visibles solo cuando Chris cargó browser)
+- **UI-SPEC.md presente PERO design.md no tiene line "Aprobado por {user}"** → **overall FAIL** "UX_NOT_APPROVED — implementation began before user approval"
 - Two or more category WARNs → **overall WARN**
 - Otherwise → **PASS**
 ```
