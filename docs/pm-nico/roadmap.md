@@ -10,6 +10,7 @@
 | Campaigns module — Foundation + Telegram MVP | PI-1 | planning, S0 in-progress | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
 | ~~Copilot improvement~~ | PI-2-copilot | **DONE 2026-04-30** — 5 sprints / 12 PRs shipped (S1+S2+S3+S4+S5). LLM stack convergencia completa: ModelRole único + LiteLLM Proxy + DB registry hot-swap + GrowthBook scaffold + eval gate. Allowlist arch fitness 0. → archived | [pis/archive/PI-2-copilot-improvement/retro.md](pis/archive/PI-2-copilot-improvement/retro.md) |
 | Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
+| Copilot multicanal — Telegram MVP | PI-5 | discovery (research in progress) | [pis/active/PI-5-copilot-multicanal-telegram/PI.md](pis/active/PI-5-copilot-multicanal-telegram/PI.md) |
 
 ## Maintenance (rolling, paralelo a Now — no compite cap)
 
@@ -54,3 +55,4 @@
 | Fecha | Cambio | Razón |
 |---|---|---|
 | 2026-04-29 | Creado track **Maintenance** paralelo a Now. Primer track: PI-4-brand-evolutive-maintenance | Chris pidió responder feedback usuarios brand en días sin encolar en feature PIs ni pelear cap Now. Patrón rolling = sprint = batch items micro |
+| 2026-04-30 | Abierto **PI-5-copilot-multicanal-telegram** (discovery) | Capturado en retro PI-2 como next step ("Multicanal Bloque A — Telegram bridge"). Cap Now = 3 features (PI-1 + PI-3 + PI-5) — al límite. Scope: Telegram only (WA + IG DM = futuros PIs separados) |
