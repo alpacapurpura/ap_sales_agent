@@ -937,3 +937,36 @@ async def test_concurrent_filters_combine_correctly(
     assert "match_all@e.com" in emails
     assert "mql_low@e.com" not in emails
     assert "sql_high@e.com" not in emails
+
+
+# ── 9. CF-tunnel slash handling — dual-decorator regression ───────────────────
+
+
+async def test_list_contacts_no_slash_returns_200(
+    client: AsyncClient,
+) -> None:
+    """GET /api/v1/contacts (sin trailing slash) debe retornar 200.
+
+    Regresión: CloudFlare Tunnel strip trailing slash → BE sin decorator ""
+    retornaba 404 porque redirect_slashes=False es regla inviolable.
+    Fix: dual-decorator @router.get("") + @router.get("/") en list_contacts.
+    PI-1 hotfix #1.
+    """
+    resp = await client.get("/api/v1/contacts")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "items" in body
+    assert "total_count" in body
+
+
+async def test_list_contacts_slash_still_returns_200(
+    client: AsyncClient,
+) -> None:
+    """GET /api/v1/contacts/ (con trailing slash) sigue retornando 200.
+
+    El alias con slash no debe romperse al agregar el decorator canónico "".
+    """
+    resp = await client.get("/api/v1/contacts/")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "items" in body

@@ -209,7 +209,7 @@ _FILTER_SCHEMA_FIELDS: list[FilterFieldMeta] = [
 
 
 @router.get(
-    "/",
+    "",
     response_model=PaginatedResponse[ContactListItem],
     summary="Listar contactos",
     description=(
@@ -219,6 +219,11 @@ _FILTER_SCHEMA_FIELDS: list[FilterFieldMeta] = [
         "Máximo 100 resultados por página. "
         "Cache-Control: private, max-age=30."
     ),
+)
+@router.get(
+    "/",
+    response_model=PaginatedResponse[ContactListItem],
+    include_in_schema=False,
 )
 async def list_contacts(
     user: Annotated[User, Depends(get_current_user)],
