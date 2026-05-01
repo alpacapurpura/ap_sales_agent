@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 import { useLaunchCampaignMutation } from "../api/use-launch-campaign-mutation";
+
 import type { CampaignStatus } from "../types";
 
 interface CampaignLifecycleButtonsProps {
@@ -28,7 +29,7 @@ export function CampaignLifecycleButtons({
   onStatusChange,
 }: CampaignLifecycleButtonsProps) {
   const launchMutation = useLaunchCampaignMutation();
-  const isPending = launchMutation.isPending;
+  const { isPending } = launchMutation;
 
   async function handleLaunch() {
     try {

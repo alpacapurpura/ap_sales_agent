@@ -10,7 +10,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 
 import { useContactDetailQuery } from "../api/use-contact-detail-query";
 import { useContactsQuery } from "../api/use-contacts-query";
@@ -168,7 +167,13 @@ export function ContactsPageClient({
   const [createdSegmentName, setCreatedSegmentName] = React.useState<string>("");
 
   // -- Debounced URL sync --
+  // Skip mount-time push: only fire when filters/pagination CHANGE (not on initial render).
+  const isFirstRender = React.useRef(true);
   React.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const t = setTimeout(() => {
       const sp = filtersToSearchParams(filters, { limit, offset });
       if (selectedContactId) sp.set("contact", selectedContactId);
@@ -187,14 +192,6 @@ export function ContactsPageClient({
     const q = e.target.value;
     setSearchValue(q);
     handleFiltersChange({ ...filters, q: q || undefined });
-  }
-
-  function handleRowClick(row: ContactListItem) {
-    setSelectedContactId(row.id);
-  }
-
-  function handleSelectRow(id: string, checked: boolean) {
-    setSelectedIds((prev) => (checked ? [...prev, id] : prev.filter((x) => x !== id)));
   }
 
   function handleSelectionChange(ids: string[]) {
@@ -240,10 +237,17 @@ export function ContactsPageClient({
   }, [isError]);
 
   // -- Columns (memoized for stability) --
+  // handleSelectRow + handleRowClick declared inline (recreated each render);
+  // included via setSelectedIds/setSelectedContactId which are stable React setters.
+  const stableHandleSelectRow = React.useCallback((id: string, checked: boolean) => {
+    setSelectedIds((prev) => (checked ? [...prev, id] : prev.filter((x) => x !== id)));
+  }, []);
+  const stableHandleRowClick = React.useCallback((row: ContactListItem) => {
+    setSelectedContactId(row.id);
+  }, []);
   const columns = React.useMemo(
-    () => buildColumns(handleSelectRow, selectedIds, handleRowClick),
-
-    [selectedIds],
+    () => buildColumns(stableHandleSelectRow, selectedIds, stableHandleRowClick),
+    [selectedIds, stableHandleSelectRow, stableHandleRowClick],
   );
 
   const items = data?.items ?? [];
@@ -280,7 +284,7 @@ export function ContactsPageClient({
           limit={limit}
           offset={offset}
           onPageChange={handlePageChange}
-          onRowClick={handleRowClick}
+          onRowClick={stableHandleRowClick}
           selectedIds={selectedIds}
           onSelectionChange={handleSelectionChange}
           getRowId={(row) => row.id}

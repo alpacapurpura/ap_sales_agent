@@ -8,6 +8,7 @@ import { LaunchCampaignChoiceDialog } from "../LaunchCampaignChoiceDialog";
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush, back: vi.fn(), replace: vi.fn() }),
+  useParams: () => ({ tenantId: "test-tenant" }),
 }));
 
 describe("LaunchCampaignChoiceDialog", () => {
@@ -37,7 +38,7 @@ describe("LaunchCampaignChoiceDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /sí, crear campaña/i }));
 
     expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("seg-abc"),
+      expect.stringContaining("/test-tenant/sales/campa%C3%B1as/nuevo?segment_id=seg-abc"),
     );
   });
 

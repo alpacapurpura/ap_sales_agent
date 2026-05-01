@@ -67,9 +67,8 @@ describe("CreateSegmentDialog", () => {
   });
 
   it("submits with STATIC segment_type and correct lead_ids", async () => {
-    const { useCreateSegmentMutation } = await import(
-      "@/features/crm-hub/api/use-create-segment-mutation"
-    );
+    const { useCreateSegmentMutation } =
+      await import("@/features/crm-hub/api/use-create-segment-mutation");
     const mutateAsync = vi.fn().mockResolvedValue({ id: "seg-456" });
     vi.mocked(useCreateSegmentMutation).mockReturnValue({
       mutateAsync,

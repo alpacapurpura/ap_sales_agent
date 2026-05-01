@@ -122,9 +122,9 @@ export function DataTable<TData>({
           <TableBody aria-busy={isLoading}>
             {isLoading ? (
               Array.from({ length: SKELETON_ROWS }).map((_, i) => (
-                <TableRow key={`skeleton-${i}`}>
-                  {columns.map((_, ci) => (
-                    <TableCell key={ci}>
+                <TableRow key={`skeleton-row-${i}`}>
+                  {columns.map((col, ci) => (
+                    <TableCell key={`skeleton-cell-${col.id ?? ci}`}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -32,10 +32,13 @@ export function LaunchCampaignChoiceDialog({
   segmentName,
 }: LaunchCampaignChoiceDialogProps) {
   const router = useRouter();
+  const params = useParams<{ tenantId: string }>();
 
   function handleCreateCampaign() {
     onOpenChange(false);
-    router.push(`/sales/campa%C3%B1as/nuevo?segment_id=${encodeURIComponent(segmentId)}`);
+    router.push(
+      `/${params.tenantId}/sales/campa%C3%B1as/nuevo?segment_id=${encodeURIComponent(segmentId)}`,
+    );
   }
 
   function handleDismiss() {
