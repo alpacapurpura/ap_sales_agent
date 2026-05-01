@@ -21,7 +21,7 @@ export interface CampaignTagProps {
 }
 
 /**
- * Chip de campaña — Shadcn Badge clickable que lleva a /campañas/{campaignId}.
+ * Chip de campaña — Shadcn Badge clickable que lleva a /campanas/{campaignId}.
  *
  * Muestra el nombre de la campaña con el prefijo "campaña: " en español neutro.
  * Trunca nombres con más de 30 caracteres y muestra el nombre completo en tooltip.
@@ -40,7 +40,7 @@ export function CampaignTag({
   const chip = (
     <span title={isTruncated ? campaignName : undefined} className={cn("inline-flex", className)}>
       <Link
-        href={`/campañas/${campaignId}`}
+        href={`/campanas/${campaignId}`}
         prefetch={false}
         className={cn(
           badgeVariants({ variant: "secondary" }),

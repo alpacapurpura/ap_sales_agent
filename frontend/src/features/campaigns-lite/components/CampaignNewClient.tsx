@@ -37,7 +37,7 @@ const DEFAULT_TIMEZONE = "America/Lima";
 /**
  * Formulario de creación de campaña (lite — S4 PI-1).
  * Pipeline: POST /api/v1/campaigns/ → POST /api/v1/campaigns/{id}/steps/ → (opt) POST /api/v1/campaigns/{id}/schedule
- * Tras éxito → router.push("/sales/campañas/{id}")
+ * Tras éxito → router.push("/sales/campanas/{id}")
  */
 export function CampaignNewClient({ segmentId }: CampaignNewClientProps) {
   const router = useRouter();
@@ -103,7 +103,7 @@ export function CampaignNewClient({ segmentId }: CampaignNewClientProps) {
       }
 
       toast.success(`Campaña "${values.name}" creada correctamente.`);
-      router.push(`/${params.tenantId}/sales/campa%C3%B1as/${campaign.id}`);
+      router.push(`/${params.tenantId}/sales/campanas/${campaign.id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error al crear la campaña.";
       form.setError("root", { message });

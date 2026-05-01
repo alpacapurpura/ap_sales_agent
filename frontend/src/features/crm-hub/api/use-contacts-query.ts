@@ -23,7 +23,7 @@ export function useContactsQuery(params: UseContactsQueryParams) {
     queryKey: ["crm", "contacts", params],
     queryFn: async () => {
       const search = buildSearchParams(params);
-      const res = await fetchClient(`${API_URL}/api/v1/contacts?${search.toString()}`);
+      const res = await fetchClient(`${API_URL}/api/v1/contacts/?${search.toString()}`);
       if (!res.ok) throw new Error(`Error al cargar contactos: ${res.status}`);
       return res.json() as Promise<PaginatedResponse<ContactListItem>>;
     },

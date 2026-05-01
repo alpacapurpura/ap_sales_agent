@@ -112,6 +112,27 @@ describe("useContactsQuery", () => {
     expect(calledUrl).toContain("lifecycle_stage_in=lead%2Cmql");
   });
 
+  it("uses trailing slash before query params — /api/v1/contacts/?  (Bug #1)", async () => {
+    const { fetchClient } = await import("@/lib/http-client");
+    let calledUrl = "";
+    vi.mocked(fetchClient).mockImplementationOnce((url) => {
+      calledUrl = url.toString();
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockPaginatedResponse),
+      } as Response);
+    });
+
+    const { result } = renderHook(() => useContactsQuery({ filters: {}, limit: 50, offset: 0 }), {
+      wrapper: makeWrapper(queryClient),
+    });
+
+    await waitFor(() => result.current.isSuccess);
+    // BE registers @router.get("/") → effective path /api/v1/contacts/
+    // With redirect_slashes=False, /api/v1/contacts? would 404.
+    expect(calledUrl).toMatch(/\/api\/v1\/contacts\/\?/); // eslint-disable-line
+  });
+
   it("throws on non-ok response", async () => {
     const { fetchClient } = await import("@/lib/http-client");
     vi.mocked(fetchClient).mockResolvedValueOnce({

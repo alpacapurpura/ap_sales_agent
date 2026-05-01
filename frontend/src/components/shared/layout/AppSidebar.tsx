@@ -116,6 +116,7 @@ const getNavItems = (tenantId: string): NavItem[] => [
     children: [
       { title: "Studio", href: `/${tenantId}/sales/studio/inbox`, icon: Headset },
       { title: "Contactos", href: `/${tenantId}/sales/contactos`, icon: Users },
+      { title: "Campañas", href: `/${tenantId}/sales/campanas/nuevo`, icon: Megaphone },
       {
         title: "Inscripciones",
         href: `/${tenantId}/sales/enrollments`,

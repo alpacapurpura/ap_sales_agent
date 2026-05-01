@@ -22,7 +22,7 @@ interface LaunchCampaignChoiceDialogProps {
 
 /**
  * Dialog de elección post-creación de segmento.
- * "Sí, crear campaña" → navega a /sales/campañas/nuevo?segment_id={id}.
+ * "Sí, crear campaña" → navega a /sales/campanas/nuevo?segment_id={id}.
  * "Más tarde" → cierra.
  */
 export function LaunchCampaignChoiceDialog({
@@ -37,7 +37,7 @@ export function LaunchCampaignChoiceDialog({
   function handleCreateCampaign() {
     onOpenChange(false);
     router.push(
-      `/${params.tenantId}/sales/campa%C3%B1as/nuevo?segment_id=${encodeURIComponent(segmentId)}`,
+      `/${params.tenantId}/sales/campanas/nuevo?segment_id=${encodeURIComponent(segmentId)}`,
     );
   }
 

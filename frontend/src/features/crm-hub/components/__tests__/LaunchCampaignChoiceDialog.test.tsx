@@ -25,7 +25,7 @@ describe("LaunchCampaignChoiceDialog", () => {
     expect(screen.getByText(/Leads Telegram/)).toBeInTheDocument();
   });
 
-  it("navigates to nuevo campañas route when user clicks Sí", () => {
+  it("navigates to nuevo campanas route (ASCII, no ñ) when user clicks Sí", () => {
     render(
       <LaunchCampaignChoiceDialog
         open
@@ -37,8 +37,9 @@ describe("LaunchCampaignChoiceDialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /sí, crear campaña/i }));
 
+    // Bug #4 fix: route renamed from campañas → campanas (Next.js 16 does not compile ñ in paths)
     expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining("/test-tenant/sales/campa%C3%B1as/nuevo?segment_id=seg-abc"),
+      expect.stringContaining("/test-tenant/sales/campanas/nuevo?segment_id=seg-abc"),
     );
   });
 
