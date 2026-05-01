@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from typing import TYPE_CHECKING, Self
 from uuid import UUID
 
@@ -313,48 +314,56 @@ class ChatOrchestrator:
                 tenant_uuid,
             )
 
-            # Per-turn observability envelope (PR-1 hotfix Bug #2). The
-            # envelope brackets the turn with ``turn_start`` / ``turn_end``
-            # rows + an explicit ``commit`` on the trace-event session,
-            # which is what was missing in the previous wiring (see
-            # ``IMPL-LOG-agentic.md`` RCA). Best-effort: ``None`` when
-            # tenant/lead is missing — orchestrator falls back to a raw
-            # ``ainvoke`` without observability rather than crashing.
+            # Per-turn observability handler (S1). Best-effort — ``None`` when
+            # tenant/lead is missing; legacy ``@trace_node`` still writes
+            # during the dual-write window.
             from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
                 ToolCallDedupTracker,
             )
             from src.modules.sales_agent.observability.recording.factory import (
-                build_sales_agent_observability_context,
+                build_sales_agent_callback_handler,
             )
 
-            observability_ctx = build_sales_agent_observability_context(
+            observability_handler = build_sales_agent_callback_handler(
                 db=db,
                 tenant_id=tenant_uuid,
                 lead_id=user.id if user else None,
                 channel_type=channel_type,
+                turn_id=uuid.uuid4(),
             )
 
             # Seed the tool-call dedup tracker for this turn — ``node_tool_executor``
             # reads it from state and LangGraph propagates the seeded value.
             initial_state["_tool_dedup_tracker"] = ToolCallDedupTracker()
 
-            from src.modules.sales_agent.application.orchestrator.turn_runner import (
-                TurnRunner,
+            result = await ConversationPipeline.invoke_agent_with_typing(
+                channel_adapter,
+                incoming,
+                initial_state,
+                observability_handler=observability_handler,
             )
 
-            await TurnRunner.run(
-                observability_ctx=observability_ctx,
-                channel_adapter=channel_adapter,
-                incoming=incoming,
-                initial_state=initial_state,
-                db=db,
-                state_repo=state_repo,
-                tenant_uuid=tenant_uuid,
-                user=user,
-                customer=customer,
-                channel_type=channel_type,
-                last_session_summary=last_session_summary,
-                audit_repo=audit_repo,
+            if tenant_uuid and user:
+                ConversationPipeline.save_checkpoint(
+                    db,
+                    state_repo,
+                    tenant_uuid,
+                    user,
+                    customer,
+                    channel_type,
+                    initial_state,
+                    result,
+                    last_session_summary,
+                )
+
+            await ConversationPipeline.deliver_response(
+                channel_adapter,
+                incoming,
+                result,
+                audit_repo,
+                user,
+                channel_type,
+                tenant_uuid,
             )
 
         except Exception as e:

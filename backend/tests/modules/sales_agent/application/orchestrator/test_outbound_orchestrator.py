@@ -139,7 +139,7 @@ class TestOutboundOrchestratorHappyPath:
                 new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_callback_handler",
                 return_value=None,
             ),
             patch(
@@ -295,7 +295,7 @@ class TestOutboundOrchestratorGraphFailure:
                 return_value=({"messages": [], "session_id": "s"}, None),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_callback_handler",
                 return_value=None,
             ),
             patch(
@@ -368,7 +368,7 @@ class TestOutboundOrchestratorEmptyResponse:
                 new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_callback_handler",
                 return_value=None,
             ),
             patch(
@@ -464,7 +464,7 @@ class TestOutboundOrchestratorCheckpointReuse:
                 new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_callback_handler",
                 return_value=None,
             ),
             patch(
@@ -562,7 +562,7 @@ class TestOutboundOrchestratorBudgetGuardWiring:
                 new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_callback_handler",
                 return_value=None,
             ),
             patch(
