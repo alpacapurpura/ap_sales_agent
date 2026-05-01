@@ -7,10 +7,11 @@
 | PR ID | PR-1-cascade-bugs-recovery |
 | Sprint padre | S1-cascade-bugs-fix |
 | PI padre | PI-7-app-stability-restore |
-| Estado | in-progress (architect spawn 2026-05-01) |
+| Estado | shipped 2026-05-01 (verdict PASS auditor iter=1, smoke Chris-mediated cumplida) |
 | Tipo | bug-fix cross-surface (backend negocio + infra) |
 | Esfuerzo | M |
 | Owner PM | /pm |
+| Architect | done — CONTRACT.md ready (split scope: Bug #7 builder Sonnet | Bug #9 PM ad-hoc .env fix) |
 
 ## Origen
 
@@ -67,7 +68,21 @@ docker start visionarias_litellm:
 Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mounting "/run/desktop/mnt/host/wsl/.../app/config.yaml" to rootfs at "/app/config.yaml": create mountpoint for /app/config.yaml mount: cannot create subdirectories in "/var/lib/docker/.../app/config.yaml": not a directory: unknown: Are you trying to mount a directory onto a file (or vice-versa)? Check if the specified host path exists and is the expected type
 ```
 
-**Root cause hypothesis:** Docker compose mount path conflict. `config.yaml` source path en host es directorio (por error o config bug), target en container espera file. O viceversa.
+**Root cause hypothesis ORIGINAL (descartada):** Docker compose mount path conflict file vs directory.
+
+**Root cause REAL identificada por PM diagnose 2026-05-01 (post-architect):**
+```
+ValueError: Set 'supported_environments' for model but not 'LITELLM_ENVIRONMENT' set in .env
+```
+Config `litellm_config.yaml` declara `supported_environments: ["dev","staging","production"]` per model. App startup falla porque `.env` no setea `LITELLM_ENVIRONMENT`. Workers child process mueren post-startup. Container sigue UP pero unreachable :4000.
+
+`.env` también missing: `LITELLM_MASTER_KEY` + `LITELLM_SALT_KEY` (warnings no errores duros pero secrets template ya en `.env.example`). El restart NO arregla — fix es agregar 4 vars al `.env`:
+- `LITELLM_ENVIRONMENT=dev`
+- `LITELLM_MASTER_KEY=sk-litellm-master-dev` (template `.env.example`)
+- `LITELLM_SALT_KEY=sk-litellm-salt-dev` (template `.env.example`)
+- `LITELLM_PROXY_ENABLED=true` (template — verificar si ya seteado)
+
+**Escalate Chris:** PM no inventa values .env (secrets/runtime config). Chris decide override values vs accept template.
 
 **Fix opciones (architect decide):**
 - A) Verificar host path `config.yaml` existe como FILE, no dir. Recrear si necesario.

@@ -53,6 +53,7 @@ Captura identidad de marca del user. Vía 2 caminos: scraping web (si tiene webs
 | Personality engine | sólido | 3-pillar (dims/patterns/exchanges) — SSoT del estilo agent |
 | Buyer Personas | activo | Multi-persona, upload docs OK |
 | Authority vault | activo | Refactor field-contract-platform 2026-04 |
+| Brand data adapter ORM→DTO | live | PR-1 PI-7 (commit `1bdcfdc9`, 2026-05-01) — `PersonalityProfileDTO.model_validate(orm).model_dump()` canonical Pydantic v2 path. Pattern aplicable a otros adapters brand/offer si encuentran type-mismatch ORM vs Pydantic |
 
 ## Conexiones cross-módulo
 - **Lee de:** copilot
@@ -66,6 +67,7 @@ Captura identidad de marca del user. Vía 2 caminos: scraping web (si tiene webs
 | PI | Cambio | Fecha cierre |
 |---|---|---|
 | _migración: brand → brand-studio_ | foundation-first strangler fig | 2026-04 (refactor) |
+| PI-7-app-stability-restore S1 PR-1 | Bug #7 fix — `brand_data_adapter` convierte ORM PersonalityProfileModel via `PersonalityProfileDTO.model_validate()` antes serialize. Restaura sales_agent functional | 2026-05-01 |
 
 ## Decisiones producto vinculadas
 | Fecha | Decisión | Razón | PI/PR |
