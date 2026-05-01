@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
+from src.modules.brand.api.personality import PersonalityProfileDTO
 from src.modules.brand.infrastructure.repositories.avatar_repository import (
     AvatarRepository,
 )
@@ -40,10 +41,21 @@ class BrandDataAdapter(BrandDataPort):
         avatars = self.avatar_repo.get_by_tenant(tenant_id)
         personality_profile = self.personality_repo.get_active(tenant_id=tenant_id)
 
+        # PersonalityProfileRepository.get_active returns SQLA ORM
+        # (PersonalityProfileModel) — convert via existing Pydantic DTO
+        # (brand/api/personality.py::PersonalityProfileDTO,
+        # ConfigDict(from_attributes=True)) before serialising.
+        # Bug #7 fix — PR-1 PI-7 S1 (2026-05-01).
+        personality_dict: dict[str, object] | None = None
+        if personality_profile is not None:
+            personality_dict = PersonalityProfileDTO.model_validate(
+                personality_profile,
+            ).model_dump(mode="json")
+
         return BrandKnowledgeDTO(
             brand_data=brand.model_dump(mode="json") if brand else {},
             avatars=[a.model_dump(mode="json") for a in avatars] if avatars else [],
-            personality_profile=personality_profile.model_dump(mode="json") if personality_profile else None,
+            personality_profile=personality_dict,
         )
 
     # ── NEW (PR-2-pure-expansion-providers) ───────────────────────────────────

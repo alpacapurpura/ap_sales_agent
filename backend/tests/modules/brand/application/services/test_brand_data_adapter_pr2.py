@@ -89,3 +89,107 @@ class TestGetActivePersonalityProfilePresentExtension:
             result = adapter.get_active_personality_profile_present(_TENANT)
 
         assert result is False
+
+
+class TestGetBrandKnowledgeHandlesORMPersonalityProfile:
+    """Bug #7 regression — PI-7 S1 PR-1 (2026-05-01).
+
+    PersonalityProfileRepository.get_active returns SQLA ORM
+    (PersonalityProfileModel), NOT Pydantic. Adapter must convert
+    via PersonalityProfileDTO.model_validate before model_dump.
+    """
+
+    def test_get_brand_knowledge_with_orm_personality_returns_dict(self) -> None:
+        """RED: real ORM instance via from_attributes → dict serialisation succeeds."""
+        from datetime import datetime, timezone
+
+        from src.modules.brand.application.services.brand_data_adapter import (
+            BrandDataAdapter,
+        )
+        from src.modules.brand.infrastructure.models.personality_model import (
+            PersonalityProfileModel,
+        )
+
+        # Arrange — real ORM instance (NOT MagicMock — would mask the bug)
+        orm_profile = PersonalityProfileModel(
+            id=_TENANT,
+            tenant_id=_TENANT,
+            name="Visionarias",
+            profile_type="preset",
+            preset_key="sage",
+            is_active=True,
+            dimensions={"warmth": 0.8, "energy": 0.5},
+            linguistic_patterns={"greeting": "Hola"},
+            sample_exchanges=[],
+            negative_constraints=[],
+            system_instruction="Sos Visionarias.",
+            source_metadata={},
+            anchor_count=0,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+
+        mock_db = MagicMock()
+        mock_brand_repo = MagicMock()
+        mock_brand_repo.get_settings.return_value = None
+        mock_avatar_repo = MagicMock()
+        mock_avatar_repo.get_by_tenant.return_value = []
+        mock_pers_repo = MagicMock()
+        mock_pers_repo.get_active.return_value = orm_profile
+
+        with (
+            patch(
+                "src.modules.brand.application.services.brand_data_adapter.BrandRepository",
+                return_value=mock_brand_repo,
+            ),
+            patch(
+                "src.modules.brand.application.services.brand_data_adapter.AvatarRepository",
+                return_value=mock_avatar_repo,
+            ),
+            patch(
+                "src.modules.brand.application.services.brand_data_adapter.PersonalityProfileRepository",
+                return_value=mock_pers_repo,
+            ),
+        ):
+            adapter = BrandDataAdapter(mock_db)
+            knowledge = adapter.get_brand_knowledge(_TENANT)
+
+        # Assert
+        assert knowledge.personality_profile is not None
+        assert isinstance(knowledge.personality_profile, dict)
+        assert knowledge.personality_profile["name"] == "Visionarias"
+        assert knowledge.personality_profile["dimensions"]["warmth"] == 0.8
+        assert knowledge.personality_profile["system_instruction"] == "Sos Visionarias."
+
+    def test_get_brand_knowledge_with_no_personality_returns_none(self) -> None:
+        """get_active returns None → personality_profile field is None."""
+        from src.modules.brand.application.services.brand_data_adapter import (
+            BrandDataAdapter,
+        )
+
+        mock_db = MagicMock()
+        mock_brand_repo = MagicMock()
+        mock_brand_repo.get_settings.return_value = None
+        mock_avatar_repo = MagicMock()
+        mock_avatar_repo.get_by_tenant.return_value = []
+        mock_pers_repo = MagicMock()
+        mock_pers_repo.get_active.return_value = None
+
+        with (
+            patch(
+                "src.modules.brand.application.services.brand_data_adapter.BrandRepository",
+                return_value=mock_brand_repo,
+            ),
+            patch(
+                "src.modules.brand.application.services.brand_data_adapter.AvatarRepository",
+                return_value=mock_avatar_repo,
+            ),
+            patch(
+                "src.modules.brand.application.services.brand_data_adapter.PersonalityProfileRepository",
+                return_value=mock_pers_repo,
+            ),
+        ):
+            adapter = BrandDataAdapter(mock_db)
+            knowledge = adapter.get_brand_knowledge(_TENANT)
+
+        assert knowledge.personality_profile is None
