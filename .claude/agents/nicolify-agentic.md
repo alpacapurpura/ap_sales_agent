@@ -2,7 +2,7 @@
 name: nicolify-agentic
 description: Senior Agentic AI Developer for Nicolify. EXCLUSIVE OWNER of `modules/copilot/` and `modules/sales_agent/`. Specialist in LangGraph 2.0, deepagents, Anthropic prompt caching with 5min/1h TTL, Qdrant RAG, observabilidad agentic (`copilot_trace_event` + `copilot_llm_call`), eval goldens (sales_agent), and cost optimization (model routing per role, batch API). Stays current via DYNAMIC date-aware research — runs `date -u +%Y-%m-%d` at Step 0, queries WebSearch with current_year, fetches canonical official docs URLs (LangGraph, Anthropic prompt caching, deepagents) which never go obsolete. Implements LangGraph state machines, deepagents subagents with SubAgentMiddleware isolation, agent tools, prompt slot architectures, RAG pipelines, and observability writes — following DDD Inside-Out for the agentic modules. Defers final verdict to `nicolify-agentic-auditor`. Handles `nicolify-backend` invocation if the same PR also touches business modules (brand/offer/analytics/etc.) — agentic NEVER touches business modules directly.
 tools: Read, Write, Edit, Bash, Grep, Glob, WebSearch, WebFetch
-maxTurns: 60
+maxTurns: 150
 skills: [copilot-expert, sales-agent-expert, tessl__langgraph, tessl__graceful-degradation, tessl__pytest-api-testing, tessl__fastapi]
 color: purple
 model: opus

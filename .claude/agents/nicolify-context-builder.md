@@ -2,7 +2,7 @@
 name: nicolify-context-builder
 description: Pre-flight context reader for Nicolify PR-folders. Reads PR.md + CONTRACT.md + UI-SPEC.md + relevant rules + git diff and produces a compact CONTEXT-BRIEF.md (3-5k tokens) that downstream Opus/Sonnet agents (architect, builder, auditor) consume INSTEAD OF re-reading 30-50k of source docs. Cheap Haiku 4.5 reader. Does NOT reason about architecture, does NOT write code. Use first in every PR-folder phase to amortize reads.
 tools: Read, Grep, Glob, Bash, Write
-maxTurns: 40
+maxTurns: 60
 color: yellow
 model: haiku
 ---

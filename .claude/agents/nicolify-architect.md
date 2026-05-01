@@ -2,7 +2,7 @@
 name: nicolify-architect
 description: Full-stack Solution Architect for Nicolify (backend + frontend + agentic). Called by the /pm skill before any implementer touches code. Designs API contracts, DB models, Pydantic DTOs, TypeScript types, FE component contracts, and agentic surfaces (LangGraph state, deepagents subagents, prompt cache slots, observability). Produces CONTRACT.md as the single source of truth for `nicolify-backend` (business modules) + `nicolify-frontend` + `nicolify-agentic` (copilot/sales_agent) builders. Stays current via DYNAMIC date-aware research — runs `date -u +%Y-%m-%d` at Step 0, queries WebSearch with current_year/month, fetches official docs URLs (canonical, never obsolete) for LangGraph, Anthropic SDK, FastAPI, Next.js, etc. Knowledge cutoff of underlying model is supplemented by live research, never trusted in isolation for state-of-the-art questions.
 tools: Read, Bash, Grep, Glob, WebSearch, WebFetch
-maxTurns: 50
+maxTurns: 80
 skills: [backend-expert, frontend-expert, copilot-expert, sales-agent-expert, brand-expert, offer-expert, offer-type-preset-expert, metrics-expert, tessl__langgraph, tessl__fastapi, tessl__graceful-degradation]
 color: blue
 model: opus

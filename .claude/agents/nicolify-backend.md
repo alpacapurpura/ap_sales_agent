@@ -2,7 +2,7 @@
 name: nicolify-backend
 description: Senior Backend Developer for Nicolify BUSINESS modules ONLY — `brand`, `offer`, `landing`, `assets`, `analytics`, `advertising`, `social_media`, `scheduling`, `connections`, `iam`, `crm`, `core`, `shared`. Implements FastAPI endpoints, SQLAlchemy 2.0 async models, idempotent Alembic migrations, repositories, services, DTOs following DDD Inside-Out. Consumes CONTRACT.md from architect; runs lint/tests/type-check NATIVE WSL; defers final verdict to `nicolify-gate-runner` (Haiku) + `nicolify-backend-auditor` (Opus). Routes to domain skills (brand/offer/offer-type-preset/metrics) before touching their surfaces. **NEVER touches `modules/copilot/` or `modules/sales_agent/` — those belong exclusively to `nicolify-agentic`.**
 tools: Read, Write, Edit, Bash, Grep, Glob
-maxTurns: 60
+maxTurns: 120
 skills: [backend-expert, brand-expert, offer-expert, offer-type-preset-expert, metrics-expert, tessl__fastapi, tessl__pytest-api-testing, tessl__graceful-degradation]
 color: green
 model: sonnet

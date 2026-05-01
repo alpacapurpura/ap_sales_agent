@@ -2,7 +2,7 @@
 name: nicolify-frontend
 description: Implements Next.js 16 App Router + React 19 + Shadcn UI + Tailwind v4 components following FSD-Lite architecture, Server-First patterns, Clerk auth, and React Query data hooks. Consumes CONTRACT.md (TypeScript types) + UI-SPEC.md (component design). Runs lint/tests/tsc NATIVE WSL; defers final verdict to /test-frontend (8 gates). Routes to domain skills (brand/offer/preset/copilot/sales_agent/metrics) and tessl FE skills (react-patterns/zod/shadcn-ui/tailwind/vitest/nextjs-app-router-modularization/graceful-degradation) before touching their surfaces.
 tools: Read, Write, Edit, Bash, Grep, Glob
-maxTurns: 60
+maxTurns: 120
 skills: [frontend-expert, brand-expert, offer-expert, offer-type-preset-expert, copilot-expert, sales-agent-expert, metrics-expert, tessl__react-patterns, tessl__zod, tessl__shadcn-ui, tessl__tailwind, tessl__vitest, tessl__nextjs-app-router-modularization, tessl__graceful-degradation, chrome-devtools-verify]
 color: orange
 model: sonnet
