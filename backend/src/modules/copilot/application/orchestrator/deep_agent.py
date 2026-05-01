@@ -272,7 +272,13 @@ def build_deep_agent_graph(
 
     if tools is None:
         ctx = state.get("client_context", {})
-        tools = list(get_tools_for_context(ctx))
+        # PI-5 PR-2 — runtime channel filter (D-PI5-023). Registry already
+        # supports the ``channel`` kwarg (PR-1); we pass the per-turn
+        # channel from state so Telegram-only turns drop web-only tool
+        # groups (landing/guided/offer_section/navigation per
+        # ToolGroupMeta.available_channels SSoT).
+        channel = ctx.get("channel") if isinstance(ctx, dict) else None
+        tools = list(get_tools_for_context(ctx, channel=channel or "web"))
 
     system_prompt = _build_combined_system_prompt(state)
 

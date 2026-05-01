@@ -20,6 +20,11 @@ class ClientContextDTO(BaseModel):
     selected_fields: list[dict[str, str]] = Field(default_factory=list)
     form_data: dict[str, Any] = Field(default_factory=dict)
     locale: str = "es"
+    # PI-5 PR-2 — per-turn channel hint. ``None`` = web (backward compat).
+    # Worker/email/non-streaming callers populate this; the orchestrator
+    # mirrors it into ``state["client_context"]["channel"]`` to drive the
+    # Telegram cache fragment + per-channel tool filter + memory window.
+    channel: str | None = None
 
 
 class CopilotChatRequest(BaseModel):

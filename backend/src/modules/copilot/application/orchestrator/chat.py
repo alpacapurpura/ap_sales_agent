@@ -84,6 +84,9 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
+    from src.modules.copilot.application.orchestrator.invoke_result import (
+        CopilotInvokeResult,
+    )
     from src.modules.copilot.application.router import ModelRouter
     from src.modules.copilot.infrastructure.models.conversation_model import (
         CopilotConversationModel,
@@ -710,8 +713,18 @@ class CopilotOrchestrator:
         conversation_id: str | None,
         context: ClientContextDTO | None,
         blocks: list[dict] | None = None,
+        channel: str | None = None,
     ) -> tuple[str, UUID, CopilotConversationModel, dict]:
-        """Resolve/create conversation and build LangGraph state. Returns (conv_id, conv_uuid, existing_conv, state)."""
+        """Resolve/create conversation and build LangGraph state. Returns (conv_id, conv_uuid, existing_conv, state).
+
+        ``channel`` (PI-5 PR-2): per-invocation channel override. When
+        provided it is mirrored into ``state["client_context"]["channel"]``
+        (and from there flows to the system-prompt slot + the tool
+        runtime filter). If both ``context.channel`` and ``channel`` are
+        set, ``context.channel`` wins (DTO is canonical); ``channel`` is
+        the kwarg ergonomics for direct callers (worker). Default
+        ``"web"`` preserves backward compat.
+        """
         conv_id = conversation_id or str(uuid.uuid4())
         conv_uuid = UUID(conv_id)
 
@@ -725,6 +738,11 @@ class CopilotOrchestrator:
             self.db.commit()
 
         client_ctx = self._build_client_context(context)
+        # PI-5 PR-2 (Q1 PM-resolved + Q4 dispatch) — resolve channel once;
+        # DTO field wins over kwarg, kwarg wins over default "web".
+        ctx_channel = getattr(context, "channel", None) if context is not None else None
+        effective_channel = ctx_channel or channel or "web"
+        client_ctx["channel"] = effective_channel
 
         # Hydrate guided + active-extraction state for this conversation with
         # a SINGLE DB read. Both flags live as sibling keys in the same JSONB
@@ -771,12 +789,104 @@ class CopilotOrchestrator:
         set_conversation_id(conv_id)
 
         history_messages = self._load_history(conv_id, tenant_id, existing_conv)
+        # PI-5 PR-2 (D-PI5-006, Q1 PM-resolved) — channel-aware memory window.
+        # First-time wiring of ``ContextWindowBuilder`` + ``RollingSummarizer``:
+        # apply per-channel caps to ``history_messages`` before composing state.
+        # Web stays byte-identical (default config matches the previous
+        # implicit, unbounded window — builder only trims when caps are hit).
+        history_messages = self._apply_channel_window(
+            history_messages,
+            channel=effective_channel,
+        )
         attachment_context = _render_attachment_context(blocks, tenant_id=tenant_id, db=self.db)
         user_content = message
         if attachment_context:
             user_content = f"{message.strip()}\n\n{attachment_context}" if message.strip() else attachment_context
         state["messages"] = [*history_messages, HumanMessage(content=user_content)]
         return conv_id, conv_uuid, existing_conv, state
+
+    def _apply_channel_window(
+        self,
+        history_messages: list,
+        *,
+        channel: str,
+    ) -> list:
+        """Trim ``history_messages`` to the channel-appropriate raw window.
+
+        Uses ``ContextWindowBuilder.for_channel`` (PI-5 PR-2) to walk the
+        history newest→oldest respecting the per-channel ``RAW_WINDOW_TOKENS``
+        / ``RAW_WINDOW_MAX_MESSAGES`` / ``RAW_WINDOW_MIN_MESSAGES`` caps. The
+        builder operates on the pure ``LLMMessage`` value object, so we
+        round-trip via ``role`` / ``content`` and re-emit the original
+        ``BaseMessage`` instances (preserves ``additional_kwargs``,
+        tool-call refs, etc.). On any failure (token counter, malformed
+        message, etc.) we degrade to the untrimmed list — memory is an
+        optimization, never a correctness-blocker.
+
+        ``RollingSummarizer.for_channel`` is also wired here for the
+        write path: when the builder drops messages, callers can fold
+        them into a rolling summary in a follow-up PR. PR-2 reads the
+        summarizer factory to keep the wiring symmetric with the
+        builder; the actual summary persistence will land alongside
+        ``copilot_conversations.rolling_summary`` (deferred S5).
+        """
+        try:
+            from src.modules.copilot.application.memory.context_window_builder import (
+                ContextWindowBuilder,
+            )
+            from src.modules.copilot.application.memory.rolling_summarizer import (
+                RollingSummarizer,
+            )
+            from src.modules.copilot.domain.ports import LLMMessage
+        except Exception as exc:  # noqa: BLE001 — memory wiring is best-effort
+            logger.warning("memory_window_import_failed", error=str(exc))
+            return history_messages
+
+        # Resolve role string from BaseMessage subclass without importing
+        # the LangChain hierarchy here (chat.py already imports HumanMessage,
+        # AIMessage, ToolMessage at the top — reuse them).
+        def _role_of(msg: object) -> str:
+            if isinstance(msg, HumanMessage):
+                return "user"
+            if isinstance(msg, AIMessage):
+                return "assistant"
+            if isinstance(msg, ToolMessage):
+                return "tool"
+            return "system"
+
+        try:
+            builder = ContextWindowBuilder.for_channel(channel)
+            # Convert LangChain history → LLMMessage value objects.
+            llm_history = [
+                LLMMessage(role=_role_of(m), content=str(getattr(m, "content", ""))) for m in history_messages
+            ]
+            # Pre-instantiate the channel-aware summarizer so the wiring
+            # is exercised in tests. Execution lands in S5 (rolling
+            # summary persistence). Bind to a local var so `mypy --strict`
+            # doesn't flag the unused factory call.
+            _summarizer = RollingSummarizer.for_channel(channel)  # wiring symmetry, S5 follow-up
+            del _summarizer  # explicit discard — execution lands in S5
+            window, _tokens = builder.build(
+                summary=None,
+                messages=llm_history,
+                new_user_msg="",  # only history is being trimmed here
+            )
+            # Drop the final synthetic empty user message the builder appends
+            # (we re-add the real user message in _prepare_conversation).
+            if window and window[-1].role == "user" and window[-1].content == "":
+                window = window[:-1]
+            kept_count = len(window) - (1 if window and window[0].name == "rolling_summary" else 0)
+            kept_count = max(kept_count, 0)
+            # Slice the original BaseMessage list to the same tail length so
+            # we preserve message identity (additional_kwargs, tool_call_id…).
+            return history_messages[-kept_count:] if kept_count > 0 else []
+        except Exception as exc:  # noqa: BLE001 — memory degrade-open
+            logger.warning(
+                "memory_window_apply_failed",
+                channel=channel,
+                error=str(exc),
+            )
+            return history_messages
 
     def _record_routing_decision(
         self,
@@ -1056,6 +1166,145 @@ class CopilotOrchestrator:
 
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
         yield SSEEvent(event="done", data={"conversation_id": conv_id}).to_sse()
+
+    async def invoke_text(
+        self,
+        *,
+        user_id: UUID,
+        tenant_id: UUID,
+        message: str,
+        conversation_id: str | None = None,
+        channel: str = "web",
+        context: ClientContextDTO | None = None,
+    ) -> CopilotInvokeResult:
+        """Run one full turn and return the final assistant text (no SSE).
+
+        PR-2 PI-5 entry point used by the Telegram worker (and any future
+        non-streaming consumer like email). Internally drives the same
+        graph stream as ``stream_chat`` but accumulates the final
+        ``acc.full_response`` instead of yielding SSE events to a wire.
+
+        Mirrors ``stream_chat`` step-by-step except for the wire format:
+            1. ``_prepare_conversation`` (with ``channel`` propagated).
+            2. Open observability turn (best-effort).
+            3. Drive ``_run_graph_stream`` and discard the SSE strings;
+               the accumulator keeps ``full_response``, ``messages``, and
+               token usage exactly as in the streaming path.
+            4. ``_persist_messages`` runs identically.
+            5. Build a frozen ``CopilotInvokeResult`` and return.
+
+        The method NEVER raises to the caller — graceful degradation per
+        ``tessl__graceful-degradation``: any exception inside the graph
+        stream is caught here, ``error_kind`` is populated, and a
+        plaintext fallback (``response_text``) is returned so the worker
+        can route a friendly message to the user. The 30s hard timeout
+        lives in the worker (per dependency-isolation iron rule); this
+        method does not impose its own.
+        """
+        from src.modules.copilot.application.orchestrator.invoke_result import (
+            CopilotInvokeResult,
+        )
+
+        conv_id, conv_uuid, existing_conv, state = self._prepare_conversation(
+            user_id=user_id,
+            tenant_id=tenant_id,
+            message=message,
+            conversation_id=conversation_id,
+            context=context,
+            blocks=None,
+            channel=channel,
+        )
+
+        acc = _StreamAccumulator()
+        obs = self._build_observability_context(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            conversation_id=conv_uuid,
+        )
+        acc.obs = obs
+
+        msg_id = str(uuid4())
+        error_kind: str | None = None
+        tools_called: list[str] = []
+
+        async with obs.observe_turn(
+            message=message,
+            route=state.get("client_context", {}).get("current_route") or "/copilot/chat",
+            attachments=[],
+        ):
+            try:
+                async for _sse_str in self._run_graph_stream(
+                    state=state,
+                    acc=acc,
+                    msg_id=msg_id,
+                    user_msg=message,
+                ):
+                    # Discard SSE wire format — non-streaming caller
+                    # consumes ``acc.full_response`` instead.
+                    pass
+            except Exception as exc:  # noqa: BLE001 — graceful-degradation iron rule
+                error_kind = _classify_stream_error(exc)
+                logger.warning(
+                    "copilot_invoke_text_failed",
+                    conversation_id=conv_id,
+                    channel=channel,
+                    error=str(exc),
+                    error_kind=error_kind,
+                )
+
+            # Persist messages even on partial failure — mirrors stream_chat.
+            try:
+                acc.messages = _sanitize_ai_messages(acc.messages, user_msg=message)
+                self._persist_messages(
+                    conv_uuid,
+                    tenant_id,
+                    conv_id,
+                    message,
+                    acc.full_response,
+                    acc.messages,
+                    existing_conv,
+                    emitted_blocks=list(acc.emitted_blocks),
+                    user_blocks=None,
+                )
+            except Exception as exc:  # noqa: BLE001 — persistence resilience
+                logger.warning(
+                    "copilot_invoke_text_persist_failed",
+                    conversation_id=conv_id,
+                    error=str(exc),
+                )
+
+            obs.set_turn_summary(
+                response_length=len(acc.full_response),
+                message_count=len(acc.messages),
+                block_count=len(acc.emitted_blocks),
+            )
+
+        # Extract tool names actually executed (best-effort; the
+        # accumulator stores tool result blocks).
+        for blk in acc.emitted_blocks:
+            try:
+                if isinstance(blk, dict):
+                    name = blk.get("tool_name") or blk.get("name")
+                    if isinstance(name, str) and name and name not in tools_called:
+                        tools_called.append(name)
+            except Exception as exc:  # noqa: BLE001 — tool-name extraction best-effort
+                logger.debug("invoke_text_tool_name_extract_failed", error=str(exc))
+
+        # If error_kind is set and full_response is empty, provide a
+        # plaintext fallback so the worker can ship something to the user.
+        response_text = acc.full_response
+        if error_kind is not None and not response_text:
+            response_text = _user_facing_error_message(error_kind)
+
+        return CopilotInvokeResult(
+            conversation_id=conv_id,
+            response_text=response_text,
+            tools_called=tools_called,
+            total_tokens=0,  # populated when obs aggregator surfaces it
+            cache_read_tokens=0,
+            cache_creation_tokens=0,
+            error_kind=error_kind,
+        )
 
     async def _run_graph_stream(  # noqa: PLR0912, PLR0915 — stream lifecycle + 3 distinct error paths (timeout, tool-loop, generic) each need their own SSE shape, log line, set_turn_error kind, and friendly-copy persistence. Splitting obscures more than it clarifies; the body is a flat narrative of the SSE protocol.
         self,

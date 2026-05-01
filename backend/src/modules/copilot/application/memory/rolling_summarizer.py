@@ -53,6 +53,27 @@ class RollingSummarizer:
         self._llm = llm
         self._max_chars = max_chars
 
+    @classmethod
+    def for_channel(
+        cls,
+        channel: str | None,
+        llm: BaseChatModel | None = None,
+    ) -> RollingSummarizer:
+        """Return a summarizer with channel-appropriate ``max_chars``.
+
+        PI-5 PR-2 (D-PI5-006): ``"telegram"`` resolves to
+        ``SUMMARY_MAX_CHARS=600``; everything else (including ``None``)
+        falls back to the default ``400``. ``llm`` flows through
+        unchanged for test injection. The legacy ``__init__`` path is
+        preserved for tests that want a custom cap.
+        """
+        from src.modules.copilot.domain.context_window import (
+            get_context_window_config,
+        )
+
+        cfg = get_context_window_config(channel)
+        return cls(llm=llm, max_chars=cfg.SUMMARY_MAX_CHARS)
+
     def _resolve_llm(self) -> BaseChatModel:
         if self._llm is not None:
             return self._llm

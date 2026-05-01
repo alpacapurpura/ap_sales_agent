@@ -49,6 +49,10 @@ class PromptFragment(StrEnum):
     STATIC_IDENTITY = "static_identity"
     STATIC_TOOLS_HINT = "static_tools_hint"
     MARKETING_KB_HINT = "marketing_kb_hint"  # F10 — cite framework
+    # PI-5 PR-2 — D-PI5-009. Cross-tenant cacheable Telegram-only conventions
+    # block. Returns "" when channel != "telegram" so web bytes stay
+    # byte-identical (cache prefix invariance preserved per channel).
+    TELEGRAM_CHANNEL_CONTEXT = "telegram_channel_context"
     LIGHTHOUSE = "lighthouse"
     EDITABLE_CATALOG = "editable_catalog"
     MODULES_LIST = "modules_list"
@@ -62,6 +66,7 @@ CACHEABLE_FRAGMENTS: tuple[PromptFragment, ...] = (
     PromptFragment.STATIC_IDENTITY,
     PromptFragment.STATIC_TOOLS_HINT,
     PromptFragment.MARKETING_KB_HINT,
+    PromptFragment.TELEGRAM_CHANNEL_CONTEXT,  # PI-5 PR-2 (D-PI5-009)
     PromptFragment.LIGHTHOUSE,
     PromptFragment.EDITABLE_CATALOG,
     PromptFragment.MODULES_LIST,

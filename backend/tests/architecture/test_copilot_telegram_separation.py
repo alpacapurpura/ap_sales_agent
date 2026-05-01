@@ -192,3 +192,32 @@ def test_copilot_link_token_storage_is_hashed() -> None:
     assert "token_hash" in text, "Service must persist token_hash (NOT plaintext) — D-PI5-019"
     # Plaintext returned to caller but not stored
     assert "secrets.token_urlsafe" in text, "Token generation must use secrets.token_urlsafe(32) (256 bits entropy)"
+
+
+def test_telegram_cache_prefix_meets_anthropic_threshold() -> None:
+    """The Telegram cacheable fragment MUST be ≥2048 tokens (PR-2 Q3 PM-resolved).
+
+    Anthropic prompt cache requires ≥1024 tokens of unchanged prefix to
+    activate; ≥2048 is the safety floor PM Q3 mandates so Sonnet (Claude
+    floor) and Kimi K2.6 (1024 default minimum) both reliably trigger
+    cache reads on the second + subsequent turns.
+
+    The fragment is byte-identical cross-tenant cross-turn — see
+    ``tests/modules/copilot/application/orchestrator/test_telegram_channel_context_fragment.py``
+    for the invariance contract. This test only enforces the size floor.
+    """
+    from src.modules.copilot.application.memory.token_counter import count_tokens
+    from src.modules.copilot.application.orchestrator.graph import (
+        _build_telegram_channel_context_fragment,
+    )
+
+    state = {"client_context": {"channel": "telegram"}}
+    fragment = _build_telegram_channel_context_fragment(state)
+    token_count = count_tokens(fragment)
+
+    assert token_count >= 2048, (
+        f"_TELEGRAM_CHANNEL_CONTEXT_ES yields {token_count} tokens (cl100k_base); "
+        f"PR-2 Q3 PM-resolved floor is 2048 to ensure Sonnet + Kimi K2.6 cache hits. "
+        f"Expand the constant in graph.py with ~stable Spanish prose (no interpolation, "
+        f"no timestamps, no per-turn data)."
+    )

@@ -19,13 +19,15 @@ from src.modules.copilot.application.orchestrator.system_prompt_layout import (
 
 class TestFragmentOrderInvariants:
     def test_cacheable_fragments_match_f8_plan(self) -> None:
-        # F8 §5.2 order extended in F10: static instructions, tools schema,
-        # marketing_kb_hint (cite framework — F10), lighthouse, editable
-        # catalog, active providers list.
+        # F8 §5.2 order extended in F10 + PI-5 PR-2 (D-PI5-009): static
+        # instructions, tools schema, marketing_kb_hint (cite framework — F10),
+        # telegram_channel_context (cross-tenant per-channel cacheable —
+        # PI-5 PR-2), lighthouse, editable catalog, active providers list.
         assert CACHEABLE_FRAGMENTS == (
             PromptFragment.STATIC_IDENTITY,
             PromptFragment.STATIC_TOOLS_HINT,
             PromptFragment.MARKETING_KB_HINT,
+            PromptFragment.TELEGRAM_CHANNEL_CONTEXT,
             PromptFragment.LIGHTHOUSE,
             PromptFragment.EDITABLE_CATALOG,
             PromptFragment.MODULES_LIST,

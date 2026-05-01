@@ -78,10 +78,14 @@ def _stub_system_prompt(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def _stub_tools(monkeypatch):
-    """Skip route-based tool resolution — el bug es del wire LLM, no de tools."""
+    """Skip route-based tool resolution — el bug es del wire LLM, no de tools.
+
+    PI-5 PR-2 added ``channel`` kwarg to ``get_tools_for_context`` for runtime
+    Telegram filter (D-PI5-023). Stub accepts **kwargs to stay compatible.
+    """
     monkeypatch.setattr(
         "src.modules.copilot.application.orchestrator.deep_agent.get_tools_for_context",
-        lambda _ctx: [],
+        lambda _ctx, **_kwargs: [],
     )
 
 

@@ -8,11 +8,14 @@ raise to ARQ to avoid infinite retry).
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 import structlog
 
 from src.modules.copilot.api._dependencies import copilot_async_session_factory
+from src.modules.copilot.api.dto import ClientContextDTO
+from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
 from src.modules.copilot.application.services.telegram_link_service import (
     consume_link_token,
     resolve_chat_id_to_tenant_user,
@@ -20,6 +23,12 @@ from src.modules.copilot.application.services.telegram_link_service import (
 )
 from src.modules.copilot.infrastructure.channels.telegram_bot import (
     CopilotTelegramBot,
+)
+from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+    ConversationRepository,
+)
+from src.shared.agent_observability.channels.format_for_channel import (
+    format_for_channel_impl,
 )
 
 _LOGGER = structlog.get_logger(__name__)
@@ -43,7 +52,7 @@ _LINK_INVALID_RESPONSE = (
 )
 
 
-async def process_copilot_telegram_turn(
+async def process_copilot_telegram_turn(  # noqa: C901, PLR0911, PLR0912, PLR0915 — top-level turn coordinator (chat lookup → onboarding gate → orchestrator → format → send); breaking it apart fragments error semantics; PR-2 PI-5 cementado
     ctx: dict[str, Any],
     payload: dict[str, Any],
 ) -> None:
@@ -133,9 +142,6 @@ async def process_copilot_telegram_turn(
             # ── Linked DM → invoke orchestrator (S2 PR-2 hookup) ──────
             await touch_last_seen(db, link_id=link.id)
 
-            # MVP placeholder response (S1 foundation only).
-            # S2 PR-2 wires orchestrator with channel='telegram' +
-            # TELEGRAM_CONTEXT_WINDOW_CONFIG memory.
             _LOGGER.info(
                 "copilot_telegram_linked_message_received",
                 tenant_id=str(link.tenant_id),
@@ -143,18 +149,134 @@ async def process_copilot_telegram_turn(
                 chat_id_prefix=_mask_chat_id(chat_id),
                 text_len_chars=len(text),
             )
-            await bot.send_message(
-                chat_id=chat_id,
-                text=(
-                    "Recibí tu mensaje. La integración completa del "
-                    "copilot conversacional vía Telegram llega en el "
-                    "próximo sprint (PI-5 S2). Por ahora confirmo que "
-                    "tu Telegram está conectado correctamente."
-                ),
+
+            # Capture link metadata so the sync-session block below can
+            # use it without holding a reference into the async-session
+            # context manager (which closes when the outer ``async with``
+            # exits the linked branch).
+            link_tenant_id = link.tenant_id
+            link_user_id = link.user_id
+
+        # ── Sync-session block: orchestrator + ConversationRepository
+        #     are sync Session-based; the link-service block above
+        #     (AsyncSession) is already complete here. Per dependency-
+        #     isolation iron rule (tessl__graceful-degradation), each
+        #     external call below has its own try/except + fallback.
+        from src.core.database import SessionLocal
+
+        sync_db = SessionLocal()
+        try:
+            # 1) Conversation lookup-or-create per (tenant, user, channel='telegram', chat_id).
+            try:
+                conv_repo = ConversationRepository(sync_db)
+                conv = conv_repo.get_or_create_by_channel(
+                    tenant_id=link_tenant_id,
+                    user_id=link_user_id,
+                    channel_type="telegram",
+                    channel_chat_id=chat_id,
+                )
+                sync_db.commit()
+            except Exception as exc:  # noqa: BLE001 — per-dependency isolation
+                sync_db.rollback()
+                _LOGGER.warning(
+                    "copilot_telegram_conv_lookup_failed",
+                    tenant_id=str(link_tenant_id),
+                    chat_id_prefix=_mask_chat_id(chat_id),
+                    error=str(exc),
+                )
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=("No pude recuperar tu conversación en este momento. Probá de nuevo en un minuto."),
+                )
+                return
+
+            # 2) Orchestrator invocation with channel='telegram' + 30s
+            #    hard timeout (graceful-degradation Iron Rule).
+            orchestrator = CopilotOrchestrator(sync_db)
+            client_context = ClientContextDTO(channel="telegram", locale="es")
+            try:
+                result = await asyncio.wait_for(
+                    orchestrator.invoke_text(
+                        user_id=link_user_id,
+                        tenant_id=link_tenant_id,
+                        message=text,
+                        conversation_id=str(conv.id),
+                        channel="telegram",
+                        context=client_context,
+                    ),
+                    timeout=30.0,
+                )
+            except TimeoutError:
+                _LOGGER.warning(
+                    "copilot_telegram_orchestrator_timeout",
+                    tenant_id=str(link_tenant_id),
+                    chat_id_prefix=_mask_chat_id(chat_id),
+                )
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=("Estoy tardando más de lo normal. Intentá de nuevo en un momento."),
+                )
+                return
+            except Exception as exc:  # noqa: BLE001 — orchestrator resilience
+                _LOGGER.warning(
+                    "copilot_telegram_orchestrator_failed",
+                    tenant_id=str(link_tenant_id),
+                    chat_id_prefix=_mask_chat_id(chat_id),
+                    error=str(exc),
+                )
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=("Tuve un problema procesando tu mensaje. Probá de nuevo."),
+                )
+                return
+
+            # 3) Format adapter post-orchestrator (channel='telegram') —
+            #    pure data transform, cannot fail (only string ops).
+            formatted = format_for_channel_impl(
+                content=result.response_text,
+                channel_id="telegram",
             )
+            text_to_send: str = str(formatted.get("content", "") or "")
+            if not text_to_send:
+                # invoke_text fallback already emitted a friendly message
+                # via _user_facing_error_message; keep it as-is so the
+                # user sees something.
+                text_to_send = result.response_text or "No pude generar una respuesta. Probá reformular tu pregunta."
+
+            # 4) Bot send — escape_markdown_v2 happens inside
+            #    CopilotTelegramBot.send_message (PR-1).
+            try:
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=text_to_send,
+                    parse_mode="MarkdownV2",
+                )
+            except Exception as exc:  # noqa: BLE001 — bot-send resilience
+                _LOGGER.warning(
+                    "copilot_telegram_bot_send_failed",
+                    tenant_id=str(link_tenant_id),
+                    chat_id_prefix=_mask_chat_id(chat_id),
+                    error=str(exc),
+                )
+                return
+
+            # 5) Observability log (best-effort, never raise).
+            _LOGGER.info(
+                "copilot_telegram_turn_completed",
+                tenant_id=str(link_tenant_id),
+                conversation_id=str(conv.id),
+                chat_id_prefix=_mask_chat_id(chat_id),
+                response_length=len(text_to_send),
+                cache_read_tokens=result.cache_read_tokens,
+                cache_creation_tokens=result.cache_creation_tokens,
+                total_tokens=result.total_tokens,
+                error_kind=result.error_kind,
+            )
+        finally:
+            sync_db.close()
 
     except Exception as exc:
-        # Graceful degradation — never raise to ARQ
+        # Graceful degradation — never raise to ARQ.
         _LOGGER.exception(
             "copilot_telegram_worker_unhandled_error",
             chat_id_prefix=_mask_chat_id(chat_id),

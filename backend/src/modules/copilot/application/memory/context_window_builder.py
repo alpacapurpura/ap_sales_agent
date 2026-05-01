@@ -27,6 +27,26 @@ class ContextWindowBuilder:
         """Store the config for build-time lookups."""
         self._cfg = config
 
+    @classmethod
+    def for_channel(cls, channel: str | None) -> ContextWindowBuilder:
+        """Return a builder configured for ``channel`` (default web).
+
+        PI-5 PR-2 (D-PI5-006): ``"telegram"`` selects the wider
+        ``TELEGRAM_CONTEXT_WINDOW_CONFIG`` (3000 raw tokens, 15 msgs);
+        any other value (including ``None``) falls back to
+        ``DEFAULT_CONTEXT_WINDOW_CONFIG``. Existing call sites that
+        construct ``ContextWindowBuilder(DEFAULT_CONTEXT_WINDOW_CONFIG)``
+        keep working unchanged.
+        """
+        # Local import to avoid a cycle: domain → application is fine, but
+        # the original module already imports ContextWindowConfig under
+        # TYPE_CHECKING — keep the runtime import scoped here.
+        from src.modules.copilot.domain.context_window import (
+            get_context_window_config,
+        )
+
+        return cls(get_context_window_config(channel))
+
     def build(
         self,
         summary: str | None,

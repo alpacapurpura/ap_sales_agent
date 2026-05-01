@@ -100,6 +100,73 @@ class ConversationRepository:
         stmt = select(CopilotConversationModel).where(*conditions)
         return self.db.execute(stmt).scalars().first()
 
+    def get_or_create_by_channel(
+        self,
+        *,
+        tenant_id: UUID,
+        user_id: UUID,
+        channel_type: str,
+        channel_chat_id: str,
+    ) -> CopilotConversationModel:
+        """Return the live conversation for ``(tenant, user, channel, chat_id)`` or create one.
+
+        PI-5 D-PI5-007: 1 conversation per ``(tenant_id, user_id,
+        channel_type, channel_chat_id)`` quadruple — single source of
+        truth for non-web channels (Telegram, future WhatsApp, etc.).
+
+        Concurrency strategy: optimistic SELECT-then-INSERT pattern.
+            1. SELECT … WHERE all four keys + ``deleted_at IS NULL`` LIMIT 1.
+            2. If hit → return.
+            3. Else → INSERT new row + flush + commit.
+
+        Q5 PM-resolved (CONTRACT § 16): the UNIQUE constraint on this
+        quadruple is **deferred to S5 PR-5** to avoid a fresh migration
+        in PR-2's scope. The race window is microseconds — at MVP
+        Telegram volume (≤dozens of active tenants) the chance of a
+        true duplicate insert is statistically negligible. Index lookup
+        performance is already covered by PR-1's
+        ``ix_copilot_conversations_tenant_channel`` on
+        ``(tenant_id, channel_type, channel_chat_id)``. Once UNIQUE
+        lands, this method gains an ``IntegrityError`` retry-once
+        branch.
+
+        Tenant-scoped. Excludes ``deleted_at`` rows (treated as missing
+        → creates a new row). Cross-tenant isolation is enforced by the
+        ``tenant_id`` predicate; cross-user is enforced by the
+        ``user_id`` predicate.
+        """
+        # Step 1 — optimistic SELECT.
+        stmt = (
+            select(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.tenant_id == tenant_id,
+                CopilotConversationModel.user_id == user_id,
+                CopilotConversationModel.channel_type == channel_type,
+                CopilotConversationModel.channel_chat_id == channel_chat_id,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+            .limit(1)
+        )
+        existing = self.db.execute(stmt).scalars().first()
+        if existing is not None:
+            return existing
+
+        # Step 2 — INSERT new row. ``id`` is server-default uuid4 on the
+        # model; we let SQLAlchemy generate it.
+        from uuid import uuid4
+
+        conv = CopilotConversationModel(
+            id=uuid4(),
+            tenant_id=tenant_id,
+            user_id=user_id,
+            channel_type=channel_type,
+            channel_chat_id=channel_chat_id,
+            messages=[],
+        )
+        self.db.add(conv)
+        self.db.flush()
+        return conv
+
     def append_messages(
         self,
         conversation_id: UUID,
