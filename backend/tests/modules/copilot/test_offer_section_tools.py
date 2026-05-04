@@ -214,6 +214,12 @@ class TestAdaptFromBrandIdentity:
             patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
             patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
             patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            # Block real DB access via SuggestionEngine providers (PI-11 PR-1: tests previously
+            # leaked into get_default_engine() → OfferSuggestionProvider._compute → SessionLocal()).
+            patch(
+                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                return_value=[],
+            ),
         ):
             mock_sl.return_value.__enter__ = MagicMock(return_value=MagicMock())
             mock_sl.return_value.__exit__ = MagicMock(return_value=False)
@@ -233,7 +239,8 @@ class TestAdaptFromBrandIdentity:
 
         assert result["confidence"] == 0.0
         assert result["draft_fields"] == {}
-        assert len(result["suggestions"]) > 0
+        # D-7: human-readable guidance lives in `next_step_hint`; `suggestions` are engine chips ([]).
+        assert result.get("next_step_hint")
 
     def test_tenant_isolation(self) -> None:
         """_brand_settings must be called with the request-scoped tenant_id."""
@@ -244,6 +251,10 @@ class TestAdaptFromBrandIdentity:
             patch(
                 "src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings
             ) as mock_bs,
+            patch(
+                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                return_value=[],
+            ),
         ):
             adapt_from_brand_identity.invoke({})
             mock_bs.assert_called_once()
@@ -268,6 +279,10 @@ class TestAdaptFromBrandIdentity:
                 "src.modules.copilot.application.tools.offer_section_tools._active_personality",
                 return_value=personality_profile,
             ),
+            patch(
+                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                return_value=[],
+            ),
         ):
             result = json.loads(adapt_from_brand_identity.invoke({}))
 
@@ -287,6 +302,10 @@ class TestAdaptFromBrandIdentity:
             patch(
                 "src.modules.copilot.application.tools.offer_section_tools._active_personality",
                 return_value=None,
+            ),
+            patch(
+                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                return_value=[],
             ),
         ):
             result = json.loads(adapt_from_brand_identity.invoke({}))
@@ -308,6 +327,10 @@ class TestAdaptFromBrandNarrative:
             patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
             patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
             patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch(
+                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                return_value=[],
+            ),
         ):
             result = json.loads(adapt_from_brand_narrative.invoke({}))
 
@@ -335,6 +358,10 @@ class TestAdaptFromBrandNarrative:
             patch(
                 "src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings
             ) as mock_bs,
+            patch(
+                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                return_value=[],
+            ),
         ):
             adapt_from_brand_narrative.invoke({})
             args = mock_bs.call_args[0]

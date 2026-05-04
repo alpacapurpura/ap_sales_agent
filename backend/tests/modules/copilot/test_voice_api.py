@@ -1,16 +1,19 @@
-"""Tests for the Voice API endpoint."""
+"""Tests for the Voice API endpoint.
+
+Legacy /transcribe endpoint deprecated en PI-2 S1 PR-1 (BE side):
+returns 410 Gone con header X-Deprecation-Notice. Migración FE a
+/upload-and-transcribe pendiente como follow-up PR.
+"""
 
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID, uuid4
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.modules.copilot.api.voice import router
-from src.modules.copilot.domain.voice import TranscriptionResult
 from src.modules.iam.api.dependencies import (
     get_current_user,
     get_tenant_context,
@@ -33,23 +36,8 @@ def _build_client() -> tuple[TestClient, UUID]:
     return TestClient(app), tenant_id
 
 
-@patch(
-    "src.modules.copilot.api.voice.WhisperTranscriber",
-)
-def test_transcribe_audio_success(
-    mock_transcriber_cls: MagicMock,
-) -> None:
-    """Test successful audio transcription."""
-    mock_instance = MagicMock()
-    mock_instance.transcribe = AsyncMock(
-        return_value=TranscriptionResult(
-            text="hola mundo",
-            language="es",
-            duration_seconds=2.0,
-        ),
-    )
-    mock_transcriber_cls.return_value = mock_instance
-
+def test_transcribe_audio_success() -> None:
+    """Legacy /transcribe returns 410 Gone con deprecation header."""
     client, _ = _build_client()
     response = client.post(
         "/api/v1/copilot/voice/transcribe",
@@ -62,11 +50,11 @@ def test_transcribe_audio_success(
         },
     )
 
-    assert response.status_code == 200
-    data = response.json()
-    assert data["text"] == "hola mundo"
-    assert data["language"] == "es"
-    assert data["duration_seconds"] == 2.0
+    assert response.status_code == 410
+    assert "upload-and-transcribe" in response.headers.get(
+        "X-Deprecation-Notice",
+        "",
+    )
 
 
 def test_transcribe_audio_no_file() -> None:
@@ -78,23 +66,8 @@ def test_transcribe_audio_no_file() -> None:
     assert response.status_code == 422
 
 
-@patch(
-    "src.modules.copilot.api.voice.WhisperTranscriber",
-)
-def test_transcribe_audio_logs_tenant_context(
-    mock_transcriber_cls: MagicMock,
-) -> None:
-    """Verify endpoint accepts tenant context."""
-    mock_instance = MagicMock()
-    mock_instance.transcribe = AsyncMock(
-        return_value=TranscriptionResult(
-            text="prueba",
-            language="es",
-            duration_seconds=1.5,
-        ),
-    )
-    mock_transcriber_cls.return_value = mock_instance
-
+def test_transcribe_audio_logs_tenant_context() -> None:
+    """Legacy /transcribe accepts tenant context y retorna 410 Gone."""
     client, _tenant_id = _build_client()
     response = client.post(
         "/api/v1/copilot/voice/transcribe",
@@ -107,6 +80,8 @@ def test_transcribe_audio_logs_tenant_context(
         },
     )
 
-    assert response.status_code == 200
-    data = response.json()
-    assert data["text"] == "prueba"
+    assert response.status_code == 410
+    assert "upload-and-transcribe" in response.headers.get(
+        "X-Deprecation-Notice",
+        "",
+    )

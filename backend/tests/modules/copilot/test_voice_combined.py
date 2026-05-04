@@ -131,7 +131,12 @@ def test_voice_combined_no_file_returns_422() -> None:
 
 
 def test_legacy_transcribe_endpoint_still_works() -> None:
-    """The original /transcribe endpoint must still work (backward-compat)."""
+    """Legacy /transcribe deprecado: retorna 410 Gone con header X-Deprecation-Notice.
+
+    PI-2 S1 PR-1 (BE side) deprecó este endpoint; migración FE a
+    /upload-and-transcribe queda como follow-up PR. Este test garantiza
+    que el contrato de deprecación (410 + header) se mantiene estable.
+    """
     from src.modules.copilot.api.voice import router
 
     app = FastAPI()
@@ -141,22 +146,11 @@ def test_legacy_transcribe_endpoint_still_works() -> None:
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(id=uuid4(), tenant_id=tenant_id)
     app.dependency_overrides[get_db] = MagicMock
 
-    with patch("src.modules.copilot.api.voice.WhisperTranscriber") as mock_cls:
-        mock_instance = MagicMock()
-        mock_instance.transcribe = AsyncMock(
-            return_value=TranscriptionResult(
-                text="hola",
-                language="es",
-                duration_seconds=1.0,
-            )
-        )
-        mock_cls.return_value = mock_instance
+    client = TestClient(app, raise_server_exceptions=True)
+    response = client.post(
+        "/api/v1/copilot/voice/transcribe",
+        files={"file": ("r.webm", io.BytesIO(b"audio"), "audio/webm")},
+    )
 
-        client = TestClient(app, raise_server_exceptions=True)
-        response = client.post(
-            "/api/v1/copilot/voice/transcribe",
-            files={"file": ("r.webm", io.BytesIO(b"audio"), "audio/webm")},
-        )
-
-    assert response.status_code == 200
-    assert "text" in response.json()
+    assert response.status_code == 410
+    assert "upload-and-transcribe" in response.headers.get("X-Deprecation-Notice", "")

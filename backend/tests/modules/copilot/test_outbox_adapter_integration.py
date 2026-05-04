@@ -93,16 +93,26 @@ class TestCopilotOutboxAdapterFlagOff:
         assert len(legacy_called) == 1
         assert legacy_called[0] == "copilot_routing_decided"
 
-    def test_flag_off_is_default_for_copilot_module(self) -> None:
-        """USE_OUTBOX_PATTERN_COPILOT defaults to False — no outbox enqueue."""
-        # _is_outbox_enabled("copilot") reads settings.USE_OUTBOX_PATTERN_COPILOT
-        # which is False by default per config.py line 203
+    def test_flag_off_is_default_for_copilot_module(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Verify flag OFF path returns False when settings flag is False.
+
+        Production default is True (config.py); test forces False via
+        monkeypatch.setattr to assert the flag-off branch contract.
+        """
+        monkeypatch.setattr(
+            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            MagicMock(USE_OUTBOX_PATTERN_COPILOT=False, USE_OUTBOX_PATTERN_DEFAULT=False),
+        )
         result = EventBusAdapter._is_outbox_enabled("copilot")
         assert result is False
 
     def test_monkeypatch_env_flag_off(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Verify flag OFF via monkeypatch.setenv — simulates default runtime."""
-        monkeypatch.setenv("USE_OUTBOX_PATTERN_COPILOT", "false")
+        """Verify flag OFF via monkeypatch.setattr on settings (pydantic-settings
+        loads env at startup; setenv after import does not propagate)."""
+        monkeypatch.setattr(
+            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            MagicMock(USE_OUTBOX_PATTERN_COPILOT=False, USE_OUTBOX_PATTERN_DEFAULT=False),
+        )
         result = EventBusAdapter._is_outbox_enabled("copilot")
         assert result is False
 
