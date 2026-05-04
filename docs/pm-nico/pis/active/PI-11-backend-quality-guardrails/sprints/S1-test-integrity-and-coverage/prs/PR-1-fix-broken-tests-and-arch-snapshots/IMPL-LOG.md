@@ -207,3 +207,205 @@ These files contain valid stash fixes but require agentic builder (nicolify-agen
 PR-3 (anti-default-flip enforcement) can launch after PR-1 business PASS. Business EventBus migration complete (1 file migrated, all others either agentic or already Caso D/E). PR-3 arch fitness test `test_no_legacy_eventbus_mock_when_outbox_on.py` baseline allowlist needed if agentic builder hasn't finished Caso A migrations.
 
 Signal commit: this commit hash `37e0b794` = "EventBus migration complete (business surface)".
+
+---
+
+# IMPL-LOG — PR-1 Agentic Surface (nicolify-agentic Opus 4.7[1M])
+
+> Session: 2026-05-04 (continuation post agente previo) | Builder: nicolify-agentic (Opus 4.7) | Surface: agentic
+> Date captured Step 0: 2026-05-04
+
+---
+
+## Skills Consulted (agentic surface)
+
+| Skill | Why invoked | Decision taken |
+|---|---|---|
+| `copilot-expert` | Mandatory per system prompt — touching `tests/modules/copilot/**` (offer_section_tools, voice_api, voice_combined, outbox_adapter_integration). | Confirmed PII sanitisation + 410 deprecation pattern + outbox flag isolation per `monkeypatch.setattr(MagicMock(USE_OUTBOX_PATTERN_COPILOT=False, ...))` (acceptable Caso B/E pattern — meta-test of adapter routing logic, not band-aid since validates adapter behavior under explicit flag). |
+| `sales-agent-expert` | Mandatory per system prompt — touching `tests/modules/sales_agent/**` + `_chat_flow_snapshot_helpers.py`. Verified §3 NO-tocar list — snapshot helpers ARE test infra, NOT §3 protected (CONTRACT § 0 confirms). | Snapshot helper migration to `adapter_bus.publish` mock (Caso A — fake_db doesn't allow Caso B outbox table probe). CAMPAIGN_CONTEXT cacheable fragment expected ordering preserved per slot architecture. Voseo of agent output respected (no spanish-text rule application — agent OUTPUT is tenant voice). |
+| `tessl__pytest-api-testing` | Snapshot helper monkeypatch pattern + fixture isolation. | Used `monkeypatch.setattr(event_bus_adapter.adapter_bus, "publish", ...)` to patch instance attribute. Belt-and-suspenders second patch on legacy `EventBus.publish` for any direct caller bypass (defense-in-depth). |
+
+---
+
+## Stash Files Audit (agentic-owned, 8 files unstaged from business iter 1)
+
+| # | File | Stash content | Validation | Action |
+|---|---|---|---|---|
+| 1 | `tests/architecture/test_sales_agent_anchors.py` | `SALES-AGENT-OUTBOUND-PR7` registry entry | arch test PASS (7/7) | KEEP + COMMIT |
+| 2 | `tests/architecture/test_sales_agent_system_prompt_order.py` | `CAMPAIGN_CONTEXT` cacheable fragment | arch test PASS — CACHEABLE_FRAGMENTS source matches | KEEP + COMMIT |
+| 3 | `tests/integration/test_outbound_orchestrator_e2e.py` | Mock target rename `build_sales_agent_callback_handler` → `build_sales_agent_observability_context` | 2/2 PASS | KEEP + COMMIT |
+| 4 | `tests/modules/copilot/test_offer_section_tools.py` | `next_step_hint` contract + `_engine_suggestions_for_context` mock isolation | suite PASS, prevents real DB leak via SuggestionEngine providers | KEEP + COMMIT |
+| 5 | `tests/modules/copilot/test_outbox_adapter_integration.py` | `monkeypatch.setattr(settings, MagicMock(USE_OUTBOX_PATTERN_COPILOT=False, ...))` | Caso E (meta-test of adapter routing — validates flag-OFF branch contract). Pattern accepted per CONTRACT § 3 "test prueba la capability del adapter mismo". | KEEP + COMMIT |
+| 6 | `tests/modules/copilot/test_voice_api.py` | 410 Gone assertions (deleted obsolete WhisperTranscriber mocks) | suite PASS — endpoint deprecated PR-2 PI-2 BE-side | KEEP + COMMIT |
+| 7 | `tests/modules/copilot/test_voice_combined.py` | 410 Gone assertions | suite PASS | KEEP + COMMIT |
+| 8 | `tests/modules/sales_agent/prompts/test_compose_system_prompt.py` | `CAMPAIGN_CONTEXT` in CACHEABLE_FRAGMENTS | suite PASS | KEEP + COMMIT |
+
+**`test_chat_orchestrator_snapshot.py`** (band-aid removal target per workflow Step 4): VERIFIED — file is already clean (no `@pytest.mark.flaky` present). The polluter band-aid mentioned in PR.md/CONTRACT was never committed; only existed in stash discussion. **No action needed.**
+
+---
+
+## Snapshot Helpers Outbox-Aware Migration (CONTRACT § 4 D6 — Step 3)
+
+**File touched:** `backend/tests/modules/sales_agent/orchestrator/_chat_flow_snapshot_helpers.py` (line 215-227 → ~245)
+
+### Problem (pre-migration)
+
+`_capture_publish` patched `src.shared.domain.events.EventBus.publish` (legacy). Post outbox cutover (PR-6 PI-2, USE_OUTBOX_PATTERN_SALES_AGENT=True default):
+- Production emitters route via `adapter_bus.publish` (canonical post-cutover entry point)
+- `EventBus.publish` legacy is only invoked on fall-through (flag OFF, session=None, or _is_outbox_enabled returns False)
+- In snapshot test fixture: `fake_db = MagicMock` is neither `Session` nor `AsyncSession`, so adapter takes sync path → `outbox.enqueue_sync(event, session=fake_db)` → calls `fake_db.execute(...)` swallowed in `try/except BLE001` (best-effort contract)
+- Net result: real domain events DISAPPEARED silently → baseline file `telegram_new_lead_baseline.json` had `domain_events: []` (false negative reflecting fall-through misses, not real production behavior)
+
+### Fix (CONTRACT § 4 Caso A — adapter_bus mock)
+
+Replaced single `monkeypatch.setattr(EventBus.publish, ...)` with two patches:
+1. **Primary:** `monkeypatch.setattr(event_bus_adapter.adapter_bus, "publish", _capture_publish)` — patches instance attribute on the canonical singleton (single entry point post-cutover)
+2. **Belt-and-suspenders:** also patch legacy `EventBus.publish` to wrap the same `_capture_publish` (defense-in-depth in case any code path bypasses adapter and hits legacy bus directly)
+
+`_capture_publish` signature accepts `module=None, idempotency_key=None` kwargs (adapter passes these), preserving back-compat for legacy emitters.
+
+### Snapshot baseline diff
+
+Pre-migration:
+```json
+"domain_events": []
+```
+
+Post-migration:
+```json
+"domain_events": [
+  {
+    "event_name": "lead_captured",
+    "payload": {
+      "channel_slug": "telegram-dm",
+      "extracted_field": "external_id",
+      "profile_id": "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+      "source_channel_type": "telegram"
+    },
+    "tenant_id": "44444444-4444-4444-4444-444444444444"
+  }
+]
+```
+
+Baseline file regenerated at `backend/tests/snapshots/orchestrator/telegram_new_lead_baseline.json`. Snapshot test `test_chat_flow_telegram_new_lead_snapshot` PASSES post-migration.
+
+**Why Caso A vs Caso B:** Caso B (probe outbox table real DB) inapplicable — snapshot test fixture uses `fake_db = MagicMock` (no real DB session). Querying outbox table would require integration test infrastructure scope outside snapshot test purpose.
+
+---
+
+## Polluter Hunt Log (CONTRACT § 6 D5 — Step 4)
+
+### Step 1 — Snapshot baseline isolation
+
+```
+.venv/bin/pytest tests/modules/sales_agent/orchestrator/test_chat_orchestrator_snapshot.py -v
+→ 1 passed in 10.57s (test PASSES isolated)
+```
+
+### Step 2 — Reproduce in suite
+
+```
+.venv/bin/pytest tests/modules/sales_agent/ -v --tb=short -x -q
+→ 675 passed, 3 deselected, 3 warnings (NO FAILURE)
+```
+
+**Result: polluter NO LONGER REPRODUCES.** Singleton fixture installed by business builder iter 1 (`tests/conftest.py`, commit `7652f1f8`) addressed root cause.
+
+### Step 3 — Cross-module pollution validation (5x consecutive runs)
+
+```
+.venv/bin/pytest tests/modules/sales_agent/ tests/modules/copilot/ \
+  --ignore=tests/modules/copilot/api/test_suggestions_endpoint_integration.py \
+  -q --tb=no
+```
+
+| Run | Result |
+|---|---|
+| 1 | 2488 passed in 63.03s |
+| 2 | 2488 passed in 64.76s |
+| 3 | 2488 passed in 65.10s |
+| 4 | 2488 passed in 63.78s |
+| 5 | 2488 passed in 64.54s |
+
+**5/5 deterministic — polluter eliminated.**
+
+(Excluded test: `test_e2e_real_engine_real_offer_provider` requires Postgres DB resolution `postgres` hostname — Docker integration test, unrelated to PR-1. Out of agentic scope.)
+
+### Polluter ROOT CAUSE confirmed
+
+Per CONTRACT § 6 hypothesis matrix:
+- **Primary suspect: `ChatOrchestrator._instance` + `SemanticRouter._instance` leak** — buffer_service state + tenant-scoped routing rules persisted cross-test → next test reused stale orchestrator with wrong tenant context
+- **Secondary suspect: `EventBus._handlers` leak** — TestDomainSubscribersRegistration test left subscribers registered without teardown
+
+### Fix at source (D4 — NO band-aid)
+
+Singleton fixture `_reset_singletons_between_tests` (autouse function-scope) in `tests/conftest.py`:
+- `LLMFactory._instance = None` (stale router with prod settings)
+- `ChatOrchestrator._instance.buffer_service = None` then `_instance = None` (cleanup before drop)
+- `SemanticRouter._instance = None`
+- `EventBus.clear()` (subscriber leak)
+- `_reset_module_inference_cache()` (lru_cache stale filename mappings)
+
+Excluded (justified): `ChannelRouterRegistry._instance` (bootstrap-once design — reset breaks campaigns), `MetaAPI._api_instance` (per-instance not class-level).
+
+**Hypothesis "uuid4 doble call routing OFF flag" from previous agent**: REJECTED. The flag is read at runtime via `getattr(settings, flag_attr)`, not cached at module load. uuid4 calls in `OutboxEntry.from_event` (id + idempotency_key) are independent invocations within `enqueue_sync` — they're consumed by INSERT to `domain_event_outbox`. They don't gate routing — `_is_outbox_enabled` precedes them. Real polluter was simpler: orchestrator singletons leaking buffer state/routing tables cross-test.
+
+### `@pytest.mark.flaky(reruns=2)` band-aid (D4 enforcement)
+
+VERIFIED: `test_chat_orchestrator_snapshot.py` is **CLEAN** — no flaky marker present. Band-aid never landed; only existed as stash hypothesis. No removal needed.
+
+---
+
+## Quality Gates (agentic surface)
+
+| Gate | Result |
+|---|---|
+| `ruff check` agentic-touched files (9 files) | All checks passed |
+| `ruff format --check` agentic-touched files | 9 files already formatted |
+| `pytest tests/architecture/test_sales_agent_*.py --override-ini='addopts='` | 7/7 PASS |
+| `pytest tests/integration/test_outbound_orchestrator_e2e.py` | 2/2 PASS |
+| `pytest tests/modules/sales_agent/ tests/modules/copilot/` | 2488/2488 PASS (excl 1 Docker integ) |
+| 5x consecutive runs determinism | 5/5 PASS @ 2488 each |
+| Snapshot test isolation | 1/1 PASS post-regen baseline |
+
+---
+
+## EXTEND-vs-NEW Decisions (agentic surface)
+
+All surfaces = EXTEND (zero new modules/files):
+- `_chat_flow_snapshot_helpers.py` — EXTEND `_capture_publish` (replace mock target adapter_bus + belt-and-suspenders legacy)
+- All other agentic files — KEEP stash content as-is, validated against test pass
+
+Snapshot baseline file `telegram_new_lead_baseline.json` REGENERATED (not new — overwrite of existing).
+
+---
+
+## Cross-PR Coordination Signal (§ 13 — agentic side)
+
+PR-3 arch fitness test `test_no_legacy_eventbus_mock_when_outbox_on.py` can now reduce its `KNOWN_LEGACY_MOCK_FILES` allowlist:
+- `_chat_flow_snapshot_helpers.py` MIGRATED (Caso A adapter_bus mock) → REMOVE from allowlist
+- All Caso A copilot files (test_extraction_event_handlers, observability/test_*, api/test_suggestions*, suggestions/test_*) NOT YET MIGRATED in this iter (out of scope agentic stash applied — these are agentic-owned but stash didn't include them per business builder Step 0 grep). Defer Caso A migration of those 6 files to FUTURE PR (not blocking PR-1 close).
+- `test_outbox_adapter_integration.py` (copilot) — Caso E meta-test, magic comment `# arch-bypass: testing legacy capability` should be added to file header for PR-3 arch test bypass (deferred — not blocking PR-1).
+
+Signal commits: see § Commits below.
+
+---
+
+## Commits (agentic surface — to be pushed)
+
+| Order | Files | Conventional message |
+|---|---|---|
+| 1 | `tests/architecture/test_sales_agent_anchors.py` `tests/architecture/test_sales_agent_system_prompt_order.py` | `test(arch): register SALES-AGENT-OUTBOUND-PR7 anchor + CAMPAIGN_CONTEXT cacheable fragment (PI-11 PR-1 stash)` |
+| 2 | `tests/modules/sales_agent/prompts/test_compose_system_prompt.py` | `test(sales_agent): expect CAMPAIGN_CONTEXT in cacheable fragments (PI-11 PR-1 stash)` |
+| 3 | `tests/modules/copilot/test_offer_section_tools.py` `tests/modules/copilot/test_outbox_adapter_integration.py` `tests/modules/copilot/test_voice_api.py` `tests/modules/copilot/test_voice_combined.py` | `test(copilot): isolate offer suggestion engine, validate 410 voice deprecation, monkeypatch settings for outbox flag (D2)` |
+| 4 | `tests/integration/test_outbound_orchestrator_e2e.py` | `test(integration): rename mock target to build_sales_agent_observability_context` |
+| 5 | `tests/modules/sales_agent/orchestrator/_chat_flow_snapshot_helpers.py` `tests/snapshots/orchestrator/telegram_new_lead_baseline.json` | `test(sales_agent): outbox-aware snapshot capture via adapter_bus mock + regenerated baseline (PI-11 PR-1 Fase 5 D6)` |
+
+---
+
+## Open Questions resolved
+
+1. **Polluter Fase 4** (pre-resolved by business iter 1): root cause = orchestrator singleton leaks; singleton fixture covers. NO band-aid needed; verified clean.
+2. **Snapshot baseline regen** (CONTRACT § 10 Q5): committed within PR-1 per Q5 PM acceptance.
+3. **Caso A migrations of 6 deferred copilot files** (test_extraction_event_handlers, etc.): Out of agentic stash scope — defer to FUTURE PR. PR-1 ship not blocked.
+
