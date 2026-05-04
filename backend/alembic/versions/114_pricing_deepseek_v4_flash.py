@@ -41,11 +41,12 @@ def upgrade() -> None:
         INSERT INTO model_pricing_snapshot
             (provider, model, input_cost_per_token, output_cost_per_token,
              cache_read_cost_per_token, cache_write_cost_per_token,
-             valid_from, valid_to, source)
+             valid_from, valid_to, source, raw_payload)
         SELECT 'deepseek', 'deepseek-v4-flash',
                0.000000140000, 0.000000280000,
                0, 0,
-               CURRENT_TIMESTAMP, NULL, 'manual_pr3_pi2_s2'
+               CURRENT_TIMESTAMP, NULL, 'manual_pr3_pi2_s2',
+               '{"provider":"deepseek","model":"deepseek-v4-flash","input_cost_per_token":0.00000014,"output_cost_per_token":0.00000028,"cache_read_input_token_cost":0,"cache_creation_input_token_cost":0,"source":"manual_pr3_pi2_s2"}'::jsonb
         WHERE NOT EXISTS (
             SELECT 1 FROM model_pricing_snapshot
             WHERE provider = 'deepseek'

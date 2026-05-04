@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import redis
 import structlog
 from sqlalchemy import MetaData, create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.core.config import settings
@@ -25,6 +26,20 @@ engine = create_engine(
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Async engine + session factory (asyncpg driver)
+# Used by LLM config service (main.py) and admin LLM models panel.
+_async_url = settings.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+async_engine = create_async_engine(
+    _async_url,
+    pool_pre_ping=True,
+    pool_recycle=300,
+)
+async_session_maker: async_sessionmaker[AsyncSession] = async_sessionmaker(
+    async_engine,
+    expire_on_commit=False,
+    class_=AsyncSession,
+)
 
 # Redis — graceful degradation when unavailable
 _redis_client: redis.Redis | None = None

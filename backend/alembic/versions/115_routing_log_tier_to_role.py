@@ -8,7 +8,7 @@ Migración:
    (idempotente: rename solo si tier_selected existe y role_selected no).
 2. UPDATE valores legacy ModelTier → ModelRole en ``copilot_routing_log.role_selected``:
    ``mini`` → ``fast``, ``heavy`` → ``agent`` (NANO y REASONING permanecen).
-3. UPDATE valores legacy en ``copilot_conversation.last_tier_used`` (column name preserva
+3. UPDATE valores legacy en ``copilot_conversations.last_tier_used`` (column name preserva
    por telemetría histórica, pero values ahora son ModelRole strings).
 
 Idempotente — todo bajo ``IF EXISTS`` + UPDATE …WHERE value IN legacy.
@@ -72,17 +72,17 @@ def upgrade() -> None:
         """
     )
 
-    # 3. UPDATE legacy values en copilot_conversation.last_tier_used
+    # 3. UPDATE legacy values en copilot_conversations.last_tier_used
     op.execute(
         """
-        UPDATE copilot_conversation
+        UPDATE copilot_conversations
         SET last_tier_used = 'fast'
         WHERE last_tier_used = 'mini'
         """
     )
     op.execute(
         """
-        UPDATE copilot_conversation
+        UPDATE copilot_conversations
         SET last_tier_used = 'agent'
         WHERE last_tier_used = 'heavy'
         """
@@ -97,14 +97,14 @@ def downgrade() -> None:
     # Revert values
     op.execute(
         """
-        UPDATE copilot_conversation
+        UPDATE copilot_conversations
         SET last_tier_used = 'heavy'
         WHERE last_tier_used = 'agent'
         """
     )
     op.execute(
         """
-        UPDATE copilot_conversation
+        UPDATE copilot_conversations
         SET last_tier_used = 'mini'
         WHERE last_tier_used = 'fast'
         """
