@@ -1,0 +1,40 @@
+---
+id: brand-extraction
+name: "Extracción automática de marca"
+module: brand
+backbone_activity: "Capturar marca"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/brand.md"
+  stories_dir: "../../stories/brand/"
+description: "Pipeline de extracción wave-based para auto-fill brand desde sitio web (scraping) o documentos subidos (PDF, copy existente). LLM-powered con orchestrator BaseExtractionOrchestrator."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - brand-extract-from-website
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Scraping web (multiple fuentes / crawler) → extracción identity, story, positioning, voice
+- Upload de documentos (PDF, transcripciones, copy) → extracción wave-based
+- Orquestador wave-based (`BaseExtractionOrchestrator` shared) con persistencia per-wave
+- Trace events (`extraction_trace`) para observabilidad y debugging del pipeline
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| brand-extract-from-website | service-story | live | ../../stories/brand/brand-extract-from-website.yaml |
+
+## Gaps identificados
+
+- No hay verificación E2E del flujo completo "subo URL → veo brand poblada en UI"
+- Worker de re-extracción (`brand_summary_regen`) usa LLM sin BudgetGuard activo (DR-7)
+- Cost monitoring del pipeline (tokens/USD por extraction) no surface en UI ni en alerting

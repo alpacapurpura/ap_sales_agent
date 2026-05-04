@@ -1,0 +1,116 @@
+---
+id: analytics-stage-detail-tier3
+type: ui-story
+module: analytics
+capability: bowtie-progressive-loading
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/bowtie-progressive-loading.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-stage-overview-tier1
+
+context:
+  job: "Como usuario quiero ver detalle granular por canal+stage (e.g. Atracción → Facebook → ads/campaigns/insights diarios) con timeseries y aggregations"
+  why: "Tier 3 es DB-direct para datos no cacheables; sin esto user no puede diagnosticar campañas específicas por canal"
+  constraints:
+    - "Latencia p95 <2s (DB query, no cache)"
+    - "Mobile responsive"
+    - "Multi-currency"
+    - "Channel-grouped widgets"
+
+outcome:
+  user_observable: "Tras drill-down (stage → canal), full-page detail con timeseries chart + table de campañas/ads/insights por día"
+  product_observable:
+    - "`stage_services/{stage}_stage.py` ejecuta query a `official_metrics` con joins"
+
+scenarios:
+  - id: happy-path-channel-detail
+    type: regression
+    given:
+      - "Tenant T1 con datos Facebook 30d"
+    when: "Navega a /growth-studio/atraccion-captura/facebook"
+    then:
+      - "Página renderiza <2s"
+      - "Timeseries chart muestra spend daily"
+      - "Tabla de campañas con CPL/ROAS"
+      - "Currency consistente (PEN/USD según account)"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/growth/meta-ads-dashboard.spec.ts"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/metrics/attraction?channel=facebook&from=...&to=..."
+        expect: "200 with AttractionDetailDTO"
+
+  - id: empty-channel-state
+    type: negative
+    given:
+      - "Tenant sin datos en canal específico"
+    when: "Drill-down a canal sin métricas"
+    then:
+      - "Empty state amigable"
+      - "Sin 5xx"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/growth/growth-stages.spec.ts"
+
+  - id: very-large-tenant-30d-aggregation
+    type: edge
+    given:
+      - "Tenant grande con 100k+ rows en rango"
+    when: "GET stage detail con range 30d"
+    then:
+      - "Query optimizada con índices"
+      - "Latencia <2s p95"
+      - "Pagination si aplicable"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/growth/growth-stages.spec.ts"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 modifica URL/header para tenant T2"
+    then:
+      - "403"
+      - "No leak"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/growth/meta-ads-dashboard.spec.ts"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by:
+    - copilot
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - analytics-stage-overview-tier1
+  capabilities:
+    - etl-pipeline-providers
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/regression/growth/meta-ads-dashboard.spec.ts"
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

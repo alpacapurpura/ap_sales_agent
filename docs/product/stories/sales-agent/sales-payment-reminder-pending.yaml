@@ -1,0 +1,132 @@
+---
+id: sales-payment-reminder-pending
+type: service-story
+module: sales-agent
+capability: sales-follow-up-workers
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-follow-up-workers.yaml"
+  domain_doc: "../../../domains/module_sales_agent.md"
+  related_stories:
+    - sales-followup-cadence
+    - sales-tool-send-payment-link
+
+context:
+  job: "Como worker necesito recordar lead con enrollment status=AWAITING_PAYMENT que no completó checkout (link generado pero no clickeado o checkout abandonado en provider)."
+  why: "Recovery rate sin reminder = 5%. Con reminder = 25-35%. Direct revenue impact."
+  constraints:
+    - "Verificar provider real (Mercado Pago / Stripe) antes de re-enviar reminder"
+    - "Idempotent (1 reminder por (enrollment_id, attempt_step))"
+    - "Max 3 attempts (1h, 24h, 72h)"
+    - "Stop si payment confirmed entre ticks"
+
+outcome:
+  consumer_observable: "Lead recibe reminder amable con link existente (no se regenera)"
+  product_observable:
+    - "DB: payment_reminder_log row created"
+    - "verify_pending_payments worker actualiza status si confirmed"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "cron */15 minutos"
+
+scenarios:
+  - id: happy-reminder-1h
+    type: regression
+    given:
+      - "Enrollment E1 status=AWAITING_PAYMENT generated 1h ago, no payment received"
+    when: "payment_reminder_engine tick"
+    then:
+      - "Worker checks Mercado Pago real status (verify_pending_payments)"
+      - "Si still pending → emit PaymentReminderRequested"
+      - "DB: payment_reminder_log 1 row (E1, attempt=1h)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/test_follow_up_engine.py"
+
+  - id: payment-completed-between-ticks
+    type: edge
+    given:
+      - "Enrollment E1 status=AWAITING_PAYMENT, payment confirmed via webhook entre ticks"
+    when: "payment_reminder_engine tick"
+    then:
+      - "verify_pending_payments detecta confirmed"
+      - "Update status enrollment → PAID (webhook puede haberlo hecho ya)"
+      - "NO se envía reminder"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT status FROM enrollments WHERE id = ?"
+        expect: "PAID"
+
+  - id: max-attempts-reached
+    type: edge
+    given:
+      - "Enrollment E1 con 3 reminder attempts already sent"
+    when: "payment_reminder_engine tick"
+    then:
+      - "Worker NO envía 4to reminder"
+      - "Status enrollment marked → ABANDONED tras 72h"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT status FROM enrollments WHERE id = ?"
+        expect: "ABANDONED"
+
+  - id: adversarial-cross-tenant-reminder
+    type: adversarial
+    given:
+      - "Enrollment E1 tenant T1, worker tick"
+    when: "Tenant_id mismatch en query"
+    then:
+      - "Worker tenant-scoped query rejects"
+      - "NO se envía reminder cross-tenant"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT tenant_id FROM payment_reminder_log WHERE enrollment_id = ?"
+        expect: "tenant-isolated"
+
+cross_module:
+  reads_from:
+    - connections
+    - crm
+  read_by: []
+  emits_events:
+    - PaymentReminderRequested
+  consumes_events:
+    - PaymentLinkSent
+    - PaymentConfirmed
+
+dependencies:
+  stories:
+    - sales-tool-send-payment-link
+  capabilities:
+    - connections-mercado-pago
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/sales_agent/test_follow_up_engine.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

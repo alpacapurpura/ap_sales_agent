@@ -1,0 +1,44 @@
+---
+id: verification-layer
+name: "Verification layer 4-protocolo"
+module: analytics
+backbone_activity: "Garantizar reliability data marketing"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/analytics.md"
+  stories_dir: "../../stories/analytics/"
+description: "Protocol 4-layer para data reliability: Layer 0 ETL execution (`make verify-etl`), Layer 1 Source Probe API==DB (`make verify-probe-{p}`), Layer 2 Pipeline DB==DTO (`make verify-pipeline`), Layer 3 UI Fidelity API==display (`make verify-ui`). Trigger matrix obliga layer correspondiente al modificar provider/stage/DTO/component."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - analytics-verify-source-probe
+  - analytics-verify-pipeline-integrity
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Layer 0 ETL execution verification (`make verify-etl provider={n}`)
+- Layer 1 Source Probe (provider API call vs DB row equality)
+- Layer 2 Pipeline integrity (DB row vs serialized DTO)
+- Layer 3 UI Fidelity (API response vs rendered display value)
+- Extraction contract enforcement (`backend/src/modules/analytics/domain/extraction_contract.py` SSoT + arch test gate)
+- Auto-gen contract MD on `make extraction-contract`
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| analytics-verify-source-probe | service-story | live | ../../stories/analytics/analytics-verify-source-probe.yaml |
+| analytics-verify-pipeline-integrity | service-story | live | ../../stories/analytics/analytics-verify-pipeline-integrity.yaml |
+
+## Gaps identificados
+
+- Layer 3 UI Fidelity verification depende de Playwright runner que no corre en CI por default (manual)
+- No hay alerta automática cuando contract drift detected — el arch test falla pero no notifica al equipo
+- Verification layers no están integradas en `/test-all` pipeline native — corren solo on-demand

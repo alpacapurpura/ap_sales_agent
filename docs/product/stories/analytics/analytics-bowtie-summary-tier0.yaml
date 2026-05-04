@@ -1,0 +1,125 @@
+---
+id: analytics-bowtie-summary-tier0
+type: service-story
+module: analytics
+capability: bowtie-progressive-loading
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/bowtie-progressive-loading.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-stage-overview-tier1
+
+context:
+  job: "Como usuario del Growth Studio necesito ver KPIs agregados del funnel completo (vistas/leads/oportunidades/ventas/expansión) en <500ms al abrir la página"
+  why: "Tier 0 es el load instantáneo — sin esto user ve loading state >2s y abandona dashboard"
+  constraints:
+    - "Latencia p95 < 500ms"
+    - "Tenant-scoped"
+    - "Currency desde TenantLocale + per-channel"
+    - "Cacheable (TTL ~5 min)"
+
+outcome:
+  consumer_observable: "GET /api/v1/metrics/summary retorna BowtiesSummaryDTO con KPIs por stage del funnel"
+  product_observable:
+    - "Response shape: vistas, leads, ventas totales, ROAS, CAC, etc"
+    - "Response incluye currency per stage"
+    - "Cache hit rate >70% en producción"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/metrics/summary
+  request_schema: null
+  response_schema: "backend/src/modules/analytics/application/dto/summary_dto.py::BowtiesSummaryDTO"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-summary-load
+    type: regression
+    given:
+      - "Tenant T1 con datos en `official_metrics` últimos 30d"
+    when: "GET /api/v1/metrics/summary?from=2026-04-04&to=2026-05-04 con X-Tenant-ID=T1"
+    then:
+      - "Status 200"
+      - "Response shape BowtiesSummaryDTO completa"
+      - "Latencia <500ms p95"
+      - "Currency por stage presente"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_summary_endpoint.py"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/metrics/summary"
+        expect: "200 with BowtiesSummaryDTO"
+
+  - id: tenant-no-data
+    type: negative
+    given:
+      - "Tenant T_new sin métricas registradas"
+    when: "GET /api/v1/metrics/summary"
+    then:
+      - "Status 200 con todos los KPIs en 0 (no error)"
+      - "Currency default desde TenantLocale"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_summary_endpoint.py"
+
+  - id: large-date-range
+    type: edge
+    given:
+      - "Range 1 año (365 días)"
+    when: "GET /api/v1/metrics/summary?from=2025-05-04&to=2026-05-04"
+    then:
+      - "Status 200 dentro budget latencia"
+      - "Aggregations correctas"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_summary_timeseries_stage.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 hace GET con header X-Tenant-ID=T2"
+    then:
+      - "403 Forbidden"
+      - "Audit log entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_api_routes_supplemental.py"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by:
+    - copilot
+  emits_events: []
+  consumes_events:
+    - analytics.metrics_synced
+
+dependencies:
+  stories: []
+  capabilities:
+    - etl-pipeline-providers
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_summary_endpoint.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

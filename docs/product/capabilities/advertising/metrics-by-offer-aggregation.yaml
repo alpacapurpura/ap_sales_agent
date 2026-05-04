@@ -1,0 +1,41 @@
+---
+id: metrics-by-offer-aggregation
+name: "Métricas agregadas por oferta"
+module: advertising
+backbone_activity: "Medir ROAS/CPL por oferta"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/advertising.md"
+  stories_dir: "../../stories/advertising/"
+description: "Agregación métricas Meta Ads (spend, impressions, clicks, conversions, ROAS, CPL) agrupadas por oferta. Vista de retorno por oferta usando asociaciones ad↔offer. Soporta funnel reach + filter por ExpertBusinessType."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - advertising-metrics-by-offer
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- GET `/api/v1/advertising/metrics-by-offer` con query params (date_from, date_to, offer_id opcional)
+- Aggregation MetricsByOfferService cruza `official_metrics` con `ad_offer_association`
+- Currency desde Meta account (multi-currency LATAM)
+- Repository métricas tenant-scoped
+- Funnel reach calculation per offer
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| advertising-metrics-by-offer | service-story | live | ../../stories/advertising/advertising-metrics-by-offer.yaml |
+
+## Gaps identificados
+
+- Sin UI dedicada — consumido por offer-studio/campaigns (vista parcial)
+- No hay timeseries chart (solo aggregate por rango)
+- Métricas Google Ads no incluidas (solo Meta) — gap multi-platform

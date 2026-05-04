@@ -8,7 +8,8 @@
 
 | ID | Type | Status | Capability | Last audit |
 |----|------|--------|------------|------------|
-| _(vacío — populado por agents en P9 o /po cuando crea stories)_ |
+| calendar-list-events | service-story | live | calendar-events | 2026-05-04 |
+| calendar-event-crud | service-story | live | calendar-events | 2026-05-04 |
 
 ## Cómo agregar story nueva
 

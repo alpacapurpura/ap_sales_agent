@@ -1,0 +1,120 @@
+---
+id: connections-manychat-send-content-api
+type: service-story
+module: connections
+capability: connections-manychat-integration
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/connections.md"
+  capability: "../../capabilities/connections/connections-manychat-integration.yaml"
+  domain_doc: "../../../domains/module_connections.md"
+  related_stories:
+    - connections-manychat-webhook-receive
+
+context:
+  job: "Como sales_agent envío respuesta al lead vía ManyChat Send Content API (text, quick replies, attachments) — abstracción multi-canal IG/FB/WhatsApp/TikTok."
+  why: "ManyChat = single API para todos los canales (cross-platform). Sin esta capa, sales_agent debe implementar adapter por cada canal."
+  constraints:
+    - "Tenant-scoped (token de tenant)"
+    - "Rate limit Manychat 10 msg/sec por subscriber"
+    - "Format adapter: Markdown → ManyChat blocks"
+    - "Retry 1x si 5xx (idempotent via message_id natural key)"
+
+outcome:
+  consumer_observable: "Lead recibe mensaje en su canal nativo (IG DM, FB Messenger, WhatsApp Business via ManyChat custom)"
+  product_observable:
+    - "DB: messages_outbound row con provider_message_id"
+    - "Domain event OutboundMessageSent emitted"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/connections/manychat/send-content
+  request_schema: "connections/api/dto.py::SendContentRequest"
+  response_schema: "connections/api/dto.py::SendContentResponse"
+  auth: internal
+  rate_limit_per_tenant: "600/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-send-text
+    type: regression
+    given:
+      - "tenant T1 con Manychat connected, subscriber S1"
+    when: "POST con `{subscriber_id: S1, content: 'Hola...'}`"
+    then:
+      - "Adapter formats content → ManyChat blocks"
+      - "API call retorna 200"
+      - "DB: messages_outbound row created"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_marketing_connectors.py"
+
+  - id: provider-down-retry
+    type: edge
+    given:
+      - "ManyChat returns 503"
+    when: "Send invoked"
+    then:
+      - "Retry 1x (exponential backoff)"
+      - "Si segundo falla → enqueue retry queue"
+      - "DB: messages_outbound row status='pending_retry'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_marketing_connectors.py"
+
+  - id: rate-limit-per-subscriber
+    type: edge
+    given:
+      - ">10 msg/sec to subscriber S1"
+    when: "Multiple sends concurrent"
+    then:
+      - "Rate limiter throttles"
+      - "Excess enqueued"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_marketing_connectors.py"
+
+  - id: cross-tenant-token-leak
+    type: adversarial
+    given:
+      - "tenant T1 send invoked con tenant_id=T2 spoofed"
+    when: "POST"
+    then:
+      - "Internal auth checks token corresponde tenant"
+      - "Si mismatch → 403"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_meta_tenant_isolation.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+  emits_events:
+    - OutboundMessageSent
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/connections/test_marketing_connectors.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

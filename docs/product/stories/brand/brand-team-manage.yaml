@@ -1,0 +1,126 @@
+---
+id: brand-team-manage
+type: ui-story
+module: brand
+capability: brand-credentials
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/brand.md"
+  capability: "../../capabilities/brand/brand-credentials.yaml"
+  domain_doc: "../../../domains/module_brand.md"
+  related_stories: []
+
+context:
+  job: "Como user quiero registrar y administrar a los miembros de mi equipo (instructores, fundadores) para que landing y sales_agent los referencien con autoridad."
+  why: "Sin equipo declarado, copy sales_agent es genérico y la landing carece de prueba social humana."
+  constraints:
+    - "Tenant-scoped"
+    - "Auto-save on change"
+    - "Foto opcional pero recomendada (R2 storage)"
+    - "Spanish neutro LatAm"
+
+outcome:
+  user_observable: "Tras click 'Agregar miembro', usuario llena nombre/rol/bio y la persona queda lista para mostrarse en landing y ser referenciada por sales_agent."
+  product_observable:
+    - "DB: brand_team_members insertado con tenant_id"
+    - "Landing /publico render incluye el nuevo miembro"
+    - "sales_agent context inyecta team al próximo turno"
+
+scenarios:
+  - id: add-team-member
+    type: regression
+    given:
+      - "Usuario autenticado tenant T1"
+      - "Sección /brand-studio/team abierta sin miembros previos"
+    when: "Usuario click 'Agregar miembro', llena nombre 'Sofía López', rol 'Instructora principal' y desenfoca"
+    then:
+      - "POST /api/v1/brand/team con payload válido retorna 201"
+      - "DB: brand_team_members 1 row con name='Sofía López'"
+      - "Listado UI muestra el miembro recién creado"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT name, role FROM brand_team_members WHERE tenant_id = ? AND deleted_at IS NULL"
+        expect: "1 row con name='Sofía López'"
+
+  - id: invalid-name-empty
+    type: negative
+    given:
+      - "Usuario autenticado tenant T1"
+    when: "Usuario submite miembro sin name"
+    then:
+      - "Validation inline 'El nombre es requerido'"
+      - "DB: no se inserta row"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: delete-and-soft-deletion
+    type: edge
+    given:
+      - "Tenant T1 con miembro existente id=42"
+    when: "Usuario click 'Eliminar miembro' y confirma"
+    then:
+      - "DB: brand_team_members.deleted_at IS NOT NULL para id=42"
+      - "Listado UI no muestra el miembro eliminado"
+      - "Landing /publico no incluye miembro eliminado"
+      - "Si user re-crea miembro con mismo nombre, no choca FK"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT deleted_at FROM brand_team_members WHERE id = 42"
+        expect: "deleted_at IS NOT NULL"
+
+  - id: cross-tenant-team-write
+    type: adversarial
+    given:
+      - "Tenant T2 tiene miembro id=99"
+    when: "Usuario A (tenant T1) hace PATCH /api/v1/brand/team/99 con X-Tenant-ID=T1"
+    then:
+      - "404 Not Found (no leakea existencia en T2)"
+      - "DB: miembro de T2 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "PATCH /api/v1/brand/team/99 con X-Tenant-ID=T1"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - landing
+    - sales_agent
+    - assets
+  emits_events:
+    - BrandSectionUpdated
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - brand-credentials
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: false
+  integration_tests: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

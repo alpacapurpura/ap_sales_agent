@@ -1,0 +1,122 @@
+---
+id: scheduling-event-type-create
+type: service-story
+module: scheduling
+capability: scheduling-event-types
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/scheduling.md"
+  capability: "../../capabilities/scheduling/scheduling-event-types.yaml"
+  domain_doc: "../../../domains/module_scheduling.md"
+  related_stories:
+    - scheduling-event-type-public-link
+
+context:
+  job: "Como tenant quiero crear event_type (e.g., 'demo-60min') con duración, buffer, custom questions, slug, para que leads reserven via booking page."
+  why: "Sin event_types, sin reservas. Configurable per tenant — diferentes service tiers necesitan diferentes durations."
+  constraints:
+    - "Slug unique per tenant"
+    - "Tenant-scoped"
+    - "Duration min 5min, max 480min"
+    - "Soft delete only (deleted_at)"
+
+outcome:
+  consumer_observable: "Tenant recibe event_type creado con id + slug + public_url computed"
+  product_observable:
+    - "DB: scheduling_event_types row created"
+    - "DB: scheduling_availability row si include working_hours"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/scheduling/event-types
+  request_schema: "scheduling/api/dto.py::EventTypeCreateRequest"
+  response_schema: "scheduling/api/dto.py::EventTypeResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "10/min"
+  idempotency: header
+  trigger: null
+
+scenarios:
+  - id: happy-create-discovery-30min
+    type: regression
+    given:
+      - "tenant T1 sin event_types"
+    when: "POST con `{name: 'Discovery 30min', duration: 30, slug: 'discovery-30min'}`"
+    then:
+      - "Status 201"
+      - "DB: scheduling_event_types 1 row"
+      - "Response includes public_url computed (custom_domain + slug)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_event_type_service.py"
+      - type: state_check
+        target: db
+        query: "SELECT slug FROM scheduling_event_types WHERE tenant_id = ?"
+        expect: "discovery-30min"
+
+  - id: duplicate-slug
+    type: negative
+    given:
+      - "tenant T1 ya tiene event_type slug='discovery-30min'"
+    when: "POST con mismo slug"
+    then:
+      - "Status 409 Conflict"
+      - "Detail: 'slug already exists for tenant'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_event_type_service.py"
+
+  - id: invalid-duration
+    type: negative
+    given:
+      - "tenant T1"
+    when: "POST con duration=-5 o duration=999"
+    then:
+      - "Status 422"
+      - "Validation: duration must be 5-480"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_event_type_service.py"
+
+  - id: cross-tenant-create-leak
+    type: adversarial
+    given:
+      - "tenant T1 con header X-Tenant-ID=T2"
+    when: "POST event-type"
+    then:
+      - "Service usa header tenant_id = T2 (Clerk validates)"
+      - "Si Clerk JWT no autoriza T2 → 403"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_event_type_service.py"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events:
+    - EventTypeCreated
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/scheduling/test_event_type_service.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

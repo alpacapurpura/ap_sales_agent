@@ -1,0 +1,133 @@
+---
+id: tenant-domains-add-and-verify
+type: ui-story
+module: tenant-domains
+capability: custom-domains
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/tenant-domains.md"
+  capability: "../../capabilities/tenant-domains/custom-domains.yaml"
+  domain_doc: "../../../domains/module_tenant-domains.md"
+  related_stories:
+    - tenant-domains-worker-poll
+
+context:
+  job: "Como tenant quiero agregar mi dominio propio (e.g. mimarca.com) y completar la verificación DNS desde un wizard que me guíe, para usar mi marca en landings/booking pages"
+  why: "Sin custom domain el tenant queda atado a subdominios genéricos del SaaS. Su marca no aparece en URLs públicas (landings, booking, sales agent). Si falla, valor percibido del producto cae fuerte porque no hay 'hosted en mi dominio'."
+  constraints:
+    - "Spanish neutro (wizard copy, error messages)"
+    - "Mobile responsive >=375px"
+    - "Tenant-scoped (X-Tenant-ID required en todas las mutations)"
+    - "Cloudflare CHM como backend obligatorio (no shortcuts)"
+    - "DNS instructions (CNAME/TXT) deben mostrarse copy-friendly"
+
+outcome:
+  user_observable: "Tras agregar dominio el tenant ve instrucciones DNS, configura su DNS, vuelve a la app, click en Verificar y ve status que va de `pending` → `active`"
+  product_observable:
+    - "DB: row nueva en `tenant_domains` con status='pending'"
+    - "Cloudflare CHM: hostname registrado vía Cloudflare API"
+    - "Worker poll_domain_verification monitorea hasta SSL ready"
+    - "Cross-module: scheduling y landing pueden usar el dominio una vez activo"
+  metrics_to_track:
+    - { name: "custom_domains_active", target: ">0 por tenant que paga" }
+
+scenarios:
+  - id: happy-path-wizard
+    type: regression
+    given:
+      - "Tenant T1 autenticado en /[tenantId]/settings/dominios"
+    when: "Click 'Agregar dominio' → CustomDomainWizard → escribe 'mimarca.com' → Confirmar"
+    then:
+      - "POST /api/v1/domains/ con body {domain:'mimarca.com'} retorna 201"
+      - "DB: row en `tenant_domains` con status='pending', tenant_id=T1"
+      - "UI muestra instrucciones DNS (CNAME target visible y copiable)"
+      - "DomainStatusBadge muestra 'Pendiente'"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT domain, status, tenant_id FROM tenant_domains WHERE domain='mimarca.com'"
+        expect: "status='pending', tenant_id=T1"
+      - type: contract_test
+        path: "backend/tests/modules/tenant_domains/test_domain_service.py"
+
+  - id: invalid-domain-format
+    type: regression
+    given:
+      - "Tenant en wizard"
+    when: "User escribe 'no-es-dominio' (sin TLD) y submite"
+    then:
+      - "Validation inline visible (Zod schema rechaza)"
+      - "Submit deshabilitado / no se llama POST"
+      - "DB: ningún row nuevo"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM tenant_domains WHERE domain LIKE '%no-es-dominio%'"
+        expect: "0"
+
+  - id: duplicate-domain-conflict
+    type: regression
+    given:
+      - "Dominio 'tenant-otro.com' ya registrado por tenant T2"
+    when: "Tenant T1 intenta POST /api/v1/domains/ con domain='tenant-otro.com'"
+    then:
+      - "Status 409 Conflict (Cloudflare rechaza o backend pre-check rechaza)"
+      - "UI muestra mensaje claro 'Este dominio ya está en uso'"
+      - "DB: ningún row nuevo para T1 con ese dominio"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/tenant_domains/test_domain_conflict.py"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "Tenant T1 autenticado"
+      - "Domain id=99 pertenece a tenant T2"
+    when: "GET /api/v1/domains/99 con X-Tenant-ID=T1 (o DELETE)"
+    then:
+      - "Status 404 (no leakea existencia ni datos del dominio T2)"
+      - "DB: domain id=99 sin cambios"
+      - "Audit log: intento cross-tenant registrado"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/tenant_domains/test_domain_repository.py"
+      - type: state_check
+        target: api
+        query: "DELETE /api/v1/domains/99 con X-Tenant-ID=T1"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - scheduling
+    - landing
+  emits_events:
+    - tenant_domain_added
+    - tenant_domain_verified
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: 8
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

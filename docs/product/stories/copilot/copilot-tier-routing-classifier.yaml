@@ -1,0 +1,124 @@
+---
+id: copilot-tier-routing-classifier
+type: service-story
+module: copilot
+capability: copilot-conversational-orchestrator
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04-30
+pr_introduced: PR-1
+pi_introduced: PI-2-S3
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/copilot.md"
+  capability: "../../capabilities/copilot/copilot-conversational-orchestrator.yaml"
+  domain_doc: "../../../domains/module_copilot.md"
+  related_stories:
+    - copilot-chat-conversation-web
+
+context:
+  job: "Como sistema necesito clasificar el turno (rule_classifier + llm_classifier fallback) → ModelRole (NANO/FAST/REASONING/AGENT) para optimizar costo (NANO -78% vs gpt-5.4)."
+  why: "ModelTier domain enum eliminado (S3 PR-1 PI-2). ModelRole único SSoT. DeepSeek V4-Flash NANO+FAST activo, fallback chain transparente DeepSeek→OpenAI single retry."
+  constraints:
+    - "Latencia classifier < 200ms"
+    - "Threshold eval gate ROUGE+cosine ≥0.95 (S5 guardrail)"
+    - "100 goldens dataset (50 classifier + 50 summarizer, 5 cat × 8 + 10 adversarial each)"
+    - "Idempotent: mismo prompt → mismo tier (deterministic temperature=0.0)"
+
+outcome:
+  consumer_observable: "Orchestrator recibe ModelRole correcto → LiteLLM Proxy dispatch al modelo correcto"
+  product_observable:
+    - "DB: copilot_routing_log row con role_selected + classifier_used"
+    - "Cost reduction esperado NANO -30% in/-78% out, MINI -81% in/-94% out vs gpt-5.4"
+
+service_contract:
+  type: endpoint
+  method: null
+  path: null
+  request_schema: "copilot/application/router/model_router.py::ModelRouter.route"
+  response_schema: "ModelRole enum"
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "called by orchestrator pre-LLM"
+
+scenarios:
+  - id: happy-rule-classifier-fast-path
+    type: regression
+    given:
+      - "user message simple ('hola')"
+    when: "ModelRouter.route invocado"
+    then:
+      - "rule_classifier matches NANO tier (greeting pattern)"
+      - "llm_classifier NOT invoked (rule matched)"
+      - "DB: copilot_routing_log con role_selected='NANO', classifier_used='rule'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/test_llm_classifier.py"
+      - type: state_check
+        target: db
+        query: "SELECT role_selected FROM copilot_routing_log WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 1"
+        expect: "NANO"
+
+  - id: llm-classifier-fallback-complex-query
+    type: regression
+    given:
+      - "user message compleja requiriendo razonamiento ('analiza mi marca y dame insights cross con mis competidores')"
+    when: "ModelRouter.route invocado"
+    then:
+      - "rule_classifier no match"
+      - "llm_classifier (DeepSeek-V4-Flash) classifies → REASONING"
+      - "Fallback chain transparente si DeepSeek 503 → openai/gpt-4o"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/test_llm_classifier.py"
+
+  - id: eval-gate-pre-promote
+    type: edge
+    given:
+      - "Eval suite runs against goldens (50 classifier ejemplos)"
+    when: "EvalRunner.run_classifier(threshold=0.95)"
+    then:
+      - "aggregate_score >= 0.95 → passed=True"
+      - "Si <0.95 → exit 1 (CI gate fails)"
+    graders:
+      - type: contract_test
+        path: "backend/src/modules/copilot/evals/runner.py"
+
+  - id: cross-tenant-routing-leak
+    type: adversarial
+    given:
+      - "tenant T1 routing"
+    when: "Tenant_id leakeado en routing_log column"
+    then:
+      - "DB row tenant-isolated (FK + tenant_id required)"
+      - "Streamlit /admin/copilot-routing query filtra por tenant"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT tenant_id FROM copilot_routing_log WHERE id = ?"
+        expect: "tenant-isolated"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/copilot/test_llm_classifier.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

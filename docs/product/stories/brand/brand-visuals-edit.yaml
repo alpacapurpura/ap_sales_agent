@@ -1,0 +1,128 @@
+---
+id: brand-visuals-edit
+type: ui-story
+module: brand
+capability: brand-identity-visuals
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/brand.md"
+  capability: "../../capabilities/brand/brand-identity-visuals.yaml"
+  domain_doc: "../../../domains/module_brand.md"
+  related_stories:
+    - brand-identity-edit
+
+context:
+  job: "Como user quiero subir y administrar elementos visuales de mi marca (logo, paleta extendida, mockups) para que el sistema use estos assets al generar landing y copies."
+  why: "Sin visuales correctos, las landings se ven con placeholders y los assets generados desentonan con la identidad."
+  constraints:
+    - "Tenant-scoped"
+    - "Auto-save on change"
+    - "Storage R2 (Cloudflare)"
+    - "MIME validation antes de subir"
+
+outcome:
+  user_observable: "Tras subir un archivo o editar un campo, el visual queda asociado al tenant y disponible para landing y assets."
+  product_observable:
+    - "DB: brand_settings.visuals actualizado"
+    - "Storage: archivo en R2 con key tenant-scoped"
+    - "Domain event BrandSectionUpdated{section='visuals'} en outbox"
+
+scenarios:
+  - id: upload-logo-png
+    type: regression
+    given:
+      - "Usuario autenticado en tenant T1"
+      - "brand-studio sección visuals abierta"
+    when: "Usuario sube logo PNG <2MB y lo confirma"
+    then:
+      - "Archivo persistido en R2 con key tenant-scoped"
+      - "DB: brand_settings.visuals.logo_url referencia el asset subido"
+      - "Preview actualizado en UI <2s"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT visuals FROM brand_settings WHERE tenant_id = ?"
+        expect: "visuals.logo_url IS NOT NULL"
+
+  - id: reject-invalid-mime
+    type: negative
+    given:
+      - "Usuario autenticado en tenant T1"
+    when: "Usuario intenta subir archivo .exe en campo logo"
+    then:
+      - "Validación MIME rechaza antes de subir"
+      - "Toast error 'Tipo de archivo no permitido'"
+      - "Storage: nada sube a R2"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT visuals FROM brand_settings WHERE tenant_id = ?"
+        expect: "no change"
+
+  - id: oversized-file
+    type: edge
+    given:
+      - "Usuario autenticado en tenant T1"
+    when: "Usuario sube archivo >10MB"
+    then:
+      - "Backend retorna 413 Payload Too Large"
+      - "UI muestra mensaje claro con tamaño máximo"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: cross-tenant-asset-access
+    type: adversarial
+    given:
+      - "Tenant T2 tiene un logo en R2 con key 't2/logo.png'"
+    when: "Usuario A (tenant T1) intenta acceder a key de T2 vía URL directa"
+    then:
+      - "403 Forbidden si la URL es signed-per-tenant"
+      - "Si público (CDN), no debe permitir cross-tenant write"
+    graders:
+      - type: state_check
+        target: api
+        query: "GET signed URL de T2 desde T1"
+        expect: "403"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - landing
+    - assets
+  emits_events:
+    - BrandSectionUpdated
+  consumes_events: []
+
+dependencies:
+  stories:
+    - brand-identity-edit
+  capabilities:
+    - brand-identity-visuals
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: false
+  integration_tests: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

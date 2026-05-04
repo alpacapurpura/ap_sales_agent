@@ -1,0 +1,126 @@
+---
+id: landing-create-from-offer
+type: service-story
+module: landing
+capability: landing-auto-generation
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/landing.md"
+  capability: "../../capabilities/landing/landing-auto-generation.yaml"
+  domain_doc: "../../../domains/module_landing.md"
+  related_stories:
+    - landing-section-edit
+    - landing-publish
+
+context:
+  job: "Como sistema necesito generar una landing por defecto cuando se crea una oferta o edition para que el user no tenga que armarla desde cero."
+  why: "Sin landing autogenerada, hay un gap entre 'creé la oferta' y 'tengo URL pública'. Auto-gen reduce time-to-publish a ~1 click."
+  constraints:
+    - "Tenant-scoped"
+    - "Idempotente (re-trigger no duplica)"
+    - "Templates por archetype/format"
+    - "Latencia p95 < 5s"
+
+outcome:
+  consumer_observable: "Tras crear offer, GET /api/v1/landings/by-offer/{offer_id} retorna landing draft."
+  product_observable:
+    - "DB: landing_pages row insertado con offer_id, edition_id, state='draft'"
+    - "DB: landing_sections poblados con template default"
+
+service_contract:
+  type: event_handler
+  method: null
+  path: null
+  request_schema: null
+  response_schema: "backend/src/modules/landing/api/schemas.py::LandingResponse"
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: OfferCreated
+
+scenarios:
+  - id: auto-create-on-offer-created
+    type: regression
+    given:
+      - "Tenant T1, offer creada con archetype=education preset=cohort_based_course"
+    when: "Domain event OfferCreated procesado"
+    then:
+      - "DB: landing_pages row con offer_id, state='draft'"
+      - "DB: landing_sections con hero, beneficios, FAQ pobladas según template"
+      - "Tenant ve landing draft en /offer-studio/offer/{id}/edition/.../landing"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/landing/test_landing_service.py"
+      - type: state_check
+        target: db
+        query: "SELECT state FROM landing_pages WHERE offer_id = ?"
+        expect: "'draft'"
+
+  - id: idempotent-on-retry
+    type: edge
+    given:
+      - "OfferCreated procesado primera vez, landing_pages ya existe"
+    when: "OfferCreated procesado de nuevo (retry)"
+    then:
+      - "DB: landing_pages NO se duplica"
+      - "Mismo landing_id retornado"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: missing-offer-payload
+    type: negative
+    when: "Event procesado con payload sin offer_id"
+    then:
+      - "Handler skipea (logging warning, no crash)"
+      - "DB: landing_pages no creada"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-event-leak
+    type: adversarial
+    given:
+      - "Event OfferCreated con offer_id que pertenece a tenant T2"
+    when: "Handler procesado en contexto tenant T1"
+    then:
+      - "Handler valida tenant_id consistency"
+      - "Si mismatch → discard event, log warning"
+      - "NO se crea landing en tenant equivocado"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM landing_pages WHERE tenant_id = ? AND offer_id = ?"
+        expect: "0 si tenant mismatch"
+
+cross_module:
+  reads_from:
+    - offer
+    - brand
+  read_by: []
+  emits_events: []
+  consumes_events:
+    - OfferCreated
+
+dependencies:
+  stories: []
+  capabilities:
+    - landing-auto-generation
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/landing/test_landing_service.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

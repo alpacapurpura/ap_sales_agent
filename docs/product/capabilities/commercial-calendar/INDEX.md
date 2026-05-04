@@ -17,4 +17,4 @@
 
 | ID | Name | Status | Stories live/planned |
 |----|------|--------|----------------------|
-| _(vacío)_ |
+| calendar-events | Calendario de eventos comerciales (sistema-wide + tenant) | live | 2 / 0 |

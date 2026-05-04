@@ -1,0 +1,52 @@
+---
+id: copilot-telegram-channel
+name: "Canal Telegram — DMs linkeados magic link + orchestrator real"
+module: copilot
+backbone_activity: "Conversar con copilot off-app via Telegram"
+last_audit: 2026-05-04
+status: live
+slice: V1
+links:
+  module_doc: "../../modules/copilot.md"
+  stories_dir: "../../stories/copilot/"
+description: "User linkea su Telegram via magic link 15min single-use HMAC. Bot global Nicolify (`@nicolify_bot` prod / `@nicolify_dev_bot` dev). Webhook NON-BLOCKING enqueue ARQ <200ms. Orchestrator real (PR-2 PI-5 S2 commit `d09799b9`) — memory cost-aware + cache prefix ≥2048 tokens activo per-channel + tool subset filter runtime + format adapter MarkdownV2."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - copilot-telegram-magic-link
+  - copilot-telegram-orchestrator-respond
+copilot_operable: true
+date_introduced: 2026-04-30
+last_modified: 2026-05-01
+---
+
+## Capabilities cubiertas por este grupo
+
+- `api/telegram.py` — `/api/v1/copilot/telegram/{webhook,link-tokens,link-status,link}` endpoints
+- `application/services/telegram_link_service.py` — magic link HMAC-SHA256 TTL 15min single-use, hash en DB
+- `infrastructure/workers/telegram_worker.py` — async ARQ worker procesa updates
+- `infrastructure/repositories/conversation_repository.py::get_or_create_by_channel(tenant_id, user_id, channel_type, channel_chat_id)` tenant-scoped optimistic SELECT-then-INSERT
+- `application/orchestrator/chat.py::CopilotOrchestrator.invoke_text(channel='web', context: ClientContextDTO|None)` sibling de stream_chat
+- `application/memory/context_window_builder.py::TELEGRAM_CONTEXT_WINDOW_CONFIG` (RAW_WINDOW=3000, MAX_MESSAGES=15, NUDGE_AFTER=12000)
+- Cache fragment `TELEGRAM_CHANNEL_CONTEXT` ~2200 tokens stable bytes Spanish prose (Sonnet floor + Kimi K2.6 ≥1024 cubierto)
+- Tool subset SSoT: `ToolGroupMeta.available_channels` runtime filter (web-only excluded para channel=telegram: navigation, guided, landing.mutations, offer_section.mutations)
+- Format adapter MarkdownV2 via `format_for_channel_impl(channel_id='telegram')` shared
+- Resilience: 30s asyncio.wait_for timeout + per-dependency try/except + fallback CTA template
+- Bot rate-limited 30 msg/sec global + per-chat lock
+- Separación física vs sales_agent: 2 bots, 2 tokens, 2 webhooks, 2 schemas — arch fitness enforce
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| copilot-telegram-magic-link | service-story | live | ../../stories/copilot/copilot-telegram-magic-link.yaml |
+| copilot-telegram-orchestrator-respond | agentic-story | live | ../../stories/copilot/copilot-telegram-orchestrator-respond.yaml |
+
+## Gaps identificados
+
+- **DTO cache token fields hardcoded 0 (S5 wire-up pendiente)** — invoke_text outer except defensive set_turn_error
+- **UNIQUE constraint conversations multi-channel deferred S5 PR-5** — race posible en SELECT-then-INSERT
+- BotFather setWebhook prod `@nicolify_bot` post-deploy = operación pendiente Chris
+- No eval suite Telegram-specific (memory windowing + cache prefix con persona simulated)
+- Adversarial: prompt injection via Telegram caption — no testeado

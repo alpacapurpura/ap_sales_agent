@@ -1,0 +1,42 @@
+---
+id: landing-publishing
+name: "Publicación y dominio de landing"
+module: landing
+backbone_activity: "Lanzar oferta"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/landing.md"
+  stories_dir: "../../stories/landing/"
+description: "Publish/unpublish landing con slug editable y custom domain integration vía tenant_domains (Cloudflare custom hostnames)."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - landing-publish
+  - landing-slug-edit
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Botón publish/unpublish con confirmación
+- Slug editable con validación de unicidad por tenant
+- Integración con tenant_domains (custom hostname Cloudflare)
+- Preview antes de publicar
+- Estado published/draft persistido
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| landing-publish | service-story | live | ../../stories/landing/landing-publish.yaml |
+| landing-slug-edit | ui-story | live | ../../stories/landing/landing-slug-edit.yaml |
+
+## Gaps identificados
+
+- Custom domain DNS validation no tiene state_check explícito en grader
+- Race condition: slug change mientras está published no tiene test de redirect SEO-friendly

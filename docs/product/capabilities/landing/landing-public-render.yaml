@@ -1,0 +1,40 @@
+---
+id: landing-public-render
+name: "Render público de landing"
+module: landing
+backbone_activity: "Capturar leads"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/landing.md"
+  stories_dir: "../../stories/landing/"
+description: "Endpoint público (sin auth) que sirve la landing al visitante y captura leads vía formulario o CTA."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - landing-public-render
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- GET público de landing por slug+tenant (no auth)
+- Tokenizer para reemplazar variables ({{offer.name}}, {{tenant.name}}, etc.)
+- Captura de lead vía formulario CTA → crm
+- Tracking de visitas (analytics integration)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| landing-public-render | service-story | live | ../../stories/landing/landing-public-render.yaml |
+
+## Gaps identificados
+
+- Tokenizer no tiene fuzz tests de inputs maliciosos (XSS)
+- Captura de lead no tiene rate limit per IP test
+- Performance bajo carga (visit storms) sin load test

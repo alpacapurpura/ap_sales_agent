@@ -1,0 +1,130 @@
+---
+id: analytics-etl-scheduler-tick
+type: service-story
+module: analytics
+capability: etl-pipeline-providers
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/etl-pipeline-providers.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-etl-meta-ads-extraction
+    - analytics-etl-google-providers-extraction
+
+context:
+  job: "Como scheduler necesito disparar extracción ETL periódica para todos los tenants con providers configurados, sin intervención manual"
+  why: "Sin tick automático, dashboards quedan stale. User espera ver gasto del día anterior al login → freshness <24h obligatorio"
+  constraints:
+    - "Idempotente (re-run sin duplicar)"
+    - "Tenant-scoped (itera por todos los tenants activos)"
+    - "Best-effort por tenant (1 falla no aborta otros)"
+    - "Logging structured por provider+tenant"
+    - "Cron-like (e.g. cada N min)"
+
+outcome:
+  consumer_observable: "Cada tick, todos los tenants activos reciben sync de cada provider configurado. Log entry per (tenant, provider) con status."
+  product_observable:
+    - "DB: `etl_run` rows por (tenant, provider, started_at, completed_at, status)"
+    - "DB: `official_metrics` actualizado para todos los tenants"
+
+service_contract:
+  type: scheduled_job
+  method: POST
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "ARQ cron — `analytics_scheduler_tick`"
+
+scenarios:
+  - id: happy-path-tick-all-tenants
+    type: regression
+    given:
+      - "5 tenants activos con providers Meta/Google configurados"
+    when: "Scheduler dispara `scheduler_tick`"
+    then:
+      - "Cada tenant recibe sync por cada provider"
+      - "etl_run rows creadas (5×N providers)"
+      - "Failures aisladas no propagan a otros tenants"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_scheduler_tick.py"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM etl_run WHERE started_at >= NOW() - INTERVAL '5 minutes'"
+        expect: ">=5"
+
+  - id: tenant-with-no-providers-configured
+    type: negative
+    given:
+      - "Tenant T_new sin connections activas"
+    when: "Scheduler tick incluye T_new"
+    then:
+      - "Skip silencioso (no error)"
+      - "etl_run no entry para T_new"
+      - "Otros tenants procesan normal"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_scheduler_tick.py"
+
+  - id: provider-fails-but-others-continue
+    type: edge
+    given:
+      - "Tenant T1 con Meta + Google. Meta API down (5xx)"
+    when: "Scheduler tick procesa T1"
+    then:
+      - "Meta provider falla → etl_run entry status=failed"
+      - "Google provider procesa y completa OK"
+      - "Otros tenants no afectados"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_scheduler_tick.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    given:
+      - "Race condition: tenant T1 query interferida con T2"
+    when: "2 ticks paralelos overlap"
+    then:
+      - "Cada tick procesa con tenant_id correcto"
+      - "Ningún row se asigna a tenant_id incorrecto"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_scheduler_tick.py"
+
+cross_module:
+  reads_from:
+    - iam
+    - connections
+  read_by: []
+  emits_events:
+    - analytics.metrics_synced
+  consumes_events: []
+
+dependencies:
+  stories:
+    - analytics-etl-meta-ads-extraction
+    - analytics-etl-google-providers-extraction
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_scheduler_tick.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

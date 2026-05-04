@@ -1,0 +1,43 @@
+---
+id: admin-billing-config
+name: "Configuración de planes + suscripciones tenant (admin)"
+module: iam
+backbone_activity: "Gestionar planes y billing"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/iam.md"
+  stories_dir: "../../stories/iam/"
+description: "CRUD de planes (free/basic/intermediate/advanced/ultra) + suscripciones tenant + overrides per-tenant en JSONB. Streamlit `/planes-billing` admin-only — no user-facing API pública todavía. Invariante: exactamente 1 plan con `is_default=TRUE`. PlanService.get_effective() mergea con cache 5min + Redis pub/sub invalidación."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - iam-plan-effective-resolution
+copilot_operable: false
+date_introduced: 2026-04-29
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `plan_config` table con 5 planes default editables sin migration
+- `tenant_subscriptions` 1 row per tenant con `custom_overrides JSONB` (e.g. `{"llm_budget_total_usd": X, "max_outbound_msg_per_day": Y}`)
+- `PlanService.get_effective(tenant_id)` mergea base plan + custom_overrides con cache 5min
+- Redis pub/sub invalidation cross-instance al cambiar plan o override
+- Streamlit admin `/planes-billing` con toggle `is_default` atómico + partial unique index `uq_plan_config_one_default`
+- `BillingDefaultPlanMissingError` fail-fast si no hay default plan
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| iam-plan-effective-resolution | service-story | live | ../../stories/iam/iam-plan-effective-resolution.yaml |
+
+## Gaps identificados
+
+- API user-facing pública para "qué plan tengo" ausente (solo admin)
+- Tests de cache invalidation cross-instance vía Redis no exhaustivos
+- Sin tool copilot para "subir plan" / self-serve upgrade
+- Sin BudgetGuard wired a custom_overrides en todos los módulos consumidores (DR-7 pendiente)

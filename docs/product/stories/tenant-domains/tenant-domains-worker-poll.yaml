@@ -1,0 +1,142 @@
+---
+id: tenant-domains-worker-poll
+type: service-story
+module: tenant-domains
+capability: custom-domains
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/tenant-domains.md"
+  capability: "../../capabilities/tenant-domains/custom-domains.yaml"
+  domain_doc: "../../../domains/module_tenant-domains.md"
+  related_stories:
+    - tenant-domains-add-and-verify
+
+context:
+  job: "Como worker background necesito polear Cloudflare CHM por cada `tenant_domain` en estado `pending` para detectar cuando SSL está ready y transicionar a `active`"
+  why: "Sin polling el dominio queda 'pending' eternamente porque no hay otro mecanismo de notificación de Cloudflare. Si falla el worker, tenants nunca pueden usar su dominio aunque DNS esté correctamente configurado."
+  constraints:
+    - "Idempotente (pollear 2x = mismo efecto, sin duplicar transition)"
+    - "Tenant isolation (worker recorre dominios de TODOS los tenants pero scoping mantenido por DB)"
+    - "Backoff razonable (no martillar Cloudflare API)"
+    - "Best-effort (worker fallback ante Cloudflare 5xx, retry con jitter)"
+    - "Latencia de transición pending→active < 10min p95 desde DNS válido"
+
+outcome:
+  consumer_observable: "tenant_domains.status transiciona de 'pending' → 'active' (o 'failed') sin intervención del user, una vez DNS y SSL listos"
+  product_observable:
+    - "DB: UPDATE `tenant_domains.status`, `verified_at`, `ssl_status`"
+    - "Eventos emitidos: tenant_domain_verified (consumido por scheduling, landing)"
+    - "Métrics: poll_iterations, transitions_count{status=active|failed}"
+
+service_contract:
+  type: scheduled_job
+  method: GET
+  path: "internal — workers/tasks.py::poll_domain_verification"
+  request_schema: "ctx: dict (Arq context)"
+  response_schema: "{processed: int, activated: int, failed: int}"
+  auth: internal
+  rate_limit_per_tenant: "n/a"
+  idempotency: natural-key
+  trigger: "cron (every N minutes — confirmar interval en config)"
+
+scenarios:
+  - id: happy-path-pending-to-active
+    type: regression
+    given:
+      - "Tenant T1 tiene domain 'mimarca.com' con status='pending'"
+      - "Cloudflare CHM API responde {ssl_status:'active', verification:{status:'active'}}"
+    when: "Worker `poll_domain_verification` ejecuta su iteración"
+    then:
+      - "DB: tenant_domains.status='active', verified_at=now() para 'mimarca.com'"
+      - "Evento tenant_domain_verified emitido"
+      - "Próxima iteración del worker no re-procesa este dominio (filtra status='pending')"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/tenant_domains/test_domain_service.py"
+      - type: state_check
+        target: db
+        query: "SELECT status, verified_at FROM tenant_domains WHERE domain='mimarca.com'"
+        expect: "status='active', verified_at IS NOT NULL"
+      - type: state_check
+        target: events_outbox
+        expect: "1 event of type tenant_domain_verified"
+
+  - id: cloudflare-api-error
+    type: regression
+    given:
+      - "Domain en pending"
+      - "Cloudflare API retorna 5xx o timeout"
+    when: "Worker ejecuta iteración"
+    then:
+      - "Worker NO crashea (try/except + structlog warning)"
+      - "DB: status sigue 'pending' (no transición prematura a 'failed')"
+      - "Próxima iteración reintenta (idempotent)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/tenant_domains/test_domain_service.py"
+
+  - id: dns-not-configured-yet
+    type: regression
+    given:
+      - "Domain en pending"
+      - "Cloudflare CHM responde {verification:{status:'pending'}, ssl_status:'pending_validation'}"
+    when: "Worker ejecuta"
+    then:
+      - "DB: status sigue 'pending' (espera DNS)"
+      - "verified_at NULL"
+      - "Worker no lo marca 'failed' por defecto (window grace period)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/tenant_domains/test_domain_service.py"
+
+  - id: cross-tenant-isolation
+    type: regression
+    given:
+      - "Tenants T1, T2 con dominios pending simultáneos"
+      - "Cloudflare retorna 'active' para domain T1 y 'pending' para T2"
+    when: "Worker corre en single iteration"
+    then:
+      - "DB: T1 domain → 'active', T2 domain sigue 'pending'"
+      - "T2 NO transiciona accidentalmente con el éxito de T1"
+      - "Eventos emitidos solo para T1 (tenant_id correcto)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/tenant_domains/test_domain_repository.py"
+      - type: state_check
+        target: db
+        query: "SELECT tenant_id, status FROM tenant_domains WHERE status='active' ORDER BY verified_at DESC LIMIT 1"
+        expect: "tenant_id=T1"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - scheduling
+    - landing
+  emits_events:
+    - tenant_domain_verified
+    - tenant_domain_failed
+  consumes_events: []
+
+dependencies:
+  stories:
+    - tenant-domains-add-and-verify
+  capabilities: []
+
+estimate:
+  story_points: 5
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/tenant_domains/test_domain_service.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

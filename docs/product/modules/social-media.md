@@ -54,3 +54,12 @@ _Ninguno._
 | Fecha | Decisión | Razón |
 |---|---|---|
 | _inicial_ | Diferir módulo | Skill `content-hunter` + assets cubre generación. Programación nativa requiere expansión Meta API |
+
+## Capabilities
+
+> **Nota**: módulo BE `social_media` está vacío (solo `__init__.py`). Las capabilities listadas son cross-module (analytics + connections + assets + content-hunter skill). Todo placeholder se mantiene a nivel BE.
+
+| ID | Name | Status | Stories live/total |
+|---|---|---|---|
+| organic-metrics-via-analytics | Métricas orgánicas vía analytics (read-only) | live | 1/1 |
+| content-generation-via-assets | Generación contenido social vía assets + content-hunter | live | 1/1 |

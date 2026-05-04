@@ -1,0 +1,121 @@
+---
+id: assets-offer-gallery-list
+type: service-story
+module: assets
+capability: assets-offer-gallery
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/assets.md"
+  capability: "../../capabilities/assets/assets-offer-gallery.yaml"
+  domain_doc: "../../../domains/module_assets.md"
+  related_stories:
+    - assets-upload
+
+context:
+  job: "Como sistema necesito retornar la galería de assets asociados a una oferta (incluyendo shared) para que la UI muestre todos los materiales disponibles para esa oferta."
+  why: "Sin gallery por offer, el user no sabe qué assets ya tiene generados → re-genera = doble cost."
+  constraints:
+    - "Tenant-scoped"
+    - "Filter por type opcional"
+    - "Shared flag soportado (asset reutilizable entre editions)"
+    - "Latencia p95 < 300ms"
+
+outcome:
+  consumer_observable: "GET /api/v1/offers/{id}/gallery retorna lista de assets."
+  product_observable:
+    - "Sin side effects (read-only)"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/offers/{offer_id}/gallery
+  request_schema: null
+  response_schema: "backend/src/modules/assets/api/offer_gallery.py::GalleryResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "120/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: list-gallery-with-mixed-assets
+    type: regression
+    given:
+      - "Tenant T1, offer id=42 con 5 assets (3 owned + 2 shared)"
+    when: "GET /api/v1/offers/42/gallery"
+    then:
+      - "Status 200 con 5 assets"
+      - "Cada item incluye type, shared flag, signed_url"
+      - "Latencia < 300ms"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/assets/test_gallery_repository.py"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/offers/42/gallery"
+        expect: "5 items"
+
+  - id: nonexistent-offer
+    type: negative
+    when: "GET /api/v1/offers/99999/gallery"
+    then:
+      - "Status 404 si offer no existe"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: empty-gallery
+    type: edge
+    given:
+      - "Offer 42 sin assets"
+    when: "GET gallery"
+    then:
+      - "Status 200 con array vacío"
+      - "No 404 (offer existe)"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-gallery
+    type: adversarial
+    given:
+      - "Tenant T2 con offer id=99"
+    when: "Usuario A (T1) GET /api/v1/offers/99/gallery"
+    then:
+      - "404 Not Found"
+      - "Sin info leak"
+    graders:
+      - type: state_check
+        target: api
+        query: "GET gallery cross-tenant"
+        expect: "404"
+
+cross_module:
+  reads_from:
+    - offer
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - assets-upload
+  capabilities:
+    - assets-offer-gallery
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/assets/test_gallery_repository.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -1,0 +1,118 @@
+---
+id: copilot-subagent-stream-isolation
+type: service-story
+module: copilot
+capability: copilot-conversational-orchestrator
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/copilot.md"
+  capability: "../../capabilities/copilot/copilot-conversational-orchestrator.yaml"
+  domain_doc: "../../../domains/module_copilot.md"
+  related_stories:
+    - copilot-chat-conversation-web
+
+context:
+  job: "Como sistema necesito que tokens de subagentes (deepagents create_deep_agent) NO se mezclen con stream user-facing — solo el output final del orchestrator se envía al user."
+  why: "Sin isolation, user ve thinking interno + tool calls intermedias = UX rota + leak detalles."
+  constraints:
+    - "stream_provenance_classifier classifies cada token: orchestrator | subagent | tool"
+    - "Solo provenance='orchestrator' alcanza SSE stream"
+    - "Performance: classifier per-token <1ms"
+
+outcome:
+  consumer_observable: "User ve solo output final clean, sin thinking ni intermediate tool args"
+  product_observable:
+    - "stream_filters/stream_provenance.py runtime active"
+    - "Test: subagent tokens NOT in user-facing SSE"
+
+service_contract:
+  type: event_handler
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: none
+  trigger: "during orchestrator stream_chat"
+
+scenarios:
+  - id: happy-subagent-spawned-isolated
+    type: regression
+    given:
+      - "user query triggers deep_agent subagent spawn"
+    when: "orchestrator stream_chat runs"
+    then:
+      - "Subagent emits N intermediate tokens"
+      - "stream_provenance_classifier marks subagent tokens as 'subagent'"
+      - "Stream filter EXCLUDES subagent tokens from SSE"
+      - "User receives only orchestrator final tokens"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/test_subagent_stream_isolation.py"
+
+  - id: tool-call-args-not-leaked
+    type: negative
+    given:
+      - "tool call args contains tenant data (lead PII)"
+    when: "stream emits tool_call event"
+    then:
+      - "tool_args NOT visible in SSE (filtered)"
+      - "User sees only tool_name + result block"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/test_stream_provenance.py"
+
+  - id: classifier-fail-fallback
+    type: edge
+    given:
+      - "classifier raises exception mid-stream"
+    when: "stream filter catches"
+    then:
+      - "Fallback: filter ALL non-orchestrator tokens (safe default)"
+      - "structlog warning emitted"
+      - "Stream completes (no break)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/test_stream_error_classify.py"
+
+  - id: cross-tenant-stream-isolation
+    type: adversarial
+    given:
+      - "tenant T1 + T2 streaming concurrently"
+    when: "tokens potentially mixed in stream classifier"
+    then:
+      - "Each stream has own classifier instance"
+      - "No token bleed cross-tenant"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/test_subagent_stream_isolation.py"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/copilot/test_subagent_stream_isolation.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

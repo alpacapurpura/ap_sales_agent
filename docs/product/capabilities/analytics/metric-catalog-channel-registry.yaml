@@ -1,0 +1,44 @@
+---
+id: metric-catalog-channel-registry
+name: "Metric catalog + channel registry SSoT"
+module: analytics
+backbone_activity: "Catalogar métricas y canales"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/analytics.md"
+  stories_dir: "../../stories/analytics/"
+description: "Catalogo SSoT de métricas + channel registry con grupos canónicos. Constants en `stage_services/constants.py` (group mappings, stage groups, display names). MetricCatalog runtime semantics (`metric_catalog.py`). Channel registry (`channel_registry.py`) único punto verdad slugs/etiquetas/grupos."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - analytics-metric-catalog-listing
+  - analytics-channel-registry-grouping
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Metric catalog endpoint (`GET /metrics/catalog`) — listado métricas con units, currency flag, semantics
+- Metric resolver (`metric_resolver.py`) cross-source aggregation
+- Channel registry (`channel_registry.py`) — único origen slugs canales (`facebook`, `google_ads`, `email-attraction`, etc)
+- Group mappings (`STAGE_CHANNEL_MAP`, `_GROUP_MAP` en `constants.py`) — agrupación canales por stage
+- Cost-type mapping (`cost_type_mapping.py`) — clasificación costos
+- Industry benchmarks (`industry_benchmarks.py`) — referencia comparativa
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| analytics-metric-catalog-listing | service-story | live | ../../stories/analytics/analytics-metric-catalog-listing.yaml |
+| analytics-channel-registry-grouping | service-story | live | ../../stories/analytics/analytics-channel-registry-grouping.yaml |
+
+## Gaps identificados
+
+- Industry benchmarks son hardcoded — no actualizados por proceso continuo
+- Metric catalog endpoint no expone documentación human-readable (solo machine-format)
+- Channel registry no tiene UI admin para inspeccionar el catálogo desde Streamlit

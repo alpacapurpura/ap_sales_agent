@@ -1,0 +1,124 @@
+---
+id: scheduling-cancel-reschedule
+type: service-story
+module: scheduling
+capability: scheduling-public-booking
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/scheduling.md"
+  capability: "../../capabilities/scheduling/scheduling-public-booking.yaml"
+  domain_doc: "../../../domains/module_scheduling.md"
+  related_stories:
+    - scheduling-public-book-confirm-ics
+
+context:
+  job: "Como lead recibo email con tokens single-use cancel/reschedule. Click → public page → cancel o pick new slot."
+  why: "Reschedule rate ~20%. Sin flow self-service, lead pierde booking + frustración."
+  constraints:
+    - "Tokens single-use, TTL 30 días"
+    - "Cancel 24h+ antes meeting (configurable per event_type)"
+    - "Reschedule mantiene attendees + Google Calendar event id"
+
+outcome:
+  consumer_observable: "Lead cancela/reagenda sin auth, sin contactar tenant"
+  product_observable:
+    - "DB: appointments status updated to CANCELED o RESCHEDULED"
+    - "Google Calendar event cancelado/updated"
+    - "Email tenant + lead notification"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/scheduling/public/bookings/{token}/cancel
+  request_schema: null
+  response_schema: "scheduling/api/dto.py::CancelResponse"
+  auth: none
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-cancel-24h-before
+    type: regression
+    given:
+      - "appointment status=CONFIRMED, meeting tomorrow 10am, now=today 9am (25h+)"
+    when: "POST /cancel con valid token"
+    then:
+      - "Status 200"
+      - "DB: status → CANCELED"
+      - "Google Calendar event canceled"
+      - "Email tenant + lead emitted"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_agenda_api.py"
+
+  - id: cancel-too-late
+    type: negative
+    given:
+      - "Meeting in 1h, cancel policy=24h"
+    when: "POST /cancel"
+    then:
+      - "Status 403 Forbidden"
+      - "Detail: 'cancellation requires 24h advance'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_agenda_api.py"
+
+  - id: reschedule-keep-attendees
+    type: edge
+    given:
+      - "Lead clickea reschedule, picks slot S2"
+    when: "POST /reschedule"
+    then:
+      - "DB: status → RESCHEDULED, new appointment row created"
+      - "Google Calendar event id REUSED + updated time (no nuevo event)"
+      - "Attendees preservados"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_appointment_events.py"
+
+  - id: token-replay-attack
+    type: adversarial
+    given:
+      - "Token already used"
+    when: "POST /cancel 2nd vez"
+    then:
+      - "Status 410 Gone (single-use enforced)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_agenda_api.py"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by:
+    - crm
+    - sales_agent
+  emits_events:
+    - AppointmentCanceled
+    - AppointmentRescheduled
+  consumes_events: []
+
+dependencies:
+  stories:
+    - scheduling-public-book-confirm-ics
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/scheduling/test_agenda_api.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

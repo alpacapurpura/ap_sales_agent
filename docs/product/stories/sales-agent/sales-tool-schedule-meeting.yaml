@@ -1,0 +1,161 @@
+---
+id: sales-tool-schedule-meeting
+type: agentic-story
+module: sales-agent
+capability: sales-tools-scheduling-payment
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-tools-scheduling-payment.yaml"
+  domain_doc: "../../../domains/module_sales_agent.md"
+  brand_voice_ssot: "../../../../.claude/rules/sales-agent-brand-voice.md"
+  related_stories: []
+
+context:
+  job: "Como agente product_expert / closer necesito agendar meeting con lead consultando disponibilidad real Google Calendar del tenant + creando event tras confirmación verbal lead."
+  why: "Reuniones discovery / demo = paso clave para deals enterprise. Agente debe consultar disponibilidad real (no inventar slots) y reservar."
+  constraints:
+    - "Slots resueltos en timezone tenant (TenantLocale-driven)"
+    - "Idempotent: 1 booking por (tenant_id, lead_id, slot_start)"
+    - "Confirmación lead obligatoria antes de booking (no auto-book)"
+
+outcome:
+  user_observable: "Lead recibe confirmación con horario + invitación calendar (email + ICS)"
+  product_observable:
+    - "appointments table: row created con tenant_id + lead_id + start_at + status=CONFIRMED"
+    - "Google Calendar event created con attendees"
+    - "Domain event AppointmentBooked emitido"
+
+agentic_contract:
+  channel: manychat
+  trigger:
+    user_intent: ["agendamos", "podemos hablar", "cuándo nos vemos"]
+    fallback_route: "escalate_to_human"
+  expected_tools:
+    - check_schedule
+  forbidden_tools: []
+  required_skills:
+    - "sales-agent-expert"
+  max_turns: 4
+  max_tokens: 4000
+  budget_usd: 0.20
+  voice: "tenant.brand_voice"
+  outcome_type: side-effect
+  pii_redaction: required
+  prompt_cache_slot: null
+
+trial_policy:
+  trials_per_scenario: 3
+  per_trial_pass_threshold: 0.66
+  pass_k_threshold: 0.5
+  capability_promotion_runs: 10
+  regression_floor: 0.95
+
+scenarios:
+  - id: happy-availability-confirm-book
+    type: regression
+    persona: "../../../specs/personas/lead-tibio-dudoso.yaml"
+    seed:
+      tenant_state: "tenant T1 con Google Calendar connected, event_type 'discovery-30min' active"
+      conversation_history: []
+    user_simulation:
+      style: "dudoso pero interesado"
+      goal: "agendar reunión esta semana"
+      max_turns: 3
+    when: "user_simulation: 'me gustaría que conversemos antes de comprometerme'"
+    then:
+      - "Agent llama check_schedule retornando 3-5 slots disponibles próximos 7 días"
+      - "Agent ofrece slots en timezone tenant (no UTC)"
+      - "Lead elige slot, agent confirma + crea booking"
+      - "Lead recibe ICS o link calendar"
+    graders:
+      - type: tool_calls
+        required: ["check_schedule"]
+        max_calls_total: 2
+      - type: state_check
+        target: db
+        query: "SELECT status FROM appointments WHERE tenant_id = ? AND lead_id = ?"
+        expect: "CONFIRMED"
+      - type: voice_fidelity
+        rubric: "../../../specs/rubrics/voice-fidelity.md"
+        threshold: 0.7
+
+  - id: no-hallucination-fake-slots
+    type: negative
+    seed:
+      tenant_state: "tenant T1 con Google Calendar disconnected"
+    when: "Lead pide agendar"
+    then:
+      - "Agent NO inventa slots arbitrarios"
+      - "Agent admite gap: 'todavía no tengo agenda conectada' o 'déjame el contacto y [tenant_name] te escribe'"
+    graders:
+      - { type: llm_rubric, rubric: "../../../specs/rubrics/no-hallucination.md", threshold: 0.9 }
+      - type: tool_calls
+        required: []
+        max_calls_total: 1
+
+  - id: tool-failure-google-calendar-down
+    type: edge
+    seed:
+      fault_inject: "check_schedule retorna 500 (Google Calendar API down)"
+    when: "agent llama tool"
+    then:
+      - "Tool retry 1x"
+      - "Si segundo falla → fallback: 'tomaré tus datos y [tenant_name] confirma horario'"
+      - "User no ve stack trace"
+    graders:
+      - { type: tool_calls, max_calls_total: 3 }
+
+  - id: adversarial-double-booking
+    type: adversarial
+    seed:
+      tenant_state: "Lead ya tiene appointment booked para slot S1"
+    when: "Lead pide otro booking para slot S1 (mismo)"
+    then:
+      - "Tool detecta duplicate, retorna error"
+      - "Agent informa amablemente: 'ya tienes una reunión para ese horario'"
+      - "NO se crea segundo booking"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM appointments WHERE tenant_id = ? AND lead_id = ? AND start_at = ?"
+        expect: "1"
+
+cross_module:
+  reads_from:
+    - connections
+    - scheduling
+  read_by:
+    - scheduling
+  emits_events:
+    - AppointmentBooked
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - scheduling-google-calendar-sync
+    - connections-google-services
+  tools:
+    - check_schedule
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  eval_suite_path: null
+  rubrics_implemented: []
+  personas_implemented: []
+  pass_k_last_run: null
+  cost_last_run_usd: null
+  latency_p95_last_run_ms: null
+  last_run_at: null

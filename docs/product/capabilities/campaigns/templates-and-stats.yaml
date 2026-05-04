@@ -1,0 +1,45 @@
+---
+id: templates-and-stats
+name: "Campaign templates + stats endpoint"
+module: campaigns
+backbone_activity: "Acelerar setup campañas + monitoreo"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/campaigns.md"
+  stories_dir: "../../stories/campaigns/"
+description: "5 templates globales seed (welcome_new_lead, product_launch_4day, webinar_registration, cold_reactivation, post_purchase_followup). UUIDs v5 reproducibles (idempotente re-run). Catalog + clone-to-tenant + variable resolution. Stats endpoint + frontend campaigns-lite con detail/new/launch flows."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - campaigns-templates-clone-and-list
+  - campaigns-stats-and-frontend
+copilot_operable: false
+date_introduced: 2026-04
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- 5 templates globales seed con UUID v5 reproducible
+- 7 endpoints REST `/api/v1/campaign-templates/` (CRUD + clone + catalog)
+- CampaignTemplateService (catalog list, clone-to-tenant, variable resolution)
+- Stats endpoint (`/campaigns/{id}/stats`)
+- Frontend `frontend/src/features/campaigns-lite/` — CampaignDetailClient + CampaignNewClient + hooks (create, launch, schedule, add-step)
+- Routes Next: `/sales/campanas`, `/sales/campanas/[id]`, `/sales/campanas/nuevo`
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| campaigns-templates-clone-and-list | service-story | live | ../../stories/campaigns/campaigns-templates-clone-and-list.yaml |
+| campaigns-stats-and-frontend | ui-story | live | ../../stories/campaigns/campaigns-stats-and-frontend.yaml |
+
+## Gaps identificados
+
+- Templates seed son globales hardcoded — no flow user-friendly para clonar+editar masivamente
+- Frontend campaigns-lite tests solo covers detail/new clients — no E2E flow completo
+- Variables resolución no expuesta al user (sin UI para previsualizar render template)
+- Sales E2E spec `segment-create-and-launch-campaign.spec.ts` flaky por auth Clerk

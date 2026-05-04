@@ -1,0 +1,40 @@
+---
+id: assets-copy-generation
+name: "Generación AI de copies"
+module: assets
+backbone_activity: "Generar material promocional"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/assets.md"
+  stories_dir: "../../stories/assets/"
+description: "Generación LLM-driven de copies para redes sociales, anuncios, ideas de video. Toma data brand + offer y produce variantes adaptadas al canal."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - assets-generate-copy-for-channel
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Generación de copies para Instagram, Facebook, ads de Meta, ideas de video
+- Variantes (tono, longitud, hook) para A/B testing
+- Brand voice respetada (consume PersonalityProfile)
+- LLM-powered con prompt cache para reducir costos
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| assets-generate-copy-for-channel | service-story | live | ../../stories/assets/assets-generate-copy-for-channel.yaml |
+
+## Gaps identificados
+
+- Loop conversacional iterativo (ajustar tono, generar variantes) es gap conocido (módulo doc)
+- No hay eval suite de voice fidelity para copies generados
+- Cost monitoring por copy generado no surface en UI

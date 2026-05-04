@@ -8,6 +8,9 @@ links:
   domain_doc: "../../domains/module_scheduling.md"
   legacy_pm_nico: "../../pm-nico/current-state/scheduling.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
+capability_registry_status: bootstrapped-2026-05-04
+capabilities_count: 3
+stories_count: 6
 ---
 
 # scheduling — Estado funcional

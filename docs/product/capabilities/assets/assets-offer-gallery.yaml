@@ -1,0 +1,39 @@
+---
+id: assets-offer-gallery
+name: "Galería de assets por oferta"
+module: assets
+backbone_activity: "Generar material promocional"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/assets.md"
+  stories_dir: "../../stories/assets/"
+description: "Galería de assets asociados a una oferta o edition. Soporta shared flag (asset compartido entre editions) y promoting por canal."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - assets-offer-gallery-list
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- GET /api/v1/offers/{id}/gallery con assets tenant-scoped
+- Shared flag (asset reutilizable entre editions)
+- Filter por type (image, video_idea, copy, flyer)
+- Sin pagination explícita aún
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| assets-offer-gallery-list | service-story | live | ../../stories/assets/assets-offer-gallery-list.yaml |
+
+## Gaps identificados
+
+- No hay test de performance bajo gallery con >100 items
+- Filter por canal (Instagram only) no implementado

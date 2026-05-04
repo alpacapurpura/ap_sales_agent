@@ -1,0 +1,110 @@
+---
+id: analytics-channel-registry-grouping
+type: service-story
+module: analytics
+capability: metric-catalog-channel-registry
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/metric-catalog-channel-registry.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-metric-catalog-listing
+
+context:
+  job: "Como stage service necesito ChannelRegistry SSoT que mapee slugs canónicos (facebook, google_ads, email-attraction, ...) a grupos por stage, sin hardcoding"
+  why: "Sin SSoT, cada service hardcodea slugs → drift cuando agregas canal nuevo. Arch test bloquea duplicado de STAGE_CHANNEL_MAP"
+  constraints:
+    - "SSoT en `channel_registry.py`"
+    - "Arch test bloquea duplicación map"
+    - "Email-stage channels usan slug `email-{stage}` por convención"
+
+outcome:
+  consumer_observable: "Stage services llaman `ChannelRegistry.get_channels_for_stage(stage)` y reciben slugs canónicos"
+  product_observable:
+    - "Constants centralizadas — no duplicación"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-registry-lookup
+    type: regression
+    given:
+      - "ChannelRegistry inicializado con canales core"
+    when: "stage_service.get_channels_for_stage('attraction')"
+    then:
+      - "Retorna lista canales válidos (facebook, google_ads, organic, ...)"
+      - "Slugs son canónicos"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_aggregations_catalog.py"
+
+  - id: invalid-stage-name
+    type: negative
+    given:
+      - "Stage inexistente"
+    when: "registry.get_channels_for_stage('foo')"
+    then:
+      - "Empty list o ValueError clear"
+      - "No silent fail"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_aggregations_catalog.py"
+
+  - id: arch-test-no-duplicate-mapping
+    type: edge
+    given:
+      - "Dev redefiniendo STAGE_CHANNEL_MAP fuera constants.py"
+    when: "Arch fitness test corre"
+    then:
+      - "Test falla con clear error"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_aggregations_catalog.py"
+
+  - id: cross-tenant-not-applicable
+    type: adversarial
+    when: "Registry es global"
+    then:
+      - "Tenants leen mismo mapping"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - copilot
+    - advertising
+    - social_media
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_aggregations_catalog.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

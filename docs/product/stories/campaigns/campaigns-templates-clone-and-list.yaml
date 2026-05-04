@@ -1,0 +1,112 @@
+---
+id: campaigns-templates-clone-and-list
+type: service-story
+module: campaigns
+capability: templates-and-stats
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-4
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/templates-and-stats.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories:
+    - campaigns-stats-and-frontend
+
+context:
+  job: "Como user al crear campaña quiero clonar template global (welcome_new_lead, product_launch_4day, ...) que se transforme a campaña tenant-scoped editable"
+  why: "Empezar de cero es friction alto. Templates probadas reducen time-to-launch significativamente"
+  constraints:
+    - "5 templates seed con UUID v5 reproducible (idempotent re-run)"
+    - "Catalog global + clone-to-tenant"
+    - "Variable resolution (placeholders {tenant_name}, {offer_title}, etc)"
+    - "Idempotent clone con dual UNIQUE (slug + tenant_id)"
+
+outcome:
+  consumer_observable: "GET /campaign-templates/catalog lista 5 templates. POST /clone crea copia tenant editable"
+  product_observable:
+    - "DB: `campaign_template` rows con tenant_id NULL (global) o tenant-scoped (cloned)"
+    - "Variables resolved en clone time"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/campaign-templates/{id}/clone
+  request_schema: "backend/src/modules/campaigns/api/routers/templates_router.py"
+  response_schema: "backend/src/modules/campaigns/api/routers/templates_router.py"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "30/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-path-clone-template
+    type: regression
+    given:
+      - "Template global welcome_new_lead existe"
+    when: "POST /campaign-templates/welcome_new_lead/clone"
+    then:
+      - "201 con CampaignTemplateDTO clonado tenant-scoped"
+      - "DB: nuevo row con tenant_id=T1 + slug derivado"
+      - "Variables resolved (tenant_name, offer_title)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_campaign_template_service.py"
+
+  - id: invalid-template-id
+    type: negative
+    when: "POST /clone con id inexistente"
+    then:
+      - "404"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_campaign_template_service.py"
+
+  - id: idempotent-clone-same-slug
+    type: edge
+    given:
+      - "Clone ya ejecutado (tenant_id, slug) existe"
+    when: "Clone otra vez"
+    then:
+      - "200 retorna existing"
+      - "DB no duplica (UNIQUE constraint)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_campaign_template_service.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 lista templates con tenant_id=T2"
+    then:
+      - "Catalog global visible (no tenant)"
+      - "Tenant-specific templates de T2 NO visibles"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_campaign_template_service.py"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/campaigns/application/test_campaign_template_service.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

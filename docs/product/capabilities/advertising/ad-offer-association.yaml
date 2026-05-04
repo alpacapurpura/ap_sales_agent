@@ -1,0 +1,44 @@
+---
+id: ad-offer-association
+name: "Asociación ad ↔ oferta"
+module: advertising
+backbone_activity: "Atribuir performance ads a ofertas"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/advertising.md"
+  stories_dir: "../../stories/advertising/"
+description: "Asociación entre ads (Meta campaigns/adsets/ads) y ofertas del catálogo del tenant. Permite atribuir ROAS/CPL/conversiones a la oferta concreta. Soporta auto-detect (text matching ad copy ↔ offer titles) + asociación manual + sugerencias batch. POST/DELETE/PATCH endpoints + repository + service."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - advertising-association-create-and-list
+  - advertising-association-auto-detect
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- POST/DELETE/GET asociaciones ad ↔ offer (`/api/v1/advertising/associations`)
+- Auto-detect via text matching (ad copy ↔ offer titles) — `OfferDetectionService`
+- Sugerencias batch + apply suggestions endpoint
+- Repository tenant-scoped soft-delete
+- AssociationTargetType enum (CAMPAIGN/ADSET/AD)
+- AssociationType enum (MANUAL/AUTO_DETECTED)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| advertising-association-create-and-list | service-story | live | ../../stories/advertising/advertising-association-create-and-list.yaml |
+| advertising-association-auto-detect | service-story | live | ../../stories/advertising/advertising-association-auto-detect.yaml |
+
+## Gaps identificados
+
+- Auto-detect text matching es heurístico (string similarity) — no LLM-based, deja false negatives
+- No hay UI dedicada en growth-studio para gestionar asociaciones (solo API + offer-studio campaigns view)
+- Module doc describe advertising como "placeholder" pero implementación tiene 11 archivos test — drift documentación

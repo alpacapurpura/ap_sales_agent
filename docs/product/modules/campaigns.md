@@ -210,3 +210,12 @@ Ver `pis/PI-1-campaigns-module/decisions.md`. Resumen D1-D22 (heredados + PI-1 e
 | PI-1 S3 | planned | sales_agent + copilot wiring |
 | PI-2 | Next (placeholder) | Multi-canal (ManyChat) + Copilot subagent + EMAIL_DRIP |
 | PI-3 | Later | Event campaigns + CRM Hub Frontend + Retargeting |
+
+## Capabilities
+
+| ID | Name | Status | Stories live/total |
+|---|---|---|---|
+| campaign-fsm-lifecycle | Campaign FSM lifecycle (CRUD + estados) | live | 2/2 |
+| segment-targeting | Segment targeting + filter DSL + snapshots | live | 2/2 |
+| orchestrator-workers-channel-router | Orchestrator + ARQ workers + ChannelRouter Telegram | live | 3/3 |
+| templates-and-stats | Campaign templates + stats endpoint | live | 2/2 |

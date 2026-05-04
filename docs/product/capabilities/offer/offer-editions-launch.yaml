@@ -1,0 +1,41 @@
+---
+id: offer-editions-launch
+name: "Editions y lifecycle de lanzamiento"
+module: offer
+backbone_activity: "Lanzar oferta"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/offer.md"
+  stories_dir: "../../stories/offer/"
+description: "Gestión de editions (cohortes/lanzamientos) por oferta. Clone dry-run, publish/archive, archetype-aware rules. Integra con landing y assets."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - offer-edition-create-from-clone
+  - offer-edition-publish
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Crear edition nueva clonando edition existente (dry-run preview soportado)
+- Publish edition (archetype-aware rules — ej. cohort-based course requiere fechas)
+- Archive de edition con propagación a landing/assets
+- Lifecycle states (draft/published/archived/closed)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| offer-edition-create-from-clone | ui-story | live | ../../stories/offer/offer-edition-create-from-clone.yaml |
+| offer-edition-publish | service-story | live | ../../stories/offer/offer-edition-publish.yaml |
+
+## Gaps identificados
+
+- Test backend `test_edition_publish_archetype_rules.py` existe pero coverage de cada archetype variation no es exhaustivo
+- Sin E2E regression para flow completo create→edit→publish→archive

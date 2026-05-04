@@ -1,0 +1,135 @@
+---
+id: brand-extract-from-website
+type: service-story
+module: brand
+capability: brand-extraction
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/brand.md"
+  capability: "../../capabilities/brand/brand-extraction.yaml"
+  domain_doc: "../../../domains/module_brand.md"
+  related_stories:
+    - brand-extract-from-document
+
+context:
+  job: "Como sistema necesito extraer brand info desde la URL pública del tenant para auto-llenar identity, story, positioning y voice sin trabajo manual del user."
+  why: "Es el path #1 de onboarding. Sin extracción, el user tiene que llenar 50 fields manualmente y abandona."
+  constraints:
+    - "Idempotente (re-extraer misma URL no duplica data)"
+    - "Tenant-scoped (header X-Tenant-ID required)"
+    - "Latencia p95 < 60s (LLM + crawler)"
+    - "Wave-based (subclass de BaseExtractionOrchestrator)"
+    - "Per-wave save (no all-or-nothing)"
+    - "PII redaction en trazas"
+
+outcome:
+  consumer_observable: "Frontend recibe 200 con extraction_id; eventualmente brand_settings poblado por waves."
+  product_observable:
+    - "DB: brand_settings.identity, story, positioning, narrative, personality progresivamente llenos"
+    - "extraction_trace registra cada wave con tokens, cost, status"
+    - "Eventos: BrandSectionUpdated{section} por cada wave completada"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/brand/extraction/website
+  request_schema: "backend/src/modules/brand/api/extraction.py::ExtractionRequest"
+  response_schema: "backend/src/modules/brand/api/extraction.py::ExtractionResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "5/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-path-public-website
+    type: regression
+    given:
+      - "Tenant T1 con brand_settings vacío"
+      - "URL https://academia-ejemplo.lat es pública y crawleable"
+    when: "POST /api/v1/brand/extraction/website con {url: 'https://academia-ejemplo.lat'}"
+    then:
+      - "Status 202 con extraction_id"
+      - "Waves ejecutan en background y persisten per-wave"
+      - "Tras N segundos brand_settings.identity, story, positioning están poblados"
+      - "extraction_trace con N rows (1 por wave)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/brand/test_extraction_router.py"
+      - type: state_check
+        target: db
+        query: "SELECT identity, story FROM brand_settings WHERE tenant_id = ?"
+        expect: "no NULL en campos top-level"
+      - type: state_check
+        target: events_outbox
+        expect: ">=1 BrandSectionUpdated event"
+
+  - id: invalid-url
+    type: negative
+    when: "POST con url malformada o no http(s)"
+    then:
+      - "Status 422 con detail de validation"
+      - "DB: brand_settings sin cambios"
+      - "extraction_trace sin row creado"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/brand/test_extraction_router.py"
+
+  - id: wave-failure-partial-save
+    type: edge
+    given:
+      - "Wave 2 (positioning) falla por LLM 503"
+    when: "POST extraction con URL válida"
+    then:
+      - "Wave 1 (identity) persiste OK"
+      - "Wave 2 falla y queda registrada en extraction_trace con status=failed"
+      - "Wave 3+ continúa o se skipea según política"
+      - "User puede re-trigger solo de la wave fallida"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/brand/test_extraction_orchestrator_per_wave_save.py"
+
+  - id: cross-tenant-extraction-leak
+    type: adversarial
+    when: "Usuario A (tenant T1) hace POST con X-Tenant-ID=T2"
+    then:
+      - "Status 403 Forbidden"
+      - "DB: brand_settings de T2 NO modificado"
+      - "Audit log entry"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST con X-Tenant-ID spoofeado"
+        expect: "403"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - copilot
+    - sales_agent
+  emits_events:
+    - BrandSectionUpdated
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - brand-extraction
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/brand/test_extraction_router.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

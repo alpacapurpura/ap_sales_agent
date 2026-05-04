@@ -1,0 +1,124 @@
+---
+id: sales-cost-tracking-cycle-billing
+type: service-story
+module: sales-agent
+capability: sales-observability-cost-tracking
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-05-01
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-observability-cost-tracking.yaml"
+  domain_doc: "../../../domains/module_sales_agent.md"
+  related_stories:
+    - sales-trace-persist-turn
+
+context:
+  job: "Como sistema necesito agregación diaria de cost_usd per tenant + per agent_kind (sales_agent vs copilot bucket) para facturación cycle billing 25-25 + alerting overrun BudgetGuard SA pool."
+  why: "Sin agregación, no hay billing real ni alerting. SA pool (sales_agent_reserved_pct) DEBE ser independiente de Others pool — exhausto SA NO bloquea copilot."
+  constraints:
+    - "MV daily aggregation refreshed within 1h (stale soft-cap 5% overrun)"
+    - "Currency tenant-aware (TenantLocale)"
+    - "Pricing snapshot SSoT inmutable (model_pricing_snapshot)"
+    - "Cycle 25 → 25 (configurable)"
+
+outcome:
+  consumer_observable: "Streamlit /admin/cost-sales-agent muestra cost_usd diario por tenant + tier alerts"
+  product_observable:
+    - "MV mv_sales_agent_cost_daily refreshed con sum(cost_usd) per (tenant_id, day, agent_kind)"
+    - "BudgetGuard.check() retorna correct boolean basado en MV reading"
+    - "Alert log si tenant exceeds 80% SA pool"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "cron MV refresh hourly + on-demand on llm_call insert (deferred to MV)"
+
+scenarios:
+  - id: happy-mv-refresh
+    type: regression
+    given:
+      - "tenant T1 con 10 llm_call rows hoy ($0.05 total)"
+    when: "MV refresh runs"
+    then:
+      - "mv_sales_agent_cost_daily contains row (T1, today, 'sales_agent', 0.05)"
+      - "BudgetGuard.check() reads MV (no live aggregate)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/observability/test_cost_alert.py"
+
+  - id: sa-pool-exhaustion-blocks-only-sa
+    type: regression
+    given:
+      - "tenant T1 plan_config: llm_budget_total=100 USD, sales_agent_reserved_pct=0.5"
+      - "SA spent $50.01 (exceeds reserved $50)"
+    when: "BudgetGuard.check(agent_kind='sales_agent', estimated=0.10)"
+    then:
+      - "BudgetGuard returns BLOCKED (SA exhausted)"
+      - "BudgetGuard.check(agent_kind='copilot', estimated=0.10) returns ALLOWED (Others pool still has $50 - copilot_spent)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/architecture/test_budget_guard_pool_isolation.py"
+
+  - id: stale-mv-soft-cap
+    type: edge
+    given:
+      - "MV last refresh > 1h ago"
+      - "tenant nominal capacity exhausted but stale data"
+    when: "BudgetGuard.check"
+    then:
+      - "Allow 5% overrun (cap 105%)"
+      - "structlog warning 'mv_stale_soft_cap_active'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/observability/test_cost_alert.py"
+
+  - id: cross-tenant-cost-leak
+    type: adversarial
+    given:
+      - "tenant T1 query for cost"
+    when: "User from T1 queries /admin/cost-sales-agent for tenant T2"
+    then:
+      - "403 or empty (no cross-tenant data leak)"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT * FROM mv_sales_agent_cost_daily WHERE tenant_id = ?"
+        expect: "tenant-isolated"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - copilot
+    - admin
+  emits_events:
+    - SAPoolExhausted
+  consumes_events: []
+
+dependencies:
+  stories:
+    - sales-trace-persist-turn
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/sales_agent/observability/test_cost_alert.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -1,0 +1,129 @@
+---
+id: landing-publish
+type: service-story
+module: landing
+capability: landing-publishing
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/landing.md"
+  capability: "../../capabilities/landing/landing-publishing.yaml"
+  domain_doc: "../../../domains/module_landing.md"
+  related_stories:
+    - landing-slug-edit
+    - landing-public-render
+
+context:
+  job: "Como sistema necesito publicar (o despublicar) una landing exponiéndola en URL pública con dominio del tenant para que el user pueda compartir el link."
+  why: "Sin publish endpoint, la landing está armada pero invisible. Publish es el momento commercial-crítico."
+  constraints:
+    - "Idempotente"
+    - "Tenant-scoped"
+    - "Atomicidad: state + tenant_domains binding en misma tx"
+
+outcome:
+  consumer_observable: "PATCH .../publish retorna 200 con public_url; visitante recibe HTML al GET pública URL."
+  product_observable:
+    - "DB: landing_pages.state='published', published_at = utc_now()"
+    - "DB: tenant_domains binding activo"
+    - "Domain event LandingPublished emitido"
+
+service_contract:
+  type: endpoint
+  method: PATCH
+  path: /api/v1/landings/{id}/publish
+  request_schema: "backend/src/modules/landing/api/landing.py::PublishRequest"
+  response_schema: "backend/src/modules/landing/api/landing.py::LandingResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "30/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: publish-draft-landing
+    type: regression
+    given:
+      - "Tenant T1 con landing id=42 state='draft', slug='curso-q2'"
+      - "Tenant tiene domain 'academia.lat' configurado"
+    when: "PATCH /api/v1/landings/42/publish"
+    then:
+      - "Status 200"
+      - "Response incluye public_url='https://academia.lat/curso-q2'"
+      - "DB: state='published', published_at no NULL"
+      - "GET pública retorna HTML 200"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/landing/test_public_edition_api.py"
+      - type: state_check
+        target: db
+        query: "SELECT state FROM landing_pages WHERE id = 42"
+        expect: "'published'"
+
+  - id: publish-without-slug
+    type: negative
+    given:
+      - "Landing sin slug definido"
+    when: "PATCH publish"
+    then:
+      - "Status 422 'Slug requerido para publicar'"
+      - "DB: state queda 'draft'"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: idempotent-republish
+    type: edge
+    given:
+      - "Landing ya publicada"
+    when: "PATCH publish 2 veces seguidas"
+    then:
+      - "Segunda call retorna 200 con mismo public_url"
+      - "DB: published_at no se actualiza (timestamp original preservado)"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-publish
+    type: adversarial
+    given:
+      - "Tenant T2 con landing id=99"
+    when: "Usuario A (T1) PATCH /api/v1/landings/99/publish con X-Tenant-ID=T1"
+    then:
+      - "404 Not Found"
+      - "DB: landing 99 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "PATCH publish cross-tenant"
+        expect: "404"
+
+cross_module:
+  reads_from:
+    - tenant_domains
+  read_by: []
+  emits_events:
+    - LandingPublished
+  consumes_events: []
+
+dependencies:
+  stories:
+    - landing-create-from-offer
+  capabilities:
+    - landing-publishing
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/landing/test_public_edition_api.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

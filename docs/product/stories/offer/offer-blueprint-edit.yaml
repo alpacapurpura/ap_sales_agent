@@ -1,0 +1,131 @@
+---
+id: offer-blueprint-edit
+type: ui-story
+module: offer
+capability: offer-blueprint
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-blueprint.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories:
+    - offer-pricing-tiers-edit
+    - offer-variants-polymorphic
+
+context:
+  job: "Como user quiero editar las distintas secciones de mi oferta (identity, promise, psychology, instructors, location, gallery...) en una UI que se adapta al tipo de oferta para tener un blueprint completo y publicable."
+  why: "El blueprint completo alimenta sales_agent, landing y assets. Si secciones quedan vacías, sales_agent improvisa y conversiones bajan."
+  constraints:
+    - "Tenant-scoped"
+    - "Auto-save on change"
+    - "Form-runtime cards/split mode automático según fields count"
+    - "Sections cross-módulo: LOCATION, PRICING, INSTRUCTORS"
+
+outcome:
+  user_observable: "Tras editar campo en sección X, persiste sin click; al refrescar, sigue allí. Sections cross-módulo (location) reflejan datos de scheduling."
+  product_observable:
+    - "DB: offers + offer_sections actualizados con tenant_id"
+    - "Domain event OfferSectionUpdated emitido por section change"
+    - "Cross-module: sales_agent invalida cache de offer al próximo turno"
+
+scenarios:
+  - id: edit-promise-section
+    type: regression
+    given:
+      - "Tenant T1 con offer id=42 archetype=education preset=cohort_based_course"
+    when: "Usuario edita campo promise.headline a 'Aprendé a programar en 8 semanas' y desenfoca"
+    then:
+      - "PATCH /api/v1/offers/42/sections/promise retorna 200"
+      - "DB: offer_sections.value JSON contiene headline actualizado"
+      - "Toast 'Guardado' <2s"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT value FROM offer_sections WHERE offer_id = 42 AND section_id = 'promise'"
+        expect: "headline = 'Aprendé a programar en 8 semanas'"
+
+  - id: invalid-required-field
+    type: negative
+    given:
+      - "Tenant T1 con offer id=42"
+    when: "Usuario borra campo requerido pricing.amount y desenfoca"
+    then:
+      - "Validation inline 'El precio es requerido'"
+      - "Submit/auto-save falla 422"
+      - "DB: pricing.amount sin cambios (mantiene valor previo)"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: change-preset-mid-edit
+    type: edge
+    given:
+      - "Tenant T1 con offer preset='cohort_based_course' editada"
+    when: "Usuario cambia preset a 'productized_service'"
+    then:
+      - "Sections actualizan: aparecen relevantes al nuevo preset"
+      - "Datos compatibles entre ambos presets se preservan"
+      - "Datos incompatibles quedan archivados (no se pierden, soft-archive)"
+      - "User confirma cambio destructivo si aplica"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: cross-tenant-section-edit
+    type: adversarial
+    given:
+      - "Tenant T2 con offer id=99"
+    when: "Usuario A (T1) hace PATCH /api/v1/offers/99/sections/promise con X-Tenant-ID=T1"
+    then:
+      - "404 Not Found (offer 99 no pertenece a T1)"
+      - "DB: offer 99 de T2 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "PATCH /api/v1/offers/99/sections/promise con X-Tenant-ID=T1"
+        expect: "404"
+
+cross_module:
+  reads_from:
+    - brand
+    - scheduling
+    - connections
+  read_by:
+    - sales_agent
+    - landing
+    - assets
+  emits_events:
+    - OfferSectionUpdated
+  consumes_events: []
+
+dependencies:
+  stories:
+    - offer-create-from-ladder
+  capabilities:
+    - offer-blueprint
+    - offer-presets-catalogs
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: propose_field_updates
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

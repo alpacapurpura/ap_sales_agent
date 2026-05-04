@@ -1,0 +1,130 @@
+---
+id: brand-buyer-persona-create
+type: ui-story
+module: brand
+capability: brand-buyer-personas
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/brand.md"
+  capability: "../../capabilities/brand/brand-buyer-personas.yaml"
+  domain_doc: "../../../domains/module_brand.md"
+  related_stories:
+    - brand-buyer-persona-edit
+
+context:
+  job: "Como user quiero crear un buyer persona nuevo (multi-persona soportado) para que el sales_agent y los assets se adapten al cliente ideal correspondiente."
+  why: "Sin buyer persona no hay segmentación. Multi-persona permite atender distintos segmentos sin perder fidelidad."
+  constraints:
+    - "Tenant-scoped"
+    - "Multi-persona: tenant puede tener N personas"
+    - "Spanish neutro LatAm en labels"
+    - "Auto-save on change"
+
+outcome:
+  user_observable: "Tras click en 'Nueva persona', usuario ve formulario vacío con secciones (demografía, dolores, objetivos, objeciones); al desenfocar cada campo, persiste."
+  product_observable:
+    - "DB: buyer_personas insertado con tenant_id y deleted_at IS NULL"
+    - "Domain event BuyerPersonaCreated en outbox"
+
+scenarios:
+  - id: create-and-fill-basic
+    type: regression
+    given:
+      - "Usuario autenticado tenant T1 sin personas previas"
+    when: "Usuario click 'Nueva persona', llena nombre 'Catalina, dueña de cafetería' y desenfoca"
+    then:
+      - "POST /api/v1/brand/buyer-personas con payload válido retorna 201"
+      - "DB: buyer_personas tiene 1 row con name = 'Catalina, dueña de cafetería' y tenant_id=T1"
+      - "Página redirige al detalle de la persona recién creada"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/smoke/buyer-personas.smoke.spec.ts"
+      - type: state_check
+        target: db
+        query: "SELECT name, tenant_id FROM buyer_personas WHERE tenant_id = ? AND deleted_at IS NULL"
+        expect: "1 row con name esperado"
+
+  - id: create-without-name
+    type: negative
+    given:
+      - "Usuario autenticado tenant T1"
+    when: "Usuario submite formulario sin completar campo name"
+    then:
+      - "Validation inline 'El nombre es requerido'"
+      - "Submit deshabilitado / 422 si bypass cliente"
+      - "DB: no se inserta row"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/brand/test_buyer_persona_api.py"
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM buyer_personas WHERE tenant_id = ?"
+        expect: "no change"
+
+  - id: create-many-personas
+    type: edge
+    given:
+      - "Tenant T1 ya tiene 20 personas"
+    when: "Usuario crea persona #21"
+    then:
+      - "Persona #21 se crea sin error"
+      - "Listado muestra todas las 21 sin perder ninguna"
+      - "Performance del listado <1s p95"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM buyer_personas WHERE tenant_id = ?"
+        expect: "21"
+
+  - id: cross-tenant-create-attempt
+    type: adversarial
+    given:
+      - "Usuario A en tenant T1"
+    when: "Usuario A llama POST /api/v1/brand/buyer-personas con header X-Tenant-ID=T2"
+    then:
+      - "403 Forbidden (tenant T2 no le pertenece)"
+      - "DB: buyer_personas de T2 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST /api/v1/brand/buyer-personas con X-Tenant-ID spoofeado"
+        expect: "403"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - copilot
+    - assets
+    - landing
+  emits_events:
+    - BuyerPersonaCreated
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - brand-buyer-personas
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: create_buyer_persona
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/smoke/buyer-personas.smoke.spec.ts"
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

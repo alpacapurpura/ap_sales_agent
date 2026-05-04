@@ -1,0 +1,123 @@
+---
+id: analytics-etl-google-providers-extraction
+type: service-story
+module: analytics
+capability: etl-pipeline-providers
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/etl-pipeline-providers.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-etl-scheduler-tick
+
+context:
+  job: "Como sistema necesito extraer métricas de Google Ads + GA4 + Search Console e insertarlas en `official_metrics` para visualizar performance Google end-to-end"
+  why: "Google es 2do canal mayor inversión típica. ETL faltante → blind spot SEM/SEO/Analytics → tenant no ve ROI Google"
+  constraints:
+    - "Idempotente"
+    - "Tenant-scoped (cada tenant tiene property/customer ids)"
+    - "Currency desde cuenta Google Ads (multi-currency LATAM)"
+    - "Property GA4 picker requiere selección user (no asume default)"
+    - "Token refresh OAuth cuando expira"
+
+outcome:
+  consumer_observable: "Tras sync, `official_metrics` contiene rows con channel in {google_ads, google_analytics, search_console}, métricas (spend/sessions/clicks/conversions/impressions)"
+  product_observable:
+    - "DB: rows upsertadas por (tenant_id, channel, metric, date)"
+    - "DB: `etl_run` log entry"
+    - "Cache invalidation stages relevantes"
+
+service_contract:
+  type: etl_pipeline
+  method: POST
+  path: /api/v1/metrics/sync
+  request_schema: "backend/src/modules/analytics/api/metrics.py::SyncRequest"
+  response_schema: "backend/src/modules/analytics/api/metrics.py::SyncResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "10/min"
+  idempotency: natural-key
+  trigger: "manual via POST | scheduler tick"
+
+scenarios:
+  - id: happy-path-google-ads-and-ga4
+    type: regression
+    given:
+      - "Tenant T1 con credencial Google Ads + GA4 property seleccionada"
+    when: "POST /api/v1/metrics/sync con provider in (google_ads, google_analytics, search_console)"
+    then:
+      - "Status 200 con rows_extracted >0"
+      - "DB rows con channel correcto y currency desde account"
+      - "Sessions GA4 en tabla con date diario"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metrics_service_etl.py"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM official_metrics WHERE tenant_id=:t AND channel='google_ads' AND date>=:from"
+        expect: ">0"
+
+  - id: ga4-property-not-selected
+    type: negative
+    given:
+      - "Tenant T1 con credencial GA4 OK pero property_id NULL"
+    when: "POST /api/v1/metrics/sync provider=google_analytics"
+    then:
+      - "Status 400 con detail property_required O Status 200 con rows=0 + warning"
+      - "DB no se modifica"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metrics_service_etl.py"
+
+  - id: oauth-token-refresh-mid-extraction
+    type: edge
+    given:
+      - "Tenant T1 token Google access caducó during extraction"
+    when: "Provider intenta call API y recibe 401"
+    then:
+      - "Refresh token usado para regenerar access_token"
+      - "Extraction reintenta y completa"
+      - "Connection record actualiza access_token + expires_at"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metrics_service_etl.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 intenta sync con X-Tenant-ID=T2"
+    then:
+      - "403"
+      - "DB sin cambios"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by:
+    - copilot
+  emits_events:
+    - analytics.metrics_synced
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - connections-oauth-credentials
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_metrics_service_etl.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

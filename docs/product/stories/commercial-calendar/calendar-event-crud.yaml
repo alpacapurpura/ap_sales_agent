@@ -1,0 +1,134 @@
+---
+id: calendar-event-crud
+type: service-story
+module: commercial-calendar
+capability: calendar-events
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/commercial-calendar.md"
+  capability: "../../capabilities/commercial-calendar/calendar-events.yaml"
+  domain_doc: "../../../domains/module_commercial-calendar.md"
+  related_stories:
+    - calendar-list-events
+
+context:
+  job: "Como tenant necesito CRUD sobre mis eventos comerciales custom (no sistema-wide) para registrar promociones, lanzamientos y fechas relevantes específicas a mi negocio"
+  why: "Sin CRUD, tenant solo ve holidays genéricos LATAM. Pierde la posibilidad de planificar campañas alrededor de eventos propios. Si falla, calendario es read-only inutilizable para timing custom."
+  constraints:
+    - "Tenant-scoped (header X-Tenant-ID required, validated by Depends(get_tenant_context))"
+    - "Eventos sistema-wide NO modificables vía esta API (rechazar 403 si tenant intenta editar holiday)"
+    - "Soft delete (deleted_at)"
+    - "Idempotency en POST opcional (header Idempotency-Key)"
+
+outcome:
+  consumer_observable: "Tenant crea/actualiza/elimina events propios y los ve en GET subsecuentes"
+  product_observable:
+    - "DB: INSERT/UPDATE/soft-delete en `calendar_events` con tenant_id correcto"
+    - "Eventos emitidos: calendar_event_created/updated/deleted (potencial — confirmar si están emitidos)"
+    - "Audit log (si configurado)"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/commercial-calendar/events
+  request_schema: "backend/src/modules/commercial_calendar/api/dto/CalendarEventCreate"
+  response_schema: "backend/src/modules/commercial_calendar/api/dto/CalendarEventResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: header
+  trigger: null
+
+scenarios:
+  - id: happy-path-create
+    type: regression
+    given:
+      - "Tenant T1 autenticado"
+    when: "POST /api/v1/commercial-calendar/events con body {name:'Lanzamiento curso Q3', date:'2026-08-15', country_code:'AR', type:'PROMO'}"
+    then:
+      - "Status 201 con id generado, tenant_id=T1, is_system_wide=FALSE"
+      - "DB: row nuevo en `calendar_events`"
+      - "GET subsecuente lo incluye"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/commercial_calendar/test_calendar_event_service.py"
+      - type: state_check
+        target: db
+        query: "SELECT name, tenant_id, is_system_wide FROM calendar_events WHERE name='Lanzamiento curso Q3'"
+        expect: "tenant_id=T1, is_system_wide=FALSE"
+
+  - id: invalid-payload-past-date
+    type: regression
+    given:
+      - "Auth válida"
+    when: "POST con body {name:'X', date:'1990-01-01', country_code:'AR'} (fecha en pasado lejano, business invalid si hay regla)"
+    then:
+      - "Status 422 con detail validation OR Status 201 si pasado permitido (depende reglas DTO)"
+      - "Si 422: DB no inserta"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/commercial_calendar/test_calendar_event_service.py"
+
+  - id: cannot-edit-system-wide
+    type: regression
+    given:
+      - "Tenant T1 autenticado"
+      - "Event id=42 es sistema-wide (is_system_wide=TRUE, tenant_id=NULL)"
+    when: "PUT /api/v1/commercial-calendar/events/42 con body intentando renombrar"
+    then:
+      - "Status 403 o 404 (no puede modificar sistema-wide)"
+      - "DB: row 42 sin cambios"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/commercial_calendar/test_calendar_event_update.py"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "Tenant T1 autenticado"
+      - "Event id=99 pertenece a tenant T2"
+    when: "DELETE /api/v1/commercial-calendar/events/99 con X-Tenant-ID=T1"
+    then:
+      - "Status 404 (no leakea existencia)"
+      - "DB: event 99 sin cambios (deleted_at IS NULL)"
+      - "Audit log: intento cross-tenant"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/commercial_calendar/test_calendar_event_repository_isolation.py"
+      - type: state_check
+        target: api
+        query: "DELETE /api/v1/commercial-calendar/events/99 con X-Tenant-ID=T1"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - copilot
+  emits_events:
+    - calendar_event_created
+    - calendar_event_updated
+    - calendar_event_deleted
+  consumes_events: []
+
+dependencies:
+  stories:
+    - calendar-list-events
+  capabilities: []
+
+estimate:
+  story_points: 3
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/commercial_calendar/test_calendar_event_service.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

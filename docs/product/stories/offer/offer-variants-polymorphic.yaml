@@ -1,0 +1,119 @@
+---
+id: offer-variants-polymorphic
+type: ui-story
+module: offer
+capability: offer-blueprint
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-blueprint.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories:
+    - offer-blueprint-edit
+
+context:
+  job: "Como user quiero configurar variants polimórficas (TIER, BUNDLE) según el archetype/format de mi oferta para reflejar correctamente el modelo de venta (ej. cohort tiene seats; servicio tiene packages)."
+  why: "Sin variants polimórficas, todas las ofertas se comportan igual y se pierde la riqueza del modelo (tiers, bundles, seats)."
+  constraints:
+    - "VariantStructure SSoT en domain catalog"
+    - "Archetype-aware UI (cohort vs service vs course distinto rendering)"
+    - "Auto-save on change"
+    - "Tenant-scoped"
+
+outcome:
+  user_observable: "Usuario agrega variant 'Premium con mentoría 1:1' a oferta cohort, ve fields adaptados al variant_structure (seats, included_features, price_delta)."
+  product_observable:
+    - "DB: offer_variants row insertado con offer_id, variant_structure_id"
+    - "Domain event OfferVariantUpdated emitido"
+
+scenarios:
+  - id: add-tier-variant-cohort
+    type: regression
+    given:
+      - "Tenant T1, offer id=42 archetype=education format=cohort_based_course"
+    when: "Usuario agrega variant TIER 'Premium' con seats=10, price_delta=200"
+    then:
+      - "DB: offer_variants row con structure_id='TIER'"
+      - "UI muestra fields del variant_structure (seats, features, price_delta)"
+      - "Listado oferta muestra ambas variants (default + premium)"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/offer-variants-polymorphic.regression.spec.ts"
+      - type: state_check
+        target: db
+        query: "SELECT structure_id, payload FROM offer_variants WHERE offer_id = 42"
+        expect: "row con structure_id='TIER'"
+
+  - id: invalid-variant-for-archetype
+    type: negative
+    given:
+      - "Offer archetype=service (variants permitidas: BUNDLE, SUBSCRIPTION)"
+    when: "Usuario intenta agregar variant TIER no soportado por archetype"
+    then:
+      - "Status 422 con detail 'Variant TIER no permitida para archetype service'"
+      - "DB: offer_variants sin cambios"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: variant-deletion-cascade
+    type: edge
+    given:
+      - "Offer 42 con 2 variants y editions activas referenciando variant id=1"
+    when: "Usuario elimina variant id=1"
+    then:
+      - "Si tiene editions activas → 409 Conflict, debe archivar editions primero"
+      - "Si no → soft delete (deleted_at IS NOT NULL)"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-variant-write
+    type: adversarial
+    given:
+      - "Tenant T2 con offer id=99"
+    when: "Usuario A (T1) hace POST /api/v1/offers/99/variants con X-Tenant-ID=T1"
+    then:
+      - "404 Not Found"
+      - "DB: offer_variants de T2 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST /api/v1/offers/99/variants con X-Tenant-ID=T1"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - landing
+  emits_events:
+    - OfferVariantUpdated
+  consumes_events: []
+
+dependencies:
+  stories:
+    - offer-blueprint-edit
+  capabilities:
+    - offer-blueprint
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/regression/offer-variants-polymorphic.regression.spec.ts"
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

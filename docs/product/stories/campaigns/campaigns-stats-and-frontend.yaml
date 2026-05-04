@@ -1,0 +1,113 @@
+---
+id: campaigns-stats-and-frontend
+type: ui-story
+module: campaigns
+capability: templates-and-stats
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-12
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/templates-and-stats.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories: []
+
+context:
+  job: "Como user en sales-studio quiero ver detail/list de mis campañas + estadísticas (sent/delivered/responses) y crear/launch nuevas via UI guiada"
+  why: "Sin UI, user no opera campaigns. campaigns-lite frontend feature provides minimal flows MVP"
+  constraints:
+    - "Spanish neutro"
+    - "Tenant-scoped via [tenantId] route"
+    - "Mobile responsive >=375px"
+    - "React Query hooks + RHF + Zod"
+
+outcome:
+  user_observable: "Páginas `/sales/campanas` (list), `/sales/campanas/[id]` (detail), `/sales/campanas/nuevo` (create) funcionan"
+  product_observable:
+    - "Detail muestra stats endpoint response"
+    - "Create flow llama POST /campaigns + launch"
+
+scenarios:
+  - id: happy-path-create-and-launch-via-ui
+    type: regression
+    given:
+      - "User logueado en sales-studio"
+      - "Segment S1 + offer activo"
+    when: "Navega a /sales/campanas/nuevo, completa form, click 'Crear y lanzar'"
+    then:
+      - "POST /campaigns + POST launch"
+      - "Redirect a /sales/campanas/[id]"
+      - "Detail page muestra state=running"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/sales/campaign-launch-telegram.spec.ts"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/campaigns/{id}"
+        expect: "200 with state=running"
+
+  - id: invalid-form-input
+    type: negative
+    given:
+      - "User en /sales/campanas/nuevo"
+    when: "Submit form con campos faltantes"
+    then:
+      - "Zod validation inline errors"
+      - "Submit deshabilitado"
+      - "DB no se modifica"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/sales/campaign-launch-telegram.spec.ts"
+
+  - id: stats-no-data-yet
+    type: edge
+    given:
+      - "Campaign recién launched, 0 mensajes enviados todavía"
+    when: "GET detail page"
+    then:
+      - "Stats muestran 0/0/0 con empty state amigable"
+      - "No 5xx"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_campaigns_stats_endpoint.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 navega a /[tenantId=T2]/sales/campanas/[id de T2]"
+    then:
+      - "404 o redirect a tenant correcto"
+      - "No leak de campaigns ajenos"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/smoke/sales-campaigns-route.spec.ts"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - campaigns-launch-with-orchestrator
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/regression/sales/campaign-launch-telegram.spec.ts"
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -1,0 +1,131 @@
+---
+id: offer-edition-publish
+type: service-story
+module: offer
+capability: offer-editions-launch
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-editions-launch.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories:
+    - offer-edition-create-from-clone
+
+context:
+  job: "Como sistema necesito publicar una edition aplicando archetype-aware rules (ej. cohort requiere fechas, productized_service no) para que landing y sales_agent pasen al estado 'live'."
+  why: "Publicar es el momento crítico — si reglas archetype no se cumplen, queda live una edition rota y se pierden ventas."
+  constraints:
+    - "Idempotente"
+    - "Tenant-scoped"
+    - "Archetype-aware rules: validate fields requeridos por archetype"
+    - "Atomicidad: edition + landing publish en misma tx (o saga)"
+
+outcome:
+  consumer_observable: "PATCH .../editions/{id}/publish retorna 200; landing público live; sales_agent presenta esta edition."
+  product_observable:
+    - "DB: launch_editions.state = 'published', published_at = utc_now()"
+    - "DB: landing_pages.published = TRUE"
+    - "Domain event LaunchEditionPublished emitido"
+
+service_contract:
+  type: endpoint
+  method: PATCH
+  path: /api/v1/offers/{offer_id}/editions/{edition_id}/publish
+  request_schema: "backend/src/modules/offer/api/launch_editions.py::PublishRequest"
+  response_schema: "backend/src/modules/offer/api/launch_editions.py::EditionResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "30/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: publish-cohort-with-required-fields
+    type: regression
+    given:
+      - "Tenant T1, offer archetype=education format=cohort_based_course"
+      - "Edition Q2 con start_date, end_date, seats_available llenos"
+    when: "PATCH .../editions/{id}/publish"
+    then:
+      - "Status 200"
+      - "DB: state='published', published_at no NULL"
+      - "DB: landing_pages.published=TRUE asociada"
+      - "Event LaunchEditionPublished emitido"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/offer/test_edition_publish_archetype_rules.py"
+      - type: state_check
+        target: db
+        query: "SELECT state FROM launch_editions WHERE id = ?"
+        expect: "'published'"
+
+  - id: publish-without-required-fields
+    type: negative
+    given:
+      - "Edition Q2 cohort sin start_date"
+    when: "PATCH publish"
+    then:
+      - "Status 422 con detail listando campos faltantes"
+      - "DB: state queda 'draft'"
+      - "Landing NO publica"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/offer/test_edition_publish_archetype_rules.py"
+
+  - id: idempotent-republish
+    type: edge
+    given:
+      - "Edition ya publicada"
+    when: "PATCH publish 2 veces seguidas"
+    then:
+      - "Segunda call retorna 200 (mismo response que primera)"
+      - "DB: published_at no se actualiza (mantiene timestamp original)"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-publish
+    type: adversarial
+    given:
+      - "Tenant T2 con edition id=77"
+    when: "Usuario A (T1) PATCH /api/v1/offers/{x}/editions/77/publish con X-Tenant-ID=T1"
+    then:
+      - "404 Not Found"
+      - "DB: edition de T2 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "PATCH publish cross-tenant"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - landing
+    - sales_agent
+  emits_events:
+    - LaunchEditionPublished
+  consumes_events: []
+
+dependencies:
+  stories:
+    - offer-edition-create-from-clone
+  capabilities:
+    - offer-editions-launch
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/offer/test_edition_publish_archetype_rules.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

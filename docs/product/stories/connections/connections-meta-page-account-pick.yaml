@@ -1,0 +1,115 @@
+---
+id: connections-meta-page-account-pick
+type: ui-story
+module: connections
+capability: connections-meta-oauth
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/connections.md"
+  capability: "../../capabilities/connections/connections-meta-oauth.yaml"
+  domain_doc: "../../../domains/module_connections.md"
+  related_stories:
+    - connections-meta-oauth-flow
+
+context:
+  job: "Como tenant tras OAuth pickeo qué Page de FB (puedo administrar varias) y qué ad_account quiero usar Nicolify."
+  why: "Tenants con agencias administran 5+ pages. Sin picker, default elegirá wrong page."
+  constraints:
+    - "Lista solo pages que tenant admin (filtered by Meta API)"
+    - "Auto-save selection (no botón Guardar)"
+    - "Tenant-scoped"
+
+outcome:
+  user_observable: "Tenant ve dropdown pages + ad_accounts + IG business account, selecciona uno y se persiste"
+  product_observable:
+    - "DB: channel_connections.config updated con page_id + ad_account_id + ig_business_account_id"
+    - "Cross-module: sales_agent puede leer ig_business_account_id para DMs"
+
+scenarios:
+  - id: happy-pick-and-save
+    type: regression
+    given:
+      - "Tenant T1 con Meta connected, 3 pages disponibles"
+    when: "User selecciona page_id=P1"
+    then:
+      - "Auto-save dispara PATCH /api/v1/connections/meta/config"
+      - "DB: channel_connections.config.page_id = P1"
+      - "Toast 'Guardado'"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT config FROM channel_connections WHERE tenant_id = ? AND provider = 'meta'"
+        expect: "page_id == 'P1'"
+
+  - id: no-pages-available
+    type: negative
+    given:
+      - "Tenant Meta connected pero no admin de ningún page"
+    when: "Tenant abre picker"
+    then:
+      - "UI muestra 'No tenés pages administradas' (en LATAM neutro: 'No tienes pages administradas')"
+      - "Sugiere crear page en Facebook"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: page-revoked-mid-session
+    type: edge
+    given:
+      - "Tenant tiene page_id=P1 saved"
+    when: "Meta revokes admin access P1"
+    then:
+      - "Connection status → expired/disconnected"
+      - "UI muestra 'reconnect needed'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_connection_health.py"
+
+  - id: cross-tenant-pick
+    type: adversarial
+    given:
+      - "Tenant T1 con header X-Tenant-ID=T2 spoofed"
+    when: "PATCH /config"
+    then:
+      - "Status 403 (Clerk validates tenant access)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_meta_tenant_isolation.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - advertising
+  emits_events:
+    - MetaConfigUpdated
+  consumes_events: []
+
+dependencies:
+  stories:
+    - connections-meta-oauth-flow
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

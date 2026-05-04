@@ -8,7 +8,16 @@
 
 | ID | Type | Status | Capability | Last audit |
 |----|------|--------|------------|------------|
-| _(vacío — populado por agents en P9 o /po cuando crea stories)_ |
+| sales-inbound-conversation-qualify | agentic-story | live | sales-conversational-engine | 2026-05-04 |
+| sales-inbound-conversation-close | agentic-story | live | sales-conversational-engine | 2026-05-04 |
+| sales-brand-voice-fidelity | agentic-story | live | sales-conversational-engine | 2026-05-04 |
+| sales-tool-send-payment-link | agentic-story | live | sales-tools-scheduling-payment | 2026-05-04 |
+| sales-tool-schedule-meeting | agentic-story | live | sales-tools-scheduling-payment | 2026-05-04 |
+| sales-outbound-campaign-launch | agentic-story | live | sales-outbound-orchestrator | 2026-05-04 |
+| sales-trace-persist-turn | service-story | live | sales-observability-cost-tracking | 2026-05-04 |
+| sales-cost-tracking-cycle-billing | service-story | live | sales-observability-cost-tracking | 2026-05-04 |
+| sales-followup-cadence | service-story | live | sales-follow-up-workers | 2026-05-04 |
+| sales-payment-reminder-pending | service-story | live | sales-follow-up-workers | 2026-05-04 |
 
 ## Cómo agregar story nueva
 

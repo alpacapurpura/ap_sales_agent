@@ -1,0 +1,39 @@
+---
+id: brand-buyer-personas
+name: "Buyer personas multi-perfil"
+module: brand
+backbone_activity: "Conocer al cliente"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/brand.md"
+  stories_dir: "../../stories/brand/"
+description: "Gestión multi-persona de avatares de cliente ideal. Cada persona captura demografía, jobs-to-be-done, dolores, motivaciones, objeciones. Soporta upload de docs para auto-fill."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - brand-buyer-persona-create
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Creación de buyer persona nueva (multi-persona soportado por tenant)
+- Edición de persona existente (demografía, dolores, motivaciones, objeciones)
+- Upload de docs (transcripciones de entrevistas, perfiles previos) → auto-fill via LLM extraction
+- Field-contract-platform homologado (mismo runtime que offer-studio)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| brand-buyer-persona-create | ui-story | live | ../../stories/brand/brand-buyer-persona-create.yaml |
+
+## Gaps identificados
+
+- E2E `buyer-personas.smoke.spec.ts` cubre solo render inicial — falta regression de create/edit completo
+- Test regression `test_buyer_persona_fields_dropped_regression.py` indica historial de bugs de campos perdidos al persistir; coverage de regresión sigue thin

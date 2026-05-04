@@ -1,0 +1,122 @@
+---
+id: connections-google-oauth-bundle
+type: service-story
+module: connections
+capability: connections-google-services
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/connections.md"
+  capability: "../../capabilities/connections/connections-google-services.yaml"
+  domain_doc: "../../../domains/module_connections.md"
+  related_stories:
+    - connections-ga4-property-picker
+
+context:
+  job: "Como tenant inicio OAuth Google → autorizo scopes Calendar + Gmail + Ads + Analytics → tokens stored hashed → cada servicio activable individualmente."
+  why: "Google ecosystem = backbone para scheduling + email + analytics. Sin connection, módulos analytics vacíos."
+  constraints:
+    - "Refresh token + access token stored hashed"
+    - "Incremental scopes: tenant pickea qué services (no all-or-nothing)"
+    - "Refresh cron daily"
+
+outcome:
+  consumer_observable: "Tenant ve 'Google Workspace conectado ✓' + lista servicios disponibles"
+  product_observable:
+    - "DB: channel_connections row provider='google_workspace' status='active'"
+    - "DB: refresh_token hashed"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/connections/google-workspace/callback
+  request_schema: null
+  response_schema: "connections/api/dto.py::GoogleWorkspaceCallbackResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "10/hour"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-oauth-callback
+    type: regression
+    given:
+      - "tenant T1 inicia OAuth con scope Calendar+Gmail+Ads"
+    when: "GET /callback con valid code"
+    then:
+      - "BE exchanges code"
+      - "Refresh + access token stored hashed"
+      - "Status active"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_google_workspace_api_routes.py"
+
+  - id: refresh-failure
+    type: edge
+    given:
+      - "Refresh token expired (user revoked)"
+    when: "Daily refresh cron runs"
+    then:
+      - "BE catches 401"
+      - "Status → expired"
+      - "FE muestra reconnect prompt"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_connection_health.py"
+
+  - id: scope-revoked-mid-session
+    type: edge
+    given:
+      - "Tenant revoked Calendar scope only"
+    when: "Calendar adapter usa token"
+    then:
+      - "API call returns 403"
+      - "Adapter reports scope_revoked"
+      - "Status partially_disconnected"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_google_channel_adapters.py"
+
+  - id: cross-tenant-token-leak
+    type: adversarial
+    given:
+      - "Attacker query channel_connections cross-tenant"
+    when: "Repository query"
+    then:
+      - "Tenant-scoped query enforces"
+      - "NO leak token"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_channel_connection_isolation.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - scheduling
+    - analytics
+    - advertising
+  emits_events:
+    - GoogleConnected
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/connections/test_google_workspace_api_routes.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

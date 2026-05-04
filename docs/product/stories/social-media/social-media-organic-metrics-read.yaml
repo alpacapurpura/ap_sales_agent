@@ -1,0 +1,116 @@
+---
+id: social-media-organic-metrics-read
+type: service-story
+module: social-media
+capability: organic-metrics-via-analytics
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/social-media.md"
+  capability: "../../capabilities/social-media/organic-metrics-via-analytics.yaml"
+  domain_doc: "../../../domains/module_social-media.md"
+  related_stories:
+    - analytics-stage-overview-tier1
+
+context:
+  job: "Como user quiero ver reach/engagement/followers de mis canales sociales orgánicos (IG, FB, TikTok, YouTube) en el Growth Studio sin abrir cada plataforma"
+  why: "Sin vista consolidada, user revisa N apps. Vista única reduce friction y permite cross-channel comparison"
+  constraints:
+    - "Tenant-scoped"
+    - "Read-only"
+    - "Multi-channel (IG, FB, TikTok, YouTube)"
+    - "Latencia <1s p95 (vía analytics cache)"
+
+outcome:
+  consumer_observable: "GET /api/v1/metrics/{stage}/overview con channel filter retorna métricas orgánicas"
+  product_observable:
+    - "Datos provenientes de `official_metrics` (poblados por providers analytics)"
+    - "Sin DB writes desde social-media (módulo vacío)"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/metrics/{stage}/overview
+  request_schema: null
+  response_schema: "backend/src/modules/analytics/application/dto/stage_overview_dto.py::StageOverviewDTO"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-ig-organic-read
+    type: regression
+    given:
+      - "Tenant T1 con conexión IG vía Manychat o Meta"
+      - "ETL extrajo métricas reach/engagement"
+    when: "GET /api/v1/metrics/opportunity/overview con channel=instagram"
+    then:
+      - "200 con StageOverviewDTO"
+      - "Métricas reach/engagement presentes"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_stage_overview_endpoint.py"
+
+  - id: tenant-no-social-channels
+    type: negative
+    given:
+      - "Tenant sin conexiones sociales activas"
+    when: "GET overview"
+    then:
+      - "200 con métricas en 0"
+      - "Empty state tip 'conectar canal'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_stage_overview_endpoint.py"
+
+  - id: ig-dm-sync-edge
+    type: edge
+    given:
+      - "Sync IG DM corre vía analytics worker"
+    when: "POST /api/v1/metrics/sync-ig-dm"
+    then:
+      - "Conversaciones DM importadas a CRM"
+      - "Idempotente"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metrics_service_etl.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 forza tenant T2"
+    then:
+      - "403"
+      - "Sin leak"
+
+cross_module:
+  reads_from:
+    - analytics
+    - connections
+  read_by:
+    - copilot
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - bowtie-progressive-loading
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_stage_overview_endpoint.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

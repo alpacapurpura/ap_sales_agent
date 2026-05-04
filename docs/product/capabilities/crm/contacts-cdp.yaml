@@ -1,0 +1,47 @@
+---
+id: contacts-cdp
+name: "CDP unificado de contactos (multi-canal)"
+module: crm
+backbone_activity: "Centralizar leads y clientes"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/crm.md"
+  stories_dir: "../../stories/crm/"
+description: "CDP (Customer Data Platform) interno con identidad multi-canal (email/phone/IG handle), pipeline de ventas, journey events y lifecycle scoring. SSoT cross-canal de leads y clientes del tenant. UI lite en /sales/contactos consume listado paginado con filtros forward-compat."
+stories_live: 3
+stories_planned: 0
+stories_total: 3
+story_ids:
+  - crm-list-contacts
+  - crm-contacts-page
+  - crm-create-static-segment
+copilot_operable: false
+date_introduced: 2026-04-30
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Listado paginado de contactos con 18 filtros canonical forward-compat (subset expuesto en UI lite)
+- Detalle unificado Profile+Lead vía `GET /api/v1/contacts/{id}`
+- UI lite `/sales/contactos` (DataTable shared + ContactsPageClient + drawer detail responsive)
+- Crear segmento STATIC desde contactos seleccionados (REUSE `SegmentModel.filter_dsl` JSONB sin migration)
+- Cross-module read CampaignsLookupPort (`has_campaign_engagement` filter, ventana 90d)
+- Identidad multi-canal (3-tabla pattern: contacts + identities + events) — soft delete + tenant aislado UUID
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| crm-list-contacts | service-story | live | ../../stories/crm/crm-list-contacts.yaml |
+| crm-contacts-page | ui-story | live | ../../stories/crm/crm-contacts-page.yaml |
+| crm-create-static-segment | ui-story | live | ../../stories/crm/crm-create-static-segment.yaml |
+
+## Gaps identificados
+
+- Stubs 501 deferred PI-3: `/contacts/{id}/journey`, `/contacts/{id}/campaigns` (consumir cuando 200)
+- Copilot ops pendiente PI-3: tools `crm_search_contacts(filters)` + `crm_get_contact_summary(id)` + `crm_create_segment` no wrappean PR-10/PR-12 todavía
+- Segmentación dinámica conversacional ausente (solo STATIC desde selección manual)
+- Sin E2E que exercise filter combinations realistas (solo 1 sanity smoke)

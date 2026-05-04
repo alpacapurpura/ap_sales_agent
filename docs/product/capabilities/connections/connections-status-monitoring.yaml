@@ -1,0 +1,46 @@
+---
+id: connections-status-monitoring
+name: "Connection status monitoring + reconnect"
+module: connections
+backbone_activity: "Operar conexiones (status + reconnect)"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/connections.md"
+  stories_dir: "../../stories/connections/"
+description: "FE feature `connections/` muestra status all platforms (healthy/disconnected/expired) + ofrece reconnect button. BE health endpoints + connection_port + soft delete handling. Coverage 90%+ per module doc."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - connections-status-list-ui
+  - connections-reconnect-flow
+copilot_operable: true
+date_introduced: 2026-03
+last_modified: 2026-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `api/health.py` — endpoint `/api/v1/connections/health` retorna status all platforms
+- `api/status.py` — per-platform status detail
+- `application/services/connection_port_impl.py` — abstracción para sales_agent/copilot/scheduling consume
+- `infrastructure/repositories/` — channel_connection_repository con soft delete
+- FE feature `frontend/src/features/connections/` — list view + reconnect button + test connection
+- Cross-module port (`shared/links/ports/connection.py`) — read-only consumers
+- Soft delete handling (deleted_at filter)
+- Test connection per platform endpoint
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| connections-status-list-ui | ui-story | live | ../../stories/connections/connections-status-list-ui.yaml |
+| connections-reconnect-flow | ui-story | live | ../../stories/connections/connections-reconnect-flow.yaml |
+
+## Gaps identificados
+
+- No background job watching token expiry (proactive alert)
+- "Test connection" button tests basic auth pero no end-to-end (e.g., test Manychat = solo verifica token, no envía mensaje real)
+- Reconnect flow no preserva config (custom domain, tenant settings) — re-config needed

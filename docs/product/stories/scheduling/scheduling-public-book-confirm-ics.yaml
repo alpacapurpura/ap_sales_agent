@@ -1,0 +1,136 @@
+---
+id: scheduling-public-book-confirm-ics
+type: service-story
+module: scheduling
+capability: scheduling-public-booking
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/scheduling.md"
+  capability: "../../capabilities/scheduling/scheduling-public-booking.yaml"
+  domain_doc: "../../../domains/module_scheduling.md"
+  related_stories:
+    - scheduling-cancel-reschedule
+
+context:
+  job: "Como lead público (sin auth) reservo slot en booking page → recibo confirmación email + ICS attach + reminders."
+  why: "Conversion-critical. Toda fricción = lost booking. Email + ICS = expectation industry-standard."
+  constraints:
+    - "Sin auth lead (rate-limited per IP + slot)"
+    - "ICS RFC 5545 compliant"
+    - "Email via gmail/MailerLite connections (tenant-scoped)"
+    - "Idempotent: 1 booking por (tenant_id, event_type_id, slot_start, lead_email)"
+    - "Atomic: si email falla post-booking → rollback OR booking + retry email"
+
+outcome:
+  consumer_observable: "Lead recibe email confirmación + ICS attach + reminder T-24h + T-1h"
+  product_observable:
+    - "DB: appointments row created status='CONFIRMED'"
+    - "Google Calendar event created con attendees (lead.email + tenant.email)"
+    - "Email logs row"
+    - "Domain event AppointmentBooked emitted"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/scheduling/public/bookings
+  request_schema: "scheduling/api/dto.py::PublicBookingRequest"
+  response_schema: "scheduling/api/dto.py::PublicBookingResponse"
+  auth: none
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-book-and-confirm
+    type: regression
+    given:
+      - "tenant T1, event_type 'discovery-30min', slot tomorrow 10am Lima"
+    when: "POST con `{event_type_slug, slot_start, lead_email, lead_name, custom_answers}`"
+    then:
+      - "Status 201"
+      - "DB: appointments 1 row status=CONFIRMED"
+      - "Google Calendar event created"
+      - "Email enviado con ICS attach"
+      - "Domain event AppointmentBooked emitted"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_appointment_events.py"
+      - type: state_check
+        target: db
+        query: "SELECT status FROM appointments WHERE tenant_id = ? AND lead_email = ?"
+        expect: "CONFIRMED"
+
+  - id: slot-already-taken
+    type: negative
+    given:
+      - "Slot S1 ya tiene booking"
+    when: "Lead intenta book S1"
+    then:
+      - "Status 409 Conflict"
+      - "Detail: 'slot no longer available'"
+      - "DB: NO segundo row"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_appointment_events.py"
+
+  - id: email-provider-down-async-retry
+    type: edge
+    given:
+      - "Gmail/MailerLite returns 503"
+    when: "POST booking"
+    then:
+      - "DB: appointments row created (booking ATOMIC)"
+      - "Email enqueued retry (outbox pattern)"
+      - "Lead recibe acknowledgment 200 (booking confirmed)"
+      - "Email arrives <5min vía retry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_agenda_api.py"
+
+  - id: cross-tenant-spoof-slot
+    type: adversarial
+    given:
+      - "Attacker POST con slug de tenant T2 vía Host T1"
+    when: "Endpoint resolves"
+    then:
+      - "Slug not found en T1 → 404"
+      - "NO booking creado"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_public_links_api.py"
+
+cross_module:
+  reads_from:
+    - tenant_domains
+    - connections
+  read_by:
+    - crm
+    - sales_agent
+  emits_events:
+    - AppointmentBooked
+  consumes_events: []
+
+dependencies:
+  stories:
+    - scheduling-event-type-public-link
+  capabilities:
+    - connections-google-services
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/scheduling/test_appointment_events.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

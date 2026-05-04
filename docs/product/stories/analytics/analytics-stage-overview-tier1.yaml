@@ -1,0 +1,120 @@
+---
+id: analytics-stage-overview-tier1
+type: ui-story
+module: analytics
+capability: bowtie-progressive-loading
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/bowtie-progressive-loading.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-bowtie-summary-tier0
+    - analytics-stage-detail-tier3
+
+context:
+  job: "Como usuario del Growth Studio quiero ver el detalle por stage (Atracción, Captura, Nutrición, etc) cuando hago drill-down en el Bowtie, para entender dónde está sangrando dinero"
+  why: "Si solo veo agregados (Tier 0) no puedo diagnosticar; sin Tier 1 stage drill-down user va a ciegas. Es la palanca principal de Growth Studio."
+  constraints:
+    - "Latencia p95 <800ms (cache warm)"
+    - "Mobile responsive >=375px"
+    - "Spanish neutro"
+    - "Multi-currency display per channel"
+
+outcome:
+  user_observable: "Tras clic en nodo del Bowtie (stage X), drawer derecho abre con StageOverviewDTO: KPIs agregados por canal del stage, group widgets clickeables"
+  product_observable:
+    - "Cache hit en `metrics_cache` para (tenant, stage, range)"
+    - "`copilot_trace_event` no registra (no es agentic)"
+
+scenarios:
+  - id: happy-path-attraction-stage-drilldown
+    type: regression
+    given:
+      - "Tenant T1 con datos atracción últimos 30d"
+      - "User en Growth Studio logueado"
+    when: "Click nodo 'Atracción' del Bowtie"
+    then:
+      - "Drawer abre <800ms con StageOverviewDTO"
+      - "Channel widgets visibles (facebook, google_ads, organic, etc)"
+      - "KPIs: vistas, costo, CPM, etc"
+      - "Botón 'ver detalle' por canal funcional"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/growth/attraction-capture-progressive.spec.ts"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/metrics/attraction/overview con tenant T1"
+        expect: "200 with StageOverviewDTO"
+
+  - id: tenant-no-data-empty-state
+    type: negative
+    given:
+      - "Tenant T_new sin métricas atracción"
+    when: "Click nodo Atracción"
+    then:
+      - "Drawer abre con empty state ('Aún no hay datos')"
+      - "CTA: 'Conectar canal' visible"
+      - "No 500 error"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/growth/growth-stages.spec.ts"
+
+  - id: copilot-overlap-mobile
+    type: edge
+    given:
+      - "Mobile viewport 375px"
+      - "Copilot sidebar abierto"
+    when: "Click nodo stage"
+    then:
+      - "Drawer respeta z-index (max-md:z-[60] sobre copilot z-50)"
+      - "StageSummaryRow respeta copilotWidth via useCopilotOffset"
+      - "No overlap visual"
+    graders:
+      - type: e2e
+        path: "frontend/src/features/growth-studio/__tests__/visual-regression-drawer-bowtie.test.tsx"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 manipula request a /api/v1/metrics/attraction/overview con tenant_id=T2"
+    then:
+      - "403 Forbidden"
+      - "No leak de datos"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/growth/growth-stages.spec.ts"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - analytics-bowtie-summary-tier0
+  capabilities:
+    - etl-pipeline-providers
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/regression/growth/attraction-capture-progressive.spec.ts"
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

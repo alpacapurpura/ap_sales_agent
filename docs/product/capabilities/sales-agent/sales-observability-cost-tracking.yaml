@@ -1,0 +1,48 @@
+---
+id: sales-observability-cost-tracking
+name: "Observabilidad sales_agent — traces + llm_call + cost tracking"
+module: sales-agent
+backbone_activity: "Trazabilidad turn-a-turn + costo per agent run"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/sales-agent.md"
+  stories_dir: "../../stories/sales-agent/"
+description: "ObservabilityContext (subclass shared BaseObservabilityContext) wraps agent_app.ainvoke. Persiste sales_agent_trace_event + sales_agent_llm_call. Captura cost_usd + fx_rate también en errors (best-effort try/except). FXResolver.default() factory + PricingResolver shared."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - sales-trace-persist-turn
+  - sales-cost-tracking-cycle-billing
+copilot_operable: false
+date_introduced: 2026-05-01
+last_modified: 2026-05-01
+---
+
+## Capabilities cubiertas por este grupo
+
+- `observability/recording/turn_envelope.py` — `SalesAgentObservabilityContext(BaseObservabilityContext)` con custom slots
+- `observability/recording/callback_handler.py` — `SalesAgentCallbackHandler(BaseAgentCallbackHandler)` LLM/tool/chain hooks
+- `observability/persistence/sales_agent_trace_event_repository.py` + `sales_agent_llm_call_repository.py`
+- Cost tracking: PricingResolver shared + FXResolver.default() — captura cost_usd + fx_rate en errors (best-effort)
+- Domain event subscribers (`observability/domain_events/`) — pricing_alias_resolved, fx_resolved
+- PII redaction obligatoria via `sanitize_payload()` shared
+- Reconciliation worker (`observability/workers/dual_write_reconciliation.py`) — verify dual-write integrity
+- `observe_turn` lifecycle around `agent_app.ainvoke` (PR-2 PI-1.1 commit `d80d15f5`) — traces reales persistidos
+- Pool isolation: SA bucket vs Others bucket (BudgetGuard primitive shared)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| sales-trace-persist-turn | service-story | live | ../../stories/sales-agent/sales-trace-persist-turn.yaml |
+| sales-cost-tracking-cycle-billing | service-story | live | ../../stories/sales-agent/sales-cost-tracking-cycle-billing.yaml |
+
+## Gaps identificados
+
+- **Cost tracking accuracy degraded**: `cost_usd=0` post-fix por pricing resolution (deepseek tagged como openai en model_pricing_snapshot). Backlog PR follow-up.
+- Retention worker exists but no production observability dashboard (Streamlit `/admin/cost-sales-agent` placeholder)
+- No alert rules (Prometheus/Grafana) on cost overrun per tenant
+- Dual-write reconciliation worker exists pero no schedule documented (cron expression)

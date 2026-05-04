@@ -1,0 +1,105 @@
+---
+id: advertising-campaign-template-suggest
+type: service-story
+module: advertising
+capability: campaign-template-suggestions
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/advertising.md"
+  capability: "../../capabilities/advertising/campaign-template-suggestions.yaml"
+  domain_doc: "../../../domains/module_advertising.md"
+  related_stories: []
+
+context:
+  job: "Como user creando campaña Meta Ads necesito recomendaciones de configuración (objetivo, audience, budget, formato) basadas en mi oferta"
+  why: "Crear campaña Meta desde cero es complejo — sugerencias reducen friction y suben tasa éxito"
+  constraints:
+    - "Tenant-scoped (oferta del tenant)"
+    - "Read-only"
+
+outcome:
+  consumer_observable: "GET /campaign-templates/suggest?offer_id=O1 retorna AdCampaignTemplateDTO con recomendación"
+  product_observable:
+    - "No DB writes"
+    - "Recomendación derivada de ExpertBusinessType + offer archetype"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/advertising/campaign-templates/suggest
+  request_schema: null
+  response_schema: "backend/src/modules/advertising/application/dto/campaign_template_dto.py::AdCampaignTemplateDTO"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "30/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-suggestion-by-offer
+    type: regression
+    given:
+      - "Oferta O1 con archetype lead_magnet"
+    when: "GET /campaign-templates/suggest?offer_id=O1"
+    then:
+      - "200 con AdCampaignTemplateDTO"
+      - "Recomendación coherente con archetype"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_campaign_template_service.py"
+
+  - id: invalid-offer-id
+    type: negative
+    when: "GET con offer_id inexistente"
+    then:
+      - "404"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_api_routes.py"
+
+  - id: health-check-meta-token-expired
+    type: edge
+    given:
+      - "Tenant con token Meta caducado"
+    when: "GET /api/v1/advertising/health-check"
+    then:
+      - "Response shape MetaHealthCheckDTO con status=token_expired"
+      - "200 con clear status"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_health_check_service.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 con offer_id de T2"
+    then:
+      - "403 o 404"
+
+cross_module:
+  reads_from:
+    - offer
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/advertising/test_campaign_template_service.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

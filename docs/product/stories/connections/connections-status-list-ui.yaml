@@ -1,0 +1,105 @@
+---
+id: connections-status-list-ui
+type: ui-story
+module: connections
+capability: connections-status-monitoring
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/connections.md"
+  capability: "../../capabilities/connections/connections-status-monitoring.yaml"
+  domain_doc: "../../../domains/module_connections.md"
+  related_stories:
+    - connections-reconnect-flow
+
+context:
+  job: "Como tenant veo lista de plataformas (Meta/Manychat/Google/Shopify/Telegram/...) con status (connected/disconnected/expired) + acción reconnect."
+  why: "Sin visibility, tenant no detecta token expired hasta que sales_agent falla. Reduce time-to-reconnect."
+  constraints:
+    - "Auto-refresh status cada 30s (React Query)"
+    - "Tenant-scoped"
+    - "Mobile responsive >=375px"
+
+outcome:
+  user_observable: "Tenant ve cards per plataforma con badge status + button 'Reconectar' si needed"
+  product_observable:
+    - "GET /api/v1/connections/health retorna status all"
+
+scenarios:
+  - id: happy-list-all-platforms
+    type: regression
+    given:
+      - "Tenant T1 con Meta+Google connected, Manychat expired"
+    when: "User abre /connections"
+    then:
+      - "GET /health retorna shape per platform"
+      - "Card Meta: badge verde 'Conectado'"
+      - "Card Manychat: badge rojo 'Expirado' + button Reconectar"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: empty-state
+    type: negative
+    given:
+      - "Tenant nuevo sin connections"
+    when: "User abre /connections"
+    then:
+      - "UI muestra empty state + cards 'Conectar' per plataforma"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: stale-data-30s
+    type: edge
+    given:
+      - "Tenant Meta token expired entre polling ticks"
+    when: "User abre"
+    then:
+      - "Próximo refetch (30s) detecta status updated"
+      - "Card Meta switches a 'Expirado'"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: cross-tenant-status-leak
+    type: adversarial
+    given:
+      - "Tenant T1 abre /connections con header X-Tenant-ID=T2 spoofed"
+    when: "GET /health"
+    then:
+      - "Clerk valida tenant access → 403 si no autorizado"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_channel_connection_isolation.py"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: "check_connection_status"
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

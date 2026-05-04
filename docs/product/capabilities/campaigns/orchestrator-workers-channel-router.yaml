@@ -1,0 +1,53 @@
+---
+id: orchestrator-workers-channel-router
+name: "Orchestrator + ARQ workers + ChannelRouter Telegram"
+module: campaigns
+backbone_activity: "Ejecutar despacho outbound multi-canal"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/campaigns.md"
+  stories_dir: "../../stories/campaigns/"
+description: "CampaignOrchestrator real (single-TX, root tasks) + 4 ARQ workers (execution_task, scheduler_tick, segment_refresh_tick, audit_retention_task) + TelegramChannelRouter pipeline (compliance → rate-limit → idempotency → CB → POST). Circuit breaker per (channel, tenant_id) Redis-backed. AuditLogService best-effort. SalesAgentAdapter bridge (PR-7) outbound conversacional."
+stories_live: 3
+stories_planned: 0
+stories_total: 3
+story_ids:
+  - campaigns-orchestrator-launch
+  - campaigns-execution-worker-telegram
+  - campaigns-circuit-breaker-resilience
+copilot_operable: false
+date_introduced: 2026-04
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `CampaignOrchestrator.launch()` — @idempotent, single-TX, genera SOLO root tasks (step_index==0)
+- `run_campaign_execution_task` ARQ worker (dispatch Telegram via CB + idempotency)
+- `run_campaign_scheduler_tick` ARQ cron (promote SCHEDULED + claim pending tasks)
+- `run_segment_refresh_tick` ARQ cron
+- `purge_old_campaigns_audit` ARQ cron (retention 90d, cron 04:30 UTC)
+- TelegramChannelRouter pipeline pre-send
+- ChannelRouterRegistry singleton thread-safe + startup bootstrap
+- Circuit breaker custom asyncio Redis Lua atómico (CLOSED/OPEN/HALF_OPEN)
+- AuditLogService PII-sanitized + `campaign_audit` table
+- SalesAgentAdapter (PR-7 Sub-D) — bridge CALL_SUBAGENT_BRIEF → OutboundOrchestrator
+- Decisión D11/D14/D15/D18/D22 documentadas
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| campaigns-orchestrator-launch | service-story | live | ../../stories/campaigns/campaigns-orchestrator-launch.yaml |
+| campaigns-execution-worker-telegram | service-story | live | ../../stories/campaigns/campaigns-execution-worker-telegram.yaml |
+| campaigns-circuit-breaker-resilience | service-story | live | ../../stories/campaigns/campaigns-circuit-breaker-resilience.yaml |
+
+## Gaps identificados
+
+- ChannelRouter WhatsApp (ManyChat bridge) PENDIENTE PI-2
+- ChannelRouter Email (MailerLite) PENDIENTE PI-2
+- Multi-agent (sales_agent, otros) — solo agent_kind=sales_agent soportado, otros retornan `unsupported_agent_kind`
+- Observabilidad emisión real (`campaign_llm_call` + `campaign_trace_event`) PENDIENTE S3
+- DR-7 BudgetGuard wiring 7 callsites brand DIFERIDO (Sub-D-2 / S3)

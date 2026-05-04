@@ -1,0 +1,45 @@
+---
+id: sales-tools-scheduling-payment
+name: "Tools sales_agent — scheduling + payment + enrollment"
+module: sales-agent
+backbone_activity: "Agendar / cobrar / inscribir"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/sales-agent.md"
+  stories_dir: "../../stories/sales-agent/"
+description: "Tools que el agente invoca durante conversación: check_schedule, send_payment_link, list_public_editions, create_enrollment, generate_payment_link, recommend_product, escalate_to_human. Wraps providers reales (Google Calendar, Mercado Pago, Stripe) vía connections module."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - sales-tool-send-payment-link
+  - sales-tool-schedule-meeting
+copilot_operable: false
+date_introduced: 2026-04
+last_modified: 2026-04-30
+---
+
+## Capabilities cubiertas por este grupo
+
+- `scheduling/tools.py` + `scheduling/providers.py` — Google Calendar OAuth via connections, slot resolution per timezone tenant
+- `payment/tools.py` + `payment/providers.py` — Mercado Pago / Stripe / PayPal links generation
+- `enrollment_tools.py` — list_public_editions, create_enrollment (INTENT/WAITLIST), generate_payment_link, resolve_active_tier
+- `webhook_providers.py` (scheduling + payment) — recibe callbacks providers, emite eventos a `scheduling_event_handlers.py` + `payment_event_handlers.py`
+- `tools/registry.py` — registry SSoT de tools disponibles al specialist (bloqueado por allowlist)
+- Voseo prohibido en tool args/responses (sales_agent respeta voz tenant pero schemas técnicos = neutro)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| sales-tool-send-payment-link | agentic-story | live | ../../stories/sales-agent/sales-tool-send-payment-link.yaml |
+| sales-tool-schedule-meeting | agentic-story | live | ../../stories/sales-agent/sales-tool-schedule-meeting.yaml |
+
+## Gaps identificados
+
+- **Adversarial tool call**: agente invocando tool con args inventados o `tool` no en allowlist — test trajectory grader pendiente
+- Tool failure recovery (provider 500/timeout) — `test_tools.py` unit-tested pero no en eval suite agentic con persona simulada
+- No goldens dataset para tool sequences (qualifier→closer→send_payment_link)
+- `escalate_to_human` → Closer Studio handoff: no e2e regression entre handoff + WS notification

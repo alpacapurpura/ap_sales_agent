@@ -1,0 +1,128 @@
+---
+id: crm-contacts-page
+type: ui-story
+module: crm
+capability: contacts-cdp
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04-30
+pr_introduced: PR-11
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/crm.md"
+  capability: "../../capabilities/crm/contacts-cdp.yaml"
+  domain_doc: "../../../domains/module_crm.md"
+  related_stories:
+    - crm-list-contacts
+    - crm-create-static-segment
+
+context:
+  job: "Como user del tenant quiero ver mis contactos en una tabla filtrable y abrir detalle para entender quién es cada lead/customer y decidir acciones"
+  why: "Sin vista cross-canal el user no tiene forma de operar su CDP. Pierde contexto sobre leads warm, customers activos, posibles segmentos. Si falla, /sales/contactos queda inutilizable y campañas pierden audience builder."
+  constraints:
+    - "Spanish neutro (no voseo en labels/empty states)"
+    - "Mobile responsive >=375px (drawer detail 4 breakpoints)"
+    - "No nuevas dependencias FE sin justificación (ADD `@tanstack/react-table@^8.21.3` justificado)"
+    - "URL state debounced 300ms (deep-link, browser-back, shareable)"
+    - "Server Component thin + ContactsPageClient (FSD-Lite features/crm-hub)"
+
+outcome:
+  user_observable: "Tras navegar a /[tenantId]/sales/contactos el user ve tabla de contactos con filtros, puede aplicar filtros, abrir drawer detail y seleccionar contactos para acciones"
+  product_observable:
+    - "URL state refleja filtros activos (deep-link)"
+    - "Cross-module: SelectedContactsBar slot pattern permite a campaigns inyectar 'Crear segmento' (PR-12)"
+  metrics_to_track:
+    - { name: "contacts_page_view", target: ">5/week por tenant activo" }
+
+scenarios:
+  - id: happy-path
+    type: regression
+    given:
+      - "Tenant T1 con >0 contactos"
+      - "User autenticado en /[tenantId]/sales/contactos"
+    when: "Page load completo"
+    then:
+      - "DataTable renderiza primer page (20 rows default)"
+      - "ContactFiltersPanel visible con subset de 18 filtros canonical"
+      - "Click sobre row abre drawer detail (Shadcn Sheet)"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/sales/contactos.spec.ts"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/contacts retorna 200 con items"
+        expect: "200"
+
+  - id: empty-state
+    type: regression
+    given:
+      - "Tenant T1 sin contactos (DB vacía para ese tenant)"
+    when: "Page load /[tenantId]/sales/contactos"
+    then:
+      - "Empty state visible con copy en español neutro"
+      - "DataTable no renderiza rows (0 items)"
+      - "Filtros panel sigue visible pero sin matches"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/sales/contactos.spec.ts"
+
+  - id: filter-debounce-and-url-state
+    type: regression
+    given:
+      - "Tenant T1 con contactos mixtos"
+      - "User en /[tenantId]/sales/contactos sin filtros"
+    when: "User escribe rápido en filtro de búsqueda y refresca página"
+    then:
+      - "Debounce 300ms aplica (no spam de requests)"
+      - "URL refleja filtros tras debounce"
+      - "Refresh restaura mismos filtros desde URL"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/sales/contactos.spec.ts"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "User A autenticado tenant T1"
+      - "Tenant T2 tiene contacto id=42"
+    when: "User A construye URL /T2/sales/contactos manualmente o llama GET con T2 header"
+    then:
+      - "fetchClient inyecta X-Tenant-ID=T1 (no T2)"
+      - "Backend responde 404 para contacto T2 id=42"
+      - "UI muestra empty state o mensaje de error sin leakear info"
+    graders:
+      - type: state_check
+        target: api
+        query: "GET /api/v1/contacts/42 con X-Tenant-ID=T1"
+        expect: "404"
+
+cross_module:
+  reads_from:
+    - campaigns
+  read_by:
+    - campaigns
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - crm-list-contacts
+  capabilities: []
+
+estimate:
+  story_points: 8
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/regression/sales/contactos.spec.ts"
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

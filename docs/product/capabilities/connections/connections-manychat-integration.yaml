@@ -1,0 +1,47 @@
+---
+id: connections-manychat-integration
+name: "ManyChat integration — webhooks + tags + custom fields + send-content API"
+module: connections
+backbone_activity: "DM multi-canal vía ManyChat"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/connections.md"
+  stories_dir: "../../stories/connections/"
+description: "ManyChat = abstracción multi-canal DMs (IG + FB + WhatsApp + TikTok via Manychat custom). Nicolify recibe webhooks (mensaje lead) → enqueue → sales_agent procesa → response via Send Content API. Tags + custom fields son pivote estado lead."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - connections-manychat-webhook-receive
+  - connections-manychat-send-content-api
+copilot_operable: false
+date_introduced: 2026-03
+last_modified: 2026-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `infrastructure/marketing_connectors/manychat.py` — full client wrapper Manychat API
+- `api/manychat.py` — webhook endpoints `/api/v1/connections/manychat/webhook`
+- `api/marketing_webhooks.py` — generic ingestion router
+- Send Content API (text, quick replies, attachments)
+- Subscriber sync + custom field updates
+- Tags management (apply/remove for state pivots)
+- Trigger flows via API
+- Webhook signature validation (Manychat secret token)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| connections-manychat-webhook-receive | service-story | live | ../../stories/connections/connections-manychat-webhook-receive.yaml |
+| connections-manychat-send-content-api | service-story | live | ../../stories/connections/connections-manychat-send-content-api.yaml |
+
+## Gaps identificados
+
+- WhatsApp via Manychat custom = parcial (per module doc 'WhatsApp pendiente')
+- No retry policy definido para Send Content failures (5xx)
+- Tags catalog no SSoT (tenants definen ad-hoc, drift posible)
+- No e2e regression IG DM → webhook → sales_agent → response

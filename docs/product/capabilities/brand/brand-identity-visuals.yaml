@@ -1,0 +1,41 @@
+---
+id: brand-identity-visuals
+name: "Identidad visual de marca"
+module: brand
+backbone_activity: "Capturar marca"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/brand.md"
+  stories_dir: "../../stories/brand/"
+description: "Captura y gestiona identidad visual: logo, paleta de colores, tipografía, assets gráficos y elementos visuales de marca."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - brand-identity-edit
+  - brand-visuals-edit
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Edición de identidad de marca (logo, paleta de colores, tipografía base) vía formulario guiado
+- Edición de visuales extendidos (galería, mockups, elementos gráficos) en sección dedicada
+- Persistencia tenant-scoped en `brand_settings` con auto-save on change
+- Auto-fill desde extracción web/docs (operable desde copilot)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| brand-identity-edit | ui-story | live | ../../stories/brand/brand-identity-edit.yaml |
+| brand-visuals-edit | ui-story | live | ../../stories/brand/brand-visuals-edit.yaml |
+
+## Gaps identificados
+
+- No hay e2e regression test dedicado a `brand-identity-edit` (solo smoke `brand-crud.smoke.spec.ts` cubre superficie)
+- Coverage de upload de logos a R2 no tiene state_check explícito en grader

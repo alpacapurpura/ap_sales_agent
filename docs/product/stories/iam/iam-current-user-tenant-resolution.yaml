@@ -1,0 +1,128 @@
+---
+id: iam-current-user-tenant-resolution
+type: service-story
+module: iam
+capability: auth-tenant-resolution
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/iam.md"
+  capability: "../../capabilities/iam/auth-tenant-resolution.yaml"
+  domain_doc: "../../../domains/module_iam.md"
+  related_stories:
+    - iam-clerk-webhook-sync
+
+context:
+  job: "Como dependencia FastAPI necesito resolver `current_user` y `tenant_context` en cada request para que todos los módulos puedan filtrar queries por tenant_id de forma centralizada"
+  why: "Sin esto, cada módulo tendría que parsear JWT y validar membership user→tenant solo. Cero tenant isolation, cero auth uniforme. Si falla, todos los endpoints autenticados quiebran simultáneamente."
+  constraints:
+    - "Auth obligatoria (Clerk JWT validation)"
+    - "Header `X-Tenant-ID` obligatorio en todas rutas tenant-scoped"
+    - "Validación membership user→tenant antes de resolver context"
+    - "TenantLocale (currency/timezone) auto-resuelto en mismo Depends chain"
+    - "Latencia overhead < 50ms p95 (cacheable)"
+
+outcome:
+  consumer_observable: "Cualquier endpoint con `Depends(get_current_user)` y `Depends(get_tenant_context)` recibe objetos validados o 401/403"
+  product_observable:
+    - "DB: queries de users + tenants validan membership"
+    - "Si campos sync (name, email): UPDATE row users con campos Clerk frescos"
+    - "Métrics: auth_resolution_time histogram"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/iam/auth/me
+  request_schema: "Headers: Authorization Bearer <jwt>, X-Tenant-ID"
+  response_schema: "backend/src/modules/iam/api/dto/user.py::UserResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "300/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-resolved
+    type: regression
+    given:
+      - "User U1 autenticado en Clerk + miembro de tenant T1"
+      - "Headers: Authorization válido + X-Tenant-ID=T1"
+    when: "GET /api/v1/iam/auth/me"
+    then:
+      - "Status 200 con user info (id, email, name, tenant_id=T1)"
+      - "Si campos perfil cambiaron en Clerk: DB users row updated"
+      - "TenantLocale resuelto (currency, timezone)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_auth.py"
+
+  - id: invalid-jwt
+    type: regression
+    given:
+      - "Authorization header con token Clerk expirado o malformed"
+    when: "GET /api/v1/iam/auth/me"
+    then:
+      - "Status 401 con detail explicando token inválido"
+      - "DB: queries no ejecutadas (fail fast en JWT validation)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_dependencies.py"
+
+  - id: missing-tenant-header
+    type: regression
+    given:
+      - "JWT válido pero sin header X-Tenant-ID"
+    when: "GET endpoint tenant-scoped (e.g., /api/v1/contacts)"
+    then:
+      - "Status 400 o 422 con detail 'X-Tenant-ID required'"
+      - "DB: queries no ejecutadas"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_dependencies.py"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "User U1 NO es miembro de tenant T2"
+      - "Authorization válido para U1"
+    when: "GET endpoint tenant-scoped con X-Tenant-ID=T2"
+    then:
+      - "Status 403 (membership rechazado)"
+      - "DB: queries de tenant T2 no ejecutadas"
+      - "Audit log: intento cross-tenant registrado (si hay)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_dependencies.py"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/contacts con X-Tenant-ID=T2 (U1 no member)"
+        expect: "403"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - "todos los módulos (Depends chain)"
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - iam-clerk-webhook-sync
+  capabilities: []
+
+estimate:
+  story_points: 5
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/iam/test_dependencies.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

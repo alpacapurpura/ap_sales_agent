@@ -1,0 +1,118 @@
+---
+id: offer-preset-pick-on-wizard
+type: ui-story
+module: offer
+capability: offer-presets-catalogs
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-presets-catalogs.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories:
+    - offer-create-from-ladder
+
+context:
+  job: "Como user quiero elegir un preset de oferta (ej. cohort_based_course, productized_service) en el wizard de creación para que las sections, fields y conditional questions se ajusten automáticamente a ese tipo de negocio."
+  why: "Los 76 presets son la diferencia entre 'crea oferta' genérica y 'crea oferta de tu negocio específico'. Sin preset bien elegido, las sections siguientes están desalineadas."
+  constraints:
+    - "Tenant-scoped"
+    - "Wizard step OBLIGATORIO (no se puede skipear)"
+    - "Catálogos consumidos vía endpoints SSoT (no hardcoded FE)"
+    - "Spanish neutro LatAm"
+
+outcome:
+  user_observable: "Usuario ve grid de presets filtrados por su ExpertBusinessType; click en uno → loads conditional questions específicas."
+  product_observable:
+    - "DB: offers.preset_id = ID elegido"
+    - "DB: offer.archetype, format, value_level inferidos"
+    - "Sections poblados según preset (POST /api/v1/offers ... incluye preset_id)"
+
+scenarios:
+  - id: pick-cohort-course-preset
+    type: regression
+    given:
+      - "Tenant T1 ExpertBusinessType='academia'"
+    when: "Usuario en wizard ve presets filtrados por academia, elige 'Curso por cohortes (presencial)'"
+    then:
+      - "UI muestra metadata del preset: archetype=education, format=cohort_based_course, value_level=low_ticket"
+      - "Conditional questions específicas aparecen (start_date, seats, modality)"
+      - "Continuar → POST /api/v1/offers con preset_id correspondiente"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: api
+        query: "GET /api/v1/offer-type-presets?expert_business_type=academia"
+        expect: "lista de presets >= 1"
+
+  - id: no-presets-for-biz-type
+    type: edge
+    given:
+      - "Tenant con ExpertBusinessType nuevo sin presets configurados"
+    when: "Usuario abre wizard"
+    then:
+      - "UI muestra empty state 'Aún no hay presets para este tipo de negocio'"
+      - "Sugiere crear oferta custom O contactar soporte"
+      - "Wizard NO bloquea creación (fallback a archetype manual)"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: catalog-version-mismatch
+    type: negative
+    given:
+      - "BE bumpa _CATALOG_VERSION a v3 sin FE rebuild"
+    when: "Usuario abre wizard"
+    then:
+      - "FE detecta mismatch y muestra warning 'Recarga la app'"
+      - "Submit usa catálogo BE (SSoT) — no FE cacheado"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: cross-tenant-preset-listing
+    type: adversarial
+    given:
+      - "Tenant T2 con presets custom"
+    when: "Usuario A (T1) hace GET /api/v1/offer-type-presets con X-Tenant-ID=T2"
+    then:
+      - "Si presets son globales: retorna OK con presets globales"
+      - "Si presets son tenant-scoped: 403 Forbidden"
+      - "DB: sin lectura cross-tenant"
+    graders:
+      - type: state_check
+        target: api
+        query: "GET presets con tenant spoofeado"
+        expect: "403 o solo globales"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - offer-presets-catalogs
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: false
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

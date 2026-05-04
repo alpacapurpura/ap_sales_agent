@@ -1,0 +1,129 @@
+---
+id: offer-create-from-ladder
+type: ui-story
+module: offer
+capability: offer-ladder
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-ladder.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories:
+    - offer-preset-pick-on-wizard
+    - offer-blueprint-edit
+
+context:
+  job: "Como user quiero crear una oferta nueva desde el ladder y elegir su preset (tipo + value-level) en un wizard guiado para arrancar con sections relevantes pre-pobladas."
+  why: "Crear oferta desde cero es high-effort. Wizard preset-picker reduce 50 fields a 'elegí tu tipo de negocio + value level + preset' → resto auto-poblado."
+  constraints:
+    - "Tenant-scoped"
+    - "Wizard pasos: ExpertBusinessType → ValueLevel → Preset → datos básicos"
+    - "Auto-save al desenfocar (sin botón guardar)"
+    - "Spanish neutro LatAm"
+
+outcome:
+  user_observable: "Usuario click 'Crear oferta', completa wizard ~30s y queda en editor con sections pre-pobladas según preset."
+  product_observable:
+    - "DB: offers row insertado con archetype/format/value_level/preset_id"
+    - "DB: offer_sections insertados según preset"
+    - "Domain event OfferCreated emitido"
+
+scenarios:
+  - id: create-low-ticket-cohort-course
+    type: regression
+    given:
+      - "Tenant T1 ExpertBusinessType=academia"
+    when: "Usuario click 'Crear oferta', elige value_level=low_ticket → preset=cohort_based_course → completa nombre 'Curso Q2' + precio US$ 299"
+    then:
+      - "POST /api/v1/offers retorna 201 con offer_id"
+      - "DB: offers con archetype='education', format='cohort_based_course', value_level='low_ticket', preset_id correspondiente"
+      - "DB: offer_sections incluye psychology, instructors, faq, pricing (sections del preset)"
+      - "Redirect a /offer-studio/offer/{id}/editor"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/smoke/offer-crud.smoke.spec.ts"
+      - type: state_check
+        target: db
+        query: "SELECT archetype, format, value_level, preset_id FROM offers WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 1"
+        expect: "row con preset_id no NULL"
+
+  - id: invalid-no-preset
+    type: negative
+    given:
+      - "Tenant T1"
+    when: "Usuario intenta submit sin elegir preset"
+    then:
+      - "Validation: 'Elegí un preset para continuar'"
+      - "DB: no se inserta offer"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: duplicate-name-allowed
+    type: edge
+    given:
+      - "Tenant T1 con oferta name='Curso Q2'"
+    when: "Usuario crea segunda oferta con mismo name"
+    then:
+      - "Status 201 (nombre duplicado permitido — soft uniqueness only)"
+      - "DB: 2 rows con mismo name pero distinto id"
+      - "UI muestra ambas en ladder distinguibles por id/fecha"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM offers WHERE tenant_id = ? AND name = 'Curso Q2'"
+        expect: "2"
+
+  - id: cross-tenant-create-attempt
+    type: adversarial
+    given:
+      - "Tenant T2 ExpertBusinessType configurado"
+    when: "Usuario A (T1) hace POST /api/v1/offers con header X-Tenant-ID=T2"
+    then:
+      - "403 Forbidden"
+      - "DB: offers de T2 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST /api/v1/offers con X-Tenant-ID spoofeado"
+        expect: "403"
+
+cross_module:
+  reads_from:
+    - brand
+  read_by:
+    - landing
+    - sales_agent
+  emits_events:
+    - OfferCreated
+  consumes_events: []
+
+dependencies:
+  stories:
+    - offer-preset-pick-on-wizard
+  capabilities:
+    - offer-ladder
+    - offer-presets-catalogs
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: create_offer_from_preset
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/smoke/offer-crud.smoke.spec.ts"
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

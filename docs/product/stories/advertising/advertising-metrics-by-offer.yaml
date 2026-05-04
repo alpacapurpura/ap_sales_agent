@@ -1,0 +1,116 @@
+---
+id: advertising-metrics-by-offer
+type: service-story
+module: advertising
+capability: metrics-by-offer-aggregation
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/advertising.md"
+  capability: "../../capabilities/advertising/metrics-by-offer-aggregation.yaml"
+  domain_doc: "../../../domains/module_advertising.md"
+  related_stories: []
+
+context:
+  job: "Como user en offer-studio quiero ver gasto/ROAS/CPL/conversiones agregadas por oferta para decidir qué oferta amplificar"
+  why: "Sin esta vista, user no sabe ROI per oferta — toma decisiones a ciegas qué escalar/pausar"
+  constraints:
+    - "Tenant-scoped"
+    - "Multi-currency (per Meta account)"
+    - "Latencia <1s p95"
+    - "Funnel reach (impressions → clicks → leads → ventas)"
+
+outcome:
+  consumer_observable: "GET /api/v1/advertising/metrics-by-offer retorna lista MetricsByOfferDTO"
+  product_observable:
+    - "Aggregation cruza official_metrics × ad_offer_association"
+    - "Currency consistent per offer"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/advertising/metrics-by-offer
+  request_schema: null
+  response_schema: "backend/src/modules/advertising/application/dto/metrics_by_offer_dto.py::MetricsByOfferDTO"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-aggregation
+    type: regression
+    given:
+      - "Tenant T1 con 3 ofertas, asociaciones a campañas, métricas en `official_metrics`"
+    when: "GET /metrics-by-offer?date_from=...&date_to=..."
+    then:
+      - "200 con MetricsByOfferDTO[]"
+      - "Cada offer tiene spend/impressions/clicks/conversions"
+      - "Currency presente"
+      - "Funnel reach calculado"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_metrics_by_offer_service.py"
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_metrics_by_offer_funnel_reach.py"
+
+  - id: tenant-no-associations
+    type: negative
+    given:
+      - "Tenant sin asociaciones ad↔offer"
+    when: "GET /metrics-by-offer"
+    then:
+      - "200 con lista vacía"
+      - "No 5xx"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_metrics_by_offer_service.py"
+
+  - id: large-date-range
+    type: edge
+    given:
+      - "Range 1 año, ofertas múltiples"
+    when: "GET con range grande"
+    then:
+      - "Latencia <1s con índices"
+      - "Aggregation correcta"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_metrics_by_offer_service.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 forza tenant T2"
+    then:
+      - "403"
+
+cross_module:
+  reads_from:
+    - offer
+    - analytics
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - advertising-association-create-and-list
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/advertising/test_metrics_by_offer_service.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

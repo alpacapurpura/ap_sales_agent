@@ -8,6 +8,10 @@ links:
   domain_doc: "../../domains/module_copilot.md"
   legacy_pm_nico: "../../pm-nico/current-state/copilot.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
+capability_registry_status: bootstrapped-2026-05-04
+capabilities_count: 4
+stories_count: 9
+agentic_eval_suite_path: backend/src/modules/copilot/evals/  # classifier+summarizer goldens only — NO orchestrator-level eval; flagged en gap-report-2026-05-04-group-c
 ---
 
 # copilot — Estado funcional

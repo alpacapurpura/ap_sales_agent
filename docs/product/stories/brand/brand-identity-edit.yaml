@@ -1,0 +1,135 @@
+---
+id: brand-identity-edit
+type: ui-story
+module: brand
+capability: brand-identity-visuals
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/brand.md"
+  capability: "../../capabilities/brand/brand-identity-visuals.yaml"
+  domain_doc: "../../../domains/module_brand.md"
+  related_stories:
+    - brand-visuals-edit
+    - brand-extract-from-website
+
+context:
+  job: "Como dueño de un negocio experto quiero capturar mi identidad de marca (nombre, descripción, logo, paleta) para que todo el contenido y el sales_agent reflejen mi marca real."
+  why: "Sin identidad capturada, los assets generados y el sales_agent suenan genéricos. La marca es la base de todo el resto del producto."
+  constraints:
+    - "Auto-save on change (sin botón Guardar)"
+    - "Tenant-scoped (X-Tenant-ID required)"
+    - "Spanish neutro LatAm (no voseo) en labels y mensajes"
+    - "Mobile responsive >=375px"
+
+outcome:
+  user_observable: "Tras editar un campo de identidad, el cambio se persiste sin acción explícita y queda visible al refrescar la página."
+  product_observable:
+    - "DB: brand_settings.identity actualizado con tenant_id y deleted_at IS NULL"
+    - "Domain event BrandSectionUpdated emitido vía outbox (USE_OUTBOX_PATTERN_BRAND=True)"
+    - "Cross-module: sales_agent compiler v2 invalida cache de personality_profile al próximo turno"
+
+scenarios:
+  - id: edit-name-and-tagline
+    type: regression
+    given:
+      - "Usuario autenticado en tenant T1"
+      - "brand_settings.identity.name = 'Academia Antigua'"
+    when: "Usuario edita el campo nombre a 'Academia Nueva' y desenfoca"
+    then:
+      - "Auto-save dispara PATCH /api/v1/brand/settings con identity.name actualizado"
+      - "Toast 'Guardado' visible <2s"
+      - "DB: brand_settings.identity.name = 'Academia Nueva'"
+      - "Domain event BrandSectionUpdated{section='identity'} en outbox"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT identity FROM brand_settings WHERE tenant_id = ? AND deleted_at IS NULL"
+        expect: "identity.name == 'Academia Nueva'"
+
+  - id: reject-business-types-payload
+    type: negative
+    given:
+      - "Usuario autenticado en tenant T1"
+    when: "Frontend envía PATCH con identity.business_types (campo migrado a tenant_profile)"
+    then:
+      - "Status 400 con detail.code='field_moved'"
+      - "DB: brand_settings.identity NO se modifica"
+      - "Mensaje sugiere usar PATCH /api/v1/tenant/profile"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/brand/test_brand_repository.py"
+      - type: state_check
+        target: db
+        query: "SELECT identity FROM brand_settings WHERE tenant_id = ?"
+        expect: "no change"
+
+  - id: concurrent-edit-same-field
+    type: edge
+    given:
+      - "Dos sesiones del tenant T1 abriendo brand-studio identity"
+    when: "Ambas editan el mismo campo casi simultáneamente y desenfocan"
+    then:
+      - "Última escritura gana (last-write-wins en este flow)"
+      - "No se rompe consistency: ambas eventualmente ven el mismo valor al refrescar"
+      - "Outbox tiene N events idempotentes"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT identity FROM brand_settings WHERE tenant_id = ?"
+        expect: "valor de la última escritura"
+
+  - id: cross-tenant-leak-attempt
+    type: adversarial
+    given:
+      - "Usuario A autenticado en tenant T1"
+      - "Tenant T2 tiene brand_settings con id=B2"
+    when: "Usuario A llama PATCH /api/v1/brand/settings con header X-Tenant-ID=T2"
+    then:
+      - "Status 403 o 404 (no leakea existencia)"
+      - "DB: brand_settings de T2 NO se modifica"
+      - "Audit log registra intento"
+    graders:
+      - type: state_check
+        target: api
+        query: "PATCH /api/v1/brand/settings con X-Tenant-ID spoofeado"
+        expect: "403 o 404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - landing
+    - assets
+  emits_events:
+    - BrandSectionUpdated
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - brand-identity-visuals
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: propose_field_updates
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

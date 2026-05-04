@@ -1,0 +1,114 @@
+---
+id: advertising-association-auto-detect
+type: service-story
+module: advertising
+capability: ad-offer-association
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/advertising.md"
+  capability: "../../capabilities/advertising/ad-offer-association.yaml"
+  domain_doc: "../../../domains/module_advertising.md"
+  related_stories:
+    - advertising-association-create-and-list
+
+context:
+  job: "Como sistema necesito sugerir asociaciones ad↔offer automáticamente via text matching (ad copy ↔ offer titles) — para que user no asocie manualmente todas"
+  why: "Asociar manualmente N campañas × M ofertas no escala. Auto-detect entrega 80% del valor con 0 effort"
+  constraints:
+    - "Tenant-scoped"
+    - "Heurístico (string similarity, no LLM)"
+    - "Confidence score por sugerencia"
+    - "User confirma vía apply-suggestions endpoint"
+
+outcome:
+  consumer_observable: "POST /associations/auto-detect retorna list[AssociationSuggestionDTO]. POST /associations/apply-suggestions confirma seleccionadas"
+  product_observable:
+    - "Suggestions calculadas en memoria (no DB writes)"
+    - "Apply persiste en `ad_offer_association` con type=AUTO_DETECTED"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/advertising/associations/auto-detect
+  request_schema: null
+  response_schema: "backend/src/modules/advertising/application/dto/association_dto.py::AssociationSuggestionDTO"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "20/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-detection
+    type: regression
+    given:
+      - "Tenant T1 con 5 ofertas y 10 campañas Meta"
+      - "Ofertas con títulos distintos"
+    when: "POST /associations/auto-detect"
+    then:
+      - "Status 200 con lista AssociationSuggestionDTO"
+      - "Cada suggestion tiene confidence score"
+      - "Suggestions razonables (matching keywords)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_offer_detection_service.py"
+
+  - id: no-matches-found
+    type: negative
+    given:
+      - "Tenant con ofertas sin overlap textual con ad copies"
+    when: "POST auto-detect"
+    then:
+      - "Status 200 con lista vacía"
+      - "No 5xx"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_offer_detection_service.py"
+
+  - id: apply-suggestions-batch
+    type: edge
+    given:
+      - "User selecciona 3 sugerencias para apply"
+    when: "POST /associations/apply-suggestions"
+    then:
+      - "DB 3 rows creadas con type=AUTO_DETECTED"
+      - "Idempotente si row ya existe"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_api_routes.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 fuerza tenant_id=T2"
+    then:
+      - "403"
+
+cross_module:
+  reads_from:
+    - offer
+    - analytics
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/advertising/test_offer_detection_service.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -1,0 +1,128 @@
+---
+id: connections-manychat-webhook-receive
+type: service-story
+module: connections
+capability: connections-manychat-integration
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/connections.md"
+  capability: "../../capabilities/connections/connections-manychat-integration.yaml"
+  domain_doc: "../../../domains/module_connections.md"
+  related_stories:
+    - connections-manychat-send-content-api
+
+context:
+  job: "Como sistema recibo webhook ManyChat (mensaje lead, tag aplicado, custom field updated) → enqueue → sales_agent procesa."
+  why: "Sin webhooks, sales_agent no recibe DMs en tiempo real. Latencia >5s = lead frustrated."
+  constraints:
+    - "Webhook signature validation (Manychat secret)"
+    - "Non-blocking enqueue ARQ <200ms"
+    - "Tenant resolution via subscriber.custom_field 'tenant_id' o page_id"
+    - "Idempotent (subscriber_id + message_id dedup)"
+
+outcome:
+  consumer_observable: "ManyChat envía POST → Nicolify ack 200 <200ms → message procesado async"
+  product_observable:
+    - "DB: messages row created con tenant_id + lead_id + provider='manychat'"
+    - "ARQ task enqueued para sales_agent process"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/connections/manychat/webhook
+  request_schema: "connections/api/dto.py::ManychatWebhookPayload"
+  response_schema: "connections/api/dto.py::WebhookAck"
+  auth: api-key
+  rate_limit_per_tenant: null
+  idempotency: header
+  trigger: "Manychat sends webhook on message/tag/field change"
+
+scenarios:
+  - id: happy-message-webhook-enqueue
+    type: regression
+    given:
+      - "tenant T1 con Manychat connected, lead L1 en ManyChat"
+    when: "POST con `{event: 'message', subscriber_id, content}`"
+    then:
+      - "Webhook valida secret token"
+      - "Resolves tenant via custom_field"
+      - "DB: messages 1 row creada"
+      - "ARQ task enqueued"
+      - "Status 200 ack <200ms"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_manychat_webhook.py"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM messages WHERE provider = 'manychat' AND tenant_id = ?"
+        expect: ">= 1"
+
+  - id: invalid-signature
+    type: negative
+    given:
+      - "Spoofed POST sin valid signature"
+    when: "Webhook recibe"
+    then:
+      - "Status 401"
+      - "DB: NO se crea messages row"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_manychat_webhook.py"
+
+  - id: duplicate-message-idempotent
+    type: edge
+    given:
+      - "Manychat retry mismo message_id"
+    when: "POST 2x"
+    then:
+      - "Segundo POST retorna 200 (idempotent)"
+      - "DB: 1 row total messages (dedup)"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM messages WHERE provider_message_id = ?"
+        expect: "1"
+
+  - id: cross-tenant-spoof-webhook
+    type: adversarial
+    given:
+      - "Attacker POST con tenant_id field spoofed"
+    when: "Webhook procesa"
+    then:
+      - "Tenant resolution via Nicolify mapping (NO trust client field)"
+      - "Si mapping invalid → reject"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_manychat_webhook.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - crm
+  emits_events:
+    - InboundMessageReceived
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/connections/test_manychat_webhook.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -1,0 +1,46 @@
+---
+id: calendar-events
+name: "Calendario de eventos comerciales (sistema-wide + tenant)"
+module: commercial-calendar
+backbone_activity: "Planificar timing de campañas"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/commercial-calendar.md"
+  stories_dir: "../../stories/commercial-calendar/"
+description: "Eventos comerciales que combinan feriados sistema-wide multi-país LATAM (Black Friday, Día de Madres, etc) con eventos promocionales custom del tenant. Útil para timing de campañas y sugerencias contextual del copilot. CRUD básico expuesto en `/api/v1/commercial-calendar/events` + endpoint dedicado `current-week`."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - calendar-list-events
+  - calendar-event-crud
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Listado de eventos filtrable por country_code y rango fechas
+- Vista `current-week` para sugerencias contextuales del copilot
+- Crear / actualizar / eliminar eventos custom del tenant
+- Sistema-wide holidays multi-país LATAM (compartidos cross-tenant, read-only para tenant)
+- Tenant-specific events (CRUD completo, scoped a tenant_id)
+- Copilot provider expuesto (módulo tiene `copilot_provider/`)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| calendar-list-events | service-story | live | ../../stories/commercial-calendar/calendar-list-events.yaml |
+| calendar-event-crud | service-story | live | ../../stories/commercial-calendar/calendar-event-crud.yaml |
+
+## Gaps identificados
+
+- **No hay UI dedicada (FE placeholder)** — solo API + copilot provider
+- Sin tool copilot que sugiera campaña basado en evento próximo (gap doc en módulo)
+- Country code filtering no documenta default ni fallback (qué pasa si tenant no tiene country definido)
+- Sin recurring events (eventos anuales como Black Friday no auto-generan próximas iteraciones)
+- Sin coverage E2E (es módulo BE-only sin UI)

@@ -1,0 +1,130 @@
+---
+id: campaigns-execution-worker-telegram
+type: service-story
+module: campaigns
+capability: orchestrator-workers-channel-router
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-5
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/orchestrator-workers-channel-router.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories:
+    - campaigns-circuit-breaker-resilience
+    - campaigns-orchestrator-launch
+
+context:
+  job: "Como ARQ worker (`run_campaign_execution_task`) necesito procesar CampaignTask: branch sobre step_type, dispatch a TelegramChannelRouter o SalesAgentAdapter, manejar fallos resilientes"
+  why: "Worker es el actor real que envía mensajes. Sin esto, todo lo anterior es teoría. Compliance + RateLimit + Idempotency + CB encapsulado pre-send"
+  constraints:
+    - "Idempotente (key=`telegram-send:{task_id}`, TTL=24h)"
+    - "Pipeline pre-send: compliance → rate-limiter → idempotency → CB → POST"
+    - "Branch step_type: CALL_SUBAGENT_BRIEF → SalesAgentAdapter; otros → ChannelRouter"
+    - "Best-effort retries gestionadas por ARQ"
+
+outcome:
+  consumer_observable: "Worker procesa CampaignTask y envía mensaje Telegram"
+  product_observable:
+    - "Telegram API call ejecutado"
+    - "DB: task.status updated"
+    - "DB: campaign_audit row con sanitized payload"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "ARQ queue `arq:campaigns_execution`"
+
+scenarios:
+  - id: happy-path-telegram-send
+    type: regression
+    given:
+      - "CampaignTask T1 step_type=MESSAGE_SEND, channel=telegram"
+      - "Lead con telegram_id resolved"
+    when: "Worker pickup T1"
+    then:
+      - "Pipeline pre-send pasa todos los checks"
+      - "Telegram API POST ejecutado"
+      - "task.status=completed"
+      - "Audit log entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+      - type: state_check
+        target: db
+        query: "SELECT status FROM campaign_task WHERE id=:t"
+        expect: "completed"
+
+  - id: compliance-block
+    type: negative
+    given:
+      - "Lead opted-out (compliance check fail)"
+    when: "Worker procesa task"
+    then:
+      - "Pipeline aborta antes POST"
+      - "task.status=skipped_compliance"
+      - "Sin Telegram call"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+
+  - id: idempotent-retry-double-execution
+    type: edge
+    given:
+      - "Worker procesó task T1 OK"
+      - "ARQ re-dispatch (network issue)"
+    when: "Worker pickup again"
+    then:
+      - "IdempotencyStore detecta `telegram-send:T1` already executed"
+      - "Skip POST (no duplicate Telegram message)"
+      - "Status idempotent_skip"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+
+  - id: cross-tenant-task-isolation
+    type: adversarial
+    when: "Race condition entre 2 tenants overlap en queue"
+    then:
+      - "Cada task procesa con tenant_id correcto"
+      - "No cross-tenant message send"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+
+cross_module:
+  reads_from:
+    - crm
+    - sales_agent
+  read_by: []
+  emits_events:
+    - message.sent
+  consumes_events: []
+
+dependencies:
+  stories:
+    - campaigns-orchestrator-launch
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

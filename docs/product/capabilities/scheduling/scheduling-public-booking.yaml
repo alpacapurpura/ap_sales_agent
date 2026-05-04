@@ -1,0 +1,47 @@
+---
+id: scheduling-public-booking
+name: "Booking público — página + custom domain + ICS + reminders"
+module: scheduling
+backbone_activity: "Lead reserva cita públicamente"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/scheduling.md"
+  stories_dir: "../../stories/scheduling/"
+description: "Lead llega a `https://{tenant.custom_domain}/book/{event_type_slug}` (clon Calendly). Ve slots disponibles → reserva → confirma → recibe ICS + email + reminder antes de cita. Cancelación + reagendar también públicos."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - scheduling-public-book-confirm-ics
+  - scheduling-cancel-reschedule
+copilot_operable: false
+date_introduced: 2026-03
+last_modified: 2026-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `api/public_links.py` — public endpoint sin auth (rate-limited per IP)
+- ICS generation post-booking (RFC 5545)
+- Email reminders via gmail/MailerLite connections
+- Cancellation flow (single-use token)
+- Reschedule flow (mantener attendees)
+- Tenant_domain integration (booking under custom domain)
+- Multi-timezone (lead picks own tz, agent stored in tenant tz)
+- Confirmación email + ICS attachment
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| scheduling-public-book-confirm-ics | service-story | live | ../../stories/scheduling/scheduling-public-book-confirm-ics.yaml |
+| scheduling-cancel-reschedule | service-story | live | ../../stories/scheduling/scheduling-cancel-reschedule.yaml |
+
+## Gaps identificados
+
+- Public page UI = pendiente FE (currently render simple HTML server-side, no React)
+- No e2e regression flow completo (book → confirm → cancel → ICS sync)
+- Reminder cadence hardcoded (24h + 1h pre-meeting) — no per-event_type tunable
+- No multi-attendee flow (group bookings declared en domain pero no UI)

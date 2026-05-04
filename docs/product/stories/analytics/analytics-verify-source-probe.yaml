@@ -1,0 +1,121 @@
+---
+id: analytics-verify-source-probe
+type: service-story
+module: analytics
+capability: verification-layer
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/verification-layer.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-verify-pipeline-integrity
+
+context:
+  job: "Como dev/QA necesito verificar que valor en API provider == valor en DB (tras ETL) para detectar drift extracción"
+  why: "Sin Layer 1 source probe el equipo no detecta cuando provider cambia formato/scope y nuestra ETL pierde fidelidad. Drift silencioso = números mentirosos"
+  constraints:
+    - "Idempotente (re-run safe)"
+    - "Read-only (no muta DB)"
+    - "Tenant-scoped"
+    - "Output legible (markdown/json)"
+
+outcome:
+  consumer_observable: "`make verify-probe-{provider}` retorna report comparando API call vs DB rows para tenant target"
+  product_observable:
+    - "Report stdout con diffs si hay drift"
+    - "Exit code 1 si drift detectado"
+    - "No DB writes"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "make verify-probe-{provider} | manual"
+
+scenarios:
+  - id: happy-path-meta-probe-no-drift
+    type: regression
+    given:
+      - "ETL Meta corrió hace <1h"
+      - "Provider Meta API responde con valores que matchean DB"
+    when: "make verify-probe-meta tenant_id=T1"
+    then:
+      - "Report 'all match' por todas métricas core"
+      - "Exit code 0"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_provider_adapter.py"
+
+  - id: drift-detected
+    type: negative
+    given:
+      - "Meta API cambió formato de campo X"
+      - "DB row tiene valor stale"
+    when: "make verify-probe-meta"
+    then:
+      - "Report con diff explícito (api=N, db=M)"
+      - "Exit code 1"
+      - "DB no se modifica"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_provider_adapter.py"
+
+  - id: provider-down-during-probe
+    type: edge
+    given:
+      - "Meta API responde 503"
+    when: "make verify-probe-meta"
+    then:
+      - "Report con error explícito provider_unavailable"
+      - "Exit code 2 (provider error vs drift)"
+      - "Sin retry hammering (max 2 attempts)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_provider_adapter.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "Probe ejecutado con tenant_id=T1 lee DB rows de T2"
+    then:
+      - "Filter explícito tenant_id=T1 en query"
+      - "Probe falla si encuentra rows de T2 mezclados"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_provider_adapter.py"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - analytics-etl-meta-ads-extraction
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_provider_adapter.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

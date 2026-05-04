@@ -1,0 +1,122 @@
+---
+id: campaigns-orchestrator-launch
+type: service-story
+module: campaigns
+capability: orchestrator-workers-channel-router
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-5
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/orchestrator-workers-channel-router.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories:
+    - campaigns-launch-with-orchestrator
+    - campaigns-execution-worker-telegram
+
+context:
+  job: "Como CampaignService necesito orchestrator real (`CampaignOrchestrator.launch()`) que cree root tasks atómicamente con state transition (D22)"
+  why: "STUB de PR-4 no creaba tasks. Orchestrator real es la primitiva fundacional para outbound real"
+  constraints:
+    - "@idempotent decorator (re-launch no duplica)"
+    - "Single-TX (state + tasks atomically)"
+    - "Solo root tasks (step_index==0); descendientes via worker"
+    - "Plan enforcement"
+
+outcome:
+  consumer_observable: "Service llama `orchestrator.launch(campaign_id, tenant_id)` y recibe tasks creadas"
+  product_observable:
+    - "DB: campaign.state=running + N CampaignTask rows"
+    - "Idempotent re-call retorna mismo set"
+
+service_contract:
+  type: endpoint
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "Llamado por CampaignService.launch()"
+
+scenarios:
+  - id: happy-path-orchestrator-creates-tasks
+    type: regression
+    given:
+      - "Campaign C1 draft, segment S1 con N leads"
+    when: "orchestrator.launch(C1)"
+    then:
+      - "DB single-TX: state=running + N tasks"
+      - "Eventos domain emitidos"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_orchestrator.py"
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM campaign_task WHERE campaign_id=:c"
+        expect: ">=1"
+
+  - id: invalid-state
+    type: negative
+    given:
+      - "Campaign en state=running"
+    when: "orchestrator.launch(C1)"
+    then:
+      - "InvalidTransition exception"
+      - "Sin DB write"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_orchestrator.py"
+
+  - id: idempotent-double-launch
+    type: edge
+    given:
+      - "orchestrator.launch(C1) primer call OK"
+    when: "Segundo call con mismo idempotency_key"
+    then:
+      - "Retorna mismo task set"
+      - "DB no duplica tasks"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_orchestrator_idempotency.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "orchestrator.launch con tenant_id mismatch entre campaign y context"
+    then:
+      - "Raise + audit log"
+      - "Sin tasks creadas"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_orchestrator.py"
+
+cross_module:
+  reads_from:
+    - crm
+  read_by: []
+  emits_events:
+    - campaign.launched
+  consumes_events: []
+
+dependencies:
+  stories:
+    - campaigns-segment-create-and-resolve
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/campaigns/application/test_orchestrator.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

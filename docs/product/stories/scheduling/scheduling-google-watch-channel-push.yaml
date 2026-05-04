@@ -1,0 +1,120 @@
+---
+id: scheduling-google-watch-channel-push
+type: service-story
+module: scheduling
+capability: scheduling-google-calendar-sync
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/scheduling.md"
+  capability: "../../capabilities/scheduling/scheduling-google-calendar-sync.yaml"
+  domain_doc: "../../../domains/module_scheduling.md"
+  related_stories:
+    - scheduling-google-availability-resolve
+
+context:
+  job: "Como sistema necesito recibir push notifications de Google Calendar cuando user crea/modifica/borra evento externo, sincronizando availability en tiempo real (no full pull)."
+  why: "Sin watch channel, availability stale. Lead reserva sobre slot ya ocupado en Google → conflict físico."
+  constraints:
+    - "Watch channel TTL ~1 week (Google limit) — renewal cron required"
+    - "Webhook validates X-Goog-Channel-Token"
+    - "Idempotent (resource_id + resource_state dedup)"
+
+outcome:
+  consumer_observable: "Tenant modifica evento Google → availability cache invalidated <30s"
+  product_observable:
+    - "Webhook ingestion → cache invalidation + structured log"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/connections/calendar/webhook
+  request_schema: "connections/api/dto.py::GoogleCalendarWatchPayload"
+  response_schema: "connections/api/dto.py::GoogleCalendarWatchAck"
+  auth: api-key
+  rate_limit_per_tenant: null
+  idempotency: header
+  trigger: "Google Calendar push notification"
+
+scenarios:
+  - id: happy-event-modified-cache-invalidate
+    type: regression
+    given:
+      - "tenant T1 con watch channel active"
+    when: "Google envía POST con resource_state='exists' resource_uri changed"
+    then:
+      - "Webhook valida X-Goog-Channel-Token"
+      - "Cache invalidated para tenant"
+      - "Próxima query availability re-hits Google"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_calendar_api_routes.py"
+
+  - id: invalid-token-rejected
+    type: negative
+    given:
+      - "Spoofed POST sin token"
+    when: "Webhook recibe"
+    then:
+      - "Status 401"
+      - "Audit log entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_calendar_api_routes.py"
+
+  - id: watch-channel-expires-no-renew
+    type: edge
+    given:
+      - "Watch channel TTL expiró (no renewal cron)"
+    when: "Tenant modifica evento Google"
+    then:
+      - "NO se recibe push"
+      - "Availability stale"
+      - "Renewal cron debe correr — gap actual sin alert"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_calendar_api_routes.py"
+
+  - id: cross-tenant-spoof
+    type: adversarial
+    given:
+      - "Attacker envía push con resource_id de tenant T2"
+    when: "Webhook procesa"
+    then:
+      - "Resource_id mapped to tenant via DB lookup"
+      - "Cache invalidation solo para mapped tenant"
+      - "NO cross-tenant cache invalidation"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_calendar_api_routes.py"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by:
+    - sales_agent
+  emits_events:
+    - GoogleCalendarEventChanged
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/connections/test_calendar_api_routes.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

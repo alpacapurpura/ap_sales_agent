@@ -30,9 +30,32 @@
 | 6 | Migrate 16 current-state → product/modules | ⏳ | `docs/product/modules/*.md` |
 | 7 | Rename 11 nicolify-* agents | ⏳ | `.claude/agents/{architect-orchestrator,builder-{be,fe,agentic},auditor-{be,fe,agentic},context-builder,gate-runner,grep-bot}.md` |
 | 8 | Create 9 new skills | ⏳ | `.claude/skills/{pm,po,ux-ui,ux-agentico,architect,architect-{be,fe,agentic},dev-team,auditor}/SKILL.md` |
-| 9 | Spawn 4 parallel mapping agents (16 modules → stories) | 🔄 | `docs/product/stories/{m}/*.yaml` + `docs/product/capabilities/{m}/*.yaml` + gap report |
+| 9 | Spawn 4 parallel mapping agents (16 modules → stories) | ✅ | 16 modules · 52 capabilities · 94 stories · 4 gap reports en `docs/process/gap-report-2026-05-04-group-{a,b,c,d}.md` |
 | 10 | Hooks + CLAUDE.md/AGENTS.md update | ✅ | `.claude/hooks/*.sh` + root MDs |
-| 11 | Commit foundation + P9 commit + summary | 🔄 | git log: `64859048` foundation. Pendiente P9 commit. |
+| 11 | Commits + push | ✅ | 3 commits: `64859048` foundation · `bc07b5c3` archive cleanup · P9 mapping |
+
+## Resultado final
+
+- **`docs/`**: 27 carpetas → 11 vivas + 1 archive
+- **52 capabilities** mapeadas
+- **94 stories** YAML con scenarios AI-resistant (happy + negative + edge + adversarial)
+- **4 gap reports** consolidan tests/coverage/eval suite gaps por grupo
+- **10 skills nuevas** (`/pm` rewrite + `/po` `/ux-ui` `/ux-agentico` `/architect` `/architect-{be,fe,agentic}` `/dev-team` `/auditor`)
+- **11 agents** renombrados al nuevo paradigma
+- **2 hooks** auto-update checkpoint
+
+## Hallazgos críticos cross-grupos (consolidados de 4 gap reports)
+
+1. **CRÍTICO sales_agent**: NO existe `backend/tests/agentic_evals/sales_agent/`. 6 agentic stories sin pass^k tracking ni voice fidelity grader runs reales contra goldens.
+2. **HIGH copilot**: eval suite parcial. Solo classifier+summarizer goldens. NO orchestrator-level (tool trajectory + voice fidelity + Card emission).
+3. **Personas + Rubrics declaradas pero NO instrumentadas en CI** — son specs muertos hasta que un test runner los consuma.
+4. **Cost tracking accuracy degraded sales_agent** — `cost_usd=0` por deepseek pricing mapping bug.
+5. **Module doc drift advertising** — module-doc dice "placeholder" pero BE está implementado (3 services, 11 endpoints, 11 archivos test). Corregido.
+6. **social_media BE realmente vacío** — capabilities cross-module via analytics + connections + assets + skill content-hunter.
+7. **GA4 property picker FE PENDING** (Tasks 5-8).
+8. **Watch channel renewal cron sin alert** — silent failure scheduling.
+9. **campaigns**: copilot tools wiring (S3 PR-8) + ChannelRouter WhatsApp/Email (PI-2) pendientes.
+10. **CRM copilot tools wrapping** candidato PI-3.
 
 ## Resume protocol
 

@@ -1,0 +1,41 @@
+---
+id: offer-presets-catalogs
+name: "Presets y catálogos SSoT"
+module: offer
+backbone_activity: "Estructurar oferta"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/offer.md"
+  stories_dir: "../../stories/offer/"
+description: "7 catálogos SSoT (ExpertBusinessType, OfferValueLevel, SectionCatalog, VariantStructure, OfferArchetype, OfferFormat, OfferLadderHints, OfferTypePreset) con 76 presets por tipo de negocio."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - offer-preset-pick-on-wizard
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Catálogo de 76 presets navegables por ExpertBusinessType
+- Wizard preset picker en flow de creación de oferta
+- Archetype/format/value-level inferidos a partir del preset
+- Conditional questions per preset
+- Versioning de catálogos via `_CATALOG_VERSION` bump (arch test enforces)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| offer-preset-pick-on-wizard | ui-story | live | ../../stories/offer/offer-preset-pick-on-wizard.yaml |
+
+## Gaps identificados
+
+- Test de invariante "agregar preset nuevo no rompe wizard" existe en arch tests, pero no en e2e
+- Hardcoded preset metadata leak detection corre solo en arch tests
+- BE→FE sync: si BE bumpa `_CATALOG_VERSION` y FE no se rebuilda, falla silenciosamente

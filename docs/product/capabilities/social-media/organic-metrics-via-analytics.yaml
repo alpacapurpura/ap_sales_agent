@@ -1,0 +1,40 @@
+---
+id: organic-metrics-via-analytics
+name: "Métricas orgánicas vía analytics (read-only)"
+module: social-media
+backbone_activity: "Visualizar performance social orgánico"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/social-media.md"
+  stories_dir: "../../stories/social-media/"
+description: "Lectura de métricas orgánicas (reach, engagement, follower growth) de canales sociales (Instagram, Facebook, TikTok, YouTube). NO existe módulo `social_media` real — capability está implementada vía `analytics` ETL + stage services (`opportunity_stage`, `evangelization_stage`). Channel registry contiene slugs orgánicos."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - social-media-organic-metrics-read
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Lectura organic metrics via analytics stage services (Tier 1 overview, Tier 3 detail per canal)
+- Channels: instagram, facebook, tiktok, youtube (grupos orgánicos en channel registry)
+- Métricas: reach, engagement_rate, followers, plays
+- Frontend Growth Studio drill-down por canal orgánico
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| social-media-organic-metrics-read | service-story | live | ../../stories/social-media/social-media-organic-metrics-read.yaml |
+
+## Gaps identificados
+
+- BE módulo `social_media` está vacío (solo `__init__.py`) — toda la lógica vive en `analytics` y `connections`
+- No hay módulo dedicado para programación posteo nativa (gap reconocido en module doc)
+- IG DM sync existe (`ig_dm_sync_service` en analytics) pero no UI dedicada en social-media

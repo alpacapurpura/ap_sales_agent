@@ -1,0 +1,51 @@
+---
+id: sales-conversational-engine
+name: "Motor conversacional sales_agent — supervisor + specialists + voz tenant"
+module: sales-agent
+backbone_activity: "Vender / pre-calificar / cerrar"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/sales-agent.md"
+  stories_dir: "../../stories/sales-agent/"
+description: "LangGraph supervisor + 3 specialists (qualifier, product_expert, closer) + brand voice SSoT (PersonalityProfile.system_instruction compiler v2) + semantic router → tier pricing. Replaces SDR/closer humano para inbound DMs (Manychat IG/FB)."
+stories_live: 3
+stories_planned: 0
+stories_total: 3
+story_ids:
+  - sales-inbound-conversation-qualify
+  - sales-inbound-conversation-close
+  - sales-brand-voice-fidelity
+copilot_operable: false
+date_introduced: 2026-04
+last_modified: 2026-05-01
+---
+
+## Capabilities cubiertas por este grupo
+
+- LangGraph supervisor → routea entre `qualifier`, `product_expert`, `closer` por estado/score
+- Brand voice SSoT: `PersonalityProfile.system_instruction` compilado v2 (6 bloques "ASÍ HABLAS / ASÍ NO") inyectado en slot 5 cache prefix
+- Specialists static prompt body (cacheable cross-tenant) + state-dependent suffix
+- Semantic router → tier pricing (Kimi K2.6 / DeepSeek V4-Flash / GPT-4o por complejidad)
+- Per-tenant prompt caching slots 1-6 byte-equal — hit rate ≥60%
+- Supervisor outbound skip-qualifier flag (lead_score >= 40 + outbound_mode → directo a closer)
+- BudgetGuardingChatModel wired single-point en `ConversationPipeline.__init__` — gating SA pool reservado
+- ComplianceService gating outbound (WABA24h + OptIn + Blacklist + CountryBlock)
+- OutboundRateLimiter Redis sliding window 24h cap por tenant
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| sales-inbound-conversation-qualify | agentic-story | live | ../../stories/sales-agent/sales-inbound-conversation-qualify.yaml |
+| sales-inbound-conversation-close | agentic-story | live | ../../stories/sales-agent/sales-inbound-conversation-close.yaml |
+| sales-brand-voice-fidelity | agentic-story | live | ../../stories/sales-agent/sales-brand-voice-fidelity.yaml |
+
+## Gaps identificados
+
+- **Eval suite agentic faltante**: NO existe `backend/tests/agentic_evals/sales_agent/` — solo unit tests `test_nodes.py` + snapshot tests `test_chat_orchestrator_snapshot.py`. CRÍTICO.
+- Voice fidelity grader: `SALES_AGENT_VOICE_FIDELITY_THRESHOLD` env default 0.7 declared (Decision 30) pero coverage de runs reales contra goldens dataset = 0% (no goldens checked-in)
+- Personas (`lead-caliente-ready`, `lead-frio-impaciente`, `lead-tibio-dudoso`) declarados en `docs/specs/personas/` pero NO consumidos por suite alguna
+- Adversarial scenarios (jailbreak, prompt injection, persona hostile leak system prompt) no instrumentados
+- `cost_usd=0` post-fix por pricing resolution (deepseek tagged como openai) — backlog PR follow-up

@@ -50,3 +50,13 @@ _Ninguno — placeholder desde inicio._
 | Fecha | Decisión | Razón |
 |---|---|---|
 | _inicial_ | Diferir módulo dedicado | Analytics ETL cubre lectura. Acción se prioriza vía action triggers cuando user pide. |
+
+## Capabilities
+
+> **Drift documentación detectado 2026-05-04**: el module doc llama "placeholder" pero el módulo está implementado (3 services, 11 archivos test, 11 endpoints REST `/api/v1/advertising/`). Status real = `live` para asociaciones + métricas + suggestions.
+
+| ID | Name | Status | Stories live/total |
+|---|---|---|---|
+| ad-offer-association | Asociación ad ↔ oferta | live | 2/2 |
+| metrics-by-offer-aggregation | Métricas agregadas por oferta | live | 1/1 |
+| campaign-template-suggestions | Sugerencias de templates de campaña ads | live | 1/1 |

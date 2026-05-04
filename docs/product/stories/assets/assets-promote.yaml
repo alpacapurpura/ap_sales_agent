@@ -1,0 +1,127 @@
+---
+id: assets-promote
+type: service-story
+module: assets
+capability: assets-storage-management
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/assets.md"
+  capability: "../../capabilities/assets/assets-storage-management.yaml"
+  domain_doc: "../../../domains/module_assets.md"
+  related_stories:
+    - assets-upload
+
+context:
+  job: "Como sistema necesito promover un asset (marcarlo como featured/permanente) para que aparezca en gallery y/o landing automáticamente."
+  why: "Distinguir asset 'temp/draft' de 'live/featured' permite curar materiales sin borrar lo experimental."
+  constraints:
+    - "Tenant-scoped"
+    - "Idempotente"
+    - "Permission: solo owner del tenant"
+
+outcome:
+  consumer_observable: "PATCH .../promote retorna 200 con asset.featured=true."
+  product_observable:
+    - "DB: assets.featured=TRUE, promoted_at=utc_now()"
+    - "Domain event AssetPromoted emitido"
+
+service_contract:
+  type: endpoint
+  method: PATCH
+  path: /api/v1/assets/{id}/promote
+  request_schema: "backend/src/modules/assets/api/router.py::PromoteRequest"
+  response_schema: "backend/src/modules/assets/api/router.py::AssetResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "30/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: promote-featured-image
+    type: regression
+    given:
+      - "Tenant T1, asset id=42 con featured=FALSE"
+    when: "PATCH /api/v1/assets/42/promote"
+    then:
+      - "Status 200"
+      - "DB: featured=TRUE, promoted_at no NULL"
+      - "Asset aparece en gallery con flag featured"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/assets/test_promote_endpoint.py"
+      - type: state_check
+        target: db
+        query: "SELECT featured FROM assets WHERE id = 42"
+        expect: "TRUE"
+
+  - id: promote-deleted-asset
+    type: negative
+    given:
+      - "Asset id=42 con deleted_at IS NOT NULL"
+    when: "PATCH /api/v1/assets/42/promote"
+    then:
+      - "Status 404 (soft-deleted no es accesible)"
+      - "DB: featured queda FALSE"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: idempotent-promote
+    type: edge
+    given:
+      - "Asset 42 ya featured=TRUE"
+    when: "PATCH promote 2 veces"
+    then:
+      - "Segunda call 200 (no duplica side effect)"
+      - "DB: promoted_at no se actualiza (mantiene timestamp original)"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-promote
+    type: adversarial
+    given:
+      - "Tenant T2 con asset id=99"
+    when: "Usuario A (T1) PATCH /api/v1/assets/99/promote con X-Tenant-ID=T1"
+    then:
+      - "404 Not Found"
+      - "DB: asset 99 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "PATCH promote cross-tenant"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - landing
+    - brand
+    - offer
+  emits_events:
+    - AssetPromoted
+  consumes_events: []
+
+dependencies:
+  stories:
+    - assets-upload
+  capabilities:
+    - assets-storage-management
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/assets/test_promote_endpoint.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

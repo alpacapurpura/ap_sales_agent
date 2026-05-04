@@ -1,0 +1,120 @@
+---
+id: offer-ladder-view
+type: ui-story
+module: offer
+capability: offer-ladder
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-ladder.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories:
+    - offer-create-from-ladder
+
+context:
+  job: "Como user quiero ver mi Offer Ladder visual con todas mis ofertas agrupadas por value-level (gratis → low → high) para entender mi estrategia y detectar gaps."
+  why: "Sin visualización del ladder, los users sub-optimizan: lanzan oferta única y pierden upsell/downsell. El ladder es el mental model que estructura el resto del producto."
+  constraints:
+    - "Tenant-scoped"
+    - "Render <1s p95 con hasta 30 ofertas"
+    - "Mobile responsive >=375px"
+    - "Spanish neutro LatAm en labels"
+
+outcome:
+  user_observable: "Tras navegar a /offer-studio, usuario ve cada oferta agrupada por nivel del ladder, con archetype/format icons y CTA contextual."
+  product_observable:
+    - "GET /api/v1/offers retorna ofertas tenant-scoped"
+    - "GET /api/v1/offer-counts retorna agregados por value_level"
+
+scenarios:
+  - id: render-with-existing-offers
+    type: regression
+    given:
+      - "Tenant T1 con 3 ofertas: 1 lead-magnet, 1 low-ticket, 1 high-ticket"
+    when: "Usuario navega a /offer-studio"
+    then:
+      - "Render muestra 3 cards en niveles correspondientes del ladder"
+      - "Cada card muestra archetype icon + nombre + value-level badge"
+      - "CTA 'Crear oferta' visible en niveles vacíos"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/offer/offer-list.spec.ts"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/offers con X-Tenant-ID=T1"
+        expect: "3 rows tenant_id=T1"
+
+  - id: empty-state
+    type: regression
+    given:
+      - "Tenant T1 sin ofertas"
+    when: "Usuario navega a /offer-studio"
+    then:
+      - "Empty state visible con CTA 'Crear primera oferta'"
+      - "Onboarding sugerencia visible (qué tipo de oferta crear primero)"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: many-offers-performance
+    type: edge
+    given:
+      - "Tenant T1 con 30 ofertas"
+    when: "Usuario navega a /offer-studio"
+    then:
+      - "Render <1.5s p95"
+      - "Lista paginada o virtualizada, no se cuelga"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: cross-tenant-offer-listing
+    type: adversarial
+    given:
+      - "Usuario A tenant T1, tenant T2 con ofertas"
+    when: "Usuario A llama GET /api/v1/offers con X-Tenant-ID=T2 spoofeado"
+    then:
+      - "403 Forbidden si tenant_id no le pertenece"
+      - "Response NO incluye ofertas de T2"
+    graders:
+      - type: state_check
+        target: api
+        query: "GET /api/v1/offers con tenant spoofeado"
+        expect: "403"
+
+cross_module:
+  reads_from:
+    - copilot
+  read_by:
+    - sales_agent
+    - landing
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - offer-ladder
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/regression/offer/offer-list.spec.ts"
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

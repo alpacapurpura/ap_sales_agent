@@ -1,0 +1,136 @@
+---
+id: copilot-telegram-magic-link
+type: service-story
+module: copilot
+capability: copilot-telegram-channel
+status: live
+slice: V1
+last_audit: 2026-05-04
+date_introduced: 2026-04-30
+pr_introduced: PR-1
+pi_introduced: PI-5
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/copilot.md"
+  capability: "../../capabilities/copilot/copilot-telegram-channel.yaml"
+  domain_doc: "../../../domains/module_copilot.md"
+  related_stories:
+    - copilot-telegram-orchestrator-respond
+
+context:
+  job: "Como tenant in-app quiero linkear mi cuenta Telegram al copilot via magic link 15min single-use, hash en DB, para conversar con copilot off-app desde @nicolify_bot."
+  why: "Mobile-first usage. Tenants reciben push Telegram + responden con voz/texto natural. Crítico para adopción daily active."
+  constraints:
+    - "Magic link HMAC-SHA256, TTL 15 min, single-use"
+    - "Hash en DB (no plaintext)"
+    - "Webhook NON-BLOCKING enqueue ARQ <200ms"
+    - "Valida X-Telegram-Bot-Api-Secret-Token"
+    - "Filtra chat.type='private' (no groups)"
+    - "Bot global Nicolify (1 token env var COPILOT_TELEGRAM_BOT_TOKEN)"
+    - "Separación física vs sales_agent: 2 bots distintos"
+
+outcome:
+  consumer_observable: "Tenant clickea magic link, abre Telegram con prefilled message → bot recibe → link confirmed → bot responde 'linkeado'"
+  product_observable:
+    - "DB: copilot_link_tokens row con hashed token + ttl"
+    - "DB: copilot_channel_links row con tenant_id + telegram_user_id + status='active'"
+    - "Token marked single-use post redemption"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/copilot/telegram/link-tokens
+  request_schema: "copilot/api/telegram_dto.py::LinkTokenRequest"
+  response_schema: "copilot/api/telegram_dto.py::LinkTokenResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "10/hour"
+  idempotency: header
+  trigger: null
+
+scenarios:
+  - id: happy-link-token-create-redeem
+    type: regression
+    given:
+      - "tenant T1 autenticado in-app"
+    when: "POST /api/v1/copilot/telegram/link-tokens"
+    then:
+      - "Status 200 con `{deep_link: 'https://t.me/nicolify_bot?start=...'}`"
+      - "DB: copilot_link_tokens 1 row hashed_token + ttl 15min + tenant_id"
+      - "User clickea link → Telegram abre"
+      - "Bot recibe /start con token → webhook enqueue"
+      - "Worker valida token, marks single-use, crea copilot_channel_links row"
+      - "Bot responde 'Linkeado correctamente'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/test_telegram_link_service.py"
+      - type: state_check
+        target: db
+        query: "SELECT status FROM copilot_channel_links WHERE tenant_id = ?"
+        expect: "active"
+
+  - id: expired-token-rejected
+    type: negative
+    given:
+      - "Token created >15min ago"
+    when: "User clickea expired link"
+    then:
+      - "Worker valida ttl, rejects"
+      - "Bot responde 'link expirado, generá uno nuevo'"
+      - "DB: NO se crea copilot_channel_links"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT used_at FROM copilot_link_tokens WHERE tenant_id = ?"
+        expect: "expired (no usage)"
+
+  - id: token-replay-attack
+    type: edge
+    given:
+      - "Token already used"
+    when: "User clickea link 2nd vez"
+    then:
+      - "Worker rejects (single-use enforced)"
+      - "Bot responde 'link ya usado'"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM copilot_channel_links WHERE link_token_id = ?"
+        expect: "1"
+
+  - id: cross-tenant-link-spoofing
+    type: adversarial
+    given:
+      - "Attacker intenta forgear token sin HMAC"
+    when: "POST webhook con fake token"
+    then:
+      - "HMAC validation falla"
+      - "Webhook rejects 401"
+      - "Audit log entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/test_telegram_link_service.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+  emits_events:
+    - TelegramLinked
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/copilot/test_telegram_link_service.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

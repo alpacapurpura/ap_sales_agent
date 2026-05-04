@@ -1,0 +1,39 @@
+---
+id: assets-flyer-image-gen
+name: "Generación de flyers e imágenes"
+module: assets
+backbone_activity: "Generar material promocional"
+last_audit: 2026-05-04
+status: in-progress
+slice: MVP
+links:
+  module_doc: "../../modules/assets.md"
+  stories_dir: "../../stories/assets/"
+description: "Pipeline básico de generación de flyers e imágenes a partir de templates dinámicas + brand visuals. Estado parcial — templates limitadas."
+stories_live: 0
+stories_planned: 1
+stories_total: 1
+story_ids: []
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Templates de flyer básicas (tarjeta de evento, anuncio cuadrado)
+- Image gen: pipeline básico — TODO definir provider final
+- Video ideas: solo ideas (texto), no producción
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| _(en backlog)_ | _ui-story_ | planned | _pending_ |
+
+## Gaps identificados
+
+- Estado funcional es **parcial** — no hay story YAML aún
+- Image gen pipeline no tiene provider production-ready definido
+- Brochures = placeholder (no implementado)
+- Sin contract tests dedicados al pipeline de generación visual

@@ -1,0 +1,51 @@
+---
+id: bowtie-progressive-loading
+name: "Bowtie funnel + progressive loading 4-tier"
+module: analytics
+backbone_activity: "Visualizar embudo end-to-end"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/analytics.md"
+  stories_dir: "../../stories/analytics/"
+description: "Visualización Bowtie interactiva del funnel (Atracción → Captura → Nutrición → Oportunidad → Ventas → Adopción → Expansión → Evangelización) con progressive loading en 4 tiers (Tier 0 summary | Tier 1 overview cache | Tier 2 group-detail cache | Tier 3 stage DB). Action triggers per nodo. Multi-currency por canal."
+stories_live: 3
+stories_planned: 0
+stories_total: 3
+story_ids:
+  - analytics-bowtie-summary-tier0
+  - analytics-stage-overview-tier1
+  - analytics-stage-detail-tier3
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Bowtie summary endpoint (`GET /metrics/summary`) Tier 0 — load instantáneo, KPIs agregados
+- Stage overview endpoints (`GET /metrics/{stage}/overview`) Tier 1 — cache warm
+- Group detail endpoints (`GET /metrics/{stage}/groups/{group_key}`) Tier 2 — cache hit
+- Stage detail endpoints (`GET /metrics/attraction|capture|nurturing|...`) Tier 3 — DB query
+- Stage services SSoT (`stage_services/{attraction,capture,nurture,opportunity,sales,adoption,expansion,evangelization}_stage.py`)
+- Bowtie sankey chart (`GET /metrics/sankey`)
+- Timeseries por stage (`GET /metrics/timeseries`)
+- Channel-grouped widgets (Tier 2 group_detail)
+- Multi-currency display via TenantLocale + per-channel currency
+- Action triggers (clic nodo → right slider con action ejecutable: ad sync, campaign launch, etc)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| analytics-bowtie-summary-tier0 | service-story | live | ../../stories/analytics/analytics-bowtie-summary-tier0.yaml |
+| analytics-stage-overview-tier1 | ui-story | live | ../../stories/analytics/analytics-stage-overview-tier1.yaml |
+| analytics-stage-detail-tier3 | ui-story | live | ../../stories/analytics/analytics-stage-detail-tier3.yaml |
+
+## Gaps identificados
+
+- Action triggers tienen UI pero integraciones limitadas (e.g. "crear campaña desde nodo Bowtie conversacionalmente" gap reconocido en module doc)
+- Smoke manual stages × mobile + desktop PENDIENTE Chris (drawer/bowtie hotfix PI-8)
+- No hay e2e regression dedicado que valide los 4 tiers progressive loading bajo carga (tier 3 cache invalidation edge cases)
+- Stage detail expansión/evangelización tienen menos cobertura tests vs attraction/capture

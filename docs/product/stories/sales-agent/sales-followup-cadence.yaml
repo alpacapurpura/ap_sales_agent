@@ -1,0 +1,130 @@
+---
+id: sales-followup-cadence
+type: service-story
+module: sales-agent
+capability: sales-follow-up-workers
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-follow-up-workers.yaml"
+  domain_doc: "../../../domains/module_sales_agent.md"
+  related_stories:
+    - sales-payment-reminder-pending
+
+context:
+  job: "Como worker scheduled necesito re-engagear leads inactivos según cadencia FOLLOW_UP_CADENCES (1h, 24h, 3d, 7d) emitiendo ReengagementMessageRequested → orchestrator levanta turn outbound."
+  why: "Sin follow-up, leads warm se enfrían. Reduce CAC. Cadencia configurada en domain/tuning.py (no per-tenant tunable hoy)."
+  constraints:
+    - "Idempotent vía shared/idempotency/ decorator (1 follow-up por (lead_id, cadence_step))"
+    - "ComplianceService gate antes send"
+    - "OutboundRateLimiter gate antes send"
+    - "Respeta lead.do_not_contact flag"
+
+outcome:
+  consumer_observable: "Lead inactivo recibe mensaje de seguimiento dentro de cadencia configurada"
+  product_observable:
+    - "DB: sales_agent_followup_log row created"
+    - "Domain event ReengagementMessageRequested emitted"
+    - "AgentState updated post-send"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "cron */15 minutos (worker tick)"
+
+scenarios:
+  - id: happy-cadence-24h
+    type: regression
+    given:
+      - "Lead L1 last interaction = 25h ago, lead_score=30 (warm), do_not_contact=False"
+      - "FOLLOW_UP_CADENCES includes 24h step"
+    when: "follow_up_engine tick runs"
+    then:
+      - "Worker selects L1 (24h elapsed)"
+      - "ComplianceService.check() PASS"
+      - "OutboundRateLimiter PASS"
+      - "Domain event ReengagementMessageRequested emitted con cadence_step=24h"
+      - "DB: sales_agent_followup_log 1 row para (L1, 24h)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/test_follow_up_engine.py"
+
+  - id: do-not-contact-respect
+    type: negative
+    given:
+      - "Lead L1 do_not_contact=True (lead respondió 'no me contactes más')"
+    when: "follow_up_engine tick"
+    then:
+      - "Worker NO selecciona L1"
+      - "NO se emite ReengagementMessageRequested"
+      - "NO row en sales_agent_followup_log"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM sales_agent_followup_log WHERE lead_id = ?"
+        expect: "0"
+
+  - id: idempotent-no-double-send
+    type: edge
+    given:
+      - "Lead L1 ya recibió follow-up cadence_step=24h (idempotency key in Redis)"
+    when: "follow_up_engine tick re-evalúa"
+    then:
+      - "Worker idempotent (decorator skip)"
+      - "NO se duplica row sales_agent_followup_log"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM sales_agent_followup_log WHERE lead_id = ? AND cadence_step = '24h'"
+        expect: "1"
+
+  - id: adversarial-stale-checkpoint
+    type: adversarial
+    given:
+      - "Lead L1 con agent_state_checkpoint stale (corrupted JSON)"
+    when: "follow_up_engine tick"
+    then:
+      - "Worker logs warning, skip lead, NO crash"
+      - "Other leads procesados normal"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/test_follow_up_engine.py"
+
+cross_module:
+  reads_from:
+    - crm
+  read_by: []
+  emits_events:
+    - ReengagementMessageRequested
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - sales-conversational-engine
+    - sales-outbound-orchestrator
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/sales_agent/test_follow_up_engine.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

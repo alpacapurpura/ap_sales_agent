@@ -1,0 +1,48 @@
+---
+id: connections-meta-oauth
+name: "Meta OAuth — Facebook + Instagram + Ads + page_id selection"
+module: connections
+backbone_activity: "Conectar plataformas social"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/connections.md"
+  stories_dir: "../../stories/connections/"
+description: "Tenant conecta Meta Business Suite (Facebook + Instagram + Ads) via OAuth → pickea pages, ad_accounts, ig_business_account_id → Nicolify orquesta posts orgánicos, ads, DMs vía Manychat. Sin connection, ni sales_agent ni analytics ni assets funcionan."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - connections-meta-oauth-flow
+  - connections-meta-page-account-pick
+copilot_operable: true
+date_introduced: 2026-03
+last_modified: 2026-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `infrastructure/channels/meta.py` — OAuth flow + token exchange + refresh
+- `infrastructure/channels/instagram.py` — IG specific endpoints (organic + DM via Manychat)
+- `api/meta.py` — endpoints `/api/v1/connections/meta/{auth-url, callback, pages, ad-accounts}`
+- `api/dto/` — Pydantic DTOs PII-stripped
+- Token rotation handling (long-lived 60d → refresh)
+- Status monitoring (healthy/disconnected/expired)
+- Test connection endpoint
+- Reconnect flow tras token expiry
+- IG Direct Login = placeholder (OAuth credentials configured, flow pendiente per module doc)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| connections-meta-oauth-flow | service-story | live | ../../stories/connections/connections-meta-oauth-flow.yaml |
+| connections-meta-page-account-pick | ui-story | live | ../../stories/connections/connections-meta-page-account-pick.yaml |
+
+## Gaps identificados
+
+- IG Direct Login OAuth = placeholder (per module doc)
+- Token refresh cron no documented (silent expiry → user surprise)
+- No alert si connection becomes stale (status=disconnected sin user notification)
+- Ads scope optional pero no claro UX cuándo incluirlo (cross-pasos OAuth)

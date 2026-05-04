@@ -1,14 +1,17 @@
 # Stories — scheduling
 
 > SSoT atómico. 1 story = 1 archivo YAML.
-> Auto-populated by /po cuando crea/actualiza stories.
-> Schema: ../../specs/templates/story-{ui,agentic,service}.yaml.
 
 ## Stories activas
 
 | ID | Type | Status | Capability | Last audit |
 |----|------|--------|------------|------------|
-| _(vacío — populado por agents en P9 o /po cuando crea stories)_ |
+| scheduling-google-availability-resolve | service-story | live | scheduling-google-calendar-sync | 2026-05-04 |
+| scheduling-google-watch-channel-push | service-story | live | scheduling-google-calendar-sync | 2026-05-04 |
+| scheduling-event-type-create | service-story | live | scheduling-event-types | 2026-05-04 |
+| scheduling-event-type-public-link | service-story | live | scheduling-event-types | 2026-05-04 |
+| scheduling-public-book-confirm-ics | service-story | live | scheduling-public-booking | 2026-05-04 |
+| scheduling-cancel-reschedule | service-story | live | scheduling-public-booking | 2026-05-04 |
 
 ## Cómo agregar story nueva
 

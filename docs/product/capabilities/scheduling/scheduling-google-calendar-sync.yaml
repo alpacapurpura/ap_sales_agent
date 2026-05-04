@@ -1,0 +1,44 @@
+---
+id: scheduling-google-calendar-sync
+name: "Sync Google Calendar — OAuth + watch channel + availability"
+module: scheduling
+backbone_activity: "Sincronizar agenda con Google"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/scheduling.md"
+  stories_dir: "../../stories/scheduling/"
+description: "OAuth Google Calendar via connections module → watch channel push notifications → availability_service computa slots libres en timezone tenant. Disponibilidad consumida por sales_agent (check_schedule tool) + booking page público."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - scheduling-google-availability-resolve
+  - scheduling-google-watch-channel-push
+copilot_operable: false
+date_introduced: 2026-03
+last_modified: 2026-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `connections/infrastructure/channels/google_calendar.py` — OAuth + adapter
+- `application/services/availability_service.py` — compute available slots dado event_type + timezone tenant
+- `domain/availability_schema.py` — JSON schema availability config (working_hours, blackout, buffers)
+- `domain/event_type_schema.py` — duration, type (1:1, group, round-robin), buffers, custom domain integration
+- TenantLocale-driven (timezone resolution per tenant)
+- Watch channel push notifications (incremental sync no full pull)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| scheduling-google-availability-resolve | service-story | live | ../../stories/scheduling/scheduling-google-availability-resolve.yaml |
+| scheduling-google-watch-channel-push | service-story | live | ../../stories/scheduling/scheduling-google-watch-channel-push.yaml |
+
+## Gaps identificados
+
+- No load test availability_service (>100 event_types per tenant)
+- Watch channel renewal cron no documented (Google channel TTL ~1 week)
+- No alert si watch channel expira sin renew (silent failure → stale availability)

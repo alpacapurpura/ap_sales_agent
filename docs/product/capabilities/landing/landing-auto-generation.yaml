@@ -1,0 +1,42 @@
+---
+id: landing-auto-generation
+name: "Auto-generación de landing"
+module: landing
+backbone_activity: "Lanzar oferta"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/landing.md"
+  stories_dir: "../../stories/landing/"
+description: "Genera automáticamente landing page por oferta tomando data de brand + offer + edition. Templates dinámicas con secciones (hero, beneficios, testimonios, FAQ, CTA)."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - landing-create-from-offer
+  - landing-section-edit
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Generación inicial de landing al crear oferta o edition
+- Templates dinámicas según archetype/format de la oferta
+- Edición conversacional (parcial — copilot operable)
+- Sections: hero, beneficios, testimonios, FAQ, CTA, instructores
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| landing-create-from-offer | service-story | live | ../../stories/landing/landing-create-from-offer.yaml |
+| landing-section-edit | ui-story | live | ../../stories/landing/landing-section-edit.yaml |
+
+## Gaps identificados
+
+- Layouts custom: limitado a templates predefinidos
+- Preview en chat antes de publicar es gap conocido (módulo doc)
+- Sin E2E regression dedicado — solo visual snapshot `landing.visual.spec.ts`

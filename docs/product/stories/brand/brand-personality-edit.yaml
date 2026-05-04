@@ -1,0 +1,140 @@
+---
+id: brand-personality-edit
+type: ui-story
+module: brand
+capability: brand-personality-voice
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04-28
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/brand.md"
+  capability: "../../capabilities/brand/brand-personality-voice.yaml"
+  domain_doc: "../../../domains/module_brand.md"
+  related_stories:
+    - brand-style-clone-from-chat
+    - brand-communication-style-edit
+
+context:
+  job: "Como user quiero configurar la personalidad y voz de mi marca (vía 3 pilares y/o presets) para que el sales_agent suene como yo."
+  why: "La voz del sales_agent es el factor #1 de credibilidad. Sin personality definida, el agente suena robótico y genérico."
+  constraints:
+    - "Tenant-scoped"
+    - "Auto-save on change"
+    - "system_instruction es SSoT — no se duplica en otras tablas"
+    - "Cambiar personality invalida prompt cache de sales_agent"
+
+outcome:
+  user_observable: "Tras seleccionar preset o ajustar pilares, la voz queda lista y el sales_agent en el próximo turno usa la nueva voz."
+  product_observable:
+    - "DB: personality_profiles.system_instruction recompilado (compiler v2, 6 bloques)"
+    - "Domain event PersonalityProfileUpdated emitido"
+    - "Cache invalidation: prompt cache slot 5 (BRAND_VOICE) invalidado próximo turno sales_agent"
+
+scenarios:
+  - id: select-preset-cercano
+    type: regression
+    given:
+      - "Usuario autenticado tenant T1"
+      - "PersonalityProfile sin system_instruction"
+    when: "Usuario selecciona preset 'Cercano' y confirma"
+    then:
+      - "PersonalityProfile.preset_id = 'cercano'"
+      - "system_instruction recompilado con 6 bloques (incluye 'ASÍ HABLAS / ASÍ NO')"
+      - "Event PersonalityProfileUpdated emitido en outbox"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT system_instruction, preset_id FROM personality_profiles WHERE tenant_id = ?"
+        expect: "preset_id='cercano' AND system_instruction IS NOT NULL"
+
+  - id: edit-pillar-without-preset
+    type: regression
+    given:
+      - "Tenant T1 con PersonalityProfile preset='cercano'"
+    when: "Usuario edita un pillar (ej. patterns.formality) y desenfoca"
+    then:
+      - "system_instruction recompilado reflejando override"
+      - "preset_id queda como 'custom' o el preset base con override declarado"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT system_instruction FROM personality_profiles WHERE tenant_id = ?"
+        expect: "system_instruction contiene texto del nuevo pattern"
+
+  - id: invalid-pillar-value
+    type: negative
+    given:
+      - "Tenant T1"
+    when: "Frontend envía PATCH con pillar value fuera del enum permitido"
+    then:
+      - "Status 422 con detail de validation"
+      - "DB: personality_profiles NO se modifica"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/brand/test_personality_api.py"
+
+  - id: cache-invalidation-cross-module
+    type: edge
+    given:
+      - "Sales_agent activo con cache slot 5 (BRAND_VOICE) caliente para tenant T1"
+    when: "Usuario edita personality en brand-studio"
+    then:
+      - "Event PersonalityProfileUpdated emitido"
+      - "Próximo turno del sales_agent recompila slot 5 con nueva voz"
+      - "No mid-turn voice flip"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT * FROM domain_event_outbox WHERE event_type = 'PersonalityProfileUpdated' ORDER BY created_at DESC LIMIT 1"
+        expect: "1 row reciente"
+
+  - id: cross-tenant-personality-write
+    type: adversarial
+    given:
+      - "Tenant T2 tiene PersonalityProfile"
+    when: "Usuario A (tenant T1) intenta PATCH /api/v1/brand/personality con X-Tenant-ID=T2"
+    then:
+      - "403 Forbidden"
+      - "DB: PersonalityProfile de T2 NO modificado"
+    graders:
+      - type: state_check
+        target: api
+        query: "PATCH /api/v1/brand/personality con X-Tenant-ID spoofeado"
+        expect: "403"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - copilot
+  emits_events:
+    - PersonalityProfileUpdated
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - brand-personality-voice
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: propose_field_updates
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/smoke/personality.smoke.spec.ts"
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

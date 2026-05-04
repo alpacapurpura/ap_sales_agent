@@ -1,0 +1,52 @@
+---
+id: copilot-conversational-orchestrator
+name: "Orchestrator copilot — deep_agent + LangGraph + tier routing"
+module: copilot
+backbone_activity: "Conversar con copiloto in-app"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/copilot.md"
+  stories_dir: "../../stories/copilot/"
+description: "LangGraph orchestrator + deep_agent (deepagents) que conversa con tenant en chat web/Telegram. Router classifier → tier (NANO/FAST/REASONING/AGENT) → LiteLLM Proxy → modelos (DeepSeek V4-Flash, gpt-4o-mini, Kimi K2.6). Per-tenant prompt caching slot architecture v2. Subagent isolation via stream provenance classifier."
+stories_live: 3
+stories_planned: 0
+stories_total: 3
+story_ids:
+  - copilot-chat-conversation-web
+  - copilot-tier-routing-classifier
+  - copilot-subagent-stream-isolation
+copilot_operable: true
+date_introduced: 2026-04
+last_modified: 2026-04-30
+---
+
+## Capabilities cubiertas por este grupo
+
+- `application/orchestrator/chat.py::CopilotOrchestrator` con `stream_chat` (web SSE) + `invoke_text` (Telegram non-streaming)
+- `application/orchestrator/deep_agent.py::build_deep_agent_graph` — LangGraph wrapper sobre `deepagents.create_deep_agent`
+- `application/router/model_router.py` + classifiers (rule_classifier + llm_classifier) → tier selection
+- ModelRole único SSoT (S3 PR-1 PI-2): NANO→NANO, FAST, REASONING, AGENT
+- LiteLLM Proxy motor multi-provider centralizado (`shared/infrastructure/llm/providers/litellm.py`)
+- Memory: rolling_summarizer + token_counter + context_window_builder (per-channel `for_channel(channel)`)
+- Per-tenant prompt caching slot architecture v2 (system_prompt_layout + system_prompt_composer)
+- BudgetGuardingChatModel wired single-point en `build_deep_agent_graph(budget_guard, tenant_id)` — Others bucket
+- Subagent isolation: stream_provenance_classifier
+- output_sanitizer post-stream (prompt injection guard + voseo cleanup según tenant)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| copilot-chat-conversation-web | agentic-story | live | ../../stories/copilot/copilot-chat-conversation-web.yaml |
+| copilot-tier-routing-classifier | service-story | live | ../../stories/copilot/copilot-tier-routing-classifier.yaml |
+| copilot-subagent-stream-isolation | service-story | live | ../../stories/copilot/copilot-subagent-stream-isolation.yaml |
+
+## Gaps identificados
+
+- **Eval suite agentic faltante**: existe `backend/src/modules/copilot/evals/` con classifier+summarizer goldens (5 cat × 8 + 10 adversarial each = 100 ejemplos) pero NO eval runner orchestrator-level (scenarios end-to-end con persona simulated)
+- Goldens cubre classifier + summarizer scorers (ROUGE+cosine) — NO cubre tool trajectory ni voice fidelity
+- Personas `tenant-novato-tech` + `tenant-experto-saturado` declaradas pero NO consumidas
+- No regression suite con conversaciones largas (Lost-in-the-Middle mitigation per-turn anchor declared parcial)
+- RAG style anchors per tenant (slot 5) status=placeholder pendiente >=50 mensajes reales aprobados

@@ -1,0 +1,126 @@
+---
+id: assets-generate-copy-for-channel
+type: service-story
+module: assets
+capability: assets-copy-generation
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/assets.md"
+  capability: "../../capabilities/assets/assets-copy-generation.yaml"
+  domain_doc: "../../../domains/module_assets.md"
+  related_stories: []
+
+context:
+  job: "Como sistema necesito generar copies para un canal específico (Instagram, Meta Ads, video idea) tomando data brand + offer + voice para entregar variantes listas a publicar."
+  why: "Sin gen automática, el user redacta copies manualmente y el ritmo de publicación cae. Es el value-prop core del módulo assets."
+  constraints:
+    - "Tenant-scoped"
+    - "Voz: respeta tenant.brand_voice (PersonalityProfile.system_instruction)"
+    - "Spanish neutro O voz tenant según brand"
+    - "Latencia p95 < 8s (LLM)"
+    - "Cost <= budget_usd_per_call"
+
+outcome:
+  consumer_observable: "POST /api/v1/assets/generate-copy retorna 200 con N variantes."
+  product_observable:
+    - "DB: assets row insertado por cada variant generada (type='copy', channel)"
+    - "copilot_llm_call registra tokens + cost"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/assets/generate-copy
+  request_schema: "backend/src/modules/assets/api/router.py::GenerateCopyRequest"
+  response_schema: "backend/src/modules/assets/api/router.py::GenerateCopyResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "20/min"
+  idempotency: header
+  trigger: null
+
+scenarios:
+  - id: generate-instagram-caption
+    type: regression
+    given:
+      - "Tenant T1 con brand_voice configurada"
+      - "Offer id=42 con promise + psychology llenos"
+    when: "POST /api/v1/assets/generate-copy con {channel: 'instagram', offer_id: 42, variants: 3}"
+    then:
+      - "Status 200 con 3 captions"
+      - "DB: 3 rows en assets type='copy', channel='instagram'"
+      - "Voz reflejada en output (assertable por LLM grader)"
+      - "Cost log <= budget"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/assets/test_assets_service.py"
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM assets WHERE type = 'copy' AND tenant_id = ?"
+        expect: ">=3"
+
+  - id: invalid-channel
+    type: negative
+    when: "POST con channel='myspace' (no soportado)"
+    then:
+      - "Status 422 con detail listando canales soportados"
+      - "DB: assets sin nuevo row"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: rate-limit-burst
+    type: edge
+    given:
+      - "Tenant T1 con 20 llamadas en 1 min ya hechas"
+    when: "POST #21 en mismo minuto"
+    then:
+      - "Status 429 Too Many Requests"
+      - "DB: assets sin nuevo row"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: voice-fidelity-not-respected
+    type: adversarial
+    given:
+      - "Tenant T1 brand voice='formal, técnico'"
+    when: "Generación retorna copy en tono casual con emoji"
+    then:
+      - "Voice fidelity grader detecta drift y < threshold"
+      - "Sistema marca generation como suboptimal (no rechaza, pero loggea)"
+    graders:
+      - type: llm_rubric
+        rubric: null
+        assertions:
+          - "Output respeta voice profile declarado"
+        threshold: 0.75
+
+cross_module:
+  reads_from:
+    - brand
+    - offer
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - assets-copy-generation
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/assets/test_assets_service.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -1,0 +1,44 @@
+---
+id: scheduling-event-types
+name: "Event types — tipos de cita configurables"
+module: scheduling
+backbone_activity: "Configurar tipos de reunión"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/scheduling.md"
+  stories_dir: "../../stories/scheduling/"
+description: "Tenant configura event types (e.g., 'discovery-30min', 'demo-60min', 'follow-up-15min') vía API/admin. Cada event_type define duración, buffer pre/post, custom URL slug, custom questions form, integration con tenant_domain."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - scheduling-event-type-create
+  - scheduling-event-type-public-link
+copilot_operable: true
+date_introduced: 2026-03
+last_modified: 2026-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `api/event_types.py` — CRUD endpoints `/api/v1/scheduling/event-types`
+- `application/services/event_type_service.py` — domain logic
+- `application/booking_url.py` — public booking URL computation (custom domain + slug)
+- `domain/event_type_schema.py` — Pydantic schema duration/type/buffers/questions
+- `api/public_links.py` — public read endpoints (no auth) para booking page
+- `api/agenda.py` — tenant-facing agenda view (próximas citas)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| scheduling-event-type-create | service-story | live | ../../stories/scheduling/scheduling-event-type-create.yaml |
+| scheduling-event-type-public-link | service-story | live | ../../stories/scheduling/scheduling-event-type-public-link.yaml |
+
+## Gaps identificados
+
+- No FE feature scheduling/ — admin UI vive en Streamlit `/admin` panel solo
+- Copilot tool `create_event_type` parcial (mencionado en module doc) — no e2e regression
+- Conversational modify availability via copilot = gap declared en module doc

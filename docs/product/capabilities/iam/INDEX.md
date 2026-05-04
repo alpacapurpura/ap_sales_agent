@@ -17,4 +17,5 @@
 
 | ID | Name | Status | Stories live/planned |
 |----|------|--------|----------------------|
-| _(vacío)_ |
+| auth-tenant-resolution | Auth Clerk + resolución de tenant | live | 2 / 0 |
+| admin-billing-config | Configuración de planes + suscripciones tenant (admin) | live | 1 / 0 |

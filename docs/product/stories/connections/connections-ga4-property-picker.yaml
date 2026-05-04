@@ -1,0 +1,114 @@
+---
+id: connections-ga4-property-picker
+type: ui-story
+module: connections
+capability: connections-google-services
+status: in-progress
+slice: V1
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/connections.md"
+  capability: "../../capabilities/connections/connections-google-services.yaml"
+  domain_doc: "../../../domains/module_connections.md"
+  related_stories:
+    - connections-google-oauth-bundle
+
+context:
+  job: "Como tenant pickeo qué GA4 property usar (puedo tener N) → property_id stored → ETL analytics consume."
+  why: "ETL sin property_id seleccionado = no data. Tenants con multi-sites necesitan picker. BE done, FE PENDING per MEMORY.md (Tasks 5-8)."
+  constraints:
+    - "BE done — listar properties accesibles via GA4 API"
+    - "FE PENDING — UI dropdown picker + auto-save"
+    - "Soft-delete-aware (deleted_at)"
+
+outcome:
+  user_observable: "Tenant ve dropdown properties + selecciona uno → 'Guardado' toast"
+  product_observable:
+    - "DB: channel_connections.config.ga4_property_id updated"
+    - "Cross-module: analytics ETL consume property_id"
+
+scenarios:
+  - id: happy-pick-property-and-save
+    type: capability
+    given:
+      - "Tenant T1 con GA4 OAuth connected, 3 properties accesibles"
+    when: "User abre picker + selecciona property_id=P1"
+    then:
+      - "PATCH /api/v1/connections/google-analytics/property"
+      - "DB: channel_connections.config.ga4_property_id = P1"
+      - "Toast 'Guardado'"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT config FROM channel_connections WHERE tenant_id = ? AND provider = 'google_analytics'"
+        expect: "ga4_property_id == 'P1'"
+
+  - id: no-properties-accessible
+    type: negative
+    given:
+      - "Tenant GA4 connected pero account no tiene properties"
+    when: "User abre picker"
+    then:
+      - "UI muestra 'No tienes properties accesibles'"
+      - "Sugiere crear property en Google Analytics"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: scope-revoked
+    type: edge
+    given:
+      - "Tenant revoked Analytics scope"
+    when: "Picker tries to fetch properties"
+    then:
+      - "API retorna 403"
+      - "UI muestra 'reconectá Analytics' (LATAM neutro: 'reconecta')"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_ga4_data_client.py"
+
+  - id: cross-tenant-property-pick
+    type: adversarial
+    given:
+      - "Tenant T1 con header X-Tenant-ID=T2"
+    when: "PATCH"
+    then:
+      - "Clerk valida access → 403 si no autorizado T2"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_google_workspace_disconnect.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - analytics
+  emits_events:
+    - GA4PropertySelected
+  consumes_events: []
+
+dependencies:
+  stories:
+    - connections-google-oauth-bundle
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: "select_ga4_property"
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

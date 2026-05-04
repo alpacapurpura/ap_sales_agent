@@ -1,0 +1,49 @@
+---
+id: connections-google-services
+name: "Google services — Calendar + Gmail + Ads + GA4 OAuth"
+module: connections
+backbone_activity: "Conectar Google ecosystem"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/connections.md"
+  stories_dir: "../../stories/connections/"
+description: "Bundle OAuth Google: Calendar (scheduling), Gmail (send/receive), Google Ads (advertising), Google Analytics 4 (analytics ETL). Single OAuth flow con incremental scopes + property/account picker per servicio."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - connections-google-oauth-bundle
+  - connections-ga4-property-picker
+copilot_operable: true
+date_introduced: 2026-03
+last_modified: 2026-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- `infrastructure/channels/google_calendar.py` — Calendar adapter
+- `infrastructure/channels/gmail.py` — Gmail adapter
+- `infrastructure/channels/google_ads.py` — Ads adapter
+- `infrastructure/channels/google_analytics.py` — GA4 adapter
+- `api/google_workspace.py` — Workspace OAuth bundle
+- `api/google_analytics.py` — GA4 specific (property selection)
+- `api/calendar.py` — Calendar webhook + watch channel
+- `api/gmail.py` — Gmail send + reply tracking
+- Token refresh + incremental scopes
+- Property picker GA4 (BE done per active context, FE PENDING per MEMORY.md)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| connections-google-oauth-bundle | service-story | live | ../../stories/connections/connections-google-oauth-bundle.yaml |
+| connections-ga4-property-picker | ui-story | in-progress | ../../stories/connections/connections-ga4-property-picker.yaml |
+
+## Gaps identificados
+
+- **GA4 property picker FE PENDING** (MEMORY.md project_ga4_property_picker.md — Tasks 5-8 pendientes)
+- No consolidated view de Google services connected (split per servicio)
+- Disconnect cleanup: gmail disconnect ¿borra historial? UX ambiguo
+- Search Console adapter exists pero no surface UI documentada

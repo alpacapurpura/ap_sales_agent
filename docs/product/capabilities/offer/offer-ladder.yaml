@@ -1,0 +1,41 @@
+---
+id: offer-ladder
+name: "Offer Ladder visual"
+module: offer
+backbone_activity: "Estructurar oferta"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/offer.md"
+  stories_dir: "../../stories/offer/"
+description: "Vista visual del Offer Ladder (gratis → low → high ticket) por tipo de negocio. UI homologada 2026-04. Permite crear/editar/eliminar/reordenar ofertas en el ladder."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - offer-ladder-view
+  - offer-create-from-ladder
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Render del ladder visual con todas las ofertas del tenant agrupadas por value-level
+- CTAs contextual para crear oferta nueva en cada nivel del ladder
+- Sugerencias de oferta faltante en ladder (parcial — copilot operable)
+- Lead magnet flow integrado al ladder
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| offer-ladder-view | ui-story | live | ../../stories/offer/offer-ladder-view.yaml |
+| offer-create-from-ladder | ui-story | live | ../../stories/offer/offer-create-from-ladder.yaml |
+
+## Gaps identificados
+
+- E2E `offer-list.spec.ts` cubre listado pero no flujos completos del ladder
+- Copilot tool para sugerir oferta faltante existe parcial — sin eval suite

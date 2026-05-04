@@ -1,14 +1,19 @@
 # Stories — connections
 
 > SSoT atómico. 1 story = 1 archivo YAML.
-> Auto-populated by /po cuando crea/actualiza stories.
-> Schema: ../../specs/templates/story-{ui,agentic,service}.yaml.
 
 ## Stories activas
 
 | ID | Type | Status | Capability | Last audit |
 |----|------|--------|------------|------------|
-| _(vacío — populado por agents en P9 o /po cuando crea stories)_ |
+| connections-meta-oauth-flow | service-story | live | connections-meta-oauth | 2026-05-04 |
+| connections-meta-page-account-pick | ui-story | live | connections-meta-oauth | 2026-05-04 |
+| connections-manychat-webhook-receive | service-story | live | connections-manychat-integration | 2026-05-04 |
+| connections-manychat-send-content-api | service-story | live | connections-manychat-integration | 2026-05-04 |
+| connections-google-oauth-bundle | service-story | live | connections-google-services | 2026-05-04 |
+| connections-ga4-property-picker | ui-story | in-progress | connections-google-services | 2026-05-04 |
+| connections-status-list-ui | ui-story | live | connections-status-monitoring | 2026-05-04 |
+| connections-reconnect-flow | ui-story | live | connections-status-monitoring | 2026-05-04 |
 
 ## Cómo agregar story nueva
 

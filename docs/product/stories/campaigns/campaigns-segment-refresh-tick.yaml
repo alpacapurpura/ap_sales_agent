@@ -1,0 +1,115 @@
+---
+id: campaigns-segment-refresh-tick
+type: service-story
+module: campaigns
+capability: segment-targeting
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-5
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/segment-targeting.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories:
+    - campaigns-segment-create-and-resolve
+
+context:
+  job: "Como cron necesito refrescar STATIC segments linked a RUNNING campaigns para mantener audience actualizada cuando leads nuevos cumplen criterio"
+  why: "Sin refresh, lead nuevo que cumple filter no recibe campaña activa. Refresh garantiza audience-up-to-date durante run"
+  constraints:
+    - "Idempotente"
+    - "Solo procesa STATIC segments linked a RUNNING campaigns"
+    - "Best-effort por tenant (1 fail no aborta otros)"
+
+outcome:
+  consumer_observable: "Cada tick, leads que cumplen criterio se incorporan a campaña activa"
+  product_observable:
+    - "DB: nuevas CampaignTask rows para leads recién matching"
+    - "etl_run-like log entry"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "ARQ cron `run_segment_refresh_tick`"
+
+scenarios:
+  - id: happy-path-refresh-adds-new-leads
+    type: regression
+    given:
+      - "Campaign C1 RUNNING con segment S1 STATIC"
+      - "Lead L_new entró al CRM matching filter"
+    when: "Cron tick"
+    then:
+      - "DB: nueva CampaignTask para L_new"
+      - "Worker pickup eventualmente"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_segment_refresh_tick.py"
+
+  - id: no-running-campaigns
+    type: negative
+    given:
+      - "Tenant sin RUNNING campaigns"
+    when: "Tick"
+    then:
+      - "Skip silencioso"
+      - "Sin DB writes"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_segment_refresh_tick.py"
+
+  - id: dynamic-segment-skipped
+    type: edge
+    given:
+      - "Segment DYNAMIC type linked a campaign"
+    when: "Tick"
+    then:
+      - "Skip (solo STATIC procesa)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_segment_refresh_tick.py"
+
+  - id: cross-tenant-isolation
+    type: adversarial
+    when: "Race condition entre tenants paralelos"
+    then:
+      - "Cada tenant procesa con tenant_id correcto"
+      - "Ningún task se asigna a tenant_id incorrecto"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_segment_refresh_tick.py"
+
+cross_module:
+  reads_from:
+    - crm
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - campaigns-segment-create-and-resolve
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/campaigns/workers/test_segment_refresh_tick.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -56,3 +56,9 @@ _Ninguno aún tracked en pm-nico._
 
 ## Decisiones producto vinculadas
 _Pendiente._
+
+## Capabilities (auto-mapped 2026-05-04)
+
+- [landing-auto-generation](../capabilities/landing/landing-auto-generation.yaml) — live, 2 stories
+- [landing-publishing](../capabilities/landing/landing-publishing.yaml) — live, 2 stories
+- [landing-public-render](../capabilities/landing/landing-public-render.yaml) — live, 1 story

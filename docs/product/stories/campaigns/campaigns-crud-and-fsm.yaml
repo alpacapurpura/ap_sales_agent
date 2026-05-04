@@ -1,0 +1,136 @@
+---
+id: campaigns-crud-and-fsm
+type: service-story
+module: campaigns
+capability: campaign-fsm-lifecycle
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-3
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/campaign-fsm-lifecycle.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories:
+    - campaigns-launch-with-orchestrator
+
+context:
+  job: "Como user/sistema necesito crear/listar/actualizar/eliminar campañas + transicionar estados (launch/pause/complete/cancel) con validaciones FSM"
+  why: "Sin CRUD + FSM, no hay primitiva fundacional para outbound. FSM evita transiciones inválidas (e.g. launch desde completed)"
+  constraints:
+    - "Tenant-scoped"
+    - "FSM enforce: transiciones válidas only"
+    - "Soft-delete"
+    - "Idempotency-key opt-in"
+    - "Plan enforcement (402 si fuera de plan)"
+
+outcome:
+  consumer_observable: "9 endpoints REST funcionales en `/api/v1/campaigns/`. Estado y transiciones consistentes."
+  product_observable:
+    - "DB: `campaign` row + `campaign_step` rows en draft"
+    - "Audit log entry por transición"
+    - "Domain events emitidos (CampaignLaunched, CampaignPaused, etc)"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/campaigns/
+  request_schema: "backend/src/modules/campaigns/api/routers/campaigns_router.py"
+  response_schema: "backend/src/modules/campaigns/api/routers/campaigns_router.py"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "30/min"
+  idempotency: header
+  trigger: null
+
+scenarios:
+  - id: happy-path-create-and-launch-campaign
+    type: regression
+    given:
+      - "Tenant T1 con plan activo"
+      - "Segment S1 creado"
+    when: "POST /campaigns con payload {name, segment_id:S1, steps:[...]}"
+    then:
+      - "201 con CampaignDTO"
+      - "DB row state=draft + steps en orden"
+      - "Idempotent si idempotency-key se reusa"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_campaigns_api.py"
+      - type: state_check
+        target: db
+        query: "SELECT state FROM campaign WHERE id=:id AND tenant_id=:t"
+        expect: "draft"
+
+  - id: invalid-fsm-transition
+    type: negative
+    given:
+      - "Campaign C1 en state=completed"
+    when: "POST /campaigns/C1/launch"
+    then:
+      - "Status 409 Conflict con detail invalid_transition"
+      - "DB no se modifica"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/domain/test_campaign_fsm.py"
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_campaign_service.py"
+
+  - id: idempotent-create-same-key
+    type: edge
+    given:
+      - "POST /campaigns con idempotency-key=K1 (1ra vez crea C1)"
+    when: "POST /campaigns con misma idempotency-key=K1"
+    then:
+      - "200 con misma C1 (no nueva)"
+      - "DB no duplica"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_campaigns_api.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    given:
+      - "Campaign C1 de tenant T2"
+    when: "User T1 hace GET/PATCH/DELETE /campaigns/C1"
+    then:
+      - "404 (no leak existencia) o 403"
+      - "Audit log entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_campaigns_api.py"
+
+cross_module:
+  reads_from:
+    - crm
+    - offer
+    - brand
+  read_by:
+    - copilot
+    - sales_agent
+    - analytics
+  emits_events:
+    - campaign.launched
+    - campaign.paused
+    - campaign.completed
+    - campaign.cancelled
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/campaigns/api/test_campaigns_api.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

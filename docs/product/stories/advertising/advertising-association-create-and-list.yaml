@@ -1,0 +1,120 @@
+---
+id: advertising-association-create-and-list
+type: service-story
+module: advertising
+capability: ad-offer-association
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/advertising.md"
+  capability: "../../capabilities/advertising/ad-offer-association.yaml"
+  domain_doc: "../../../domains/module_advertising.md"
+  related_stories:
+    - advertising-association-auto-detect
+
+context:
+  job: "Como user en offer-studio quiero asociar manualmente ads/adsets/campañas a una oferta para atribuir performance correctamente"
+  why: "Sin asociación, ROAS por oferta no se puede calcular. User no sabe qué inversión generó qué"
+  constraints:
+    - "Tenant-scoped"
+    - "Idempotente (mismo target_type+external_id+offer = upsert)"
+    - "Soft-delete"
+
+outcome:
+  consumer_observable: "POST/DELETE/GET retornan AssociationDTO"
+  product_observable:
+    - "DB `ad_offer_association` row creada/actualizada"
+    - "Soft delete vía deleted_at"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/advertising/associations
+  request_schema: "backend/src/modules/advertising/application/dto/association_dto.py::AssociationCreateDTO"
+  response_schema: "backend/src/modules/advertising/application/dto/association_dto.py::AssociationDTO"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-path-create-association
+    type: regression
+    given:
+      - "Tenant T1 con oferta O1 y ad campaign C1"
+    when: "POST /associations con {target_type:CAMPAIGN, external_id:C1, offer_id:O1}"
+    then:
+      - "Status 201 con AssociationDTO"
+      - "DB row creada"
+      - "GET /associations retorna nueva entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_api_routes.py"
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM ad_offer_association WHERE tenant_id=:t AND offer_id=:o"
+        expect: ">=1"
+
+  - id: invalid-offer-id
+    type: negative
+    given:
+      - "Offer ID inexistente"
+    when: "POST /associations con offer_id inválido"
+    then:
+      - "Status 404 o 422"
+      - "DB no se modifica"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_api_routes.py"
+
+  - id: idempotent-double-create
+    type: edge
+    given:
+      - "Asociación T1+O1+C1 ya existe"
+    when: "POST mismo payload otra vez"
+    then:
+      - "Status 200 (existing) o 201 (idempotent upsert)"
+      - "DB no duplica row"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_association_repository.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 intenta crear asociación con tenant_id=T2 en header"
+    then:
+      - "403"
+      - "DB sin cambios"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/advertising/test_api_routes.py"
+
+cross_module:
+  reads_from:
+    - offer
+    - analytics
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/advertising/test_api_routes.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -8,7 +8,8 @@
 
 | ID | Type | Status | Capability | Last audit |
 |----|------|--------|------------|------------|
-| _(vacío — populado por agents en P9 o /po cuando crea stories)_ |
+| tenant-domains-add-and-verify | ui-story | live | custom-domains | 2026-05-04 |
+| tenant-domains-worker-poll | service-story | live | custom-domains | 2026-05-04 |
 
 ## Cómo agregar story nueva
 

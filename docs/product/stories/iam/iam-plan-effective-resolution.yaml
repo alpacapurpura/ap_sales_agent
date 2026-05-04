@@ -1,0 +1,130 @@
+---
+id: iam-plan-effective-resolution
+type: service-story
+module: iam
+capability: admin-billing-config
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04-29
+pr_introduced: PR-2
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/iam.md"
+  capability: "../../capabilities/iam/admin-billing-config.yaml"
+  domain_doc: "../../../domains/module_iam.md"
+  related_stories: []
+
+context:
+  job: "Como módulo consumidor (sales_agent, copilot, campaigns, ...) necesito conocer el plan efectivo del tenant (base plan + custom_overrides) para aplicar BudgetGuard y RateLimiter"
+  why: "Sin plan resolution centralizado cada módulo replicaría merge logic con riesgo de divergencia. Si falla, BudgetGuard no funciona y costos se desbordan. Cache cross-instance vía Redis pub/sub evita race conditions multi-pod."
+  constraints:
+    - "Tenant-scoped"
+    - "Cache 5min in-process + Redis pub/sub invalidation cross-instance"
+    - "Invariante: siempre debe existir 1 plan con is_default=TRUE (`BillingDefaultPlanMissingError` fail-fast si no)"
+    - "Idempotente (read-only)"
+    - "Latencia p95 < 50ms (cache hit) / < 200ms (cache miss)"
+
+outcome:
+  consumer_observable: "Módulo consumidor recibe `EffectivePlan{llm_budget_total_usd, max_outbound_msg_per_day, ...}` con overrides aplicados sobre base plan"
+  product_observable:
+    - "DB: SELECT join `plan_config` + `tenant_subscriptions` + merge JSONB overrides"
+    - "Cache hit: no DB query (TTL 5min)"
+    - "Redis pub/sub: invalidación al cambiar plan o suscripción tenant"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: "internal — PlanService.get_effective(tenant_id) (no HTTP route público)"
+  request_schema: "tenant_id: UUID"
+  response_schema: "EffectivePlan (Pydantic v2)"
+  auth: internal
+  rate_limit_per_tenant: "n/a (internal)"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-default-plan
+    type: regression
+    given:
+      - "Tenant T1 con suscripción a plan 'basic' (llm_budget=$15)"
+      - "Sin custom_overrides"
+    when: "PlanService.get_effective(T1)"
+    then:
+      - "Returns EffectivePlan con llm_budget_total_usd=15.0"
+      - "Cache populated por 5min"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_settings.py"
+      - type: state_check
+        target: db
+        query: "SELECT name, llm_budget FROM plan_config WHERE id = (SELECT plan_id FROM tenant_subscriptions WHERE tenant_id = ?)"
+        expect: "name='basic' AND llm_budget=15.0"
+
+  - id: custom-override-merge
+    type: regression
+    given:
+      - "Tenant T2 con plan='basic' + custom_overrides={'llm_budget_total_usd': 50}"
+    when: "PlanService.get_effective(T2)"
+    then:
+      - "Returns EffectivePlan con llm_budget_total_usd=50.0 (override gana sobre base $15)"
+      - "Otros campos plan no overrideados mantienen valor base"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_settings.py"
+
+  - id: missing-default-plan-fail-fast
+    type: regression
+    given:
+      - "DB en estado anómalo: ningún plan_config con is_default=TRUE"
+    when: "PlanService.get_effective(T_any) cuando tenant no tiene suscripción explícita"
+    then:
+      - "Raises BillingDefaultPlanMissingError"
+      - "No fallback silencioso a $0 budget (que abriría puerta a costos sin guard)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_settings.py"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "Tenant T1 con override 'llm_budget_total_usd=999' (premium)"
+      - "Tenant T2 sin override"
+    when: "PlanService.get_effective(T2) en mismo proceso tras consultar T1"
+    then:
+      - "Returns EffectivePlan T2 con valor base de plan, no $999 de T1"
+      - "Cache key incluye tenant_id (no leak entre tenants en cache)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_settings.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - copilot
+    - campaigns
+    - shared.billing
+  emits_events:
+    - plan_effective_invalidated
+  consumes_events:
+    - plan_config_changed
+    - tenant_subscription_changed
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: 5
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/iam/test_settings.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

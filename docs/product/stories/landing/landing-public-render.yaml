@@ -1,0 +1,141 @@
+---
+id: landing-public-render
+type: service-story
+module: landing
+capability: landing-public-render
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/landing.md"
+  capability: "../../capabilities/landing/landing-public-render.yaml"
+  domain_doc: "../../../domains/module_landing.md"
+  related_stories:
+    - landing-publish
+
+context:
+  job: "Como visitante anónimo quiero abrir una URL pública de landing y ver el contenido renderizado, con CTA funcional para dejar mi email."
+  why: "Es el endpoint comercial-crítico. Sin render público, no hay leads."
+  constraints:
+    - "Sin auth (público)"
+    - "Tokenizer aplica vars {{offer.name}}, {{tenant.name}}"
+    - "XSS protection en tokenizer"
+    - "Rate limit per IP"
+    - "Latencia p95 < 200ms server-side"
+
+outcome:
+  consumer_observable: "GET URL pública retorna HTML 200 con contenido renderizado."
+  product_observable:
+    - "Si visit tracking activo: row en landing_visits con IP/user-agent"
+    - "Si lead form submit: row en crm_leads"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/public/landings/{slug}
+  request_schema: null
+  response_schema: "backend/src/modules/landing/api/public_landing.py::PublicLandingResponse"
+  auth: none
+  rate_limit_per_tenant: null
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: render-published-landing
+    type: regression
+    given:
+      - "Tenant T1 con landing published, slug='curso-q2'"
+    when: "Visitante anónimo GET https://academia.lat/curso-q2"
+    then:
+      - "Status 200 con HTML"
+      - "Tokens reemplazados ({{offer.name}} → 'Curso Q2')"
+      - "CTA form visible"
+      - "Latencia p95 < 200ms"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/landing/test_public_edition_api.py"
+      - type: e2e
+        path: "frontend/e2e/specs/public/landing.public.spec.ts"
+
+  - id: render-unpublished-landing
+    type: negative
+    given:
+      - "Tenant T1 con landing draft (no published)"
+    when: "Visitante GET URL pública"
+    then:
+      - "Status 404 Not Found"
+      - "Sin información sensible en response"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: xss-via-token-injection
+    type: edge
+    given:
+      - "Section content contiene '<script>alert(1)</script>'"
+    when: "Render público de la landing"
+    then:
+      - "HTML output escapa el script"
+      - "Browser NO ejecuta JS injectado"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/public/landing.public.spec.ts"
+
+  - id: high-traffic-burst
+    type: edge
+    given:
+      - "Landing publicada"
+    when: "1000 GETs/min sostenido"
+    then:
+      - "Latencia p95 se mantiene < 500ms (dentro de SLA)"
+      - "No 5xx errors"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-slug-collision
+    type: adversarial
+    given:
+      - "Tenant T1 y T2 ambos con slug='gratis'"
+      - "Cada uno bajo distinto custom domain"
+    when: "GET https://academia-t1.lat/gratis Y https://academia-t2.lat/gratis"
+    then:
+      - "Cada URL sirve la landing del tenant correspondiente"
+      - "No leak cross-tenant"
+    graders:
+      - type: state_check
+        target: api
+        query: "GET con domain de cada tenant"
+        expect: "respuestas distintas, contenido tenant-specific"
+
+cross_module:
+  reads_from:
+    - tenant_domains
+    - offer
+    - brand
+  read_by:
+    - crm
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - landing-publish
+  capabilities:
+    - landing-public-render
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/landing/test_public_edition_api.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

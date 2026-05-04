@@ -1,0 +1,46 @@
+---
+id: segment-targeting
+name: "Segment targeting + filter DSL + snapshots"
+module: campaigns
+backbone_activity: "Definir audiencia outbound"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/campaigns.md"
+  stories_dir: "../../stories/campaigns/"
+description: "Segment + SegmentFilter v1 strict (Pydantic extra=forbid) + SegmentSnapshot opt-in. SegmentFilterEvaluator hace SQL-side filtering via LeadQueryPort (SQLA BinaryExpression por criterio). Cron `run_segment_refresh_tick` refresca STATIC segments de RUNNING campaigns."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - campaigns-segment-create-and-resolve
+  - campaigns-segment-refresh-tick
+copilot_operable: false
+date_introduced: 2026-04
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Segment domain + SegmentFilter strict DSL
+- 7 endpoints REST `/api/v1/segments/` (CRUD + resolve + snapshot)
+- SegmentService.resolve() SQL-filtered
+- SegmentService.snapshot() materialización
+- SegmentFilterEvaluator (BinaryExpression composer, no cross-module crm)
+- Worker `run_segment_refresh_tick` ARQ cron — refresca STATIC segments
+- Domain Filter strict mode (extra=forbid bloquea fields mistyped)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| campaigns-segment-create-and-resolve | service-story | live | ../../stories/campaigns/campaigns-segment-create-and-resolve.yaml |
+| campaigns-segment-refresh-tick | service-story | live | ../../stories/campaigns/campaigns-segment-refresh-tick.yaml |
+
+## Gaps identificados
+
+- Solo segments STATIC tienen worker refresh — no DYNAMIC segments aún (PI-2)
+- DSL filter v1 es minimal — no soporta OR compuestos ni negación profunda
+- `segment_create` NL via copilot PENDIENTE (PI-2)
+- E2E regression `segment-create-and-launch-campaign.spec.ts` existe pero rota frecuentemente (auth flow)

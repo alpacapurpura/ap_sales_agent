@@ -1,0 +1,119 @@
+---
+id: landing-section-edit
+type: ui-story
+module: landing
+capability: landing-auto-generation
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/landing.md"
+  capability: "../../capabilities/landing/landing-auto-generation.yaml"
+  domain_doc: "../../../domains/module_landing.md"
+  related_stories:
+    - landing-create-from-offer
+
+context:
+  job: "Como user quiero editar el copy de cada sección de la landing (hero, beneficios, FAQ) para personalizar el mensaje sin tocar la oferta."
+  why: "El copy default del template es genérico. Customizar es lo que diferencia una landing convertidora."
+  constraints:
+    - "Tenant-scoped"
+    - "Auto-save on change"
+    - "Tokenizer respeta vars {{offer.name}}, {{tenant.name}}, etc."
+    - "Spanish neutro LatAm"
+
+outcome:
+  user_observable: "Tras editar copy de sección hero, persist sin click; preview muestra cambio en <1s."
+  product_observable:
+    - "DB: landing_sections.content actualizado"
+    - "Domain event LandingSectionUpdated emitido"
+
+scenarios:
+  - id: edit-hero-headline
+    type: regression
+    given:
+      - "Tenant T1 con landing en draft, sección hero auto-generada"
+    when: "Usuario edita hero.headline a 'Convertí más con tu primera campaña en 7 días' y desenfoca"
+    then:
+      - "PATCH /api/v1/landings/{id}/sections/hero retorna 200"
+      - "DB: landing_sections.content.headline actualizado"
+      - "Preview muestra nuevo headline <1s"
+    graders:
+      - type: e2e
+        path: null
+      - type: state_check
+        target: db
+        query: "SELECT content FROM landing_sections WHERE landing_id = ? AND section_id = 'hero'"
+        expect: "content.headline contiene texto esperado"
+
+  - id: invalid-token-syntax
+    type: negative
+    when: "Usuario escribe '{{offer.}}' (token incompleto)"
+    then:
+      - "Validación 422 'Token incompleto'"
+      - "Toast con mensaje claro"
+      - "DB: landing_sections sin cambios"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/landing/test_landing_tokenizer.py"
+
+  - id: edit-while-published
+    type: edge
+    given:
+      - "Landing publicada (state='published')"
+    when: "Usuario edita sección hero"
+    then:
+      - "Cambio persiste a draft separado O a live según política"
+      - "Preview muestra versión draft"
+      - "Visitantes externos ven versión live (sin race)"
+    graders:
+      - type: e2e
+        path: null
+
+  - id: cross-tenant-section-edit
+    type: adversarial
+    given:
+      - "Tenant T2 con landing id=88"
+    when: "Usuario A (T1) PATCH /api/v1/landings/88/sections/hero con X-Tenant-ID=T1"
+    then:
+      - "404 Not Found"
+      - "DB: landing 88 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "PATCH cross-tenant"
+        expect: "404"
+
+cross_module:
+  reads_from:
+    - offer
+    - brand
+  read_by: []
+  emits_events:
+    - LandingSectionUpdated
+  consumes_events: []
+
+dependencies:
+  stories:
+    - landing-create-from-offer
+  capabilities:
+    - landing-auto-generation
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: true
+  copilot_tool_name: propose_field_updates
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: false
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

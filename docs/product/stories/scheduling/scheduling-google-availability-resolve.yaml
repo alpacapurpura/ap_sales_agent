@@ -1,0 +1,128 @@
+---
+id: scheduling-google-availability-resolve
+type: service-story
+module: scheduling
+capability: scheduling-google-calendar-sync
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/scheduling.md"
+  capability: "../../capabilities/scheduling/scheduling-google-calendar-sync.yaml"
+  domain_doc: "../../../domains/module_scheduling.md"
+  related_stories:
+    - scheduling-event-type-public-link
+
+context:
+  job: "Como sales_agent / booking-page necesito resolver slots disponibles dado event_type + tenant timezone + duration + buffers, consultando Google Calendar real (no mock)."
+  why: "Slots inventados = bookings rotos. Debe respetar working_hours config + blackout dates + Google calendar busy real."
+  constraints:
+    - "Tenant-scoped (X-Tenant-ID required)"
+    - "Latencia p95 < 500ms"
+    - "Cache 60s slots (avoid re-query Google si no cambió)"
+    - "Timezone resolution via TenantLocale (no hardcoded UTC)"
+
+outcome:
+  consumer_observable: "Caller (sales_agent o booking page) recibe array de slot starts disponibles próximos N días"
+  product_observable:
+    - "DB hit: tenant_locale + scheduling_event_type + scheduling_availability"
+    - "Google Calendar API: 1 freebusy call (rate-limited)"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/scheduling/availability
+  request_schema: "scheduling/api/dto.py::AvailabilityRequest"
+  response_schema: "scheduling/api/dto.py::AvailabilityResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-7-days-slots
+    type: regression
+    given:
+      - "tenant T1 timezone='America/Lima', event_type 'discovery-30min', working_hours 9-18 mon-fri"
+      - "Google Calendar T1 busy: tomorrow 10-12 + day-3 14-16"
+    when: "GET /availability?event_type=discovery-30min&days=7"
+    then:
+      - "Status 200"
+      - "Response slots[] excluye busy ranges"
+      - "Slots en timezone tenant (Lima)"
+      - "Slot duration = event_type.duration"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_availability_service.py"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/scheduling/availability"
+        expect: "200 con slots tenant-tz"
+
+  - id: invalid-event-type
+    type: negative
+    given:
+      - "tenant T1, event_type='non-existent'"
+    when: "GET /availability"
+    then:
+      - "Status 404"
+      - "Detail: 'event_type not found'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_availability_service.py"
+
+  - id: google-calendar-down
+    type: edge
+    given:
+      - "Google Calendar API returns 503"
+    when: "GET /availability"
+    then:
+      - "Service catches, retries 1x"
+      - "Si segundo falla → fallback a cached availability (last good snapshot)"
+      - "structlog warning emitted"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_availability_service_extended.py"
+
+  - id: cross-tenant-availability-leak
+    type: adversarial
+    given:
+      - "tenant T1 query"
+    when: "Header X-Tenant-ID=T2 (spoofed)"
+    then:
+      - "Service tenant-scoped query returns 403 o data del header válido"
+      - "NO leak T1 availability"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_appointment_isolation.py"
+
+cross_module:
+  reads_from:
+    - connections
+    - tenant_domains
+  read_by:
+    - sales_agent
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - connections-google-services
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/scheduling/test_availability_service.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -1,0 +1,44 @@
+---
+id: sales-outbound-orchestrator
+name: "OutboundOrchestrator — campaign launches outbound"
+module: sales-agent
+backbone_activity: "Campañas outbound a leads"
+last_audit: 2026-05-04
+status: live
+slice: V1
+links:
+  module_doc: "../../modules/sales-agent.md"
+  stories_dir: "../../stories/sales-agent/"
+description: "Static class paralelo a ChatOrchestrator. Emite primera mensaje outbound a lead vía Manychat/email con campaign_instructions. Reusa ConversationPipeline + agent_app LangGraph + slot system v2. Slot 7 CAMPAIGN_CONTEXT solo cuando outbound_mode=True. Supervisor skip-qualifier si lead_score >= 40."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - sales-outbound-campaign-launch
+copilot_operable: false
+date_introduced: 2026-04-30
+last_modified: 2026-04-30
+---
+
+## Capabilities cubiertas por este grupo
+
+- `OutboundOrchestrator.send_outbound(*, db, tenant_id, lead_id, campaign_id, campaign_instructions, channel_type, channel_adapter, budget_guard)` único entrypoint async
+- AgentState additive: `campaign_id` / `campaign_instructions` / `outbound_mode` con defaults `None / None / False` — inbound chat path NO se rompe (arch test `test_campaign_state_additive.py` enforce)
+- Slot 7 `CAMPAIGN_CONTEXT` emitted ONLY cuando `outbound_mode=True`. Cache prefix slots 1-6 byte-equal preservando hit rate ≥60%
+- Supervisor skip-qualifier (`outbound_mode=True` + `lead_score >= 40` → directo a closer) — invariante 1000 clientes (NO per-tenant tunable)
+- `SALES_AGENT_OUTBOUND_CLOSER_MIN_SCORE` env follow-up adjustment si telemetry false positives
+- ComplianceService + OutboundRateLimiter pre-send gates obligatorios
+- `SALES_AGENT_VOICE_FIDELITY_THRESHOLD` env default 0.7 (Decision 30 — global invariant)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| sales-outbound-campaign-launch | agentic-story | live | ../../stories/sales-agent/sales-outbound-campaign-launch.yaml |
+
+## Gaps identificados
+
+- **No eval suite outbound**: voice fidelity threshold 0.7 declared pero NO runs reales midiéndose. Solo arch tests no-breaking + state additive
+- ComplianceService bypass: si test no cubre escenario "tenant outside opt-in window" → outbound podría enviarse violando WABA24h
+- Supervisor skip-qualifier edge: `lead_score=39` vs `lead_score=40` boundary no testeado con persona simulada
+- E2E smoke: `frontend/e2e/specs/regression/sales/campaign-launch-telegram.spec.ts` cubre launch FE-side pero NO valida output agente respecting brand voice

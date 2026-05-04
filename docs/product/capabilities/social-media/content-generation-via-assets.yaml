@@ -1,0 +1,40 @@
+---
+id: content-generation-via-assets
+name: "Generación contenido social vía assets + content-hunter"
+module: social-media
+backbone_activity: "Crear contenido para social orgánico"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/social-media.md"
+  stories_dir: "../../stories/social-media/"
+description: "Generación de contenido social (copies, ideas videos/reels, flyers, captions) implementada vía módulo `assets` + skill `content-hunter`. Usa brand voice + offer data como input. NO existe módulo dedicado — capability cross-module."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - social-media-content-generation-via-skill
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Skill `content-hunter` genera ideas/hooks/captions con base brand+offer
+- Módulo `assets` persiste assets generados (copies, flyers)
+- Integración brand voice + offer data en prompts LLM
+- Calendario de contenido (planning, no scheduling automático)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| social-media-content-generation-via-skill | agentic-story | live | ../../stories/social-media/social-media-content-generation-via-skill.yaml |
+
+## Gaps identificados
+
+- No hay scheduler automático para publicar (gap mayor — programar posteo conversacionalmente)
+- No hay moderación auto de comentarios (gap reconocido)
+- Skill content-hunter no tiene eval suite dedicada (no rubrics, no personas de prueba)

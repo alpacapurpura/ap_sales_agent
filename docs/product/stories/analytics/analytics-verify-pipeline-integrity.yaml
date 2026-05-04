@@ -1,0 +1,115 @@
+---
+id: analytics-verify-pipeline-integrity
+type: service-story
+module: analytics
+capability: verification-layer
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/verification-layer.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-verify-source-probe
+
+context:
+  job: "Como dev/QA necesito verificar que DB rows == DTO serializado tras llamar endpoint, para detectar bugs de pipeline (mapper/aggregations)"
+  why: "Layer 2 catches bugs entre DB y user. Sin esto, un mapper roto pasa silencioso"
+  constraints:
+    - "Idempotente"
+    - "Read-only"
+    - "Tenant-scoped"
+
+outcome:
+  consumer_observable: "`make verify-pipeline` retorna report comparando DB query manual vs DTO endpoint response"
+  product_observable:
+    - "Report con métricas que difieren"
+    - "Exit code 1 si pipeline drift"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "make verify-pipeline | manual"
+
+scenarios:
+  - id: happy-path-pipeline-match
+    type: regression
+    given:
+      - "DB rows válidas existing tenant"
+      - "Endpoint /metrics/attraction implementado"
+    when: "make verify-pipeline tenant_id=T1 stage=attraction"
+    then:
+      - "Report all match"
+      - "Exit 0"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_period_pipeline.py"
+
+  - id: pipeline-drift-detected
+    type: negative
+    given:
+      - "Mapper en stage_service tiene bug en aggregation"
+    when: "Pipeline verify"
+    then:
+      - "Report con campo X (db=A, dto=B)"
+      - "Exit 1"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_period_pipeline.py"
+
+  - id: stage-without-data
+    type: edge
+    given:
+      - "Tenant sin datos para stage target"
+    when: "make verify-pipeline stage=evangelization"
+    then:
+      - "Report 'empty stage' (no error)"
+      - "Exit 0"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_period_pipeline.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "Pipeline lee rows de tenant ajeno"
+    then:
+      - "Filter tenant_id estricto"
+      - "Probe falla si detecta cross-tenant"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_period_pipeline.py"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_period_pipeline.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

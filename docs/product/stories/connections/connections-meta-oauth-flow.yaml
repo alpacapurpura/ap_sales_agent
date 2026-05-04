@@ -1,0 +1,131 @@
+---
+id: connections-meta-oauth-flow
+type: service-story
+module: connections
+capability: connections-meta-oauth
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/connections.md"
+  capability: "../../capabilities/connections/connections-meta-oauth.yaml"
+  domain_doc: "../../../domains/module_connections.md"
+  related_stories:
+    - connections-meta-page-account-pick
+
+context:
+  job: "Como tenant inicio OAuth Meta → autorizo en Facebook → callback recibe code → Nicolify exchanges por long-lived token (60d) → almacena hashed."
+  why: "Sin Meta connected, ni IG DM (sales_agent) ni FB Ads (advertising) ni page posts (social_media). Connection #1 priority."
+  constraints:
+    - "Token hashed at rest (no plaintext)"
+    - "Tenant-scoped (X-Tenant-ID)"
+    - "Idempotent: reconnect mismo tenant updates row, no crea duplicate"
+    - "Scopes incremental: pages, ads, IG explicit per UX choice"
+
+outcome:
+  consumer_observable: "Tenant ve 'Meta conectado ✓' en /connections + lista pages disponibles"
+  product_observable:
+    - "DB: channel_connections row provider='meta' status='active' tenant_id"
+    - "Long-lived token stored hashed"
+    - "Domain event MetaConnected emitted"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/connections/meta/callback
+  request_schema: null
+  response_schema: "connections/api/dto.py::MetaCallbackResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "10/hour"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-oauth-token-exchange
+    type: regression
+    given:
+      - "tenant T1 inicia OAuth, recibe ?code=AUTH_CODE"
+    when: "GET /callback?code=AUTH_CODE&state=..."
+    then:
+      - "BE exchanges code por short-lived token"
+      - "BE upgrades short-lived → long-lived (60d)"
+      - "Token stored hashed en channel_connections"
+      - "Status=active"
+      - "Redirect a /connections success page"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_meta_api_routes.py"
+      - type: state_check
+        target: db
+        query: "SELECT status FROM channel_connections WHERE tenant_id = ? AND provider = 'meta'"
+        expect: "active"
+
+  - id: invalid-state-csrf
+    type: negative
+    given:
+      - "Attacker forgea callback con bad state param"
+    when: "GET /callback con state inválido"
+    then:
+      - "Status 400 Bad Request"
+      - "Detail: 'state mismatch'"
+      - "DB: no se crea row"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_meta_api_routes.py"
+
+  - id: token-exchange-fails
+    type: edge
+    given:
+      - "Meta returns 400 token exchange (revoked code)"
+    when: "GET /callback"
+    then:
+      - "BE catches"
+      - "Detail: 'oauth flow failed, please retry'"
+      - "structlog warning"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_meta_adapter.py"
+
+  - id: cross-tenant-token-leak
+    type: adversarial
+    given:
+      - "tenant T1 y T2 simultaneous oauth"
+    when: "T2 callback con T1 state spoofed"
+    then:
+      - "State validation rejects"
+      - "Token NO se asocia a tenant incorrecto"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/connections/test_meta_tenant_isolation.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - advertising
+    - social_media
+    - analytics
+  emits_events:
+    - MetaConnected
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/connections/test_meta_api_routes.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

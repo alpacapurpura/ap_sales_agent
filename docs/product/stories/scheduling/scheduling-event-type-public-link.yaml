@@ -1,0 +1,115 @@
+---
+id: scheduling-event-type-public-link
+type: service-story
+module: scheduling
+capability: scheduling-event-types
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/scheduling.md"
+  capability: "../../capabilities/scheduling/scheduling-event-types.yaml"
+  domain_doc: "../../../domains/module_scheduling.md"
+  related_stories:
+    - scheduling-event-type-create
+    - scheduling-public-book-confirm-ics
+
+context:
+  job: "Como sistema necesito exponer event_type a public endpoint sin auth, retornando descripción + duration + custom_questions[] para booking page render."
+  why: "Lead llega sin auth (no Clerk). Endpoint debe ser tenant-scoped por slug + custom_domain."
+  constraints:
+    - "Sin auth (rate-limited per IP)"
+    - "Resolución tenant via subdomain o custom_domain header"
+    - "Solo retorna data pública (NO lead emails ni other PII tenant)"
+
+outcome:
+  consumer_observable: "Booking page recibe shape `{name, duration, description, custom_questions[]}`"
+  product_observable:
+    - "Rate limit per IP enforced"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/scheduling/public/event-types/{slug}
+  request_schema: null
+  response_schema: "scheduling/api/dto.py::PublicEventTypeResponse"
+  auth: none
+  rate_limit_per_tenant: null
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-public-fetch
+    type: regression
+    given:
+      - "tenant T1 con event_type 'discovery-30min' published"
+    when: "GET /public/event-types/discovery-30min con Host header T1.nicolify.com"
+    then:
+      - "Status 200"
+      - "Response shape sanitized (sin tenant internal fields)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_public_links_api.py"
+
+  - id: not-found-soft-deleted
+    type: negative
+    given:
+      - "event_type 'discovery-30min' soft-deleted"
+    when: "GET /public/event-types/discovery-30min"
+    then:
+      - "Status 404 (no leak existence soft-deleted)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_public_links_api.py"
+
+  - id: rate-limit-per-ip
+    type: edge
+    given:
+      - "Same IP > 100 req/min"
+    when: "GET multiple times"
+    then:
+      - "Status 429 Too Many Requests"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_public_links_api.py"
+
+  - id: cross-tenant-slug-spoof
+    type: adversarial
+    given:
+      - "Attacker GET /public/event-types/T2-slug con Host T1"
+    when: "Endpoint resolves"
+    then:
+      - "Slug not found en T1 → 404"
+      - "NO se sirve T2 data"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/scheduling/test_public_links_api.py"
+
+cross_module:
+  reads_from:
+    - tenant_domains
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - scheduling-event-type-create
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/scheduling/test_public_links_api.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

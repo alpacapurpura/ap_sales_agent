@@ -8,7 +8,9 @@
 
 | ID | Type | Status | Capability | Last audit |
 |----|------|--------|------------|------------|
-| _(vacío — populado por agents en P9 o /po cuando crea stories)_ |
+| iam-clerk-webhook-sync | service-story | live | auth-tenant-resolution | 2026-05-04 |
+| iam-current-user-tenant-resolution | service-story | live | auth-tenant-resolution | 2026-05-04 |
+| iam-plan-effective-resolution | service-story | live | admin-billing-config | 2026-05-04 |
 
 ## Cómo agregar story nueva
 

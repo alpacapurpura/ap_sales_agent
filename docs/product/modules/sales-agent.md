@@ -8,6 +8,10 @@ links:
   domain_doc: "../../domains/module_sales-agent.md"
   legacy_pm_nico: "../../pm-nico/current-state/sales-agent.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
+capability_registry_status: bootstrapped-2026-05-04
+capabilities_count: 5
+stories_count: 10
+agentic_eval_suite_path: null                   # GAP: no agentic_evals/sales_agent/ — flagged CRÍTICO en gap-report-2026-05-04-group-c
 ---
 
 # sales_agent — Estado funcional

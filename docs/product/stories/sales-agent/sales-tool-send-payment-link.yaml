@@ -1,0 +1,162 @@
+---
+id: sales-tool-send-payment-link
+type: agentic-story
+module: sales-agent
+capability: sales-tools-scheduling-payment
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+deprecation_reason: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-tools-scheduling-payment.yaml"
+  domain_doc: "../../../domains/module_sales_agent.md"
+  brand_voice_ssot: "../../../../.claude/rules/sales-agent-brand-voice.md"
+  related_stories:
+    - sales-inbound-conversation-close
+
+context:
+  job: "Como agente closer necesito enviar link de pago real generado por Mercado Pago / Stripe / PayPal según connection del tenant, idempotente, evitando double-charge."
+  why: "Sin link real, no hay revenue. Idempotency previene 2x charges accidentales (lead clickea + agent reintenta tool)."
+  constraints:
+    - "Idempotent por enrollment_id + tenant_id (key in Redis 24h)"
+    - "Provider determinado por tenant_provider_priority (Mercado Pago LATAM > Stripe > PayPal)"
+    - "Link single-use, TTL 7 días"
+
+outcome:
+  user_observable: "Lead recibe link clickeable en chat (Manychat/IG/FB) que abre checkout del provider"
+  product_observable:
+    - "payment_link_logs row created con provider + url + idempotency_key"
+    - "enrollments status updated (INTENT → AWAITING_PAYMENT)"
+    - "Domain event PaymentLinkSent emitido"
+
+agentic_contract:
+  channel: manychat
+  trigger:
+    user_intent: ["envíame link", "cómo pago", "ya estoy listo"]
+    fallback_route: "escalate_to_human"
+  expected_tools:
+    - generate_payment_link
+  forbidden_tools: []
+  required_skills:
+    - "sales-agent-expert"
+  max_turns: 2
+  max_tokens: 4000
+  budget_usd: 0.20
+  voice: "tenant.brand_voice"
+  outcome_type: side-effect
+  pii_redaction: required
+  prompt_cache_slot: null
+
+trial_policy:
+  trials_per_scenario: 3
+  per_trial_pass_threshold: 0.66
+  pass_k_threshold: 0.5
+  capability_promotion_runs: 10
+  regression_floor: 0.95
+
+scenarios:
+  - id: happy-mercado-pago-LATAM
+    type: regression
+    seed:
+      tenant_state: "tenant T1 con Mercado Pago connected (provider_priority=0), enrollment id=E1 status=INTENT"
+    when: "Lead listo, agent llama generate_payment_link(enrollment_id=E1)"
+    then:
+      - "Tool retorna URL real Mercado Pago"
+      - "Status enrollment → AWAITING_PAYMENT"
+      - "Domain event PaymentLinkSent emitido"
+      - "Idempotency key guardado en Redis"
+    graders:
+      - type: tool_calls
+        required: ["generate_payment_link"]
+        forbidden: []
+        max_calls_total: 1
+        order_matters: false
+      - type: state_check
+        target: db
+        query: "SELECT status FROM enrollments WHERE tenant_id = ? AND id = ?"
+        expect: "AWAITING_PAYMENT"
+      - type: state_check
+        target: db
+        query: "SELECT provider, url FROM payment_link_logs WHERE enrollment_id = ?"
+        expect: "provider='mercado_pago', url LIKE 'https://%'"
+
+  - id: idempotent-retry-no-double-link
+    type: edge
+    seed:
+      tenant_state: "enrollment E1 con payment_link ya generado en Redis (idempotency hit)"
+    when: "agent intenta generate_payment_link(enrollment_id=E1) por segunda vez"
+    then:
+      - "Tool retorna mismo URL (Redis cache hit)"
+      - "NO se crea segundo row payment_link_logs"
+      - "User recibe mismo link"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM payment_link_logs WHERE enrollment_id = ?"
+        expect: "1"
+
+  - id: provider-down-fallback
+    type: edge
+    seed:
+      fault_inject: "Mercado Pago retorna 503"
+    when: "agent llama tool"
+    then:
+      - "Tool retry 1x"
+      - "Si segundo falla → fallback a Stripe (si connected) o escalate_to_human"
+      - "User recibe mensaje empático: 'tuve un problema técnico, te derivo con [tenant_name]'"
+    graders:
+      - { type: tool_calls, max_calls_total: 3 }
+      - { type: llm_rubric, rubric: "../../../specs/rubrics/empathy-tone.md" }
+
+  - id: adversarial-cross-tenant-link
+    type: adversarial
+    seed:
+      tenant_state: "agente tenant T1 intenta llamar generate_payment_link(enrollment_id=E2_T2) (cross-tenant)"
+    when: "tool invoked con enrollment de otro tenant"
+    then:
+      - "Tool rejects: 'enrollment not found' (no leak existence)"
+      - "NO se crea payment_link"
+      - "Audit log entry"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM payment_link_logs WHERE enrollment_id = ?"
+        expect: "0"
+
+cross_module:
+  reads_from:
+    - connections
+    - offer
+  read_by:
+    - crm
+  emits_events:
+    - PaymentLinkSent
+  consumes_events: []
+
+dependencies:
+  stories:
+    - sales-inbound-conversation-close
+  capabilities:
+    - connections-mercado-pago
+  tools:
+    - generate_payment_link
+    - resolve_active_tier
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  eval_suite_path: null
+  rubrics_implemented: []
+  personas_implemented: []
+  pass_k_last_run: null
+  cost_last_run_usd: null
+  latency_p95_last_run_ms: null
+  last_run_at: null

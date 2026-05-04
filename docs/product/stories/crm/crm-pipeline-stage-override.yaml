@@ -1,0 +1,130 @@
+---
+id: crm-pipeline-stage-override
+type: service-story
+module: crm
+capability: pipeline-lifecycle
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/crm.md"
+  capability: "../../capabilities/crm/pipeline-lifecycle.yaml"
+  domain_doc: "../../../domains/module_crm.md"
+  related_stories: []
+
+context:
+  job: "Como sistema de ventas necesito permitir override manual del lifecycle stage de un profile para reflejar realidad cuando scoring automático no captura el contexto"
+  why: "Scoring automático puede mantener un profile en 'lead' cuando user sabe que ya cerró un sale offline. Override manual mantiene CRM accurate. Si falla, pipeline reportes mienten y agente sales_agent toma decisiones malas."
+  constraints:
+    - "Tenant-scoped (header X-Tenant-ID required)"
+    - "Idempotente (mismo stage 2x → mismo resultado, sin duplicar audit log)"
+    - "Audit log de transición (from_stage, to_stage, actor_user_id, reason)"
+    - "Latencia p95 < 200ms"
+
+outcome:
+  consumer_observable: "Cliente recibe `{profile_id, stage, transitioned_at}` tras PUT con stage válido"
+  product_observable:
+    - "DB: lifecycle_stage actualizado en customer/lead profile"
+    - "Eventos emitidos: lifecycle_stage_changed (consumido por analytics)"
+    - "Audit log: 1 entry pipeline_stage_override"
+
+service_contract:
+  type: endpoint
+  method: PUT
+  path: /api/v1/crm/pipeline/{profile_id}/stage
+  request_schema: "backend/src/modules/crm/api/dto/pipeline.py::StageOverrideRequest"
+  response_schema: "backend/src/modules/crm/api/dto/pipeline.py::StageOverrideResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-path
+    type: regression
+    given:
+      - "Tenant T1 con profile p1 en stage='LEAD'"
+    when: "PUT /api/v1/crm/pipeline/p1/stage con body {stage: 'CUSTOMER'}"
+    then:
+      - "Status 200 con profile_id=p1, stage='CUSTOMER'"
+      - "DB: lifecycle_stage='CUSTOMER' para p1"
+      - "Evento lifecycle_stage_changed emitido"
+      - "GET /api/v1/crm/pipeline/{profile_id}/transitions incluye nueva entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/crm/test_pipeline_api.py"
+      - type: state_check
+        target: db
+        query: "SELECT lifecycle_stage FROM customer_profile WHERE tenant_id = ? AND id = 'p1'"
+        expect: "CUSTOMER"
+
+  - id: invalid-stage-enum
+    type: regression
+    given:
+      - "Profile p1 existe en T1"
+    when: "PUT con body {stage: 'NOT_A_VALID_ENUM'}"
+    then:
+      - "Status 422 con detail explicando enum valores válidos"
+      - "DB: lifecycle_stage sin cambio"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/crm/test_pipeline_api.py"
+
+  - id: idempotent-same-stage
+    type: regression
+    given:
+      - "Profile p1 en stage='CUSTOMER'"
+    when: "PUT con body {stage: 'CUSTOMER'} (no-op semántico)"
+    then:
+      - "Status 200"
+      - "DB: lifecycle_stage='CUSTOMER' sin cambio"
+      - "Audit log: 0 entries nuevas (no se duplica para no-op)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/crm/test_pipeline_api.py"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "Tenant T1 autenticado"
+      - "Profile id='p99' existe en T2"
+    when: "PUT /api/v1/crm/pipeline/p99/stage con X-Tenant-ID=T1"
+    then:
+      - "Status 404 (no leakea existencia)"
+      - "DB: profile p99 sin cambio"
+      - "Audit log: intento cross-tenant registrado"
+    graders:
+      - type: state_check
+        target: api
+        query: "PUT /api/v1/crm/pipeline/p99/stage con X-Tenant-ID=T1"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - analytics
+    - sales_agent
+  emits_events:
+    - lifecycle_stage_changed
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: 3
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/crm/test_pipeline_api.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

@@ -1,0 +1,130 @@
+---
+id: calendar-list-events
+type: service-story
+module: commercial-calendar
+capability: calendar-events
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/commercial-calendar.md"
+  capability: "../../capabilities/commercial-calendar/calendar-events.yaml"
+  domain_doc: "../../../domains/module_commercial-calendar.md"
+  related_stories:
+    - calendar-event-crud
+
+context:
+  job: "Como copilot/UI necesito listar eventos comerciales del tenant + sistema-wide holidays para sugerir timing de campañas o exhibir calendar"
+  why: "Sin listado contextual el agente no sabe qué fechas comerciales se acercan y campañas pierden contexto. Si falla, copilot no puede sugerir 'aprovechá Black Friday la próxima semana'."
+  constraints:
+    - "Tenant-scoped (header X-Tenant-ID required) para events tenant-specific"
+    - "Sistema-wide holidays son read-only cross-tenant (filtro por country_code)"
+    - "Idempotente (GET puro)"
+    - "Latencia p95 < 200ms"
+
+outcome:
+  consumer_observable: "Cliente recibe `[{id, name, date, country_code, type, is_system_wide}, ...]` ordenado por date asc"
+  product_observable:
+    - "DB: SELECT calendar_events scoped tenant_id OR is_system_wide=TRUE filtrado country_code"
+    - "Eventos emitidos: ninguno (read-only)"
+    - "Métrics: latencia + count items por request"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/commercial-calendar/events
+  request_schema: "Query params: country_code (str), date_from (date), date_to (date), limit (int)"
+  response_schema: "backend/src/modules/commercial_calendar/api/dto/CalendarEventResponse[]"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "120/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-current-week
+    type: regression
+    given:
+      - "Tenant T1 (country_code=AR) con 2 eventos custom en semana actual"
+      - "Sistema tiene holiday 'Día del Trabajador' (1-mayo, country_code=AR) en semana actual"
+    when: "GET /api/v1/commercial-calendar/events/current-week"
+    then:
+      - "Status 200 con array incluyendo 2 events tenant T1 + 1 holiday system AR"
+      - "Items ordenados por date asc"
+      - "Latencia < 200ms"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/commercial_calendar/test_calendar_event_repository.py"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM calendar_events WHERE (tenant_id = ? OR is_system_wide=TRUE) AND date BETWEEN ? AND ?"
+        expect: "matches response length"
+
+  - id: invalid-country-code
+    type: regression
+    given:
+      - "Auth válida"
+    when: "GET /api/v1/commercial-calendar/events?country_code=XX (no ISO valid)"
+    then:
+      - "Status 422 con detail explicando country_code inválido"
+      - "DB no es queryeada"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/commercial_calendar/test_calendar_event_service.py"
+
+  - id: empty-range
+    type: regression
+    given:
+      - "Tenant T1 sin eventos custom"
+      - "Sistema sin holidays en rango pasado lejano (1900-01-01 a 1900-01-07)"
+    when: "GET ?date_from=1900-01-01&date_to=1900-01-07"
+    then:
+      - "Status 200 con []"
+      - "DB: query ejecutada pero retorna 0 rows"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/commercial_calendar/test_calendar_event_service.py"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "Tenant T1 autenticado"
+      - "Tenant T2 tiene event custom 'Promo interna' (no sistema-wide)"
+    when: "GET /api/v1/commercial-calendar/events con X-Tenant-ID=T1"
+    then:
+      - "Response NO incluye 'Promo interna' de T2"
+      - "Solo eventos T1 + sistema-wide holidays"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/commercial_calendar/test_calendar_event_repository_isolation.py"
+      - type: state_check
+        target: db
+        query: "SELECT id FROM calendar_events WHERE tenant_id = T2 AND is_system_wide=FALSE"
+        expect: "no aparece en response T1"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - copilot
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: 2
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/commercial_calendar/test_calendar_event_repository.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

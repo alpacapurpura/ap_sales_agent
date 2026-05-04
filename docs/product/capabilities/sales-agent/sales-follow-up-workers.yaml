@@ -1,0 +1,47 @@
+---
+id: sales-follow-up-workers
+name: "Workers sales_agent — follow-up + payment reminder + frozen detection"
+module: sales-agent
+backbone_activity: "Re-engagement automático leads"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/sales-agent.md"
+  stories_dir: "../../stories/sales-agent/"
+description: "Cron workers que re-engagean lead inactivos, recuerdan pagos pendientes, detectan conversaciones frozen. Emiten domain events que el supervisor consume para reabrir conversación."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - sales-followup-cadence
+  - sales-payment-reminder-pending
+copilot_operable: false
+date_introduced: 2026-04
+last_modified: 2026-04-30
+---
+
+## Capabilities cubiertas por este grupo
+
+- `workers/follow_up_engine.py` — cadencias config en `domain/tuning.py::FOLLOW_UP_CADENCES` (e.g., 1h, 24h, 3d, 7d)
+- `workers/payment_reminder_engine.py` — recordatorio pago pending (link no clickeado o checkout abandonado)
+- `workers/appointment_reminder_engine.py` — recordatorio cita próxima
+- `workers/frozen_detection.py` — detecta conversación detenida >N hours, reabre
+- `workers/verify_pending_bookings.py` — verifica con Google Calendar bookings sin confirm
+- `workers/verify_pending_payments.py` — verifica con Mercado Pago / Stripe payments pending
+- Idempotency vía `shared/idempotency/` decorator
+- ComplianceService + OutboundRateLimiter gates pre-send
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| sales-followup-cadence | service-story | live | ../../stories/sales-agent/sales-followup-cadence.yaml |
+| sales-payment-reminder-pending | service-story | live | ../../stories/sales-agent/sales-payment-reminder-pending.yaml |
+
+## Gaps identificados
+
+- No load test workers (cron concurrency con miles de leads)
+- Frozen detection threshold hardcoded (`MAX_INTERNAL_TURNS` en `domain/tuning.py`) — no per-tenant tunable
+- Tests `test_follow_up_engine.py` cubren happy + cadencia básica pero NO escenario adversarial (lead respondió "no me contactes más" → se sigue contactando = bug)
+- No structured event emission documented al WMS de marketing (analytics) para feedback loop

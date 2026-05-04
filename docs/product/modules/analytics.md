@@ -84,3 +84,12 @@ _Pendiente captura. Hipótesis: action triggers → expansión es siguiente pala
 |---|---|---|
 | Permanente | Currency desde data source, nunca hardcoded | Multi-tenant LATAM |
 | Permanente | Datetime UTC en DB siempre | Multi-timezone |
+
+## Capabilities
+
+| ID | Name | Status | Stories live/total |
+|---|---|---|---|
+| etl-pipeline-providers | ETL pipeline multi-provider | live | 3/3 |
+| bowtie-progressive-loading | Bowtie funnel + progressive loading 4-tier | live | 3/3 |
+| verification-layer | Verification layer 4-protocolo | live | 2/2 |
+| metric-catalog-channel-registry | Metric catalog + channel registry SSoT | live | 2/2 |

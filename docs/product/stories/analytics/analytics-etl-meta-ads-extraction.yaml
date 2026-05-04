@@ -1,0 +1,146 @@
+---
+id: analytics-etl-meta-ads-extraction
+type: service-story
+module: analytics
+capability: etl-pipeline-providers
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/etl-pipeline-providers.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-etl-scheduler-tick
+
+context:
+  job: "Como sistema necesito extraer métricas Meta Ads (campañas, ad sets, ads, insights diarios) e insertarlas idempotentemente en `official_metrics` para que el Bowtie/dashboard refleje gasto, ROAS, CPL, conversiones reales"
+  why: "Sin esta extracción el growth-studio queda vacío para el canal de mayor inversión publicitaria de la mayoría de tenants. Falla → user no ve gasto/conversiones reales → toma decisiones a ciegas"
+  constraints:
+    - "Idempotente (upsert PK natural tenant_id + external_id + date)"
+    - "Tenant-scoped (cada tenant filtra por sus credenciales Meta)"
+    - "time_increment=1 obligatorio (daily-only invariant — arch test enforced)"
+    - "Currency desde la cuenta Meta (no convert)"
+    - "Datetime UTC en DB siempre"
+    - "Token expirado → log structured + skip silencioso (no rompe scheduler)"
+
+outcome:
+  consumer_observable: "Tras `POST /api/v1/metrics/sync` (provider=meta) o tras scheduler tick, `official_metrics` contiene rows nuevas/actualizadas con channel='facebook'|'instagram', metric in (spend, impressions, clicks, conversions, ...) para el rango solicitado"
+  product_observable:
+    - "DB: `official_metrics` upsert N rows + `meta_campaign`/`meta_ad_set`/`meta_ad` actualizados"
+    - "DB: `etl_run` log entry (status, started_at, completed_at, rows_extracted)"
+    - "Cache: invalidate stage caches del tenant (Tier 1/2)"
+    - "Métrica observabilidad: histogram extraction_duration_ms incrementado"
+
+service_contract:
+  type: etl_pipeline
+  method: POST
+  path: /api/v1/metrics/sync
+  request_schema: "backend/src/modules/analytics/api/metrics.py::SyncRequest"
+  response_schema: "backend/src/modules/analytics/api/metrics.py::SyncResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "10/min"
+  idempotency: natural-key
+  trigger: "manual via POST | scheduler tick cada N min"
+
+scenarios:
+  - id: happy-path-meta-extraction
+    type: regression
+    given:
+      - "Tenant T1 con credencial Meta válida en `connections`"
+      - "Account ID Meta con campañas activas última 7 días"
+    when: "POST /api/v1/metrics/sync con provider=meta, range=last_7_days, X-Tenant-ID=T1"
+    then:
+      - "Status 200 con response shape {provider:meta, rows_extracted:N, status:ok}"
+      - "DB `official_metrics` rows con tenant_id=T1, channel in {facebook,instagram}, dates correctas"
+      - "Period invariants OK (daily rows, no rangos agregados)"
+      - "Currency persistida desde la account Meta (e.g. PEN, USD)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_meta_provider_invariants.py"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM official_metrics WHERE tenant_id=:t AND channel IN ('facebook','instagram') AND date >= NOW() - INTERVAL '7 days'"
+        expect: ">0"
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_meta_provider_extractors_use_daily.py"
+
+  - id: invalid-credential
+    type: negative
+    given:
+      - "Tenant T2 con credencial Meta expirada o inválida"
+    when: "POST /api/v1/metrics/sync con provider=meta para T2"
+    then:
+      - "Status 200 (graceful) o 4xx con detalle credential_invalid"
+      - "DB no se modifica official_metrics"
+      - "etl_run log entry con status=failed, reason credential_expired"
+      - "structlog warning con tenant_id (sin leak token)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metrics_service_etl.py"
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM official_metrics WHERE tenant_id=:t AND date >= NOW()::date"
+        expect: "no change vs pre-call"
+
+  - id: idempotent-double-sync
+    type: edge
+    given:
+      - "Tenant T1, sync ya ejecutado hace 1min"
+    when: "POST /api/v1/metrics/sync (segundo) mismo provider/range"
+    then:
+      - "Status 200"
+      - "DB rows count IGUAL (upsert no duplica)"
+      - "Valores actualizados si Meta cambió números (last-write-wins por timestamp)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_aggregation_logic.py"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM official_metrics WHERE tenant_id=:t AND date=:d AND metric='spend'"
+        expect: "1 row per (channel, external_id, date)"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    given:
+      - "Tenant T1 autenticado"
+      - "Tenant T2 tiene credencial Meta separada"
+    when: "User T1 hace POST /api/v1/metrics/sync con header X-Tenant-ID=T2"
+    then:
+      - "Status 403 (no autorizado)"
+      - "DB no se modifica"
+      - "Audit log entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_api_routes_supplemental.py"
+
+cross_module:
+  reads_from:
+    - connections
+  read_by:
+    - copilot
+    - advertising
+  emits_events:
+    - analytics.metrics_synced
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_meta_provider_invariants.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

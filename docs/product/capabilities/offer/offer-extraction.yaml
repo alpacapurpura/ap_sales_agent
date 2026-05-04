@@ -1,0 +1,40 @@
+---
+id: offer-extraction
+name: "Extracción automática de oferta"
+module: offer
+backbone_activity: "Estructurar oferta"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/offer.md"
+  stories_dir: "../../stories/offer/"
+description: "Pipeline wave-based para auto-fill oferta desde docs (PDF, copy existente) o scraping. Subclass de BaseExtractionOrchestrator (shared)."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - offer-extract-from-document
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Extracción wave-based desde documento subido al tenant
+- Per-wave save (no all-or-nothing)
+- Auto-detection de archetype/value-level desde el contenido
+- Trace events para observabilidad
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| offer-extract-from-document | service-story | live | ../../stories/offer/offer-extract-from-document.yaml |
+
+## Gaps identificados
+
+- No hay E2E que verifique flujo completo "subo PDF → veo oferta poblada con archetype correcto"
+- Cost monitoring del pipeline no surface en UI
+- Scraping desde URL para offer existe parcial pero no tiene endpoint público stable

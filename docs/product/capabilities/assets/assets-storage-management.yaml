@@ -1,0 +1,43 @@
+---
+id: assets-storage-management
+name: "Storage y gestión de assets"
+module: assets
+backbone_activity: "Generar material promocional"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/assets.md"
+  stories_dir: "../../stories/assets/"
+description: "Upload de assets a R2 (Cloudflare), MIME validation, asset_repository tenant-scoped, soft delete."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - assets-upload
+  - assets-promote
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- POST /api/v1/assets upload con MIME validation
+- Storage R2 con keys tenant-scoped
+- Soft delete (deleted_at)
+- Detect type automático
+- Promote endpoint (asset → permanent / featured)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| assets-upload | service-story | live | ../../stories/assets/assets-upload.yaml |
+| assets-promote | service-story | live | ../../stories/assets/assets-promote.yaml |
+
+## Gaps identificados
+
+- Sin E2E coverage de upload completo desde UI
+- Cuotas/storage limits per tenant no implementado (TODO)
+- Cost tracking de R2 storage no surface

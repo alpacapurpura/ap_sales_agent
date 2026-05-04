@@ -1,0 +1,45 @@
+---
+id: auth-tenant-resolution
+name: "Auth Clerk + resolución de tenant"
+module: iam
+backbone_activity: "Autenticar y aislar tenant"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/iam.md"
+  stories_dir: "../../stories/iam/"
+description: "Login/signup vía Clerk (email+password, OAuth Google). Sync via webhooks `user.created/updated/deleted` mantiene espejo local de users. Resolución de tenant correcto desde Clerk JWT + middleware `X-Tenant-ID` aplicado a todas rutas. SSoT identity sin la cual nada del producto existe."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - iam-clerk-webhook-sync
+  - iam-current-user-tenant-resolution
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Webhook Clerk `user.created/updated/deleted` → sync espejo local users (POST `/api/v1/iam/webhooks/clerk`)
+- Resolución `get_current_user` (Depends) desde JWT Clerk + auto-sync campos perfil
+- `get_tenant_context` (Depends) inyecta tenant_id desde header `X-Tenant-ID` con validación membership user→tenant
+- `TenantLocale` VO resuelto por tenant para currency/timezone (master data)
+- Roles básicos owner/member (sin RBAC granular todavía)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| iam-clerk-webhook-sync | service-story | live | ../../stories/iam/iam-clerk-webhook-sync.yaml |
+| iam-current-user-tenant-resolution | service-story | live | ../../stories/iam/iam-current-user-tenant-resolution.yaml |
+
+## Gaps identificados
+
+- Roles avanzados ausentes (solo owner/member; sin RBAC por feature)
+- Onboarding sin flow conversacional copilot (gap doc en módulo)
+- Sin tool copilot para invitar member nuevo
+- Webhook signature verification en `webhooks.py` debería tener test adversarial dedicado (signature mismatch)
+- Sin métric/alerting ante webhook failures (silent drop posible)

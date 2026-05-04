@@ -1,0 +1,120 @@
+---
+id: campaigns-circuit-breaker-resilience
+type: service-story
+module: campaigns
+capability: orchestrator-workers-channel-router
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-5
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/orchestrator-workers-channel-router.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories:
+    - campaigns-execution-worker-telegram
+
+context:
+  job: "Como sistema necesito circuit breaker per (channel, tenant_id) Redis-backed Lua atómico para proteger Telegram API down/rate-limited"
+  why: "Sin CB, Telegram down → worker hammering → ban tenant. CB asíncrono Redis Lua atómico (custom — pybreaker sync-only no aplica D15)"
+  constraints:
+    - "Per (channel, tenant_id) keyed"
+    - "States: CLOSED / OPEN / HALF_OPEN"
+    - "Redis Lua atómico para race-free state transitions"
+    - "Failure threshold + timeout configurable"
+
+outcome:
+  consumer_observable: "Tras N failures consecutivos, CB OPEN bloquea calls. Después timeout → HALF_OPEN. Successful call → CLOSED"
+  product_observable:
+    - "Redis state visible per channel/tenant"
+    - "Tasks bloqueadas en OPEN regresan a queue con backoff"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: none
+  trigger: "Pipeline pre-send"
+
+scenarios:
+  - id: happy-path-cb-closed-allows-calls
+    type: regression
+    given:
+      - "CB state=CLOSED para (telegram, T1)"
+    when: "Worker procesa task"
+    then:
+      - "Pipeline atraviesa CB sin bloquear"
+      - "POST ejecutado"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+
+  - id: cb-opens-after-failures
+    type: negative
+    given:
+      - "Telegram API responde 5xx 5 veces consecutivas"
+    when: "5to failure"
+    then:
+      - "CB transitions a OPEN"
+      - "Subsequent task bloqueada (no POST)"
+      - "Task regresa a queue con backoff"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+
+  - id: cb-half-open-recovery
+    type: edge
+    given:
+      - "CB OPEN expirado (timeout)"
+    when: "Worker procesa próxima task"
+    then:
+      - "CB HALF_OPEN permite 1 probe call"
+      - "Si OK → CLOSED"
+      - "Si falla → OPEN denuevo"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+
+  - id: per-tenant-isolation
+    type: adversarial
+    given:
+      - "CB OPEN para (telegram, T1)"
+      - "Tenant T2 sin failures"
+    when: "Worker procesa task de T2"
+    then:
+      - "T2 CB CLOSED"
+      - "T2 puede enviar normalmente"
+      - "T1 bloqueado independientemente"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/campaigns/workers/test_execution_task.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

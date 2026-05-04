@@ -1,0 +1,120 @@
+---
+id: offer-pricing-tiers-edit
+type: ui-story
+module: offer
+capability: offer-blueprint
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-blueprint.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories:
+    - offer-blueprint-edit
+    - offer-variants-polymorphic
+
+context:
+  job: "Como user quiero configurar pricing tiers (early-bird, regular, premium) con multi-currency para que sales_agent y landing muestren los precios correctos según TenantLocale."
+  why: "Pricing es la sección con más fricción comercial. Sin tiers configurables, no hay early-bird, no hay urgencia, no hay segmentación de oferta."
+  constraints:
+    - "Tenant-scoped"
+    - "Multi-currency via TenantLocale (PEN/USD/MXN/COP)"
+    - "Currency NO hardcodeada FE (fallback data.currency ?? tenant.currency)"
+    - "Auto-save on change"
+    - "Pricing valores monetary deben incluir `currency: str` en DTO"
+
+outcome:
+  user_observable: "Usuario agrega tier 'Early bird' con precio 199 PEN, queda visible en landing y sales_agent lo cita correctamente."
+  product_observable:
+    - "DB: pricing_tiers row insertado con offer_id, amount, currency"
+    - "DTO response incluye currency siempre (no NULL)"
+
+scenarios:
+  - id: add-tier-early-bird
+    type: regression
+    given:
+      - "Tenant T1 (currency=PEN), offer id=42 sin tiers"
+    when: "Usuario agrega tier name='Early bird', amount=199, currency='PEN'"
+    then:
+      - "POST /api/v1/offers/42/pricing-tiers retorna 201"
+      - "DB: pricing_tiers row con offer_id=42, amount=199, currency='PEN'"
+      - "Response DTO incluye currency='PEN'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/offer/test_pricing_tiers_service.py"
+      - type: state_check
+        target: db
+        query: "SELECT amount, currency FROM pricing_tiers WHERE offer_id = 42"
+        expect: "amount=199, currency='PEN'"
+
+  - id: negative-amount-rejected
+    type: negative
+    when: "POST con amount=-100"
+    then:
+      - "Status 422 con detail 'amount debe ser > 0'"
+      - "DB: no se inserta tier"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/offer/test_pricing_tiers_domain.py"
+
+  - id: currency-mismatch-tenant
+    type: edge
+    given:
+      - "Tenant T1 currency=PEN"
+    when: "Usuario agrega tier currency='ARS' (no en allowed list de tenant)"
+    then:
+      - "BE acepta currency override per tier (caso multi-mercado)"
+      - "Pero FE warna al user 'Esta currency no es la default del tenant'"
+      - "Response DTO siempre incluye currency"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-tier-write
+    type: adversarial
+    given:
+      - "Tenant T2 con offer id=77"
+    when: "Usuario A (T1) hace POST /api/v1/offers/77/pricing-tiers con X-Tenant-ID=T1"
+    then:
+      - "404 Not Found"
+      - "DB: pricing_tiers de offer 77 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST /api/v1/offers/77/pricing-tiers con X-Tenant-ID=T1"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - sales_agent
+    - landing
+  emits_events:
+    - OfferPricingUpdated
+  consumes_events: []
+
+dependencies:
+  stories:
+    - offer-blueprint-edit
+  capabilities:
+    - offer-blueprint
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

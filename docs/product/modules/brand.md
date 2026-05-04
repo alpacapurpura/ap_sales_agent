@@ -85,3 +85,11 @@ Captura identidad de marca del user. Vía 2 caminos: scraping web (si tiene webs
 | Fecha | Decisión | Razón | PI/PR |
 |---|---|---|---|
 | 2026-04-28 | Voz sales_agent vive 100% en `personality_profiles.system_instruction` | SSoT única, sin mirror tables, sin fine-tune | — |
+
+## Capabilities (auto-mapped 2026-05-04)
+
+- [brand-identity-visuals](../capabilities/brand/brand-identity-visuals.yaml) — live, 2 stories
+- [brand-personality-voice](../capabilities/brand/brand-personality-voice.yaml) — live, 2 stories
+- [brand-buyer-personas](../capabilities/brand/brand-buyer-personas.yaml) — live, 1 story
+- [brand-extraction](../capabilities/brand/brand-extraction.yaml) — live, 1 story
+- [brand-credentials](../capabilities/brand/brand-credentials.yaml) — live, 1 story (2 pending YAML)

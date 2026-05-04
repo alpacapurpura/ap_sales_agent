@@ -17,4 +17,5 @@
 
 | ID | Name | Status | Stories live/planned |
 |----|------|--------|----------------------|
-| _(vacío)_ |
+| contacts-cdp | CDP unificado de contactos (multi-canal) | live | 3 / 0 |
+| pipeline-lifecycle | Pipeline de ventas + lifecycle scoring | live | 1 / 0 |

@@ -1,0 +1,136 @@
+---
+id: assets-upload
+type: service-story
+module: assets
+capability: assets-storage-management
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/assets.md"
+  capability: "../../capabilities/assets/assets-storage-management.yaml"
+  domain_doc: "../../../domains/module_assets.md"
+  related_stories:
+    - assets-promote
+
+context:
+  job: "Como sistema necesito recibir uploads de assets del usuario (imágenes, PDFs, copies) y persistirlos en R2 con keys tenant-scoped para que estén disponibles a otros módulos."
+  why: "Es el endpoint de entrada de todo asset que no es generado. Sin él, no hay onboarding ni edición visual."
+  constraints:
+    - "Tenant-scoped (header X-Tenant-ID required)"
+    - "MIME validation (allowlist)"
+    - "Size limit: 10MB default"
+    - "Idempotency via natural-key (filename hash)"
+    - "PII redaction si filename contiene PII"
+
+outcome:
+  consumer_observable: "POST /api/v1/assets retorna 201 con asset_id + signed_url."
+  product_observable:
+    - "DB: assets row con tenant_id, key R2, mime, size"
+    - "Storage R2: archivo en key 'tenant_{id}/{asset_id}_filename'"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/assets
+  request_schema: "backend/src/modules/assets/api/router.py::UploadRequest"
+  response_schema: "backend/src/modules/assets/api/router.py::AssetResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: upload-pdf-document
+    type: regression
+    given:
+      - "Tenant T1 autenticado"
+    when: "POST /api/v1/assets con file=propuesta.pdf, mime='application/pdf', size=2MB"
+    then:
+      - "Status 201"
+      - "DB: assets row con tenant_id=T1, mime='application/pdf'"
+      - "R2: archivo subido a key tenant-scoped"
+      - "Response incluye asset_id + signed_url"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/assets/test_asset_repository.py"
+      - type: state_check
+        target: db
+        query: "SELECT mime, tenant_id FROM assets ORDER BY created_at DESC LIMIT 1"
+        expect: "mime='application/pdf', tenant_id correcto"
+
+  - id: invalid-mime
+    type: negative
+    when: "POST con file.exe (mime='application/x-msdownload')"
+    then:
+      - "Status 422 'MIME type no permitido'"
+      - "DB: assets sin nuevo row"
+      - "R2: nada se sube"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/assets/test_detect_type.py"
+
+  - id: oversized-file
+    type: edge
+    when: "POST con file 50MB"
+    then:
+      - "Status 413 Payload Too Large"
+      - "DB: sin row"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: duplicate-upload-idempotent
+    type: edge
+    given:
+      - "Mismo file ya subido (mismo hash)"
+    when: "POST con same content + idempotency-key"
+    then:
+      - "Retorna mismo asset_id (no duplica)"
+      - "DB: 1 row (no se inserta duplicate)"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-upload-spoof
+    type: adversarial
+    when: "Usuario A (T1) upload con header X-Tenant-ID=T2"
+    then:
+      - "403 Forbidden (T2 no le pertenece)"
+      - "R2: nada se sube"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST con X-Tenant-ID spoofeado"
+        expect: "403"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - brand
+    - offer
+    - landing
+  emits_events:
+    - AssetUploaded
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - assets-storage-management
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/assets/test_asset_repository.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

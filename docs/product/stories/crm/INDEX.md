@@ -8,7 +8,10 @@
 
 | ID | Type | Status | Capability | Last audit |
 |----|------|--------|------------|------------|
-| _(vacío — populado por agents en P9 o /po cuando crea stories)_ |
+| crm-list-contacts | service-story | live | contacts-cdp | 2026-05-04 |
+| crm-contacts-page | ui-story | live | contacts-cdp | 2026-05-04 |
+| crm-create-static-segment | ui-story | live | contacts-cdp | 2026-05-04 |
+| crm-pipeline-stage-override | service-story | live | pipeline-lifecycle | 2026-05-04 |
 
 ## Cómo agregar story nueva
 

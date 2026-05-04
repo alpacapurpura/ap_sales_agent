@@ -1,0 +1,127 @@
+---
+id: crm-create-static-segment
+type: ui-story
+module: crm
+capability: contacts-cdp
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04-30
+pr_introduced: PR-12
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/crm.md"
+  capability: "../../capabilities/crm/contacts-cdp.yaml"
+  domain_doc: "../../../domains/module_crm.md"
+  related_stories:
+    - crm-contacts-page
+    - crm-list-contacts
+
+context:
+  job: "Como user quiero seleccionar varios contactos en /sales/contactos y crear un segmento STATIC para luego lanzar una campaña a ese segmento"
+  why: "Sin segmentación STATIC el user no tiene puente entre 'tengo estos leads' y 'le mando una campaña a estos'. Si falla, audience building queda inviable y MVP Telegram-launch se rompe."
+  constraints:
+    - "REUSE `SegmentModel.filter_dsl` JSONB shape `{\"_static\": true, \"lead_ids\": [...]}` (0 migrations)"
+    - "Spanish neutro (Dialog labels, validation messages)"
+    - "Tenant-scoped (header X-Tenant-ID)"
+    - "Auto-encadena con LaunchCampaignChoiceDialog tras crear"
+
+outcome:
+  user_observable: "Tras seleccionar contactos y confirmar crear segmento, user ve toast de éxito + LaunchCampaignChoiceDialog con opciones de canal"
+  product_observable:
+    - "DB: 1 row nuevo en `segments` con `segment_type=STATIC`, `filter_dsl={'_static':true,'lead_ids':[...]}`, tenant_id correcto"
+    - "Audit log: 1 entry segment_created"
+    - "Cross-module: campaigns ve nuevo segmento al refrescar selector"
+  metrics_to_track:
+    - { name: "static_segments_created", target: ">3/week tenant activo" }
+
+scenarios:
+  - id: happy-path
+    type: regression
+    given:
+      - "User en /[tenantId]/sales/contactos con >=2 contactos seleccionados via SelectedContactsBar"
+    when: "Click 'Crear segmento' → Dialog → introducir nombre 'Warm Q2' → Confirmar"
+    then:
+      - "POST /api/v1/campaigns/segments/ con segment_type=STATIC + lead_ids retorna 201"
+      - "Toast 'Segmento creado' visible"
+      - "LaunchCampaignChoiceDialog se abre encadenado"
+      - "DB: row nuevo en `segments` con filter_dsl shape correcto"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/sales/segment-create-and-launch-campaign.spec.ts"
+      - type: state_check
+        target: db
+        query: "SELECT segment_type, filter_dsl FROM segments WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 1"
+        expect: "segment_type='STATIC' AND filter_dsl ? '_static'"
+
+  - id: invalid-name-empty
+    type: regression
+    given:
+      - "User en CreateSegmentDialog con contactos seleccionados"
+    when: "User submite con nombre vacío"
+    then:
+      - "Validation inline RHF+Zod visible ('Nombre requerido')"
+      - "Submit deshabilitado / no se llama POST"
+      - "DB sin row nueva en segments"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/sales/segment-create-and-launch-campaign.spec.ts"
+
+  - id: zero-selected-contacts
+    type: regression
+    given:
+      - "User en /sales/contactos sin contactos seleccionados"
+    when: "User intenta abrir CreateSegmentDialog"
+    then:
+      - "Acción 'Crear segmento' deshabilitada en SelectedContactsBar (no visible)"
+      - "DB sin row nueva"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/specs/regression/sales/segment-create-and-launch-campaign.spec.ts"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "User A tenant T1 autenticado"
+      - "lead_ids del request incluyen un id que existe en T2"
+    when: "POST /api/v1/campaigns/segments/ con lead_ids mezclando T1 + T2 ids"
+    then:
+      - "Backend filtra/rechaza: o 400 con detail o segment creado SOLO con leads T1"
+      - "DB: ningún lead_id de T2 termina vinculado a tenant T1"
+      - "Audit log: intento cross-tenant registrado"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT filter_dsl->'lead_ids' FROM segments WHERE tenant_id = T1 ORDER BY created_at DESC LIMIT 1"
+        expect: "no contiene lead_ids de T2"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - campaigns
+  emits_events:
+    - segment_created
+  consumes_events: []
+
+dependencies:
+  stories:
+    - crm-contacts-page
+    - crm-list-contacts
+  capabilities: []
+
+estimate:
+  story_points: 5
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: crm_create_segment
+
+test_coverage:
+  e2e_test: "frontend/e2e/specs/regression/sales/segment-create-and-launch-campaign.spec.ts"
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

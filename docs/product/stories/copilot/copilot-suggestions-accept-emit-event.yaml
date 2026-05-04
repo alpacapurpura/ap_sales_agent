@@ -1,0 +1,128 @@
+---
+id: copilot-suggestions-accept-emit-event
+type: service-story
+module: copilot
+capability: copilot-suggestions-engine
+status: live
+slice: V1
+last_audit: 2026-05-04
+date_introduced: 2026-04-30
+pr_introduced: PR-1
+pi_introduced: PI-2
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/copilot.md"
+  capability: "../../capabilities/copilot/copilot-suggestions-engine.yaml"
+  domain_doc: "../../../domains/module_copilot.md"
+  related_stories:
+    - copilot-suggestions-show-route-aware
+
+context:
+  job: "Como sistema FE fire-and-forget POST /copilot/suggestions/accept cuando user clickea chip → emite SuggestionAccepted event → subscriber S1 escribe copilot_trace_event para métricas adopción."
+  why: "Sin telemetry adopción, suggestion engine no se puede medir/calibrar. Ratio shown/accepted = north-star del feature."
+  constraints:
+    - "Fire-and-forget (mutation no bloquea UI)"
+    - "Best-effort 200 (no romper UX si subscriber falla)"
+    - "Idempotency: misma suggestion_id no duplica trace event"
+
+outcome:
+  consumer_observable: "FE no bloquea, chip click acepta sin spinner"
+  product_observable:
+    - "DB: copilot_trace_event event_type='suggestion_accepted' 1 row con suggestion_id"
+    - "Métricas: SELECT COUNT(*) FILTER (WHERE event_type='suggestion_accepted') / COUNT(*) FILTER (WHERE event_type='suggestion_shown') = ratio adopción"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/copilot/suggestions/accept
+  request_schema: "copilot/api/suggestions_dto.py::SuggestionAcceptRequest"
+  response_schema: "copilot/api/suggestions_dto.py::SuggestionAcceptResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "120/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-accept-emits-event
+    type: regression
+    given:
+      - "tenant T1 con suggestion_shown event recent"
+    when: "POST /copilot/suggestions/accept con suggestion_id"
+    then:
+      - "Endpoint retorna 200"
+      - "Domain event SuggestionAccepted emitted"
+      - "Subscriber S1 procesa event → escribe copilot_trace_event row"
+      - "DB: 1 row event_type='suggestion_accepted'"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/suggestions/"
+      - type: state_check
+        target: db
+        query: "SELECT event_type FROM copilot_trace_event WHERE tenant_id = ? AND suggestion_id = ?"
+        expect: "suggestion_accepted"
+
+  - id: idempotent-double-click
+    type: edge
+    given:
+      - "User double-clicks chip"
+    when: "2 requests POST /accept con same suggestion_id"
+    then:
+      - "Ambos retornan 200 (idempotent)"
+      - "DB: solo 1 row trace_event (natural key dedup)"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM copilot_trace_event WHERE suggestion_id = ?"
+        expect: "1"
+
+  - id: subscriber-failure-soft
+    type: edge
+    given:
+      - "Subscriber S1 raises exception"
+    when: "POST /accept invocado"
+    then:
+      - "Endpoint retorna 200 (best-effort)"
+      - "structlog warning emitted"
+      - "Outbox retry next tick"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/suggestions/"
+
+  - id: cross-tenant-accept-spoof
+    type: adversarial
+    given:
+      - "tenant T1 con suggestion T2 (cross-tenant)"
+    when: "POST /accept con T1 token + suggestion_id T2"
+    then:
+      - "Endpoint rejects (tenant mismatch)"
+      - "NO se emite event"
+    graders:
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM copilot_trace_event WHERE suggestion_id = ?"
+        expect: "0"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events:
+    - SuggestionAccepted
+  consumes_events: []
+
+dependencies:
+  stories:
+    - copilot-suggestions-show-route-aware
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/copilot/suggestions/"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

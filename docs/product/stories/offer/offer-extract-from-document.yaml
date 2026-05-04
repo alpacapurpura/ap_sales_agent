@@ -1,0 +1,130 @@
+---
+id: offer-extract-from-document
+type: service-story
+module: offer
+capability: offer-extraction
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-extraction.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories: []
+
+context:
+  job: "Como sistema necesito extraer info de oferta desde un PDF/copy subido al tenant para auto-llenar archetype, format, value_level y sections sin trabajo manual."
+  why: "Es el fastest-path de onboarding para users que ya tienen una oferta documentada. Reduce 21 sections de llenado manual a 1 upload."
+  constraints:
+    - "Idempotente"
+    - "Tenant-scoped"
+    - "Latencia p95 < 90s (LLM + parsing)"
+    - "Wave-based (subclass BaseExtractionOrchestrator)"
+    - "Per-wave save (no all-or-nothing)"
+    - "PII redaction en trazas"
+
+outcome:
+  consumer_observable: "Frontend recibe 202 con extraction_id; DB se llena progresivamente."
+  product_observable:
+    - "DB: offers + offer_sections poblados por waves"
+    - "extraction_trace registra cada wave"
+    - "Eventos: OfferSectionUpdated por wave"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/offers/extraction/document
+  request_schema: "backend/src/modules/offer/api/offer_extraction.py::ExtractionRequest"
+  response_schema: "backend/src/modules/offer/api/offer_extraction.py::ExtractionResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "5/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: extract-pdf-cohort-course
+    type: regression
+    given:
+      - "Tenant T1, PDF 'Curso Q2 - propuesta.pdf' subido a R2"
+    when: "POST /api/v1/offers/extraction/document con {asset_id: '...'}"
+    then:
+      - "Status 202 con extraction_id"
+      - "Waves ejecutan en background"
+      - "DB: offers row creado con archetype/format inferidos"
+      - "DB: offer_sections poblados (promise, instructors, pricing, faq...)"
+      - "extraction_trace con 1 row por wave"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/offer/test_offer_extraction_service.py"
+      - type: state_check
+        target: db
+        query: "SELECT archetype, format FROM offers WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 1"
+        expect: "no NULL en archetype y format"
+
+  - id: invalid-document-type
+    type: negative
+    when: "POST con asset_id que apunta a archivo .exe"
+    then:
+      - "Status 422"
+      - "DB: offers sin nuevo row"
+      - "extraction_trace sin row creado"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: wave-failure-partial
+    type: edge
+    given:
+      - "Wave 3 (pricing) falla por LLM timeout"
+    when: "POST extraction con doc válido"
+    then:
+      - "Wave 1-2 persisten OK"
+      - "Wave 3 queda registrada en extraction_trace con status=failed"
+      - "User puede re-trigger solo de wave fallida"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/offer/test_extraction_orchestrator_per_wave_save.py"
+
+  - id: cross-tenant-extraction
+    type: adversarial
+    when: "Usuario A (T1) hace POST con asset_id de tenant T2"
+    then:
+      - "Status 403 o 404 (no leakea existencia)"
+      - "DB: offers de T2 NO modificados"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST con asset cross-tenant"
+        expect: "403 o 404"
+
+cross_module:
+  reads_from:
+    - assets
+  read_by:
+    - sales_agent
+    - landing
+  emits_events:
+    - OfferSectionUpdated
+    - OfferCreated
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities:
+    - offer-extraction
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/offer/test_offer_extraction_service.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

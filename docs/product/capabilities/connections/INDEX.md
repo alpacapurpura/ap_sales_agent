@@ -1,20 +1,12 @@
 # Capabilities — connections
 
 > Capability = grupo lógico de stories. NO contiene scenarios (esos viven en stories).
-> Schema:
-> ```yaml
-> id: capability-id
-> name: "Nombre legible"
-> module: connections
-> backbone_activity: "..."
-> status: live | in-progress | planned       # derivado de stories
-> stories_live: N
-> stories_planned: M
-> story_ids: [...]
-> ```
 
 ## Capabilities
 
 | ID | Name | Status | Stories live/planned |
 |----|------|--------|----------------------|
-| _(vacío)_ |
+| connections-meta-oauth | Meta OAuth — Facebook + Instagram + Ads + page_id selection | live | 2/0 |
+| connections-manychat-integration | ManyChat integration — webhooks + tags + custom fields + send-content API | live | 2/0 |
+| connections-google-services | Google services — Calendar + Gmail + Ads + GA4 OAuth | in-progress | 1/1 |
+| connections-status-monitoring | Connection status monitoring + reconnect | live | 2/0 |

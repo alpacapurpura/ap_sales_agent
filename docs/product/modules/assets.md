@@ -55,3 +55,10 @@ _Sin tracked aún._
 
 ## Decisiones producto vinculadas
 _Pendiente._
+
+## Capabilities (auto-mapped 2026-05-04)
+
+- [assets-copy-generation](../capabilities/assets/assets-copy-generation.yaml) — live, 1 story
+- [assets-storage-management](../capabilities/assets/assets-storage-management.yaml) — live, 2 stories
+- [assets-offer-gallery](../capabilities/assets/assets-offer-gallery.yaml) — live, 1 story
+- [assets-flyer-image-gen](../capabilities/assets/assets-flyer-image-gen.yaml) — in-progress, 0 stories

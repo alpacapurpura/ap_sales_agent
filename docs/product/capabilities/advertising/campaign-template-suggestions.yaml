@@ -1,0 +1,39 @@
+---
+id: campaign-template-suggestions
+name: "Sugerencias de templates de campaña ads"
+module: advertising
+backbone_activity: "Acelerar creación campaña ads"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/advertising.md"
+  stories_dir: "../../stories/advertising/"
+description: "Sugerencias de templates de campaña ads basados en oferta del tenant + benchmarks. Retorna AdCampaignTemplateDTO con configuración recomendada (objetivo, audience hints, budget hints, format)."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - advertising-campaign-template-suggest
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- GET `/api/v1/advertising/campaign-templates/suggest` por oferta
+- CampaignTemplateService devuelve recomendaciones
+- Health check Meta endpoint (`/api/v1/advertising/health-check`) — verifica conectividad token
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| advertising-campaign-template-suggest | service-story | live | ../../stories/advertising/advertising-campaign-template-suggest.yaml |
+
+## Gaps identificados
+
+- Templates son hardcoded (no aprenden de tenant)
+- Sin integración con Meta Marketing API para crear campaña directa (placeholder según module doc)
+- No hay UI guiada flow "crea campaña ads desde Nicolify" — gap mayor reconocido

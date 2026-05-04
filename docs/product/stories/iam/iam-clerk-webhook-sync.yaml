@@ -1,0 +1,129 @@
+---
+id: iam-clerk-webhook-sync
+type: service-story
+module: iam
+capability: auth-tenant-resolution
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/iam.md"
+  capability: "../../capabilities/iam/auth-tenant-resolution.yaml"
+  domain_doc: "../../../domains/module_iam.md"
+  related_stories:
+    - iam-current-user-tenant-resolution
+
+context:
+  job: "Como sistema necesito recibir webhooks de Clerk (`user.created/updated/deleted`) para mantener espejo local de users sincronizado con Clerk SSoT"
+  why: "Sin sync, queries `get_current_user` no resuelven y nuevos signups no pueden operar. Si webhook falla silenciosamente, usuarios huérfanos en Clerk no aparecen en nuestro DB y la app cruje al primer request autenticado."
+  constraints:
+    - "Idempotente (mismo evento 2x → sin duplicar row)"
+    - "No tenant-scoped (webhook system-wide, no header X-Tenant-ID)"
+    - "Signature verification Clerk obligatoria (svix headers)"
+    - "Soft delete on `user.deleted` (no hard delete — mantener integridad referencial)"
+    - "Latencia < 5s para retry policy Clerk OK"
+
+outcome:
+  consumer_observable: "Clerk recibe Status 200 tras procesar evento. Tabla `users` espejea último estado del user."
+  product_observable:
+    - "DB: row en `users` insertada/actualizada/soft-deletada según event_type"
+    - "Eventos emitidos: ninguno (este ES el handler de evento externo)"
+    - "Métrics: webhook_processed{event_type=...} incrementado"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/iam/webhooks/clerk
+  request_schema: "Clerk webhook payload (svix-verified)"
+  response_schema: "{status: 'ok'}"
+  auth: api-key
+  rate_limit_per_tenant: "n/a (webhook system-wide)"
+  idempotency: natural-key
+  trigger: "Clerk webhook events: user.created, user.updated, user.deleted"
+
+scenarios:
+  - id: happy-path-user-created
+    type: regression
+    given:
+      - "Clerk envía POST /api/v1/iam/webhooks/clerk con event_type=user.created y svix signature válida"
+    when: "Backend procesa el webhook"
+    then:
+      - "Status 200 con body {status:'ok'}"
+      - "DB: row nuevo en `users` con clerk_user_id, email, name del payload"
+      - "Tras eventual login: GET /api/v1/iam/auth/me retorna user info"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_webhooks.py"
+      - type: state_check
+        target: db
+        query: "SELECT clerk_user_id, email FROM users WHERE clerk_user_id = ?"
+        expect: "1 row matching payload"
+
+  - id: invalid-signature
+    type: regression
+    given:
+      - "Webhook payload con svix signature inválida (no firmado por Clerk)"
+    when: "POST /api/v1/iam/webhooks/clerk"
+    then:
+      - "Status 401 o 400 (rechaza por signature mismatch)"
+      - "DB: ningún row tocado"
+      - "Log warning sobre intento webhook no autenticado"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_webhooks.py"
+
+  - id: idempotent-replay
+    type: regression
+    given:
+      - "Clerk reenvía mismo evento user.created (retry policy)"
+    when: "POST 2x con mismo svix-id"
+    then:
+      - "Ambos requests retornan 200"
+      - "DB: solo 1 row en `users` para ese clerk_user_id (UPSERT, no duplica)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_webhooks.py"
+
+  - id: cross-tenant-leak
+    type: regression
+    given:
+      - "Webhook payload manipulado intentando sobrescribir user de otro tenant"
+    when: "Webhook con clerk_user_id que coincide con otro tenant intenta cambiar email/role"
+    then:
+      - "Backend identifica user por clerk_user_id (no asume tenant del payload)"
+      - "Sync respeta scoping: no permite escalada a tenant ajeno"
+      - "Audit log: intento sospechoso (si hay heurística)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/iam/test_webhooks.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - "todos (vía get_current_user)"
+  emits_events: []
+  consumes_events:
+    - "clerk.user.created"
+    - "clerk.user.updated"
+    - "clerk.user.deleted"
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: 3
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/iam/test_webhooks.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

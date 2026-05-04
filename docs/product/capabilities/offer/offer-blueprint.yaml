@@ -1,0 +1,45 @@
+---
+id: offer-blueprint
+name: "Blueprint completo de oferta"
+module: offer
+backbone_activity: "Estructurar oferta"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/offer.md"
+  stories_dir: "../../stories/offer/"
+description: "Editor completo de una oferta individual: 21 secciones homologadas, fields per archetype/format/variant, conditional questions por preset. Form-runtime cards/split mode automático."
+stories_live: 3
+stories_planned: 0
+stories_total: 3
+story_ids:
+  - offer-blueprint-edit
+  - offer-pricing-tiers-edit
+  - offer-variants-polymorphic
+copilot_operable: true
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Edición de oferta a nivel section (identity, promise, psychology, gallery, instructors, location, pricing, etc.)
+- Pricing tiers con multi-currency (TenantLocale-driven)
+- Variants polimórficas (TIER, BUNDLE) con archetype-aware UI
+- Conditional questions por preset (76 presets soportados)
+- Sections cross-módulo: LOCATION → scheduling, PRICING → connections, INSTRUCTORS → brand team
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| offer-blueprint-edit | ui-story | live | ../../stories/offer/offer-blueprint-edit.yaml |
+| offer-pricing-tiers-edit | ui-story | live | ../../stories/offer/offer-pricing-tiers-edit.yaml |
+| offer-variants-polymorphic | ui-story | live | ../../stories/offer/offer-variants-polymorphic.yaml |
+
+## Gaps identificados
+
+- E2E regression `offer-variants-polymorphic.regression.spec.ts` existe; resto sin e2e regression dedicado
+- Conditional questions: no hay test que verifique que cambiar preset surface/oculta secciones esperadas
+- Cross-module integration LOCATION→scheduling no tiene contract test E2E

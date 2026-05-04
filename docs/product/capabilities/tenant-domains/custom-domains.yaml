@@ -1,0 +1,48 @@
+---
+id: custom-domains
+name: "Dominios custom vía Cloudflare CHM"
+module: tenant-domains
+backbone_activity: "Conectar dominio propio del tenant"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/tenant-domains.md"
+  stories_dir: "../../stories/tenant-domains/"
+description: "Permite al tenant conectar su dominio propio (e.g. `mimarca.com`) para landing pages, booking pages, etc. Vía Cloudflare Custom Hostnames (CHM): registro, verificación DNS, SSL automático, monitoring de status. Worker `poll_domain_verification` polea Cloudflare hasta que el SSL esté ready."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - tenant-domains-add-and-verify
+  - tenant-domains-worker-poll
+copilot_operable: false
+date_introduced: null
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- POST `/api/v1/domains/` — agregar custom domain con instrucciones DNS
+- GET `/api/v1/domains/{id}/instructions` — instrucciones CNAME/TXT que el tenant pega en su DNS
+- POST `/api/v1/domains/{id}/verify` — disparar verificación on-demand (re-check DNS + SSL status)
+- GET listing + detail con status (`pending` | `verified` | `failed` | `active`)
+- PATCH set primary domain
+- DELETE soft delete
+- Worker `poll_domain_verification` (background) polea Cloudflare hasta SSL ready
+- UI lite `tenant-domains` feature: `CustomDomainWizard`, `DomainList`, `DomainSettings`, `DomainStatusBadge`, `PlatformSubdomain`
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| tenant-domains-add-and-verify | ui-story | live | ../../stories/tenant-domains/tenant-domains-add-and-verify.yaml |
+| tenant-domains-worker-poll | service-story | live | ../../stories/tenant-domains/tenant-domains-worker-poll.yaml |
+
+## Gaps identificados
+
+- Sin tool copilot para flow OAuth + verificación DNS conversacional (gap doc en módulo)
+- Cloudflare API errors (rate limit, transient) no exponen retry policy clara al user
+- Sin métric/alert si worker `poll_domain_verification` se atasca en pending por >24h
+- No hay test E2E que exercise el wizard completo (solo unit FE + integration BE)
+- DNS conflict edge cases (`extract_root_domain` cubre algunos pero no exhaustivo en e.g. wildcard subdominios)

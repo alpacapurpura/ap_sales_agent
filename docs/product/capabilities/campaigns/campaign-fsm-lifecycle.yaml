@@ -1,0 +1,46 @@
+---
+id: campaign-fsm-lifecycle
+name: "Campaign FSM lifecycle (CRUD + estados)"
+module: campaigns
+backbone_activity: "Crear y operar campañas outbound"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/campaigns.md"
+  stories_dir: "../../stories/campaigns/"
+description: "Aggregate Campaign con FSM 6 estados (draft/scheduled/running/paused/completed/failed/cancelled) + DAG steps. CRUD endpoints + transiciones (launch/pause/complete/cancel) + idempotency-key opt-in + plan enforcement (402). Domain pure + arch tests Hypothesis property-based."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - campaigns-crud-and-fsm
+  - campaigns-launch-with-orchestrator
+copilot_operable: false
+date_introduced: 2026-04
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Campaign aggregate + 6-state FSM (draft → scheduled → running → paused/completed/failed/cancelled)
+- DAG steps (CampaignStep con step_type CALL_SUBAGENT_BRIEF, MESSAGE_SEND, etc)
+- 9 endpoints REST `/api/v1/campaigns/` (CRUD + 4 transitions + list paginated)
+- Idempotency-key opt-in via header
+- Plan enforcement (402 si tenant fuera de plan)
+- Soft-delete tenant-scoped
+- Audit log via `AuditLogService` best-effort
+- 4 arch fitness tests AST-based (response_model, FSM service-layer, pagination, segment SQL)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| campaigns-crud-and-fsm | service-story | live | ../../stories/campaigns/campaigns-crud-and-fsm.yaml |
+| campaigns-launch-with-orchestrator | service-story | live | ../../stories/campaigns/campaigns-launch-with-orchestrator.yaml |
+
+## Gaps identificados
+
+- Copilot tools wiring PENDIENTE (`campaign_get_status`, `campaign_pause`, `campaign_launch`) — S3 PR-8
+- E2E regression spec existe (`campaign-launch-telegram.spec.ts`) pero solo cubre Telegram MVP-1
+- `campaign_get_status` tool no expuesto al copilot aún → user no puede consultar status conversacionalmente

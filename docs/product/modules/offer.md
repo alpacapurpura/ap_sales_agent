@@ -67,3 +67,11 @@ _Pendiente captura._
 |---|---|---|
 | 2026-04 | Eliminadas METHODOLOGY + CREDENTIALS sections | Duplicaban brand-studio |
 | 2026-04 | OfferTypePreset 7th catalog axis | Modelar presets por tipo negocio + archetype |
+
+## Capabilities (auto-mapped 2026-05-04)
+
+- [offer-ladder](../capabilities/offer/offer-ladder.yaml) — live, 2 stories
+- [offer-blueprint](../capabilities/offer/offer-blueprint.yaml) — live, 3 stories
+- [offer-extraction](../capabilities/offer/offer-extraction.yaml) — live, 1 story
+- [offer-editions-launch](../capabilities/offer/offer-editions-launch.yaml) — live, 2 stories
+- [offer-presets-catalogs](../capabilities/offer/offer-presets-catalogs.yaml) — live, 1 story

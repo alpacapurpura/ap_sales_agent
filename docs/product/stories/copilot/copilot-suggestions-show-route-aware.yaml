@@ -1,0 +1,131 @@
+---
+id: copilot-suggestions-show-route-aware
+type: service-story
+module: copilot
+capability: copilot-suggestions-engine
+status: live
+slice: V1
+last_audit: 2026-05-04
+date_introduced: 2026-04-29
+pr_introduced: PR-2
+pi_introduced: PI-2
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/copilot.md"
+  capability: "../../capabilities/copilot/copilot-suggestions-engine.yaml"
+  domain_doc: "../../../domains/module_copilot.md"
+  related_stories:
+    - copilot-suggestions-accept-emit-event
+
+context:
+  job: "Como sistema necesito ranquear smart-chips contextual a la route actual y devolverlas en <11ms p99 con 4 providers (offer/brand/sales_agent/copilot)."
+  why: "User flujo bajo input chat: chips dirigen exploración. Latencia >100ms = abandono. LLM ranking = backlog (heuristico primero)."
+  constraints:
+    - "Latencia <11ms p99 con 4 providers (CONTRACT D-15)"
+    - "Heuristic only (NO LLM ranking en este motor)"
+    - "Provider priority: int per provider (tiebreak)"
+    - "Cross-module: SalesAgentObservabilityPort read-only (port-mediated)"
+    - "Persistencia via copilot_trace_event (no tabla nueva)"
+
+outcome:
+  consumer_observable: "FE useSuggestions React Query hook recibe `{suggestions[], breakdown, latency_ms}` <11ms"
+  product_observable:
+    - "DB: copilot_trace_event 1 row event_type='suggestion_shown' por turn"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/copilot/suggestions
+  request_schema: "copilot/api/suggestions_dto.py::SuggestionsRequest"
+  response_schema: "copilot/api/suggestions_dto.py::SuggestionsResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "60/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-offer-studio-route-no-offers
+    type: regression
+    given:
+      - "tenant T1 route=offer-studio, 0 offers existing"
+    when: "POST /copilot/suggestions con route_state"
+    then:
+      - "OfferProvider rule 'no offers → create chip' matches"
+      - "Response includes suggestion 'Crear primera oferta'"
+      - "Latency <11ms"
+      - "DB: copilot_trace_event event_type='suggestion_shown' 1 row"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/suggestions/"
+      - type: state_check
+        target: db
+        query: "SELECT event_type FROM copilot_trace_event WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 1"
+        expect: "suggestion_shown"
+
+  - id: cross-module-sales-agent-port
+    type: regression
+    given:
+      - "tenant T1 route=sales, sales_agent enrollments=5 (read-only via port)"
+    when: "POST /copilot/suggestions"
+    then:
+      - "SalesAgentObservabilityPort consultado (read-only)"
+      - "PII-stripped DTO retornado"
+      - "Provider sales_agent emite chip basado en enrollments count"
+      - "NO se toca §3 protected (Closer Studio API/WS, BufferService, OutputManager, FollowUp)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/architecture/test_copilot_sales_agent_port_only.py"
+
+  - id: provider-failure-graceful
+    type: edge
+    given:
+      - "BrandProvider raises exception"
+    when: "engine ejecuta"
+    then:
+      - "engine catches per-provider exception"
+      - "Returns suggestions de other providers (offer/sales_agent/copilot)"
+      - "Best-effort 200 response"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/copilot/suggestions/"
+
+  - id: cross-tenant-suggestions-leak
+    type: adversarial
+    given:
+      - "tenant T1 calls suggestions endpoint con header X-Tenant-ID=T2"
+    when: "engine ejecuta"
+    then:
+      - "Tenant isolation enforced (providers tenant-scoped)"
+      - "Response solo contiene data T1 (rejected T2 spoof)"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST /copilot/suggestions con X-Tenant-ID spoofeado"
+        expect: "403 o data del header válido"
+
+cross_module:
+  reads_from:
+    - offer
+    - brand
+    - sales_agent
+  read_by: []
+  emits_events:
+    - SuggestionShown
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/copilot/suggestions/"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

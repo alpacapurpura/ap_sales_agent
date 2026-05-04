@@ -1,0 +1,116 @@
+---
+id: analytics-metric-catalog-listing
+type: service-story
+module: analytics
+capability: metric-catalog-channel-registry
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/metric-catalog-channel-registry.yaml"
+  domain_doc: "../../../domains/module_analytics.md"
+  related_stories:
+    - analytics-channel-registry-grouping
+
+context:
+  job: "Como copilot/dev necesito catálogo SSoT de métricas con units, currency flag, semantics — para que LLM no invente nombres y FE pueda formatear correctamente"
+  why: "Sin catálogo SSoT, LLM alucina métricas inexistentes y dashboards muestran units inconsistentes"
+  constraints:
+    - "Read-only public catalog"
+    - "Tenant-agnostic (catálogo es global)"
+    - "Validation arch test que constants en metric_catalog.py"
+
+outcome:
+  consumer_observable: "GET /api/v1/metrics/catalog retorna lista de métricas con metadata"
+  product_observable:
+    - "Response shape: list of {id, name, unit, currency, semantics}"
+
+service_contract:
+  type: endpoint
+  method: GET
+  path: /api/v1/metrics/catalog
+  request_schema: null
+  response_schema: "backend/src/modules/analytics/api/metrics.py::MetricCatalogResponse"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "100/min"
+  idempotency: none
+  trigger: null
+
+scenarios:
+  - id: happy-path-catalog-listing
+    type: regression
+    given:
+      - "Catálogo populated con N métricas core"
+    when: "GET /api/v1/metrics/catalog"
+    then:
+      - "200 con N métricas"
+      - "Cada métrica tiene id, name, unit"
+      - "Métricas currency-flagged tienen currency hint"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metric_catalog.py"
+      - type: state_check
+        target: api
+        query: "GET /api/v1/metrics/catalog"
+        expect: "200 list"
+
+  - id: catalog-validation-arch-gate
+    type: negative
+    given:
+      - "Dev intenta agregar métrica sin currency flag"
+    when: "Arch fitness test corre"
+    then:
+      - "Test falla con clear error message"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metric_catalog_validation.py"
+
+  - id: empty-catalog-edge
+    type: edge
+    given:
+      - "Hipotético catálogo vacío (regression test)"
+    when: "GET /api/v1/metrics/catalog"
+    then:
+      - "200 con []"
+      - "Sin 5xx"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metric_catalog.py"
+
+  - id: cross-tenant-not-applicable
+    type: adversarial
+    when: "Catalog es global — no debe variar por tenant"
+    then:
+      - "Tenant T1 y T2 reciben mismo catálogo"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/analytics/test_metric_catalog.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - copilot
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/analytics/test_metric_catalog.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

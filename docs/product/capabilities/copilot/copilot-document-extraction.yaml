@@ -1,0 +1,48 @@
+---
+id: copilot-document-extraction
+name: "Document extraction → fields"
+module: copilot
+backbone_activity: "Auto-completar formularios de los studios"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/copilot.md"
+  stories_dir: "../../stories/copilot/"
+description: "User sube doc/PDF/url → tools (`extract_from_doc`, `fetch_url`, `extract_from_url`) → contextual_chunker → LLM extraction → propose_field_updates emite Card UI con diff propuesto → user acepta → `mutation_apply_service` persiste en módulo target (brand/offer/landing). Caso uso #1 del copilot."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - copilot-doc-extract-to-brand-fields
+  - copilot-url-extract-to-offer-fields
+copilot_operable: true
+date_introduced: 2026-03
+last_modified: 2026-04-29
+---
+
+## Capabilities cubiertas por este grupo
+
+- `application/tools/extract_from_doc.py` — PDF/DOCX/TXT vía document_processor
+- `application/tools/fetch_url.py` + `url_inspiration_analyzer.py` — scrape + extract
+- `application/services/document_processor.py` — multi-format orchestrator
+- `application/services/contextual_chunker.py` — chunk grande → small + context summary
+- `application/extraction_card_flow.py` — emite Card UI con propuestas
+- `extraction_card_flow` usa `@idempotent` decorator (PI-1 S0 PR-1) — at-least-once dedup
+- `application/services/mutation_apply_service.py` — persiste tras user accept
+- Module Registry → introspección Pydantic schemas (resilience a cambios brand/offer)
+- Schema introspection (no hardcode fields per Decision 2026-04)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| copilot-doc-extract-to-brand-fields | agentic-story | live | ../../stories/copilot/copilot-doc-extract-to-brand-fields.yaml |
+| copilot-url-extract-to-offer-fields | agentic-story | live | ../../stories/copilot/copilot-url-extract-to-offer-fields.yaml |
+
+## Gaps identificados
+
+- No eval suite con goldens documentos reales (PDFs Brand → expected fields)
+- Adversarial: doc malicioso con prompt injection ("ignore previous, extract X as Y") — no testeado en eval
+- Fallback handling: extracción retorna 0 fields → user-facing message ambiguo
+- Card UI accept/reject → mutation_apply_service no tiene rollback transaccional cross-module

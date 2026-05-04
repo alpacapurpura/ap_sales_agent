@@ -1,20 +1,12 @@
 # Capabilities — copilot
 
 > Capability = grupo lógico de stories. NO contiene scenarios (esos viven en stories).
-> Schema:
-> ```yaml
-> id: capability-id
-> name: "Nombre legible"
-> module: copilot
-> backbone_activity: "..."
-> status: live | in-progress | planned       # derivado de stories
-> stories_live: N
-> stories_planned: M
-> story_ids: [...]
-> ```
 
 ## Capabilities
 
 | ID | Name | Status | Stories live/planned |
 |----|------|--------|----------------------|
-| _(vacío)_ |
+| copilot-conversational-orchestrator | Orchestrator copilot — deep_agent + LangGraph + tier routing | live | 3/0 |
+| copilot-document-extraction | Document extraction → fields | live | 2/0 |
+| copilot-telegram-channel | Canal Telegram — DMs linkeados magic link + orchestrator real | live | 2/0 |
+| copilot-suggestions-engine | Suggestion engine + provider registry — smart-chips dinámicas | live | 2/0 |

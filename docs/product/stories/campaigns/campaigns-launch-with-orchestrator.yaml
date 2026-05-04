@@ -1,0 +1,129 @@
+---
+id: campaigns-launch-with-orchestrator
+type: service-story
+module: campaigns
+capability: campaign-fsm-lifecycle
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-5
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/campaign-fsm-lifecycle.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories:
+    - campaigns-orchestrator-launch
+    - campaigns-crud-and-fsm
+
+context:
+  job: "Como user al hacer POST /campaigns/{id}/launch necesito que orchestrator real (no STUB) cree root tasks single-TX y disparé worker para Telegram"
+  why: "Antes de PR-5 era STUB (no creaba tasks). Sin tasks, worker no procesa, mensajes no salen. Esta story es el bridge end-to-end."
+  constraints:
+    - "Idempotente (re-launch no duplica root tasks)"
+    - "Single-TX (tasks creadas atomically con state transition)"
+    - "Solo root tasks (step_index==0) — descendientes en S3+ via worker"
+    - "Plan enforcement"
+
+outcome:
+  consumer_observable: "POST /campaigns/{id}/launch retorna 200, state→running, worker recibe trabajo"
+  product_observable:
+    - "DB: campaign.state=running"
+    - "DB: N CampaignTask rows en pending state"
+    - "ARQ queue `arq:campaigns_execution` con N jobs"
+    - "Audit log: 1 entry CampaignLaunched"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/campaigns/{id}/launch
+  request_schema: null
+  response_schema: "backend/src/modules/campaigns/api/routers/campaigns_router.py"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "10/min"
+  idempotency: natural-key
+  trigger: null
+
+scenarios:
+  - id: happy-path-launch-creates-root-tasks
+    type: regression
+    given:
+      - "Campaign C1 state=draft, segment S1 con 5 leads, 3 steps"
+    when: "POST /campaigns/C1/launch"
+    then:
+      - "200"
+      - "DB state=running"
+      - "DB: 5 CampaignTask root rows (1 per lead, step_index=0)"
+      - "Queue ARQ con 5 jobs"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_campaigns_launch_real.py"
+      - type: state_check
+        target: db
+        query: "SELECT count(*) FROM campaign_task WHERE campaign_id=:c AND step_index=0"
+        expect: "5"
+
+  - id: launch-already-running
+    type: negative
+    given:
+      - "Campaign C1 state=running"
+    when: "POST /campaigns/C1/launch"
+    then:
+      - "409 invalid_transition"
+      - "DB no cambia"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_campaigns_launch_real.py"
+
+  - id: launch-empty-segment
+    type: edge
+    given:
+      - "Campaign con segment sin leads"
+    when: "POST /campaigns/{id}/launch"
+    then:
+      - "200 (no leads no es error)"
+      - "DB: campaign.state=running, 0 tasks"
+      - "Eventualmente state=completed (no work pending)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_orchestrator.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 launch campaign de T2"
+    then:
+      - "404"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_campaigns_api.py"
+
+cross_module:
+  reads_from:
+    - crm
+  read_by:
+    - sales_agent
+  emits_events:
+    - campaign.launched
+  consumes_events: []
+
+dependencies:
+  stories:
+    - campaigns-crud-and-fsm
+    - campaigns-segment-create-and-resolve
+    - campaigns-orchestrator-launch
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/campaigns/api/test_campaigns_launch_real.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

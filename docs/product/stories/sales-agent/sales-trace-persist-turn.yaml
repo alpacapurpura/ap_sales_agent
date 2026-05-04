@@ -1,0 +1,135 @@
+---
+id: sales-trace-persist-turn
+type: service-story
+module: sales-agent
+capability: sales-observability-cost-tracking
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-05-01
+pr_introduced: PR-2
+pi_introduced: PI-1.1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-observability-cost-tracking.yaml"
+  domain_doc: "../../../domains/module_sales_agent.md"
+  related_stories:
+    - sales-cost-tracking-cycle-billing
+
+context:
+  job: "Como sistema necesito persistir 1 row trace_event + N rows llm_call por cada agent_app.ainvoke turn, capturando state machine transitions, tool calls, LLM model, tokens, cost_usd."
+  why: "Sin trazas reales, debugging imposible. Pre-PR-2 PI-1.1: 0 rows globalmente. Post: traces persistidos."
+  constraints:
+    - "Best-effort try/except — fallo persistence NO rompe turn (structlog warning)"
+    - "PII redaction obligatoria via shared sanitize_payload()"
+    - "Tenant-scoped (tenant_id required en cada row)"
+    - "FK lead_id + offer_id soft-delete-aware"
+
+outcome:
+  consumer_observable: "Streamlit /admin/cost-sales-agent + /admin/copilot-traces queries retornan rows del turn dentro de 5s post-turn-end"
+  product_observable:
+    - "DB: sales_agent_trace_event 1 row per turn"
+    - "DB: sales_agent_llm_call N rows (N llamadas LLM en el turn)"
+    - "Cost_usd captured even on errors (FXResolver.default() fallback rate)"
+    - "Recorder writes wrapped in try/except (no turn break)"
+
+service_contract:
+  type: event_handler
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "observe_turn lifecycle around agent_app.ainvoke"
+
+scenarios:
+  - id: happy-turn-persist
+    type: regression
+    given:
+      - "tenant T1 + lead L1 + active conversation"
+      - "agent_app.ainvoke executes 1 turn (qualifier specialist + 1 LLM call DeepSeek-V4-Flash)"
+    when: "observe_turn lifecycle wraps invoke"
+    then:
+      - "Status 'turn_end' status='ok'"
+      - "DB: sales_agent_trace_event 1 row con tenant_id + lead_id + turn_kind='inbound' + specialist='qualifier'"
+      - "DB: sales_agent_llm_call 1 row con model='deepseek-v4-flash' + cost_usd > 0 + fx_rate captured"
+      - "PII sanitized en payload column"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/observability/test_real_trace_persistence.py"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM sales_agent_trace_event WHERE tenant_id = ? AND lead_id = ?"
+        expect: ">= 1"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM sales_agent_llm_call WHERE tenant_id = ? AND lead_id = ?"
+        expect: ">= 1"
+
+  - id: persist-on-error-best-effort
+    type: edge
+    given:
+      - "agent_app.ainvoke raises mid-turn (LLM provider 503)"
+    when: "observe_turn captures exception"
+    then:
+      - "DB: sales_agent_trace_event 1 row status='error' + error_class captured"
+      - "DB: sales_agent_llm_call 1 row con cost_usd capturado (input tokens billed even si output failed)"
+      - "Turn raises exception to caller (no swallow)"
+      - "Recorder NO crash si DB write falla (structlog.warning)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/observability/test_repositories.py"
+
+  - id: recorder-write-failure-soft
+    type: edge
+    given:
+      - "DB unavailable (postgres connection refused)"
+    when: "agent_app.ainvoke completes but recorder write fails"
+    then:
+      - "Turn returns success to caller (no break)"
+      - "structlog.warning('trace_persist_failed', ...) emitted"
+      - "Reconciliation worker (dual_write) catches up next run"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/observability/test_dual_write_reconciliation.py"
+
+  - id: cross-tenant-isolation
+    type: adversarial
+    given:
+      - "tenant T1 turn"
+    when: "Recorder receives invalid tenant_id (T2 spoofed)"
+    then:
+      - "Repository rejects (FK + tenant_id check)"
+      - "Audit log entry"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/sales_agent/observability/test_repositories.py"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - copilot
+  emits_events: []
+  consumes_events:
+    - turn_end
+    - llm_call_completed
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/sales_agent/observability/"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

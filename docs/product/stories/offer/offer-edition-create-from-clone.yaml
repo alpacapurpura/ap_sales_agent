@@ -1,0 +1,122 @@
+---
+id: offer-edition-create-from-clone
+type: ui-story
+module: offer
+capability: offer-editions-launch
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+
+links:
+  module_doc: "../../modules/offer.md"
+  capability: "../../capabilities/offer/offer-editions-launch.yaml"
+  domain_doc: "../../../domains/module_offer.md"
+  related_stories:
+    - offer-edition-publish
+
+context:
+  job: "Como user quiero crear una edition nueva (cohorte/lanzamiento) clonando una existente para no rearmar todo el blueprint manualmente cada vez que lanzo Q3, Q4, etc."
+  why: "Cada lanzamiento es una edition. Sin clonado, hay que rearmar landing/assets/precios desde cero → high friction → menos lanzamientos."
+  constraints:
+    - "Tenant-scoped"
+    - "Dry-run preview antes de confirmar (qué se clona, qué no)"
+    - "Auto-save on change"
+    - "Edition placeholder pattern para validar antes de publicar"
+
+outcome:
+  user_observable: "Usuario click 'Clonar edición Q1', preview muestra 'Se clonan: blueprint, landing, assets. NO se clonan: ventas, leads.' Confirma → edition Q2 lista."
+  product_observable:
+    - "DB: launch_editions row insertado con cloned_from_id"
+    - "DB: relaciones (landing, assets) creadas en placeholder state"
+    - "Domain event LaunchEditionCreated emitido"
+
+scenarios:
+  - id: clone-edition-q1-to-q2
+    type: regression
+    given:
+      - "Tenant T1, offer id=42 con edition Q1 publicada"
+    when: "Usuario click 'Clonar edición' en Q1, confirma preview, asigna nuevo code='q2-2026'"
+    then:
+      - "POST /api/v1/offers/42/editions/clone retorna 201"
+      - "DB: launch_editions con code='q2-2026' y cloned_from_id=Q1.id"
+      - "DB: landing_pages clonada con state=draft"
+      - "DB: ventas/leads NO clonadas (queryable: 0 leads en Q2)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/offer/test_edition_placeholder_and_publishing.py"
+      - type: state_check
+        target: db
+        query: "SELECT cloned_from_id, code, state FROM launch_editions WHERE offer_id = 42 AND code = 'q2-2026'"
+        expect: "cloned_from_id IS NOT NULL, state='draft'"
+
+  - id: dry-run-preview
+    type: regression
+    given:
+      - "Tenant T1 con edition Q1"
+    when: "Usuario click 'Preview clonado' (dry-run)"
+    then:
+      - "Response muestra qué se clonaría sin persistir"
+      - "DB: NO se inserta nueva edition"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/brand/test_clone_dry_run.py"
+
+  - id: duplicate-code
+    type: negative
+    given:
+      - "Tenant T1, offer id=42 ya tiene edition code='q2-2026'"
+    when: "Usuario clona Q1 e intenta usar mismo code"
+    then:
+      - "Status 409 Conflict 'Ya existe edition con ese code'"
+      - "DB: no se inserta nueva edition"
+    graders:
+      - type: contract_test
+        path: null
+
+  - id: cross-tenant-clone-attempt
+    type: adversarial
+    given:
+      - "Tenant T2 con edition Q1 id=99"
+    when: "Usuario A (T1) hace POST /api/v1/offers/{x}/editions/clone con cloned_from_id=99"
+    then:
+      - "404 Not Found"
+      - "DB: editions de T2 sin cambios"
+    graders:
+      - type: state_check
+        target: api
+        query: "POST clone con cloned_from_id de otro tenant"
+        expect: "404"
+
+cross_module:
+  reads_from: []
+  read_by:
+    - landing
+    - assets
+    - sales_agent
+  emits_events:
+    - LaunchEditionCreated
+  consumes_events: []
+
+dependencies:
+  stories:
+    - offer-blueprint-edit
+  capabilities:
+    - offer-editions-launch
+
+estimate:
+  story_points: null
+  rough_hours: null
+  copilot_operable: false
+  copilot_tool_name: null
+
+test_coverage:
+  e2e_test: null
+  state_check_implemented: true
+  unit_tests: true
+  integration_tests: true
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

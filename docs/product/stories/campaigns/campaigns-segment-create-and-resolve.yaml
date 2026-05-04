@@ -1,0 +1,120 @@
+---
+id: campaigns-segment-create-and-resolve
+type: service-story
+module: campaigns
+capability: segment-targeting
+status: live
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: 2026-04
+pr_introduced: PR-3
+pi_introduced: PI-1
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/campaigns.md"
+  capability: "../../capabilities/campaigns/segment-targeting.yaml"
+  domain_doc: "../../../domains/module_campaigns.md"
+  related_stories:
+    - campaigns-segment-refresh-tick
+
+context:
+  job: "Como user/sistema necesito crear segmentos con filter DSL strict, resolver SQL-side a leads concretos y materializar snapshot opt-in"
+  why: "Sin segment, campaign no sabe a quién mensajear. Strict filter (extra=forbid) bloquea typos y queries crashing. SQL-side filter escala (no carga todos los leads)"
+  constraints:
+    - "Tenant-scoped"
+    - "Filter DSL strict (Pydantic extra=forbid)"
+    - "SQL-side filtering via LeadQueryPort (no cross-module crm directo)"
+    - "Snapshot opt-in (no materializa por default)"
+    - "Soft-delete"
+
+outcome:
+  consumer_observable: "Endpoints CRUD + resolve + snapshot funcionando"
+  product_observable:
+    - "DB: `segment` + `segment_filter` + (opt-in) `segment_snapshot`"
+    - "Resolve devuelve count + lead_ids preview"
+
+service_contract:
+  type: endpoint
+  method: POST
+  path: /api/v1/segments/
+  request_schema: "backend/src/modules/campaigns/api/routers/segments_router.py"
+  response_schema: "backend/src/modules/campaigns/api/routers/segments_router.py"
+  auth: clerk-jwt
+  rate_limit_per_tenant: "30/min"
+  idempotency: header
+  trigger: null
+
+scenarios:
+  - id: happy-path-create-and-resolve-segment
+    type: regression
+    given:
+      - "Tenant T1 con 100 leads en CRM"
+    when: "POST /segments con filter {tags:['warm'], min_engagement:5}"
+    then:
+      - "201 con SegmentDTO"
+      - "POST /segments/{id}/resolve retorna count + lead_ids"
+      - "Filter ejecutado SQL-side (no carga todos)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_segments_integration.py"
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_segment_filter_evaluator.py"
+
+  - id: invalid-filter-extra-field
+    type: negative
+    given:
+      - "POST /segments con filter inválido (campo no permitido)"
+    when: "Pydantic validation extra=forbid corre"
+    then:
+      - "Status 422 con detail field_not_allowed"
+      - "DB no se modifica"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/domain/test_segment_filter_dsl.py"
+
+  - id: snapshot-materialization
+    type: edge
+    given:
+      - "Segment S1 STATIC type"
+    when: "POST /segments/S1/resolve con snapshot=true"
+    then:
+      - "DB: segment_snapshot row creada con lead_ids array"
+      - "Subsequent GET /segments/S1/snapshot retorna mismo set"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/application/test_segment_service.py"
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "User T1 resolve segment de T2"
+    then:
+      - "404"
+      - "Sin lead_ids leak"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/campaigns/api/test_segments_integration.py"
+
+cross_module:
+  reads_from:
+    - crm
+  read_by: []
+  emits_events:
+    - segment.resolved
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/modules/campaigns/api/test_segments_integration.py"
+  state_check_implemented: true
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

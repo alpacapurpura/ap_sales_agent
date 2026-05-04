@@ -1,0 +1,45 @@
+---
+id: brand-personality-voice
+name: "Personalidad y voz de marca"
+module: brand
+backbone_activity: "Capturar marca"
+last_audit: 2026-05-04
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/brand.md"
+  stories_dir: "../../stories/brand/"
+description: "Configura voz y personalidad de marca via 3-pillar engine (dimensions/patterns/exchanges), 6 presets base y cloning chat. SSoT del estilo del sales_agent."
+stories_live: 2
+stories_planned: 0
+stories_total: 2
+story_ids:
+  - brand-personality-edit
+  - brand-style-clone-from-chat
+copilot_operable: true
+date_introduced: 2026-04-28
+last_modified: 2026-05-04
+---
+
+## Capabilities cubiertas por este grupo
+
+- Edición de PersonalityProfile (3 pilares: dimensions, patterns, exchanges)
+- 6 presets base (cercano, autoridad, directo, etc) seleccionables
+- Cloning de estilo desde un chat real pegado por el user (extracción LLM)
+- Edición de communication_style (`brand_studio/estilo`) — punto único de configuración
+- system_instruction generada (SSoT voz consumida por sales_agent compiler v2)
+- Voice fidelity grader (grader.py) para validar output agentes contra voz declarada
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| brand-personality-edit | ui-story | live | ../../stories/brand/brand-personality-edit.yaml |
+| brand-style-clone-from-chat | agentic-story | live | ../../stories/brand/brand-style-clone-from-chat.yaml |
+
+## Gaps identificados
+
+- E2E `personality.smoke.spec.ts` solo valida render — falta regression flow completo (edit → save → sales_agent consume nueva voz)
+- Voice fidelity grader (`backend/src/modules/brand/application/voice_fidelity/grader.py`) tiene tests pero no está incluido en CI gates de PRs que tocan personality
+- Cloning chat agentic no tiene eval suite dedicada (no rubrics, no personas de prueba)
+- DR-7 (BudgetGuard wiring) — 7 callsites brand sin BudgetGuard wrap activo
