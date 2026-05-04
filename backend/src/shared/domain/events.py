@@ -12,13 +12,50 @@ Usage:
 """
 
 import logging
+import sys
+import warnings
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
+import structlog
+
 logger = logging.getLogger(__name__)
+_structlog_logger = structlog.get_logger(__name__)
+
+
+def _is_internal_caller_or_test() -> bool:
+    """Return True if caller is inside shared/domain_events/* OR tests/*.
+
+    Used to suppress the deprecation warning during:
+    - EventBusAdapter fall-through (adapter calls EventBus.publish when flag=False)
+    - Test capability suites (tests/shared/test_event_bus.py, tests/shared/domain_events/*)
+
+    Best-effort: on any error, suppress warning (don't break caller).
+
+    PI-11 PR-1 § 5 D3 (2026-05-04).
+    """
+    try:
+        frame = sys._getframe(2)  # Skip publish() + this helper frame
+        depth = 0
+        while frame is not None and depth < 10:
+            filename = frame.f_code.co_filename
+            if (
+                "shared/domain_events/" in filename
+                or "shared\\domain_events\\" in filename
+                or "shared/domain/events.py" in filename
+                or "shared\\domain\\events.py" in filename
+                or "/tests/" in filename
+                or "\\tests\\" in filename
+            ):
+                return True
+            frame = frame.f_back  # type: ignore[assignment]
+            depth += 1
+    except Exception:  # noqa: BLE001 — best-effort
+        return True  # Suppress on error
+    return False
 
 
 @dataclass
@@ -51,7 +88,42 @@ class EventBus:
 
         If session is provided, dispatch is deferred until after session.commit().
         If session is None, dispatch is immediate.
+
+        DEPRECATED PATH: Since outbox cutover (PR-6 PI-2), production emitters
+        route via EventBusAdapter. Direct calls to EventBus.publish outside
+        EventBusAdapter fall-through path + test capability suites emit a runtime
+        warning when ANY USE_OUTBOX_PATTERN_* flag is True.
+
+        Migration: use EventBusAdapter.publish(event, session=session) or route
+        via adapter_bus alias. See CONTRACT.md PR-1 § 5 D3 (PI-11, 2026-05-04).
+        Elimination planned post PI-12 capability removal evaluation.
         """
+        # Best-effort deprecation warning (try/except: must not break caller).
+        # Emits only when outbox flag is ON and caller is outside internal paths.
+        try:
+            from src.core.config import settings as _settings  # local import avoids circular
+
+            outbox_flags_on = (
+                getattr(_settings, "USE_OUTBOX_PATTERN_SALES_AGENT", False)
+                or getattr(_settings, "USE_OUTBOX_PATTERN_COPILOT", False)
+                or getattr(_settings, "USE_OUTBOX_PATTERN_BRAND", False)
+            )
+            if outbox_flags_on and not _is_internal_caller_or_test():
+                warnings.warn(
+                    "EventBus.publish called when outbox cutover active. "
+                    "Migrate emitter to EventBusAdapter or wrap with "
+                    "magic comment '# arch-bypass: testing legacy capability'.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                _structlog_logger.warning(
+                    "legacy_event_bus_called_outside_test_context",
+                    event_name=event.event_name,
+                    tenant_id=str(event.tenant_id),
+                )
+        except Exception:  # noqa: BLE001 — best-effort, must not break caller
+            pass
+
         if session is not None:
             from sqlalchemy import event as sa_event
 
