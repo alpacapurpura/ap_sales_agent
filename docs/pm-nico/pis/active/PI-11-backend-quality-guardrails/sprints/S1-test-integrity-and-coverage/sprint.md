@@ -2,7 +2,7 @@
 
 > Sprint ID: S1-test-integrity-and-coverage
 > PI padre: PI-11-backend-quality-guardrails
-> Estado: **in-progress** (PR-1 ✅ shipped 2026-05-04 · PR-3 next · PR-4 después · PR-2 último)
+> Estado: **in-progress** (PR-1 ✅ shipped 2026-05-04 · PR-3 ✅ shipped 2026-05-04 · PR-4 next · PR-2 último)
 > Owner PM: /pm
 > Expanded: 2026-05-04 post-failed-pase-prod
 
@@ -19,7 +19,7 @@ Restaurar CI backend permanentemente + prevenir recurrencia raíz (default flip 
 | PR | Folder | Descripción | Agentes/skills | Esfuerzo | Estado |
 |---|---|---|---|---|---|
 | PR-1 ext | `prs/PR-1-fix-broken-tests-and-arch-snapshots/` | Apply stash 16 archivos + polluter hunt sistemático sin band-aid + singleton fixture exhaustivo conftest + EventBus mocks audit + snapshot helpers outbox-aware + bug fix litellm.py kimi clamp + deprecation runtime warning LegacyEventBus | architect Opus (1 ejecución cubre PR-1+PR-3) → `nicolify-backend` (business) + `nicolify-agentic` (agentic) **paralelos** → auditores cruzados (`nicolify-backend-auditor` + `nicolify-agentic-auditor`) | XL | **shipped 2026-05-04** |
-| **PR-3 NEW** | `prs/PR-3-anti-default-flip-enforcement/` | Rule `.claude/rules/anti-default-flip-audit.md` + arch fitness `tests/architecture/test_no_legacy_eventbus_mock_when_outbox_on.py` | architect Opus (compartido con PR-1) → `nicolify-backend` → `nicolify-backend-auditor` | M | ready (next) |
+| **PR-3 NEW** | `prs/PR-3-anti-default-flip-enforcement/` | Rule `.claude/rules/anti-default-flip-audit.md` + arch fitness `tests/architecture/test_no_legacy_eventbus_mock_when_outbox_on.py` | architect Opus (compartido con PR-1) → `nicolify-backend` → `nicolify-backend-auditor` | M | **shipped 2026-05-04** |
 | **PR-4 NEW** | `prs/PR-4-update-agents-skills-default-flip-audit/` | Updates `nicolify-architect`/`nicolify-backend`/`nicolify-backend-auditor` agent prompts + `pm` SKILL.md template + `tdd-mandatory.md` | **PM directo** (no builder técnico — markdown meta-process) | M | ready (post PR-3) |
 | PR-2 | `prs/PR-2-coverage-p0-modules/` | Cobertura ≥75% en `crm` y `scheduling` (servicios + repos + DTOs sin test) | `nicolify-backend` → `nicolify-backend-auditor` | L | not-started (después PR-1+3+4 shipped) |
 

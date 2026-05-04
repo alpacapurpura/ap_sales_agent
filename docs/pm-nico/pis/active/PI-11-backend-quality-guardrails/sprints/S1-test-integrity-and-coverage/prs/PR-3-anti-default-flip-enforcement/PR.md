@@ -7,7 +7,7 @@
 | PR ID | PR-3-anti-default-flip-enforcement |
 | Sprint padre | S1-test-integrity-and-coverage |
 | PI padre | PI-11-backend-quality-guardrails |
-| Estado | ready |
+| Estado | **shipped (2026-05-04)** |
 | Tipo | architectural rule + enforcement test |
 | Esfuerzo | M |
 | Owner PM | /pm |

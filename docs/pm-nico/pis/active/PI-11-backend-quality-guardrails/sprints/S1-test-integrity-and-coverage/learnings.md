@@ -58,10 +58,37 @@ Lección: agentic Opus polluter hunts son CAROS por iteraciones pytest run + an�
 4. **Auditor Opus puede stallear con prompts grandes.** Solución = prompt "scoring ágil" (focused diffs only, NO re-read full sources, consume gate-output.json + IMPL-LOG nativos).
 5. **Otra sesión Claude paralela puede tocar archivos durante PR.** Detected playwright-expert skill setup mid-sprint. Regla M8 respetada.
 
+## PR-3 (shipped 2026-05-04)
+
+### Anti-default-flip enforcement cementado
+
+| Layer | Mecanismo |
+|---|---|
+| Rule docs | `.claude/rules/anti-default-flip-audit.md` 4-step workflow + 6 flags inventario + 7 enforcement layers |
+| Arch fitness | `test_no_legacy_eventbus_mock_when_outbox_on.py` AST walk Pattern 1+2 |
+| Bypass 3-tier | BYPASS_FILES (10 permanent) + KNOWN_LEGACY (3 D9 ratchet shrink-only) + magic comment |
+| Meta-test | 8 casos coverage |
+| CLAUDE.md | Conditional rule entry |
+
+### Lección AST walk arch fitness
+
+Sibling pattern existing `test_no_legacy_event_bus_publish.py` reusable. Pattern 1 (string `@patch("X")`) + Pattern 2 (`patch.object(EventBus, "publish")` synthesized) — cubre 90%+ casos. Edge cases (computed string variables, alias imports) → magic comment cubre.
+
+Performance: ~220 test files scan < 2s wall-time (rglob + ast.parse).
+
+### Lección Self-audit por builder ≠ Auditor Opus oficial
+
+Builder PR-3 hizo self-audit completo (REVIEW.md por Sonnet). PM REJECTED + spawn auditor Opus oficial (D13). Razón: regla cardinal "PR no se cierra sin Opus output". Auditor Opus oficial validó independientemente + 0 findings nuevos = self-audit era correcto, pero formalmente requerido Opus REVIEW.md.
+
+Trade-off: +145k tokens Opus extra. Costo aceptable vs riesgo aprobar PR sin Opus eyes.
+
+### Deviation CONTRACT § 2 justificada
+
+CONTRACT estimó BYPASS_FILES=7 pre-impl. Builder grep real reveló 10 legítimos + 3 violators reales (deferred D9). Auditor Opus validó deviation. Lección: architect specs allowlist sizes son estimaciones — builders ajustan en realidad + auditor valida.
+
 ## Pendiente sprint S1
 
-- PR-3: anti-default-flip enforcement (sequential post PR-1 ✅)
-- PR-4: PM directo (markdown agents/skills/rules updates)
+- PR-4: PM directo (markdown agents/skills/rules updates) — NEXT
 - PR-2: coverage P0 crm/scheduling
 
 ## Pendiente cerrar sprint
