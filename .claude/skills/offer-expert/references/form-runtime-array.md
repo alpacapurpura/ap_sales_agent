@@ -11,7 +11,7 @@
 
 Default automático via `itemSchema.fields.length`. Schema no necesita declarar nada.
 
-Mockup referencia: `docs/mockups/array-field-unified.html`.
+Mockup referencia: `docs/_archive/pre-sdd-2026-05-04/mockups/array-field-unified.html`.
 
 ## Por qué
 

@@ -173,7 +173,7 @@ When the user asks to see a proposal:
 3. Fill every section using context from all phases
 4. Write the file:
    - If inside a pipeline (nicolify-feature): write to the feature's working directory
-   - If standalone: write to `docs/ui-specs/VIZ-SPEC-{feature-name}.md`
+   - If standalone: write to `docs/projects/active/PI-N/sprints/SN/stories/{story-id}/02-design-ui.md (sección charts) o docs/_archive/pre-sdd-2026-05-04/ui-specs/ legacy`
    - If Copilot-inline mode: output is direct HTML, not VIZ-SPEC
 
 ***

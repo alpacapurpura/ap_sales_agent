@@ -30,9 +30,9 @@
 | 6 | Migrate 16 current-state → product/modules | ⏳ | `docs/product/modules/*.md` |
 | 7 | Rename 11 nicolify-* agents | ⏳ | `.claude/agents/{architect-orchestrator,builder-{be,fe,agentic},auditor-{be,fe,agentic},context-builder,gate-runner,grep-bot}.md` |
 | 8 | Create 9 new skills | ⏳ | `.claude/skills/{pm,po,ux-ui,ux-agentico,architect,architect-{be,fe,agentic},dev-team,auditor}/SKILL.md` |
-| 9 | Spawn 4 parallel mapping agents (16 modules → stories) | ⏳ | `docs/product/stories/{m}/*.yaml` + `docs/product/capabilities/{m}/*.yaml` + gap report |
-| 10 | Hooks + CLAUDE.md/AGENTS.md update | ⏳ | `.claude/hooks/*.sh` + root MDs |
-| 11 | Commit + summary | ⏳ | git log entry |
+| 9 | Spawn 4 parallel mapping agents (16 modules → stories) | 🔄 | `docs/product/stories/{m}/*.yaml` + `docs/product/capabilities/{m}/*.yaml` + gap report |
+| 10 | Hooks + CLAUDE.md/AGENTS.md update | ✅ | `.claude/hooks/*.sh` + root MDs |
+| 11 | Commit foundation + P9 commit + summary | 🔄 | git log: `64859048` foundation. Pendiente P9 commit. |
 
 ## Resume protocol
 

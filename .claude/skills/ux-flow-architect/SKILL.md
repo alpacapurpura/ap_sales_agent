@@ -3,6 +3,13 @@ name: ux-flow-architect
 description: "Interactive cross-feature navigation architect for Nicolify. Audits all routes and sidebar entries, maps user journeys across studios, detects orphaned features and dead-end flows, proposes navigation improvements with ASCII diagrams, generates clickable multi-page HTML prototypes on localhost:8888, and outputs FLOW-SPEC.md plus per-screen UI-SPEC updates for implementation agents. Use when the user asks about navigation coherence, user flows, journey mapping, orphaned features, dead-end screens, sidebar reorganization, cross-studio navigation, or feature discoverability. Triggers: 'flujo de usuario', 'navegación', 'journey', 'user flow', 'sidebar', 'rutas huérfanas', 'orphaned routes', 'dead end', 'flow audit', 'navigation audit', 'ux-flow', 'flow architect', 'cómo llega el usuario', 'discoverability', 'no encuentro', 'dónde está', 'reorganizar navegación', 'cross-feature flow', 'audita la navegación', 'mapa de rutas', 'flujos de la app'."
 ---
 
+> **⚠️ DEPRECATED 2026-05-04** — Este skill quedó absorbed por `/ux-ui` (paradigma SDD Level 3).
+> Outputs nuevos van a `docs/projects/active/PI-N/sprints/SN/stories/{id}/mockups/` + `02-design-ui.md`.
+> Sesiones legacy referenciadas en este skill viven en `docs/_archive/pre-sdd-2026-05-04/ux-sessions/`.
+> Invocá `/ux-ui` para nuevas sesiones UX. Este skill se mantiene SOLO por backwards compat.
+
+
+
 # UX Flow Architect — Navigation & Journey Design for Nicolify
 
 <role>
