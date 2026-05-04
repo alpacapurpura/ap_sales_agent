@@ -213,6 +213,13 @@ def db_engine():
         from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
             LifecycleTransitionModel,
         )
+        from src.modules.crm.infrastructure.models.nps_models import (
+            NpsResponseModel,
+            NpsSurveyModel,
+        )
+        from src.modules.crm.infrastructure.models.referral_code_model import (
+            ReferralCodeModel,
+        )
         from src.modules.crm.infrastructure.models.sale_model import (
             SaleModel,
         )
