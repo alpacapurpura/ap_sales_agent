@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 
 import { fetchClient } from "@/lib/http-client";
@@ -25,10 +26,14 @@ export interface FilterSchemaResponse {
  * fetchClient auto-injects X-Tenant-ID header.
  */
 export function useFilterSchemaQuery() {
+  const { getToken } = useAuth();
   return useQuery<FilterSchemaResponse, Error>({
     queryKey: ["crm", "contacts", "filter-schema"],
     queryFn: async () => {
-      const res = await fetchClient(`${API_URL}/api/v1/contacts/_filter-schema`);
+      const token = await getToken();
+      const res = await fetchClient(`${API_URL}/api/v1/contacts/_filter-schema`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error(`Error al cargar esquema de filtros: ${res.status}`);
       return res.json() as Promise<FilterSchemaResponse>;
     },

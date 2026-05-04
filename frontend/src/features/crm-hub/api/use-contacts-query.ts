@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 
 import { fetchClient } from "@/lib/http-client";
@@ -19,11 +20,15 @@ export interface UseContactsQueryParams {
  * fetchClient auto-injects X-Tenant-ID header.
  */
 export function useContactsQuery(params: UseContactsQueryParams) {
+  const { getToken } = useAuth();
   return useQuery<PaginatedResponse<ContactListItem>, Error>({
     queryKey: ["crm", "contacts", params],
     queryFn: async () => {
+      const token = await getToken();
       const search = buildSearchParams(params);
-      const res = await fetchClient(`${API_URL}/api/v1/contacts/?${search.toString()}`);
+      const res = await fetchClient(`${API_URL}/api/v1/contacts/?${search.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error(`Error al cargar contactos: ${res.status}`);
       return res.json() as Promise<PaginatedResponse<ContactListItem>>;
     },

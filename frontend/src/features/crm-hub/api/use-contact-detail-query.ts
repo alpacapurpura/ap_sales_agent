@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 
 import { fetchClient } from "@/lib/http-client";
@@ -14,10 +15,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
  * fetchClient auto-injects X-Tenant-ID header.
  */
 export function useContactDetailQuery(contactId: string | null) {
+  const { getToken } = useAuth();
   return useQuery<ContactDetail, Error>({
     queryKey: ["crm", "contact-detail", contactId],
     queryFn: async () => {
-      const res = await fetchClient(`${API_URL}/api/v1/contacts/${contactId}`);
+      const token = await getToken();
+      const res = await fetchClient(`${API_URL}/api/v1/contacts/${contactId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error(`Error al cargar contacto ${contactId}: ${res.status}`);
       return res.json() as Promise<ContactDetail>;
     },
