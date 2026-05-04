@@ -208,3 +208,37 @@
 4. Si dice "crear Y nuevo" → ¿4-5 grep results lo respaldan?
 
 Si cualquiera de estos = NO → bloque PM, no spawn builder.
+
+---
+
+## 2026-05-04 — Default flag flip = side-effect call path change (PI-11 origen)
+
+**Caso:** commit `64738354` (PR-1 Sub-E PI-2) flipeó `USE_OUTBOX_PATTERN_*` False→True sin auditar tests que mockean path legacy `LegacyEventBus.publish` → 25 BE failures + polluter snapshot test no identificable + 80min hunt agente sin resolver durante `/pase-produccion` 2026-05-04. Costo total ~3h sesión + 500k tokens.
+
+**Anti-pattern detectado:** flipear default de flag que controla call path side-effect (events, persistence, logging, LLM routing) sin:
+- Grep tests mockean path viejo
+- Migrar mocks al path nuevo
+- Run suite con ambos valores
+- Documentar commit body
+
+**Defense-in-depth cementado (PR-3 + PR-4):**
+- Layer 1 PM PR.md template "Default flips audited" (`pm` SKILL.md)
+- Layer 2 architect CONTRACT.md § 9.5 Tests audit obligatorio
+- Layer 3 builder Step 0.5 default-flip detection (`nicolify-backend.md` + `nicolify-agentic.md`) — grep + migration strategy + run both values
+- Layer 4 auditor Cat 12 (backend) + Cat 14 (agentic) "Default flip side-effect coverage"
+- Layer 5 arch fitness test bloqueador (`tests/architecture/test_no_legacy_eventbus_mock_when_outbox_on.py` + futuros para otros flags)
+- Layer 6 TDD rule sección "Default flag flips" (`tdd-mandatory.md`)
+- Layer 7 Runtime DeprecationWarning (`LegacyEventBus.publish` cuando outbox flag ON)
+
+**Costo evitado por defense-in-depth:** ~3h sesión + 80min polluter hunt + 500k tokens × N futuros flags side-effect que se flipearán sin guardrail (LITELLM_PROXY_ENABLED, USE_DEEPAGENTS_*, futuros).
+
+**Polluter root cause real (NO la hipótesis original):**
+- Hipótesis primer iter: `OutboxEntry.from_event` uuid4 x2 calls sin ejecutar = `_is_outbox_enabled` flag turn OFF (monkeypatch leak)
+- **Real root cause confirmed iter 2:** `ChatOrchestrator._instance.buffer_service` + `SemanticRouter._instance` leak cross-test — singleton fixture business iter 1 (commit `7652f1f8`) ya cubrió
+- Lección: primer iter Opus puede tirar hipótesis prematuras. iter 2 con prompt enriquecido + insight previo descartó + confirmó real root cause.
+
+**Referencias:** 
+- `.claude/rules/anti-default-flip-audit.md`
+- `tests/architecture/test_no_legacy_eventbus_mock_when_outbox_on.py`
+- `docs/pm-nico/pis/active/PI-11-backend-quality-guardrails/sprints/S1-test-integrity-and-coverage/learnings.md`
+- `docs/pm-nico/pis/active/PI-11-backend-quality-guardrails/decisions.md` (D1-D13)
