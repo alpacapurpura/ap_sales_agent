@@ -130,10 +130,17 @@ class TestEventBusAdapterFlagOn:
         call_kwargs = mock_outbox.enqueue_sync.call_args
         assert call_kwargs[0][0].event_name == "payment_received"
 
-    def test_is_outbox_enabled_returns_false_by_default(self):
-        """_is_outbox_enabled returns False when flag not set."""
+    def test_is_outbox_enabled_returns_false_by_default(self, monkeypatch):
+        """_is_outbox_enabled returns False when settings flag is False.
+
+        Production default is True for sales_agent (config.py); test forces False
+        via monkeypatch.setattr to assert the flag-off branch contract.
+        """
+        monkeypatch.setattr(
+            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            MagicMock(USE_OUTBOX_PATTERN_SALES_AGENT=False, USE_OUTBOX_PATTERN_DEFAULT=False),
+        )
         result = EventBusAdapter._is_outbox_enabled("sales_agent")
-        # Default is False per config
         assert result is False
 
     def test_is_outbox_enabled_with_module_none_uses_default_flag(self, monkeypatch):

@@ -97,16 +97,26 @@ class TestBrandOutboxAdapterFlagOff:
         assert len(legacy_called) == 1
         assert legacy_called[0] == "personality_profile_updated"
 
-    def test_flag_off_is_default_for_brand_module(self) -> None:
-        """USE_OUTBOX_PATTERN_BRAND defaults to False — no outbox enqueue."""
-        # _is_outbox_enabled("brand") reads settings.USE_OUTBOX_PATTERN_BRAND
-        # which is False by default per config.py line 204
+    def test_flag_off_is_default_for_brand_module(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Verify flag OFF path returns False when settings flag is False.
+
+        Production default is True (config.py); test forces False via
+        monkeypatch.setattr to assert the flag-off branch contract.
+        """
+        monkeypatch.setattr(
+            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            MagicMock(USE_OUTBOX_PATTERN_BRAND=False, USE_OUTBOX_PATTERN_DEFAULT=False),
+        )
         result = EventBusAdapter._is_outbox_enabled("brand")
         assert result is False
 
     def test_monkeypatch_env_flag_off(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Verify flag OFF via monkeypatch.setenv — simulates default runtime."""
-        monkeypatch.setenv("USE_OUTBOX_PATTERN_BRAND", "false")
+        """Verify flag OFF via monkeypatch.setattr on settings (pydantic-settings
+        loads env at startup; setenv after import does not propagate)."""
+        monkeypatch.setattr(
+            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            MagicMock(USE_OUTBOX_PATTERN_BRAND=False, USE_OUTBOX_PATTERN_DEFAULT=False),
+        )
         result = EventBusAdapter._is_outbox_enabled("brand")
         assert result is False
 
