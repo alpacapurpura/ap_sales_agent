@@ -1,0 +1,141 @@
+# UI Story Template — Schema SSoT atómico
+# Vive en: docs/product/stories/{module}/{story-id}.yaml
+# Owner: /po (redacta) · /pm (ratifica al merge)
+# Eval policy: Playwright e2e + state_check + (opcional) screenshot diff
+
+---
+id: STORY_ID_KEBAB                              # único, kebab-case, ej: brand-identity-edit
+type: ui-story                                  # fixed: ui-story
+module: MODULE_NAME                             # match backend/src/modules/{name} y frontend/src/features/{name}
+capability: CAPABILITY_ID                       # FK → product/capabilities/{module}/{cap}.yaml
+status: planned                                 # planned | in-progress | live | deprecated
+slice: MVP                                      # MVP | V1 | V2 | V3
+last_audit: 2026-05-04                          # YYYY-MM-DD última verificación contra código real
+date_introduced: null                           # YYYY-MM-DD cuando capability_status → live
+pr_introduced: null                             # PR-N
+pi_introduced: null                             # PI-N
+deprecated_at: null
+deprecation_reason: null
+
+# ── Frontmatter Obsidian-style ───────────────────────────────
+links:
+  module_doc: "../../modules/{module}.md"
+  capability: "../../capabilities/{module}/{capability}.yaml"
+  domain_doc: "../../../domains/module_{module}.md"           # técnico
+  related_stories: []                                          # otros story ids cross-module
+
+# ── Job-To-Be-Done ───────────────────────────────────────────
+context:
+  job: "Como [rol] quiero [acción] para [resultado de negocio]"
+  why: "Por qué importa. Qué pasa si no se hace. Quién pierde."
+  constraints:
+    - "Latencia p95 < 200ms"
+    - "Mobile responsive >=375px"
+    - "Spanish neutro (no voseo)"
+    - "No nuevas dependencias FE sin justificación"
+
+# ── Outcome verificable ──────────────────────────────────────
+outcome:
+  user_observable: "Tras [acción], usuario ve [resultado concreto medible]"
+  product_observable:
+    - "DB: [tabla].[campo] actualizado"
+    - "Audit log: 1 entry con [event_name]"
+    - "Cross-module: [módulo X] ve [efecto] al próximo refresh"
+  metrics_to_track:                                            # opcional, para growth
+    - { name: "feature_used_count", target: ">10/week" }
+
+# ── Scenarios ────────────────────────────────────────────────
+# Mínimo: 1 happy + 1 negative + 1 edge + 1 adversarial
+# Tipos:
+#   happy        — camino feliz
+#   negative     — input/estado inválido
+#   edge         — concurrencia/límites/race conditions
+#   adversarial  — security/cross-tenant/AI-resistant
+#   capability   — aún no live, hill-to-climb (graders permiten <100%)
+#   regression   — live estable, debe ser ~100%
+scenarios:
+  - id: happy-path
+    type: happy
+    given:
+      - "[precondición 1]"
+      - "[precondición 2]"
+    when: "[acción del usuario]"
+    then:
+      - "[efecto 1 medible]"
+      - "[efecto 2 medible]"
+    graders:
+      - type: e2e
+        path: "frontend/e2e/regression/{module}-{story}.spec.ts"
+      - type: state_check
+        target: db                                              # db | api | local_storage | cookie
+        query: "SELECT [campo] FROM [tabla] WHERE tenant_id = ? AND id = ?"
+        expect: "<valor esperado>"
+      - type: screenshot                                        # opcional
+        path: "frontend/e2e/snapshots/{module}-{story}-happy.png"
+
+  - id: invalid-input
+    type: negative
+    given:
+      - "[precondición]"
+    when: "user submite con [input inválido]"
+    then:
+      - "Validation inline visible"
+      - "Submit deshabilitado / error 400 con mensaje claro"
+      - "DB no se modifica"
+    graders:
+      - { type: e2e, path: "..." }
+      - { type: state_check, target: db, query: "...", expect: "no change" }
+
+  - id: concurrent-edit
+    type: edge
+    given:
+      - "[2 sesiones del mismo tenant editando]"
+    when: "ambas guardan en paralelo"
+    then:
+      - "Última gana O 409 Conflict"
+      - "UI muestra toast 'Otra sesión modificó esto'"
+    graders:
+      - { type: e2e, path: "..." }
+
+  - id: cross-tenant-leak
+    type: adversarial
+    given:
+      - "user A autenticado tenant T1"
+      - "tenant T2 tiene resource con id=42"
+    when: "user A hace GET/POST/PATCH al resource id=42 de T2"
+    then:
+      - "403 Forbidden"
+      - "Audit log registra intento"
+      - "Response no leakea info"
+    graders:
+      - { type: e2e, path: "..." }
+      - { type: state_check, target: api, query: "GET /api/v1/{resource}/42 con header X-Tenant-ID=T1", expect: "403" }
+
+# ── Cross-module links ───────────────────────────────────────
+cross_module:
+  reads_from: []                                                # otros módulos que esta story consume
+  read_by: []                                                   # otros módulos que dependen de esta story
+  emits_events: []                                              # domain events que la story publica
+  consumes_events: []
+
+# ── Dependencies ─────────────────────────────────────────────
+dependencies:
+  stories: []                                                   # story_id requerido implementado antes
+  capabilities: []                                              # capability_id full
+
+# ── Estimación ───────────────────────────────────────────────
+estimate:
+  story_points: null                                            # 1 | 2 | 3 | 5 | 8 | 13
+  rough_hours: null
+  copilot_operable: false                                       # ¿el copilot puede ejecutar esto vía tool?
+  copilot_tool_name: null                                       # si copilot_operable=true
+
+# ── Test coverage status (auto-actualizable por /auditor) ────
+test_coverage:
+  e2e_test: null                                                # path al spec Playwright
+  state_check_implemented: false
+  unit_tests: false
+  integration_tests: false
+  coverage_pct: null                                            # auto-llenado tras pase
+  last_run_at: null
+  last_run_result: null                                         # pass | fail | partial

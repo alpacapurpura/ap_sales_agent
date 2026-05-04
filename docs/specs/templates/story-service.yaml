@@ -1,0 +1,120 @@
+# Service Story Template — endpoints/jobs sin UI
+# Vive en: docs/product/stories/{module}/{story-id}.yaml
+# Owner: /po · /pm
+# Eval policy: contract test + state_check + (opcional) load test
+
+---
+id: STORY_ID_KEBAB
+type: service-story
+module: MODULE_NAME
+capability: CAPABILITY_ID
+status: planned
+slice: MVP
+last_audit: 2026-05-04
+date_introduced: null
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/{module}.md"
+  capability: "../../capabilities/{module}/{capability}.yaml"
+  domain_doc: "../../../domains/module_{module}.md"
+  related_stories: []
+
+context:
+  job: "Como [sistema|integración|workflow] necesito [endpoint|job] para [outcome]"
+  why: "Quién consume este servicio y qué pasa si falla"
+  constraints:
+    - "Idempotente"
+    - "Tenant-scoped (header X-Tenant-ID required)"
+    - "Latencia p95 < N ms"
+    - "Rate limit por tenant"
+
+outcome:
+  consumer_observable: "[Sistema X] recibe [response shape] tras llamar [endpoint]"
+  product_observable:
+    - "DB: [efecto]"
+    - "Eventos emitidos: [event_name]"
+    - "Métrics: [counter|histogram] incrementado"
+
+# ── Contrato del servicio ────────────────────────────────────
+service_contract:
+  type: endpoint                                                # endpoint | scheduled_job | event_handler | etl_pipeline
+  method: GET                                                   # GET | POST | PATCH | DELETE | PUT (si endpoint)
+  path: /api/v1/{module}/...                                    # si endpoint
+  request_schema: "backend/src/modules/{module}/api/dtos.py::RequestDTO"
+  response_schema: "backend/src/modules/{module}/api/dtos.py::ResponseDTO"
+  auth: clerk-jwt                                               # clerk-jwt | api-key | internal | none
+  rate_limit_per_tenant: "100/min"
+  idempotency: header                                           # none | header | natural-key
+  trigger: null                                                 # si scheduled_job: cron expression. si event: event_name
+
+scenarios:
+  - id: happy-path
+    type: happy
+    given:
+      - "[precondición]"
+    when: "[POST /api/v1/... con payload válido]"
+    then:
+      - "Status 200 con response shape esperado"
+      - "DB: [efecto medible]"
+      - "Eventos: [emit]"
+      - "Latencia < N ms"
+    graders:
+      - type: contract_test
+        path: "backend/tests/modules/{module}/test_{story}.py"
+      - type: state_check
+        target: db
+        query: "..."
+        expect: "..."
+      - type: state_check
+        target: events_outbox
+        expect: "1 event of type X"
+
+  - id: invalid-payload
+    type: negative
+    when: "POST con payload inválido"
+    then:
+      - "Status 422 con detail de validation"
+      - "DB no se modifica"
+    graders:
+      - { type: contract_test, path: "..." }
+
+  - id: idempotent-retry
+    type: edge
+    when: "Mismo request 2 veces con misma idempotency-key"
+    then:
+      - "Segundo request retorna 200 (mismo response que primero)"
+      - "DB efecto solo 1 vez"
+    graders:
+      - { type: contract_test, path: "..." }
+
+  - id: cross-tenant-leak
+    type: adversarial
+    when: "user A hace request con X-Tenant-ID=T1 a recurso de T2"
+    then:
+      - "Status 403 o 404 (no leakea existencia)"
+      - "Audit log entry"
+
+cross_module:
+  reads_from: []
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories: []
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: null
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

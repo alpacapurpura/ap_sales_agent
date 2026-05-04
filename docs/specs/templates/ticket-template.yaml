@@ -1,0 +1,145 @@
+# Ticket Template — atómico ejecutable por dev-team
+# Vive en: docs/projects/active/PI-N/sprints/SN/stories/{story-id}/04-tickets.yaml
+# Owner: /architect (escribe) · /dev-team (toma + actualiza state) · /auditor (review)
+
+---
+# Header del archivo 04-tickets.yaml
+story_id: STORY_ID
+sprint: SN-SLUG
+pi: PI-N
+generated_at: 2026-05-04T15:00Z
+generated_by: /architect
+
+tickets:
+  - id: T-1
+    title: "Endpoint POST /api/v1/{module}/{action}"
+    type: backend                                # backend | frontend | agentic | infra | migration
+    surface: BE                                  # BE | FE | AGENTIC | DB | INFRA
+    state: draft                                 # draft|ready|assigned|building|tests-failing|tests-passing|pushed|auditing|changes-requested|audit-passed|merged|blocked
+    owner_eligibility:
+      qwen_opencode: true                        # ¿qwen via opencode puede tomarlo?
+      claude_sonnet: true                        # ¿Claude Code Sonnet?
+      claude_opus_required: false                # ¿obliga Opus? (true para agentic)
+    priority: 1                                  # 1=blocker, 2=high, 3=normal
+    estimate_hours: 2
+
+    # ── Inputs (qué leer antes) ───────────────
+    inputs:
+      story_yaml: "../../../../../product/stories/{module}/{story-id}.yaml"
+      spec: "../01-spec.md"
+      arch_doc: "../03-arch-be.md"               # solo el arch que aplica al ticket
+      ui_design: null                            # si surface=FE
+      agentic_design: null                       # si surface=AGENTIC
+      conventions: ".claude/rules/backend-ddd.md, backend-quality.md"
+      tessl_skills: ["tessl__fastapi", "tessl__pytest-api-testing"]
+
+    # ── Specs ejecutables (qué construir) ─────
+    deliverables:
+      - "Crear DTO RequestDTO + ResponseDTO en backend/src/modules/{m}/api/dtos.py"
+      - "Crear endpoint @router.post(...) en backend/src/modules/{m}/api/routes.py"
+      - "Crear service en backend/src/modules/{m}/application/services/{name}_service.py"
+      - "Crear migration alembic/versions/XXXX_add_table.py (idempotente)"
+      - "Tests: backend/tests/modules/{m}/test_{name}_service.py + test_{name}_endpoint.py"
+
+    # ── Contracts (qué NO construir) ──────────
+    out_of_scope:
+      - "FE no se toca en este ticket (es T-3)"
+      - "Telemetría detallada (es T-2)"
+
+    # ── Acceptance criteria ───────────────────
+    acceptance:
+      - id: A1
+        description: "POST /api/v1/{path} con payload válido → 200 + response shape match"
+        verifier:
+          type: pytest
+          path: "backend/tests/modules/{m}/test_{name}_endpoint.py::test_happy_path"
+      - id: A2
+        description: "Cross-tenant request → 403"
+        verifier:
+          type: pytest
+          path: "backend/tests/modules/{m}/test_{name}_endpoint.py::test_tenant_isolation"
+      - id: A3
+        description: "Migration aplica idempotente (correr 2x sin error)"
+        verifier:
+          type: bash
+          cmd: "docker exec visionarias_brain_dev alembic upgrade head && alembic upgrade head"
+
+    # ── Quality gates obligatorios ────────────
+    quality_gates:
+      - "/test-backend completo verde"
+      - "Ruff 0 errors en archivos tocados"
+      - "Mypy strict en módulo si aplica"
+      - "Coverage del módulo no baja"
+      - "Arch fitness tests pasan"
+
+    # ── Dependencies ──────────────────────────
+    depends_on: []                               # IDs de tickets que deben estar audit-passed antes
+    blocks: []                                   # IDs de tickets que esperan a este
+
+    # ── State machine fields (auto-update) ────
+    transitions:                                  # log auto append
+      - { state: draft, at: "2026-05-04T15:00Z", by: "/architect" }
+    assigned_to: null                             # qwen-opencode | claude-opus | claude-sonnet
+    assigned_at: null
+    push_commit_sha: null
+    audit_verdict: null                           # APPROVED | CHANGES_REQUESTED
+    audit_iterations: 0                           # cap 2 → escala
+    blocked_reason: null
+
+  - id: T-2
+    title: "Tool wire en agente copilot + prompt slot 4"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                       # ⛔ qwen prohibido en agentic
+      claude_sonnet: false                       # ⛔ Sonnet también — agentic exige Opus
+      claude_opus_required: true                 # ✅ Opus 4.7 mandatory
+    priority: 1
+    estimate_hours: 3
+    inputs:
+      story_yaml: "../../../../../product/stories/copilot/{story-id}.yaml"
+      spec: "../01-spec.md"
+      arch_doc: "../03-arch-agentic.md"
+      agentic_design: "../02-design-agentic.md"
+      brand_voice: ".claude/rules/sales-agent-brand-voice.md"  # solo si sales_agent
+      tessl_skills: ["tessl__langgraph", "claude-api"]
+      required_skills: ["copilot-expert"]        # cargar antes coding
+    deliverables:
+      - "Definir tool en backend/src/modules/copilot/tools/{tool_name}.py con @tool decorator"
+      - "Wire en backend/src/modules/copilot/agents/{agent_name}.py"
+      - "Prompt slot N en backend/src/modules/copilot/prompts/{name}.j2"
+      - "Eval suite agentic: backend/tests/agentic_evals/copilot/{story_id}_eval.py"
+      - "Personas: cargar de docs/specs/personas/{persona}.yaml"
+      - "Rubrics: cargar de docs/specs/rubrics/{rubric}.md"
+    out_of_scope:
+      - "FE button (T-3, qwen)"
+      - "BE endpoint endpoint nuevo (no requerido — usa existing)"
+    acceptance:
+      - id: A1
+        description: "Eval scenario 'happy-path-typical-persona' pass^3 >= 0.5"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/copilot/{story_id}_eval.py::test_happy_path"
+          extra: "--trials=3 --pass-threshold=0.66"
+      - id: A2
+        description: "Scenario 'no-hallucination' threshold 0.9"
+        verifier:
+          type: pytest
+          path: "..."
+      - id: A3
+        description: "Scenario 'adversarial' rubric no-overpromise threshold 0.9"
+      - id: A4
+        description: "Voice fidelity grader >= 0.8"
+      - id: A5
+        description: "Cost per session p95 <= budget_usd"
+    quality_gates:
+      - "/test-backend backend gates verde"
+      - "Eval suite ejecutada local 100% verde"
+      - "copilot_trace_event registrado en cada trial"
+      - "PII redaction verified en trazas (sanitize_payload)"
+    depends_on: ["T-1"]
+    blocks: ["T-3"]
+    transitions:
+      - { state: draft, at: "2026-05-04T15:00Z", by: "/architect" }
+    assigned_to: null

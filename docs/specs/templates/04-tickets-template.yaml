@@ -1,0 +1,173 @@
+# 04-tickets.yaml — Template (pila tickets ordenada del story)
+# Vive en: docs/projects/active/PI-N/sprints/SN/stories/{story-id}/04-tickets.yaml
+# Owner: /architect
+
+---
+story_id: STORY_ID
+sprint: SN-SLUG
+pi: PI-N
+generated_at: 2026-05-04T15:00Z
+generated_by: /architect
+total_tickets: 3
+estimated_total_hours: 8
+
+# ── Resumen pila (alto nivel) ────────────────
+summary:
+  - id: T-1
+    title: "BE endpoint + service + migration"
+    surface: BE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    blocks: [T-2, T-3]
+  - id: T-2
+    title: "Agentic tool wire + prompt slot + eval suite"
+    surface: AGENTIC
+    owner_pool: [claude-opus]                    # ⚠️ qwen y sonnet PROHIBIDOS
+    state: draft
+    blocked_by: [T-1]
+    blocks: [T-3]
+  - id: T-3
+    title: "FE button + telemetry + e2e smoke"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    blocked_by: [T-2]
+
+# ── Detalle (uno por ticket) ─────────────────
+# Ver template ticket-template.yaml para schema completo
+tickets:
+  - $ref: "#/T1"
+  - $ref: "#/T2"
+  - $ref: "#/T3"
+
+T1:
+  id: T-1
+  title: "POST /api/v1/copilot/brand-audit endpoint"
+  type: backend
+  surface: BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 2
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    story_yaml: "../../../../../product/stories/copilot/brand-audit.yaml"
+    rules: [".claude/rules/backend-ddd.md", ".claude/rules/tenant-isolation.md", ".claude/rules/backend-migrations.md"]
+    tessl_skills: ["tessl__fastapi", "tessl__pytest-api-testing"]
+    domain_skills: ["backend-expert", "copilot-expert"]
+  deliverables:
+    - "DTO RequestDTO + ResponseDTO en backend/src/modules/copilot/api/dtos.py"
+    - "Endpoint @router.post('/brand-audit') en backend/src/modules/copilot/api/routes.py"
+    - "Service BrandAuditService en application/services/"
+    - "Repo BrandAuditRepository en infrastructure/repositories/"
+    - "Migration alembic — tabla brand_audit_log si aplica"
+    - "Tests test_brand_audit_service.py + test_brand_audit_endpoint.py"
+  out_of_scope:
+    - "Tool wire en agente (es T-2)"
+    - "FE button (es T-3)"
+  acceptance:
+    - { id: A1, description: "POST happy → 200 + ResponseDTO shape", verifier: { type: pytest, path: "tests/modules/copilot/test_brand_audit_endpoint.py::test_happy" } }
+    - { id: A2, description: "Cross-tenant → 403", verifier: { type: pytest, path: "...::test_tenant_isolation" } }
+    - { id: A3, description: "Migration idempotente", verifier: { type: bash, cmd: "make verify-migration-idempotency" } }
+  quality_gates:
+    - "/test-backend completo verde"
+    - "Coverage del módulo no baja"
+  depends_on: []
+  blocks: ["T-2", "T-3"]
+  transitions:
+    - { state: draft, at: "2026-05-04T15:00Z", by: "/architect" }
+  assigned_to: null
+
+T2:
+  id: T-2
+  title: "Agentic: tool wire brand_audit + prompt slot 4 + eval suite"
+  type: agentic
+  surface: AGENTIC
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                          # ⛔
+    claude_sonnet: false                          # ⛔
+    claude_opus_required: true                    # ✅ Opus 4.7 OBLIGATORIO
+  priority: 1
+  estimate_hours: 3
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-agentic.md"
+    agentic_design: "../02-design-agentic.md"
+    story_yaml: "../../../../../product/stories/copilot/brand-audit.yaml"
+    rules: [".claude/rules/sales-agent-brand-voice.md"]
+    tessl_skills: ["tessl__langgraph", "claude-api"]
+    domain_skills: ["copilot-expert"]
+  deliverables:
+    - "Tool definition en backend/src/modules/copilot/tools/brand_audit_tool.py con @tool decorator"
+    - "Tool registry update en agents/copilot_agent.py"
+    - "Prompt slot 4 en prompts/brand_audit.j2"
+    - "Eval suite backend/tests/agentic_evals/copilot/brand_audit_eval.py"
+    - "Personas: cargar tenant-novato-tech.yaml + lead-frio-impaciente.yaml"
+    - "Rubrics: completeness.md + voice-fidelity.md + no-hallucination.md + no-overpromise.md"
+    - "Trial policy: trials=3, pass^3 >= 0.5, cost <= $0.50/trial"
+  out_of_scope:
+    - "BE endpoint (T-1)"
+    - "FE button (T-3)"
+  acceptance:
+    - { id: A1, description: "Eval scenario happy-path-typical-persona pass^3 >= 0.5", verifier: { type: pytest, path: "tests/agentic_evals/copilot/brand_audit_eval.py::test_happy_path", extra: "--trials=3" } }
+    - { id: A2, description: "Scenario no-hallucination rubric >= 0.9", verifier: { type: pytest, path: "...::test_no_hallucination" } }
+    - { id: A3, description: "Scenario adversarial-hostile-persona rubric no-overpromise >= 0.9", verifier: { type: pytest, path: "...::test_adversarial" } }
+    - { id: A4, description: "Voice fidelity grader >= 0.8", verifier: { type: pytest, path: "...::test_voice_fidelity" } }
+    - { id: A5, description: "Cost per session p95 <= $0.50", verifier: { type: pytest, path: "...::test_cost_budget" } }
+  quality_gates:
+    - "/test-backend backend gates verde"
+    - "Eval suite local 100% verde"
+    - "copilot_trace_event registrado per trial"
+    - "PII redaction verificada"
+  depends_on: ["T-1"]
+  blocks: ["T-3"]
+  transitions:
+    - { state: draft, at: "2026-05-04T15:00Z", by: "/architect" }
+  assigned_to: null
+
+T3:
+  id: T-3
+  title: "FE: botón 'Auditar marca' en copilot drawer + telemetría + e2e smoke"
+  type: frontend
+  surface: FE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 2
+  estimate_hours: 2
+  inputs:
+    spec: "../01-spec.md"
+    ui_design: "../02-design-ui.md"
+    arch_doc: "../03-arch-fe.md"
+    story_yaml: "../../../../../product/stories/copilot/brand-audit.yaml"
+    rules: [".claude/rules/frontend-fsd.md", ".claude/rules/spanish-text.md"]
+    tessl_skills: ["tessl__shadcn-ui", "tessl__tailwind", "tessl__react-patterns", "tessl__zod"]
+    domain_skills: ["frontend-expert", "copilot-expert"]
+  deliverables:
+    - "Botón 'Auditar marca' en frontend/src/features/copilot/components/CopilotDrawer.tsx"
+    - "Mutation hook useBrandAuditMutation en api/use-brand-audit.ts"
+    - "Telemetría event copilot_brand_audit_clicked"
+    - "E2E spec frontend/e2e/regression/copilot-brand-audit.spec.ts"
+    - "Vitest test del componente"
+  out_of_scope:
+    - "BE (T-1)"
+    - "Agente (T-2)"
+  acceptance:
+    - { id: A1, description: "Botón visible cuando user en /copilot. Click → mutation → toast", verifier: { type: vitest, path: "..." } }
+    - { id: A2, description: "E2E smoke pass", verifier: { type: e2e, path: "frontend/e2e/regression/copilot-brand-audit.spec.ts" } }
+    - { id: A3, description: "Spanish neutro labels", verifier: { type: bash, cmd: "grep -E '\\b(podés|tenés)\\b' src/features/copilot/" } }
+  quality_gates:
+    - "/test-frontend gates verde"
+    - "E2E smoke pass"
+  depends_on: ["T-2"]
+  blocks: []
+  transitions:
+    - { state: draft, at: "2026-05-04T15:00Z", by: "/architect" }
+  assigned_to: null
