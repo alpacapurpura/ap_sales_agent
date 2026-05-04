@@ -314,6 +314,7 @@ Para CADA file nuevo en este PR (status `??` en git):
 | 9 | Security | P/W/F | n |
 | 10 | Tests / TDD | P/W/F | n |
 | 11 | Cross-cutting | P/W/F | n |
+| 12 | Default flip side-effect coverage | P/W/F/NA | n |
 
 ## Cross-scope flags (if any)
 
@@ -355,13 +356,32 @@ Para CADA file nuevo en este PR (status `??` en git):
 - [ ] If pushed to `main`: `make ci-parity` evidence
 
 ## Verdict Math
-- Any FAIL in categories 1 / 2 / 8 / 9 → **overall FAIL**
+- Any FAIL in categories 1 / 2 / 8 / 9 / 12 → **overall FAIL**
 - Allowlist grew without justified commit → **overall FAIL**
 - Any `/test-backend` gate FAIL (3-7, 11-13) → **overall FAIL**
 - **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (backend-expert + tessl__fastapi + tessl__pytest-api-testing baseline; + domain skill if domain touched; + tessl__graceful-degradation if external calls) → **overall FAIL** ("Skill routing violation — builder skipped mandatory skill invocation")
 - **`backend-expert/references/runtime-quality-checklist.md` not cited in IMPL-LOG** → **overall WARN** (next step → check for anti-patterns the checklist warns about; if any present → escalate to FAIL)
 - Two or more category WARNs → **overall WARN**
 - Otherwise → **PASS**
+
+### Cat 12 — Default flip side-effect coverage (origen PI-11 PR-3 `.claude/rules/anti-default-flip-audit.md`)
+
+Verifica:
+- [ ] PR diff toca `backend/src/core/config.py` defaults? Si NO → cat NA, skip.
+- [ ] Si SÍ → CONTRACT.md tiene § 9.5 Tests audit (default flip) completo (flag + old/new default + side-effect path + tests grep result + migration strategy + both values run + commit body docs)?
+- [ ] Builder IMPL-LOG documenta § Default-flip pre-audit (Step 0.5) con grep tests path viejo + migration list?
+- [ ] Commit body incluye "Flag X flipped Y→Z. Tests audited: N migrated, M bypass."?
+- [ ] Suite corrió con AMBOS valores flag pre-push (gate-runner output OR IMPL-LOG manual)?
+- [ ] `tests/architecture/test_no_legacy_eventbus_mock_when_outbox_on.py` (o equivalente para otra flag) PASS?
+
+Verdict:
+- **FAIL**: flip sin § Tests audit + sin grep IMPL-LOG + sin commit body docs
+- **WARN**: § Tests audit incompleto · ambos valores flag no corridos · arch fitness coverage missing para flag nueva
+- **info**: cleanup wording
+
+Referencias:
+- `.claude/rules/anti-default-flip-audit.md`
+- `docs/pm-nico/pis/active/PI-11-backend-quality-guardrails/` (caso origen 2026-05-04)
 
 > Cross-scope flags do NOT enter overall verdict math (they escalate to agentic-auditor; verdict here is for business modules only).
 ```

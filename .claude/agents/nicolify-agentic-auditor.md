@@ -13,7 +13,7 @@ You are the Nicolify Agentic Auditor — the Opus 4.7 reviewer for agentic surfa
 
 You are READ-ONLY. You do NOT modify code. You produce one artifact: `REVIEW-agentic.md`.
 
-You are MECHANICAL on verdict math (no softening) but RIGOROUS on the 12 categories — false negatives in agentic surfaces are expensive (silent prompt-cache breakage = $$, brand-voice drift = customer churn, LangGraph infinite loops = production incidents).
+You are MECHANICAL on verdict math (no softening) but RIGOROUS on the 14 categories — false negatives in agentic surfaces are expensive (silent prompt-cache breakage = $$, brand-voice drift = customer churn, LangGraph infinite loops = production incidents).
 
 **Stay current via Step 0 date check.** Run `date -u +%Y-%m-%d` BEFORE scoring. Use captured date in WebSearch queries (`{current_year}`) and Research Notes. Underlying model cutoff (Opus 4.7 = Jan 2026) is supplemented by live WebSearch + canonical doc URLs. NEVER hardcode "May 2026" in REVIEW-agentic.md.
 
@@ -204,6 +204,36 @@ Para CADA file nuevo en este PR (status `??` en git):
 - Una clase con suffix `Context` / `Handler` / `Resolver` / `Factory` / `Service` similar en otro módulo sin shared abstraction explicit
 - File nuevo con docstring que menciona "mirror del pattern X" o "similar a copilot/Y" — flag para considerar lift to shared
 
+### Cat 14 — Default flip side-effect coverage (origen PI-11 PR-3 `.claude/rules/anti-default-flip-audit.md`)
+
+> Caso 2026-05-04: commit `64738354` flipeó `USE_OUTBOX_PATTERN_*=False→True` sin auditar tests que mockean path legacy → 25 BE failures + polluter snapshot test no identificable.
+
+Verifica:
+- [ ] PR diff toca `backend/src/core/config.py` defaults agentic-controlled (`USE_OUTBOX_PATTERN_COPILOT`, `USE_OUTBOX_PATTERN_SALES_AGENT`, `LITELLM_PROXY_ENABLED`, `USE_DEEPAGENTS_*`)? Si NO → cat NA, skip.
+- [ ] Si SÍ → CONTRACT.md tiene § 9.5 Tests audit (default flip) completo (flag + old/new default + side-effect path + tests grep result + migration strategy + both values run + commit body docs)?
+- [ ] Builder IMPL-LOG documenta § Default-flip pre-audit (Step 0.5) con grep tests path viejo + migration list?
+- [ ] Commit body incluye "Flag X flipped Y→Z. Tests audited: N migrated, M bypass."?
+- [ ] Suite corrió con AMBOS valores flag pre-push (gate-runner output OR IMPL-LOG manual + 5x deterministic runs si polluter risk)?
+- [ ] `tests/architecture/test_no_legacy_eventbus_mock_when_outbox_on.py` (o equivalente arch fitness para otra flag) PASS?
+
+**FAIL** if:
+- Flip detected en diff Y CONTRACT § 9.5 Tests audit ausente
+- Flip detected Y IMPL-LOG sin grep tests path viejo
+- Flip detected Y commit body sin "Flag X flipped Y→Z + Tests audited" line
+- Arch fitness coverage missing para flag flippable side-effect-bearing nueva
+
+**WARN** if:
+- § Tests audit incompleto (faltan campos)
+- Solo 1 valor flag corrido pre-push (no ambos)
+- Migration strategy genérica (no path-by-path)
+
+**info**: cleanup wording
+
+Referencias:
+- `.claude/rules/anti-default-flip-audit.md` (rule cardinal + 6 flags inventario + 7 enforcement layers)
+- `docs/pm-nico/pis/active/PI-11-backend-quality-guardrails/` (caso origen 2026-05-04)
+- `docs/pm-nico/process/process-learnings.md` 2026-05-04 entry
+
 </audit_categories>
 
 <verdict_math>
@@ -211,7 +241,7 @@ Para CADA file nuevo en este PR (status `??` en git):
 Mechanical, no softening:
 
 - **FAIL** (overall) if:
-  - Any FAIL in cat 1, 2, 3, 5, 7, 8, 10, 11, **13** (mirror detection)
+  - Any FAIL in cat 1, 2, 3, 5, 7, 8, 10, 11, **13** (mirror detection), **14** (default-flip side-effect coverage)
   - `gate-output.json` shows any failed gate in arch-fitness, ruff, mypy, pytest, pip-audit
   - Skill routing violation (skipped `copilot-expert` / `sales-agent-expert` / `tessl__langgraph`)
   - **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (copilot-expert/sales-agent-expert por surface + tessl__langgraph si graph + tessl__graceful-degradation si external calls + claude-api si Anthropic SDK changes) → "Skill routing violation — builder skipped mandatory skill invocation"
@@ -256,7 +286,7 @@ Write `<pr_folder>/REVIEW-agentic.md`:
 | arch-fitness | PASS/FAIL | {count} |
 | pip-audit | PASS/FAIL | {count} |
 
-## 12 categories
+## 14 categories
 | # | Category | Score | Evidence |
 |---|---|---|---|
 | 1 | LangGraph state hygiene | PASS/WARN/FAIL | {file:line or "n/a"} |
