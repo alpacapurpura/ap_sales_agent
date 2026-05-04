@@ -46,6 +46,8 @@ ANCHOR_REGISTRY: dict[str, str] = {
     # S12 — final hardening (tier pricing + sales-routing dashboard)
     "SALES-AGENT-COST-TIER-S12": "docs/domains/sales-agent/redesign-2026-04/phases/S12-final-hardening-zero-debt.md",
     "SALES-AGENT-ROUTING-S12": "docs/domains/sales-agent/redesign-2026-04/phases/S12-final-hardening-zero-debt.md",
+    # PI-1 PR-7 — outbound orchestrator + CAMPAIGN_CONTEXT prompt fragment
+    "SALES-AGENT-OUTBOUND-PR7": "docs/pm-nico/pis/active/PI-1-campaigns-module/",
 }
 
 ANCHOR_CAP: int = 25

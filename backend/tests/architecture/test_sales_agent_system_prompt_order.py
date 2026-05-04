@@ -27,6 +27,7 @@ EXPECTED_CACHEABLE: tuple[PromptFragment, ...] = (
     PromptFragment.AGENT_IDENTITY,
     PromptFragment.BRAND_VOICE,
     PromptFragment.CHANNEL_FORMAT_HINT,
+    PromptFragment.CAMPAIGN_CONTEXT,
 )
 
 EXPECTED_VOLATILE: tuple[PromptFragment, ...] = (
@@ -47,6 +48,7 @@ def test_cacheable_fragment_order_is_frozen() -> None:
         4. AGENT_IDENTITY — per-tenant brand+offer+channel render.
         5. BRAND_VOICE — placeholder for S7 brand voice split.
         6. CHANNEL_FORMAT_HINT — placeholder for S5 channel registry split.
+        7. CAMPAIGN_CONTEXT — PR-7 outbound campaign instructions (only when outbound_mode=True).
     """
     assert CACHEABLE_FRAGMENTS == EXPECTED_CACHEABLE
 
