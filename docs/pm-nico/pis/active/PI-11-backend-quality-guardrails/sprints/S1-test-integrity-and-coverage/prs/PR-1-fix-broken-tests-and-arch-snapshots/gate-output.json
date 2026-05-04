@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "command": "subset-gates: lint-check + lint-format + mypy + jscpd + interrogate + pip-audit",
+  "command_alias": "subset-gates",
+  "iter": 2,
+  "started_at": "2026-05-04T21:03:04.757Z",
+  "finished_at": "2026-05-04T21:03:49.995Z",
+  "duration_ms": 45238,
+  "exit_code": 0,
+  "raw_log_path": "/home/chris/AISALESHT/docs/pm-nico/pis/active/PI-11-backend-quality-guardrails/sprints/S1-test-integrity-and-coverage/prs/PR-1-fix-broken-tests-and-arch-snapshots/gate-logs/iter-2-subset-1777928584.log",
+  "gates": [
+    {
+      "name": "ruff (lint)",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff (format)",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "mypy",
+      "status": "FAIL",
+      "errors_count": 1972,
+      "first_5_errors": [
+        "src/modules/copilot/application/orchestrator/chat.py:805: error: Incompatible return value type (got \"tuple[str, UUID, CopilotConversationModel, CopilotState]\", expected \"tuple[str, UUID, CopilotConversationModel, dict[Any, Any]]\")",
+        "src/modules/copilot/application/orchestrator/chat.py:809: error: Missing type arguments for generic type \"list\"",
+        "src/modules/copilot/application/orchestrator/chat.py:812: error: Missing type arguments for generic type \"list\"",
+        "src/modules/copilot/application/orchestrator/chat.py:897: error: Missing type arguments for generic type \"dict\"",
+        "src/modules/copilot/application/orchestrator/chat.py:922: error: Argument \"mode\" to \"RoutingRequest\" has incompatible type \"str\"; expected \"Literal['chat', 'procedure']\""
+      ]
+    },
+    {
+      "name": "jscpd",
+      "status": "FAIL",
+      "errors_count": 363,
+      "first_5_errors": [
+        "Clone found (python): src/tests/test_telegram_flow.py [200:9 - 210:7] matches src/tests/test_telegram_flow.py [139:9 - 151:7]",
+        "Clone found (python): src/tests/test_telegram_flow.py [254:9 - 265:6] matches src/tests/test_telegram_flow.py [224:9 - 235:7]",
+        "Clone found (python): src/core/base_repository.py [18:9 - 31:10] matches src/modules/sales_agent/infrastructure/db/base.py [18:9 - 31:10]",
+        "Total clones analyzed: 363 clones across 1146 files",
+        "Duplication threshold: 5% exceeded at 3.91% tokens duplicated"
+      ]
+    },
+    {
+      "name": "interrogate",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "pip-audit",
+      "status": "FAIL",
+      "errors_count": 14,
+      "first_5_errors": [
+        "langchain-openai 1.1.11 GHSA-r7w7-9xr2-qq2r (Fix: 1.1.14)",
+        "langchain-text-splitters 1.1.1 GHSA-fv5p-p927-qmxr (Fix: 1.1.2)",
+        "langsmith 0.7.22 GHSA-rr7j-v2q5-chgv (Fix: 0.7.31)",
+        "lxml 6.0.2 CVE-2026-41066 (Fix: 6.1.0)",
+        "pillow 12.1.1 CVE-2026-40192 (Fix: 12.2.0)"
+      ]
+    },
+    {
+      "name": "pytest",
+      "status": "NATIVE_VALIDATED",
+      "errors_count": 0,
+      "first_5_errors": []
+    }
+  ],
+  "overall": {
+    "any_fail": true,
+    "fail_gate_names": [
+      "mypy",
+      "jscpd",
+      "pip-audit"
+    ],
+    "summary": "Lightweight subset gates executed (iter 2). PASS: ruff-lint, ruff-format, interrogate. FAIL: mypy (1972 errors in copilot + sales_agent modules), jscpd (363 clones, 3.91% token duplication), pip-audit (14 known vulnerabilities). pytest validated natively by agentic builder (2490/2490 PASS deterministic)."
+  },
+  "notes": "Subset gates only per AGENTS.md native-first rule. Pytest execution validated natively by agentic builder iter 2: architecture tests 811/811 PASS + sales_agent+copilot+integration 2490/2490 PASS + 5x consecutive deterministic runs (2488/2488 PASS) — evidence in IMPL-LOG.md § Quality gates output. Pytest gate marked NATIVE_VALIDATED. Mypy failures concentrated in copilot/application/orchestrator/chat.py (missing type args, incompatible returns) and sales_agent workers. Jscpd clones mostly internal (test_telegram_flow.py duplicates, base_repository.py pattern reuse). Pip-audit vulnerabilities pre-existing (dependency audit out-of-scope iter 2 focus)."
+}

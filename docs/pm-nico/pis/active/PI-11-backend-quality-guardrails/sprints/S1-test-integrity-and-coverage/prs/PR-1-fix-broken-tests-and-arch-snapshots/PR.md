@@ -7,7 +7,7 @@
 | PR ID | PR-1-fix-broken-tests-and-arch-snapshots |
 | Sprint padre | S1-test-integrity-and-coverage |
 | PI padre | PI-11-backend-quality-guardrails |
-| Estado | ready |
+| Estado | **shipped (2026-05-04)** |
 | Tipo | refactor + bug fix |
 | Esfuerzo | XL |
 | Owner PM | /pm |

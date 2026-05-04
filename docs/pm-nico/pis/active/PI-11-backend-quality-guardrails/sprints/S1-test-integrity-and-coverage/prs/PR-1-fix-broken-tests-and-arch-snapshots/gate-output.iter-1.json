@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/ -v && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check src/ tests/ && .venv/bin/mypy src/",
+  "command_alias": "test-backend",
+  "iter": 1,
+  "started_at": "2026-05-04T20:41:42.000Z",
+  "finished_at": null,
+  "duration_ms": null,
+  "exit_code": null,
+  "raw_log_path": "/home/chris/AISALESHT/docs/pm-nico/pis/active/PI-11-backend-quality-guardrails/sprints/S1-test-integrity-and-coverage/prs/PR-1-fix-broken-tests-and-arch-snapshots/gate-logs/iter-1-test-backend-2026-05-04T20:41:42.log",
+  "gates": [
+    {
+      "name": "pytest",
+      "status": "UNKNOWN",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff (lint)",
+      "status": "UNKNOWN",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff (format)",
+      "status": "UNKNOWN",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "mypy",
+      "status": "UNKNOWN",
+      "errors_count": 0,
+      "first_5_errors": []
+    }
+  ],
+  "overall": {
+    "any_fail": null,
+    "fail_gate_names": [],
+    "summary": "Process killed mid-execution at 79% pytest progress (test_e2e_real_engine_real_offer_provider). No gate completed. Log truncated."
+  },
+  "notes": "Existing log (iter 1) parsed as instructed. Process was terminated during pytest execution before reaching pytest summary line. No ruff/mypy gates were reached. Previous full suite command included: ruff check, ruff format --check, pytest architecture + full coverage suite, mypy. Recommend re-run with /test-backend or specific gate to continue."
+}
