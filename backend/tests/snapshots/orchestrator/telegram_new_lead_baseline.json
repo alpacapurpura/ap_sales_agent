@@ -43,7 +43,7 @@
         "qualification_answers": {},
         "session_active": true,
         "session_gap_hours": null,
-        "session_id": "99999999-0000-0000-0000-000000000003",
+        "session_id": "99999999-0000-0000-0000-000000000001",
         "tenant_config": {
           "locale": "es-LA"
         },
@@ -90,7 +90,18 @@
       ]
     }
   ],
-  "domain_events": [],
+  "domain_events": [
+    {
+      "event_name": "lead_captured",
+      "payload": {
+        "channel_slug": "telegram-dm",
+        "extracted_field": "external_id",
+        "profile_id": "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+        "source_channel_type": "telegram"
+      },
+      "tenant_id": "44444444-4444-4444-4444-444444444444"
+    }
+  ],
   "journey_events": [
     {
       "event_name": "message_received",
@@ -129,7 +140,7 @@
       "lead_score": 5,
       "objection_history": [],
       "qualification_answers": {},
-      "session_id": "99999999-0000-0000-0000-000000000003",
+      "session_id": "99999999-0000-0000-0000-000000000001",
       "tenant_id": "44444444-4444-4444-4444-444444444444",
       "turn_count": 1
     }

@@ -211,9 +211,27 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         lambda _db: journey_repo,
     )
 
-    # 7. Domain event publishing.
-    def _capture_publish(event: Any, session: Any = None) -> None:
-        del session
+    # 7. Domain event publishing — outbox-aware capture (PI-11 PR-1 Fase 5, D6).
+    #
+    # Post outbox cutover (PR-6 PI-2, USE_OUTBOX_PATTERN_SALES_AGENT=True default),
+    # production emitters route through ``adapter_bus.publish`` instead of
+    # legacy ``EventBus.publish``. Patching the legacy bus only captured
+    # fall-through events (when flag OFF or session=None) → snapshot baseline
+    # reflected an empty list because real events were enqueued silently in
+    # the mocked outbox path.
+    #
+    # Fix: patch ``adapter_bus.publish`` directly — single entry point post
+    # cutover. Captures every publish attempt regardless of routing branch.
+    # CONTRACT § 4 Caso A (adapter_bus mock — fake_db not real DB so outbox
+    # table probe Caso B does not apply for snapshot tests).
+    def _capture_publish(
+        event: Any,
+        session: Any = None,
+        *,
+        module: Any = None,
+        idempotency_key: Any = None,
+    ) -> None:
+        del session, module, idempotency_key
         capture.domain_events.append(
             {
                 "event_name": event.event_name,
@@ -222,9 +240,19 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
             },
         )
 
-    # Patch at definition site so the capture works wherever the call
-    # originates (chat.py pre-S11B, audit_emitter.py post-extraction).
-    monkeypatch.setattr("src.shared.domain.events.EventBus.publish", staticmethod(_capture_publish))
+    # Patch the canonical adapter entry point (post outbox cutover).
+    # Legacy ``EventBus.publish`` mock kept for backward-compat with any
+    # remaining direct callers (test capability suites only).
+    from src.shared.domain_events.outbox.application import event_bus_adapter
+
+    monkeypatch.setattr(event_bus_adapter.adapter_bus, "publish", _capture_publish)
+    # Belt-and-suspenders: also patch legacy in case some code path bypasses
+    # adapter and hits legacy bus directly (LegacyEventBus fall-through inside
+    # adapter when session=None or _is_outbox_enabled returns False).
+    monkeypatch.setattr(
+        "src.shared.domain.events.EventBus.publish",
+        staticmethod(lambda event, session=None: _capture_publish(event, session=session)),
+    )
 
     # 8. Customer traits update — patch at IdentityResolver (post-S11B) so the
     #    capture works regardless of who's calling (chat.py legacy delegate or
