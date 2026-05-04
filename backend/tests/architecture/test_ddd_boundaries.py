@@ -58,6 +58,16 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # composition root for ARQ context; import is DI wiring, not domain logic coupling.
     "campaigns -> crm | campaigns/workers/scheduler_tick.py",
     "campaigns -> crm | campaigns/workers/segment_refresh_tick.py",
+    # PI-1 PR-7 outbound: campaigns infrastructure adapter lazy-imports
+    # OutboundOrchestrator + ChannelRouter from sales_agent. Adapter pattern at
+    # infrastructure/external/ boundary — campaigns owns cron+DAG, sales_agent owns
+    # LangGraph runtime. Lazy import keeps DDD boundary clean (no top-level coupling).
+    "campaigns -> sales_agent | campaigns/infrastructure/external/sales_agent_adapter.py",
+    # crm contacts API + query service consume CampaignsLookupPort (shared/links/ports)
+    # and reuse campaigns DI session helper + PaginatedResponse DTO. Composition-root
+    # wiring at api/ layer + DTO reuse at application/ layer (PI-1 PR-6 contacts hub).
+    "crm -> campaigns | crm/api/contacts.py",
+    "crm -> campaigns | crm/application/services/contact_query_service.py",
 }
 
 

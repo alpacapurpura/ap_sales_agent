@@ -26,6 +26,9 @@ KNOWN_PRIVATE_FILE_EXCEPTIONS: frozenset[str] = frozenset(
         # campaigns/application/services/ — internal event bridge (not a service, not a
         # domain entity; private translation util consumed only by orchestrator.py).
         "campaigns/application/services/_event_bridge.py",
+        # copilot/api/_dependencies.py — async session DI factory for telegram routes
+        # + worker. Mirrors campaigns/api/_dependencies.py pattern (PI-5 PR-1).
+        "copilot/api/_dependencies.py",
     }
 )
 
