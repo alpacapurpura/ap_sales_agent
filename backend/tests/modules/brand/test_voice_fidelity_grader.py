@@ -10,6 +10,10 @@ once the golden pack is expanded to 30 prompts/preset = 180 total.
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
+import pytest
+
 from src.modules.brand.application.voice_fidelity import (
     GOLDEN_PROMPTS,
     GraderResult,
@@ -51,6 +55,22 @@ class TestGoldenPack:
 
 class TestGraderDeterministicScores:
     """Banned-vocab + lexical alignment are computed locally, no LLM needed."""
+
+    @pytest.fixture(autouse=True)
+    def _no_llm_call(self) -> pytest.FixtureRequest:
+        """Block LLM initialisation so grade_response takes the judge_skipped path.
+
+        TestGraderDeterministicScores only validates local (deterministic) scores.
+        LLMFactory.get_service() raises to prevent network timeouts on envs without
+        the litellm proxy (native WSL, CI).
+        PI-11 PR-1: regression fix — singleton reset made LLMFactory re-initialise
+        every test causing 30s network timeout instead of warm-singleton skip.
+        """
+        with patch(
+            "src.shared.infrastructure.llm.factory.LLMFactory.get_service",
+            side_effect=RuntimeError("LLM stubbed — deterministic test only"),
+        ):
+            yield
 
     def test_banned_phrase_lowers_to_false(self) -> None:
         """Hard fail when a forbidden phrase appears verbatim."""
