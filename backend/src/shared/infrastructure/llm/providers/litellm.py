@@ -61,6 +61,13 @@ _LEGACY_MODEL_TYPE_MAP: dict[str, ModelRole] = {
 }
 
 
+_K2_REQUIRED_TEMPERATURE = 0.6
+"""Kimi K2.6 (thinking disabled) only accepts temperature=0.6 server-side
+(TP4-B4 + TP5-B8). Without coercion, the upstream returns HTTP 400
+``only 0.6 is allowed for this model``. Mirror of the constant in the
+deprecated legacy adapter ``providers/kimi.py``; both must agree."""
+
+
 class LiteLLMService(BaseLLMService):
     """Single LangChain client targeting LiteLLM Proxy OpenAI-compat endpoint.
 
@@ -105,6 +112,15 @@ class LiteLLMService(BaseLLMService):
         spec = self.CHAT_MODEL_SPEC
         litellm_model = self._litellm_model_name(role)
         effective_temp = self._DEFAULT_TEMPERATURE if temperature is None else temperature
+        if "kimi/kimi-k2" in litellm_model.lower() and effective_temp != _K2_REQUIRED_TEMPERATURE:
+            logger.warning(
+                "kimi_k2_temperature_clamped",
+                model=litellm_model,
+                requested=effective_temp,
+                effective=_K2_REQUIRED_TEMPERATURE,
+                role=role.value,
+            )
+            effective_temp = _K2_REQUIRED_TEMPERATURE
         cache_key = (litellm_model, effective_temp)
         if cache_key not in self._models:
             ctx = ChatBuildContext(
