@@ -36,8 +36,9 @@ Brand/Offer: `brand`, `offer` · Assets: `landing`, `assets` · Growth: `analyti
 | BE quality/master-data/currency/arch-fitness | `backend-expert` | `rules/{backend-quality,master-data,currency-handling,architectural-fitness}.md` |
 | FE quality/form-runtime | `frontend-expert` / `brand-expert` | `rules/{frontend-quality,form-runtime-array}.md` |
 | Streamlit admin | `backend-expert` | `rules/admin-panel.md` |
-| E2E Playwright | (none — `/test-all`) | `rules/e2e-testing.md` |
+| E2E Playwright + Clerk auth + smoke tests | `playwright-expert` | `rules/e2e-testing.md` |
 | PM/SSoT funcional | `pm` skill | `rules/pm-nico-ssot.md` |
+| BE config flag flips (`core/config.py` defaults) | (none — `pm` skill ratification) | `rules/anti-default-flip-audit.md` |
 
 ## Vision
 
