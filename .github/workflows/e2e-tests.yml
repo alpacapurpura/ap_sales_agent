@@ -1,6 +1,16 @@
 name: "🎭 E2E Playwright Tests"
 
 on:
+  push:
+    branches: [development]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/e2e-tests.yml'
+  pull_request:
+    branches: [development, main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/e2e-tests.yml'
   workflow_dispatch:
     inputs:
       suite:
@@ -19,7 +29,7 @@ on:
 
 jobs:
   e2e:
-    name: "🎭 Playwright (${{ inputs.suite }})"
+    name: "🎭 Playwright (${{ inputs.suite || 'smoke' }})"
     runs-on: ubuntu-latest
     environment: ap_sales_agent
     timeout-minutes: 20
@@ -120,13 +130,15 @@ jobs:
       - name: Resolve Playwright grep filter
         id: filter
         run: |
-          case "${{ inputs.suite }}" in
-            smoke)      echo "args=--grep @smoke --project=smoke" >> $GITHUB_OUTPUT ;;
+          # Auto-runs (push/PR) default to smoke; manual dispatch honors selected suite.
+          SUITE="${{ inputs.suite || 'smoke' }}"
+          case "$SUITE" in
+            smoke)      echo "args=--project=smoke" >> $GITHUB_OUTPUT ;;
             regression) echo "args=--project=regression" >> $GITHUB_OUTPUT ;;
             full)       echo "args=" >> $GITHUB_OUTPUT ;;
           esac
 
-      - name: "Run Playwright tests (${{ inputs.suite }})"
+      - name: "Run Playwright tests (${{ inputs.suite || 'smoke' }})"
         run: |
           docker compose --profile e2e run --rm e2e_runner \
             npx playwright test ${{ steps.filter.outputs.args }}
@@ -139,7 +151,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ inputs.suite }}
+          name: playwright-report-${{ inputs.suite || 'smoke' }}
           path: |
             frontend/playwright-report/
             frontend/test-results/

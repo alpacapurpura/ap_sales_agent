@@ -37,7 +37,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : (process.env.E2E_BASE_URL ? 1 : 0),
-  workers: 1,
+  // Setup project pins itself to mode:'serial' (clerk.setup.ts). Smoke/regression/public/verify
+  // can run in parallel safely — each test fixture re-injects Clerk testing token per page.
+  workers: process.env.CI ? 2 : 4,
   reporter: process.env.CI
     ? [['html', { open: 'never' }], ['github']]
     : [['html', { open: 'never', host: '0.0.0.0' }]],
@@ -65,7 +67,6 @@ export default defineConfig({
     {
       name: 'smoke',
       testMatch: /.*\.smoke\.spec\.ts/,
-      fullyParallel: false,
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.clerk/user.json',

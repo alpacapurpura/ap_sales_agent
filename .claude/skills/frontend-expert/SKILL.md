@@ -77,12 +77,12 @@ Estructura plana agrupada por dominio. Detalles completos en [fsd-cheatsheet.md]
 
 **E2E smoke es obligatorio para rutas nuevas o flujos críticos modificados.**
 
-- Agregar smoke test en `frontend/e2e/specs/smoke/` si es ruta nueva o crítica (tag `@smoke`)
+- Agregar smoke test en `frontend/e2e/specs/smoke/` si es ruta nueva o crítica (suffix `.smoke.spec.ts`)
 - Agregar regression test en `frontend/e2e/specs/regression/{domain}/` para flujos completos
 - Usar POM de `frontend/e2e/pages/` o crear uno nuevo
-- Ejecutar nativamente: `cd frontend && npx playwright test --project=smoke` (NUNCA `make e2e-smoke`)
+- Ejecutar nativamente: `cd frontend && npm run test:e2e:smoke` (NUNCA `make e2e-smoke`)
 - Requiere dev containers corriendo (`docker compose up -d`)
-- Para detalles completos: `.claude/rules/e2e-testing.md`
+- **Para detalles completos: invocar skill `playwright-expert` (SSoT — Clerk auth, POMs, fixtures, mocks, CI, anti-patterns, recipe agregar smoke).** Stub: `.claude/rules/e2e-testing.md`
 
 ## Constraints (CRITICAL — read last)
 
@@ -96,4 +96,4 @@ Estructura plana agrupada por dominio. Detalles completos en [fsd-cheatsheet.md]
 - `references/frontend-quality.md` — ESLint 60+ rules, TS strict, Vitest, 10 arch tests
 - `references/runtime-quality-checklist.md` — **OBLIGATORIO leer antes commit y antes spawn auditor**. useEffect deps, stale closures, routing tenantId, mock anti-patterns, live verification gate (origen S4 PI-1)
 - `references/studio-section-pages.md` — lazy-loading per-section pattern (brand/offer/futuros)
-- `references/e2e-testing.md` — Playwright preflight, native execution, Clerk setup, mocks Growth Studio
+- E2E Playwright → invocar skill `playwright-expert` (SSoT migrada 2026-05-04 — más amplia: arquitectura, Clerk auth deep-dive, freshness gate, recipe agregar smoke, POMs, fixtures+mocks, CI+flake debugging, anti-patterns)

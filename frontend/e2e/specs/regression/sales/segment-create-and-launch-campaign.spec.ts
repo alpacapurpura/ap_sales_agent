@@ -31,52 +31,6 @@ test.describe('PR-12 Segment create + Campaign launch flow', () => {
     await expect(page.getByRole('heading', { name: /contactos/i })).toBeVisible({ timeout: 10_000 });
   });
 
-  test.skip('full flow: select contacts → create segment → launch campaign', async ({
-    page,
-    tenantId,
-  }) => {
-    // Skipped until seed fixture lands (inheriting PR-11 + PR-9 pattern).
-    // Manual checklist Chris: post-S4 staging gate.
-    await page.goto(`/${tenantId}/sales/contactos`);
-
-    // 1. Wait for table to render
-    await expect(page.getByRole('table')).toBeVisible({ timeout: 10_000 });
-
-    // 2. Select 2 rows via checkboxes
-    const checkboxes = page.locator('tbody input[type="checkbox"]');
-    await checkboxes.nth(0).check();
-    await checkboxes.nth(1).check();
-
-    // 3. SelectedContactsBar should appear
-    await expect(page.getByText(/2 contactos seleccionados/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /crear segmento/i })).toBeVisible();
-
-    // 4. Open CreateSegmentDialog
-    await page.getByRole('button', { name: /crear segmento/i }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
-
-    // 5. Fill segment name and submit
-    await page.getByLabel(/nombre del segmento/i).fill('Segmento S4 Test');
-    await page.getByRole('button', { name: /crear segmento$/i }).click();
-
-    // 6. Toast success + LaunchCampaignChoiceDialog
-    await expect(page.getByText(/segmento.*creado/i)).toBeVisible();
-    await expect(page.getByText(/¿quieres lanzar una campaña/i)).toBeVisible();
-
-    // 7. Navigate to campaign new page
-    await page.getByRole('button', { name: /sí, crear campaña/i }).click();
-    await expect(page).toHaveURL(/\/sales\/campa%C3%B1as\/nuevo/);
-    await expect(page).toHaveURL(/segment_id=/);
-
-    // 8. Fill campaign form
-    await page.getByLabel(/nombre de la campaña/i).fill('Campaña Telegram S4');
-    await page.getByRole('button', { name: /crear campaña/i }).click();
-
-    // 9. Toast + redirect to detail page
-    await expect(page.getByText(/campaña.*creada/i)).toBeVisible();
-    await expect(page).toHaveURL(/\/sales\/campa%C3%B1as\/[a-zA-Z0-9-]+$/);
-
-    // 10. Stats card renders
-    await expect(page.getByText(/estadísticas/i)).toBeVisible();
-  });
+  // Full select→segment→campaign flow removed 2026-05-04 (was test.skip permanent).
+  // Restore from git history when seed fixture infra lands. Manual gate Chris meanwhile.
 });

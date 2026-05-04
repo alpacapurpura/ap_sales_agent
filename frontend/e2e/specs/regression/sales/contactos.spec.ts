@@ -28,29 +28,6 @@ test.describe('PR-11 Sales Contactos page', () => {
     await expect(page.getByRole('heading', { name: /contactos/i })).toBeVisible({ timeout: 10_000 });
   });
 
-  test.skip('full flow: filter → row click drawer → search → multi-select', async ({ page, tenantId }) => {
-    // Skipped hasta seed fixture lands (heredando PR-9 pattern).
-    // Manual checklist Chris: sprints/S4-crm-hub-lite/manual-test-checklist.md (post-PR-12 cierre).
-    await page.goto(`/${tenantId}/sales/contactos`);
-
-    // 1. Tabla render
-    await expect(page.getByRole('table')).toBeVisible();
-
-    // 2. Apply filter lifecycle MQL
-    await page.getByRole('checkbox', { name: /MQL/i }).check();
-    await expect(page).toHaveURL(/lifecycle_stage_in=mql/);
-
-    // 3. Click row → drawer
-    await page.locator('tbody tr').first().click();
-    await expect(page.getByRole('dialog')).toBeVisible();
-
-    // 4. Search debounced
-    await page.getByPlaceholder(/buscar/i).fill('juan');
-    await page.waitForTimeout(400);
-    await expect(page).toHaveURL(/q=juan/);
-
-    // 5. Multi-select bar
-    await page.locator('thead input[type="checkbox"]').first().click();
-    await expect(page.getByText(/contactos seleccionados/i)).toBeVisible();
-  });
+  // Full filter→drawer→search→multi-select flow removed 2026-05-04 (was test.skip permanent).
+  // Restore from git history when seed fixture infra lands.
 });

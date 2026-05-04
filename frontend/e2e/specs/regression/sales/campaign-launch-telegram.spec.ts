@@ -80,56 +80,6 @@ test.describe('PR-9 Campaign launch Telegram E2E', () => {
     }
   });
 
-  test.skip('full campaign create → schedule → SENT flow (needs scheduler tick endpoint)', async ({
-    page,
-    tenantId,
-  }) => {
-    // BLOCKED: requires manual ARQ scheduler tick trigger endpoint OR
-    // 5-minute wait window + lead with telegram_id pre-seeded in staging DB.
-    // Manual test checklist (sprints/S3-mvp-telegram/manual-test-checklist.md)
-    // covers this flow end-to-end against staging.
-
-    const createResp = await page.request.post('/api/v1/campaigns', {
-      headers: { 'X-Tenant-ID': tenantId, 'Content-Type': 'application/json' },
-      data: {
-        name: 'PR-9 E2E Telegram smoke',
-        description: 'Saluda al lead, ofrecé reunión 15min',
-        type: 'AGENT_CONVERSATION',
-      },
-    });
-    expect(createResp.status()).toBe(201);
-    const campaign = await createResp.json();
-    expect(campaign).toHaveProperty('id');
-
-    // Add step
-    const stepResp = await page.request.post(`/api/v1/campaigns/${campaign.id}/steps`, {
-      headers: { 'X-Tenant-ID': tenantId, 'Content-Type': 'application/json' },
-      data: {
-        step_type: 'CALL_SUBAGENT_BRIEF',
-        step_index: 0,
-        step_config: {
-          agent_kind: 'sales_agent',
-          brief: 'Saluda y ofrecé reunión 15min',
-        },
-      },
-    });
-    expect(stepResp.status()).toBe(201);
-
-    // Schedule + trigger scheduler tick (BLOCKED — manual trigger endpoint pending)
-    // const triggerResp = await page.request.post(`/api/v1/_test/scheduler-tick`);
-    // ...
-
-    // Verify stats
-    const statsResp = await page.request.get(`/api/v1/campaigns/${campaign.id}/stats`, {
-      headers: { 'X-Tenant-ID': tenantId },
-    });
-    expect(statsResp.status()).toBe(200);
-    const stats = await statsResp.json();
-    expect(stats.sent_count).toBeGreaterThanOrEqual(1);
-
-    // Cleanup
-    await page.request.delete(`/api/v1/campaigns/${campaign.id}`, {
-      headers: { 'X-Tenant-ID': tenantId },
-    });
-  });
+  // Full create→schedule→SENT flow removed 2026-05-04 (was test.skip permanent — needs scheduler tick endpoint).
+  // Restore from git history when scheduler tick test endpoint lands.
 });

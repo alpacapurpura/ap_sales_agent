@@ -60,19 +60,20 @@ else
     echo -e "${GREEN}OK${NC}"
 fi
 
-# 4. Clerk auth state exists
+# 4. Clerk auth state freshness (4h hard limit — Clerk JWT + cf_bm cookie expire)
 echo -n "Checking Clerk auth state... "
 AUTH_FILE="frontend/playwright/.clerk/user.json"
+STALE_HOURS=4
 if [ ! -f "$AUTH_FILE" ]; then
-    echo -e "${YELLOW}WARN${NC} — no cached auth state"
-    echo "  Will run setup project (adds ~10s). Not a blocker."
+    echo -e "${GREEN}OK${NC} — no cached state, setup project will create one"
 else
-    # Check age (warn if older than 24h)
-    AGE_HOURS=$(( ($(date +%s) - $(stat -c %Y "$AUTH_FILE")) / 3600 ))
-    if [ "$AGE_HOURS" -gt "24" ]; then
-        echo -e "${YELLOW}WARN${NC} — auth state is ${AGE_HOURS}h old (may need re-auth)"
+    AGE_MIN=$(( ($(date +%s) - $(stat -c %Y "$AUTH_FILE")) / 60 ))
+    if [ "$AGE_MIN" -gt $((STALE_HOURS * 60)) ]; then
+        echo -e "${YELLOW}STALE${NC} — auth state is ${AGE_MIN}min old (>${STALE_HOURS}h limit)"
+        echo "  Auto-wiping; setup project will re-authenticate."
+        rm -f "$AUTH_FILE"
     else
-        echo -e "${GREEN}OK${NC} — ${AGE_HOURS}h old"
+        echo -e "${GREEN}OK${NC} — ${AGE_MIN}min old"
     fi
 fi
 

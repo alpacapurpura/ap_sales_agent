@@ -17,7 +17,9 @@
     "storybook": "storybook dev -p 6006 --host 0.0.0.0",
     "build-storybook": "storybook build",
     "test:e2e": "playwright test",
-    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:smoke": "playwright test --project=smoke",
+    "test:e2e:fresh": "rm -rf playwright/.clerk/user.json && playwright test --project=smoke",
+    "test:e2e:auth": "rm -rf playwright/.clerk/user.json && playwright test --project=setup",
     "test:e2e:ui": "playwright test --ui --ui-host 0.0.0.0",
     "test:e2e:report": "playwright show-report --host 0.0.0.0"
   },
