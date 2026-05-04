@@ -14,10 +14,10 @@ describe("CampaignTag", () => {
     expect(screen.getByRole("link")).toHaveTextContent("campaña: Black Friday");
   });
 
-  it("link href points to /campañas/{campaignId}", () => {
+  it("link href points to /campanas/{campaignId}", () => {
     render(<CampaignTag campaignId="abc-123" campaignName="Black Friday" />);
     const link = screen.getByRole("link");
-    expect(link).toHaveAttribute("href", "/campañas/abc-123");
+    expect(link).toHaveAttribute("href", "/campanas/abc-123");
   });
 
   it("truncates campaign name longer than 30 chars", () => {
@@ -47,12 +47,12 @@ describe("CampaignTag", () => {
     expect(container.firstChild).toHaveClass("custom-cls");
   });
 
-  it("navigates to /campañas/{id} on click", async () => {
+  it("navigates to /campanas/{id} on click", async () => {
     const user = userEvent.setup();
     render(<CampaignTag campaignId="abc-123" campaignName="Promo" />);
     await user.click(screen.getByRole("link"));
     // next/link renders an anchor; navigation happens via href, no manual push needed.
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/campañas/abc-123");
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/campanas/abc-123");
   });
 
   it("variant='detail' renders without error", () => {
