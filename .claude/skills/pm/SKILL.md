@@ -622,6 +622,35 @@ Cada respuesta tuya en convo debe:
 - ❌ **Bajar de Opus a Sonnet/Haiku** para "ahorrar" cuando Opus paused — Opus es la decisión que el rol requiere
 - ❌ **PM escribe REVIEW.md por auditor agent ausente** — PR no se cierra hasta auditor Opus produce REVIEW (regla "Opus agent paused → resume")
 - ❌ **PM marca PR shipped sin output del agent Opus correspondiente** (architect CONTRACT, auditor REVIEW)
+- ❌ **PR.md sin bloque "Default flips audited" cuando diff toca `backend/src/core/config.py` defaults** — auditor Cat 12 (backend) / Cat 14 (agentic) FAIL automatic. Origen PI-11 PR-3 `.claude/rules/anti-default-flip-audit.md`.
+- ❌ **PM aprueba CONTRACT sin § 9.5 Tests audit cuando architect propone flip default side-effect** — sin ese bloque builders no graspan migration strategy → silent failure post-merge (caso 2026-05-04: 25 BE failures).
+
+***
+
+## Default flips audited — bloque PR.md template (cuando aplique)
+
+Si PR propone flipear default flag side-effect (events, persistence, logging, observability, LLM routing), incluir en PR.md:
+
+```markdown
+## Default flips audited
+
+| Field | Value |
+|---|---|
+| Flag | {nombre} |
+| Old default | {True/False} |
+| New default | {True/False} |
+| Side-effect path | {old → new} |
+| Tests pre-audit grep | {count + lista} |
+| Migration strategy | {ver CONTRACT § 9.5 Tests audit} |
+| Both values runs | {sí/no} |
+| Arch fitness coverage | {test_name si existe; CREATE si flag nueva} |
+```
+
+Si NO aplica: marcar `[x] No aplica — PR no flipea defaults side-effect`.
+
+Architect produces matching § 9.5 Tests audit en CONTRACT.md. Builder Step 0.5 grep tests path viejo + migration. Auditor Cat 12/14 FAIL si bloque ausente.
+
+Origen: PI-11 PR-3 anti-default-flip-audit. Caso 2026-05-04: commit `64738354` flipeó `USE_OUTBOX_PATTERN_*=False→True` sin audit → 25 BE failures.
 
 ***
 
