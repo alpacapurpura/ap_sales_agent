@@ -320,3 +320,100 @@ def db(db_engine):
     session.close()
     transaction.rollback()
     connection.close()
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Singleton isolation fixture (PI-11 PR-1 Fase 3, 2026-05-04)
+#
+# Class-level singletons leak state between tests.  Without this fixture:
+#   - LLMFactory._instance holds a MultiRoleLLMRouter built with prod settings;
+#     tests that monkeypatch settings see stale router.
+#   - ChatOrchestrator._instance (sales_agent) persists buffer_service state
+#     across tests → cross-test behaviour + SmartBufferService background leak.
+#   - SemanticRouter._instance (sales_agent) caches routing rules per tenant;
+#     next test with different tenant reuses stale rules.
+#   - EventBus._handlers accumulates subscribers — origin PI.md § Origen
+#     point 2 (TestDomainSubscribersRegistration leak).
+#   - EventBusAdapter module-inference lru_cache retains stale filename→module
+#     mappings when tests monkeypatch import structure.
+#
+# Singletons explicitly EXCLUDED (justified):
+#   - ChannelRouterRegistry._instance (campaigns): bootstrap-once thread-safe
+#     design; reset breaks campaigns tests that rely on pre-bootstrapped registry.
+#   - MetaAPI._api_instance (connections): per-instance attribute (self._api_instance),
+#     NOT class-level; garbage-collected with each test's instance.
+#
+# Ref: CONTRACT.md PR-1 § 1 (singleton inventory) + § 2 (fixture design)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def _do_singleton_reset() -> None:
+    """Perform class-level singleton + module-level cache resets.
+
+    Called both pre-test (yield) and post-test (cleanup) to guarantee
+    no state leaks INTO this test and no state leaks FROM this test.
+    """
+    # 1. LLMFactory._instance — MultiRoleLLMRouter holding ChatOpenAI clients
+    #    with base_url/api_key from settings at construction time.
+    #    Tests that monkeypatch settings need a clean factory to see the
+    #    patched values when they call LLMFactory.get_service().
+    from src.shared.infrastructure.llm.factory import LLMFactory
+
+    LLMFactory._instance = None  # LLMFactory._instance — reset reason: stale router with prod settings
+
+    # 2. ChatOrchestrator._instance (sales_agent) — compiled LangGraph +
+    #    SmartBufferService with buffer state. Cross-test → next test reuses
+    #    same orchestrator with leaked buffer state + _initialized=True flag.
+    try:
+        from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
+
+        if ChatOrchestrator._instance is not None and hasattr(ChatOrchestrator._instance, "buffer_service"):
+            # Clean up buffer_service before drop to prevent background task leak
+            ChatOrchestrator._instance.buffer_service = None  # type: ignore[attr-defined]
+        ChatOrchestrator._instance = (
+            None  # ChatOrchestrator._instance — reset reason: buffer state + _initialized flag leak
+        )
+    except ImportError:
+        pass  # sales_agent module may not be available in all test environments
+
+    # 3. SemanticRouter._instance (sales_agent) — routing rules + tenant config
+    #    snapshot. Tests with different tenants reuse stale routing rules.
+    try:
+        from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
+
+        SemanticRouter._instance = None  # SemanticRouter._instance — reset reason: tenant-scoped routing rules cached
+    except ImportError:
+        pass  # sales_agent module may not be available in all test environments
+
+    # 4. EventBus._handlers — class-level dict accumulating subscribers.
+    #    Origin PI.md § Origen point 2: TestDomainSubscribersRegistration leak
+    #    causes handlers from test A to fire in test B (cross-test side effects).
+    from src.shared.domain.events import EventBus
+
+    EventBus.clear()  # EventBus._handlers — reset reason: subscriber handler leak cross-test (PI.md § Origen point 2)
+
+    # 5. EventBusAdapter module-inference lru_cache — cached per calling-frame
+    #    filename. Tests that monkeypatch import structure or run from different
+    #    frame contexts get stale module name mappings.
+    try:
+        from src.shared.domain_events.outbox.application.event_bus_adapter import (
+            _reset_module_inference_cache,
+        )
+
+        _reset_module_inference_cache()  # EventBusAdapter lru_cache — reset reason: stale filename→module mappings
+    except ImportError:
+        pass
+
+
+@pytest.fixture(autouse=True)
+def _reset_singletons_between_tests() -> None:
+    """Reset class-level singletons + module-level caches pre+post each test.
+
+    PI-11 PR-1 Fase 3 (2026-05-04). Singleton inventory validated exhaustively
+    via grep ``_instance = None|cls._instance|@lru_cache|@cache`` cross-codebase.
+
+    See CONTRACT.md PR-1 § 1-2 for full singleton inventory + design rationale.
+    """
+    _do_singleton_reset()  # Pre-test reset
+    yield
+    _do_singleton_reset()  # Post-test cleanup (no state FROM this test leaks INTO next)
