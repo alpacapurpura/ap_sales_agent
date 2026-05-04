@@ -11,6 +11,15 @@ vi.mock("@/lib/http-client", () => ({
   fetchClient: vi.fn(),
 }));
 
+// Mock Clerk so `enabled: isLoaded && isSignedIn` doesn't keep the query idle.
+vi.mock("@clerk/nextjs", () => ({
+  useAuth: () => ({
+    getToken: vi.fn().mockResolvedValue("test-token"),
+    isLoaded: true,
+    isSignedIn: true,
+  }),
+}));
+
 const mockDetail: ContactDetail = {
   id: "contact-abc",
   full_name: "Juan García",
