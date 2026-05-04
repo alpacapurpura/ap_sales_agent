@@ -116,6 +116,31 @@ If `CONTRACT.md` introduces a pattern with no codebase precedent (new agent topo
 - `nicolify-backend-auditor` REVIEW.md FAIL automático si `IMPL-LOG.md § Skills Consulted` está vacío o lista < skills mínimas declaradas arriba.
 </step>
 
+<step name="step_0_5_default_flip_detection">
+**HARD GATE — origen PI-11 PR-3 anti-default-flip-audit rule.**
+
+Si tu cambio toca `backend/src/core/config.py` defaults Y la flag controla call path side-effect (events, persistence, logging, observability, LLM routing):
+
+1. Grep tests que mockean path viejo (legacy):
+   ```bash
+   grep -rn "<old_path>\|<old_class>\.<old_method>" /home/chris/AISALESHT/backend/tests/ 2>/dev/null
+   ```
+2. Si grep encuentra tests → STOP. Append IMPL-LOG sección "Default-flip pre-audit" con:
+   - Flag tocada + old default → new default
+   - Side-effect path old → new
+   - Lista tests que mockean path viejo (path:line)
+   - Migration strategy per test (adapter/probe/bypass)
+3. Migrar mocks al path nuevo SOLO después CONTRACT.md confirma estrategia (§ Tests audit). Si CONTRACT no tiene § Tests audit y vos detectás flip → escalate PM (architect drift).
+4. Run full suite con AMBOS valores flag pre-push:
+   - `USE_<FLAG>=false .venv/bin/pytest <scope>`
+   - `USE_<FLAG>=true .venv/bin/pytest <scope>`
+5. Commit body include: "Flag <X> flipped Y→Z. Tests audited: N migrated, M bypass for legacy capability."
+
+Auditor `nicolify-backend-auditor` Cat 14 "Default flip side-effect coverage" FAIL si Step 0.5 omitido.
+
+Ver `.claude/rules/anti-default-flip-audit.md` (rule cardinal + 6 flags inventario + 7 enforcement layers).
+</step>
+
 <step name="claim_and_sync">
 Per `parallel-safety.md`:
 ```bash

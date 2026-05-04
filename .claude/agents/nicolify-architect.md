@@ -420,6 +420,27 @@ List which of the 6 LangGraph 2.0 modes the API will emit:
 ## 9. Migration Notes
 [Idempotent raw SQL, IF NOT EXISTS, indexes, enum reuse, prod-clone test command]
 
+## 9.5 Tests audit (default flip — cuando aplique)
+
+> **OBLIGATORIO** si CONTRACT propone flipear default de feature flag (`USE_*_PATTERN_*`, `LITELLM_PROXY_ENABLED`, `USE_DEEPAGENTS_*`, `ENABLE_*`, etc.) que cambia call path side-effect (events, persistence, logging, observability, LLM provider routing).
+>
+> Origen rule: PI-11 PR-3 anti-default-flip-audit (`.claude/rules/anti-default-flip-audit.md`). Caso 2026-05-04: commit `64738354` flipeó `USE_OUTBOX_PATTERN_*=False→True` sin audit → 25 BE failures + polluter no identificable + 80min hunt.
+
+| Field | Value |
+|---|---|
+| Flag | {nombre} |
+| Old default | {True/False} |
+| New default | {True/False} |
+| Side-effect path old | {path canónico viejo, ej. `LegacyEventBus.publish`} |
+| Side-effect path new | {path canónico nuevo, ej. `adapter_bus.publish` → outbox table} |
+| Tests mockean path viejo | {grep result count + lista paths} |
+| Migration strategy per test | {tabla path-by-path con estrategia: adapter mock / outbox table probe / bypass capability test} |
+| Run with both flag values | {sí/no — required: sí pre-merge} |
+| Commit body docs | {qué incluir en commit body para enforcement: "Flag X flipped Y→Z. Tests audited: N migrated, M bypass."} |
+| Arch fitness coverage | {test_no_legacy_eventbus_mock_when_outbox_on.py si aplica; CREATE para flag nueva si side-effect path tiene legacy mock pattern} |
+
+Si CONTRACT NO flipea defaults: marcar `[x] No aplica — CONTRACT no flipea defaults side-effect`.
+
 ## 10. File Structure
 [BE DDD layers + FE FSD slots + agentic paths if applicable. Mark NEW vs MODIFIED.]
 
