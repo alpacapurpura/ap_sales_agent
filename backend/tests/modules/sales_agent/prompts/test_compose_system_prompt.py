@@ -25,7 +25,8 @@ from src.modules.sales_agent.application.prompts.compose import (
 class TestFragmentOrderInvariants:
     def test_cacheable_fragments_match_s3_plan(self) -> None:
         # S3 §3.4 cacheable order: static identity, tools, playbook, agent
-        # identity (per-tenant), offer summary (S7 fill), channel format (S5 fill).
+        # identity (per-tenant), brand voice (S7 fill), channel format (S5 fill),
+        # campaign context (PR-7 outbound — emitted only when outbound_mode=True).
         assert CACHEABLE_FRAGMENTS == (
             PromptFragment.STATIC_IDENTITY,
             PromptFragment.STATIC_TOOLS_HINT,
@@ -33,6 +34,7 @@ class TestFragmentOrderInvariants:
             PromptFragment.AGENT_IDENTITY,
             PromptFragment.BRAND_VOICE,
             PromptFragment.CHANNEL_FORMAT_HINT,
+            PromptFragment.CAMPAIGN_CONTEXT,
         )
 
     def test_volatile_fragments_match_s3_plan(self) -> None:
