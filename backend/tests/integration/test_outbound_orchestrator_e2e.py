@@ -96,7 +96,7 @@ async def test_outbound_orchestrator_success_with_real_db_tenant_and_lead(db):
             new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
         ),
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_callback_handler",
+            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
             return_value=None,
         ),
         patch(
