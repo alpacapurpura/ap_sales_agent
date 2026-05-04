@@ -7,7 +7,7 @@
 | PR ID | PR-4-update-agents-skills-default-flip-audit |
 | Sprint padre | S1-test-integrity-and-coverage |
 | PI padre | PI-11-backend-quality-guardrails |
-| Estado | ready |
+| Estado | **shipped (2026-05-04)** |
 | Tipo | meta-process update |
 | Esfuerzo | M |
 | Owner PM | /pm (PM directo, no builder técnico) |

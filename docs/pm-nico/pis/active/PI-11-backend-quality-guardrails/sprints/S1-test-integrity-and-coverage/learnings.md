@@ -86,12 +86,39 @@ Trade-off: +145k tokens Opus extra. Costo aceptable vs riesgo aprobar PR sin Opu
 
 CONTRACT estimó BYPASS_FILES=7 pre-impl. Builder grep real reveló 10 legítimos + 3 violators reales (deferred D9). Auditor Opus validó deviation. Lección: architect specs allowlist sizes son estimaciones — builders ajustan en realidad + auditor valida.
 
+## PR-4 (shipped 2026-05-04)
+
+### Defense-in-depth 7 layers cementados
+
+| Layer | Mecanismo | File |
+|---|---|---|
+| 1 | PM PR.md template "Default flips audited" | `.claude/skills/pm/SKILL.md` |
+| 2 | Architect CONTRACT.md § 9.5 Tests audit obligatorio | `.claude/agents/nicolify-architect.md` |
+| 3 | Builder Step 0.5 grep + migration strategy + run both values | `.claude/agents/nicolify-backend.md` + `nicolify-agentic.md` |
+| 4 | Auditor Cat 12 (backend) / Cat 14 (agentic) | `.claude/agents/nicolify-backend-auditor.md` + `nicolify-agentic-auditor.md` |
+| 5 | Arch fitness test bloqueador | `tests/architecture/test_no_legacy_eventbus_mock_when_outbox_on.py` (PR-3) |
+| 6 | TDD rule sección Default flag flips | `.claude/rules/tdd-mandatory.md` |
+| 7 | Runtime DeprecationWarning | `backend/src/shared/domain/events.py` (PR-1) |
+
+### Lección PM directo viable para markdown meta-process
+
+PR-4 = puramente markdown updates. Spawn builder técnico = overhead innecesario. PM hizo edits + grep cross-references self-validation + commit granular por surface. Trade-off: NO auditor Opus oficial (D15 narrow exception) — risk creep si futuros PRs meta-process invocan D15 sin justification.
+
+### Lección Cat numbering schema-aware
+
+Backend auditor: 11 cats existing → Cat 12 nuevo. Agentic auditor: 13 cats existing (incluye Cat 13 mirror detection post PI-1.1) → Cat 14 nuevo + cross-doc count update "12 categories" → "14 categories". Lección: cuando agregás cat a auditor, también update verdict math + count refs cross-doc.
+
+### Lección defense-in-depth justifica PI hardening completo
+
+PI-11 PR-1 (test integrity) + PR-3 (rule + arch fitness) + PR-4 (agents/skills/rules) cementan TODO el ciclo prevention. Costo total ~1.5M tokens vs costo evitado replica PI-11 origen × N futuros flags side-effect (LITELLM_PROXY_ENABLED, USE_DEEPAGENTS_*, futuros). ROI claro.
+
 ## Pendiente sprint S1
 
-- PR-4: PM directo (markdown agents/skills/rules updates) — NEXT
-- PR-2: coverage P0 crm/scheduling
+- PR-2: coverage P0 crm/scheduling — última PR sprint
 
 ## Pendiente cerrar sprint
 
 - handoff.md → S2
 - Roadmap update si aplica
+- Cierre PI-11 (retro.md + archive)
+- Re-merge `development → main` clean + `/pase-produccion`
