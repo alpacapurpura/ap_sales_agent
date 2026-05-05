@@ -200,6 +200,47 @@ Agent({
 
 Lee `REVIEW-final.md`. Si APPROVED + ready_to_merge=true → hand off /pm para merge.
 
+## Step 4.5 — R12 layer 1: emit process metric
+
+> Origen: process-improvement A1 partial (2026-05-05). Mismo pattern que
+> `/dev-team` Step 5.5 — orchestrators emiten metric row para cuantificar
+> ROI proceso. Token-level detail viene del transcript via
+> `scripts/extract_baseline_metrics_from_transcripts.py`; aquí emitimos
+> orchestrator-level metadata (verdict + iter + ticket + commit_sha) que
+> NO está en transcript.
+
+Antes de cerrar Step 5 (hand off PM), append metric row a
+`docs/process/metrics/runs.jsonl` por cada audit cycle ejecutado:
+
+```bash
+python3 scripts/emit_process_metric.py \
+  --pi "PI-N" \
+  --sprint "SN-{slug}" \
+  --story "{story-id}" \
+  --ticket "T-{n}" \
+  --phase audit \
+  --agent-type "<auditor-backend|auditor-agentic|auditor-frontend>" \
+  --verdict "<APPROVED|CHANGES_REQUESTED|ESCALATED|self-fix>" \
+  --commit-sha "$(git log -1 --format=%h)" \
+  --iter <audit_iterations> \
+  --note "<1-line — e.g. 'self-fix lint+format', 'downstream regression FAIL'>"
+```
+
+Si REVIEW-final.md también se generó, emitir SEPARADAMENTE:
+
+```bash
+python3 scripts/emit_process_metric.py \
+  --pi "PI-N" --sprint "SN-{slug}" --story "{story-id}" \
+  --ticket "story-final" \
+  --phase audit \
+  --agent-type "<predominant-auditor>" \
+  --verdict "APPROVED" \
+  --note "REVIEW-final story {id} {N} tickets — e2e verification done"
+```
+
+Best-effort (script missing → log warning + continue, no rompe pipeline).
+Pattern coherente con `/dev-team` Step 5.5.
+
 ## Step 5 — Hand off /pm para merge
 
 ```

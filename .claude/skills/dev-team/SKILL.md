@@ -242,6 +242,42 @@ last_artifact: T-{n}-result.md
 next_action: "/auditor toma T-{n} para review"
 ```
 
+## Step 5.5 — R12 layer 1: emit process metric
+
+> Origen: process-improvement A1 partial (2026-05-05). Foundation para
+> medir ROI cross-PI. Token-level detail viene del transcript via
+> `scripts/extract_baseline_metrics_from_transcripts.py`; aquí emitimos
+> orchestrator-level metadata (verdict + commit_sha + ticket + phase) que
+> NO está en transcript.
+
+Antes de cerrar Step 5, append metric row a `docs/process/metrics/runs.jsonl`:
+
+```bash
+python3 scripts/emit_process_metric.py \
+  --pi "PI-N" \
+  --sprint "SN-{slug}" \
+  --story "{story-id}" \
+  --ticket "T-{n}" \
+  --phase build \
+  --agent-type "<builder-backend|builder-agentic|builder-frontend|qwen-opencode>" \
+  --verdict "<tests-passing|tests-failing|pushed|blocked>" \
+  --commit-sha "$(git log -1 --format=%h)" \
+  --total-tokens "<from agent tool result if visible, else omit>" \
+  --tool-use-count "<from agent tool result if visible, else omit>" \
+  --duration-ms "<wall-clock ms agent ran, else omit>" \
+  --iter <N> \
+  --note "<1-line context if relevant>"
+```
+
+`runs.jsonl` is gitignored (rolling). Periodic aggregation: post-PI close,
+PM runs analysis script comparing `runs.jsonl` to `baseline-pre-R1-R9.jsonl`
+to validate R1-R9 ROI.
+
+If `python3 scripts/emit_process_metric.py` fails (script missing, etc.) →
+log warning + continue. Metrics emission is best-effort, NEVER blocks the
+pipeline. (Pattern coherente con copilot observability — try/except
+structlog warning, no rompe turn.)
+
 ## Multi-ticket parallel
 
 Si 2 tickets independientes (no `depends_on`) están `ready` simultáneamente:
