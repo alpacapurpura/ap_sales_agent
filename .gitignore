@@ -137,5 +137,9 @@ frontend/blob-report/
 docs/temp/
 # Verification snapshots (contain real metric values, never commit)
 backend/scripts/verify/snapshots/
+# Process metrics rolling capture (R12 layer 1) — gitignored append-only.
+# baseline-pre-R1-R9.jsonl IS committed as immutable snapshot (see metrics/README.md).
+docs/process/metrics/runs.jsonl
+docs/process/metrics/all-runs.jsonl
 .worktrees/
 REVIEW.md
