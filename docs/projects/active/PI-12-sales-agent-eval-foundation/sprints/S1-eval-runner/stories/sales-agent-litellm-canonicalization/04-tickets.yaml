@@ -546,9 +546,11 @@ T5:
   deliverables:
     - "MODIFY backend/src/core/config.py — DROP field LITELLM_PROXY_ENABLED from Settings class"
     - "MODIFY backend/src/shared/infrastructure/llm/router.py — simplify MultiRoleLLMRouter._resolve to LiteLLMService singleton path only; DELETE build_provider_service function entirely; DELETE _legacy_providers dict; DELETE reset_cache method"
-    - "MODIFY backend/src/shared/infrastructure/llm/factory.py — DELETE build_provider_service import"
+    - "MODIFY backend/src/shared/infrastructure/llm/factory.py — DELETE build_provider_service import (if present)"
     - "MODIFY backend/src/main.py — DROP _verify_litellm_proxy_reachable conditional 'if not settings.LITELLM_PROXY_ENABLED'; keep the proxy reachability check (always runs)"
     - "MODIFY backend/src/admin/modules/llm_virtual_keys.py — DROP fallback message + 'activo/desactivado' conditional"
+    - "MODIFY backend/src/admin/modules/copilot_routing.py — DELETE entire `_fetch_provider_library_provenance` function (lines 158-196), DELETE entire `_render_provider_library_provenance` function (lines 347-371), DELETE call sites in `render_copilot_routing` (lines 451 + 459). Rationale: post-canonicalization (T-4 deleted per-provider adapters), the panel showed one row per AIProvider with their LangChain package — feature is dead semantically since all providers route through unified LiteLLMService.CHAT_MODEL_SPEC. Per Chris zero-tech-debt directive, dead code is removed not preserved."
+    - "MODIFY backend/src/shared/infrastructure/llm/providers/litellm.py:26 — clean docstring reference to flag (no longer applies)"
     - "MODIFY .claude/rules/anti-default-flip-audit.md — REMOVE row 'LITELLM_PROXY_ENABLED' from inventario table + ADD footnote 'removed PI-12 S1 sales-agent-litellm-canonicalization T5 — legacy adapters deleted T4'"
     - "ANTI-FLIP AUDIT 4-STEP (deletion case):
         Step 1: grep -rln 'LITELLM_PROXY_ENABLED.*False\\|setattr.*LITELLM_PROXY_ENABLED' backend/tests/ — capture in commit body.
