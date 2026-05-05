@@ -6,7 +6,7 @@ story_id: sales-agent-eval-runner-foundation
 state: committed
 finished_by: claude-opus-4-7
 finished_at: 2026-05-04T22:55Z
-push_commit_sha: pending  # se actualiza tras commit
+push_commit_sha: 9ffae2ce  # commit local, push diferido por controller
 push_branch: development
 push_status: NOT_PUSHED  # controller hace push tras Story A T-1
 ---
@@ -106,7 +106,18 @@ Decisión: NEW directory. CO-EXIST con `tests/quality/sales_agent_goldens/`. REA
 
 ```
 $ git log --oneline -1
-(pendiente — commitear siguiente)
+9ffae2ce feat(pi-12-T1-storyB): scaffold agentic eval harness dirs
+```
+
+```
+$ git show --stat 9ffae2ce | head
+commit 9ffae2ce
+Author: alpacapurpura ...
+Date:   ...
+
+    feat(pi-12-T1-storyB): scaffold agentic eval harness dirs
+    ...
+ 11 files changed, 851 insertions(+), 14 deletions(-)
 ```
 
 ```
