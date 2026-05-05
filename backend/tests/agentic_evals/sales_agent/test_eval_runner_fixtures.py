@@ -643,3 +643,633 @@ async def test_trajectory_spy_captures_first_specialist_and_tool_calls(
     )
     # tool_calls is a list (possibly empty for cold-lead first turn).
     assert isinstance(spy.tool_calls, list)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Section 6 — T-4 Multi-layer assertion library (no_eval — no LLM cost)
+# ──────────────────────────────────────────────────────────────────────────
+#
+# These tests cover the public API of
+# ``backend/tests/agentic_evals/sales_agent/runner/assertions.py``:
+#
+# * 5 layer assertions (trajectory / tool_calls / output / cost / latency)
+# * ``LayerAssertionError`` base + 5 subclasses (``.layer_name`` field)
+# * Story-7 placeholder (``assert_voice_fidelity`` raises NotImplementedError)
+# * ``_detect_language_safe`` graceful fallback to "unknown"
+# * Edge cases: cost = 0 row, forbidden tool present, trajectory exact mismatch
+#
+# All tests are ``@pytest.mark.no_eval`` — they exercise the assertion API
+# in isolation without invoking the LangGraph runtime, so they MUST run on
+# the default suite. The smoke harness in T-5 consumes these assertions
+# during ``--run-evals`` runs.
+
+
+@pytest.mark.no_eval
+def test_assertions_api_complete() -> None:
+    """A1 — All 5 assertions, base error, and 5 subclasses are exported.
+
+    Public surface check per spec § A1 acceptance. Confirms every
+    callable + exception listed in the deliverable is importable from
+    ``runner.assertions``. Each subclass exposes a ``.layer_name`` class
+    attribute matching its semantic layer for accionable debugging.
+    """
+    from tests.agentic_evals.sales_agent.runner import assertions as a_mod
+
+    # 5 callable assertions.
+    assert callable(a_mod.assert_trajectory)
+    assert callable(a_mod.assert_tool_calls)
+    assert callable(a_mod.assert_output)
+    assert callable(a_mod.assert_cost_recorded)
+    assert callable(a_mod.assert_latency)
+
+    # Story-7 placeholder is callable too — must raise NotImplementedError on call.
+    assert callable(a_mod.assert_voice_fidelity)
+
+    # Base + 5 subclasses with .layer_name field.
+    assert issubclass(a_mod.LayerAssertionError, Exception)
+    expected_layers = {
+        a_mod.TrajectoryAssertionError: "trajectory",
+        a_mod.ToolCallAssertionError: "tool_calls",
+        a_mod.OutputAssertionError: "output",
+        a_mod.CostAssertionError: "cost",
+        a_mod.LatencyAssertionError: "latency",
+    }
+    for cls, expected_name in expected_layers.items():
+        assert issubclass(cls, a_mod.LayerAssertionError), f"{cls.__name__} must subclass LayerAssertionError"
+        # layer_name is set on instance — instantiate with placeholder kwargs.
+        instance = cls(message="probe", observed=None, expected=None)
+        assert instance.layer_name == expected_name, (
+            f"{cls.__name__}.layer_name must equal '{expected_name}', got '{instance.layer_name}'"
+        )
+
+    # Public API surface — __all__ exports every documented symbol.
+    expected_exports = {
+        "assert_trajectory",
+        "assert_tool_calls",
+        "assert_output",
+        "assert_cost_recorded",
+        "assert_latency",
+        "assert_voice_fidelity",
+        "LayerAssertionError",
+        "TrajectoryAssertionError",
+        "ToolCallAssertionError",
+        "OutputAssertionError",
+        "CostAssertionError",
+        "LatencyAssertionError",
+    }
+    actual_exports = set(getattr(a_mod, "__all__", ()))
+    missing = expected_exports - actual_exports
+    assert not missing, f"Public API drift — missing __all__ entries: {missing}"
+
+
+@pytest.mark.no_eval
+def test_assert_output_named_failure() -> None:
+    """A2 — ``assert_output`` raises ``OutputAssertionError`` naming the layer.
+
+    Drives the assertion with a deliberately failing condition (Spanish
+    text but ``must_mention=['xyz']`` not present). The raised error
+    must (a) be an ``OutputAssertionError``, (b) carry ``.layer_name ==
+    "output"``, (c) include the layer name in its string form so the
+    smoke runner produces a human-debuggable diff in ``assertions.json``.
+    """
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        OutputAssertionError,
+        assert_output,
+    )
+
+    spanish_text = "Hola, te confirmo la reserva. ¡Gracias por elegirnos!"
+    with pytest.raises(OutputAssertionError) as exc_info:
+        assert_output(
+            spanish_text,
+            language="es",
+            must_mention=["xyz_marker_not_present"],
+        )
+
+    err = exc_info.value
+    assert err.layer_name == "output", f"layer_name must be 'output', got '{err.layer_name}'"
+    # The message names the layer for accionable debugging in assertions.json.
+    assert "output" in str(err).lower(), f"Error message must name the layer, got: {err}"
+    # Observed / expected attributes carry diagnostic context.
+    assert err.expected is not None
+    assert err.observed is not None
+
+
+@pytest.mark.no_eval
+def test_assert_voice_fidelity_is_placeholder() -> None:
+    """A3 — ``assert_voice_fidelity`` raises ``NotImplementedError`` (Story 7 future-proof).
+
+    The smoke test (T-5) MUST NOT call this function — but if a future
+    refactor accidentally wires it in before the Story 7 grader lands,
+    the harness fails fast with an explicit message naming the future
+    story scope (instead of silently passing voice validation).
+    """
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        assert_voice_fidelity,
+    )
+
+    with pytest.raises(NotImplementedError) as exc_info:
+        assert_voice_fidelity(
+            "Hola, ¿cómo estás?",
+            brand_voice_template="placeholder voice template",
+        )
+    msg = str(exc_info.value).lower()
+    # Message must mention Story 7 or "future" so callers know where the impl lives.
+    assert "story 7" in msg or "future" in msg, (
+        f"NotImplementedError message must reference Story 7 / future scope, got: {exc_info.value}"
+    )
+
+
+@pytest.mark.no_eval
+def test_detect_language_safe_returns_unknown_on_exception() -> None:
+    """A4 — ``_detect_language_safe`` swallows ``LangDetectException`` + ``ImportError``.
+
+    Two graceful-degradation paths (Tessl ``graceful-degradation`` Rule 6):
+
+    1. ``langdetect`` package unavailable → ``importlib.import_module``
+       raises ``ImportError`` → fallback "unknown".
+    2. ``langdetect.detect`` raises ``LangDetectException`` (e.g. empty
+       input, no features extracted) → fallback "unknown".
+
+    Either path MUST NEVER propagate the exception — assertions are
+    best-effort about language detection (it is a soft signal, not a
+    hard contract).
+    """
+    import importlib
+
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        _detect_language_safe,
+    )
+
+    # Path 1 — ImportError when langdetect is unavailable.
+    real_import_module = importlib.import_module
+
+    def fake_import_module(name: str, *args: object, **kwargs: object) -> object:
+        if name == "langdetect":
+            error_msg = "simulated missing dep"
+            raise ImportError(error_msg)
+        return real_import_module(name, *args, **kwargs)
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(importlib, "import_module", fake_import_module)
+        result = _detect_language_safe("Hola, ¿cómo estás?")
+        assert result == "unknown", f"ImportError fallback must yield 'unknown', got '{result}'"
+
+    # Path 2 — LangDetectException on detect() call.
+    import langdetect  # type: ignore[import-untyped]
+    from langdetect.lang_detect_exception import (  # type: ignore[import-untyped]
+        LangDetectException,
+    )
+
+    def fake_detect(_text: str) -> str:
+        # ErrorCode 0 = NoFeaturesError per langdetect public API.
+        raise LangDetectException(0, "simulated no features")
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(langdetect, "detect", fake_detect)
+        result = _detect_language_safe("ambiguous text")
+        assert result == "unknown", f"LangDetectException fallback must yield 'unknown', got '{result}'"
+
+
+@pytest.mark.no_eval
+def test_assert_trajectory_includes_mode_passes_when_subset() -> None:
+    """``mode='includes'`` accepts when expected is a subset of history.
+
+    Story 1 happy-path scenario: the smoke test only requires that the
+    qualifier specialist appears at minimum — extra specialists later in
+    the trail are acceptable.
+    """
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        TrajectoryAssertionError,
+        assert_trajectory,
+    )
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    spy.specialist_history.extend(["supervisor", "qualifier", "tool_executor"])
+
+    # Subset present — passes.
+    assert_trajectory(spy, expected_specialists=["qualifier"], mode="includes")
+    assert_trajectory(spy, expected_specialists=["supervisor", "qualifier"], mode="includes")
+
+    # Missing specialist — fails.
+    with pytest.raises(TrajectoryAssertionError) as exc_info:
+        assert_trajectory(spy, expected_specialists=["closer"], mode="includes")
+    assert exc_info.value.layer_name == "trajectory"
+
+
+@pytest.mark.no_eval
+def test_assert_trajectory_exact_mode_strict_match() -> None:
+    """``mode='exact'`` requires history == expected (ordered, complete)."""
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        TrajectoryAssertionError,
+        assert_trajectory,
+    )
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    spy.specialist_history.extend(["qualifier", "tool_executor"])
+
+    # Exact match — passes.
+    assert_trajectory(spy, expected_specialists=["qualifier", "tool_executor"], mode="exact")
+
+    # Order mismatch — fails (exact mode is order-sensitive).
+    with pytest.raises(TrajectoryAssertionError) as exc_info:
+        assert_trajectory(spy, expected_specialists=["tool_executor", "qualifier"], mode="exact")
+    assert exc_info.value.layer_name == "trajectory"
+
+
+@pytest.mark.no_eval
+def test_assert_tool_calls_required_present_forbidden_absent() -> None:
+    """Required tools must appear; forbidden tools must NOT appear (B4)."""
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        ToolCallAssertionError,
+        assert_tool_calls,
+    )
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    spy.tool_calls.extend(
+        [
+            {"name": "knowledge_search", "input": "q", "output": "r", "run_id": "1"},
+            {"name": "recommend_product", "input": "q", "output": "r", "run_id": "2"},
+        ],
+    )
+
+    # Required present, forbidden absent — passes.
+    assert_tool_calls(
+        spy,
+        required=["knowledge_search"],
+        forbidden=["create_payment_link", "grant_access"],
+    )
+
+    # Required missing — fails.
+    with pytest.raises(ToolCallAssertionError) as exc_info:
+        assert_tool_calls(spy, required=["create_booking_link"], forbidden=[])
+    assert exc_info.value.layer_name == "tool_calls"
+
+
+@pytest.mark.no_eval
+def test_assert_tool_calls_forbidden_present_raises() -> None:
+    """A forbidden tool fired → ``ToolCallAssertionError`` (B4 binding)."""
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        ToolCallAssertionError,
+        assert_tool_calls,
+    )
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    spy.tool_calls.append(
+        {"name": "create_payment_link", "input": "x", "output": "y", "run_id": "1"},
+    )
+
+    with pytest.raises(ToolCallAssertionError) as exc_info:
+        assert_tool_calls(
+            spy,
+            required=[],
+            forbidden=["create_payment_link"],
+        )
+    err = exc_info.value
+    assert err.layer_name == "tool_calls"
+    # observed contains the offending tool name for the assertions.json record.
+    assert "create_payment_link" in str(err)
+
+
+@pytest.mark.no_eval
+def test_assert_output_must_mention_case_insensitive() -> None:
+    """``must_mention`` is case-insensitive substring check.
+
+    Cold-lead path expects the agent to say "hola" or "buenas" or
+    similar — rather than forcing exact case, the assertion treats the
+    must_mention list as case-insensitive substrings.
+
+    Note: ``langdetect`` is notoriously unreliable on short text (10-30
+    chars) — it can misclassify "Hola, te confirmo la reserva." as
+    Italian. The test uses a longer Spanish sentence so the language
+    detection layer is exercised reliably.
+    """
+    from tests.agentic_evals.sales_agent.runner.assertions import assert_output
+
+    text = (
+        "Hola, te confirmo que tu reserva fue procesada con éxito. "
+        "Gracias por elegir nuestro servicio. Saludos cordiales."
+    )
+    # Lowercase "hola" matches "Hola" via case-insensitive comparison.
+    assert_output(text, language="es", must_mention=["hola"])
+    # Original case also works.
+    assert_output(text, language="es", must_mention=["Hola"])
+
+
+@pytest.mark.no_eval
+def test_assert_output_language_unknown_skips_language_check() -> None:
+    """When ``_detect_language_safe`` returns 'unknown', language check is skipped.
+
+    Graceful degradation: if langdetect fails to identify (empty text,
+    ambiguous), the assertion does NOT fail on language alone — it logs
+    a warning and continues with the other checks. This prevents flaky
+    smoke runs from a soft signal.
+    """
+    import importlib
+
+    from tests.agentic_evals.sales_agent.runner.assertions import assert_output
+
+    real_import_module = importlib.import_module
+
+    def fake_import_module(name: str, *args: object, **kwargs: object) -> object:
+        if name == "langdetect":
+            error_msg = "simulated missing dep"
+            raise ImportError(error_msg)
+        return real_import_module(name, *args, **kwargs)
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(importlib, "import_module", fake_import_module)
+        # No raise even though language="es" can't be verified.
+        assert_output(
+            "Some short text",
+            language="es",
+            must_mention=["text"],
+        )
+
+
+@pytest.mark.no_eval
+def test_assert_latency_passes_when_below_threshold() -> None:
+    """``assert_latency`` reads ``spy.duration_ms`` (or falls back to 0).
+
+    The spy in T-3 doesn't track per-span time today — the assertion
+    duck-types: if ``spy.duration_ms`` exists and is numeric, sum it; if
+    spy carries ``tool_calls`` items with a ``duration_ms`` key, sum
+    those; else return 0 (no spans observed = pass through).
+    """
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        LatencyAssertionError,
+        assert_latency,
+    )
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    # Inject duration_ms attribute (caller's responsibility — Story 1 spy is duck-typed).
+    spy.duration_ms = 1500  # type: ignore[attr-defined]
+
+    # Below threshold — passes.
+    assert_latency(spy, max_ms=30000)
+
+    # Exceeds threshold — fails.
+    spy.duration_ms = 31000  # type: ignore[attr-defined]
+    with pytest.raises(LatencyAssertionError) as exc_info:
+        assert_latency(spy, max_ms=30000)
+    assert exc_info.value.layer_name == "latency"
+
+
+@pytest.mark.no_eval
+def test_assert_latency_sums_tool_call_spans_when_present() -> None:
+    """When spy.tool_calls items carry duration_ms, sum across spans."""
+    from tests.agentic_evals.sales_agent.runner.assertions import assert_latency
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    spy.tool_calls.extend(
+        [
+            {"name": "a", "input": "", "output": "", "run_id": "1", "duration_ms": 500},
+            {"name": "b", "input": "", "output": "", "run_id": "2", "duration_ms": 700},
+        ],
+    )
+    # Sum is 1200 ms, threshold 5000 — passes.
+    assert_latency(spy, max_ms=5000)
+
+
+@pytest.mark.no_eval
+def test_assert_latency_missing_signal_passes_through() -> None:
+    """Spy with no duration_ms attr / no tool_call durations → 0 ms (pass).
+
+    Defensive — Story 1 spy doesn't yet track time. ``assert_latency``
+    should NOT raise on a spy without time data; it returns silently so
+    the smoke harness can still call it without conditional logic.
+    """
+    from tests.agentic_evals.sales_agent.runner.assertions import assert_latency
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    # No duration_ms attribute, empty tool_calls.
+    assert_latency(spy, max_ms=1)
+
+
+@pytest.mark.no_eval
+def test_assert_cost_recorded_zero_row_raises() -> None:
+    """Cost == 0 across rows → ``CostAssertionError``.
+
+    Mocks the DB query path: a row exists but ``cost_usd`` is 0 (LiteLLM
+    didn't provide cost — known degraded path per T-1 cost_recorder
+    canonicalization). Assertion must flag this as a Capa 4 failure so
+    smoke catches silent cost regressions.
+    """
+    from decimal import Decimal
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        CostAssertionError,
+        assert_cost_recorded,
+    )
+
+    class _FakeRow:
+        def __init__(self, model_responded: str, cost_usd: Decimal | None) -> None:
+            self.model_responded = model_responded
+            self.cost_usd = cost_usd
+
+    class _FakeResult:
+        def __init__(self, rows: list[_FakeRow]) -> None:
+            self._rows = rows
+
+        def all(self) -> list[_FakeRow]:
+            return self._rows
+
+    class _FakeSession:
+        def __init__(self, rows: list[_FakeRow]) -> None:
+            self._rows = rows
+            self.last_filters: list[object] = []
+
+        def execute(self, stmt: object) -> _FakeResult:
+            self.last_filters.append(stmt)
+            return _FakeResult(self._rows)
+
+    tenant_id = uuid4()
+    run_id = uuid4()
+    rows = [_FakeRow("kimi/kimi-k2.6", Decimal(0))]
+    session = _FakeSession(rows)
+
+    with pytest.raises(CostAssertionError) as exc_info:
+        assert_cost_recorded(
+            run_id,
+            db_session=session,  # type: ignore[arg-type]
+            tenant_id=tenant_id,
+            model_pattern="kimi/*",
+            max_cost_usd=Decimal("0.05"),
+        )
+    assert exc_info.value.layer_name == "cost"
+
+
+@pytest.mark.no_eval
+def test_assert_cost_recorded_passes_when_within_budget() -> None:
+    """Happy path — sum > 0 + sum < max + every row matches model_pattern."""
+    from decimal import Decimal
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.assertions import assert_cost_recorded
+
+    class _FakeRow:
+        def __init__(self, model_responded: str, cost_usd: Decimal | None) -> None:
+            self.model_responded = model_responded
+            self.cost_usd = cost_usd
+
+    class _FakeResult:
+        def __init__(self, rows: list[_FakeRow]) -> None:
+            self._rows = rows
+
+        def all(self) -> list[_FakeRow]:
+            return self._rows
+
+    class _FakeSession:
+        def __init__(self, rows: list[_FakeRow]) -> None:
+            self._rows = rows
+
+        def execute(self, _stmt: object) -> _FakeResult:
+            return _FakeResult(self._rows)
+
+    tenant_id = uuid4()
+    run_id = uuid4()
+    rows = [
+        _FakeRow("kimi/kimi-k2.6", Decimal("0.003")),
+        _FakeRow("kimi/kimi-k2.6", Decimal("0.002")),
+    ]
+    session = _FakeSession(rows)
+
+    assert_cost_recorded(
+        run_id,
+        db_session=session,  # type: ignore[arg-type]
+        tenant_id=tenant_id,
+        model_pattern="kimi/*",
+        max_cost_usd=Decimal("0.05"),
+    )
+
+
+@pytest.mark.no_eval
+def test_assert_cost_recorded_model_mismatch_raises() -> None:
+    """Row with model not matching pattern → ``CostAssertionError``."""
+    from decimal import Decimal
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        CostAssertionError,
+        assert_cost_recorded,
+    )
+
+    class _FakeRow:
+        def __init__(self, model_responded: str, cost_usd: Decimal | None) -> None:
+            self.model_responded = model_responded
+            self.cost_usd = cost_usd
+
+    class _FakeResult:
+        def __init__(self, rows: list[_FakeRow]) -> None:
+            self._rows = rows
+
+        def all(self) -> list[_FakeRow]:
+            return self._rows
+
+    class _FakeSession:
+        def __init__(self, rows: list[_FakeRow]) -> None:
+            self._rows = rows
+
+        def execute(self, _stmt: object) -> _FakeResult:
+            return _FakeResult(self._rows)
+
+    rows = [_FakeRow("openai/gpt-4o-mini", Decimal("0.003"))]
+    session = _FakeSession(rows)
+
+    with pytest.raises(CostAssertionError) as exc_info:
+        assert_cost_recorded(
+            uuid4(),
+            db_session=session,  # type: ignore[arg-type]
+            tenant_id=uuid4(),
+            model_pattern="kimi/*",
+            max_cost_usd=Decimal("0.05"),
+        )
+    assert exc_info.value.layer_name == "cost"
+
+
+@pytest.mark.no_eval
+def test_assert_cost_recorded_above_max_raises() -> None:
+    """Sum cost > max threshold → ``CostAssertionError``."""
+    from decimal import Decimal
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.assertions import (
+        CostAssertionError,
+        assert_cost_recorded,
+    )
+
+    class _FakeRow:
+        def __init__(self, model_responded: str, cost_usd: Decimal | None) -> None:
+            self.model_responded = model_responded
+            self.cost_usd = cost_usd
+
+    class _FakeResult:
+        def __init__(self, rows: list[_FakeRow]) -> None:
+            self._rows = rows
+
+        def all(self) -> list[_FakeRow]:
+            return self._rows
+
+    class _FakeSession:
+        def __init__(self, rows: list[_FakeRow]) -> None:
+            self._rows = rows
+
+        def execute(self, _stmt: object) -> _FakeResult:
+            return _FakeResult(self._rows)
+
+    rows = [_FakeRow("kimi/kimi-k2.6", Decimal("0.20"))]
+    session = _FakeSession(rows)
+
+    with pytest.raises(CostAssertionError) as exc_info:
+        assert_cost_recorded(
+            uuid4(),
+            db_session=session,  # type: ignore[arg-type]
+            tenant_id=uuid4(),
+            model_pattern="kimi/*",
+            max_cost_usd=Decimal("0.05"),
+        )
+    assert exc_info.value.layer_name == "cost"
+
+
+@pytest.mark.no_eval
+def test_assertions_module_no_top_level_langdetect_import() -> None:
+    """Architectural gate — ``assertions.py`` must NOT have top-level langdetect import.
+
+    B5 binding (langdetect lazy via ``importlib.import_module``). Top-
+    level ``import langdetect`` in this file would pull the dep into the
+    eval harness load path even when the lazy fallback is desired
+    (``optional-dependencies.evals``). Verified via AST walk.
+    """
+    import ast
+
+    from tests.agentic_evals.sales_agent.runner import assertions as a_mod
+
+    source = Path(a_mod.__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    offenders: list[tuple[int, str]] = []
+    for node in ast.iter_child_nodes(tree):
+        # Top-level Import — `import langdetect`.
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == "langdetect" or alias.name.startswith("langdetect."):
+                    offenders.append((node.lineno, f"import {alias.name}"))
+        # Top-level ImportFrom — `from langdetect import detect`.
+        elif (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and (node.module == "langdetect" or node.module.startswith("langdetect."))
+        ):
+            offenders.append((node.lineno, f"from {node.module} import ..."))
+
+    assert offenders == [], (
+        "B5 violation — assertions.py has top-level langdetect import:\n"
+        + "\n".join(f"  line {ln}: {desc}" for ln, desc in offenders)
+        + "\nUse importlib.import_module('langdetect') inside _detect_language_safe instead."
+    )
