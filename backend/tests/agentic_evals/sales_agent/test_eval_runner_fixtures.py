@@ -67,9 +67,7 @@ def test_run_evals_flag_is_registered(pytestconfig: pytest.Config) -> None:
     """
     # getoption returns False (default) when flag is absent — registered correctly.
     flag_value = pytestconfig.getoption("--run-evals", default="__missing__")
-    assert flag_value is not "__missing__", (  # noqa: F632 — explicit identity check
-        "Flag --run-evals must be registered via pytest_addoption in root conftest."
-    )
+    assert flag_value != "__missing__", "Flag --run-evals must be registered via pytest_addoption in root conftest."
 
 
 @pytest.mark.no_eval

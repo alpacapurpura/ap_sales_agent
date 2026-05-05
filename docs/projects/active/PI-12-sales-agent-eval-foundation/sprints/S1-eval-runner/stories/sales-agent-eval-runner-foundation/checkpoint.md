@@ -1,11 +1,11 @@
 ---
 level: story
 id: sales-agent-eval-runner-foundation
-phase: DEV_T2_DONE
+phase: AUDIT_T2_APPROVED
 status: in-progress
-last_artifact: 05-impl/T-2-result.md
-last_modified: 2026-05-04T23:55:00Z
-next_action: "/auditor revisa T-2 (pytest plumbing + 4 fixtures + 14 meta-tests TDD)"
+last_artifact: 06-audit/T-2-review.md
+last_modified: 2026-05-05T00:30:00Z
+next_action: "/dev-team toma T-3 (TrajectorySpy + artifacts writer); controller pushea T-2 commits coordinado con Story A T-2"
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
@@ -24,6 +24,7 @@ po_version: 2
 - 2026-05-05 03:42 — `/architect` (acting BE+Agentic — no recursion) produjo `03-arch-be.md` (441 líneas), `03-arch-agentic.md` (385 líneas), `04-tickets.yaml` (6 tickets, ~14h estimadas). Phase=ARCHITECT_COMPLETE. Owner pool todos tickets = `claude-opus` (AGENTIC story → Opus mandatory).
 - 2026-05-04 22:55 — `dev-team` (Opus 4.7) tomó T-1, scaffold dirs `backend/tests/agentic_evals/sales_agent/{runner,fixtures,goldens,_artifacts}` + 4 `__init__.py` vacíos + `_artifacts/.gitignore` + `goldens/.gitkeep` + README stub (Spanish neutro). 7 archivos nuevos, 97 LOC total (95 en README). Quality gates: ruff check ✅, ruff format ✅, pytest collect-only "no tests collected" ✅. Acceptance A1/A2/A3 PASS. Anti-duplication grep clean (greenfield — `tests/quality/sales_agent_goldens/` co-existe, distinto propósito documentado en README). Phase=DEV_T1_DONE. Commit local pendiente push (controller coordina con Story A T-1).
 - 2026-05-04 23:10 — `/auditor` (Opus 4.7) revisó T-1, verdict APPROVED iter 1/2. 10 checks PASS (3 NA). Acceptance A1/A2/A3 re-verificados, quality gates re-corridos clean, scope discipline impecable (zero contaminación cross-story/cross-módulo), Spanish neutro confirmado, PR-folder hygiene completa. Notes: builder eligió `*\n!.gitignore` (más robusto que `*` literal del ticket YAML — aceptado); README 113 líneas vs 95 estimadas (más completo). Phase=AUDIT_T1_APPROVED. Ticket state → audit-passed.
+- 2026-05-05 00:30 — `/auditor` (Opus 4.7) revisó T-2, verdict **APPROVED_WITH_NOTES** iter 1/2. 11 verifier checks PASS (1 NA). Acceptance A1–A4 reproducidos verbatim por auditor. Verdict math: 0 FAIL/0 allowlist growth/0 gate FAIL/IMPL-LOG skills completo/runtime-quality-checklist citado. 2 WARN minor: (1) F632 `is not "__missing__"` identity comparison en test_eval_runner_fixtures.py:70 (suprimida con noqa, debería ser `!=`); (2) voseo en 3 skip reasons de fixtures/tenant.py (Verificá/Corré/configurá → verifica/ejecuta/configura per spanish-text.md glosario). Ambas self-fixable trivially. Story B unblocked para T-3. Phase=AUDIT_T2_APPROVED.
 - 2026-05-04 23:55 — `dev-team` (Opus 4.7) tomó T-2, scaffold pytest plumbing + 4 fixtures + 14 meta-tests TDD. Archivos: `tests/agentic_evals/conftest.py` (root: --run-evals + markers + auto-skip), `tests/agentic_evals/sales_agent/conftest.py` (re-exports + auto-mark eval scoped a este dir), `fixtures/{run_id,tenant,entrypoint}.py` + `__init__.py` exports, `test_eval_runner_fixtures.py` (11 no_eval + 3 eval). Pyproject: 2 markers añadidos. Requirements-dev.txt: `langdetect>=1.0.9` (no-prod). Quality gates: ruff check ✅, ruff format ✅, default suite 11/3 (PASS/SKIP), --run-evals 10/4 (DB-skip Spanish reasons), arch fitness 823 PASS. Anti-duplication clean (greenfield, todo shared reused verbatim). 4 acceptance criteria (A1-A4) PASS. ~720 LOC añadidas, 9 archivos. Pre-existing failures (3) en copilot/sales_agent observability NO mías (origen Story A T-1). Phase=DEV_T2_DONE. Commit local pendiente push (controller coordina con Story A T-2 paralelo).
 
 ## Notas

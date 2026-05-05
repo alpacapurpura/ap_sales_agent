@@ -98,7 +98,7 @@ def visionarias_tenant_session() -> Any:  # generator yields dict, but mypy gets
             )
             pytest.skip(
                 f"No se pudo abrir la sesión DB para Visionarias ({tenant_id}). "
-                f"Verificá que Postgres esté corriendo. Detalle: {exc}",
+                f"Verifica que Postgres esté corriendo. Detalle: {exc}",
             )
 
         # Lazy imports — keep collection cheap when default suite ignores eval marker.
@@ -124,13 +124,13 @@ def visionarias_tenant_session() -> Any:  # generator yields dict, but mypy gets
             )
             pytest.skip(
                 f"No se pudo consultar la DB para Visionarias ({tenant_id}). "
-                f"Verificá que Postgres esté accesible desde WSL nativo. "
+                f"Verifica que Postgres esté accesible desde WSL nativo. "
                 f"Detalle: {exc}",
             )
         if tenant_row is None:
             pytest.skip(
                 f"Tenant Visionarias ({tenant_id}) no existe en la DB de dev. "
-                f"Corré `make seed-visionarias` o configurá VISIONARIAS_TENANT_ID.",
+                f"Corre `make seed-visionarias` o configura VISIONARIAS_TENANT_ID.",
             )
 
         # 2. Active offer — explicit tenant_id filter per tenant-isolation rule.
