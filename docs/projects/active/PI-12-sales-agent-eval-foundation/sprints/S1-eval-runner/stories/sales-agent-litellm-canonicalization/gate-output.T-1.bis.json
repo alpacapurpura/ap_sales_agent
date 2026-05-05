@@ -1,0 +1,64 @@
+{
+  "story_dir": "docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization",
+  "ticket": "T-1.bis",
+  "command_alias": "test-backend (scoped)",
+  "command_executed": [
+    "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache",
+    "cd /home/chris/AISALESHT/backend && .venv/bin/ruff format --check src/ tests/",
+    "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/ -v --override-ini=addopts=",
+    "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/sales_agent/observability/test_callback_handler.py tests/modules/copilot/observability/test_callback_handler_usage_fallbacks.py tests/shared/agent_observability/cost/test_litellm_canonicalization.py",
+    "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/copilot/observability/ tests/modules/sales_agent/observability/"
+  ],
+  "started_at": "2026-05-05T12:42:00Z",
+  "iter": 1,
+  "commit_hashes_covered": ["3cb98fd4", "d1e099ba"],
+  "scope_note": "Scoped to T-1.bis ripple: 2 repro tests + downstream cost recorder + observability suites both modules. Per R3 SSoT tabla auditor-downstream-regression.md, cost_recorder.py change ripples to modules/{copilot,sales_agent}/observability/test_callback_handler*.py — those covered.",
+  "gates": {
+    "ruff_check": {
+      "status": "PASS",
+      "errors": 0,
+      "note": "All checks passed! (1 pre-existing warning unrelated: invalid noqa code in offer/api/offer_type_presets.py:28 — out of T-1.bis scope)"
+    },
+    "ruff_format": {
+      "status": "PASS",
+      "errors": 0,
+      "note": "2323 files already formatted"
+    },
+    "arch_fitness": {
+      "status": "PASS",
+      "errors": 0,
+      "tests_collected": 823,
+      "tests_passed": 823,
+      "tests_failed": 0,
+      "note": "All architecture fitness gates green"
+    },
+    "pytest_repro_tests": {
+      "status": "PASS",
+      "errors": 0,
+      "tests_collected": 27,
+      "tests_passed": 27,
+      "tests_failed": 0,
+      "note": "T-1.bis acceptance A1+A3 verified — 2 repro tests pass + cost_recorder canonicalization 8 tests + linked litellm tests"
+    },
+    "pytest_downstream_regression": {
+      "status": "PASS",
+      "errors": 0,
+      "tests_collected": 200,
+      "tests_passed": 200,
+      "tests_failed": 0,
+      "note": "T-1.bis acceptance A2 verified — full callback_handler suites both modules green. Per R3 SSoT tabla, cost_recorder.py change downstream covered: tests/modules/copilot/observability/* + tests/modules/sales_agent/observability/* both 100% pass."
+    }
+  },
+  "overall": {
+    "any_fail": false,
+    "verdict": "ALL_GREEN",
+    "summary": "T-1.bis test bridge migration verified across all relevant gates. Ruff lint+format clean, 823 arch fitness pass, 27 ticket-scoped tests pass, 200 downstream-scoped tests pass. No regressions. Ready for auditor."
+  },
+  "raw_log_path": "n/a — gates run interactively, summaries above",
+  "notes_for_auditor": [
+    "Test-only ticket — no production code changes. cost_recorder.py + base_callback_handler.py untouched (per A4 binding from T-1).",
+    "Per R3 downstream regression scope: cost_recorder.py is in tabla SSoT auditor-downstream-regression.md. Downstream targets: tests/modules/{copilot,sales_agent}/observability/. Both verified PASS above — gate covers full R3 surface for this diff.",
+    "Per R6 decisions_honored cite: commit body 3cb98fd4 must include '## Decisions honored' with D-T1bis-1, D-T1bis-2, D-T1bis-3. Auditor: verify cite presence in commit body.",
+    "Skipped: full /test-backend (jscpd, interrogate, pip-audit, mypy, full pytest 1500+ tests). Scoped run sufficient for T-1.bis surface (test files only). Auditor may spawn full suite if downstream regression scope warrants."
+  ]
+}

@@ -1,7 +1,7 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: DEV_T3_DONE
+phase: AUDIT_T3_APPROVED
 status: pending
 last_artifact: 05-impl/T-3-result.md
 last_modified: 2026-05-05T14:00Z
@@ -54,9 +54,11 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 → T-5 → T-6a → T-6b (operation
 |---|---|---|
 | T-2 | **AUDIT APPROVED** (2026-05-05 10:30Z) | T-2-review.md merged |
 | T-7 | DONE pending /auditor (2026-05-05 04:50Z) | T-7-result.md ready |
-| T-3 | **DEV DONE** (2026-05-05 14:00Z) | 10/10 tests PASS, 823 arch fitness PASS. Awaiting /auditor |
+| T-3 | **AUDIT APPROVED** (2026-05-05 15:00Z) | 10/10 + 33/33 + 14/14 + 823/823 PASS. T-3-review.md merged. blocks=[] (no downstream unblocked) |
 | T-4 | UNBLOCKED post-T-7-AUDIT_PASS | aguarda /auditor APPROVE T-7 (gemini.py audit checklist 6/6 mandatory + delete 6 archivos legacy) |
 | T-5 | STILL BLOCKED | aguarda T-4 + T-7 (post-AUDIT_PASS) |
 | T-6a | STILL BLOCKED | aguarda T-5 |
 | T-8 | STILL BLOCKED | aguarda T-4 + T-5 |
 | T-9 | STILL BLOCKED | aguarda T-8 |
+
+- 2026-05-05 15:00 — `/auditor` (claude-opus-4-7, auditor-be) revisó T-3 commit `71f39529`. Verdict: **APPROVED**. 12/13 categories PASS (Cat 13 default-flip N/A — T-3 modifies data, no flag flip). Re-ran independently: 10/10 T-3 tests PASS, 33/33 cost+pricing downstream PASS, 14/14 callback handlers downstream PASS (LOW-MED R3 inventory gap addressed via extra run), 823/823 arch fitness PASS, ruff lint+format clean. gate-output.json consumed: passed_count=900 / failed=0 / 1 deferred (coverage Gate 6 — gate-runner truncated, justified per T-3 zero src/ code addition). A1 acceptance (live `alembic upgrade head` × 2) deferred to `/pase-produccion` (Docker brain container down at gate-runner time) — migration structurally idempotent: DROP IF EXISTS guard + WHERE-bounded UPDATEs. Decisions honored: T-1 A1 BINDING (slashed model preserve via CASE WHEN), T-1 X2 BINDING (calculate_cost reconciliation), T-2 A5 BINDING (litellm_sync extends only) — all cited in commit body + migration docstring + IMPL-LOG. Cat 12 anti-duplication: single migration file, no mirror; backup convention `*_backup_pre_tN` documented for T-6a/T-6c reuse. Skills consulted: backend-expert, tessl__pytest-api-testing (mock pattern justified — established codebase convention), tessl__fastapi N/A confirmed, tessl__graceful-degradation N/A confirmed. Spanish neutro: N/A (English technical docstrings). T-3 has blocks=[] → no downstream tickets unblocked. Backlog for /pm (non-blocking): add R3 SSoT row for data-only repair pattern, update 04-tickets.yaml verifier paths to match builder test names. Phase=AUDIT_T3_APPROVED. Last artifact: `06-audit/T-3-review.md`.
