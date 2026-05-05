@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+# Pre-commit hook — voseo detection + ruff check + ruff format on staged
+# Python/TypeScript/Markdown files.
+#
+# Why
+# ===
+# Origen: process-improvement 2026-05-05 R4. Sin pre-commit hook, voseo
+# (vos/sos/tenés/podés/mirá/dejá/etc.) + ruff F632 (identity comparison) +
+# format violations llegaban a audit phase → roundtrip extra fix. Hook
+# capta antes commit, fricción dev mínima.
+#
+# Behavior
+# ========
+# 1. Voseo check on staged Py/TS/TSX/MD added lines (`git diff --cached -U0`)
+#    - Regex covers spanish-text.md glosario (vos/sos + 60+ verb forms)
+#    - Excludes: `modules/sales_agent/` voice templates (per spanish-text.md
+#      exception — sales_agent output respects tenant voice incl. voseo if AR)
+#    - Excludes: `__pycache__/`, `.venv/`, `node_modules/`, `migrations/versions/`
+#    - Failed → print hits + exit 1, dev fixes + re-stages
+# 2. Ruff check (full ruleset) on staged backend/*.py
+# 3. Ruff format check on staged backend/*.py
+#
+# Bypass
+# ======
+# Per project rule (.claude/rules/git-safety.md), `git commit --no-verify`
+# is FORBIDDEN. If hook fires false positive, fix root cause (rephrase
+# string, mark `# noqa: voseo` with justification comment if regex
+# legitimately wrong).
+#
+# Install
+# =======
+#   make install-hooks    # symlinks scripts/git-hooks/pre-commit → .git/hooks/
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
+
+# ─────────────────────────────────────────────────────────────────
+# 1. Get staged files by extension
+# ─────────────────────────────────────────────────────────────────
+
+STAGED_PY=$(git diff --cached --name-only --diff-filter=ACM \
+  | grep -E '\.py$' \
+  | grep -vE '(__pycache__/|\.venv/|migrations/versions/)' || true)
+
+STAGED_TS=$(git diff --cached --name-only --diff-filter=ACM \
+  | grep -E '\.(ts|tsx)$' \
+  | grep -vE '(node_modules/|\.next/|dist/)' || true)
+
+STAGED_MD=$(git diff --cached --name-only --diff-filter=ACM \
+  | grep -E '\.md$' \
+  | grep -vE '(node_modules/)' || true)
+
+ALL_TEXT_STAGED=$(printf '%s\n%s\n%s\n' "${STAGED_PY}" "${STAGED_TS}" "${STAGED_MD}" \
+  | grep -v '^$' || true)
+
+# ─────────────────────────────────────────────────────────────────
+# 2. Voseo regex check on added lines only
+# ─────────────────────────────────────────────────────────────────
+
+# Glosario sourced from .claude/rules/spanish-text.md
+VOSEO_REGEX='\b(vos|sos|tenés|querés|podés|sabés|hacés|venís|decís|mirá|dejá|dejalo|poné|ponelo|usá|usalo|hacé|hacelo|elegí|elegilo|seleccioná|arrancá|empezá|agregá|configurá|revisá|escribí|guardá|subí|bajá|abrí|volvé|andá|cambiá|cambialo|ofrecés|cobrás|ejecutás|acompañás|activás|desactivás|linkeá|despublicala|reactivá|cancelala|validá|considerá|formulala|marcá|referís|atendés|integrás|listá|probá|mostrá|compartí|contá|explicá|fijate|acordate)\b'
+
+VOSEO_HITS=""
+
+if [ -n "${ALL_TEXT_STAGED}" ]; then
+  while IFS= read -r FILE; do
+    [ -z "${FILE}" ] && continue
+
+    # Per spanish-text.md exception: sales_agent voice output respects tenant
+    # voice (puede ser voseo si AR). Skip personality compiler / specialist
+    # prompt templates that LLM consumes as voice instructions.
+    case "${FILE}" in
+      */modules/sales_agent/*personality*|\
+      */modules/sales_agent/*specialist*|\
+      */modules/sales_agent/*.j2|\
+      */modules/sales_agent/*system_instruction*|\
+      */modules/sales_agent/agent_identity*|\
+      */tests/modules/sales_agent/*goldens*)
+        continue
+        ;;
+    esac
+
+    # Per spanish-text.md exception: skill SKILL.md / rules/*.md / process docs
+    # may quote voseo glosario or example wrong-then-right pairs. Honor magic
+    # comment `# voseo-allowed:` or `<!-- voseo-allowed -->` in file.
+    if grep -qE '(# voseo-allowed:|<!-- voseo-allowed -->)' "${FILE}" 2>/dev/null; then
+      continue
+    fi
+
+    # Examine ONLY added lines in this commit (-U0 zero context)
+    HITS=$(git diff --cached -U0 -- "${FILE}" 2>/dev/null \
+      | grep -E '^\+' \
+      | grep -vE '^\+\+\+' \
+      | grep -niE "${VOSEO_REGEX}" \
+      || true)
+
+    if [ -n "${HITS}" ]; then
+      VOSEO_HITS+="${FILE}:"$'\n'"${HITS}"$'\n\n'
+    fi
+  done <<< "${ALL_TEXT_STAGED}"
+fi
+
+if [ -n "${VOSEO_HITS}" ]; then
+  printf "\033[31m"
+  cat <<EOF
+─────────────────────────────────────────────────────────────
+PRE-COMMIT BLOCKED: voseo detected in staged changes.
+
+EOF
+  printf "${VOSEO_HITS}"
+  cat <<EOF
+─────────────────────────────────────────────────────────────
+Per .claude/rules/spanish-text.md: tuteo (tú) only on user-facing
+strings. Convert + re-stage.
+
+Glosario voseo→neutro: see .claude/rules/spanish-text.md table.
+
+Common conversions:
+  vos     → tú          sos     → eres        tenés   → tienes
+  podés   → puedes      mirá    → mira        dejá    → deja
+  poné    → pon         hacé    → haz         elegí   → elige
+  agregá  → agrega      configurá → configura  revisá  → revisa
+
+Exception: modules/sales_agent/ voice templates (already excluded).
+If false positive, mark file:
+  # voseo-allowed: <reason>           (Python/TS comment)
+  <!-- voseo-allowed: <reason> -->    (Markdown)
+
+NEVER use --no-verify (.claude/rules/git-safety.md prohibits).
+─────────────────────────────────────────────────────────────
+EOF
+  printf "\033[0m"
+  exit 1
+fi
+
+# ─────────────────────────────────────────────────────────────────
+# 3. Ruff check (full ruleset) on staged backend/*.py
+# ─────────────────────────────────────────────────────────────────
+
+STAGED_BACKEND_PY=$(echo "${STAGED_PY}" | grep -E '^backend/' | sed 's|^backend/||' || true)
+
+if [ -n "${STAGED_BACKEND_PY}" ]; then
+  if [ ! -x "${REPO_ROOT}/backend/.venv/bin/ruff" ]; then
+    printf "\033[33m"
+    echo "─────────────────────────────────────────────────────────────"
+    echo "WARNING: backend/.venv/bin/ruff not found — skipping ruff checks."
+    echo "  Run: cd backend && python -m venv .venv && .venv/bin/pip install -r requirements-dev.txt"
+    echo "─────────────────────────────────────────────────────────────"
+    printf "\033[0m"
+  else
+    cd "${REPO_ROOT}/backend"
+
+    # Ruff check (full ruleset incl. F632 identity comparison)
+    if ! .venv/bin/ruff check --no-cache --quiet ${STAGED_BACKEND_PY}; then
+      printf "\033[31m"
+      cat <<EOF
+─────────────────────────────────────────────────────────────
+PRE-COMMIT BLOCKED: ruff check failures on staged backend/*.py
+─────────────────────────────────────────────────────────────
+Fix with:
+  cd backend && .venv/bin/ruff check --fix ${STAGED_BACKEND_PY}
+
+Then re-stage. NEVER use --no-verify.
+─────────────────────────────────────────────────────────────
+EOF
+      printf "\033[0m"
+      exit 1
+    fi
+
+    # Ruff format check
+    if ! .venv/bin/ruff format --check ${STAGED_BACKEND_PY}; then
+      printf "\033[31m"
+      cat <<EOF
+─────────────────────────────────────────────────────────────
+PRE-COMMIT BLOCKED: ruff format violations on staged backend/*.py
+─────────────────────────────────────────────────────────────
+Fix with:
+  cd backend && .venv/bin/ruff format ${STAGED_BACKEND_PY}
+
+Then re-stage. NEVER use --no-verify.
+─────────────────────────────────────────────────────────────
+EOF
+      printf "\033[0m"
+      exit 1
+    fi
+
+    cd "${REPO_ROOT}"
+  fi
+fi
+
+exit 0

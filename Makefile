@@ -158,10 +158,19 @@ ci-parity-fe:
 # hook lives in scripts/git-hooks/pre-push (committed) and is symlinked
 # into .git/hooks (per-clone, gitignored).
 install-hooks:
+	@chmod +x scripts/git-hooks/pre-push scripts/git-hooks/pre-commit
+	@chmod +x .husky/pre-push .husky/pre-commit
+	@# Husky takes precedence (core.hooksPath = .husky set by frontend
+	@# prepare script). Wrappers in .husky/* exec scripts/git-hooks/* SSoT.
+	@# Symlink .git/hooks/ as fallback for non-husky setups (e.g. CI bash
+	@# without npm install).
 	@mkdir -p .git/hooks
 	@ln -sf ../../scripts/git-hooks/pre-push .git/hooks/pre-push
-	@chmod +x scripts/git-hooks/pre-push
-	@echo "✓ pre-push hook installed (.git/hooks/pre-push → scripts/git-hooks/pre-push)"
+	@ln -sf ../../scripts/git-hooks/pre-commit .git/hooks/pre-commit
+	@echo "✓ pre-push hook installed (.husky/pre-push → scripts/git-hooks/pre-push, fallback .git/hooks/pre-push)"
+	@echo "✓ pre-commit hook installed (.husky/pre-commit → scripts/git-hooks/pre-commit, fallback .git/hooks/pre-commit)"
+	@echo "  pre-commit: voseo regex (spanish-text.md glosario) + ruff check + format (full ruleset, native backend venv)"
+	@echo "  pre-push:   ci-parity gate for git push origin main"
 
 # Regenerate the user-facing ETL extraction contract markdown from
 # backend/src/modules/analytics/domain/extraction_contract.py.

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Husky pre-push wrapper — delegates to scripts/git-hooks/pre-push (SSoT).
+#
+# Why
+# ===
+# Pre-existing bug discovered 2026-05-05: husky 9.x sets
+# core.hooksPath = .husky which BYPASSES .git/hooks/pre-push (ci-parity
+# gate for git push origin main → DEAD). Process-improvement R4 created
+# this wrapper so existing scripts/git-hooks/pre-push (ci-parity gate)
+# resurrects under husky-managed workflow.
+#
+# DO NOT add hook logic here. Edit scripts/git-hooks/pre-push instead.
+
+set -euo pipefail
+exec "$(git rev-parse --show-toplevel)/scripts/git-hooks/pre-push" "$@"

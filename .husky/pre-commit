@@ -1,40 +1,20 @@
-#!/bin/sh
+#!/usr/bin/env bash
+# Husky pre-commit wrapper — delegates to scripts/git-hooks/pre-commit (SSoT).
+#
+# Why
+# ===
+# Husky 9.x reads hooks from .husky/ (core.hooksPath = .husky set by
+# `prepare` script in frontend/package.json). Canonical hook logic lives
+# in scripts/git-hooks/pre-commit so:
+#   - same SSoT used by .git/hooks/ symlink path (legacy)
+#   - committed + auditable
+#   - non-husky setups can install via `make install-hooks` linking to
+#     .git/hooks/ directly (if user disables husky)
+#
+# Replaces previous inline ruff-only logic. New hook adds voseo regex +
+# expanded coverage. See scripts/git-hooks/pre-commit for full behavior.
+#
+# DO NOT add hook logic here. Edit scripts/git-hooks/pre-commit instead.
 
-# Frontend: ESLint + TypeScript (handled by lint-staged in package.json if configured)
-
-# Backend: Ruff lint + format check on staged Python files (NATIVE — never Docker)
-STAGED_PY=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$' | head -50)
-if [ -n "$STAGED_PY" ]; then
-  RUFF="backend/.venv/bin/ruff"
-  if [ ! -x "$RUFF" ]; then
-    echo "Warning: $RUFF not found. Skipping Python lint."
-    exit 0
-  fi
-
-  # Split staged Python files into backend-rooted vs project-rooted. The
-  # backend pyproject.toml uses relative paths from ``backend/``, so we
-  # cd into backend for those. Files outside backend/ (e.g. scripts/)
-  # use the project ruff config and are linted from the repo root.
-  BACKEND_PY=$(echo "$STAGED_PY" | grep '^backend/' | sed 's|^backend/||g' | tr '\n' ' ')
-  ROOT_PY=$(echo "$STAGED_PY" | grep -v '^backend/' | tr '\n' ' ')
-
-  if [ -n "$BACKEND_PY" ]; then
-    echo "Running ruff on staged backend Python files..."
-    (cd backend && .venv/bin/ruff check $BACKEND_PY --no-cache --no-fix) || {
-      echo "Ruff lint failed (backend). Fix errors before committing."
-      exit 1
-    }
-    (cd backend && .venv/bin/ruff format --check $BACKEND_PY --no-cache) || {
-      echo "Ruff format check failed (backend). Run: cd backend && .venv/bin/ruff format <files>"
-      exit 1
-    }
-  fi
-
-  if [ -n "$ROOT_PY" ]; then
-    echo "Running ruff on staged project-level Python files..."
-    backend/.venv/bin/ruff check $ROOT_PY --no-cache --no-fix || {
-      echo "Ruff lint failed (root). Fix errors before committing."
-      exit 1
-    }
-  fi
-fi
+set -euo pipefail
+exec "$(git rev-parse --show-toplevel)/scripts/git-hooks/pre-commit" "$@"
