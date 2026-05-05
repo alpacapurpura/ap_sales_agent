@@ -57,7 +57,7 @@ summary:
     title: "Kill flag LITELLM_PROXY_ENABLED — anti-default-flip-audit 4-step (deletion case)"
     surface: BE
     owner_pool: [claude-opus-4-7]
-    state: draft
+    state: audit-passed
     blocked_by: [T-4, T-7]
     blocks: [T-6a, T-8]
     estimate_hours: 4
@@ -525,7 +525,7 @@ T5:
   title: "Kill flag LITELLM_PROXY_ENABLED (anti-default-flip-audit 4-step deletion case)"
   type: backend
   surface: BE
-  state: draft
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false
@@ -595,7 +595,11 @@ T5:
   blocks: ["T-6a", "T-8"]
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: building, at: "2026-05-05T22:30Z", by: "builder-backend (Opus 4.7 — HARD MANDATE verified pre-spawn this round per process learning from T-4 Sonnet violation)" }
+    - { state: tests-passing, at: "2026-05-05T22:50Z", by: "builder-backend (commits 28617716 + 560f14b5)" }
+    - { state: audit-passed, at: "2026-05-05T23:00Z", by: "auditor-backend (Opus 4.7) — APPROVED, 4 info-level non-blocking annotations" }
+  assigned_to: claude-opus-4-7
+  audit_review: "06-audit/T-5-review.md"
 
 T6a:
   id: T-6a
@@ -624,9 +628,9 @@ T6a:
     - "NEW backend/alembic/versions/XXXX_deprecate_tenant_provider_api_keys.py — UPDATE tenants SET 4 cols = NULL WHERE non-null; downgrade no-op (cannot restore ephemeral keys)"
     - "MODIFY backend/src/modules/iam/domain/tenant.py — Pydantic Field(default=None, deprecated=True, exclude=True) for openai_api_key/deepseek_api_key/kimi_api_key/dashscope_api_key; gemini_api_key UNCHANGED"
     - "MODIFY backend/src/modules/iam/api/settings.py — TenantResponseDTO drops 4 deprecated fields from response_model; gemini_api_key retained"
-    - "MODIFY backend/src/shared/infrastructure/llm/factory.py — _extract_tenant_key returns None for the 4 deprecated providers (gemini still reads)"
-    - "MODIFY backend/src/modules/iam/infrastructure/repositories/tenant_repository.py — stop assigning to deprecated cols on create/update (read-side: use getattr with default None for backwards compat)"
-    - "NEW backend/tests/modules/iam/test_T6a_deprecate_tenant_api_keys.py — 4 tests (post-migration NULL count, factory returns None, DTO excludes 4 fields, repo create/update no longer writes)"
+    - "MODIFY backend/src/shared/infrastructure/llm/factory.py — DELETE `_extract_tenant_key` method entirely (post-T-5 the method is ORPHANED — zero callers in src/ or tests/ — verified by orchestrator pre-Wave-4). Was originally scoped to stub the 4 deprecated providers to None, but per Chris zero-tech-debt directive + auditor T-5 recommendation, delete dead code now. T-6c had `DELETE _extract_tenant_key method entirely` scope; T-6a now claims that since waiting for operational gate is moot for an orphaned method (no caller can read deprecated cols via Python). Update factory module docstring lines 9-15 to reflect: T-6a deletes method + nulls cols + drops Pydantic fields + drops DTO fields."
+    - "MODIFY backend/src/modules/iam/infrastructure/repositories/tenant_repository.py — stop assigning to deprecated cols on create/update (read-side: SQLAlchemy ORM still loads cols since they exist in model; T-6a removes write-paths only; T-6c DROP COLUMN finalizes)"
+    - "NEW backend/tests/modules/iam/test_T6a_deprecate_tenant_api_keys.py — 4 tests (post-migration NULL count, _extract_tenant_key method does not exist, DTO excludes 4 fields, repo create/update no longer writes)"
 
   out_of_scope:
     - "DROP COLUMN (T-6c — after T-6b operational verify)"
@@ -639,10 +643,10 @@ T6a:
         type: pytest
         path: "backend/tests/modules/iam/test_T6a_deprecate_tenant_api_keys.py::test_post_migration_zero_non_null"
     - id: A2
-      description: "factory._extract_tenant_key returns None for 4 deprecated providers"
+      description: "factory._extract_tenant_key method DELETED entirely (orphaned post-T-5 per auditor T-5 recommendation)"
       verifier:
-        type: pytest
-        path: "backend/tests/modules/iam/test_T6a_deprecate_tenant_api_keys.py::test_factory_returns_none_for_deprecated_providers"
+        type: bash
+        cmd: "! grep -q 'def _extract_tenant_key' backend/src/shared/infrastructure/llm/factory.py"
     - id: A3
       description: "TenantResponseDTO Pydantic schema does not include 4 deprecated fields (gemini_api_key retained)"
       verifier:
@@ -755,8 +759,8 @@ T6c:
     - "MODIFY backend/src/modules/iam/infrastructure/models/tenant_model.py — REMOVE 4 Column declarations (lines 33-37 except gemini_api_key)"
     - "MODIFY backend/src/modules/iam/domain/tenant.py — REMOVE 4 deprecated Pydantic Field declarations"
     - "MODIFY backend/src/modules/iam/infrastructure/repositories/tenant_repository.py — REMOVE all references to 4 deprecated cols (lines 45-49, 66-70 minus gemini)"
-    - "MODIFY backend/src/shared/infrastructure/llm/factory.py — REMOVE _extract_tenant_key method entirely; simplify get_service_for_tenant to use platform router (factor out gemini_api_key handling separately if needed)"
-    - "NEW backend/tests/modules/iam/test_T6c_drop_tenant_api_keys.py — verify cols dropped, code references removed, factory simplified"
+    - "factory.py: NO CHANGE — `_extract_tenant_key` already DELETED in T-6a (post-Wave-3 scope refresh per auditor T-5 recommendation; method was orphaned post-T-5)"
+    - "NEW backend/tests/modules/iam/test_T6c_drop_tenant_api_keys.py — verify cols dropped, code references removed (factory already simplified in T-6a)"
 
   out_of_scope:
     - "T-6b operational gate"

@@ -1,22 +1,22 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: AUDIT_T4_APPROVED
+phase: AUDIT_T5_APPROVED
 status: pending
-last_artifact: 06-audit/T-4-review.md
-last_modified: 2026-05-05T22:00Z
-next_action: "T-4 audit-passed (Wave 2). Unblocks T-5 (anti-default-flip-audit 4-step kill LITELLM_PROXY_ENABLED) + T-8 (post-T-5). /pm spawn /dev-team for T-5 sequencial (Wave 3)."
+last_artifact: 06-audit/T-5-review.md
+last_modified: 2026-05-05T23:00Z
+next_action: "T-5 audit-passed (Wave 3). Unblocks T-6a (migration deprecation tenant API keys, scope refreshed: factory._extract_tenant_key already orphaned post-T-5, T-6a deletes method entirely + nulls cols + drops Pydantic/DTO/repo writes) + T-8 (arch fitness shrink). Wave 4 paralelo: T-6a Story A + T-4 Story B (multi-layer assertion library)."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
 blocked_reason: null
-audit_iterations: 2
+audit_iterations: 3
 ratified_by_chris: true
 po_version: 2
 arch_version: 1
 total_tickets: 11
 estimated_total_hours: 38
-critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 → T-6a → T-6b (operational gate, ~1 working day pre-clientes per R7) → T-6c"
+critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a → T-6b (operational gate, ~1 working day pre-clientes per R7) → T-6c"
 ---
 
 ## Bitácora
@@ -56,9 +56,9 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 → T-6a → T-6b (opera
 | T-7 | DONE pending /auditor (2026-05-05 04:50Z) | T-7-result.md ready |
 | T-3 | **AUDIT APPROVED** (2026-05-05 15:00Z) | 10/10 + 33/33 + 14/14 + 823/823 PASS. T-3-review.md merged. blocks=[] (no downstream unblocked) |
 | T-4 | **AUDIT APPROVED** (2026-05-05 22:00Z) | T-4-review.md merged (commit 429913a3) |
-| T-5 | UNBLOCKED post-T-4 | aguarda /dev-team Wave 3 (anti-default-flip-audit 4-step kill LITELLM_PROXY_ENABLED) |
-| T-6a | STILL BLOCKED | aguarda T-5 |
-| T-8 | UNBLOCKED post-T-4 (parcial) | aguarda T-5 también para arch fitness shrink + 3 new assertions |
+| T-5 | **AUDIT APPROVED** (2026-05-05 23:00Z) | T-5-review.md merged (commit 28617716 + 560f14b5). Builder Opus 4.7 verified pre-spawn (R23 process correction from T-4) |
+| T-6a | UNBLOCKED post-T-5 (Wave 4 paralelo con Story B T-4). Scope refreshed: factory._extract_tenant_key already orphaned post-T-5 → DELETE entirely en T-6a (T-6c no longer touches factory) |
+| T-8 | UNBLOCKED post-T-5 | aguarda Wave 7 paralelo con T-9 — arch fitness shrink + 3 new assertions test_no_legacy_adapter_imports + test_known_legacy_files_set_is_empty + test_settings_has_no_litellm_proxy_enabled_attr |
 | T-9 | STILL BLOCKED | aguarda T-8 |
 
 - 2026-05-05 15:00 — `/auditor` (claude-opus-4-7, auditor-be) revisó T-3 commit `71f39529`. Verdict: **APPROVED**. 12/13 categories PASS (Cat 13 default-flip N/A — T-3 modifies data, no flag flip). Re-ran independently: 10/10 T-3 tests PASS, 33/33 cost+pricing downstream PASS, 14/14 callback handlers downstream PASS (LOW-MED R3 inventory gap addressed via extra run), 823/823 arch fitness PASS, ruff lint+format clean. gate-output.json consumed: passed_count=900 / failed=0 / 1 deferred (coverage Gate 6 — gate-runner truncated, justified per T-3 zero src/ code addition). A1 acceptance (live `alembic upgrade head` × 2) deferred to `/pase-produccion` (Docker brain container down at gate-runner time) — migration structurally idempotent: DROP IF EXISTS guard + WHERE-bounded UPDATEs. Decisions honored: T-1 A1 BINDING (slashed model preserve via CASE WHEN), T-1 X2 BINDING (calculate_cost reconciliation), T-2 A5 BINDING (litellm_sync extends only) — all cited in commit body + migration docstring + IMPL-LOG. Cat 12 anti-duplication: single migration file, no mirror; backup convention `*_backup_pre_tN` documented for T-6a/T-6c reuse. Skills consulted: backend-expert, tessl__pytest-api-testing (mock pattern justified — established codebase convention), tessl__fastapi N/A confirmed, tessl__graceful-degradation N/A confirmed. Spanish neutro: N/A (English technical docstrings). T-3 has blocks=[] → no downstream tickets unblocked. Backlog for /pm (non-blocking): add R3 SSoT row for data-only repair pattern, update 04-tickets.yaml verifier paths to match builder test names. Phase=AUDIT_T3_APPROVED. Last artifact: `06-audit/T-3-review.md`.
@@ -70,3 +70,9 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 → T-6a → T-6b (opera
 - 2026-05-05 21:40 — `gate-runner` Haiku iter-1 ran with `pytest --cov` (no marker filter): 1 FAIL `test_e2e_real_engine_real_offer_provider` integration test → environment-dependent (brain container DOWN, `postgres` hostname unreachable from native WSL). NOT T-4 regression. Iter-2 re-spawn con `-m "not integration"` exclusión per `/test-backend` SKILL Step 2 protocol intent. Iter-2 backgrounded mid-pytest beyond agent timeout; orchestrator finalizó gate-output.json manualmente per R22 fallback (pytest exit 0, 9012 PASS / 35 SKIP / 16 deselected, ruff/format/arch fitness 823/823 PASS). Phase=GATE_T4_PASS.
 
 - 2026-05-05 22:00 — `/auditor` (Opus 4.7, auditor-be) revisó T-4 commit `429913a3`. Verdict: **APPROVED** (PASS). 11 categories PASS (Cat 8 N/A migration, Cat 12 PASS — deletion ticket, no mirror risk). R3 downstream regression scope verified: full-suite gate covered all targets per SSoT tabla (tests/shared/infrastructure/llm/, tests/modules/copilot/observability/test_callback_handler_usage*.py, tests/modules/sales_agent/observability/). A1-A4 acceptance verbatim verified. Decisions honored R6: A3+X1+X2 cited in commit body. 3 info-only findings (non-blocking): (a) `build_provider_service` stub strategy correct (loud-fail vs silent-pass); (b) pre-existing `reset_cache()` dead bug in router.py:139-141 ref nonexistent `self._providers` (cleanup en T-5 ya scoped); (c) builder Sonnet vs Opus mandate — process learning para /pm. T-4-impl-log.md materializado retroactivamente per auditor recomendación. Phase=AUDIT_T4_APPROVED. T-5 + T-8 unblocked (post-T-7 ya merged). Last artifact: `06-audit/T-4-review.md`.
+
+- 2026-05-05 22:30 — Wave 3 PI-12 S1: `/dev-team` orchestrator spawned `context-builder` Haiku iter-1 for T-5. Iter-1 detected BLOCKING gap (`admin/modules/copilot_routing.py` consumes deleted `build_provider_service`). Per Chris zero-tech-debt pre-authorization, /pm expanded T-5 scope to include admin function deletions (commit `fd0ddc4f`). Re-spawned context-builder iter-2 with updated scope → faithfulness CLEAN, validator PASS 0 discrepancies. Phase=DEV_T5_BUILDING.
+
+- 2026-05-05 22:50 — `builder-backend` (Opus 4.7 — HARD MANDATE explicitly verified pre-spawn this round per process learning from T-4 Sonnet violation) implementó T-5. Commits `28617716` (main) + `560f14b5` (SHA backfill) push a `development`. 9 archivos backend src + 1 impl-log: DROP `LITELLM_PROXY_ENABLED` field core/config.py; DELETE `build_provider_service` + `_legacy_providers` + `reset_cache` from router.py; DELETE imports + dead Path 1 user-key branch from factory.py (`_extract_tenant_key` PRESERVED per arch §2.4 boundary T-6a/T-6c); DROP conditional main.py:368; replace admin/llm_virtual_keys.py banner with LiteLLM-only msg; DELETE `_fetch_provider_library_provenance` + `_render_provider_library_provenance` + 2 call sites from admin/copilot_routing.py (per scope expansion); clean docstring providers/litellm.py:26; UPDATE `.claude/rules/anti-default-flip-audit.md` (REMOVE LITELLM_PROXY_ENABLED row + ADD footnote); ADD `pyproject.toml` per-file-ignore `"src/main.py" = ["INP001"]` (FastAPI entry-point at top of src/, not module folder needing __init__.py — config-level fix per Chris zero-tech-debt). Anti-default-flip 4-step DELETION case satisfied: Step 1 grep ZERO active mocks, Step 2 N/A (T-7 pre-migrated), Step 3 9012 PASS / 0 FAIL / 823 arch fitness, Step 4 5 mandatory `## ` headers en commit body. Phase=DEV_T5_DONE.
+
+- 2026-05-05 23:00 — `/auditor` (Opus 4.7, auditor-be) revisó T-5 commits `28617716 + 560f14b5`. Verdict: **APPROVED** (PASS). 9 quality gates PASS, 4 acceptance verifiers PASS (A1 settings no attr / A2 build_provider_service deleted / A3 commit body ≥4 H2 headers / A4 inventory updated). Anti-default-flip-audit DELETION 4-step variant end-to-end verified. Zero regressions across 9012 backend tests. Builder Opus 4.7 verified (R23 process correction from T-4 correctly applied). R6 Decisions Honored explicit table en impl-log + commit body. R3 downstream regression independently re-verified (197 observability + 278 iam + 103 admin + 67 LLM tests). 4 info-level non-blocking annotations: (a) `reset_cache` dead-bug cleanup honoring T-4 audit handoff (correctly within T-5 scope); (b) factory.py dead Path 1 deletion architecturally forced by build_provider_service removal — minor scope expansion vs T-6a/T-6c boundary, properly preserved `_extract_tenant_key` method per architect §2.4 (T-6a refresh updated to delete method since now orphaned); (c) pyproject.toml INP001 per-file-ignore architecturally correct (namespace-package + pre-commit-hook stdin interaction); (d) selective docstring-history retention in 3 LLM source + 2 test files (T-8 will supersede). Phase=AUDIT_T5_APPROVED. T-6a + T-8 unblocked. Last artifact: `06-audit/T-5-review.md`.
