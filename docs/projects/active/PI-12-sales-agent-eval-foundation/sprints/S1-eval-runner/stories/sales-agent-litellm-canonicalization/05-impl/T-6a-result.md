@@ -64,7 +64,9 @@ MOD    backend/tests/modules/iam/test_tenant_repository.py    (intentional basel
 - `gemini_api_key` deprecation (out of scope per Q4 ratification).
 - T-5 LITELLM_PROXY_ENABLED flag deletion (already shipped — commit 28617716).
 
-## Commit (pending)
+## Commit
 
-Will be appended after `git add` + `git commit` + `git push origin development`
-in scope-bounded mode (only files this session touched).
+`f6e7ad0a` — `feat(pi-12-T-6a): deprecate tenant provider API keys (Phase 1 expand-contract)`
+pushed to `development` (12 files changed, 1030 insertions, 104 deletions).
+
+Built on top of `e98a21ea` (Story B T-4 already pushed by parallel session).
