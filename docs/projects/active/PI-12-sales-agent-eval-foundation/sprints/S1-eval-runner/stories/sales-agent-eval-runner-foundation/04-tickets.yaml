@@ -1,0 +1,433 @@
+# 04-tickets.yaml — Pila ordenada Story B sales-agent-eval-runner-foundation
+# Story: docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-eval-runner-foundation/
+# Owner: /architect
+---
+story_id: sales-agent-eval-runner-foundation
+sprint: S1-eval-runner
+pi: PI-12-sales-agent-eval-foundation
+generated_at: 2026-05-05T03:40Z
+generated_by: /architect
+total_tickets: 6
+estimated_total_hours: 14
+
+# ── Resumen pila (alto nivel) ────────────────
+summary:
+  - id: T-1
+    title: "Scaffold dirs + __init__ + README stub + _artifacts/.gitignore"
+    surface: BE
+    owner_pool: [claude-opus]                  # AGENTIC story → Opus mandatory per CLAUDE.md
+    state: tests-passing                       # 2026-05-04 22:55 dev-team Opus completó scaffolding; awaiting /auditor
+    blocks: [T-2, T-3, T-4, T-5, T-6]
+  - id: T-2
+    title: "Pytest plumbing + fixtures (visionarias_tenant_session, eval_run_id, sales_agent_entrypoint, synthetic_tenant)"
+    surface: BE
+    owner_pool: [claude-opus]
+    state: draft
+    blocked_by: [T-1]
+    blocks: [T-3, T-4, T-5, T-6]
+  - id: T-3
+    title: "TrajectorySpy callback + artifacts writer (sanitize_payload)"
+    surface: AGENTIC
+    owner_pool: [claude-opus]
+    state: draft
+    blocked_by: [T-2]
+    blocks: [T-4, T-5]
+  - id: T-4
+    title: "Multi-layer assertion library (5 layers + Story-7 placeholder)"
+    surface: BE
+    owner_pool: [claude-opus]
+    state: draft
+    blocked_by: [T-2, T-3]
+    blocks: [T-5]
+  - id: T-5
+    title: "Smoke golden YAML + 4 scenarios test_eval_runner_smoke.py + regenerate_golden.py CLI"
+    surface: BE
+    owner_pool: [claude-opus]
+    state: draft
+    blocked_by: [T-3, T-4]
+    blocks: [T-6]
+  - id: T-6
+    title: "Makefile target eval-smoke + README.md operability docs"
+    surface: BE
+    owner_pool: [claude-opus]
+    state: draft
+    blocked_by: [T-5]
+    blocks: []
+
+# ── Tickets ──────────────────────────────────
+tickets:
+  - id: T-1
+    title: "Scaffold dirs backend/tests/agentic_evals/sales_agent/ + __init__.py + _artifacts/.gitignore + README stub"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                     # AGENTIC story (B) — Opus required per CLAUDE.md hard rule
+      claude_sonnet: false
+      claude_opus_required: true
+    priority: 1
+    estimate_hours: 1
+    inputs:
+      story_yaml: "../../../../../../product/stories/sales-agent/sales-agent-eval-runner-foundation.yaml"
+      spec: "../01-spec.md"
+      arch_doc: "../03-arch-be.md"
+      conventions: ".claude/rules/parallel-safety.md, .claude/rules/anti-duplication.md"
+      tessl_skills: []
+      domain_skills: ["backend-expert", "sales-agent-expert"]
+    deliverables:
+      - "Crear backend/tests/agentic_evals/__init__.py (vacío)"
+      - "Crear backend/tests/agentic_evals/sales_agent/__init__.py (vacío)"
+      - "Crear backend/tests/agentic_evals/sales_agent/runner/__init__.py (vacío)"
+      - "Crear backend/tests/agentic_evals/sales_agent/fixtures/__init__.py (vacío)"
+      - "Crear backend/tests/agentic_evals/sales_agent/_artifacts/.gitignore con contenido `*` (gitignore the whole runtime dir)"
+      - "Crear backend/tests/agentic_evals/sales_agent/README.md stub (1 párrafo: T6 lo expandirá)"
+      - "Crear backend/tests/agentic_evals/sales_agent/goldens/.gitkeep (T5 popula)"
+    out_of_scope:
+      - "Pytest plumbing (T-2)"
+      - "Cualquier código Python operacional"
+    acceptance:
+      - id: A1
+        description: "Estructura de directorios match arch-be § 'Estructura de directorio'"
+        verifier:
+          type: bash
+          cmd: "test -d backend/tests/agentic_evals/sales_agent/runner && test -d backend/tests/agentic_evals/sales_agent/fixtures && test -d backend/tests/agentic_evals/sales_agent/_artifacts && test -d backend/tests/agentic_evals/sales_agent/goldens"
+      - id: A2
+        description: "_artifacts gitignored (echo file ignored)"
+        verifier:
+          type: bash
+          cmd: "cd backend/tests/agentic_evals/sales_agent/_artifacts && touch test.tmp && git check-ignore test.tmp && rm test.tmp"
+      - id: A3
+        description: "README.md y __init__.py files existen"
+        verifier:
+          type: bash
+          cmd: "test -f backend/tests/agentic_evals/sales_agent/README.md && test -f backend/tests/agentic_evals/sales_agent/__init__.py"
+    quality_gates:
+      - "git status muestra solo archivos esperados (no _artifacts content)"
+      - "Ruff format clean (archivos vacíos están OK)"
+    depends_on: []
+    blocks: ["T-2", "T-3", "T-4", "T-5", "T-6"]
+    transitions:
+      - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
+      - { state: building, at: "2026-05-04T22:30Z", by: "dev-team-opus" }
+      - { state: tests-passing, at: "2026-05-04T22:55Z", by: "dev-team-opus" }
+    assigned_to: claude-opus-4-7
+
+  - id: T-2
+    title: "Pytest plumbing (--run-evals flag + @pytest.mark.eval) + 4 fixtures + meta-tests TDD"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true
+    priority: 1
+    estimate_hours: 3
+    inputs:
+      story_yaml: "../../../../../../product/stories/sales-agent/sales-agent-eval-runner-foundation.yaml"
+      spec: "../01-spec.md"
+      arch_doc: "../03-arch-be.md"
+      arch_agentic: "../03-arch-agentic.md"
+      conventions: ".claude/rules/tenant-isolation.md, .claude/rules/tdd-mandatory.md, .claude/rules/anti-duplication.md"
+      tessl_skills: ["tessl__fastapi", "tessl__graceful-degradation"]
+      domain_skills: ["backend-expert", "sales-agent-expert"]
+    deliverables:
+      - "Crear backend/tests/agentic_evals/conftest.py con pytest_addoption + pytest_configure + pytest_collection_modifyitems (gate flag --run-evals; arch-be § 'Pytest plumbing')"
+      - "Crear backend/tests/agentic_evals/sales_agent/conftest.py con fixtures: visionarias_tenant_session, eval_run_id, sales_agent_entrypoint (async), synthetic_tenant (Scenario 4) + helper create_synthetic_eval_lead"
+      - "Crear backend/tests/agentic_evals/sales_agent/fixtures/synthetic_tenant.py con función seed_t2_synthetic_tenant_with_offer(db) usada por Scenario 4"
+      - "Crear backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py (meta-tests TDD): RED ANTES de fixtures (test list en arch-be § 'Tests requeridos')"
+      - "Agregar `langdetect==1.0.9` a backend/pyproject.toml [project.optional-dependencies].evals (sin afectar production)"
+    out_of_scope:
+      - "TrajectorySpy (es T-3)"
+      - "Assertions library (es T-4)"
+      - "Smoke goldens YAML (es T-5)"
+      - "Makefile target (es T-6)"
+    acceptance:
+      - id: A1
+        description: "Suite default (sin --run-evals) → tests con @pytest.mark.eval reportan SKIPPED"
+        verifier:
+          type: bash
+          cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/ -v 2>&1 | grep -q 'SKIPPED' && exit 0 || exit 1"
+      - id: A2
+        description: "Suite con --run-evals → meta-tests de fixtures pasan"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py"
+          extra: "--run-evals -v"
+      - id: A3
+        description: "visionarias_tenant_session skip-ea con razón explícita si tenant ausente"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_visionarias_tenant_session_skips_if_no_offer"
+      - id: A4
+        description: "Coverage gate 43% NO baja (eval suite outside coverage source)"
+        verifier:
+          type: bash
+          cmd: "cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short 2>&1 | grep -E 'TOTAL.*([4-9][3-9]|[5-9][0-9]|100)%' && exit 0 || exit 1"
+    quality_gates:
+      - "/test-backend pass (default flag — eval suite SKIP, no cost burned)"
+      - "Ruff 0 errors archivos tocados"
+      - "Arch fitness tests pass (no src/ touched)"
+      - "TDD: meta-tests RED→GREEN evidence en commit body"
+    depends_on: ["T-1"]
+    blocks: ["T-3", "T-4", "T-5", "T-6"]
+    transitions:
+      - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
+    assigned_to: null
+
+  - id: T-3
+    title: "TrajectorySpy LangChain callback handler + artifacts writer (sanitize_payload reused)"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true
+    priority: 1
+    estimate_hours: 3
+    inputs:
+      story_yaml: "../../../../../../product/stories/sales-agent/sales-agent-eval-runner-foundation.yaml"
+      spec: "../01-spec.md"
+      arch_doc: "../03-arch-agentic.md"
+      arch_be: "../03-arch-be.md"
+      brand_voice: ".claude/rules/sales-agent-brand-voice.md"
+      conventions: ".claude/rules/anti-duplication.md, .claude/rules/copilot-observability.md"
+      tessl_skills: ["tessl__langgraph", "tessl__graceful-degradation"]
+      required_skills: ["sales-agent-expert", "copilot-expert"]
+    deliverables:
+      - "Crear backend/tests/agentic_evals/sales_agent/runner/trajectory_spy.py: TrajectorySpy(BaseCallbackHandler) — read-only observer (NO subclassea BaseAgentCallbackHandler — composition vía RunnableConfig.callbacks list)"
+      - "Implementar on_chain_end (lee state.next_node), on_tool_start (cachea name + run_id), on_tool_end (drena cache + append a tool_calls), reset(), to_artifact_dict() (sanitize_payload aplicado por artifacts writer)"
+      - "Crear backend/tests/agentic_evals/sales_agent/runner/artifacts.py: write_run_artifacts(run_id, *, spy, response_text, assertions_results) — escribe trace.json + response.txt + assertions.json bajo _artifacts/{run_id}/"
+      - "Reusar sanitize_payload de src/shared/agent_observability/recording/sanitization.py (NO mirror — anti-duplication)"
+      - "Update conftest fixture sales_agent_entrypoint para componer config['callbacks'] = obs_ctx.langchain_config().callbacks + [spy]"
+      - "Tests TrajectorySpy en test_eval_runner_fixtures.py: capture happy multi-node + tool capture + reset()"
+    out_of_scope:
+      - "Cualquier modificación a src/modules/sales_agent/ (read-only consumer)"
+      - "Cualquier mirror de BaseAgentCallbackHandler (anti-duplication §0)"
+      - "Asserts library (es T-4)"
+      - "Smoke goldens (es T-5)"
+    acceptance:
+      - id: A1
+        description: "TrajectorySpy.specialist_history captura ['qualifier'] tras invocación happy single-turn"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_trajectory_spy_captures_first_specialist_and_tool_calls"
+          extra: "--run-evals"
+      - id: A2
+        description: "Anti-duplication audit: NO existe class subclase de BaseAgentCallbackHandler en runner/"
+        verifier:
+          type: bash
+          cmd: "! grep -rn 'BaseAgentCallbackHandler' backend/tests/agentic_evals/sales_agent/runner/"
+      - id: A3
+        description: "_artifacts/{run_id}/ contiene 3 archivos (trace.json, response.txt, assertions.json)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_artifacts_writer_creates_run_id_subdir_with_3_files"
+          extra: "--run-evals"
+      - id: A4
+        description: "trace.json passes sanitize_payload (no PII regex match)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_artifacts_pii_sanitized"
+          extra: "--run-evals"
+    quality_gates:
+      - "/test-backend pass"
+      - "Ruff 0 errors"
+      - "Anti-duplication grep ✓ (no mirror handler)"
+      - "Trace event recorder (sales_agent_trace_event) sigue escribiendo rows reales (DB query post-test)"
+      - "Best-effort: si spy raise, NO rompe agent_app.ainvoke (try/except + structlog warning)"
+    depends_on: ["T-2"]
+    blocks: ["T-4", "T-5"]
+    transitions:
+      - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
+    assigned_to: null
+
+  - id: T-4
+    title: "Multi-layer assertion library (trajectory + tool_calls + output + cost + latency + Story-7 placeholder)"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true
+    priority: 1
+    estimate_hours: 2
+    inputs:
+      story_yaml: "../../../../../../product/stories/sales-agent/sales-agent-eval-runner-foundation.yaml"
+      spec: "../01-spec.md"
+      arch_doc: "../03-arch-be.md"
+      arch_agentic: "../03-arch-agentic.md"
+      conventions: ".claude/rules/tenant-isolation.md"
+      tessl_skills: []
+      domain_skills: ["backend-expert"]
+    deliverables:
+      - "Crear backend/tests/agentic_evals/sales_agent/runner/assertions.py con 5 funciones: assert_trajectory, assert_tool_calls (required + forbidden), assert_output (langdetect lazy + spanish marker count + must_mention), assert_cost_recorded (DB query + model_pattern), assert_latency"
+      - "Definir LayerAssertionError base + 5 subclases con .layer_name + .observed + .expected (errores accionables)"
+      - "Implementar _detect_language_safe (try/except LangDetectException + ImportError → 'unknown')"
+      - "Placeholder assert_voice_fidelity raise NotImplementedError (Story 7 future-proof; smoke MUST NOT call)"
+      - "Tests unitarios per función en test_eval_runner_fixtures.py: happy + edge (langdetect 'unknown') + edge (cost 0 row) + edge (forbidden tool present)"
+    out_of_scope:
+      - "Smoke test consumer (es T-5)"
+      - "Voice fidelity grader real (es Story 7)"
+      - "Pass^k aggregation (es Story 2)"
+    acceptance:
+      - id: A1
+        description: "5 assertions exportadas + LayerAssertionError base class"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assertions_api_complete"
+      - id: A2
+        description: "assert_output retorna OutputAssertionError nombrando capa fallida"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assert_output_named_failure"
+      - id: A3
+        description: "assert_voice_fidelity raise NotImplementedError"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assert_voice_fidelity_is_placeholder"
+      - id: A4
+        description: "_detect_language_safe gracefully handles LangDetectException"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_detect_language_safe_returns_unknown_on_exception"
+    quality_gates:
+      - "/test-backend pass"
+      - "Ruff 0 errors"
+      - "langdetect lazy import — no top-level import en assertions.py"
+      - "TDD: assertion tests RED→GREEN evidence"
+    depends_on: ["T-2", "T-3"]
+    blocks: ["T-5"]
+    transitions:
+      - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
+    assigned_to: null
+
+  - id: T-5
+    title: "Smoke golden YAML + golden_loader + 4 scenarios test_eval_runner_smoke.py + regenerate_golden.py CLI"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true
+    priority: 1
+    estimate_hours: 3
+    inputs:
+      story_yaml: "../../../../../../product/stories/sales-agent/sales-agent-eval-runner-foundation.yaml"
+      spec: "../01-spec.md"
+      arch_doc: "../03-arch-be.md"
+      arch_agentic: "../03-arch-agentic.md"
+      conventions: ".claude/rules/spanish-text.md, .claude/rules/tdd-mandatory.md, .claude/rules/sales-agent-brand-voice.md"
+      tessl_skills: []
+      domain_skills: ["sales-agent-expert"]
+    deliverables:
+      - "Crear backend/tests/agentic_evals/sales_agent/runner/golden_loader.py: GoldenSpec dataclass + load_yaml(path) + list_goldens(dir)"
+      - "Crear backend/tests/agentic_evals/sales_agent/goldens/visionarias-smoke-golden.yaml con schema documentado en arch-be § 'Golden YAML schema' (offer_id hardcoded; B2 ratificado)"
+      - "Crear backend/tests/agentic_evals/sales_agent/runner/regenerate_golden.py CLI: argparse <golden_id> → query DB Visionarias → pick top-1 offer → rewrite YAML con metadata.regenerated_from + metadata.created_at = now()"
+      - "Crear backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py con 4 scenarios: test_smoke_multi_layer (Scenario 1 happy real LLM call), test_skip_without_flag (Scenario 2 negative — usa pytester subprocess), test_degraded_output_caught (Scenario 3 edge — monkeypatch LiteLLMService.generate_response), test_no_cross_tenant_leak (Scenario 4 adversarial — usa synthetic_tenant)"
+      - "Cada scenario invoca write_run_artifacts post-asserts → _artifacts/{run_id}/{trace.json,response.txt,assertions.json}"
+    out_of_scope:
+      - "Multi-tenant goldens (es Story 5)"
+      - "Personas as simulators (es Story 6)"
+      - "Voice fidelity grader (es Story 7)"
+      - "CI gate cron (es Story 8)"
+      - "Adversarial scenarios beyond cross-tenant (es Story 9)"
+    acceptance:
+      - id: A1
+        description: "Scenario 1 — test_smoke_multi_layer pass with real LLM (5 capas verifican)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_smoke_multi_layer"
+          extra: "--run-evals -v"
+      - id: A2
+        description: "Scenario 2 — test_skip_without_flag exit-code 0 + reporta SKIPPED + 0 rows nuevos en sales_agent_llm_call durante ventana"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_skip_without_flag"
+      - id: A3
+        description: "Scenario 3 — test_degraded_output_caught FAILS con mensaje nombrando layer + escribe assertions.json con failed_layer_name"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_degraded_output_caught"
+          extra: "--run-evals"
+      - id: A4
+        description: "Scenario 4 — test_no_cross_tenant_leak verifica DISTINCT tenant_id = 1 en sales_agent_trace_event durante ventana + trace.json no contiene 'T2_synthetic' substring"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_no_cross_tenant_leak"
+          extra: "--run-evals"
+      - id: A5
+        description: "regenerate_golden.py corre sin error y rewrites YAML con offer_id fresco"
+        verifier:
+          type: bash
+          cmd: "cd backend && python tests/agentic_evals/sales_agent/runner/regenerate_golden.py visionarias-smoke-001 --dry-run"
+      - id: A6
+        description: "Spanish neutro check en goldens/*.yaml (sin voseo en input_message — voz tenant aplica solo al output del agente)"
+        verifier:
+          type: bash
+          cmd: "! grep -E '\\b(podés|tenés|sos|querés|hacés)\\b' backend/tests/agentic_evals/sales_agent/goldens/visionarias-smoke-golden.yaml"
+    quality_gates:
+      - "/test-backend pass (sin --run-evals — eval SKIP)"
+      - "Smoke real LLM cost < $0.01 (verificable post-run via sales_agent_llm_call query)"
+      - "Latencia p95 < 30000 ms"
+      - "Spanish neutro en input_message + assertions.json mensajes en castellano LATAM"
+      - "PII sanitization confirmed en trace.json (no email/phone)"
+    depends_on: ["T-3", "T-4"]
+    blocks: ["T-6"]
+    transitions:
+      - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
+    assigned_to: null
+
+  - id: T-6
+    title: "Makefile target eval-smoke + README.md operability docs (cómo agregar goldens, fixtures, run local, cleanup)"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true
+    priority: 2
+    estimate_hours: 2
+    inputs:
+      story_yaml: "../../../../../../product/stories/sales-agent/sales-agent-eval-runner-foundation.yaml"
+      spec: "../01-spec.md"
+      arch_doc: "../03-arch-be.md"
+      arch_agentic: "../03-arch-agentic.md"
+      conventions: ".claude/rules/spanish-text.md, .claude/rules/parallel-safety.md"
+      tessl_skills: []
+      domain_skills: ["backend-expert"]
+    deliverables:
+      - "Agregar target eval-smoke al backend/Makefile: `eval-smoke: ; cd $(PROJECT_ROOT)/backend && .venv/bin/pytest tests/agentic_evals/sales_agent/test_eval_runner_smoke.py -v --run-evals`"
+      - "Reescribir backend/tests/agentic_evals/sales_agent/README.md (Spanish neutro LATAM): secciones (1) Qué es esta carpeta, (2) Cómo correr local (preconditions: VISIONARIAS_TENANT_ID env + DB seeded + LiteLLM proxy up), (3) Cómo agregar un golden (YAML schema + regenerate_golden.py uso), (4) Fixtures disponibles (visionarias_tenant_session + sales_agent_entrypoint + eval_run_id + synthetic_tenant), (5) Diferencia vs tests/quality/sales_agent_goldens/ (S10 weekly judge stub vs end-to-end real agent), (6) Cleanup _artifacts (gitignored), (7) Cost budget < $0.01/run + alert >$0.05, (8) Future story scope (Story 2 pass^k, Story 5 multi-tenant goldens, Story 7 voice grader, Story 8 CI cron)"
+    out_of_scope:
+      - "Cualquier nueva fixture o golden"
+      - "CI nightly cron (es Story 8)"
+    acceptance:
+      - id: A1
+        description: "Make target eval-smoke ejecutable + invoca pytest correctly"
+        verifier:
+          type: bash
+          cmd: "cd backend && make -n eval-smoke 2>&1 | grep -q 'pytest.*--run-evals'"
+      - id: A2
+        description: "README.md cubre 8 secciones documentadas en deliverable"
+        verifier:
+          type: bash
+          cmd: "for s in 'Qué es' 'Cómo correr' 'Cómo agregar' 'Fixtures' 'Diferencia' 'Cleanup' 'Cost budget' 'Future story'; do grep -q \"$s\" backend/tests/agentic_evals/sales_agent/README.md || exit 1; done"
+      - id: A3
+        description: "README.md está en Spanish neutro LATAM (sin voseo)"
+        verifier:
+          type: bash
+          cmd: "! grep -E '\\b(podés|tenés|sos|querés|hacés|configurá|seleccioná)\\b' backend/tests/agentic_evals/sales_agent/README.md"
+    quality_gates:
+      - "/test-backend pass (no impact)"
+      - "Spanish neutro check"
+      - "make eval-smoke documentation accurate (matches arch-be commands)"
+    depends_on: ["T-5"]
+    blocks: []
+    transitions:
+      - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
+    assigned_to: null

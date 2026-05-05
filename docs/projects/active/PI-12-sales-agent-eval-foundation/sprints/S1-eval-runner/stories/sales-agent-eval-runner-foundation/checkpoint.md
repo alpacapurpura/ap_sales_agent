@@ -1,11 +1,11 @@
 ---
 level: story
 id: sales-agent-eval-runner-foundation
-phase: PO_RATIFIED
+phase: DEV_T1_DONE
 status: in-progress
-last_artifact: 01-spec.md
-last_modified: 2026-05-05T03:01:12Z
-next_action: "/architect lee 01-spec.md → spawnea /architect-be (+ /architect-agentic si aplica) → produce 04-tickets.yaml"
+last_artifact: 05-impl/T-1-result.md
+last_modified: 2026-05-04T22:55:00Z
+next_action: "/auditor revisa T-1 (paralelo posible: T-2 dev arranca tras commit T-1)"
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
@@ -18,16 +18,30 @@ po_version: 2
 ## Bitácora
 
 - 2026-05-04 20:00 — `/pm` creó folder + `00-story.md`. Phase=PM_DRAFT, status=pending.
-- 2026-05-04 20:30 — `/po` produjo `01-spec.md` (4 scenarios Gherkin AI-resistant: smoke-multi-layer-pass + flag-omitted-skips-eval-suite + agent-degraded-output-detected + cross-tenant-leak-on-mock-tenant). Multi-layer rico (5 capas: trajectory + tool_calls + output + cost + latency). Tenant fijo Visionarias + DB real + LiteLLM real (cost > 0 verifica Story A). Phase=PO_SPEC. 7 open questions para Chris.
-- 2026-05-04 20:30 — `/po` creó `docs/product/stories/sales-agent/sales-agent-eval-runner-foundation.yaml` con scenarios espejo del spec.
-- 2026-05-04 20:30 — `/po` actualizó `docs/product/stories/sales-agent/INDEX.md` (+1 row planned).
-- 2026-05-04 20:30 — `/po` actualizó `docs/product/capabilities/sales-agent/sales-conversational-engine.yaml` (`stories_planned: 1`, `stories_total: 4`, story_ids +1, gap "Eval suite agentic faltante" tachado + apuntado a este story como addressing).
+- 2026-05-04 20:30 — `/po` produjo `01-spec.md` (4 scenarios Gherkin AI-resistant). Phase=PO_SPEC.
+- 2026-05-04 20:30 — `/po` creó `docs/product/stories/sales-agent/sales-agent-eval-runner-foundation.yaml` + actualizó INDEX + capability YAML.
+- 2026-05-04 20:30 — Chris delegó 13 open questions; /po ratificó 13+2 decisiones (B1-B7 binding). Phase=PO_RATIFIED. Spec lockeada.
+- 2026-05-05 03:42 — `/architect` (acting BE+Agentic — no recursion) produjo `03-arch-be.md` (441 líneas), `03-arch-agentic.md` (385 líneas), `04-tickets.yaml` (6 tickets, ~14h estimadas). Phase=ARCHITECT_COMPLETE. Owner pool todos tickets = `claude-opus` (AGENTIC story → Opus mandatory).
+- 2026-05-04 22:55 — `dev-team` (Opus 4.7) tomó T-1, scaffold dirs `backend/tests/agentic_evals/sales_agent/{runner,fixtures,goldens,_artifacts}` + 4 `__init__.py` vacíos + `_artifacts/.gitignore` + `goldens/.gitkeep` + README stub (Spanish neutro). 7 archivos nuevos, 97 LOC total (95 en README). Quality gates: ruff check ✅, ruff format ✅, pytest collect-only "no tests collected" ✅. Acceptance A1/A2/A3 PASS. Anti-duplication grep clean (greenfield — `tests/quality/sales_agent_goldens/` co-existe, distinto propósito documentado en README). Phase=DEV_T1_DONE. Commit local pendiente push (controller coordina con Story A T-1).
 
 ## Notas
 
-- 2026-05-04: Chris delegó las 13 open questions al /po; /po ratificó 13+2 decisiones (Story A: A1-A6+X1+X2; Story B: B1-B7). Spec lockeada. Handoff /architect.
-- 7 open questions abiertas en `01-spec.md` § "Open questions" — Chris debe responder antes de pasar a `/architect`. Defaults recomendados por PO incluidos.
-- Scope NO incluye UX (service-story, no UI). Se salta `/ux-ui` y `/ux-agentico`.
-- Esta story bloquea Stories 2/3/5/6/7/8/9 del PI-12. Es foundation hard-gate.
-- Anti-duplication: el callback handler del harness DEBE heredar `shared/agent_observability/recording/base_callback_handler.py::BaseAgentCallbackHandler`. Step 0 grep obligatorio en architect phase per `.claude/rules/anti-duplication.md`.
-- Cost real esperado: < $0.01 por corrida del smoke (1 turno DeepSeek V4-Flash).
+- 2026-05-05: Architect tomó decisiones técnicas:
+  - **Entry point**: `agent_app.ainvoke` en `sales_agent/application/orchestrator/graph.py:52` — limpio, no necesita extracción. Reusa `create_initial_state` + `TenantKnowledgeBuilder` (compose initial_state).
+  - **Trajectory spy**: composition over subclass. `BaseCallbackHandler` (LangChain) NO subclase de `BaseAgentCallbackHandler`. Read-only observer en `RunnableConfig.callbacks` list. Anti-duplication §0 satisfied — zero new mirror.
+  - **B4 tool registry mapping resolved**: `required_tools: []` (intent classifier es service `SemanticRouter`, no tool). `forbidden_tools` = 13 names canónicos cubriendo payment_* + scheduling_* + closer_finalize_* del `STAGE_TOOL_SCOPE` post-redesign.
+  - **langdetect 1.0.9 MIT** — added a `[project.optional-dependencies].evals` group. Lazy import en assertions.py para no impactar default suite.
+  - **Coverage 43% gate**: eval suite outside `[tool.coverage.run].source` — sin acción adicional, intacto.
+  - **Tenant Visionarias seed**: option (a) precondition skip vs option (b) seed-if-missing → spec B2 ratificó "fail explicit, no silent shift" → (a). T6 README documenta `make seed-visionarias` como precondition.
+  - **`--run-evals` flag** (vs env var `EVAL_SUITE=1`): pytest-native, gated via `pytest_collection_modifyitems`. Suite default → SKIP, sin gastar budget.
+- All 6 tickets owner = Opus 4.7 (AGENTIC story per CLAUDE.md hard rule "AGENTIC tickets → Opus 4.7 SIEMPRE. qwen ban absoluto").
+- 7 open questions del spec previo (Chris las delegó al /po): TODAS resueltas en arch-be + arch-agentic.
+- Critical path: T-1 → T-2 → {T-3, T-4} → T-5 → T-6. Ningún ticket paralelo (T-3 y T-4 dependen de T-2; T-3 prepara TrajectorySpy que T-4 consume; secuencial).
+- Anti-duplication audit cross-codebase ejecutado, ZERO new layers. Reutiliza:
+  `BaseAgentCallbackHandler` shared, `SalesAgentCallbackHandler` subclass, `SalesAgentObservabilityContext`, `build_sales_agent_observability_context` factory, `FXResolver.default()`, `PricingResolver`, `sanitize_payload`, `TenantKnowledgeBuilder`, `agent_app` canonical entry.
+- pm-nico/current-state updates: NONE (eval runner es dev-internal infrastructure, no user-facing capability).
+- Quality gates each ticket: native pytest + ruff + arch fitness + TDD evidence + (T-5 only) cost <$0.01/run real LLM.
+
+## Próximo paso
+
+`/auditor revisa T-1` (Opus 4.7). T-2 puede empezar dev tras commit T-1 confirmado por controller (T-2 blocked_by:[T-1] explícito en YAML; tras push, T-2 dev arranca).
