@@ -1,16 +1,16 @@
 ---
 level: story
 id: sales-agent-eval-runner-foundation
-phase: DEV_T1_DONE
+phase: AUDIT_T1_APPROVED
 status: in-progress
-last_artifact: 05-impl/T-1-result.md
-last_modified: 2026-05-04T22:55:00Z
-next_action: "/auditor revisa T-1 (paralelo posible: T-2 dev arranca tras commit T-1)"
+last_artifact: 06-audit/T-1-review.md
+last_modified: 2026-05-04T23:10:00Z
+next_action: "/dev-team toma T-2 (Pytest plumbing + 4 fixtures + meta-tests TDD)"
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
 blocked_reason: null
-audit_iterations: 0
+audit_iterations: 1
 ratified_by_chris: true
 po_version: 2
 ---
@@ -23,6 +23,7 @@ po_version: 2
 - 2026-05-04 20:30 — Chris delegó 13 open questions; /po ratificó 13+2 decisiones (B1-B7 binding). Phase=PO_RATIFIED. Spec lockeada.
 - 2026-05-05 03:42 — `/architect` (acting BE+Agentic — no recursion) produjo `03-arch-be.md` (441 líneas), `03-arch-agentic.md` (385 líneas), `04-tickets.yaml` (6 tickets, ~14h estimadas). Phase=ARCHITECT_COMPLETE. Owner pool todos tickets = `claude-opus` (AGENTIC story → Opus mandatory).
 - 2026-05-04 22:55 — `dev-team` (Opus 4.7) tomó T-1, scaffold dirs `backend/tests/agentic_evals/sales_agent/{runner,fixtures,goldens,_artifacts}` + 4 `__init__.py` vacíos + `_artifacts/.gitignore` + `goldens/.gitkeep` + README stub (Spanish neutro). 7 archivos nuevos, 97 LOC total (95 en README). Quality gates: ruff check ✅, ruff format ✅, pytest collect-only "no tests collected" ✅. Acceptance A1/A2/A3 PASS. Anti-duplication grep clean (greenfield — `tests/quality/sales_agent_goldens/` co-existe, distinto propósito documentado en README). Phase=DEV_T1_DONE. Commit local pendiente push (controller coordina con Story A T-1).
+- 2026-05-04 23:10 — `/auditor` (Opus 4.7) revisó T-1, verdict APPROVED iter 1/2. 10 checks PASS (3 NA). Acceptance A1/A2/A3 re-verificados, quality gates re-corridos clean, scope discipline impecable (zero contaminación cross-story/cross-módulo), Spanish neutro confirmado, PR-folder hygiene completa. Notes: builder eligió `*\n!.gitignore` (más robusto que `*` literal del ticket YAML — aceptado); README 113 líneas vs 95 estimadas (más completo). Phase=AUDIT_T1_APPROVED. Ticket state → audit-passed.
 
 ## Notas
 
@@ -44,4 +45,4 @@ po_version: 2
 
 ## Próximo paso
 
-`/auditor revisa T-1` (Opus 4.7). T-2 puede empezar dev tras commit T-1 confirmado por controller (T-2 blocked_by:[T-1] explícito en YAML; tras push, T-2 dev arranca).
+`/dev-team` toma T-2 (Pytest plumbing `--run-evals` flag + marker registration en `tests/agentic_evals/conftest.py` + 4 fixtures `visionarias_tenant_session/eval_run_id/sales_agent_entrypoint/synthetic_tenant` + meta-tests TDD baseline). Puede arrancar dev en cuanto controller pushee commit T-1 (T-2 blocked_by:[T-1] explícito). Owner = Opus 4.7 (AGENTIC story).
