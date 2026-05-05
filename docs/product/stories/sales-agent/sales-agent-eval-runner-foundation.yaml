@@ -1,0 +1,193 @@
+---
+id: sales-agent-eval-runner-foundation
+type: service-story
+module: sales-agent
+capability: sales-conversational-engine
+status: ratified
+slice: MVP
+last_audit: 2026-05-04
+ratified:
+  by: po
+  on: 2026-05-04
+  chris_delegated: true
+  po_version: 2
+  decisions: [B1, B2, B3, B4, B5, B6, B7]
+date_introduced: 2026-05-04
+pr_introduced: null
+pi_introduced: PI-12
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-conversational-engine.yaml"
+  domain_doc: "../../../domains/module_sales_agent.md"
+  related_stories:
+    - sales-trace-persist-turn
+    - sales-cost-tracking-cycle-billing
+    - sales-brand-voice-fidelity
+
+context:
+  job: "Como dev/auditor que toca modules/sales_agent/ necesito un harness pytest que ejecute evals multi-layer (trajectory + tool_calls + output + cost + latency) contra goldens reproducibles para detectar regressions agenticas antes del merge."
+  why: "Pre-PI-12: sales_agent NO tiene eval suite (`backend/tests/agentic_evals/sales_agent/` no existe). Cambios al agente — prompt slot, specialist router, model upgrade — se mergean a ciegas; única señal real cuando un tenant reporta. Esta story es foundation que habilita Stories 2/3/5/6/7/8/9 del PI-12. Smoke real (no shallow) usa tenant fijo Visionarias + DB real + LiteLLM real → captura el bug que Story A (canonicalization) arregla y previene regresiones futuras."
+  constraints:
+    - "Tenant fijo Visionarias para smoke (no multi-tenant, no synthetic mock tenant)"
+    - "Real DB real LiteLLM call — cost_usd > 0 verifica path real (Story A regression-proof)"
+    - "Marker pytest --run-evals (CI default no consume budget)"
+    - "Best-effort observability: recorder fail no rompe test, pero falla Capa 4 explícito"
+    - "Frozen golden set + parametrize-ready (Story 5 lo extiende)"
+    - "Trial policy default trials_per_scenario=1 (Story 2 sube a pass^k=3)"
+    - "Anti-duplication: callback handler hereda shared/agent_observability/recording/base_callback_handler.py"
+
+outcome:
+  consumer_observable: "Developer corre `cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ -v --run-evals` y ve 4 scenarios pasar (smoke happy + skip-without-flag + degraded-output-detected + no-cross-tenant-leak), con artifacts en `_artifacts/{run_id}/` para diagnóstico humano."
+  product_observable:
+    - "Filesystem: `backend/tests/agentic_evals/sales_agent/` existe con `runner/`, `goldens/`, `fixtures/`, `conftest.py`, 2+ test files, README"
+    - "DB: `sales_agent_llm_call` recibe rows con `cost_usd > 0` + `model='deepseek-v4-flash'` durante smoke run"
+    - "DB: `sales_agent_trace_event` recibe rows tenant-scoped Visionarias durante smoke run"
+    - "Filesystem: `_artifacts/{run_id}/{trace.json,response.txt,assertions.json}` por cada corrida (gitignored)"
+    - "pytest: 4 scenarios pasan con flag, todos skip sin flag (exit 0)"
+
+service_contract:
+  type: scheduled_job
+  method: null
+  path: null
+  request_schema: null
+  response_schema: null
+  auth: internal
+  rate_limit_per_tenant: null
+  idempotency: natural-key
+  trigger: "pytest --run-evals (manual local + nightly cron post Story 8 CI gate)"
+
+scenarios:
+  - id: smoke-multi-layer-pass
+    type: happy
+    given:
+      - "tenant Visionarias seeded en DB con >= 1 offer activo (top-1 created_at desc usado por fixture)"
+      - "LiteLLM proxy reachable (LITELLM_PROXY_ENABLED=true)"
+      - "PersonalityProfile Visionarias compiled v2 (system_instruction no vacío)"
+      - "tablas sales_agent_trace_event + sales_agent_llm_call reachable (post sales-trace-persist-turn)"
+      - "developer corre con flag --run-evals"
+    when: "pytest tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_smoke_multi_layer -v --run-evals"
+    then:
+      - "Capa 1 trajectory: state.specialist_history incluye qualifier; NO incluye closer en este turno"
+      - "Capa 2 tool_calls required: incluye intent_classifier (entry tool post-redesign 2026-04, confirmar architect phase)"
+      - "Capa 2 tool_calls forbidden: NO incluye send_email, schedule_meeting, create_payment_link"
+      - "Capa 3 output: len > 50, Spanish marker count >= 3, menciona Visionarias o nombre del offer"
+      - "Capa 4 cost: sales_agent_llm_call >= 1 row con cost_usd > 0 + model LIKE 'deepseek-v4-flash%'"
+      - "Capa 5 latencia: total elapsed < 30000 ms"
+      - "Artifacts persistidos en _artifacts/{run_id}/{trace.json, response.txt, assertions.json} con 5 layers passed: true"
+    graders:
+      - type: contract_test
+        path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_smoke_multi_layer"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*), MAX(cost_usd), STRING_AGG(model, ',') FROM sales_agent_llm_call WHERE tenant_id = :visionarias_id AND created_at >= :test_start_ts"
+        expect: "count >= 1 AND max_cost > 0 AND model LIKE '%deepseek-v4-flash%'"
+      - type: state_check
+        target: filesystem
+        path: "backend/tests/agentic_evals/sales_agent/_artifacts/{run_id}/assertions.json"
+        expect: "5 layers, all passed: true"
+
+  - id: flag-omitted-skips-eval-suite
+    type: negative
+    given:
+      - "tenant Visionarias estado idéntico a smoke happy"
+      - "developer corre SIN flag --run-evals (CI default por push)"
+    when: "pytest tests/agentic_evals/sales_agent/ -v"
+    then:
+      - "todos los tests del suite reportan SKIPPED (no PASSED ni FAILED)"
+      - "skip reason string: 'eval markers require --run-evals flag'"
+      - "0 rows nuevos en sales_agent_llm_call para tenant Visionarias durante ventana"
+      - "0 rows nuevos en sales_agent_trace_event para tenant Visionarias durante ventana"
+      - "exit code pytest = 0 (skipped no falla CI default)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_skip_without_flag"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM sales_agent_llm_call WHERE tenant_id = :visionarias_id AND created_at >= :test_start_ts"
+        expect: "0"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(*) FROM sales_agent_trace_event WHERE tenant_id = :visionarias_id AND created_at >= :test_start_ts"
+        expect: "0"
+
+  - id: agent-degraded-output-detected
+    type: edge
+    given:
+      - "tenant Visionarias estado idéntico a smoke happy"
+      - "harness mockea LiteLLMService.generate_response para inyectar payload degradado (tool_calls=send_email O output='Hi' no Spanish)"
+      - "flag --run-evals activo"
+    when: "pytest tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_degraded_output_caught -v --run-evals"
+    then:
+      - "test FAILS (status FAILED, no ERROR ni PASSED)"
+      - "mensaje de error nombra el layer específico fallido (ej. 'Layer 2 (tool_calls forbidden) FAILED: send_email present')"
+      - "NO genérico AssertionError sin contexto"
+      - "artifacts persistidos: _artifacts/{run_id}/assertions.json con passed: false en layer fallido + valor observado"
+      - "no row real en sales_agent_llm_call (LLM mockeado); assertions.json marca cost_layer.skipped_reason='llm_mocked'"
+      - "monkeypatch desinstalado al final del test (no contamina siguientes)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_degraded_output_caught"
+      - type: state_check
+        target: filesystem
+        path: "backend/tests/agentic_evals/sales_agent/_artifacts/{run_id}/assertions.json"
+        expect: "exists, contains failed_layer_name with passed: false"
+
+  - id: cross-tenant-leak-on-mock-tenant
+    type: adversarial
+    given:
+      - "DB seeded con 2 tenants: Visionarias (T1, smoke target) + T2_synthetic (fixture-only, propia oferta offer_T2)"
+      - "T2 tiene offer activa (creada por fixture setup)"
+      - "flag --run-evals activo"
+      - "test parametrizado: invoca smoke harness con tenant_id=Visionarias"
+    when: "pytest tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_no_cross_tenant_leak -v --run-evals"
+    then:
+      - "fixture filtra offer table por tenant_id=Visionarias (per .claude/rules/tenant-isolation.md)"
+      - "golden generado contiene offer_T1.name; NUNCA offer_T2.name"
+      - "agent_app.ainvoke recibe tenant_id=Visionarias_id"
+      - "sales_agent_trace_event post-test: SELECT DISTINCT tenant_id retorna SOLO Visionarias_id (no T2)"
+      - "sales_agent_llm_call post-test: idem"
+      - "trace.json artifact NO contiene offer_T2.id, offer_T2.name, ni T2 tenant_id en ningún field"
+      - "si fixture rompe (bug introducido): test FAILS con mensaje 'Cross-tenant leak detected: golden offer.tenant_id=T2 does not match harness tenant_id=Visionarias'"
+      - "audit log structlog 'eval_cross_tenant_check' con tenant_id_expected + tenant_id_observed"
+    graders:
+      - type: contract_test
+        path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_no_cross_tenant_leak"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(DISTINCT tenant_id) FROM sales_agent_trace_event WHERE created_at >= :test_start_ts AND tenant_id IN (:visionarias_id, :t2_synthetic_id)"
+        expect: "1"
+      - type: state_check
+        target: db
+        query: "SELECT COUNT(DISTINCT tenant_id) FROM sales_agent_llm_call WHERE created_at >= :test_start_ts AND tenant_id IN (:visionarias_id, :t2_synthetic_id)"
+        expect: "1"
+      - type: state_check
+        target: filesystem
+        path: "backend/tests/agentic_evals/sales_agent/_artifacts/{run_id}/trace.json"
+        expect: "no T2_synthetic ni offer_T2 strings present"
+
+cross_module:
+  reads_from:
+    - sales_agent
+    - brand
+  read_by: []
+  emits_events: []
+  consumes_events: []
+
+dependencies:
+  stories:
+    - sales-trace-persist-turn
+  capabilities: []
+
+estimate:
+  story_points: null
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/agentic_evals/sales_agent/test_eval_runner_smoke.py"
+  state_check_implemented: false
+  load_test_implemented: false
+  coverage_pct: null
+  last_run_at: null
+  last_run_result: null

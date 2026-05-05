@@ -11,12 +11,13 @@ links:
   stories_dir: "../../stories/sales-agent/"
 description: "LangGraph supervisor + 3 specialists (qualifier, product_expert, closer) + brand voice SSoT (PersonalityProfile.system_instruction compiler v2) + semantic router → tier pricing. Replaces SDR/closer humano para inbound DMs (Manychat IG/FB)."
 stories_live: 3
-stories_planned: 0
-stories_total: 3
+stories_planned: 1
+stories_total: 4
 story_ids:
   - sales-inbound-conversation-qualify
   - sales-inbound-conversation-close
   - sales-brand-voice-fidelity
+  - sales-agent-eval-runner-foundation
 copilot_operable: false
 date_introduced: 2026-04
 last_modified: 2026-05-01
@@ -41,10 +42,11 @@ last_modified: 2026-05-01
 | sales-inbound-conversation-qualify | agentic-story | live | ../../stories/sales-agent/sales-inbound-conversation-qualify.yaml |
 | sales-inbound-conversation-close | agentic-story | live | ../../stories/sales-agent/sales-inbound-conversation-close.yaml |
 | sales-brand-voice-fidelity | agentic-story | live | ../../stories/sales-agent/sales-brand-voice-fidelity.yaml |
+| sales-agent-eval-runner-foundation | service-story | planned | ../../stories/sales-agent/sales-agent-eval-runner-foundation.yaml |
 
 ## Gaps identificados
 
-- **Eval suite agentic faltante**: NO existe `backend/tests/agentic_evals/sales_agent/` — solo unit tests `test_nodes.py` + snapshot tests `test_chat_orchestrator_snapshot.py`. CRÍTICO.
+- ~~**Eval suite agentic faltante**: NO existe `backend/tests/agentic_evals/sales_agent/`~~ → **EN CURSO PI-12**: addressed por `sales-agent-eval-runner-foundation` (planned 2026-05-04, foundation harness multi-layer 5 capas: trajectory + tool_calls + output + cost + latency). Stories 2-9 del PI-12 lo extienden (pass^k, budget cap, 3-tenant goldens, personas, voice grader, CI gate, adversarial).
 - Voice fidelity grader: `SALES_AGENT_VOICE_FIDELITY_THRESHOLD` env default 0.7 declared (Decision 30) pero coverage de runs reales contra goldens dataset = 0% (no goldens checked-in)
 - Personas (`lead-caliente-ready`, `lead-frio-impaciente`, `lead-tibio-dudoso`) declarados en `docs/specs/personas/` pero NO consumidos por suite alguna
 - Adversarial scenarios (jailbreak, prompt injection, persona hostile leak system prompt) no instrumentados

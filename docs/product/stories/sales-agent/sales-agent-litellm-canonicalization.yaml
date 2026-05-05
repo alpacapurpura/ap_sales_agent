@@ -1,0 +1,259 @@
+# Service Story — sales_agent LiteLLM canonicalization + zero tech debt cleanup
+# Owner: /po · /pm
+# Eval policy: contract_test + state_check (DB) + state_check (logs) + arch fitness
+# 9 sub-tickets (T1..T9) materializados por /architect en 04-tickets.yaml — este YAML mantiene scope + scenarios SSoT.
+
+---
+id: sales-agent-litellm-canonicalization
+type: service-story
+module: sales-agent
+capability: sales-observability-cost-tracking
+status: ratified
+slice: MVP
+last_audit: 2026-05-04
+ratified:
+  by: po
+  on: 2026-05-04
+  chris_delegated: true
+  po_version: 2
+  decisions: [A1, A2, A3, A4, A5, A6, X1, X2]
+date_introduced: 2026-05-04
+pr_introduced: null
+pi_introduced: PI-12
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-observability-cost-tracking.yaml"
+  domain_doc: "../../../domains/module_sales_agent.md"
+  related_stories:
+    - sales-trace-persist-turn
+    - sales-cost-tracking-cycle-billing
+
+context:
+  job: "Como tech lead + product owner necesito que LiteLLM sea el único camino runtime LLM en Nicolify (6 adaptadores legacy → 0, flag LITELLM_PROXY_ENABLED eliminado, 4 columnas tenant API key dropeadas, pricing snapshot como audit ledger inmutable) para confiar en cost_usd via kwargs['response_cost'] LiteLLM-native, eliminar deuda técnica hoy y reducir el costo cognitivo de agregar un modelo nuevo a 1 entrada YAML."
+  why: "Hoy 2 caminos LLM compiten (adapters legacy + LiteLLMService). Bug DeepSeek mis-tag (provider='openai' falso) rompe pricing resolution → cost_usd=0 → reporting roto + billing futuro inviable. Cleanup completo es la única forma de tener trust en cost tracking y SSoT routing. Modelo Nicolify 2026: suscripción + Nicolify paga LLM con master key — tenants no traen sus propias keys, columnas redundantes en `tenant`."
+  constraints:
+    - "Tenant-isolated (copilot_llm_call.tenant_id obligatorio)"
+    - "Idempotent migrations (T3 + T6 con IF EXISTS / IF NOT EXISTS)"
+    - "Idempotency natural-key (tenant_id, turn_id, llm_call_seq) UNIQUE en copilot_llm_call"
+    - "p95 callback on_llm_end < 50ms (no DB round-trip a snapshot en runtime)"
+    - "anti-default-flip-audit (T5) — 4-step obligatorio antes flip flag"
+    - "anti-duplication — extender BaseAgentCallbackHandler shared, NO mirror"
+    - "PII sanitisation — sanitize_payload aplicado a log fields recorder"
+    - "Decimal cost_usd (NO float)"
+    - "Spanish neutro N/A (no UI), structlog logs en inglés"
+
+outcome:
+  consumer_observable: "Para todo turn LLM ejecutado por sales_agent o copilot, copilot_llm_call.provider es canonical (derivado via litellm.get_llm_provider(model)[1]) y cost_usd > 0 (consumido directo de kwargs['response_cost']). Admin Streamlit /admin/cost-sales-agent muestra costos veraces. Agregar un modelo nuevo cuesta 1 entrada en litellm_config.yaml."
+  product_observable:
+    - "DB: copilot_llm_call.provider correcto post-deploy 24h — query `WHERE provider IN ('deepseek','kimi','qwen','gemini') AND cost_usd=0 AND created_at > NOW() - INTERVAL '1 day'` returns 0"
+    - "DB: tenants table sin columnas openai_api_key, deepseek_api_key, kimi_api_key, dashscope_api_key (post-T6 migration B)"
+    - "Code: src/shared/infrastructure/llm/providers/{openai,deepseek,kimi,qwen,gemini,_openai_compat}.py NO existen como files (post-T4)"
+    - "Code: src/core/config.py sin field LITELLM_PROXY_ENABLED (post-T5)"
+    - "Code: tests/architecture/test_llm_routing_ssot.py KNOWN_LEGACY_LLM_FILES == set() (post-T8)"
+    - "Job: make sync-pricing actualiza model_pricing_snapshot nightly + en CI con tarifas LiteLLM model_cost registry + entries litellm_config.yaml model_list (post-T2)"
+    - "Logs: structlog cost_recorder.canonical_provider_resolved emitido por turn LLM con campos provider, model, source='kwargs.response_cost'"
+    - "Métrica: agregar modelo nuevo = 1 PR de 1 línea (entrada YAML) — verificable midiendo LOC/files de un PR ejemplo post-cleanup"
+
+# ── Contrato del servicio ────────────────────────────────────
+service_contract:
+  type: event_handler                                           # callback on_llm_end registrado vía litellm.callbacks = [CustomLogger()]
+  method: null
+  path: null
+  request_schema: "litellm.completion kwargs dict — fields canónicos: model: str, messages: list[dict], response_cost: float|None, usage: dict, custom_llm_provider: str"
+  response_schema: "backend/src/shared/agent_observability/persistence/llm_call_record.py::LLMCallRecord (Pydantic DTO insertado a copilot_llm_call)"
+  auth: internal                                                # callback in-process, no expuesto a red
+  rate_limit_per_tenant: null                                   # gobernado por BudgetGuard upstream, fuera de scope
+  idempotency: natural-key                                      # UNIQUE (tenant_id, turn_id, llm_call_seq) en copilot_llm_call
+  trigger: "litellm.completion success → CustomLogger.log_success_event(kwargs, response_obj, start_time, end_time)"
+
+scenarios:
+  - id: cost-tracking-canonical-litellm-flow
+    type: happy
+    given:
+      - "Tenant T1 activo, LITELLM_PROXY_ENABLED ya eliminado del codebase (post-T5)"
+      - "litellm_config.yaml model_list contiene model_name: deepseek/deepseek-v4-flash con api_key: os.environ/DEEPSEEK_API_KEY"
+      - "model_pricing_snapshot recién sincronizado (T2): row activa provider='deepseek', model='deepseek/deepseek-v4-flash', valid_to IS NULL"
+      - "BaseAgentCallbackHandler shared registra litellm.callbacks = [CostRecorderCustomLogger()] (post-T1)"
+    when: "Sales_agent ejecuta 1 turn invocando LiteLLMService con model='deepseek/deepseek-v4-flash' (test mocked: litellm.completion retorna response con kwargs['response_cost']=0.000123)"
+    then:
+      - "1 row insertada en copilot_llm_call: provider='deepseek' (litellm.get_llm_provider derived, NUNCA 'openai'), model='deepseek/deepseek-v4-flash' (canonical slashed — ver Q1), cost_usd=Decimal('0.000123'), tenant_id=T1, turn_id+llm_call_seq poblados"
+      - "1 trace event en copilot_trace_event: event_type='llm_call_completed', payload.provider='deepseek', payload.cost_usd=0.000123"
+      - "structlog cost_recorder.canonical_provider_resolved emitted con provider='deepseek', model='deepseek/deepseek-v4-flash', source='kwargs.response_cost'"
+      - "NO query adicional a model_pricing_snapshot durante el turn"
+      - "p95 on_llm_end callback < 50ms (instrumentado vía structlog duration_ms o pytest-benchmark)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_canonical_provider_and_cost_from_kwargs"
+      - type: state_check
+        target: db
+        query: "SELECT provider, model, cost_usd FROM copilot_llm_call WHERE tenant_id = :t1 AND turn_id = :turn ORDER BY llm_call_seq DESC LIMIT 1"
+        expect: "provider='deepseek' AND cost_usd > 0"
+      - type: state_check
+        target: db
+        query: "SELECT event_type, payload->>'provider' AS p FROM copilot_trace_event WHERE tenant_id = :t1 AND turn_id = :turn AND event_type = 'llm_call_completed'"
+        expect: "p='deepseek'"
+
+  - id: legacy-adapter-import-arch-fitness-fails
+    type: negative
+    given:
+      - "Codebase post-cleanup (post-T4): backend/src/shared/infrastructure/llm/providers/{openai,deepseek,kimi,qwen,gemini,_openai_compat}.py NO existen"
+      - "backend/tests/architecture/test_llm_routing_ssot.py con KNOWN_LEGACY_LLM_FILES = set() y assertions explícitas (post-T8)"
+    when: "Developer/agent intenta agregar `from src.shared.infrastructure.llm.providers.deepseek import DeepSeekService` (o equivalente para los 6 adaptadores) en cualquier archivo"
+    then:
+      - "Runtime: ModuleNotFoundError 'No module named src.shared.infrastructure.llm.providers.deepseek'"
+      - "CI: pytest tests/architecture/test_llm_routing_ssot.py FALLA con mensaje 'Forbidden import detected: <file>:<line> imports legacy LLM adapter <name>. Canonical path is LiteLLMService via litellm.completion.'"
+      - "Build NO pasa make ci-parity"
+      - "NO merge a development (pre-commit + CI gate bloquea)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_no_legacy_adapter_imports"
+      - type: contract_test
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_known_legacy_files_set_is_empty"
+
+  - id: pricing-snapshot-stale-during-sync
+    type: edge
+    given:
+      - "Job make sync-pricing (T2 extension) en medio de upserts a model_pricing_snapshot (transaction abierta, commit pendiente)"
+      - "Tenant T2 envía mensaje al sales_agent → trigger 1 LLM call vía LiteLLM"
+      - "Race: callback on_llm_end se dispara ANTES de que sync job commitee"
+    when: "LiteLLM responde con kwargs['response_cost']=0.000456 calculado de litellm.model_cost in-memory; callback consume kwargs['response_cost'] y persiste a copilot_llm_call; reconciliation worker post-sync compara cost_usd vs snapshot recalculation y encuentra mismatch"
+    then:
+      - "copilot_llm_call.cost_usd = Decimal('0.000456') (correcto, viene de LiteLLM-native, NO depende de snapshot)"
+      - "NO error ni excepción durante el turn (cost recorder no consulta snapshot en runtime)"
+      - "structlog warning pricing_snapshot_stale_during_sync con campos tenant_id, model, runtime_cost_usd, snapshot_cost_usd_after_commit, delta_usd. NO ERROR (esperado durante sync)"
+      - "Reconciliation reading post-commit registra delta como audit_anomaly_type='snapshot_stale_during_sync' (informational, no bloquea billing)"
+      - "model_pricing_snapshot post-commit refleja state correcto (eventual consistency tolerada)"
+      - "p95 latency callback NO degrada (sync corre en proceso separado, lock-free reads)"
+    graders:
+      - type: contract_test
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_runtime_cost_independent_of_snapshot_during_sync"
+      - type: state_check
+        target: db
+        query: "SELECT cost_usd FROM copilot_llm_call WHERE tenant_id = :t2 AND turn_id = :turn"
+        expect: "cost_usd = 0.000456"
+      - type: state_check
+        target: logs
+        expect: "1 warning 'pricing_snapshot_stale_during_sync' con delta_usd field presente"
+
+  - id: deleted-flag-rollback-attempt
+    type: adversarial
+    given:
+      - "Cleanup completo merged a main (post-T1..T9). LITELLM_PROXY_ENABLED eliminado de core/config.py (no es atributo de Settings). 6 adaptadores legacy no existen como módulos."
+      - "CI gate activo: pytest tests/architecture/test_llm_routing_ssot.py corre en cada PR"
+    when: "Actor hostil/test rogue/agent confundido: (a) os.environ['LITELLM_PROXY_ENABLED']='false' antes startup, (b) `from src.shared.infrastructure.llm.providers.deepseek import DeepSeekService` en archivo nuevo, (c) intenta settings.LITELLM_PROXY_ENABLED en service"
+    then:
+      - "Import adapter raises ModuleNotFoundError immediately — app no arranca con path legacy resucitado"
+      - "settings.LITELLM_PROXY_ENABLED raises AttributeError ('Settings has no attribute'). Pydantic-settings NO lee env var hostil porque field no existe"
+      - "Env var LITELLM_PROXY_ENABLED='false' queda como ruido sin efecto (no consumer)"
+      - "pytest tests/architecture/test_llm_routing_ssot.py::test_no_legacy_adapter_imports cachea el violador y FALLA antes deploy"
+      - "structlog boot.legacy_llm_path_attempt_blocked emitted con attempted_import=<path>, blocked_by='ModuleNotFoundError' (defense-in-depth)"
+      - "NO code path en producción sirve request bypass-eando LiteLLM"
+      - "copilot_trace_event nunca registra llamada que NO pasó por LiteLLMService"
+    graders:
+      - type: contract_test
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_settings_has_no_litellm_proxy_enabled_attr"
+      - type: contract_test
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_no_legacy_adapter_imports"
+      - type: contract_test
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_all_recorded_calls_pass_through_litellm"
+
+cross_module:
+  reads_from:
+    - iam                                                       # tenant_id (X-Tenant-ID), tenant model post-T6
+    - core                                                      # Settings post-T5 sin LITELLM_PROXY_ENABLED
+    - copilot                                                   # mismo BaseAgentCallbackHandler shared cross-agent
+  read_by:
+    - copilot                                                   # callback handler shared usado cuando copilot ejecuta LLM
+    - sales_agent                                               # agent runtime usa BaseAgentCallbackHandler extendido
+    - admin                                                     # admin/modules/llm_virtual_keys.py + admin/modules/copilot_routing.py
+    - billing                                                   # mv_sales_agent_cost_daily via sales-cost-tracking-cycle-billing.yaml — provider correcto desbloquea aggregation
+    - brand                                                     # extraction orchestrator hereda callback
+    - offer                                                     # extraction orchestrator hereda callback
+    - landing                                                   # extraction orchestrator hereda callback
+  emits_events:
+    - pricing_alias_resolved                                    # capability sales-observability-cost-tracking — sigue emitiéndose post-T1, verify
+  consumes_events: []                                           # callback es trigger LiteLLM, no event consumer
+
+dependencies:
+  stories: []                                                   # independiente — paralelizable con sales-agent-eval-runner-foundation
+  capabilities:
+    - sales-observability-cost-tracking                         # capability principal afectada
+
+estimate:
+  story_points: null                                            # /architect estima en 04-tickets.yaml (T1..T9 individuales)
+  rough_hours: null
+
+test_coverage:
+  contract_test_path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py"
+  state_check_implemented: false                                # se implementa en T1 + T7
+  load_test_implemented: false                                  # p95 < 50ms via pytest-benchmark unit, no full load test
+  coverage_pct: null                                            # measured post-T1
+  last_run_at: null
+  last_run_result: null
+
+# ── Sub-tickets (resumen — detalle en 04-tickets.yaml por /architect) ──
+sub_tickets:
+  - id: T1
+    goal: "Cost recorder canonicalization: derive provider via litellm.get_llm_provider(model)[1] + consume kwargs['response_cost'] via CustomLogger callback"
+    touches: ["backend/src/shared/agent_observability/recording/base_callback_handler.py", "backend/src/shared/agent_observability/cost/calculator.py"]
+    owner_eligibility: ["claude-opus-4-7"]
+  - id: T2
+    goal: "make sync-pricing extiende litellm_sync.py: lee litellm_config.yaml model_list + litellm.model_cost registry → upsert model_pricing_snapshot. CI hook + nightly cron. Snapshot = audit ledger only."
+    touches: ["backend/src/shared/agent_observability/pricing/litellm_sync.py", "Makefile", ".github/workflows/"]
+    owner_eligibility: ["claude-opus-4-7"]
+  - id: T3
+    goal: "Alembic migración idempotente: backup model_pricing_snapshot → repair historical (provider='openai' AND model LIKE 'deepseek/%' OR 'kimi/%' OR 'qwen/%') → re-tag canonical provider"
+    touches: ["backend/alembic/versions/"]
+    owner_eligibility: ["claude-opus-4-7"]
+  - id: T4
+    goal: "DELETE legacy adapters: openai.py, deepseek.py, kimi.py, qwen.py, gemini.py, _openai_compat.py. Verify _chat_model_resolver.py + _response_validation.py consumed por litellm.py post-T1; si no, delete tambien."
+    touches: ["backend/src/shared/infrastructure/llm/providers/"]
+    owner_eligibility: ["claude-opus-4-7"]
+  - id: T5
+    goal: "Kill flag LITELLM_PROXY_ENABLED: simplificar router.py (no build_provider_service), main.py (no conditional warning), admin/llm_virtual_keys.py (no fallback message). Aplicar anti-default-flip-audit 4-step."
+    touches: ["backend/src/core/config.py", "backend/src/shared/infrastructure/llm/router.py", "backend/src/shared/infrastructure/llm/factory.py", "backend/src/main.py", "backend/src/admin/modules/llm_virtual_keys.py"]
+    owner_eligibility: ["claude-opus-4-7"]
+  - id: T6
+    goal: "Drop tenant API key columns: Alembic 2-step (NULL first → DROP next) o single (Q2). Update tenant_model.py + tenant.py + tenant_repository.py + factory.py. _extract_tenant_key → stub master."
+    touches: ["backend/src/modules/iam/", "backend/alembic/versions/"]
+    owner_eligibility: ["claude-opus-4-7"]
+  - id: T7
+    goal: "Tests audit ~20 files: migrate mocks OpenAIService/DeepSeekService/KimiService/QwenService/GeminiService → LiteLLMService + litellm.completion mock. Delete test_openai_compat_providers.py + test_provider_routing.py. Simplify test_router_litellm_dispatch.py (LiteLLM-on case only)."
+    touches: ["backend/tests/shared/", "backend/tests/modules/", "backend/tests/architecture/"]
+    owner_eligibility: ["claude-opus-4-7"]
+  - id: T8
+    goal: "Arch fitness shrink: KNOWN_LEGACY_LLM_FILES = set() + nuevas assertions test_no_legacy_adapter_imports + test_settings_has_no_litellm_proxy_enabled_attr"
+    touches: ["backend/tests/architecture/test_llm_routing_ssot.py"]
+    owner_eligibility: ["claude-opus-4-7"]
+  - id: T9
+    goal: "Docs purge: docs/domains/llm-routing.md + docs/domains/tech_module_shared.md (remove rollback section + legacy refs + deprecation timeline). Remove docstrings legacy en sales_agent/domain/model_tier.py + sales_agent/application/agents/sales/nodes.py."
+    touches: ["docs/domains/", "backend/src/modules/sales_agent/domain/model_tier.py", "backend/src/modules/sales_agent/application/agents/sales/nodes.py"]
+    owner_eligibility: ["claude-opus-4-7"]
+
+open_questions:
+  - id: Q1
+    question: "model field shape en copilot_llm_call: full slashed 'deepseek/deepseek-v4-flash' (LiteLLM canonical) OR stripped 'deepseek-v4-flash' (forma actual)?"
+    recommendation: "Mantener slashed. provider/model consistency con upstream LiteLLM. Campo provider ya separado para queries."
+    status: open
+  - id: Q2
+    question: "T6 migration strategy: drop directo (data loss inmediato si tenant tiene non-null) vs 2-step rolling (NULL first, DROP next migration)?"
+    recommendation: "2-step rolling. Backup tenant table snapshot pre-A. Cost: 1 deploy extra. Beneficio: rollback trivial."
+    status: open
+  - id: Q3
+    question: "Audit Gemini SDK quirks pre-delete gemini.py: function-calling shape, safety settings, tool_choice equivalence vs LiteLLM proxy?"
+    recommendation: "T4 incluye sub-task: 1 contract test que ejerza Gemini via LiteLLM con function call + safety settings vs adapter actual. Pasa → delete. Falla → escalar."
+    status: open
+  - id: Q4
+    question: "dashscope_api_key: confirma columna alimenta qwen.py provider y no otro provider DashScope distinto?"
+    recommendation: "T6 hace git log -p en tenant_model.py para confirmar. Drop válido en cualquier caso."
+    status: open
+  - id: Q5
+    question: "Reconciliation worker (Scenario 3 audit_anomaly_type): existe en shared/agent_observability/workers/? Si no, scope esta story o future?"
+    recommendation: "T1 verifica. Si no existe, stub mínimo en esta story (structlog warning, no DB write). Tabla audit_anomaly = story posterior."
+    status: open
+  - id: Q6
+    question: "make sync-pricing trigger: GitHub Actions cron schedule vs ARQ worker dentro backend?"
+    recommendation: "GitHub Actions schedule (más simple, no requiere worker process). Cost recording runtime ya independiente."
+    status: open

@@ -16,8 +16,10 @@
 | sales-outbound-campaign-launch | agentic-story | live | sales-outbound-orchestrator | 2026-05-04 |
 | sales-trace-persist-turn | service-story | live | sales-observability-cost-tracking | 2026-05-04 |
 | sales-cost-tracking-cycle-billing | service-story | live | sales-observability-cost-tracking | 2026-05-04 |
+| sales-agent-litellm-canonicalization | service-story | planned | sales-observability-cost-tracking | 2026-05-04 |
 | sales-followup-cadence | service-story | live | sales-follow-up-workers | 2026-05-04 |
 | sales-payment-reminder-pending | service-story | live | sales-follow-up-workers | 2026-05-04 |
+| sales-agent-eval-runner-foundation | service-story | planned | sales-conversational-engine | 2026-05-04 |
 
 ## Cómo agregar story nueva
 

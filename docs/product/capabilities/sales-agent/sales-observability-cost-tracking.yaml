@@ -11,14 +11,15 @@ links:
   stories_dir: "../../stories/sales-agent/"
 description: "ObservabilityContext (subclass shared BaseObservabilityContext) wraps agent_app.ainvoke. Persiste sales_agent_trace_event + sales_agent_llm_call. Captura cost_usd + fx_rate también en errors (best-effort try/except). FXResolver.default() factory + PricingResolver shared."
 stories_live: 2
-stories_planned: 0
-stories_total: 2
+stories_planned: 1
+stories_total: 3
 story_ids:
   - sales-trace-persist-turn
   - sales-cost-tracking-cycle-billing
+  - sales-agent-litellm-canonicalization
 copilot_operable: false
 date_introduced: 2026-05-01
-last_modified: 2026-05-01
+last_modified: 2026-05-04
 ---
 
 ## Capabilities cubiertas por este grupo
@@ -39,10 +40,11 @@ last_modified: 2026-05-01
 |---|---|---|---|
 | sales-trace-persist-turn | service-story | live | ../../stories/sales-agent/sales-trace-persist-turn.yaml |
 | sales-cost-tracking-cycle-billing | service-story | live | ../../stories/sales-agent/sales-cost-tracking-cycle-billing.yaml |
+| sales-agent-litellm-canonicalization | service-story | planned | ../../stories/sales-agent/sales-agent-litellm-canonicalization.yaml |
 
 ## Gaps identificados
 
-- **Cost tracking accuracy degraded**: `cost_usd=0` post-fix por pricing resolution (deepseek tagged como openai en model_pricing_snapshot). Backlog PR follow-up.
+- **Cost tracking accuracy degraded** (en remediación por `sales-agent-litellm-canonicalization` PI-12 S1): `cost_usd=0` por pricing resolution (deepseek mis-tag como openai en `model_pricing_snapshot`). Story planeada elimina el bug en raíz canonicalizando LiteLLM como único path runtime + pricing snapshot pasa a audit ledger inmutable.
 - Retention worker exists but no production observability dashboard (Streamlit `/admin/cost-sales-agent` placeholder)
 - No alert rules (Prometheus/Grafana) on cost overrun per tenant
 - Dual-write reconciliation worker exists pero no schedule documented (cron expression)
