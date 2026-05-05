@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Pre-commit hook — voseo detection + ruff check + ruff format on staged
-# Python/TypeScript/Markdown files.
+# Pre-commit hook — voseo detection + ruff check + ruff format + R3 SSoT
+# freshness gate on staged Python/TypeScript/Markdown files.
 #
 # Why
 # ===
-# Origen: process-improvement 2026-05-05 R4. Sin pre-commit hook, voseo
+# Origen: process-improvement 2026-05-05 R4 (voseo+ruff) + C1 R21
+# (auditor-downstream-regression.md SSoT freshness). Sin hook, voseo
 # (vos/sos/tenés/podés/mirá/dejá/etc.) + ruff F632 (identity comparison) +
-# format violations llegaban a audit phase → roundtrip extra fix. Hook
-# capta antes commit, fricción dev mínima.
+# format violations llegaban a audit phase → roundtrip extra fix. Sin C1,
+# devs agregaban shared/ surface nueva sin actualizar tabla SSoT R3 → R3
+# downstream regression silenciosamente inefectiva (caso D4 podía repetirse).
 #
 # Behavior
 # ========
@@ -17,15 +19,24 @@
 #      exception — sales_agent output respects tenant voice incl. voseo if AR)
 #    - Excludes: `__pycache__/`, `.venv/`, `node_modules/`, `migrations/versions/`
 #    - Failed → print hits + exit 1, dev fixes + re-stages
-# 2. Ruff check (full ruleset) on staged backend/*.py
-# 3. Ruff format check on staged backend/*.py
+# 2. Ruff check (full ruleset) on STAGED backend/*.py via `git show :file`
+#    pipe — verifies the exact content about to be committed (NOT working
+#    tree which may diverge if dev edited post-stage).
+# 3. Ruff format check (idem, staged content via stdin).
+# 4. R3 SSoT freshness gate (origen C1 2026-05-05 — R21 process-improvement):
+#    new file (status A) under `backend/src/shared/` MUST appear in the
+#    inventory tabla of `.claude/rules/auditor-downstream-regression.md`,
+#    OR have a `# downstream-regression-na: <reason>` magic comment within
+#    the first 20 lines. Otherwise hook blocks with actionable hint.
 #
 # Bypass
 # ======
 # Per project rule (.claude/rules/git-safety.md), `git commit --no-verify`
 # is FORBIDDEN. If hook fires false positive, fix root cause (rephrase
 # string, mark `# noqa: voseo` with justification comment if regex
-# legitimately wrong).
+# legitimately wrong, OR add row to auditor-downstream-regression.md tabla
+# OR add `# downstream-regression-na: <reason>` magic comment for genuinely
+# self-contained shared/ helper).
 #
 # Install
 # =======
@@ -139,9 +150,9 @@ fi
 # 3. Ruff check (full ruleset) on staged backend/*.py
 # ─────────────────────────────────────────────────────────────────
 
-STAGED_BACKEND_PY=$(echo "${STAGED_PY}" | grep -E '^backend/' | sed 's|^backend/||' || true)
+STAGED_BACKEND_PY_REPO=$(echo "${STAGED_PY}" | grep -E '^backend/' || true)
 
-if [ -n "${STAGED_BACKEND_PY}" ]; then
+if [ -n "${STAGED_BACKEND_PY_REPO}" ]; then
   if [ ! -x "${REPO_ROOT}/backend/.venv/bin/ruff" ]; then
     printf "\033[33m"
     echo "─────────────────────────────────────────────────────────────"
@@ -150,43 +161,168 @@ if [ -n "${STAGED_BACKEND_PY}" ]; then
     echo "─────────────────────────────────────────────────────────────"
     printf "\033[0m"
   else
-    cd "${REPO_ROOT}/backend"
+    RUFF="${REPO_ROOT}/backend/.venv/bin/ruff"
+    RUFF_FAIL_FILES=""
+    FORMAT_FAIL_FILES=""
 
-    # Ruff check (full ruleset incl. F632 identity comparison)
-    if ! .venv/bin/ruff check --no-cache --quiet ${STAGED_BACKEND_PY}; then
+    # Ruff check + format on STAGED content (via `git show :file` stdin) — not
+    # working tree, which may diverge if dev edited post-stage. Fixes pre-existing
+    # silent-pass bug where pre-commit hook accepted broken staged content if
+    # working tree was clean.
+    #
+    # IMPORTANT: cd into `backend/` so that ruff finds `pyproject.toml` (which
+    # has line-length=120) AND so that `--stdin-filename src/...` resolves the
+    # __init__.py chain correctly for INP001 namespace-package detection.
+    pushd "${REPO_ROOT}/backend" >/dev/null
+    while IFS= read -r FILE; do
+      [ -z "${FILE}" ] && continue
+      RELATIVE="${FILE#backend/}"
+
+      # Ruff check (full ruleset incl. F632)
+      if ! git -C "${REPO_ROOT}" show ":${FILE}" 2>/dev/null \
+          | "${RUFF}" check --no-cache --quiet --stdin-filename "${RELATIVE}" - >/dev/null 2>&1; then
+        RUFF_FAIL_FILES+="${FILE} "
+      fi
+
+      # Ruff format check
+      if ! git -C "${REPO_ROOT}" show ":${FILE}" 2>/dev/null \
+          | "${RUFF}" format --check --quiet --stdin-filename "${RELATIVE}" - >/dev/null 2>&1; then
+        FORMAT_FAIL_FILES+="${FILE} "
+      fi
+    done <<< "${STAGED_BACKEND_PY_REPO}"
+    popd >/dev/null
+
+    if [ -n "${RUFF_FAIL_FILES}" ]; then
       printf "\033[31m"
       cat <<EOF
 ─────────────────────────────────────────────────────────────
-PRE-COMMIT BLOCKED: ruff check failures on staged backend/*.py
+PRE-COMMIT BLOCKED: ruff check failures on STAGED content
 ─────────────────────────────────────────────────────────────
-Fix with:
-  cd backend && .venv/bin/ruff check --fix ${STAGED_BACKEND_PY}
+Files with ruff violations in staged content:
+${RUFF_FAIL_FILES}
 
-Then re-stage. NEVER use --no-verify.
+Re-run with details:
+  cd backend && .venv/bin/ruff check --no-cache ${RUFF_FAIL_FILES}
+
+Fix:
+  cd backend && .venv/bin/ruff check --fix ${RUFF_FAIL_FILES}
+
+Then \`git add\` again to re-stage fixed content. NEVER use --no-verify.
 ─────────────────────────────────────────────────────────────
 EOF
       printf "\033[0m"
       exit 1
     fi
 
-    # Ruff format check
-    if ! .venv/bin/ruff format --check ${STAGED_BACKEND_PY}; then
+    if [ -n "${FORMAT_FAIL_FILES}" ]; then
       printf "\033[31m"
       cat <<EOF
 ─────────────────────────────────────────────────────────────
-PRE-COMMIT BLOCKED: ruff format violations on staged backend/*.py
+PRE-COMMIT BLOCKED: ruff format violations on STAGED content
 ─────────────────────────────────────────────────────────────
-Fix with:
-  cd backend && .venv/bin/ruff format ${STAGED_BACKEND_PY}
+Files with format violations in staged content:
+${FORMAT_FAIL_FILES}
 
-Then re-stage. NEVER use --no-verify.
+Fix:
+  cd backend && .venv/bin/ruff format ${FORMAT_FAIL_FILES}
+
+Then \`git add\` again to re-stage fixed content. NEVER use --no-verify.
 ─────────────────────────────────────────────────────────────
 EOF
       printf "\033[0m"
       exit 1
     fi
+  fi
+fi
 
-    cd "${REPO_ROOT}"
+# ─────────────────────────────────────────────────────────────────
+# 4. R3 SSoT freshness gate (origen C1 2026-05-05 R21)
+# ─────────────────────────────────────────────────────────────────
+# New file under backend/src/shared/ MUST appear in the inventory tabla of
+# .claude/rules/auditor-downstream-regression.md, OR carry magic comment
+# `# downstream-regression-na: <reason>` within first 20 lines.
+#
+# Detects status A (added) AND R (renamed-into) — both create new shared/
+# surface that needs SSoT entry.
+
+NEW_SHARED_FILES=$(git diff --cached --name-only --diff-filter=AR 2>/dev/null \
+  | grep -E '^backend/src/shared/.+\.py$' \
+  | grep -vE '(__pycache__/|\.venv/|migrations/versions/|tests/)' \
+  || true)
+
+if [ -n "${NEW_SHARED_FILES}" ]; then
+  SSoT_TABLE="${REPO_ROOT}/.claude/rules/auditor-downstream-regression.md"
+  MISSING_FILES=""
+
+  if [ ! -f "${SSoT_TABLE}" ]; then
+    printf "\033[33m"
+    echo "─────────────────────────────────────────────────────────────"
+    echo "WARNING: ${SSoT_TABLE} not found — skipping R3 SSoT freshness gate."
+    echo "─────────────────────────────────────────────────────────────"
+    printf "\033[0m"
+  else
+    while IFS= read -r FILE; do
+      [ -z "${FILE}" ] && continue
+
+      # Strip 'backend/src/' prefix to match tabla SSoT path convention
+      # (which uses e.g. `shared/agent_observability/cost/cost_recorder.py`).
+      LOOKUP_PATH="${FILE#backend/src/}"
+      LOOKUP_DIR="$(dirname "${LOOKUP_PATH}")/"
+
+      # Check tabla — either exact path OR parent directory listed
+      # (e.g. `shared/billing/` covers all Py files under that dir).
+      if grep -qF "\`${LOOKUP_PATH}\`" "${SSoT_TABLE}" 2>/dev/null; then
+        continue
+      fi
+      if grep -qF "\`${LOOKUP_DIR}\`" "${SSoT_TABLE}" 2>/dev/null; then
+        continue
+      fi
+
+      # Check magic-comment escape hatch in staged file content
+      if git show ":${FILE}" 2>/dev/null | head -20 | grep -qE '#\s*downstream-regression-na:'; then
+        continue
+      fi
+
+      MISSING_FILES+="  - ${FILE}"$'\n'
+      MISSING_FILES+="    looked up: \`${LOOKUP_PATH}\` and \`${LOOKUP_DIR}\`"$'\n'
+    done <<< "${NEW_SHARED_FILES}"
+
+    if [ -n "${MISSING_FILES}" ]; then
+      printf "\033[31m"
+      cat <<EOF
+─────────────────────────────────────────────────────────────
+PRE-COMMIT BLOCKED: R3 SSoT freshness gate (downstream-regression)
+─────────────────────────────────────────────────────────────
+You're adding new file(s) under backend/src/shared/ that are NOT listed
+in the downstream-regression SSoT tabla. Auditors rely on that tabla to
+spawn cross-surface tests (.claude/rules/auditor-downstream-regression.md
+caso D4 origen).
+
+Files missing from tabla:
+${MISSING_FILES}
+
+Resolution (pick one):
+
+A) Add a row to .claude/rules/auditor-downstream-regression.md tabla
+   with downstream_test_targets enumerating which test paths consume
+   this surface. Format:
+
+   | \`shared/<your_path>.py\` | \`tests/...\`<br>\`tests/...\` | <reason — 1 line> |
+
+B) Mark file as truly self-contained (no cross-consumers) by adding
+   to first 20 lines:
+
+   # downstream-regression-na: <one-line reason — e.g. "private helper
+   #                          for shared/X internal use, no module imports">
+
+   Justification scrutinized at audit time — false NA = REVERT.
+
+NEVER use --no-verify.
+─────────────────────────────────────────────────────────────
+EOF
+      printf "\033[0m"
+      exit 1
+    fi
   fi
 fi
 

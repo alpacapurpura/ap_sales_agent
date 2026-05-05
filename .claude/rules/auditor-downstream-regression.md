@@ -115,6 +115,24 @@ Cuando auditor reviewing PR toca código `shared/` o módulo con consumers conoc
 8. Si downstream tests PASS → continuar audit_categories.
 ```
 
+## Pre-commit freshness gate (origen C1 R21 2026-05-05)
+
+Hook `scripts/git-hooks/pre-commit` Section 4 detecta automáticamente:
+- New file (status `A` o `R`) bajo `backend/src/shared/.+\.py$`
+- Path no listado en este file (substring match exact path OR parent dir)
+- Sin magic comment `# downstream-regression-na: <reason>` en primeras 20 líneas
+
+→ Hook BLOQUEA commit con hint accionable. Devs eligen entre:
+- (A) agregar row a tabla SSoT con `downstream_test_targets`
+- (B) marcar `# downstream-regression-na: <reason>` si surface es self-contained
+  (no cross-consumers — auditor escruta razón post-merge)
+
+Tests cubren 10 escenarios en `backend/tests/scripts/test_pre_commit_hook.py`.
+
+Ratchet: tabla shrink-only excepto cuando agregás surface nueva. Renombre
+de path → update row mismo commit (no hook detecta rename consistente
+salvo nuevo basename).
+
 ## Anti-patterns prohibidos
 
 - ❌ Auditor APPROVED PR `shared/agent_observability/` modify sin run downstream tests `modules/copilot/observability/` + `modules/sales_agent/observability/`
