@@ -136,6 +136,37 @@ Cuando Chris trae idea grande (ej. "rediseño completo del onboarding"):
 - ❌ Modificar artefactos cerrados (post-merge stories).
 - ❌ Tocar legacy `docs/pm-nico/` salvo lectura on-demand cuando Chris pide explícito.
 - ❌ Stories monolíticas (>5d trabajo) — siempre decompose.
+- ❌ **Mezclar `git mv` con scope expansion en mismo commit (R9 process-improvement 2026-05-05).**
+  Cuando ticket implica rename file/folder + scope expansion (e.g., agregar fields a archivo renombrado), DEBE ir en 2 commits separados:
+    - commit 1: `git mv old new` PURO (zero diff content — git detecta rename automático)
+    - commit 2: scope expansion (modify content)
+  Cleaner history. Bisect-friendly. PR review más fácil. Origen: PI-12 S1
+  Story A folder rename creó git status confuso + tiempo debug.
+
+## Convenciones — refactors estructurales
+
+### Git mv aislado pre-scope-expansion (R9)
+
+Cuando architect propone mover `01-spec.md` a `01-spec-vN.md` Y agregar
+sections nuevas en mismo PR:
+
+```bash
+# CORRECTO — 2 commits
+git mv 01-spec.md 01-spec-v2.md
+git commit -m "docs(story): rename 01-spec.md → 01-spec-v2.md (no content change)"
+# ahora editar contenido del file renombrado
+$EDITOR 01-spec-v2.md
+git add 01-spec-v2.md
+git commit -m "docs(story): expand spec scope — add scenarios D-F"
+```
+
+```bash
+# INCORRECTO — 1 commit mezcla
+git mv 01-spec.md 01-spec-v2.md
+$EDITOR 01-spec-v2.md
+git add 01-spec-v2.md
+git commit -m "docs(story): rename + expand spec"  # git ve "delete old + create new", no rename
+```
 
 ## Multi-instancia
 
