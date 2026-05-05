@@ -5,7 +5,7 @@ owner: dev-team (claude-opus-4-7)
 state: done
 started: 2026-05-05T08:00Z
 finished: 2026-05-05T09:30Z
-commit_hash_local: pending  # filled after commit
+commit_hash_local: 8b6d798f
 inputs_consumed:
   spec: docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization/01-spec.md
   arch_doc: docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization/03-arch-be.md
