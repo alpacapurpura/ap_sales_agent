@@ -21,6 +21,7 @@ Per arch-be § "Tests requeridos" + ticket T-2 acceptance A1..A4.
 from __future__ import annotations
 
 import inspect
+from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import UUID
 
@@ -274,3 +275,371 @@ async def test_sales_agent_entrypoint_invocation_returns_state(
         assert isinstance(out["turn_id"], UUID)
     # The agent always returns a dict-shaped final state.
     assert isinstance(out["result"], dict)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Section 3 — TrajectorySpy meta-tests (T-3 — composition over subclass)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.no_eval
+def test_trajectory_spy_subclasses_langchain_native_only() -> None:
+    """The spy MUST inherit ``BaseCallbackHandler`` (LangChain native), NEVER
+    ``BaseAgentCallbackHandler`` (shared canonical) — anti-duplication §0.
+
+    This is the architectural assertion: composition over subclass. If a
+    future refactor changes ``TrajectorySpy`` to inherit from the shared
+    base handler, this test fails immediately.
+    """
+    from langchain_core.callbacks import BaseCallbackHandler
+
+    from src.shared.agent_observability.recording.base_callback_handler import (
+        BaseAgentCallbackHandler,
+    )
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    assert issubclass(TrajectorySpy, BaseCallbackHandler), (
+        "TrajectorySpy must subclass langchain_core.callbacks.BaseCallbackHandler "
+        "(LangChain native handler — composition pattern)."
+    )
+    assert not issubclass(TrajectorySpy, BaseAgentCallbackHandler), (
+        "TrajectorySpy MUST NOT subclass BaseAgentCallbackHandler. "
+        "Anti-duplication §0 — spy is composed via RunnableConfig.callbacks list, "
+        "never inheritance from the shared canonical handler."
+    )
+
+
+@pytest.mark.no_eval
+def test_no_base_agent_callback_handler_subclass_in_runner_dir() -> None:
+    """Anti-duplication GATE — spec § A2 acceptance.
+
+    Walk ``backend/tests/agentic_evals/sales_agent/runner/*.py`` AST looking
+    for any executable reference to ``BaseAgentCallbackHandler`` — imports,
+    base-class lists, attribute access, type annotations. Pure docstring /
+    comment mentions (which intentionally describe the anti-pattern) are
+    permitted as documentation.
+
+    Uses ``ast.parse`` + node walk — robust against false positives from
+    prose in docstrings AND avoids ruff S603/S607 footguns from
+    subprocess-based grep.
+    """
+    import ast
+
+    runner_dir = Path(__file__).resolve().parent / "runner"
+    offenders: list[tuple[Path, int, str]] = []
+
+    for py_file in sorted(runner_dir.rglob("*.py")):
+        source = py_file.read_text(encoding="utf-8")
+        try:
+            tree = ast.parse(source, filename=str(py_file))
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            # Direct name reference (e.g. base-class, type annotation).
+            if isinstance(node, ast.Name) and node.id == "BaseAgentCallbackHandler":
+                offenders.append((py_file, node.lineno, "ast.Name"))
+            # Attribute access (e.g. ``module.BaseAgentCallbackHandler``).
+            elif isinstance(node, ast.Attribute) and node.attr == "BaseAgentCallbackHandler":
+                offenders.append((py_file, node.lineno, "ast.Attribute"))
+            # Import (e.g. ``from ... import BaseAgentCallbackHandler``).
+            elif isinstance(node, ast.ImportFrom):
+                for alias in node.names:
+                    if alias.name == "BaseAgentCallbackHandler":
+                        offenders.append((py_file, node.lineno, "ast.ImportFrom"))
+            elif isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name.endswith(".BaseAgentCallbackHandler"):
+                        offenders.append((py_file, node.lineno, "ast.Import"))
+
+    assert offenders == [], (
+        "Anti-duplication §0 violation: executable BaseAgentCallbackHandler reference "
+        f"detected in {runner_dir}/. Composition over subclass — see arch-agentic.md.\n"
+        + "\n".join(f"  {p}:{ln}: {kind}" for p, ln, kind in offenders)
+    )
+
+
+@pytest.mark.no_eval
+def test_trajectory_spy_captures_specialist_history_from_chain_end() -> None:
+    """Synthetic ``on_chain_end`` events build ``specialist_history``.
+
+    Drives the spy with three node exits — supervisor → qualifier →
+    respond — and verifies:
+    * Terminal sentinel ``respond`` is filtered out.
+    * Non-string ``next_node`` (None) is filtered out.
+    * Node visits accumulate every event for diagnostics.
+    """
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    spy.on_chain_end({"next_node": "qualifier"}, run_id=uuid4())
+    spy.on_chain_end({"next_node": None}, run_id=uuid4())  # filtered (non-string)
+    spy.on_chain_end({"next_node": "tool_executor"}, run_id=uuid4())
+    spy.on_chain_end({"next_node": "respond"}, run_id=uuid4())  # filtered (terminal)
+
+    assert spy.specialist_history == ["qualifier", "tool_executor"]
+    assert len(spy.node_visits) == 4  # every event recorded for diagnostics
+
+
+@pytest.mark.no_eval
+def test_trajectory_spy_tool_capture_drains_inflight_cache() -> None:
+    """``on_tool_start`` caches name+input; ``on_tool_end`` drains it.
+
+    Validates the per-run-id pairing logic + cache hygiene (no leftover
+    entries after end fires). Also covers the cache-drain edge case where
+    ``on_tool_end`` fires WITHOUT a matching ``on_tool_start`` (defensive
+    fallback: empty name).
+    """
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    run_id_a = uuid4()
+    run_id_b = uuid4()
+
+    spy.on_tool_start({"name": "knowledge_search"}, "query A", run_id=run_id_a)
+    spy.on_tool_start({"name": "recommend_product"}, "input B", run_id=run_id_b)
+    assert len(spy._tool_runs_inflight) == 2
+
+    spy.on_tool_end("output A", run_id=run_id_a)
+    assert len(spy._tool_runs_inflight) == 1  # drained run_id_a
+
+    # Edge case — orphan on_tool_end without on_tool_start.
+    orphan_run_id = uuid4()
+    spy.on_tool_end("output orphan", run_id=orphan_run_id)
+
+    spy.on_tool_end("output B", run_id=run_id_b)
+    assert spy._tool_runs_inflight == {}
+
+    names = [tc["name"] for tc in spy.tool_calls]
+    assert names == ["knowledge_search", "", "recommend_product"]
+    # The orphan record carries empty name + empty input — diagnostic-friendly.
+    orphan = next(tc for tc in spy.tool_calls if tc["name"] == "")
+    assert orphan["input"] == ""
+
+
+@pytest.mark.no_eval
+def test_trajectory_spy_callbacks_are_best_effort() -> None:
+    """A malformed payload MUST NOT raise — best-effort observability.
+
+    Decision B6 + ``copilot-observability.md`` + ``tessl__graceful-
+    degradation`` Rule 6: spy crashes are logged via structlog warning
+    and swallowed. ``agent_app.ainvoke`` MUST NEVER fail because the
+    spy choked.
+    """
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+
+    # Non-dict outputs — defensive fallback path.
+    spy.on_chain_end("not-a-dict", run_id=uuid4())  # type: ignore[arg-type]
+    # Non-dict serialized payload at on_tool_start.
+    spy.on_tool_start("not-a-dict", "input", run_id=uuid4())  # type: ignore[arg-type]
+    # Output with non-string repr — coerced via repr().
+    spy.on_tool_end({"complex": "object"}, run_id=uuid4())
+
+    # No exceptions raised; state remains coherent.
+    assert isinstance(spy.specialist_history, list)
+    assert isinstance(spy.tool_calls, list)
+
+
+@pytest.mark.no_eval
+def test_trajectory_spy_reset_clears_all_state() -> None:
+    """``reset()`` empties every accumulator + the in-flight cache."""
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    spy.on_chain_end({"next_node": "qualifier"}, run_id=uuid4())
+    spy.on_tool_start({"name": "knowledge_search"}, "query", run_id=uuid4())
+    assert spy.specialist_history
+    assert spy._tool_runs_inflight
+
+    spy.reset()
+    assert spy.specialist_history == []
+    assert spy.tool_calls == []
+    assert spy.node_visits == []
+    assert spy._tool_runs_inflight == {}
+
+
+@pytest.mark.no_eval
+def test_trajectory_spy_to_artifact_dict_returns_serialisable_payload() -> None:
+    """``to_artifact_dict()`` returns the three documented keys + JSON-safe values."""
+    import json
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    spy = TrajectorySpy()
+    spy.on_chain_end({"next_node": "qualifier"}, run_id=uuid4())
+    spy.on_tool_start({"name": "knowledge_search"}, "query", run_id=uuid4())
+    spy.on_tool_end("ok", run_id=list(spy._tool_runs_inflight.keys())[0])  # noqa: RUF015
+
+    payload = spy.to_artifact_dict()
+    assert set(payload.keys()) == {"specialist_history", "tool_calls", "node_visits"}
+    # Round-trips through json — no datetime/UUID native types remaining.
+    json.dumps(payload, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Section 4 — Artifacts writer meta-tests (T-3 A3 + A4 acceptance)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.no_eval
+def test_artifacts_writer_creates_run_id_subdir_with_3_files(tmp_path, monkeypatch) -> None:
+    """Spec § A3 acceptance — three files (trace.json, response.txt,
+    assertions.json) appear under ``_artifacts/{run_id}/``.
+
+    Uses ``tmp_path`` + ``monkeypatch`` to redirect the artifacts root
+    so the meta-test does not pollute the real ``_artifacts/`` directory
+    on the developer machine.
+    """
+    import json
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner import artifacts as artifacts_mod
+    from tests.agentic_evals.sales_agent.runner.artifacts import write_run_artifacts
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    monkeypatch.setattr(artifacts_mod, "_ARTIFACTS_ROOT", tmp_path / "_artifacts")
+
+    run_id = uuid4()
+    spy = TrajectorySpy()
+    spy.on_chain_end({"next_node": "qualifier"}, run_id=uuid4())
+
+    run_dir = write_run_artifacts(
+        run_id,
+        spy=spy,
+        response_text="Hola, ¿en qué te puedo ayudar?",
+        assertions_results=[{"layer": "trajectory", "passed": True}],
+    )
+
+    assert run_dir.is_dir()
+    assert run_dir.name == str(run_id)
+    files = sorted(p.name for p in run_dir.iterdir())
+    assert files == ["assertions.json", "response.txt", "trace.json"]
+    # Round-trip the trace.json to confirm valid JSON shape.
+    trace = json.loads((run_dir / "trace.json").read_text(encoding="utf-8"))
+    assert "specialist_history" in trace
+    assert trace["specialist_history"] == ["qualifier"]
+
+
+@pytest.mark.no_eval
+def test_artifacts_writer_is_idempotent(tmp_path, monkeypatch) -> None:
+    """Rerunning the writer with the same ``run_id`` overwrites cleanly."""
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner import artifacts as artifacts_mod
+    from tests.agentic_evals.sales_agent.runner.artifacts import write_run_artifacts
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    monkeypatch.setattr(artifacts_mod, "_ARTIFACTS_ROOT", tmp_path / "_artifacts")
+
+    run_id = uuid4()
+    write_run_artifacts(
+        run_id,
+        spy=TrajectorySpy(),
+        response_text="primera ejecucion",
+        assertions_results=[],
+    )
+    second_dir = write_run_artifacts(
+        run_id,
+        spy=TrajectorySpy(),
+        response_text="segunda ejecucion",
+        assertions_results=[{"layer": "trajectory", "passed": False}],
+    )
+
+    assert second_dir.is_dir()
+    assert (second_dir / "response.txt").read_text(encoding="utf-8") == "segunda ejecucion"
+
+
+@pytest.mark.no_eval
+def test_artifacts_pii_sanitized(tmp_path, monkeypatch) -> None:
+    """Spec § A4 acceptance — trace.json + response.txt must NOT carry
+    raw PII (email/phone/national-id patterns).
+
+    Drives the writer with payloads carrying obvious PII fixtures and
+    asserts ``sanitize_payload`` redacted them via the canonical
+    ``shared.agent_observability.recording.sanitization`` module.
+    """
+    import json
+    import re
+    from uuid import uuid4
+
+    from tests.agentic_evals.sales_agent.runner import artifacts as artifacts_mod
+    from tests.agentic_evals.sales_agent.runner.artifacts import write_run_artifacts
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
+
+    monkeypatch.setattr(artifacts_mod, "_ARTIFACTS_ROOT", tmp_path / "_artifacts")
+
+    run_id = uuid4()
+    spy = TrajectorySpy()
+    # Inject a tool call carrying email + phone fixtures into the spy state.
+    spy.tool_calls.append(
+        {
+            "run_id": str(uuid4()),
+            "name": "knowledge_search",
+            "input": "Mi email es chris@example.com y mi celular +54 11 5555-1234",
+            "output": "Documento técnico encontrado",
+        },
+    )
+
+    write_run_artifacts(
+        run_id,
+        spy=spy,
+        response_text="Te confirmo a chris@example.com con celular +54 11 5555-1234.",
+        assertions_results=[{"layer": "output", "passed": True}],
+    )
+
+    run_dir = tmp_path / "_artifacts" / str(run_id)
+    trace_text = (run_dir / "trace.json").read_text(encoding="utf-8")
+    response_text = (run_dir / "response.txt").read_text(encoding="utf-8")
+
+    email_re = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+    phone_re = re.compile(r"\+\s*54\s*11\s*\d{4}-\d{4}")
+
+    assert not email_re.search(trace_text), "trace.json contains raw email — sanitize_payload missing or broken"
+    assert not email_re.search(response_text), "response.txt contains raw email — sanitize_payload missing or broken"
+    assert not phone_re.search(trace_text), "trace.json contains raw phone"
+    assert not phone_re.search(response_text), "response.txt contains raw phone"
+
+    # Confirm trace.json is still well-formed JSON post-sanitisation.
+    trace_payload = json.loads(trace_text)
+    assert "tool_calls" in trace_payload
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Section 5 — Eval partition: A1 acceptance (real ainvoke, --run-evals only)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_trajectory_spy_captures_first_specialist_and_tool_calls(
+    sales_agent_entrypoint: Callable[[str], Awaitable[dict]],
+) -> None:
+    """Spec § A1 — happy single-turn invocation populates spy.specialist_history.
+
+    A cold lead asking ``"Hola, vi su publicidad..."`` is expected to
+    route through the supervisor → qualifier path. The spy captures
+    ``next_node = "qualifier"`` at minimum. Tool calls list is allowed
+    to be empty (cold-lead first turn typically does not invoke tools).
+    Cost: ~$0.005 per run. Skipped on default CI.
+    """
+    out = await sales_agent_entrypoint("Hola, vi su publicidad y me interesa.")
+    assert "spy" in out, "Entrypoint must expose the trajectory spy"
+
+    spy = out["spy"]
+    # specialist_history captures the routing trail. Cold lead first
+    # turn at minimum routes through ``qualifier`` per arch-agentic
+    # § "Topology classification" (supervisor → qualifier → respond).
+    assert "qualifier" in spy.specialist_history, (
+        f"Expected 'qualifier' in spy.specialist_history, got {spy.specialist_history}"
+    )
+    # tool_calls is a list (possibly empty for cold-lead first turn).
+    assert isinstance(spy.tool_calls, list)

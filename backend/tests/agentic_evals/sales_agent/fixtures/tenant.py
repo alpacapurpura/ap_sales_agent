@@ -155,7 +155,7 @@ def visionarias_tenant_session() -> Any:  # generator yields dict, but mypy gets
         if not brand_voice:
             pytest.skip(
                 f"Visionarias ({tenant_id}) no tiene PersonalityProfile.system_instruction "
-                f"compilado. Configurá voz en /brand-studio/estilo y guardá.",
+                f"compilado. Configura la voz en /brand-studio/estilo y guarda.",
             )
 
         # 4. Audit log — Decision B + spec NFR (eval_cross_tenant_check).

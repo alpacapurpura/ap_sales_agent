@@ -101,10 +101,17 @@ def sales_agent_entrypoint(
             - ``lead_id`` (UUID): the synthetic lead created for this run.
             - ``turn_id`` (UUID | None): the observability context turn id
               (None if the obs context could not be built — best-effort).
+            - ``spy`` (TrajectorySpy): read-only trajectory observer
+              composed alongside the production callback handler. The
+              caller drives ``spy.specialist_history`` / ``spy.tool_calls``
+              for Capa 1-2 assertions + writes ``trace.json`` via
+              ``runner.artifacts.write_run_artifacts``.
 
     Per Decision B6: zero voice override. Per anti-duplication §0: the
     obs context, callback handler, knowledge builder, and orchestrator
     entry point are all REUSED via shared imports — zero new mirror.
+    The spy is added via composition (``RunnableConfig.callbacks`` list)
+    — NEVER subclasses the shared ``BaseAgentCallbackHandler``.
 
     Per ``tessl__graceful-degradation`` Rule 6: failures inside the
     invocation are logged with full structured context but propagate to
@@ -123,6 +130,7 @@ def sales_agent_entrypoint(
     from src.modules.sales_agent.observability.recording.factory import (
         build_sales_agent_observability_context,
     )
+    from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy
 
     # Synthetic lead — eval-only, visible in admin via api_id="eval-..." prefix.
     lead_id = create_synthetic_eval_lead(db, tenant_id=tenant_id, run_id=eval_run_id)
@@ -138,6 +146,12 @@ def sales_agent_entrypoint(
         turn_id=uuid4(),
         role="agent",
     )
+
+    # Read-only trajectory observer composed alongside the production
+    # callback handler. The spy is appended to the
+    # ``RunnableConfig.callbacks`` list at invoke time — anti-duplication
+    # §0 + arch-agentic § "Decisión arquitectónica clave".
+    spy = TrajectorySpy()
 
     async def _invoke(user_message: str) -> dict[str, Any]:
         """Run one turn end-to-end through the production sales_agent graph."""
@@ -158,11 +172,15 @@ def sales_agent_entrypoint(
         initial_state["messages"] = [{"role": "user", "content": user_message}]
 
         if obs_ctx is not None:
+            # Compose the spy onto the production callback list. The
+            # production handler runs FIRST (DB writes), the spy runs
+            # SECOND (in-memory accumulation only). LangChain executes
+            # callbacks in list order per its public contract.
+            base_config = obs_ctx.langchain_config()
+            existing_callbacks = list(base_config.get("callbacks", []) or [])
+            invoke_config = {**base_config, "callbacks": [*existing_callbacks, spy]}
             async with obs_ctx.observe_turn(message=user_message, route="sales_agent"):
-                result = await agent_app.ainvoke(
-                    initial_state,
-                    config=obs_ctx.langchain_config(),
-                )
+                result = await agent_app.ainvoke(initial_state, config=invoke_config)
         else:
             # Best-effort fallback: invoke without observability if factory failed.
             # Test harness reports Capa 4 (cost) as un-verifiable in this case.
@@ -172,12 +190,15 @@ def sales_agent_entrypoint(
                 lead_id=str(lead_id),
                 hint="Cost layer un-verifiable for this run.",
             )
-            result = await agent_app.ainvoke(initial_state, config={})
+            # Spy still attached so trajectory can be inspected even when
+            # the production observability factory is unavailable.
+            result = await agent_app.ainvoke(initial_state, config={"callbacks": [spy]})
 
         return {
             "result": result,
             "lead_id": lead_id,
             "turn_id": obs_ctx.turn_id if obs_ctx is not None else None,
+            "spy": spy,
         }
 
     return _invoke
