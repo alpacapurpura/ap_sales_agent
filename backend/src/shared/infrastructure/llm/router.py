@@ -5,16 +5,17 @@ provider configured for that role.
 
 S3 PR-2 (PI-2): dispatch is now unified via LiteLLM Proxy (single
 ``LiteLLMService`` instance) when ``LITELLM_PROXY_ENABLED=True`` (default).
-Legacy per-provider dispatch is retained behind ``LITELLM_PROXY_ENABLED=False``
-for emergency rollback only — deprecated in S3, removed in S4 PR-1.
+Legacy per-provider adapters (openai.py, deepseek.py, kimi.py, qwen.py,
+gemini.py, _openai_compat.py) were deleted in PI-12 S1 T-4.
+
+``LITELLM_PROXY_ENABLED`` flag is removed in T-5. Until then, only
+``LITELLM_PROXY_ENABLED=True`` (default) is functional — the legacy
+rollback path (``build_provider_service``) raises ``NotImplementedError``
+since the per-provider adapters no longer exist.
 
 Backward compatibility: callers keep using
 ``LLMFactory.get_service().get_client(role)`` — the factory returns this
 router, so existing callsites get per-role routing transparently.
-
-D-6: legacy adapters kept deprecated for emergency rollback toggle the
-first sprint post-merge. Allowlist arch test extended accordingly;
-shrinks to 0 in S4 PR-1 after 1-sprint prod verification.
 """
 
 from typing import Any
@@ -36,37 +37,24 @@ def build_provider_service(
     provider: AIProvider,
     api_key: str | None = None,
 ) -> BaseLLMService:
-    """Construct a concrete ``BaseLLMService`` for a single provider.
+    """Stub: per-provider adapters deleted in PI-12 S1 T-4.
 
-    Used by both the router (emergency rollback legacy path) and the factory
-    (for tenant-scoped overrides where the tenant supplies its own key).
+    This function previously constructed per-provider ``BaseLLMService``
+    instances (OpenAIService, DeepSeekService, etc.) for the emergency
+    rollback path (``LITELLM_PROXY_ENABLED=False``). Those adapters were
+    deleted in T-4 as dead code — all runtime traffic routes via
+    ``LiteLLMService`` (``LITELLM_PROXY_ENABLED=True`` is the only live path).
 
-    Note: openai/deepseek/kimi/qwen adapters are DEPRECATED in S3 (D-6).
-    They remain importable for ``LITELLM_PROXY_ENABLED=False`` rollback.
-    Physical removal in S4 PR-1 post-verification.
+    T-5 removes ``LITELLM_PROXY_ENABLED`` flag and this function entirely.
+    Until T-5 merges, this stub raises to make any accidental rollback-path
+    invocation fail loudly rather than silently importing a missing module.
     """
-    if provider == AIProvider.OPENAI:
-        from src.shared.infrastructure.llm.providers.openai import OpenAIService
-
-        return OpenAIService(api_key=api_key)
-    if provider == AIProvider.GEMINI:
-        from src.shared.infrastructure.llm.providers.gemini import GeminiService
-
-        return GeminiService(api_key=api_key)
-    if provider == AIProvider.DEEPSEEK:
-        from src.shared.infrastructure.llm.providers.deepseek import DeepSeekService
-
-        return DeepSeekService(api_key=api_key)
-    if provider == AIProvider.KIMI:
-        from src.shared.infrastructure.llm.providers.kimi import KimiService
-
-        return KimiService(api_key=api_key)
-    if provider == AIProvider.QWEN:
-        from src.shared.infrastructure.llm.providers.qwen import QwenService
-
-        return QwenService(api_key=api_key)
-    msg = f"Unsupported AI Provider: {provider}"
-    raise ValueError(msg)
+    msg = (
+        f"build_provider_service({provider!r}) called but per-provider adapters were "
+        "deleted in PI-12 S1 T-4. Set LITELLM_PROXY_ENABLED=True (default) to use "
+        "LiteLLMService. Full flag removal in T-5."
+    )
+    raise NotImplementedError(msg)
 
 
 class MultiRoleLLMRouter(BaseLLMService):
