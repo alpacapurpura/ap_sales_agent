@@ -106,20 +106,36 @@ class TestAISettings:
         assert resp.status_code == 200
         assert "can_use_platform_keys" in resp.json()
 
-    def test_patch_ai_updates_key(self, client, seed_tenant):
-        resp = client.patch("/settings/ai", json={"openai_api_key": "sk-test-123"})
+    def test_patch_ai_updates_active_gemini_key(self, client, seed_tenant):
+        """gemini_api_key is the only still-active provider key (T-6a §2.4)."""
+        resp = client.patch("/settings/ai", json={"gemini_api_key": "gm-test-123"})
         assert resp.status_code == 200
-        assert resp.json()["openai_api_key"] == "sk-test-123"
+        assert resp.json()["gemini_api_key"] == "gm-test-123"
 
-    def test_patch_ai_multiple_keys(self, client, seed_tenant):
+    def test_patch_ai_deprecated_keys_silently_ignored(self, client, seed_tenant):
+        """T-6a deprecated provider keys are accepted but ignored on write.
+
+        The PATCH endpoint accepts any key in the legacy schema for
+        backward compatibility, but post-T-6a only ``gemini_api_key``
+        actually persists. The response excludes deprecated fields via
+        ``Field(exclude=True)`` so old clients see them disappear.
+        """
         resp = client.patch(
             "/settings/ai",
-            json={"deepseek_api_key": "ds-key", "kimi_api_key": "kimi-key"},
+            json={
+                "openai_api_key": "sk-attempt",
+                "deepseek_api_key": "ds-attempt",
+                "kimi_api_key": "kimi-attempt",
+                "dashscope_api_key": "ds-attempt",
+            },
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert body["deepseek_api_key"] == "ds-key"
-        assert body["kimi_api_key"] == "kimi-key"
+        # Deprecated fields excluded from response payload (Field(exclude=True))
+        assert "openai_api_key" not in body
+        assert "deepseek_api_key" not in body
+        assert "kimi_api_key" not in body
+        assert "dashscope_api_key" not in body
 
     def test_get_ai_tenant_not_found_returns_404(self, db):
         user = _make_user(uuid.uuid4())

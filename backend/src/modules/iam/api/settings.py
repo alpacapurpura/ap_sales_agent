@@ -114,12 +114,13 @@ async def get_ai_settings(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
+    # T-6a: only ``gemini_api_key`` is still active. The 4 deprecated cols
+    # (openai/deepseek/kimi/dashscope) are NULLed by the T-6a migration
+    # and excluded from the AISettings response model — passing them to
+    # the constructor would emit DeprecationWarnings without any effect
+    # on the rendered response.
     return AISettings(
-        openai_api_key=tenant.openai_api_key,
         gemini_api_key=tenant.gemini_api_key,
-        deepseek_api_key=tenant.deepseek_api_key,
-        kimi_api_key=tenant.kimi_api_key,
-        dashscope_api_key=tenant.dashscope_api_key,
         can_use_platform_keys=tenant.can_use_platform_keys or False,
     )
 
@@ -258,32 +259,18 @@ async def update_ai_settings(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
-    if settings.openai_api_key is not None:
-        # Allow clearing the key by sending empty string? Or just update if provided.
-        # If user sends "", we might want to set to None or ""
-        tenant.openai_api_key = settings.openai_api_key
-
+    # T-6a: deprecated provider keys (openai/deepseek/kimi/dashscope) are
+    # accepted by the request schema for backward compatibility but
+    # silently ignored — the columns are NULL post-T-6a migration and
+    # write-paths are removed. ``gemini_api_key`` remains writable.
     if settings.gemini_api_key is not None:
         tenant.gemini_api_key = settings.gemini_api_key
-
-    if settings.deepseek_api_key is not None:
-        tenant.deepseek_api_key = settings.deepseek_api_key
-
-    if settings.kimi_api_key is not None:
-        tenant.kimi_api_key = settings.kimi_api_key
-
-    if settings.dashscope_api_key is not None:
-        tenant.dashscope_api_key = settings.dashscope_api_key
 
     db.commit()
     db.refresh(tenant)
 
     return AISettings(
-        openai_api_key=tenant.openai_api_key,
         gemini_api_key=tenant.gemini_api_key,
-        deepseek_api_key=tenant.deepseek_api_key,
-        kimi_api_key=tenant.kimi_api_key,
-        dashscope_api_key=tenant.dashscope_api_key,
         can_use_platform_keys=tenant.can_use_platform_keys or False,
     )
 

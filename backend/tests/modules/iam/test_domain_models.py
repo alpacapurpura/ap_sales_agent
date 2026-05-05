@@ -1,6 +1,17 @@
-"""Tests for IAM domain models — Pydantic validation, defaults, construction."""
+"""Tests for IAM domain models — Pydantic validation, defaults, construction.
+
+T-6a (PI-12 S1): the per-tenant provider API key fields
+``openai_api_key``/``deepseek_api_key``/``kimi_api_key``/``dashscope_api_key``
+are deprecated. Tests below use ``gemini_api_key`` (still active) for
+construction assertions to avoid emitting DeprecationWarnings on each
+attribute access. Domain still permits the deprecated fields on
+construction (ORM bridge until T-6c drops the columns) but
+``model_dump`` excludes them — see
+``test_T6a_deprecate_tenant_api_keys.py`` for the deprecation contract.
+"""
 
 import uuid
+import warnings
 
 import pytest
 from pydantic import ValidationError
@@ -29,27 +40,32 @@ class TestTenant:
 
     def test_full_construction(self):
         tid = uuid.uuid4()
+        # Use only active fields (gemini_api_key, webhook_secret) to avoid
+        # emitting DeprecationWarning per T-6a (Field(deprecated=True)).
         t = Tenant(
             id=tid,
             name="Big Corp",
             slug="big-corp",
             config_json={"company_name": "Big Corp"},
-            openai_api_key="sk-abc",
             gemini_api_key="gm-xyz",
             webhook_secret="secret",
             can_use_platform_keys=True,
             is_active=False,
         )
         assert t.id == tid
-        assert t.openai_api_key == "sk-abc"
+        assert t.gemini_api_key == "gm-xyz"
         assert t.can_use_platform_keys is True
         assert t.is_active is False
 
     def test_optional_keys_default_none(self):
         t = Tenant(id=uuid.uuid4(), name="X", slug="x")
-        assert t.openai_api_key is None
         assert t.gemini_api_key is None
         assert t.webhook_secret is None
+        # Deprecated fields default None — wrap access to suppress
+        # T-6a DeprecationWarning emitted by Field(deprecated=True).
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            assert t.openai_api_key is None
 
     def test_name_required(self):
         with pytest.raises(ValidationError):
@@ -81,26 +97,25 @@ class TestTenant:
 class TestAISettings:
     def test_defaults(self):
         s = AISettings()
-        assert s.openai_api_key is None
         assert s.gemini_api_key is None
         assert s.can_use_platform_keys is False
 
-    def test_with_keys(self):
-        s = AISettings(openai_api_key="sk-123", can_use_platform_keys=True)
-        assert s.openai_api_key == "sk-123"
+    def test_with_active_key(self):
+        """gemini_api_key is the only active provider key post-T-6a."""
+        s = AISettings(gemini_api_key="gm-123", can_use_platform_keys=True)
+        assert s.gemini_api_key == "gm-123"
         assert s.can_use_platform_keys is True
 
 
 class TestTenantSettingsUpdate:
     def test_all_optional(self):
         u = TenantSettingsUpdate()
-        assert u.openai_api_key is None
         assert u.gemini_api_key is None
 
-    def test_partial_update(self):
-        u = TenantSettingsUpdate(openai_api_key="new-key")
-        assert u.openai_api_key == "new-key"
-        assert u.gemini_api_key is None
+    def test_partial_update_active_field(self):
+        """gemini_api_key remains writable post-T-6a (out of scope per arch §2.4)."""
+        u = TenantSettingsUpdate(gemini_api_key="new-key")
+        assert u.gemini_api_key == "new-key"
 
 
 class TestGeneralSettings:

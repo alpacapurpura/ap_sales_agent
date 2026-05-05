@@ -74,18 +74,26 @@ class TestTenantRepositoryCreate:
         assert found is not None
         assert found.name == "Retrievable"
 
-    def test_create_with_api_keys(self, db):
+    def test_create_with_active_keys(self, db):
+        """T-6a — only gemini_api_key + can_use_platform_keys persist on create.
+
+        Deprecated provider keys (openai/deepseek/kimi/dashscope) are no
+        longer written by the repository. Repo accepts the field on the
+        Tenant aggregate (Pydantic still allows it for ORM bridge) but
+        ``create`` drops the assignments. ``gemini_api_key`` is out of
+        scope per arch §2.4 and remains writable.
+        """
         repo = TenantRepository(db)
         tid = uuid.uuid4()
         new_tenant = Tenant(
             id=tid,
             name="Key Holder",
             slug="key-holder",
-            openai_api_key="sk-test",
+            gemini_api_key="gm-test",
             can_use_platform_keys=True,
         )
         created = repo.create(new_tenant)
-        assert created.openai_api_key == "sk-test"
+        assert created.gemini_api_key == "gm-test"
         assert created.can_use_platform_keys is True
 
     def test_duplicate_slug_raises(self, db, seed_tenant):
