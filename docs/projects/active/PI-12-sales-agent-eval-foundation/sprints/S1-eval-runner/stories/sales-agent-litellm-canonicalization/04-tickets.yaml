@@ -1,0 +1,877 @@
+# 04-tickets.yaml — sales-agent-litellm-canonicalization
+# Owner: /architect (writes) · /dev-team (toma + actualiza state) · /auditor (review)
+# 11 tickets total: 9 code + 1 operational gate (T6b) + 1 documentation (T9).
+# All owner_eligibility = claude-opus-4-7 (sales_agent observability surface, agentic-adjacent).
+
+---
+story_id: sales-agent-litellm-canonicalization
+sprint: S1-eval-runner
+pi: PI-12
+generated_at: 2026-05-05T03:30Z
+generated_by: /architect (acting standalone — service-story BE-only, no parallel sub-architects)
+total_tickets: 11
+estimated_total_hours: 38
+
+# ── Resumen pila (alto nivel) ────────────────
+summary:
+  - id: T-1
+    title: "Cost recorder canonicalization (LiteLLM CustomLogger + provider derive)"
+    surface: BE
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocks: [T-2, T-3, T-7]
+    estimate_hours: 5
+  - id: T-2
+    title: "make sync-pricing — extends litellm_sync.py + drift detection + Makefile target"
+    surface: BE
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-1]
+    blocks: [T-3]
+    estimate_hours: 4
+  - id: T-3
+    title: "Alembic migration — repair model_pricing_snapshot historical mis-tagging"
+    surface: DB
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-1, T-2]
+    blocks: []
+    estimate_hours: 3
+  - id: T-4
+    title: "DELETE legacy adapters (6 files + helpers audit) — MANDATORY gemini.py audit"
+    surface: BE
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-7]
+    blocks: [T-5, T-8]
+    estimate_hours: 7
+  - id: T-5
+    title: "Kill flag LITELLM_PROXY_ENABLED — anti-default-flip-audit 4-step (deletion case)"
+    surface: BE
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-4, T-7]
+    blocks: [T-6a, T-8]
+    estimate_hours: 4
+  - id: T-6a
+    title: "Migration deprecation tenant API keys — Phase 1 (NULL + code stops reading)"
+    surface: DB+BE
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-5]
+    blocks: [T-6b]
+    estimate_hours: 3
+  - id: T-6b
+    title: "DEPLOY-AND-VERIFY 1-sprint zero-read window (operational gate, NOT code)"
+    surface: OPS
+    owner_pool: [pm]
+    state: draft
+    blocked_by: [T-6a]
+    blocks: [T-6c]
+    estimate_hours: 0
+  - id: T-6c
+    title: "Migration DROP COLUMN tenant API keys — Phase 3"
+    surface: DB+BE
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-6b]
+    blocks: []
+    estimate_hours: 2
+  - id: T-7
+    title: "Tests audit ~20 files: migrate per-provider mocks → LiteLLMService mock"
+    surface: BE
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-1]
+    blocks: [T-4, T-5]
+    estimate_hours: 6
+  - id: T-8
+    title: "Arch fitness shrink + 3 new assertions (test_no_legacy_adapter_imports + flag attr + empty allowlist)"
+    surface: BE
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-4, T-5]
+    blocks: [T-9]
+    estimate_hours: 2
+  - id: T-9
+    title: "Documentation purge: llm-routing.md + tech_module_shared.md + 2 docstrings"
+    surface: DOCS
+    owner_pool: [claude-opus-4-7]
+    state: draft
+    blocked_by: [T-8]
+    blocks: []
+    estimate_hours: 2
+
+# ── Critical path ──────────────────────────────
+# T-1 → T-7 → T-4 → T-5 → T-6a → T-6b (operational pause) → T-6c
+# (longest chain through code; T-2/T-3 parallel-able after T-1; T-8/T-9 tail)
+# Estimated wall-clock: ~22h dev + 5 working days T-6b gate.
+
+# ── Detalle (uno por ticket) ─────────────────
+tickets:
+  - $ref: "#/T1"
+  - $ref: "#/T2"
+  - $ref: "#/T3"
+  - $ref: "#/T4"
+  - $ref: "#/T5"
+  - $ref: "#/T6a"
+  - $ref: "#/T6b"
+  - $ref: "#/T6c"
+  - $ref: "#/T7"
+  - $ref: "#/T8"
+  - $ref: "#/T9"
+
+T1:
+  id: T-1
+  title: "Cost recorder canonicalization: LiteLLM CustomLogger + canonical provider derive"
+  type: backend
+  surface: BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 5
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    story_yaml: "../../../../../../product/stories/sales-agent/sales-agent-litellm-canonicalization.yaml"
+    rules:
+      - ".claude/rules/anti-duplication.md"
+      - ".claude/rules/backend-ddd.md"
+      - ".claude/rules/tdd-mandatory.md"
+      - ".claude/rules/master-data.md"
+    tessl_skills: ["tessl__fastapi", "tessl__pytest-api-testing", "tessl__graceful-degradation"]
+    domain_skills: ["sales-agent-expert", "copilot-expert", "backend-expert"]
+
+  deliverables:
+    - "NEW backend/src/shared/agent_observability/recording/cost_recorder.py — CostRecorderCustomLogger(litellm.integrations.custom_logger.CustomLogger) + thread-safe TTL cache (60s) + pop_cost(call_id) helper"
+    - "MODIFY backend/src/shared/agent_observability/recording/base_callback_handler.py — _extract_provider_and_model derives provider via litellm.get_llm_provider(model)[1] with fallback 'unknown'; drop '/' partition (model stays slashed per A1); _persist_llm_call consumes pop_cost(litellm_call_id) instead of calculate_cost()"
+    - "MODIFY backend/src/shared/agent_observability/cost/calculator.py — add docstring 'reconciliation utility only, NOT in runtime path post-T1' (function retained, not deleted)"
+    - "MODIFY backend/src/main.py — register litellm.callbacks=[CostRecorderCustomLogger()] in startup hook"
+    - "MODIFY backend/src/workers/settings.py — register same callback in WorkerSettings.on_startup + SchedulerSettings.on_startup"
+    - "NEW backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py — 6 tests (canonical provider+cost from kwargs, runtime independence from snapshot, all calls pass through litellm, unknown model → null cost, orphan TTL purge warn, p95 < 50ms)"
+
+  out_of_scope:
+    - "Tests audit ~20 files (T-7)"
+    - "Delete legacy adapters (T-4)"
+    - "Drop flag LITELLM_PROXY_ENABLED (T-5)"
+
+  acceptance:
+    - id: A1
+      description: "Scenario 1 happy path — turn LiteLLM con DeepSeek → row provider='deepseek' + cost_usd > 0 (consumido directo de kwargs['response_cost'])"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_canonical_provider_and_cost_from_kwargs"
+    - id: A2
+      description: "Failure mode 2.2 — modelo unknown → provider='unknown', cost_usd IS NULL"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_unknown_model_records_unknown_provider_and_null_cost"
+    - id: A3
+      description: "p95 callback on_llm_end < 50ms (cache hit + miss paths)"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_callback_p95_under_50ms"
+        extra: "--benchmark-disable-gc --benchmark-min-rounds=20"
+    - id: A4
+      description: "calculate_cost() NOT invoked from BaseAgentCallbackHandler._persist_llm_call post-T1 (mock count == 0)"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_calculate_cost_not_called_in_runtime_path"
+    - id: A5
+      description: "Bridge LangChain↔LiteLLM cache hit verified end-to-end (mocked litellm.completion injects kwargs['response_cost'], LangChain handler consumes via pop_cost)"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_cost_recorder_cache_hit_under_real_litellm_call"
+
+  quality_gates:
+    - "Native lint clean: cd backend && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check"
+    - "/test-backend completo verde (pytest -x -q)"
+    - "tests/architecture/ ratchet not regressed"
+    - "Coverage backend ≥43% maintained"
+    - "tessl pii-sanitisation: no PII in cost recorder log fields (only Decimal cost + call_id hash)"
+    - "TDD: tests RED first per layer (cost_recorder unit → handler integration → end-to-end bridge)"
+
+  depends_on: []
+  blocks: ["T-2", "T-3", "T-7"]
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T2:
+  id: T-2
+  title: "make sync-pricing extends litellm_sync.py + drift detection + Makefile target"
+  type: backend
+  surface: BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 2
+  estimate_hours: 4
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/anti-duplication.md"
+      - ".claude/rules/tdd-mandatory.md"
+    tessl_skills: ["tessl__pytest-api-testing", "tessl__graceful-degradation"]
+    domain_skills: ["backend-expert", "metrics-expert"]
+
+  deliverables:
+    - "MODIFY backend/src/shared/agent_observability/pricing/litellm_sync.py — agrega cross-check litellm_config.yaml model_list vs litellm.model_cost (warn if model in yaml not in litellm registry); agrega upstream drift detection (warn if snapshot row diverges from upstream JSON entry by > 0.0001 USD)"
+    - "MODIFY backend/src/shared/agent_observability/workers/pricing_sync_task.py — propagate new SyncResult fields (config_yaml_warnings: int, drift_warnings: int) to log output"
+    - "MODIFY Makefile — add target sync-pricing (native call, not docker exec): cd backend && .venv/bin/python -c 'asyncio.run(sync_litellm_pricing({}))'"
+    - "VERIFY backend/src/workers/settings.py — sync_litellm_pricing cron 03:00 UTC daily already registered (no change required, just verify)"
+    - "NEW tests in backend/tests/shared/agent_observability/pricing/test_litellm_sync_extensions.py — 4 tests (config yaml cross-check warn, drift detect, make sync-pricing exit code 0/1/2, etag short-circuit unchanged)"
+
+  out_of_scope:
+    - "Migration repair (T-3)"
+    - "Cost recorder runtime (T-1)"
+
+  acceptance:
+    - id: A1
+      description: "make sync-pricing exit 0 on happy path (rows_added/updated logged)"
+      verifier:
+        type: bash
+        cmd: "make sync-pricing && echo $?"
+    - id: A2
+      description: "make sync-pricing exit 1 when upstream URL unreachable (httpx ConnectError)"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/pricing/test_litellm_sync_extensions.py::test_make_sync_pricing_exit_1_on_connect_error"
+    - id: A3
+      description: "config yaml model NOT in litellm.model_cost registry → structlog warn 'pricing_sync.config_yaml_model_unknown_to_litellm'"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/pricing/test_litellm_sync_extensions.py::test_config_yaml_cross_check_warns"
+    - id: A4
+      description: "snapshot row diverges from upstream → structlog warn 'pricing_sync.upstream_drift_detected' con delta_usd field"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/pricing/test_litellm_sync_extensions.py::test_upstream_drift_warn"
+
+  quality_gates:
+    - "Native lint clean"
+    - "/test-backend completo verde"
+    - "make sync-pricing runs successfully against dev DB (smoke)"
+
+  depends_on: ["T-1"]
+  blocks: ["T-3"]
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T3:
+  id: T-3
+  title: "Alembic migration: repair historical mis-tagged model_pricing_snapshot rows"
+  type: migration
+  surface: DB
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 2
+  estimate_hours: 3
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/backend-migrations.md"
+      - ".claude/rules/tdd-mandatory.md"
+    tessl_skills: []
+    domain_skills: ["backend-expert"]
+
+  deliverables:
+    - "NEW backend/alembic/versions/XXXX_repair_pricing_snapshot_provider_tagging.py — idempotent raw SQL: (1) DROP TABLE IF EXISTS model_pricing_snapshot_backup_pre_t3; CREATE TABLE ... AS SELECT * FROM model_pricing_snapshot; (2) UPDATE provider+model to canonical for deepseek/kimi/qwen mis-tagged rows; (3) downgrade restores from backup"
+    - "VERIFY post-migration: SELECT COUNT(*) FROM model_pricing_snapshot WHERE provider='openai' AND (model LIKE 'deepseek%' OR 'kimi%' OR 'qwen%' OR 'moonshot%') returns 0"
+    - "NEW backend/tests/migrations/test_T3_pricing_snapshot_repair.py — runs migration in migration_test DB clone, verifies pre/post counts + backup table existence + downgrade roundtrip"
+
+  out_of_scope:
+    - "Cost recorder (T-1)"
+    - "make sync-pricing extension (T-2)"
+
+  acceptance:
+    - id: A1
+      description: "Migration applies idempotent (running 2x sin error)"
+      verifier:
+        type: bash
+        cmd: "docker exec visionarias_brain_dev alembic upgrade head && docker exec visionarias_brain_dev alembic upgrade head"
+    - id: A2
+      description: "Post-upgrade, mis-tagged rows count = 0"
+      verifier:
+        type: pytest
+        path: "backend/tests/migrations/test_T3_pricing_snapshot_repair.py::test_no_mistagged_rows_post_migration"
+    - id: A3
+      description: "Backup table exists with original row count"
+      verifier:
+        type: pytest
+        path: "backend/tests/migrations/test_T3_pricing_snapshot_repair.py::test_backup_table_preserves_original_state"
+    - id: A4
+      description: "Downgrade restores backup state (run in migration_test clone)"
+      verifier:
+        type: pytest
+        path: "backend/tests/migrations/test_T3_pricing_snapshot_repair.py::test_downgrade_restores_backup"
+
+  quality_gates:
+    - "Migration tested in clone DB (docs/domains/migrations.md procedure)"
+    - "Native lint clean on migration file"
+    - "Idempotency: 2x upgrade no error, 2x downgrade no error"
+
+  depends_on: ["T-1", "T-2"]
+  blocks: []
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T4:
+  id: T-4
+  title: "DELETE 6 legacy LLM adapters + audit gemini.py kwargs MANDATORY"
+  type: backend
+  surface: BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 7
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/architectural-fitness.md"
+      - ".claude/rules/anti-duplication.md"
+    tessl_skills: ["tessl__fastapi"]
+    domain_skills: ["backend-expert", "sales-agent-expert", "copilot-expert"]
+
+  deliverables:
+    - "MANDATORY pre-delete gemini.py audit checklist (6 items): function calling shape via LiteLLM extra_body, safety_settings via extra_body, system_instruction conversion, generation_config mapping, vision multipart, streaming chunk normalization. Document each item PASS/FAIL in commit body. ANY FAIL → ESCALATE Chris BLOCK."
+    - "DELETE backend/src/shared/infrastructure/llm/providers/openai.py"
+    - "DELETE backend/src/shared/infrastructure/llm/providers/deepseek.py"
+    - "DELETE backend/src/shared/infrastructure/llm/providers/kimi.py"
+    - "DELETE backend/src/shared/infrastructure/llm/providers/qwen.py"
+    - "DELETE backend/src/shared/infrastructure/llm/providers/gemini.py (only if audit checklist 6/6 PASS)"
+    - "DELETE backend/src/shared/infrastructure/llm/providers/_openai_compat.py"
+    - "AUDIT backend/src/shared/infrastructure/llm/providers/_chat_model_resolver.py — if no consumer in src/ post-T1, DELETE; else retain + commit body documents consumers"
+    - "AUDIT backend/src/shared/infrastructure/llm/providers/_response_validation.py — same logic"
+    - "RETAIN backend/src/shared/infrastructure/llm/providers/_kwargs.py (LiteLLMService still consumes)"
+    - "NEW backend/tests/shared/infrastructure/llm/test_litellm_gemini_function_call.py (audit step) — verifies LiteLLM proxy handles Gemini function call shape correctly"
+
+  out_of_scope:
+    - "Tests audit (T-7) — must PRECEDE this ticket"
+    - "Flag deletion (T-5)"
+
+  acceptance:
+    - id: A1
+      description: "6 adapter files deleted (verify via git status + find)"
+      verifier:
+        type: bash
+        cmd: "test ! -f backend/src/shared/infrastructure/llm/providers/openai.py && test ! -f backend/src/shared/infrastructure/llm/providers/deepseek.py && test ! -f backend/src/shared/infrastructure/llm/providers/kimi.py && test ! -f backend/src/shared/infrastructure/llm/providers/qwen.py && test ! -f backend/src/shared/infrastructure/llm/providers/gemini.py && test ! -f backend/src/shared/infrastructure/llm/providers/_openai_compat.py"
+    - id: A2
+      description: "Post-deletion, full pytest -x -q PASS (T-7 prepared mocks)"
+      verifier:
+        type: bash
+        cmd: "cd backend && .venv/bin/pytest -x -q --tb=short"
+    - id: A3
+      description: "Gemini audit checklist 6/6 PASS documented in commit body"
+      verifier:
+        type: bash
+        cmd: "git log -1 --format=%B | grep -E '^- \\[x\\] ' | wc -l | grep -E '^[6-9]$|^1[0-9]$'"
+    - id: A4
+      description: "test_litellm_gemini_function_call.py PASS (LiteLLM proxy handles Gemini correctly)"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/infrastructure/llm/test_litellm_gemini_function_call.py"
+
+  quality_gates:
+    - "Native lint clean"
+    - "/test-backend completo verde"
+    - "Arch fitness: test_no_legacy_adapter_imports PASS (T-8 dependency check)"
+
+  depends_on: ["T-7"]
+  blocks: ["T-5", "T-8"]
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T5:
+  id: T-5
+  title: "Kill flag LITELLM_PROXY_ENABLED (anti-default-flip-audit 4-step deletion case)"
+  type: backend
+  surface: BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 4
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/anti-default-flip-audit.md"
+      - ".claude/rules/tdd-mandatory.md"
+      - ".claude/rules/architectural-fitness.md"
+    tessl_skills: []
+    domain_skills: ["backend-expert"]
+
+  deliverables:
+    - "MODIFY backend/src/core/config.py — DROP field LITELLM_PROXY_ENABLED from Settings class"
+    - "MODIFY backend/src/shared/infrastructure/llm/router.py — simplify MultiRoleLLMRouter._resolve to LiteLLMService singleton path only; DELETE build_provider_service function entirely; DELETE _legacy_providers dict; DELETE reset_cache method"
+    - "MODIFY backend/src/shared/infrastructure/llm/factory.py — DELETE build_provider_service import"
+    - "MODIFY backend/src/main.py — DROP _verify_litellm_proxy_reachable conditional 'if not settings.LITELLM_PROXY_ENABLED'; keep the proxy reachability check (always runs)"
+    - "MODIFY backend/src/admin/modules/llm_virtual_keys.py — DROP fallback message + 'activo/desactivado' conditional"
+    - "MODIFY .claude/rules/anti-default-flip-audit.md — REMOVE row 'LITELLM_PROXY_ENABLED' from inventario table + ADD footnote 'removed PI-12 S1 sales-agent-litellm-canonicalization T5 — legacy adapters deleted T4'"
+    - "ANTI-FLIP AUDIT 4-STEP (deletion case):
+        Step 1: grep -rln 'LITELLM_PROXY_ENABLED.*False\\|setattr.*LITELLM_PROXY_ENABLED' backend/tests/ — capture in commit body.
+        Step 2: tests path viejo handled in T-7 (DELETE TestLegacyDispatch class + simplify test_router_litellm_dispatch.py).
+        Step 3: pytest backend/ -x -q PASS (single path post-deletion).
+        Step 4: commit body sections '## Tests audited' + '## Path old' + '## Path new' + '## Verification' + '## Inventory updated'."
+
+  out_of_scope:
+    - "Adapter file deletion (T-4)"
+    - "Tests migration (T-7)"
+    - "Tenant API key cols drop (T-6a/T-6c)"
+
+  acceptance:
+    - id: A1
+      description: "Settings has no attr LITELLM_PROXY_ENABLED (adversarial scenario 4)"
+      verifier:
+        type: pytest
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_settings_has_no_litellm_proxy_enabled_attr"
+    - id: A2
+      description: "build_provider_service does not exist as function in router.py"
+      verifier:
+        type: bash
+        cmd: "! grep -q 'def build_provider_service' backend/src/shared/infrastructure/llm/router.py"
+    - id: A3
+      description: "Anti-flip-audit Step 4 commit body present (## Tests audited + ## Path old/new + ## Verification + ## Inventory updated)"
+      verifier:
+        type: bash
+        cmd: "git log -1 --format=%B | grep -c '^## ' | awk '{exit($1>=4)?0:1}'"
+    - id: A4
+      description: "Inventory updated in .claude/rules/anti-default-flip-audit.md (LITELLM_PROXY_ENABLED row removed + footnote added)"
+      verifier:
+        type: bash
+        cmd: "! grep -q '| \\`LITELLM_PROXY_ENABLED\\`' .claude/rules/anti-default-flip-audit.md && grep -q 'removed PI-12 S1' .claude/rules/anti-default-flip-audit.md"
+
+  quality_gates:
+    - "Native lint clean"
+    - "/test-backend completo verde with NO LITELLM_PROXY_ENABLED references"
+    - "Arch fitness 79/79 PASS (or current baseline + 3 new T8 assertions)"
+    - "Anti-flip-audit Step 5 inventory update verified by auditor Cat 14"
+
+  depends_on: ["T-4", "T-7"]
+  blocks: ["T-6a", "T-8"]
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T6a:
+  id: T-6a
+  title: "Migration deprecation tenant API keys (Phase 1 expand-contract: NULL + code stops reading)"
+  type: backend
+  surface: DB+BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 3
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/backend-migrations.md"
+      - ".claude/rules/backend-ddd.md"
+      - ".claude/rules/tenant-isolation.md"
+    tessl_skills: ["tessl__fastapi"]
+    domain_skills: ["backend-expert"]
+
+  deliverables:
+    - "NEW backend/alembic/versions/XXXX_deprecate_tenant_provider_api_keys.py — UPDATE tenants SET 4 cols = NULL WHERE non-null; downgrade no-op (cannot restore ephemeral keys)"
+    - "MODIFY backend/src/modules/iam/domain/tenant.py — Pydantic Field(default=None, deprecated=True, exclude=True) for openai_api_key/deepseek_api_key/kimi_api_key/dashscope_api_key; gemini_api_key UNCHANGED"
+    - "MODIFY backend/src/modules/iam/api/settings.py — TenantResponseDTO drops 4 deprecated fields from response_model; gemini_api_key retained"
+    - "MODIFY backend/src/shared/infrastructure/llm/factory.py — _extract_tenant_key returns None for the 4 deprecated providers (gemini still reads)"
+    - "MODIFY backend/src/modules/iam/infrastructure/repositories/tenant_repository.py — stop assigning to deprecated cols on create/update (read-side: use getattr with default None for backwards compat)"
+    - "NEW backend/tests/modules/iam/test_T6a_deprecate_tenant_api_keys.py — 4 tests (post-migration NULL count, factory returns None, DTO excludes 4 fields, repo create/update no longer writes)"
+
+  out_of_scope:
+    - "DROP COLUMN (T-6c — after T-6b operational verify)"
+    - "Flag deletion (T-5 — must PRECEDE this)"
+
+  acceptance:
+    - id: A1
+      description: "Post-migration, 0 tenants with non-NULL deprecated API keys"
+      verifier:
+        type: pytest
+        path: "backend/tests/modules/iam/test_T6a_deprecate_tenant_api_keys.py::test_post_migration_zero_non_null"
+    - id: A2
+      description: "factory._extract_tenant_key returns None for 4 deprecated providers"
+      verifier:
+        type: pytest
+        path: "backend/tests/modules/iam/test_T6a_deprecate_tenant_api_keys.py::test_factory_returns_none_for_deprecated_providers"
+    - id: A3
+      description: "TenantResponseDTO Pydantic schema does not include 4 deprecated fields (gemini_api_key retained)"
+      verifier:
+        type: pytest
+        path: "backend/tests/modules/iam/test_T6a_deprecate_tenant_api_keys.py::test_dto_excludes_deprecated_fields"
+    - id: A4
+      description: "Migration idempotent (run 2x no error)"
+      verifier:
+        type: bash
+        cmd: "docker exec visionarias_brain_dev alembic upgrade head && docker exec visionarias_brain_dev alembic upgrade head"
+
+  quality_gates:
+    - "Migration tested in clone DB"
+    - "Native lint clean"
+    - "Tenant isolation tests pass (no regression)"
+    - "Coverage iam module not regressed"
+
+  depends_on: ["T-5"]
+  blocks: ["T-6b"]
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T6b:
+  id: T-6b
+  title: "DEPLOY-AND-VERIFY 1-sprint zero-read window (operational gate, NOT code)"
+  type: ops
+  surface: OPS
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: false
+    pm_required: true
+  priority: 1
+  estimate_hours: 0
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+
+  deliverables:
+    - "T-6a code merged + deployed to prod (verify in pase-produccion log)"
+    - "Min 1 full sprint elapsed OR 5 working days + Chris ratification"
+    - "Streamlit /admin/tenants verifies 0 non-NULL across 4 deprecated cols over verification window (daily check)"
+    - "Structured log query confirms 0 reads from factory _extract_tenant_key for 4 deprecated providers (Datadog / structlog aggregation across window)"
+    - "Smoke test prod: tenant create/update flow PASS sin referencing 4 cols"
+    - "PM /pm sign-off in checkpoint.md before T-6c starts"
+
+  out_of_scope:
+    - "Code changes (none)"
+    - "T-6c DROP COLUMN execution"
+
+  acceptance:
+    - id: A1
+      description: "T-6a deployment verified in pase-produccion log"
+      verifier:
+        type: manual
+        cmd: "PM checks deploy log + ratifies in checkpoint.md"
+    - id: A2
+      description: "5+ working days elapsed OR Chris ratification documented"
+      verifier:
+        type: manual
+        cmd: "checkpoint.md timestamp diff or Chris note"
+    - id: A3
+      description: "0 non-NULL across 4 deprecated cols over window (daily Streamlit check)"
+      verifier:
+        type: bash
+        cmd: "PM runs SELECT COUNT(*) query daily; documents in checkpoint.md"
+    - id: A4
+      description: "0 reads from factory for deprecated providers in structured logs"
+      verifier:
+        type: manual
+        cmd: "PM queries structlog aggregator; documents in checkpoint.md"
+
+  quality_gates:
+    - "PM ratification in checkpoint.md"
+    - "Datadog dashboard 0 read events for deprecated providers"
+
+  depends_on: ["T-6a"]
+  blocks: ["T-6c"]
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T6c:
+  id: T-6c
+  title: "Migration DROP COLUMN tenant API keys (Phase 3 expand-contract: physical removal)"
+  type: migration
+  surface: DB+BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 2
+  estimate_hours: 2
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/backend-migrations.md"
+      - ".claude/rules/backend-ddd.md"
+    tessl_skills: []
+    domain_skills: ["backend-expert"]
+
+  deliverables:
+    - "NEW backend/alembic/versions/XXXX_drop_tenant_provider_api_keys.py — ALTER TABLE tenants DROP COLUMN IF EXISTS for each of openai_api_key/deepseek_api_key/kimi_api_key/dashscope_api_key; downgrade ADD COLUMN IF NOT EXISTS"
+    - "MODIFY backend/src/modules/iam/infrastructure/models/tenant_model.py — REMOVE 4 Column declarations (lines 33-37 except gemini_api_key)"
+    - "MODIFY backend/src/modules/iam/domain/tenant.py — REMOVE 4 deprecated Pydantic Field declarations"
+    - "MODIFY backend/src/modules/iam/infrastructure/repositories/tenant_repository.py — REMOVE all references to 4 deprecated cols (lines 45-49, 66-70 minus gemini)"
+    - "MODIFY backend/src/shared/infrastructure/llm/factory.py — REMOVE _extract_tenant_key method entirely; simplify get_service_for_tenant to use platform router (factor out gemini_api_key handling separately if needed)"
+    - "NEW backend/tests/modules/iam/test_T6c_drop_tenant_api_keys.py — verify cols dropped, code references removed, factory simplified"
+
+  out_of_scope:
+    - "T-6b operational gate"
+
+  acceptance:
+    - id: A1
+      description: "ALTER TABLE DROP COLUMN idempotent (2x upgrade no error)"
+      verifier:
+        type: bash
+        cmd: "docker exec visionarias_brain_dev alembic upgrade head && docker exec visionarias_brain_dev alembic upgrade head"
+    - id: A2
+      description: "Post-deploy, \\d tenants does not show 4 dropped cols (gemini_api_key retained)"
+      verifier:
+        type: bash
+        cmd: "docker exec visionarias_postgres_dev psql -U postgres -d visionarias -c '\\d tenants' | grep -v -E 'openai_api_key|deepseek_api_key|kimi_api_key|dashscope_api_key' && docker exec visionarias_postgres_dev psql -U postgres -d visionarias -c '\\d tenants' | grep -q 'gemini_api_key'"
+    - id: A3
+      description: "factory.LLMFactory._extract_tenant_key method does not exist"
+      verifier:
+        type: bash
+        cmd: "! grep -q 'def _extract_tenant_key' backend/src/shared/infrastructure/llm/factory.py"
+    - id: A4
+      description: "pytest backend/tests/modules/iam/ -x -q PASS"
+      verifier:
+        type: bash
+        cmd: "cd backend && .venv/bin/pytest tests/modules/iam/ -x -q"
+
+  quality_gates:
+    - "Migration tested in clone DB pre-deploy"
+    - "Native lint clean"
+    - "Coverage iam module not regressed"
+
+  depends_on: ["T-6b"]
+  blocks: []
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T7:
+  id: T-7
+  title: "Tests audit ~20 files: migrate per-provider mocks → LiteLLMService mock + delete obsolete legacy-path tests"
+  type: backend
+  surface: BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 6
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/anti-default-flip-audit.md"
+      - ".claude/rules/tdd-mandatory.md"
+    tessl_skills: ["tessl__pytest-api-testing"]
+    domain_skills: ["backend-expert", "sales-agent-expert", "copilot-expert"]
+
+  deliverables:
+    - "DELETE backend/tests/shared/infrastructure/llm/test_openai_compat_providers.py (entire file — adapters gone)"
+    - "DELETE class TestLegacyDispatch in backend/tests/shared/infrastructure/llm/test_provider_routing.py (legacy path gone)"
+    - "SIMPLIFY backend/tests/shared/infrastructure/llm/test_router_litellm_dispatch.py — drop test that monkeypatches LITELLM_PROXY_ENABLED=False; keep LiteLLM-only dispatch assertions"
+    - "AUDIT backend/tests/shared/infrastructure/llm/test_chat_model_resolver.py — if _chat_model_resolver.py deleted in T-4, DELETE this test file too; else retain"
+    - "RETAIN backend/tests/shared/infrastructure/llm/test_kwargs_normalization.py (LiteLLMService still uses _kwargs.py)"
+    - "MIGRATE backend/tests/modules/copilot/test_deep_agent_factory_wire.py — replace OpenAIService/KimiService mocks with LiteLLMService.generate_response mock"
+    - "MIGRATE backend/tests/modules/sales_agent/test_specialist_provider_routing.py — replace per-provider mocks with LiteLLMService mock; drop test cases that asserted per-provider class identity"
+    - "MIGRATE ~17 other test files mocking OpenAIService/KimiService/DeepSeekService/QwenService/GeminiService — pattern: @patch('src.shared.infrastructure.llm.providers.{X}.{Class}.generate_response') → @patch('src.shared.infrastructure.llm.providers.litellm.LiteLLMService.generate_response')"
+    - "VERIFY post-T7: 0 test files import from deleted adapter modules"
+
+  out_of_scope:
+    - "Adapter file deletion (T-4 — happens AFTER this ticket)"
+    - "Flag deletion (T-5 — happens AFTER this ticket)"
+
+  acceptance:
+    - id: A1
+      description: "0 test files import from deleted adapter modules"
+      verifier:
+        type: bash
+        cmd: "! grep -rln 'from src.shared.infrastructure.llm.providers.\\(openai\\|deepseek\\|kimi\\|qwen\\|gemini\\|_openai_compat\\)' backend/tests/"
+    - id: A2
+      description: "pytest backend/ -x -q PASS pre-T-4 (with adapter files still present, but mocks targeting LiteLLMService)"
+      verifier:
+        type: bash
+        cmd: "cd backend && .venv/bin/pytest -x -q --tb=short"
+    - id: A3
+      description: "Coverage backend ≥43% maintained (no regression from mock migration)"
+      verifier:
+        type: bash
+        cmd: "cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q | grep -E 'TOTAL.*[4-9][3-9]%|TOTAL.*[5-9][0-9]%'"
+    - id: A4
+      description: "Anti-flip-audit Step 4 commit body lists tests deleted vs migrated"
+      verifier:
+        type: bash
+        cmd: "git log -1 --format=%B | grep -E '^- (DELETED|MIGRATED|RETAINED) ' | wc -l | awk '{exit($1>0)?0:1}'"
+
+  quality_gates:
+    - "Native lint clean"
+    - "/test-backend full suite verde"
+    - "No tests still mock LITELLM_PROXY_ENABLED=False (search returns 0)"
+
+  depends_on: ["T-1"]
+  blocks: ["T-4", "T-5"]
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T8:
+  id: T-8
+  title: "Arch fitness: KNOWN_LEGACY_LLM_FILES = set() + 3 explicit forbidden-import assertions"
+  type: backend
+  surface: BE
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 2
+  estimate_hours: 2
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/architectural-fitness.md"
+      - ".claude/rules/tdd-mandatory.md"
+    tessl_skills: []
+    domain_skills: ["backend-expert"]
+
+  deliverables:
+    - "MODIFY backend/tests/architecture/test_llm_routing_ssot.py — KNOWN_LEGACY_LLM_FILES already empty; harden with new explicit tests"
+    - "ADD test_no_legacy_adapter_imports — scans src/ + tests/ for forbidden imports of 6 deleted adapters; FAILS with violation list"
+    - "ADD test_known_legacy_files_set_is_empty — assert KNOWN_LEGACY_LLM_FILES == set() (ratchet shrink-only enforcement)"
+    - "ADD test_settings_has_no_litellm_proxy_enabled_attr — verify Settings class no longer has the flag attribute"
+    - "MODIFY existing test_router_dispatches_via_litellm_only — strip LITELLM_PROXY_ENABLED references in docstring + assertion (path is now LiteLLM-only without flag check)"
+
+  out_of_scope:
+    - "Adapter deletion (T-4 — must PRECEDE)"
+    - "Flag deletion (T-5 — must PRECEDE)"
+
+  acceptance:
+    - id: A1
+      description: "test_no_legacy_adapter_imports PASS post-cleanup"
+      verifier:
+        type: pytest
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_no_legacy_adapter_imports"
+    - id: A2
+      description: "test_known_legacy_files_set_is_empty PASS"
+      verifier:
+        type: pytest
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_known_legacy_files_set_is_empty"
+    - id: A3
+      description: "test_settings_has_no_litellm_proxy_enabled_attr PASS"
+      verifier:
+        type: pytest
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_settings_has_no_litellm_proxy_enabled_attr"
+    - id: A4
+      description: "Tests FAIL when re-introducing legacy import (verify via temp test fixture)"
+      verifier:
+        type: pytest
+        path: "backend/tests/architecture/test_llm_routing_ssot.py::test_violation_detection_works"
+
+  quality_gates:
+    - "Native lint clean"
+    - "Arch fitness 79/79 PASS (or +3 new = 82/82)"
+    - "No regression in existing arch tests"
+
+  depends_on: ["T-4", "T-5"]
+  blocks: ["T-9"]
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T9:
+  id: T-9
+  title: "Documentation purge: llm-routing.md + tech_module_shared.md + 2 docstrings"
+  type: docs
+  surface: DOCS
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 3
+  estimate_hours: 2
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules:
+      - ".claude/rules/spanish-text.md"
+    tessl_skills: []
+    domain_skills: ["backend-expert"]
+
+  deliverables:
+    - "MODIFY docs/domains/llm-routing.md — DELETE 'Capa 5 — LiteLLM Proxy (rollback)' section; reescribir 'LiteLLM Proxy = canonical único'; ADD new section 'CustomLogger pattern (cost recorder)' documenting bridge LangChain↔LiteLLM + TTL cache pattern"
+    - "MODIFY docs/domains/tech_module_shared.md — REMOVE LITELLM_PROXY_ENABLED references + legacy adapter list"
+    - "MODIFY backend/src/modules/sales_agent/domain/model_tier.py:30 — DROP docstring refs to KimiService/OpenAIService/DeepSeekService/QwenService/GeminiService classes"
+    - "MODIFY backend/src/modules/sales_agent/application/agents/sales/nodes.py:192 — DROP same docstring refs"
+    - "ADD docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization/learnings.md — capture decisions (CostRecorderCustomLogger NEW class justification, T6b operational gate rationale, A3 gemini audit results)"
+    - "UPDATE docs/product/modules/sales-agent.md § 'LLM routing' — LiteLLM-only post-cleanup (PM ratifies in 07-merge.md)"
+
+  out_of_scope:
+    - "Code changes"
+
+  acceptance:
+    - id: A1
+      description: "docs/domains/llm-routing.md no menciona LITELLM_PROXY_ENABLED ni rollback"
+      verifier:
+        type: bash
+        cmd: "! grep -E 'LITELLM_PROXY_ENABLED|rollback' docs/domains/llm-routing.md"
+    - id: A2
+      description: "Docstrings legacy refs removed from sales_agent files"
+      verifier:
+        type: bash
+        cmd: "! grep -E 'KimiService|DeepSeekService|OpenAIService|QwenService|GeminiService' backend/src/modules/sales_agent/domain/model_tier.py backend/src/modules/sales_agent/application/agents/sales/nodes.py"
+    - id: A3
+      description: "New 'CustomLogger pattern' section exists in llm-routing.md"
+      verifier:
+        type: bash
+        cmd: "grep -q '## CustomLogger pattern' docs/domains/llm-routing.md"
+    - id: A4
+      description: "Spanish neutro LATAM verified in new docs (no voseo)"
+      verifier:
+        type: bash
+        cmd: "! grep -E '\\b(podés|tenés|querés|hacés|venís|mirá|dejá|usá)\\b' docs/domains/llm-routing.md docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization/learnings.md"
+
+  quality_gates:
+    - "Native lint clean (markdown + ruff for Python file changes)"
+    - "All cross-references valid (no dead links)"
+    - "PM ratifies docs/product/modules/sales-agent.md update in 07-merge.md"
+
+  depends_on: ["T-8"]
+  blocks: []
+  transitions:
+    - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
