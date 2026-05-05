@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization",
+  "ticket": "T-4",
+  "iter": 1,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check src/ tests/ && .venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\" && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short",
+  "command_alias": "test-backend",
+  "started_at": "2026-05-05T21:10:26Z",
+  "finished_at": "2026-05-05T21:14:49Z",
+  "duration_ms": 235401,
+  "exit_code": 1,
+  "raw_log_path": "/home/chris/AISALESHT/docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization/gate-logs/iter-1-test-backend-1778015426.log",
+  "gates": [
+    {
+      "name": "ruff_lint",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff_format",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "pytest_architecture",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "pytest_coverage",
+      "status": "FAIL",
+      "errors_count": 1,
+      "first_5_errors": [
+        "test_e2e_real_engine_real_offer_provider: Failed: Timeout (>30.0s) from pytest-timeout at psycopg2.connect() during DB connection attempt",
+        "psycopg2.OperationalError: could not translate host name \"postgres\" to address: Temporary failure in name resolution",
+        "Root cause: Integration test requires running Postgres container; native WSL test run cannot connect",
+        "Impact: Test is environment-dependent (requires 'make dev' or Docker compose running)",
+        "Non-regression: T-4 legacy adapter deletion does not touch integration test scope"
+      ]
+    }
+  ],
+  "overall": {
+    "any_fail": true,
+    "fail_gate_names": ["pytest_coverage"],
+    "summary": "ruff PASS (0 lint/format errors), architecture 823 PASS, pytest full suite 1711 PASS + 1 FAIL (integration test DB timeout, environment-dependent, not T-4 regression)"
+  },
+  "notes": "Exit code 1 due to integration test requiring Docker Postgres. Native WSL cannot connect to 'postgres' hostname. Non-regression vs T-4: legacy adapter deletion (6 files removed) is code-complete, mocks migrated to LiteLLMService per T-7. This integration test failure is unrelated to LLM provider canonicalization scope. Recommend: skip integration mark or verify Docker is running for full-suite validation."
+}

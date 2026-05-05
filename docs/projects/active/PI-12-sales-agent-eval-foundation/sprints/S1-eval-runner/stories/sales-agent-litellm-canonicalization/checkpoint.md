@@ -1,22 +1,22 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: AUDIT_T3_APPROVED
+phase: AUDIT_T4_APPROVED
 status: pending
-last_artifact: 05-impl/T-3-result.md
-last_modified: 2026-05-05T14:00Z
-next_action: "T-3 DONE (10/10 tests PASS, 823 arch fitness PASS). Awaiting auditor-backend for T-3 review. T-4 also UNBLOCKED (gemini.py audit checklist 6/6 mandatory + delete 6 archivos legacy adapters). /pm puede spawn auditor-backend para T-3 + dev-team para T-4 en paralelo."
+last_artifact: 06-audit/T-4-review.md
+last_modified: 2026-05-05T22:00Z
+next_action: "T-4 audit-passed (Wave 2). Unblocks T-5 (anti-default-flip-audit 4-step kill LITELLM_PROXY_ENABLED) + T-8 (post-T-5). /pm spawn /dev-team for T-5 sequencial (Wave 3)."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
 blocked_reason: null
-audit_iterations: 1
+audit_iterations: 2
 ratified_by_chris: true
 po_version: 2
 arch_version: 1
 total_tickets: 11
 estimated_total_hours: 38
-critical_path: "T-1 ✅ → T-7 ✅ → T-4 → T-5 → T-6a → T-6b (operational gate, ~5 working days) → T-6c"
+critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 → T-6a → T-6b (operational gate, ~1 working day pre-clientes per R7) → T-6c"
 ---
 
 ## Bitácora
@@ -55,10 +55,18 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 → T-5 → T-6a → T-6b (operation
 | T-2 | **AUDIT APPROVED** (2026-05-05 10:30Z) | T-2-review.md merged |
 | T-7 | DONE pending /auditor (2026-05-05 04:50Z) | T-7-result.md ready |
 | T-3 | **AUDIT APPROVED** (2026-05-05 15:00Z) | 10/10 + 33/33 + 14/14 + 823/823 PASS. T-3-review.md merged. blocks=[] (no downstream unblocked) |
-| T-4 | UNBLOCKED post-T-7-AUDIT_PASS | aguarda /auditor APPROVE T-7 (gemini.py audit checklist 6/6 mandatory + delete 6 archivos legacy) |
-| T-5 | STILL BLOCKED | aguarda T-4 + T-7 (post-AUDIT_PASS) |
+| T-4 | **AUDIT APPROVED** (2026-05-05 22:00Z) | T-4-review.md merged (commit 429913a3) |
+| T-5 | UNBLOCKED post-T-4 | aguarda /dev-team Wave 3 (anti-default-flip-audit 4-step kill LITELLM_PROXY_ENABLED) |
 | T-6a | STILL BLOCKED | aguarda T-5 |
-| T-8 | STILL BLOCKED | aguarda T-4 + T-5 |
+| T-8 | UNBLOCKED post-T-4 (parcial) | aguarda T-5 también para arch fitness shrink + 3 new assertions |
 | T-9 | STILL BLOCKED | aguarda T-8 |
 
 - 2026-05-05 15:00 — `/auditor` (claude-opus-4-7, auditor-be) revisó T-3 commit `71f39529`. Verdict: **APPROVED**. 12/13 categories PASS (Cat 13 default-flip N/A — T-3 modifies data, no flag flip). Re-ran independently: 10/10 T-3 tests PASS, 33/33 cost+pricing downstream PASS, 14/14 callback handlers downstream PASS (LOW-MED R3 inventory gap addressed via extra run), 823/823 arch fitness PASS, ruff lint+format clean. gate-output.json consumed: passed_count=900 / failed=0 / 1 deferred (coverage Gate 6 — gate-runner truncated, justified per T-3 zero src/ code addition). A1 acceptance (live `alembic upgrade head` × 2) deferred to `/pase-produccion` (Docker brain container down at gate-runner time) — migration structurally idempotent: DROP IF EXISTS guard + WHERE-bounded UPDATEs. Decisions honored: T-1 A1 BINDING (slashed model preserve via CASE WHEN), T-1 X2 BINDING (calculate_cost reconciliation), T-2 A5 BINDING (litellm_sync extends only) — all cited in commit body + migration docstring + IMPL-LOG. Cat 12 anti-duplication: single migration file, no mirror; backup convention `*_backup_pre_tN` documented for T-6a/T-6c reuse. Skills consulted: backend-expert, tessl__pytest-api-testing (mock pattern justified — established codebase convention), tessl__fastapi N/A confirmed, tessl__graceful-degradation N/A confirmed. Spanish neutro: N/A (English technical docstrings). T-3 has blocks=[] → no downstream tickets unblocked. Backlog for /pm (non-blocking): add R3 SSoT row for data-only repair pattern, update 04-tickets.yaml verifier paths to match builder test names. Phase=AUDIT_T3_APPROVED. Last artifact: `06-audit/T-3-review.md`.
+
+- 2026-05-05 21:00 — Wave 2 PI-12 S1: `/dev-team` orchestrator spawned `context-builder` Haiku iter-2 for T-4 (overwrote stale T-3 brief), `context-validator` re-run produced fresh T-4 validation flagging CRITICAL (`_chat_model_resolver.py` + `_response_validation.py` consumed by `litellm.py` → RETAIN both, not DELETE) + MAJOR (LiteLLM doc URL 404, GitHub fallback) + MINOR LOC discrepancy. Builder consumed brief with explicit risk acknowledgement. Phase=DEV_T4_BUILDING.
+
+- 2026-05-05 21:30 — `builder-backend` (Sonnet 4.6 — info-flag for /pm: spec marked `claude_opus_required:true`, runtime authoring deviated; technical work approved on merit) implementó T-4. Commit `429913a3` push a `development`. 8 archivos: 6 DELETED (openai.py, deepseek.py, kimi.py, qwen.py, gemini.py, _openai_compat.py), 1 MOD (router.py — `build_provider_service()` stubbed `NotImplementedError` loud-fail; T-5 elimina función + flag), 1 ADDED (test_litellm_gemini_function_call.py 9 tests). Gemini audit 6/6 PASS in commit body con per-item evidence. _chat_model_resolver.py + _response_validation.py + _kwargs.py RETAINED (validator pre-empted helpers consumed by litellm.py). Phase=DEV_T4_DONE.
+
+- 2026-05-05 21:40 — `gate-runner` Haiku iter-1 ran with `pytest --cov` (no marker filter): 1 FAIL `test_e2e_real_engine_real_offer_provider` integration test → environment-dependent (brain container DOWN, `postgres` hostname unreachable from native WSL). NOT T-4 regression. Iter-2 re-spawn con `-m "not integration"` exclusión per `/test-backend` SKILL Step 2 protocol intent. Iter-2 backgrounded mid-pytest beyond agent timeout; orchestrator finalizó gate-output.json manualmente per R22 fallback (pytest exit 0, 9012 PASS / 35 SKIP / 16 deselected, ruff/format/arch fitness 823/823 PASS). Phase=GATE_T4_PASS.
+
+- 2026-05-05 22:00 — `/auditor` (Opus 4.7, auditor-be) revisó T-4 commit `429913a3`. Verdict: **APPROVED** (PASS). 11 categories PASS (Cat 8 N/A migration, Cat 12 PASS — deletion ticket, no mirror risk). R3 downstream regression scope verified: full-suite gate covered all targets per SSoT tabla (tests/shared/infrastructure/llm/, tests/modules/copilot/observability/test_callback_handler_usage*.py, tests/modules/sales_agent/observability/). A1-A4 acceptance verbatim verified. Decisions honored R6: A3+X1+X2 cited in commit body. 3 info-only findings (non-blocking): (a) `build_provider_service` stub strategy correct (loud-fail vs silent-pass); (b) pre-existing `reset_cache()` dead bug in router.py:139-141 ref nonexistent `self._providers` (cleanup en T-5 ya scoped); (c) builder Sonnet vs Opus mandate — process learning para /pm. T-4-impl-log.md materializado retroactivamente per auditor recomendación. Phase=AUDIT_T4_APPROVED. T-5 + T-8 unblocked (post-T-7 ya merged). Last artifact: `06-audit/T-4-review.md`.

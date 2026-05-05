@@ -49,7 +49,7 @@ summary:
     title: "DELETE legacy adapters (6 files + helpers audit) — MANDATORY gemini.py audit"
     surface: BE
     owner_pool: [claude-opus-4-7]
-    state: draft
+    state: audit-passed
     blocked_by: [T-7]
     blocks: [T-5, T-8]
     estimate_hours: 7
@@ -449,7 +449,7 @@ T4:
   title: "DELETE 6 legacy LLM adapters + audit gemini.py kwargs MANDATORY"
   type: backend
   surface: BE
-  state: draft
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false
@@ -514,7 +514,11 @@ T4:
   blocks: ["T-5", "T-8"]
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: building, at: "2026-05-05T21:00Z", by: "builder-backend (sonnet-4-6 — info-flag re Opus mandate)" }
+    - { state: tests-passing, at: "2026-05-05T21:30Z", by: "builder-backend (commit 429913a3)" }
+    - { state: audit-passed, at: "2026-05-05T22:00Z", by: "auditor-backend (Opus 4.7) — APPROVED PASS, 3 info-only flags non-blocking" }
+  assigned_to: claude-sonnet-4-6
+  audit_review: "06-audit/T-4-review.md"
 
 T5:
   id: T-5

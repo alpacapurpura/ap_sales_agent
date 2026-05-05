@@ -29,7 +29,7 @@ summary:
     title: "TrajectorySpy callback + artifacts writer (sanitize_payload)"
     surface: AGENTIC
     owner_pool: [claude-opus]
-    state: draft
+    state: audit-passed
     blocked_by: [T-2]
     blocks: [T-4, T-5]
   - id: T-4
@@ -181,7 +181,7 @@ tickets:
     title: "TrajectorySpy LangChain callback handler + artifacts writer (sanitize_payload reused)"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -243,7 +243,11 @@ tickets:
     blocks: ["T-4", "T-5"]
     transitions:
       - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
-    assigned_to: null
+      - { state: building, at: "2026-05-05T21:00Z", by: "builder-agentic (Opus 4.7)" }
+      - { state: tests-passing, at: "2026-05-05T21:30Z", by: "builder-agentic (commit 555c81c1)" }
+      - { state: audit-passed, at: "2026-05-05T22:00Z", by: "auditor-agentic (Opus 4.7) — APPROVED PASS" }
+    assigned_to: claude-opus-4-7
+    audit_review: "06-audit/T-3-review.md"
 
   - id: T-4
     title: "Multi-layer assertion library (trajectory + tool_calls + output + cost + latency + Story-7 placeholder)"

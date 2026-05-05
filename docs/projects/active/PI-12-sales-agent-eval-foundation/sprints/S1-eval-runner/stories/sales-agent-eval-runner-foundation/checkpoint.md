@@ -1,16 +1,17 @@
+<!-- voseo-allowed: bitácora cites voseo glosario verbatim per fixtures/tenant.py:158 cleanup audit trail (R25 magic comment escape) -->
 ---
 level: story
 id: sales-agent-eval-runner-foundation
-phase: AUDIT_T2_APPROVED
+phase: AUDIT_T3_APPROVED
 status: in-progress
-last_artifact: 06-audit/T-2-review.md
-last_modified: 2026-05-05T00:30:00Z
-next_action: "/dev-team toma T-3 (TrajectorySpy + artifacts writer); controller pushea T-2 commits coordinado con Story A T-2"
+last_artifact: 06-audit/T-3-review.md
+last_modified: 2026-05-05T22:00Z
+next_action: "T-3 audit-passed (Wave 2). Unblocks T-4 (multi-layer assertion library). /pm spawn /dev-team for T-4 (Wave 4 paralelo con Story A T-6a)."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
 blocked_reason: null
-audit_iterations: 1
+audit_iterations: 2
 ratified_by_chris: true
 po_version: 2
 ---
@@ -47,4 +48,12 @@ po_version: 2
 
 ## Próximo paso
 
-`/auditor` revisa T-2. Verdict esperado APPROVED iter 1. Tras audit-passed → controller pushea commit T-2 (coordinado con Story A T-2 paralelo); luego `/dev-team` toma T-3 (TrajectorySpy LangChain callback + artifacts writer con sanitize_payload). T-3 owner = Opus 4.7 (AGENTIC). Anti-duplication §0 enforce: spy = composition over subclass del `BaseAgentCallbackHandler`.
+T-3 audit-passed. T-4 UNBLOCKED (multi-layer assertion library + langdetect lazy). `/dev-team` toma T-4 en Wave 4 (paralelo con Story A T-6a). Owner Opus 4.7 (AGENTIC story).
+
+- 2026-05-05 21:00 — Wave 2 PI-12 S1: `/dev-team` orchestrator spawned `context-builder` Haiku (clean faithfulness, 16/16 sections). Phase=DEV_T3_BUILDING.
+
+- 2026-05-05 21:30 — `builder-agentic` (Opus 4.7) implementó T-3. Commit `555c81c1` push a `development`. 8 archivos: NEW `runner/trajectory_spy.py` (213 LOC TrajectorySpy extends `langchain_core.callbacks.BaseCallbackHandler` — composition over subclass per anti-duplication §0), NEW `runner/artifacts.py` (109 LOC `write_run_artifacts` — `sanitize_payload` REUSE verbatim from shared, NO mirror), MOD `fixtures/entrypoint.py` (compose spy onto `RunnableConfig.callbacks` list), MOD `fixtures/tenant.py` (Step 0 voseo cleanup line 158 `Configurá voz...guardá` → `Configura la voz...guarda`), MOD `test_eval_runner_fixtures.py` (+11 meta-tests), 3 DOCS (impl-log + brief + validation). WARN cleanup folded Step 0: F632 + voseo lines 101/127/133 verified clean by builder. Anti-duplication grep evidence: 0 matches `BaseAgentCallbackHandler` / `sanitize_payload` mirror / `FXResolver` / `PricingResolver` / `TurnEnvelope` en `tests/agentic_evals/sales_agent/runner/`. Best-effort try/except spy callbacks (won't break agent_app.ainvoke). 21/21 default-suite PASS, 4 eval-marked SKIP (deferred Story B T-5), 200/200 downstream observability PASS (zero regression), 823/823 arch fitness PASS. Decisions honored B1-B7 cited en commit body. Phase=DEV_T3_DONE.
+
+- 2026-05-05 21:40 — `gate-runner` (compartido con Story A T-4 — single full-suite cubre HEAD 4a5d57a2 ambos commits). gate-output.json finalizado manualmente per R22 fallback: any_fail=false, 4 gates PASS (lint/format/arch-823/coverage-9012), 1 DEFERRED (eval-marker → Story B T-5 smoke real-LLM gate per ticket plan). Phase=GATE_T3_PASS.
+
+- 2026-05-05 22:00 — `/auditor` (Opus 4.7, auditor-agentic) revisó T-3 commit `555c81c1`. Verdict: **APPROVED**. Cat 13 mirror detection CRITICAL PASS — anti-duplication §0 satisfied at 4 layers (lexical grep + AST walk + type-system `not issubclass` + commit body declaration). Cat 15 decisions honored R6 PASS — B1-B7 cited verbatim, each tied a file:line evidence. Cat 5 observability + Cat 11 DDD: production handler runs first (DB writes), spy second (in-memory). Best-effort try/except + structlog warning every callback. Zero src/modules ni src/shared touch — read-only consumer. Skills consultados: copilot-expert + sales-agent-expert + tessl__langgraph + tessl__graceful-degradation. R3 downstream N/A (test-only paths). Cero CROSS-SCOPE flags. Phase=AUDIT_T3_APPROVED. T-4 unblocked. Last artifact: `06-audit/T-3-review.md`.
