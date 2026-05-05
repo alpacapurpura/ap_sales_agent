@@ -26,6 +26,8 @@ from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatGeneration, LLMResult
 from sqlalchemy.orm import sessionmaker
 
+from tests.conftest import prime_cost_bridge
+
 
 @pytest.fixture
 def db(db_engine):
@@ -122,12 +124,24 @@ class TestUsageFallbacksFromResponseMetadata:
         )
 
         handler = _make_handler(db)
+
+        # Bridge setup (PI-12 S1 T-1.bis):
+        # Post-T1 cost_usd comes from pop_cost(litellm_call_id) not from
+        # calculate_cost().  Stash the expected cost so the handler retrieves
+        # it during on_llm_end.  The expected value matches what the pricing
+        # snapshot would compute: 4277 * 6e-7 + 239 * 25e-7 = 0.0031637.
+        call_id = str(uuid4())
+        expected_cost = Decimal("0.0031637000")
+        prime_cost_bridge(call_id, expected_cost)
+
         # OpenAI-compat providers (Moonshot, DeepSeek) typically populate
         # ``response_metadata.token_usage`` with the raw OpenAI ``usage``
         # block. ``usage_metadata`` is left untouched in those clients.
+        # ``litellm_call_id`` is injected so the bridge can retrieve the cost.
         msg = _ai_message_no_usage(
             response_metadata={
                 "model_name": "kimi-k2.6",
+                "litellm_call_id": call_id,
                 "token_usage": {
                     "prompt_tokens": 4277,
                     "completion_tokens": 239,
@@ -146,9 +160,9 @@ class TestUsageFallbacksFromResponseMetadata:
         assert len(rows) == 1
         assert rows[0].input_tokens == 4277
         assert rows[0].output_tokens == 239
-        # Pricing matches ``_pricing_snapshot``: 4277 * 6e-7 + 239 * 25e-7
-        # = 0.00256620 + 0.00059750 = 0.00316370.
-        assert rows[0].cost_usd == Decimal("0.0031637000")
+        # Cost bridged from LiteLLM cost recorder (pop_cost); value equals what
+        # the pricing snapshot would compute: 4277 * 6e-7 + 239 * 25e-7 = 0.0031637.
+        assert rows[0].cost_usd == expected_cost
 
     def test_cached_tokens_from_response_metadata_propagate(self, db) -> None:
         from src.modules.copilot.observability.persistence.models.llm_call_model import (

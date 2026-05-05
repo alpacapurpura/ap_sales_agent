@@ -21,6 +21,14 @@ summary:
     state: draft
     blocks: [T-2, T-3, T-7]
     estimate_hours: 5
+  - id: T-1.bis
+    title: "Test bridge migration — 2 callback-handler tests need litellm_call_id stash to assert cost_usd > 0 post-T1"
+    surface: BE
+    owner_pool: [claude-opus-4-7]
+    state: ready
+    blocked_by: [T-1]
+    blocks: []
+    estimate_hours: 2
   - id: T-2
     title: "make sync-pricing — extends litellm_sync.py + drift detection + Makefile target"
     surface: BE
@@ -110,6 +118,7 @@ summary:
 # ── Detalle (uno por ticket) ─────────────────
 tickets:
   - $ref: "#/T1"
+  - $ref: "#/T1bis"
   - $ref: "#/T2"
   - $ref: "#/T3"
   - $ref: "#/T4"
@@ -199,6 +208,110 @@ T1:
   blocks: ["T-2", "T-3", "T-7"]
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
+  assigned_to: null
+
+T1bis:
+  id: T-1.bis
+  title: "Test bridge migration: 2 callback-handler tests assert cost_usd > 0 post-T1 LiteLLM CustomLogger architecture"
+  type: backend
+  surface: BE
+  state: ready
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 2
+
+  context: |
+    Origin: T-1 (commit 5856be4d) introduced LiteLLM CustomLogger bridge. cost_usd
+    is now bridged via `pop_cost(litellm_call_id)` instead of computed from pricing
+    snapshot at runtime (per acceptance A4 — "calculate_cost() NOT invoked from
+    BaseAgentCallbackHandler._persist_llm_call post-T1").
+
+    Symptom: 2 downstream tests (one in copilot/observability/, one in
+    sales_agent/observability/) mock LLMResult WITHOUT injecting
+    `litellm_call_id` in `response_metadata`. Result: `_extract_litellm_call_id`
+    returns None → `cost_usd = None` (else branch line 452-458). Tests assert
+    `cost_usd > 0` → FAIL with `TypeError: '>' not supported between NoneType
+    and int`.
+
+    Repro:
+    cd backend && .venv/bin/pytest \
+      tests/modules/copilot/observability/test_callback_handler_usage_fallbacks.py::TestUsageFallbacksFromResponseMetadata::test_response_metadata_token_usage_is_used \
+      tests/modules/sales_agent/observability/test_callback_handler.py::TestOnChatModelEnd::test_persists_row_with_sales_columns
+
+    Misdiagnosis in handoff doc: original handoff suggested fallback for
+    `litellm.get_llm_provider()` raising. Actual issue is downstream
+    (call_id bridge missing in test fixtures). Provider fallback ALREADY works
+    (try/except + hint fallback to "kimi" — visible in test stderr warnings).
+
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    files_to_modify:
+      - "backend/tests/modules/sales_agent/observability/test_callback_handler.py — TestOnChatModelEnd::test_persists_row_with_sales_columns: inject `litellm_call_id` in mock response_metadata + pre-stash cost via _stash() in test setup OR via fixture helper"
+      - "backend/tests/modules/copilot/observability/test_callback_handler_usage_fallbacks.py — TestUsageFallbacksFromResponseMetadata::test_response_metadata_token_usage_is_used: same"
+    files_to_check_for_same_pattern:
+      - "backend/tests/modules/copilot/observability/test_callback_handler*.py — grep for `_build_llm_response` or similar mock helpers, identify all tests asserting `cost_usd > 0` without bridging call_id"
+      - "backend/tests/modules/sales_agent/observability/test_callback_handler*.py — same"
+    rules:
+      - ".claude/rules/tdd-mandatory.md"
+      - ".claude/rules/auditor-downstream-regression.md"  # cost_recorder.py is in tabla SSoT — auditor MUST run downstream tests
+    tessl_skills: ["tessl__pytest-api-testing"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+
+  deliverables:
+    - "MODIFY 2 test files (sales_agent + copilot) to bridge cost via litellm_call_id"
+    - "Optional: helper fixture in shared conftest e.g. `prime_cost_for_response(call_id, cost)` that calls `cost_recorder._stash(call_id, cost)` + injects `litellm_call_id` in mock response_metadata. Place at backend/tests/shared/agent_observability/conftest.py if reused 2+ times"
+    - "Verify any other test in copilot/sales_agent observability module using same mock pattern is migrated (grep cost_usd > 0 / Decimal in those test dirs)"
+
+  out_of_scope:
+    - "Wider tests audit ~20 files (T-7 — production-side adapter mocks → LiteLLMService)"
+    - "cost_recorder.py code changes (existing implementation correct)"
+    - "base_callback_handler.py code changes (existing else branch correct per A4)"
+
+  acceptance:
+    - id: A1
+      description: "Repro tests pass: `cost_usd > 0` and `cost_usd == Decimal('0.0031637000')`"
+      verifier:
+        type: pytest
+        path: "tests/modules/sales_agent/observability/test_callback_handler.py::TestOnChatModelEnd::test_persists_row_with_sales_columns tests/modules/copilot/observability/test_callback_handler_usage_fallbacks.py::TestUsageFallbacksFromResponseMetadata::test_response_metadata_token_usage_is_used"
+    - id: A2
+      description: "Full callback_handler test suites stay green (no regression in adjacent tests)"
+      verifier:
+        type: pytest
+        path: "tests/modules/copilot/observability/ tests/modules/sales_agent/observability/"
+    - id: A3
+      description: "T-1 acceptance A4 STILL holds — `calculate_cost()` NOT invoked in runtime path (mock count == 0 in test_calculate_cost_not_called_in_runtime_path)"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_calculate_cost_not_called_in_runtime_path"
+    - id: A4
+      description: "If shared helper added, tests/shared/ tests not regressed"
+      verifier:
+        type: pytest
+        path: "backend/tests/shared/agent_observability/"
+
+  quality_gates:
+    - "Native lint clean: cd backend && .venv/bin/ruff check tests/ --no-cache && .venv/bin/ruff format --check tests/"
+    - "All callback_handler tests + cost_recorder tests pass"
+    - "Coverage backend not reduced"
+    - "TDD: bridge migration is test-only — RED already exists (current failure), make it GREEN by injecting call_id + cost stash"
+
+  decisions_applicable:
+    - id: D-T1bis-1
+      description: "Fix is test-side, NOT code-side. Existing cost_recorder + base_callback_handler implementation is correct per T-1 architecture (A4 binding). Tests must adapt to bridge architecture."
+    - id: D-T1bis-2
+      description: "Use `_stash(call_id, cost)` from cost_recorder module directly in test setup (it's a private helper but acceptable in tests where bridge needs priming). Inject `litellm_call_id` in mock response_metadata so handler retrieves matching cost. Document via docstring why bridging happens in test setup."
+    - id: D-T1bis-3
+      description: "If pattern reused 2+ times, lift to shared conftest fixture `prime_cost_bridge(call_id, cost)`. Single use: inline."
+
+  depends_on: ["T-1"]
+  blocks: []
+  transitions:
+    - { state: draft, at: "2026-05-05T11:35Z", by: "/dev-team-orchestrator (real bug diagnosis)" }
+    - { state: ready, at: "2026-05-05T11:35Z", by: "/dev-team-orchestrator" }
   assigned_to: null
 
 T2:

@@ -405,6 +405,33 @@ def _do_singleton_reset() -> None:
         pass
 
 
+def prime_cost_bridge(call_id: str, cost: "Decimal") -> None:  # noqa: F821 — Decimal imported lazily
+    """Pre-stash a cost in the module-level TTL cache so callback handler tests
+    can assert ``cost_usd > 0`` after T-1 LiteLLM cost bridge architecture.
+
+    **Bridge architecture (PI-12 S1 T-1, 2026-05-05):**
+    In production, ``CostRecorderCustomLogger.log_success_event()`` fires via the
+    LiteLLM callback and calls ``_stash(litellm_call_id, cost)`` *before*
+    LangChain's ``on_llm_end`` fires. Tests that mock ``LLMResult`` don't go through
+    the LiteLLM proxy, so ``_stash`` is never called automatically.
+
+    Test helpers call this function in test setup to simulate what the LiteLLM
+    CustomLogger does in production: stash the cost in the shared TTL cache under
+    ``call_id`` so that ``BaseAgentCallbackHandler._persist_llm_call()`` can
+    retrieve it via ``pop_cost(call_id)`` during ``on_llm_end``.
+
+    Decision D-T1bis-2 (04-tickets.yaml): using ``_stash`` from cost_recorder is
+    the canonical bridge-priming mechanism for tests. Lifted to shared conftest per
+    decision D-T1bis-3: pattern reused across sales_agent and copilot observability
+    test suites.
+    """
+    from decimal import Decimal as _Decimal
+
+    from src.shared.agent_observability.recording.cost_recorder import _stash
+
+    _stash(call_id, _Decimal(str(cost)) if not isinstance(cost, _Decimal) else cost)
+
+
 @pytest.fixture(autouse=True)
 def _reset_singletons_between_tests() -> None:
     """Reset class-level singletons + module-level caches pre+post each test.

@@ -20,6 +20,8 @@ from uuid import uuid4
 
 import pytest
 
+from tests.conftest import prime_cost_bridge
+
 
 def _build_llm_response(
     *,
@@ -27,8 +29,22 @@ def _build_llm_response(
     output_tokens: int = 500,
     cached_read: int = 0,
     model_name: str = "kimi-k2.6",
+    litellm_call_id: str | None = None,
 ) -> SimpleNamespace:
-    """Build a fake ``LLMResult`` matching the shape callbacks consume."""
+    """Build a fake ``LLMResult`` matching the shape callbacks consume.
+
+    **Bridge note (PI-12 S1 T-1.bis):**
+    ``litellm_call_id`` must be injected into ``response_metadata`` so that
+    ``BaseAgentCallbackHandler._extract_litellm_call_id()`` can retrieve it and
+    call ``pop_cost(call_id)`` during ``on_llm_end``. In production this key is
+    populated by LangChain's OpenAI-compat adapters echoing the LiteLLM call id.
+    Tests that assert ``cost_usd > 0`` must also call ``prime_cost_bridge(call_id,
+    cost)`` in setup to stash the cost before ``on_llm_end`` fires (see
+    ``tests/conftest.py::prime_cost_bridge``).
+    """
+    response_metadata: dict = {"model_name": model_name}
+    if litellm_call_id is not None:
+        response_metadata["litellm_call_id"] = litellm_call_id
     message = SimpleNamespace(
         usage_metadata={
             "input_tokens": input_tokens,
@@ -36,7 +52,7 @@ def _build_llm_response(
             "input_token_details": {"cache_read": cached_read},
             "output_token_details": {},
         },
-        response_metadata={"model_name": model_name},
+        response_metadata=response_metadata,
     )
     generation = SimpleNamespace(message=message)
     return SimpleNamespace(generations=[[generation]], llm_output=None)
@@ -132,6 +148,13 @@ class TestOnChatModelEnd:
         handler: object,
         llm_call_repo_stub: MagicMock,
     ) -> None:
+        # Bridge setup (PI-12 S1 T-1.bis):
+        # In production the LiteLLM CustomLogger stashes the cost under
+        # litellm_call_id before on_llm_end fires.  The mocked LLMResult
+        # doesn't go through LiteLLM, so we prime the cache manually.
+        call_id = str(uuid4())
+        prime_cost_bridge(call_id, Decimal("0.001"))
+
         run_id = uuid4()
         handler.on_chat_model_start(
             serialized={"name": "ChatOpenAI", "kwargs": {"model_name": "kimi-k2.6"}},
@@ -139,7 +162,7 @@ class TestOnChatModelEnd:
             run_id=run_id,
             metadata={"ls_provider": "kimi", "ls_model_name": "kimi-k2.6"},
         )
-        handler.on_llm_end(_build_llm_response(), run_id=run_id)
+        handler.on_llm_end(_build_llm_response(litellm_call_id=call_id), run_id=run_id)
 
         llm_call_repo_stub.add.assert_called_once()
         kwargs = llm_call_repo_stub.add.call_args.kwargs
@@ -149,7 +172,7 @@ class TestOnChatModelEnd:
         assert kwargs["model_responded"] == "kimi-k2.6"
         assert kwargs["input_tokens"] == 1000
         assert kwargs["output_tokens"] == 500
-        # Cost > 0 because the pricing resolver returned a real snapshot.
+        # Cost > 0: bridged from LiteLLM cost recorder via litellm_call_id.
         assert kwargs["cost_usd"] > 0
         assert kwargs["status"] == "ok"
 
