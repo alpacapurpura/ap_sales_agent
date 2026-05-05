@@ -22,6 +22,10 @@ tickets:
       claude_opus_required: false                # ¿obliga Opus? (true para agentic)
     priority: 1                                  # 1=blocker, 2=high, 3=normal
     estimate_hours: 2
+    decisions_applicable: []                     # ⚠️ R6 — list IDs (D1, A5, X2) ratified upstream
+                                                 #          Builder commit body MUST cite each en sección
+                                                 #          "Decisions honored". Auditor verifica cite.
+                                                 #          Sin cite → REVIEW.md WARN Cat 11 Cross-cutting.
 
     # ── Inputs (qué leer antes) ───────────────
     inputs:
@@ -97,6 +101,7 @@ tickets:
       claude_opus_required: true                 # ✅ Opus 4.7 mandatory
     priority: 1
     estimate_hours: 3
+    decisions_applicable: []                     # ⚠️ R6 — agentic decisions (slot architecture, voice fidelity, cost budget)
     inputs:
       story_yaml: "../../../../../product/stories/copilot/{story-id}.yaml"
       spec: "../01-spec.md"

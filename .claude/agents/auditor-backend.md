@@ -268,7 +268,12 @@ grep -rn "select(" backend/src/modules/{m}/ --include="*.py" | grep -v "tenant_i
 - No `skip` / `xfail` to pass CI
 - Async tests use proper fixtures (per `tessl__pytest-api-testing`)
 
-### Category 11: Cross-cutting (Master Data + Currency + Spanish + Native-First)
+### Category 11: Cross-cutting (Master Data + Currency + Spanish + Native-First + Decisions Honored)
+> R6 origen process-improvement 2026-05-05 (D10). Cuando ticket tiene
+> `decisions_applicable: [D1, D3, X2]` field, builder commit body MUST
+> include "Decisions honored" sección citing cómo cada D# fue respetada.
+> Auditor verifica cite presente. Sin cite → WARN Cat 11.
+
 - `datetime.utcnow()` → `utc_now()` (forbidden — use shared utility)
 - `DateTime()` sin `timezone=True` = FAIL
 - Hardcoded `'USD'` in DTOs / FE-bound strings = FAIL (currency-handling rule)
@@ -276,6 +281,7 @@ grep -rn "select(" backend/src/modules/{m}/ --include="*.py" | grep -v "tenant_i
 - KPI `unit == "currency"` includes `currency` from channel
 - User-facing strings Spanish neutro LatAm — flag voseo (`vos/sos/tenés/podés/mirá/dejá/poné/usá/hacé/elegí/agregá/configurá/revisá/guardá/abrí/volvé/cambiá`)
 - ¿/¡, tildes, ñ correct
+- **Decisions honored cite** (R6): si ticket tiene `decisions_applicable` field, commit body MUST include sección "Decisions honored" citing cada D# del list. Sin cite = WARN.
 - No `docker exec ... ruff|pytest|tsc|vitest|mypy|eslint` in commits (Native-First — auditor flags such commits)
 - No `git add .` / `git add -A` / `git add -u` in commits (parallel-safety)
 - No `git pull` / `git push --force` / `git revert` evidence in commits (parallel-safety prohibits)

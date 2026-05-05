@@ -1,6 +1,40 @@
 # 04-tickets.yaml — Template (pila tickets ordenada del story)
 # Vive en: docs/projects/active/PI-N/sprints/SN/stories/{story-id}/04-tickets.yaml
 # Owner: /architect
+#
+# ── Convenciones (origen R6+R8 process-improvement 2026-05-05) ──
+#
+# 1. decisions_applicable: list of decision IDs (D1, D2, A5, X2, etc.)
+#    ratificadas en 01-spec.md "Decisions" block o 03-arch-*.md
+#    "Architectural decisions" block. Cada ticket DEBE listar las
+#    decisions que le aplican. Builder commit body MUST include sección
+#    "Decisions honored" que cite cómo cada una fue respetada.
+#
+#    Ejemplo:
+#      decisions_applicable: [D1, D3, X2]
+#      # Donde D1 = "use SQLA 2.0 async" (de 03-arch-be.md)
+#      #       D3 = "tenant_id en cada query" (de 01-spec.md)
+#      #       X2 = "schema-mirror exception copilot" (de 03-arch-be.md)
+#
+#    Auditor verifica commit body cita cada D# del decisions_applicable
+#    list. Sin cita = REVIEW.md WARN Cat 11 (Cross-cutting).
+#
+# 2. Sub-ticket numbering convention strict (R8):
+#    - Use T-{N}.a, T-{N}.b, T-{N}.c — NEVER T-Na, T-Nb (sin punto)
+#    - Renumeración prohibida post-architect: una vez asignado T-6.a,
+#      no se renombra a T-7 aunque T-6 base sea cancelado
+#    - Sub-tickets only when architect detects internal sequencing
+#      (e.g., T-6.a = NULL columns, T-6.b = verify gate, T-6.c = DROP).
+#      Independent work = new top-level T-N.
+#    - Origen: PI-12 S1 Story A T-1..T-9 nominal pero arch produjo 11
+#      con T-6a/b/c sin punto → confusión planeación.
+#
+# 3. Single git mv commit BEFORE scope expansion (R9):
+#    - Cuando ticket implica rename file/folder + scope expansion
+#      (e.g., add fields), architect/dev MUST split en 2 commits:
+#        commit 1: `git mv` puro (rename only, zero diff content)
+#        commit 2: scope expansion (modify content)
+#    - Cleaner history. Bisect-friendly. Rename detección git automática.
 
 ---
 story_id: STORY_ID
@@ -52,6 +86,8 @@ T1:
     claude_opus_required: false
   priority: 1
   estimate_hours: 2
+  decisions_applicable: [D1, D3, X2]            # ⚠️ R6 — list decisions ratified upstream que este ticket honra
+                                                #          Cita en commit body sección "Decisions honored"
   inputs:
     spec: "../01-spec.md"
     arch_doc: "../03-arch-be.md"
@@ -94,6 +130,7 @@ T2:
     claude_opus_required: true                    # ✅ Opus 4.7 OBLIGATORIO
   priority: 1
   estimate_hours: 3
+  decisions_applicable: [D5, A2, A4]              # ⚠️ R6 — agentic decisions (slot architecture, voice fidelity, cost budget)
   inputs:
     spec: "../01-spec.md"
     arch_doc: "../03-arch-agentic.md"
@@ -142,6 +179,7 @@ T3:
     claude_opus_required: false
   priority: 2
   estimate_hours: 2
+  decisions_applicable: [D2, A3]                  # ⚠️ R6 — FE decisions (RHF+Zod, Spanish neutro)
   inputs:
     spec: "../01-spec.md"
     ui_design: "../02-design-ui.md"
