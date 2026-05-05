@@ -108,6 +108,9 @@ class WorkerSettings:
         from src.modules.copilot.application.extraction_card_flow import (
             register_extraction_event_handlers,
         )
+        from src.shared.agent_observability.recording.cost_recorder import (
+            register_cost_recorder,
+        )
         from src.shared.application.brand_summary_event_handlers import (
             register_brand_summary_event_handlers,
         )
@@ -117,6 +120,11 @@ class WorkerSettings:
         ctx["redis_cache"] = redis_client
         register_extraction_event_handlers()
         register_brand_summary_event_handlers()
+
+        # PI-12 S1 T-1 — process-wide LiteLLM CustomLogger for cost capture.
+        # Workers run extraction orchestrators that invoke LLMs; the recorder
+        # MUST be registered here too (process-isolated from FastAPI).
+        register_cost_recorder()
 
         # S8 — bridge AppointmentEvent / BookingMissedEvent into
         # scheduled_meetings JSONB. Idempotent registration.
@@ -344,6 +352,9 @@ class SchedulerSettings:
         from src.modules.copilot.application.extraction_card_flow import (
             register_extraction_event_handlers,
         )
+        from src.shared.agent_observability.recording.cost_recorder import (
+            register_cost_recorder,
+        )
         from src.shared.application.brand_summary_event_handlers import (
             register_brand_summary_event_handlers,
         )
@@ -353,6 +364,11 @@ class SchedulerSettings:
         ctx["redis_cache"] = redis_client
         register_extraction_event_handlers()
         register_brand_summary_event_handlers()
+
+        # PI-12 S1 T-1 — process-wide LiteLLM CustomLogger for cost capture.
+        # Scheduler triggers ARQ tasks that invoke LLMs; the recorder MUST
+        # be registered here too (process-isolated from FastAPI + workers).
+        register_cost_recorder()
 
         # S8 — bridge AppointmentEvent / BookingMissedEvent into
         # scheduled_meetings JSONB. Idempotent registration.

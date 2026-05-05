@@ -57,3 +57,10 @@ tiktoken>=0.7.0
 python-frontmatter>=1.1.0
 trafilatura>=2.0.0,<3.0.0
 dateparser>=1.4.0,<2.0.0
+# PI-12 S1 sales-agent-litellm-canonicalization T-1: Python SDK utilities
+# (litellm.get_llm_provider for canonical provider derive, CustomLogger for
+# kwargs["response_cost"] capture). Runtime LLM dispatch is still proxy-mode
+# via langchain-openai → LiteLLM Proxy (visionarias_litellm:4000); this
+# package is consumed in-process for observability only. Pin <1.83 because
+# 1.83+ pins openai==2.24.0 which conflicts with langchain-openai==1.1.11.
+litellm>=1.50.0,<1.83

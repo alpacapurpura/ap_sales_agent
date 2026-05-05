@@ -1,9 +1,19 @@
 """Cost calculator — pure function over tokens + pricing snapshot.
 
+⚠️  T-1 (PI-12 S1 sales-agent-litellm-canonicalization, X2 ratificada):
+:func:`calculate_cost` is **NOT** invoked from the runtime path post-T1.
+The :class:`~src.shared.agent_observability.recording.base_callback_handler.BaseAgentCallbackHandler`
+consumes ``kwargs["response_cost"]`` (LiteLLM-native) via
+:func:`~src.shared.agent_observability.recording.cost_recorder.pop_cost`
+instead. This module is retained as a **reconciliation utility only**:
+billing-dispute audits, snapshot-vs-runtime drift checks, and historical
+backfill scripts. NEW callers MUST NOT introduce a runtime dependency on
+this function — that is an arch-fitness violation.
+
 The result lands in ``copilot_llm_call.cost_usd`` (NUMERIC(16,10)), so we
-keep everything in ``Decimal`` and never touch ``float``. The handler
-adds 10 fractional zeros when persisting; here we expose the raw
-arithmetic and let the schema decide truncation.
+keep everything in ``Decimal`` and never touch ``float``. Tier-pricing
+semantics (S12) are preserved here for parity when reconciling against
+LiteLLM's native computation.
 
 Token semantics (LangChain ``usage_metadata`` normalised across
 providers):

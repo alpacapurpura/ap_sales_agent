@@ -88,23 +88,52 @@ class _FakeChatModel:
     ``on_chain_*`` (the lambda) but we manually fire ``on_chat_model_*``
     on the bound handler — which mirrors how a real chat model would
     propagate to the callback manager.
+
+    T-1 (PI-12 S1, X2): the runtime cost source is now the LiteLLM
+    ``CustomLogger`` cache populated via ``kwargs["response_cost"]``,
+    NOT the legacy ``calculate_cost`` over a snapshot. The fake model
+    pre-stashes a cost under the same ``litellm_call_id`` it embeds in
+    the ``response_metadata`` so the bridge fires end-to-end.
     """
 
     def __init__(self, *, handler) -> None:
         self.handler = handler
 
     def __call__(self, _input):
+        from src.shared.agent_observability.recording.cost_recorder import (
+            CostRecorderCustomLogger,
+        )
+
         run_id = uuid4()
+        call_id = "resp-001"
+        # Pre-stash a cost via the LiteLLM CustomLogger — simulates LiteLLM
+        # firing its callback after `litellm.completion(...)` returns. Real
+        # LiteLLM does this in-process before the LangChain `on_llm_end`
+        # closes the span.
+        CostRecorderCustomLogger().log_success_event(
+            kwargs={
+                "litellm_call_id": call_id,
+                "model": "openai/gpt-4o",
+                "response_cost": 0.0125,
+            },
+            response_obj=type("_R", (), {"id": call_id})(),
+            start_time=0.0,
+            end_time=0.5,
+        )
         # Emulate the BaseChatModel runtime: start, end-with-usage.
         self.handler.on_chat_model_start(
             serialized={},
             messages=[[]],
             run_id=run_id,
-            metadata={"ls_provider": "openai", "ls_model_name": "gpt-4o"},
+            metadata={"ls_provider": "openai", "ls_model_name": "openai/gpt-4o"},
         )
         ai = AIMessage(
             content="hi",
-            response_metadata={"model_name": "gpt-4o-2024-11-20", "id": "resp-001"},
+            response_metadata={
+                "model_name": "gpt-4o-2024-11-20",
+                "id": call_id,
+                "litellm_call_id": call_id,
+            },
             usage_metadata={
                 "input_tokens": 1000,
                 "output_tokens": 500,

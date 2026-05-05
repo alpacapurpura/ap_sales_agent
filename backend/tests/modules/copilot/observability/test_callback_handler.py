@@ -83,10 +83,13 @@ def _make_handler(db, *, pricing_snapshot=None, fx_rate=Decimal(1), fx_source="p
     )
 
 
-def _ai_message_with_usage(*, model_name="gpt-4o-2024-11-20"):
+def _ai_message_with_usage(*, model_name="gpt-4o-2024-11-20", litellm_call_id: str | None = None):
+    response_metadata: dict = {"model_name": model_name, "id": "resp-001"}
+    if litellm_call_id is not None:
+        response_metadata["litellm_call_id"] = litellm_call_id
     msg = AIMessage(
         content="hello world",
-        response_metadata={"model_name": model_name, "id": "resp-001"},
+        response_metadata=response_metadata,
         usage_metadata={
             "input_tokens": 1000,
             "output_tokens": 500,
@@ -97,6 +100,26 @@ def _ai_message_with_usage(*, model_name="gpt-4o-2024-11-20"):
     return msg
 
 
+def _stash_cost(call_id: str, cost: float, *, model: str = "openai/gpt-4o") -> None:
+    """Pre-populate the LiteLLM cost cache for a synthetic call.
+
+    T-1 (PI-12 S1, X2): runtime cost flows through
+    :class:`CostRecorderCustomLogger`'s TTL cache. Tests that don't
+    invoke real LiteLLM must pre-stash via this helper so the LangChain
+    handler picks up the cost on ``on_llm_end``.
+    """
+    from src.shared.agent_observability.recording.cost_recorder import (
+        CostRecorderCustomLogger,
+    )
+
+    CostRecorderCustomLogger().log_success_event(
+        kwargs={"litellm_call_id": call_id, "model": model, "response_cost": cost},
+        response_obj=type("_R", (), {"id": call_id})(),
+        start_time=0.0,
+        end_time=0.5,
+    )
+
+
 class TestChatModelLifecycle:
     def test_start_then_end_persists_llm_call_row(self, db) -> None:
         from src.modules.copilot.observability.persistence.models.llm_call_model import (
@@ -105,15 +128,19 @@ class TestChatModelLifecycle:
 
         handler = _make_handler(db)
         run_id = uuid4()
+        # T-1 (PI-12 S1, X2): cost is consumed from the LiteLLM CustomLogger
+        # cache, NOT recomputed via calculate_cost. Pre-stash a value so the
+        # synthetic call has a non-NULL cost on the audit row.
+        _stash_cost("resp-001", 0.00725)
         # Synthetic on_chat_model_start payload — mirrors LangChain shape.
         handler.on_chat_model_start(
             serialized={"id": ["langchain", "chat_models", "openai", "ChatOpenAI"]},
             messages=[[]],
             run_id=run_id,
-            metadata={"ls_provider": "openai", "ls_model_name": "gpt-4o"},
+            metadata={"ls_provider": "openai", "ls_model_name": "openai/gpt-4o"},
         )
         response = LLMResult(
-            generations=[[ChatGeneration(message=_ai_message_with_usage())]],
+            generations=[[ChatGeneration(message=_ai_message_with_usage(litellm_call_id="resp-001"))]],
             llm_output=None,
         )
         handler.on_llm_end(response, run_id=run_id)
@@ -126,7 +153,9 @@ class TestChatModelLifecycle:
         assert row.output_tokens == 500
         assert row.cached_read_tokens == 200
         assert row.model_responded == "gpt-4o-2024-11-20"
-        # Cost (uncached 800 * 2.5e-6 + 200 * 1.25e-6 + 500 * 1e-5 = 0.00725).
+        # Cost consumed from LiteLLM CustomLogger cache (kwargs["response_cost"]),
+        # not recomputed locally — same value as legacy calculate_cost would have
+        # produced for this fixture (0.00725).
         assert row.cost_usd == Decimal("0.0072500000")
         assert row.status == "ok"
 

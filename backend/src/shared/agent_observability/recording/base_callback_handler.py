@@ -33,9 +33,12 @@ from uuid import UUID, uuid4
 import structlog
 from langchain_core.callbacks import BaseCallbackHandler
 
-from src.shared.agent_observability.cost.calculator import calculate_cost
+from src.shared.agent_observability.cost.calculator import (
+    calculate_cost,  # noqa: F401 — retained for reconciliation utility, NOT used in runtime path post-T1.
+)
 from src.shared.agent_observability.cost.fx_resolver import FXResolver
 from src.shared.agent_observability.pricing.resolver import PricingResolver
+from src.shared.agent_observability.recording.cost_recorder import pop_cost
 from src.shared.agent_observability.recording.sanitization import (
     sanitize_payload,
     truncate,
@@ -127,11 +130,11 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
         input_unit_cost_usd: Decimal,
         output_unit_cost_usd: Decimal,
         cached_read_unit_cost_usd: Decimal,
-        cost_usd: Decimal,
+        cost_usd: Decimal | None,
         tenant_currency: str,
         fx_rate_to_tenant: Decimal,
         fx_rate_source: str,
-        cost_tenant_currency: Decimal,
+        cost_tenant_currency: Decimal | None,
         started_at: datetime,
         duration_ms: int,
         status: str,
@@ -404,11 +407,26 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
     ) -> None:
         """Resolve pricing + cost + fx, then call abstract persisters.
 
-        The cost-resolution skeleton lives here once. Subclasses override
-        :meth:`_persist_llm_call_row` and :meth:`_persist_trace_event_row`
-        to inject agent-specific kwargs (``conversation_id`` / ``user_id``
-        for copilot, ``lead_id`` / ``channel_type`` for sales) and forward
-        to the agent-specific repository.
+        T-1 (PI-12 S1, X2 ratificada): runtime ``cost_usd`` is consumed
+        from the LiteLLM ``CustomLogger`` cache via :func:`pop_cost`,
+        keyed by ``litellm_call_id``. The legacy
+        :func:`calculate_cost` is retained as a reconciliation utility
+        only and MUST NOT be invoked from this path.
+
+        Cost semantics:
+
+        * ``status == "error"`` → ``cost_usd = Decimal(0)`` (failed call,
+          no charge).
+        * Cache hit (LiteLLM populated ``response_cost``) → consume the
+          stashed ``Decimal``.
+        * Cache miss (unknown model, non-LiteLLM call, slow consumer
+          past TTL) → ``cost_usd = None`` (NULL on the audit row;
+          callers MUST distinguish "unknown" from "Decimal('0')").
+
+        The ``PricingResolver`` is still queried so the audit row carries
+        ``pricing_version_id`` + ``input_unit_cost_usd`` etc. for
+        reconciliation lookups, but the resolved cost is NOT recomputed
+        in this path.
         """
         usage = self._extract_usage(response)
         model_responded = self._extract_model_responded(response, fallback=span.model_requested)
@@ -419,22 +437,30 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
             at_ts=span.started_at,
         )
         snapshot = pricing.snapshot
-        cost_usd = (
-            Decimal(0)
-            if status == "error"
-            else calculate_cost(
-                input_tokens=usage["input_tokens"],
-                output_tokens=usage["output_tokens"],
-                cached_read_tokens=usage["cached_read_tokens"],
-                cached_write_tokens=usage["cached_write_tokens"],
-                pricing=snapshot,
+        litellm_call_id = self._extract_litellm_call_id(response)
+        if status == "error":
+            cost_usd: Decimal | None = Decimal(0)
+        elif litellm_call_id is not None:
+            cost_usd = pop_cost(litellm_call_id)
+            if cost_usd is None:
+                logger.warning(
+                    "cost_recorder.cache_miss",
+                    call_id=litellm_call_id,
+                    model=model_responded,
+                    provider=span.provider,
+                )
+        else:
+            cost_usd = None
+            logger.warning(
+                "cost_recorder.no_call_id_on_response",
+                model=model_responded,
+                provider=span.provider,
             )
-        )
         fx_rate, fx_source = self.fx_resolver.resolve(
             currency_code=self.tenant_currency,
             at_ts=span.started_at,
         )
-        cost_tenant = cost_usd * fx_rate
+        cost_tenant: Decimal | None = cost_usd * fx_rate if cost_usd is not None else None
         duration_ms = self._elapsed_ms(span.monotonic_start)
         span_id = uuid4()
 
@@ -481,7 +507,7 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
                     "input_tokens": usage["input_tokens"],
                     "output_tokens": usage["output_tokens"],
                     "cached_read_tokens": usage["cached_read_tokens"],
-                    "cost_usd": str(cost_usd),
+                    "cost_usd": str(cost_usd) if cost_usd is not None else None,
                     "is_estimated_pricing": pricing.is_estimated,
                     "fx_rate_source": fx_source,
                 },
@@ -518,19 +544,24 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
     ) -> tuple[str, str]:
         """Return ``(provider, model_requested)`` from the start payload.
 
-        Order of preference: ``metadata.ls_provider`` / ``ls_model_name``
-        (LangChain's normalised tags), then ``serialized.kwargs.model_name``
-        / ``model``, then sensible fallbacks.
+        T-1 (PI-12 S1 sales-agent-litellm-canonicalization, A1 ratificada):
+        the ``model`` field is stored **slashed** (canonical LiteLLM format,
+        e.g. ``"deepseek/deepseek-v4-flash"``). The legacy D-7 strip is
+        removed — slashed models survive future provider expansion
+        (``bedrock/anthropic.claude-v3``, ``vertex_ai/gemini-1.5-pro``).
 
-        D-7 (S3 PR-2): when LiteLLM Proxy is active the model name arrives
-        as ``<provider>/<model>`` (e.g. ``deepseek/deepseek-v4-flash``).
-        Strip the prefix so existing Streamlit queries (``/costo-copilot``,
-        ``/marketing-kb``) keep filtering by bare model name
-        (``deepseek-v4-flash``).  Provider is already stored in the
-        ``provider`` column so no information is lost.
+        ``provider`` is derived via :func:`_canonical_provider`, which
+        wraps :func:`litellm.get_llm_provider` to return the 4-tuple's
+        canonical ``custom_llm_provider`` (position 1). Falls back to
+        metadata hints when the SDK can't resolve the model, and to
+        ``"unknown"`` as last resort.
+
+        Order of preference for ``model``: ``metadata.ls_model_name`` /
+        ``ls_provider`` (LangChain normalised tags), then
+        ``serialized.kwargs.model_name`` / ``model``, then ``"unknown"``.
         """
         meta = metadata or {}
-        provider = meta.get("ls_provider") or meta.get("provider") or "unknown"
+        meta_provider_hint = meta.get("ls_provider") or meta.get("provider")
         model = meta.get("ls_model_name") or meta.get("model_name") or meta.get("model")
         if not model and isinstance(serialized, dict):
             kwargs = serialized.get("kwargs") or {}
@@ -539,10 +570,36 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
         if not model:
             model = "unknown"
         model_str = str(model)
-        # D-7: strip LiteLLM provider prefix  "deepseek/deepseek-v4-flash" → "deepseek-v4-flash"
-        if "/" in model_str:
-            _prefix, _, model_str = model_str.partition("/")
-        return str(provider), model_str
+        provider = BaseAgentCallbackHandler._canonical_provider(model_str, hint=meta_provider_hint)
+        return provider, model_str
+
+    @staticmethod
+    def _canonical_provider(model: str, *, hint: Any = None) -> str:  # noqa: ANN401
+        """Return the canonical LiteLLM ``custom_llm_provider`` for ``model``.
+
+        Wraps :func:`litellm.get_llm_provider` (position 1 of the 4-tuple).
+        On miss (unknown model, SDK unavailable) falls back to the metadata
+        ``hint`` if it is a non-empty string, else returns ``"unknown"``.
+
+        Best-effort: the call NEVER raises out of the recorder hot path.
+        Logs a structured warning so the operator can see which model is
+        unmapped and decide whether to add a ``litellm_config.yaml`` entry.
+        """
+        try:
+            import litellm  # local import keeps base_callback_handler test-friendly
+
+            _stripped, provider, _key, _base = litellm.get_llm_provider(model)
+            return str(provider) if provider else "unknown"
+        except Exception as exc:  # noqa: BLE001 — best-effort, log and fall back
+            logger.warning(
+                "cost_recorder.unknown_provider",
+                model=model,
+                hint=str(hint) if hint else None,
+                error_class=type(exc).__name__,
+            )
+            if isinstance(hint, str) and hint and hint != "unknown":
+                return hint
+            return "unknown"
 
     @staticmethod
     def _extract_usage(response: LLMResult | None) -> dict[str, int]:
@@ -619,6 +676,32 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
             return fallback
         meta = getattr(message, "response_metadata", None) or {}
         return str(meta.get("model_name") or meta.get("model") or fallback)
+
+    @staticmethod
+    def _extract_litellm_call_id(response: LLMResult | None) -> str | None:
+        """Pull the ``litellm_call_id`` LangChain echoes via response metadata.
+
+        T-1 (PI-12 S1): used to bridge the LangChain ``on_llm_end`` hook
+        with the LiteLLM ``CustomLogger`` cache populated by
+        :class:`~src.shared.agent_observability.recording.cost_recorder.CostRecorderCustomLogger`.
+        Returns ``None`` when the response did not flow through LiteLLM
+        (legacy adapters, mocked tests without metadata) — callers MUST
+        treat ``None`` as "cost unknown" and persist ``cost_usd = NULL``.
+        """
+        if response is None:
+            return None
+        try:
+            generation = response.generations[0][0]
+            message = generation.message  # type: ignore[attr-defined]
+        except (AttributeError, IndexError):
+            return None
+        meta = getattr(message, "response_metadata", None) or {}
+        call_id = meta.get("litellm_call_id") or meta.get("id")
+        if not call_id:
+            llm_output = getattr(response, "llm_output", None) or {}
+            if isinstance(llm_output, dict):
+                call_id = llm_output.get("litellm_call_id")
+        return str(call_id) if call_id else None
 
     @staticmethod
     def _chain_name(serialized: dict[str, Any]) -> str | None:

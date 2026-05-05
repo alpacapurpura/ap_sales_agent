@@ -266,6 +266,16 @@ def on_startup() -> None:
     """Initialize database and register domain event handlers."""
     init_db()
 
+    # PI-12 S1 sales-agent-litellm-canonicalization T-1 — register the
+    # process-wide LiteLLM CustomLogger that bridges kwargs["response_cost"]
+    # into the LangChain BaseAgentCallbackHandler via a thread-safe TTL
+    # cache. Idempotent — safe to call from FastAPI + ARQ + scheduler.
+    from src.shared.agent_observability.recording.cost_recorder import (
+        register_cost_recorder,
+    )
+
+    register_cost_recorder()
+
     # Register CRM domain event handlers (EventBus wiring)
     from src.modules.crm.application.event_handlers import register_event_handlers
 

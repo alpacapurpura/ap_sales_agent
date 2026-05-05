@@ -49,7 +49,10 @@ class CopilotLlmCallModel(Base):
     input_unit_cost_usd = Column(Numeric(14, 12), nullable=False)
     output_unit_cost_usd = Column(Numeric(14, 12), nullable=False)
     cached_read_unit_cost_usd = Column(Numeric(14, 12), nullable=False, default=0)
-    cost_usd = Column(Numeric(16, 10), nullable=False)
+    # T-1 (PI-12 S1, X2): cost_usd is NULL when LiteLLM didn't provide a
+    # response_cost (unknown model, non-LiteLLM call, cache miss past TTL).
+    # Callers MUST distinguish NULL ("unknown") from Decimal("0") ("valid 0").
+    cost_usd = Column(Numeric(16, 10), nullable=True)
 
     tenant_currency = Column(CHAR(3), nullable=True)
     fx_rate_to_tenant = Column(Numeric(16, 8), nullable=True)
