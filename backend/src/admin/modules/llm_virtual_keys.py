@@ -68,18 +68,7 @@ def render_llm_virtual_keys() -> None:
     st.title("LLM Virtual Keys")
     st.caption("Vista de claves virtuales registradas en LiteLLM Proxy. Solo lectura en S3 — CRUD disponible en S4.")
 
-    st.info(
-        "Proxy: `"
-        + settings.LITELLM_BASE_URL
-        + "` · Toggle: "
-        + ("**activo**" if settings.LITELLM_PROXY_ENABLED else "**desactivado (fallback legacy)**"),
-    )
-
-    if not settings.LITELLM_PROXY_ENABLED:
-        st.warning(
-            "LITELLM_PROXY_ENABLED=false — el proxy está en modo rollback. "
-            "Los datos mostrados pueden estar desactualizados."
-        )
+    st.info("Proxy: `" + settings.LITELLM_BASE_URL + "` · Ruta canónica única (LiteLLM Proxy).")
 
     col_refresh, _ = st.columns([1, 5])
     with col_refresh:

@@ -22,8 +22,9 @@ Flow::
   OpenAI / DeepSeek / Kimi / Qwen / Gemini / future Anthropic etc.
 
 S3 PR-2 PI-2. Replaces: openai.py, _openai_compat.py, deepseek.py,
-kimi.py, qwen.py (5 adapters → 1). Those adapters stay deprecated
-behind LITELLM_PROXY_ENABLED=False emergency rollback toggle (D-6).
+kimi.py, qwen.py, gemini.py (6 adapters → 1). Adapters deleted in
+PI-12 S1 T-4; emergency rollback toggle ``LITELLM_PROXY_ENABLED``
+removed in T-5 — the LiteLLM Proxy is the only runtime dispatch path.
 """
 
 from __future__ import annotations

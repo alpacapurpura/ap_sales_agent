@@ -155,47 +155,6 @@ def _fetch_latency_per_tier(
     return [dict(r) for r in rows]
 
 
-def _fetch_provider_library_provenance() -> list[dict[str, Any]]:
-    """Return library + chat_class metadata for each configured provider.
-
-    Reads ``CHAT_MODEL_SPEC`` in process from each provider service — no
-    DB hit. Surfaces in admin so operators see which LangChain package
-    is live for each provider without grepping code. When a provider
-    migrates (e.g. DeepSeek → langchain-deepseek), this row updates
-    automatically.
-
-    Providers without a spec (Gemini, different protocol) are skipped;
-    they will get their own panel once a Gemini-protocol normaliser
-    lands (TODO #31).
-    """
-    import structlog
-
-    from src.core.enums import AIProvider
-    from src.shared.infrastructure.llm.router import build_provider_service
-
-    log = structlog.get_logger()
-    rows: list[dict[str, Any]] = []
-    for provider in AIProvider:
-        try:
-            svc = build_provider_service(provider)
-        except Exception as exc:  # noqa: BLE001 — admin resilience
-            # Missing API key in dev/partial configs is expected;
-            # log at debug so a real misconfig is still discoverable.
-            log.debug("admin_provider_skipped", provider=provider.value, error=str(exc))
-            continue
-        spec = getattr(svc, "CHAT_MODEL_SPEC", None)
-        if spec is None:
-            continue
-        rows.append(
-            {
-                "provider": provider.value,
-                "chat_class": spec.chat_class.__name__,
-                "library_name": spec.library_name,
-            },
-        )
-    return rows
-
-
 def _fetch_runaway_output_alerts(
     db: Session,
     tenant_filter_sql: str,
@@ -344,33 +303,6 @@ def _render_latency_table(rows: list[dict]) -> None:
     )
 
 
-def _render_provider_library_provenance(rows: list[dict]) -> None:
-    """Show which LangChain package handles each provider.
-
-    Early-warning surface for the silent-rewrite issue tracked in TODO #32.
-    """
-    if not rows:
-        return
-    st.markdown("### Librerías LangChain por proveedor")
-    st.caption(
-        "Útil para detectar regresiones cuando se actualiza ``langchain-openai``,"
-        " ``langchain-deepseek`` u otro paquete partner. Cualquier cambio aquí"
-        " debe coincidir con un commit deliberado en ``providers/*.py``.",
-    )
-    st.dataframe(
-        [
-            {
-                "Proveedor": row["provider"],
-                "Chat class": row["chat_class"],
-                "Paquete LangChain": row["library_name"],
-            }
-            for row in rows
-        ],
-        hide_index=True,
-        width="stretch",
-    )
-
-
 def _render_runaway_output_alerts(rows: list[dict]) -> None:
     """Surface output-tokens spikes per (provider, model).
 
@@ -448,14 +380,11 @@ def render_copilot_routing() -> None:
     finally:
         db.close()
 
-    library_rows = _fetch_provider_library_provenance()
-
     st.markdown("### Distribución por tier")
     _render_tier_distribution(tier_rows)
 
     _render_classifier_breakdown(classifier_rows)
     _render_cache_metrics(cache_metrics)
     _render_latency_table(latency_rows)
-    _render_provider_library_provenance(library_rows)
     _render_runaway_output_alerts(runaway_rows)
     _render_recent_decisions(recent_rows)

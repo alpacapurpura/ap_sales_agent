@@ -365,10 +365,6 @@ async def _verify_litellm_proxy_reachable() -> None:
     """
     import httpx
 
-    if not settings.LITELLM_PROXY_ENABLED:
-        logger.warning("litellm_proxy_disabled_via_toggle")
-        return
-
     if settings.LITELLM_MASTER_KEY == "sk-litellm-master-dev" and settings.ENVIRONMENT != "dev":
         logger.warning(
             "litellm_proxy_default_master_key_in_non_dev",

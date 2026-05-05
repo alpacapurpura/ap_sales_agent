@@ -64,9 +64,12 @@ flag <NAME> flipped <OLD_VALUE>→<NEW_VALUE>
 | `USE_OUTBOX_PATTERN_COPILOT` | `True` (post 2026-04-29) | events emission | idem | idem | idem |
 | `USE_OUTBOX_PATTERN_BRAND` | `True` (post 2026-04-29) | events emission | idem | idem | idem |
 | `USE_OUTBOX_PATTERN_DEFAULT` | `False` | events emission (fallback per-module unspecified) | idem | idem | idem |
-| `LITELLM_PROXY_ENABLED` | `True` (default 2026) | LLM routing | adapter `providers/{kimi,deepseek,openai,qwen,gemini}.py` direct | `LiteLLMService` proxy via `litellm_config.yaml` | provider mock matching active path |
 | `USE_DEEPAGENTS_*` (futuros) | TBD | agent orchestration | LangGraph plain `StateGraph.compile()` | deepagents `task` subagent harness | both paths probed (per-test or fixture parametrize) |
 | Otros `ENABLE_*` flags | varies | varies | varies | varies | varies |
+
+> Note: `LITELLM_PROXY_ENABLED` row removed PI-12 S1 sales-agent-litellm-canonicalization T-5
+> (legacy adapters deleted T-4). The LiteLLM Proxy is now the only runtime LLM dispatch path —
+> there is no fallback toggle to audit.
 
 **Cuando agregar nuevo flag side-effect → editar este inventario en mismo commit.** Auditor Cat 14/13 valida.
 

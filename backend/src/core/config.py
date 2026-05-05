@@ -244,9 +244,6 @@ class Settings(BaseSettings):
     # Salt key (LiteLLM encrypts stored credentials con este key — cannot
     # change post-deployment without re-keying).
     LITELLM_SALT_KEY: str = "sk-litellm-salt-dev"
-    # Toggle global. False = bypass LiteLLM, fallback al router legacy
-    # (SOLO para emergency rollback. Default ON post-merge).
-    LITELLM_PROXY_ENABLED: bool = True
 
     # ── GrowthBook per-tenant LLM override (PI-2 S4 PR-2) ────────────────
     # Self-hosted Docker svc visionarias_growthbook expone API + admin UI.

@@ -220,6 +220,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "ANN",     # type annotations not required in tests
     "D",       # docstrings not required in tests
 ]
+"src/main.py" = [
+    "INP001",  # src/ is a namespace package (no __init__.py); pre-commit hook --stdin-filename can't traverse to verify, false-positive on staged main.py edits
+]
 "src/scripts/**/*.py" = [
     "T201",    # CLI scripts legitimately use print() for output
     "PLR0912", # one-shot migration scripts — not worth refactoring

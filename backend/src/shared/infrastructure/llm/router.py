@@ -3,15 +3,12 @@
 Façade that implements ``BaseLLMService`` but dispatches each call to the
 provider configured for that role.
 
-S3 PR-2 (PI-2): dispatch is now unified via LiteLLM Proxy (single
-``LiteLLMService`` instance) when ``LITELLM_PROXY_ENABLED=True`` (default).
-Legacy per-provider adapters (openai.py, deepseek.py, kimi.py, qwen.py,
-gemini.py, _openai_compat.py) were deleted in PI-12 S1 T-4.
-
-``LITELLM_PROXY_ENABLED`` flag is removed in T-5. Until then, only
-``LITELLM_PROXY_ENABLED=True`` (default) is functional — the legacy
-rollback path (``build_provider_service``) raises ``NotImplementedError``
-since the per-provider adapters no longer exist.
+Post PI-12 S1 sales-agent-litellm-canonicalization (T-4 + T-5): dispatch is
+unified via the LiteLLM Proxy (single ``LiteLLMService`` instance). Legacy
+per-provider adapters (openai.py, deepseek.py, kimi.py, qwen.py, gemini.py,
+_openai_compat.py) were deleted in T-4. The ``LITELLM_PROXY_ENABLED``
+emergency-rollback toggle was deleted in T-5 — the LiteLLM Proxy is the
+only runtime dispatch path.
 
 Backward compatibility: callers keep using
 ``LLMFactory.get_service().get_client(role)`` — the factory returns this
@@ -20,7 +17,6 @@ router, so existing callsites get per-role routing transparently.
 
 from typing import Any
 
-from src.core.config import settings
 from src.core.enums import AIProvider, ModelRole
 from src.shared.infrastructure.llm.base import BaseLLMService
 
@@ -33,67 +29,31 @@ _LEGACY_MODEL_TYPE_MAP: dict[str, ModelRole] = {
 }
 
 
-def build_provider_service(
-    provider: AIProvider,
-    api_key: str | None = None,
-) -> BaseLLMService:
-    """Stub: per-provider adapters deleted in PI-12 S1 T-4.
-
-    This function previously constructed per-provider ``BaseLLMService``
-    instances (OpenAIService, DeepSeekService, etc.) for the emergency
-    rollback path (``LITELLM_PROXY_ENABLED=False``). Those adapters were
-    deleted in T-4 as dead code — all runtime traffic routes via
-    ``LiteLLMService`` (``LITELLM_PROXY_ENABLED=True`` is the only live path).
-
-    T-5 removes ``LITELLM_PROXY_ENABLED`` flag and this function entirely.
-    Until T-5 merges, this stub raises to make any accidental rollback-path
-    invocation fail loudly rather than silently importing a missing module.
-    """
-    msg = (
-        f"build_provider_service({provider!r}) called but per-provider adapters were "
-        "deleted in PI-12 S1 T-4. Set LITELLM_PROXY_ENABLED=True (default) to use "
-        "LiteLLMService. Full flag removal in T-5."
-    )
-    raise NotImplementedError(msg)
-
-
 class MultiRoleLLMRouter(BaseLLMService):
-    """Routes ``BaseLLMService`` calls to LiteLLM Proxy (single adapter post-S3).
+    """Routes ``BaseLLMService`` calls to the LiteLLM Proxy (single adapter).
 
-    S3 PR-2: when ``LITELLM_PROXY_ENABLED=True`` (default), ALL roles
-    dispatch via a single ``LiteLLMService`` instance — the proxy resolves
-    per-provider routing, fallback chains, and retry semantics internally.
-
-    Emergency rollback: set ``LITELLM_PROXY_ENABLED=False`` to fall back to
-    per-provider legacy services without recompile or restart.
+    All roles dispatch via a single ``LiteLLMService`` instance — the proxy
+    resolves per-provider routing, fallback chains, and retry semantics
+    internally via ``litellm_config.yaml``.
     """
 
     def __init__(self) -> None:
-        """Lazily initialise service(s) on first use."""
-        # S3 PR-2 singleton (toggle ON path)
+        """Lazily initialise the LiteLLMService singleton on first use."""
         self._litellm: BaseLLMService | None = None
-        # Emergency rollback path (toggle OFF) — same dispatch as pre-S3.
-        self._legacy_providers: dict[AIProvider, BaseLLMService] = {}
 
     def _resolve(self, role: ModelRole) -> BaseLLMService:
-        """Return the service that will handle ``role``.
+        """Return the LiteLLMService singleton (proxy resolves provider per call).
 
-        When ``LITELLM_PROXY_ENABLED=True`` (default): returns the singleton
-        ``LiteLLMService`` — proxy picks provider from the model alias.
-        When ``LITELLM_PROXY_ENABLED=False`` (rollback): returns the
-        per-provider legacy service matching the role's configured provider.
+        ``role`` is part of the contract (callers pass it for telemetry and
+        future per-role overrides) but the LiteLLMService singleton resolves
+        the actual model from ``settings.get_model(role)`` at call time.
         """
-        if settings.LITELLM_PROXY_ENABLED:
-            if self._litellm is None:
-                from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+        del role  # consumed by LiteLLMService internals via settings lookup
+        if self._litellm is None:
+            from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
 
-                self._litellm = LiteLLMService()
-            return self._litellm
-        # Emergency rollback path — same dispatch as pre-S3.
-        provider = settings.get_provider_for_role(role)
-        if provider not in self._legacy_providers:
-            self._legacy_providers[provider] = build_provider_service(provider)
-        return self._legacy_providers[provider]
+            self._litellm = LiteLLMService()
+        return self._litellm
 
     @staticmethod
     def _resolve_role_compat(model_type: str | ModelRole) -> ModelRole:
@@ -130,12 +90,10 @@ class MultiRoleLLMRouter(BaseLLMService):
             **kwargs,
         )
 
-    # Test/debug helpers — not part of the abstract interface but useful
-    # for ratchet tests and ops dashboards.
+    # Test/debug helper — surfaces the configured provider for ratchet tests
+    # and ops dashboards. The proxy still does the real routing at call time.
     def get_provider_for_role(self, role: ModelRole) -> AIProvider:
         """Return which provider this router will dispatch ``role`` to."""
-        return settings.get_provider_for_role(role)
+        from src.core.config import settings
 
-    def reset_cache(self) -> None:
-        """Clear the cached provider services (used in tests)."""
-        self._providers.clear()
+        return settings.get_provider_for_role(role)
