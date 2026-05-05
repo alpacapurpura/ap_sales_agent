@@ -1,4 +1,4 @@
-.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test ci-parity ci-parity-be ci-parity-fe install-hooks verify-etl verify-probe-meta verify-pipeline verify-ui verify-meta verify-all
+.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test ci-parity ci-parity-be ci-parity-fe install-hooks verify-etl verify-probe-meta verify-pipeline verify-ui verify-meta verify-all extraction-contract sync-pricing
 
 # Variables
 DOCKER_COMPOSE = docker compose
@@ -173,6 +173,21 @@ extraction-contract:
 	cd backend && .venv/bin/python scripts/generate_extraction_contract_doc.py
 	@echo "✓ Regenerated docs/etl/extraction-contract.md"
 	@echo "  Now run: cd backend && .venv/bin/pytest tests/architecture/test_extraction_contract.py -x -q"
+
+# PI-12 S1 T-2 — one-shot LiteLLM pricing sync.
+# Runs sync_litellm_pricing (the ARQ task) synchronously for CI / local
+# debug / manual ops. The ARQ scheduler also fires this nightly at
+# 03:00 UTC (see backend/src/workers/settings.py SchedulerSettings).
+# Native-first: no docker exec; uses backend/.venv directly.
+# Exit codes:
+#   0 = success (rows added/updated/skipped logged + warnings counted)
+#   1 = upstream connection failure / parse error / SQL exception
+sync-pricing:
+	cd backend && .venv/bin/python -c "import asyncio, sys; \
+from src.shared.agent_observability.workers.pricing_sync_task import sync_litellm_pricing; \
+result = asyncio.run(sync_litellm_pricing({})); \
+print(result); \
+sys.exit(0 if result.get('ok') else 1)"
 
 vitest-cov:
 	cd frontend && npx vitest run --coverage $(args)

@@ -1,11 +1,11 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: DEV_T7_DONE
+phase: DEV_T2_AND_T7_DONE
 status: pending
-last_artifact: 05-impl/T-7-result.md
-last_modified: 2026-05-05T04:50Z
-next_action: "/auditor revisa T-7 (tests audit migrate per-provider mocks → LiteLLM canonical). T-2 sigue en paralelo (otra sesión)."
+last_artifact: 05-impl/T-2-result.md
+last_modified: 2026-05-05T09:30Z
+next_action: "/auditor revisa T-2 + T-7 (parallel sessions cerraron ambos). T-3 desbloqueado tras T-2 audit APPROVED. T-4 desbloqueado tras T-7 audit APPROVED."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
@@ -28,6 +28,7 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 → T-5 → T-6a → T-6b (operation
 - 2026-05-05 06:30 — `/dev-team` (claude-opus-4-7) implementó T-1 cost recorder canonicalization. Commit `5856be4d` push a `development`. Phase=DEV_T1_DONE.
 - 2026-05-05 07:00 — `/auditor` (claude-opus-4-7, auditor-be) revisó T-1 commit `5856be4d`. Verdict: **APPROVED**. 11/12 categories PASS (Cat 3 N/A — no soft delete operations). Re-ran tests independently: 13/13 ticket tests PASS, 1015/1015 regression PASS, 823/823 arch fitness PASS, ruff lint+format clean, coverage 73% (>43% threshold). Anti-duplication grep evidence verified. Anti-default-flip-audit N/A (T-1 NO flipea ningún flag). Scope creep audit: copilot/sales_agent file changes son schema mirrors + regression adaptations only, autorizados por architect doc § 3.4 + § 5. Phase=AUDIT_T1_APPROVED. Last artifact: `06-audit/T-1-review.md`.
 - 2026-05-05 04:50 — `/dev-team` (claude-opus-4-7) implementó T-7 tests audit. 2 archivos DELETED (`test_openai_compat_providers.py` -280 líneas, `test_provider_routing.py` -217 líneas — cubrían adapters/build_provider_service/`LITELLM_PROXY_ENABLED=False` toggle que T-4+T-5 borran). 1 archivo SIMPLIFIED (`test_router_litellm_dispatch.py`: drop legacy-toggle test + drop setattr). 1 archivo MIGRATED (`test_specialist_provider_routing.py`: drop `TestKimiKwargsForceThinkingDisabled` covered by `test_litellm_kimi_clamp.py`; migrate `TestReasoningBudgetReserveAppliesToDeepSeek` → `TestReasoningBudgetReserveForReasoningSpec` con `ChatModelSpec` inline). Net: -538 líneas test code obsoleto. A1 satisfied (grep returns empty). 881/881 LLM+arch + 13/13 changed-files PASS. Anti-flip-audit Step 1+2 cumplido (Step 3+4 = T-5 scope). 2 pre-existing failures `test_callback_handler.py::test_persists_row_with_sales_columns` + `test_callback_handler_usage_fallbacks.py::test_response_metadata_token_usage_is_used` documentados como out-of-T-7-scope (root cause T-1 fixture data unslashed `kimi-k2.6` → cost recorder BadRequestError). Phase=DEV_T7_DONE. Last artifact: `05-impl/T-7-result.md`.
+- 2026-05-05 09:30 — `/dev-team` (claude-opus-4-7, parallel session) implementó T-2 sync-pricing extension. EXTENDS `litellm_sync.py` (per Decision A5 BINDING — no parallel module). Adds: (a) `_validate_yaml_against_litellm_registry(yaml_path, result)` helper — parses `litellm_config.yaml` model_list, lazy-imports `litellm.model_cost`, emits `pricing_sync.config_yaml_model_unknown_to_litellm` warn per missing model + bumps `result.config_yaml_warnings`; (b) drift detection inside `_reconcile_entry` — when active row diverges from upstream by `> UPSTREAM_DRIFT_THRESHOLD_USD = 0.0001 USD/token`, emits `pricing_sync.upstream_drift_detected` + bumps `result.drift_warnings` (close-and-replace path still runs, drift = audit signal); (c) 3 new SyncResult fields (`config_yaml_warnings`, `drift_warnings`, `unknown_yaml_models`) propagated through `pricing_sync_task.py` ARQ return dict; (d) `_default_config_yaml_path()` walks `__file__` upward to repo root locating `litellm_config.yaml`; (e) Makefile target `sync-pricing` (native-first `cd backend && .venv/bin/python -c '...sync_litellm_pricing({})...'`, exit 0/1); (f) added to `.PHONY`. ARQ scheduler 03:00 UTC cron preserved unchanged (already configured). 6 new tests pass (`test_litellm_sync_extensions.py`): 4 AC verifiers + 2 supporting. 3/3 pre-existing `test_litellm_sync.py` regression preserved. Wider 1014 observability + 823 arch fitness PASS. Lint+format clean. Coverage `litellm_sync.py` 88% (122 stmts/15 miss); module aggregate 75% (>43% threshold). Anti-duplication: SINGLE `sync_pricing()` definition; SINGLE `pricing_sync_task.py`. Anti-flip-audit N/A (no flag flipped). pyyaml already transitively present via langchain-core (no `requirements-runtime.txt` change). NO GHA workflow created (Decision A6 BINDING — ARQ primary only). Phase=DEV_T2_AND_T7_DONE. Last artifact: `05-impl/T-2-result.md`.
 
 ## Notas
 
@@ -47,9 +48,9 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 → T-5 → T-6a → T-6b (operation
 
 | Ticket | Status | Note |
 |---|---|---|
-| T-2 | UNBLOCKED (in-progress, parallel session) | T-2-impl-log.md presente |
-| T-7 | DONE pending /auditor (this session, 2026-05-05 04:50Z) | T-7-result.md ready |
-| T-3 | STILL BLOCKED | aguarda T-2 (blocked_by [T-1, T-2]) |
+| T-2 | DONE pending /auditor (parallel session, 2026-05-05 09:30Z) | T-2-result.md ready |
+| T-7 | DONE pending /auditor (2026-05-05 04:50Z) | T-7-result.md ready |
+| T-3 | UNBLOCKED post-T-2-AUDIT_PASS | aguarda /auditor APPROVE T-2 (Alembic repair migration) |
 | T-4 | UNBLOCKED post-T-7-AUDIT_PASS | aguarda /auditor APPROVE T-7 (gemini.py audit checklist 6/6 mandatory + delete 6 archivos legacy) |
 | T-5 | STILL BLOCKED | aguarda T-4 + T-7 (post-AUDIT_PASS) |
 | T-6a | STILL BLOCKED | aguarda T-5 |
