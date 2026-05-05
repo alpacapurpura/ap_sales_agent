@@ -793,9 +793,17 @@ Implementation is "done" when ALL of these are true:
 - [ ] If sales_agent: ≥3 eval goldens added; voice fidelity grader run
 - [ ] If RAG: `KnowledgeService` reused, `tenant_id` filter present
 - [ ] AsyncPostgresSaver checkpointer for production graphs
-- [ ] `gate-runner` invoked → `gate-output.json` shows `overall.any_fail = false`
-- [ ] `builder-agentic-auditor` invoked → `REVIEW-agentic.md` verdict = PASS
 - [ ] If user-facing capability changed: signaled `current-state/{copilot|sales_agent}.md` update to PM
 - [ ] Conventional Commits, scoped to files this session touched (parallel-safety M1-M8)
-- [ ] Last line of reply: `<!-- @pm: implementación + auditoría done (verdict PASS). PR-{n} listo para /pm "PR-{n} cerrar" -->`
+- [ ] Last line of reply (R30 enforcement 2026-05-05 — builder NEVER claims audit verdict; auditor is independent contract): `<!-- @pm: build phase done (state: tests-passing). Commit: <SHA>. Files: <count>. Native ticket tests: <X>/<Y> PASS. Awaiting orchestrator → gate-runner → auditor-agentic (independent verdict). -->`
+
+**R30 forbidden footer claims (origen 2026-05-05 T-3 builder):** builder
+MUST NOT use words `audit-passed`, `auditoría done`, `verdict PASS`,
+`REVIEW PASS`, `APPROVED`, or any phrase implying audit closure in the
+final reply. Builder phase output is `tests-passing` ONLY. Self-claimed
+verdict = orchestrator must treat as malformed return.
+
+The two checklist items removed (gate-runner + auditor-agentic invoked)
+are NOT builder's job — orchestrator (/dev-team skill) spawns them
+post-build. Builder's "done" = `tests-passing` state in checkpoint.md.
 </output>

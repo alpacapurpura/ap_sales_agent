@@ -421,11 +421,12 @@ Update header:
 
 If `blocking` → caller MUST re-spawn context-builder with corrected inputs OR escalate Chris.
 
-**HARD post-condition (R24 — verify validator actually ran):**
+**HARD post-condition (R24 + R28 — verify validator actually ran AND prove it):**
 
-Before composing your final reply, execute:
+Before composing your final reply, execute (R24):
 ```bash
 test -f "<pr_folder>/CONTEXT-BRIEF-validation.md" && echo "VALIDATOR_RAN" || echo "VALIDATOR_SKIPPED"
+stat -c '%s bytes' "<pr_folder>/CONTEXT-BRIEF-validation.md" 2>/dev/null || echo "0 bytes"
 ```
 
 If `VALIDATOR_SKIPPED`:
@@ -440,10 +441,28 @@ If `VALIDATOR_SKIPPED`:
 If validator ran but its output file is empty OR <500 bytes → treat as
 SKIP (validator returned without executing scan).
 
+**R28 enforcement 2026-05-05 — paste literal bash output in final reply.**
+Prior caso T-3 (2026-05-05) context-builder returned summary text saying
+"Validator will: ..." (future tense narrative) without ever spawning. Step
+12 post-condition was prompted but the agent's final summary skipped the
+bash execution. R28 fix: agent's final reply MUST include verbatim block:
+
+```
+## R24/R28 post-condition proof
+$ test -f "<pr_folder>/CONTEXT-BRIEF-validation.md" && echo "VALIDATOR_RAN" || echo "VALIDATOR_SKIPPED"
+<paste actual bash output>
+$ stat -c '%s bytes' "<pr_folder>/CONTEXT-BRIEF-validation.md"
+<paste actual bash output>
+```
+
+Reply WITHOUT this block = HARD contract violation — orchestrator will
+treat brief as `Validator pass: BLOCKED` regardless of header value.
+
 **Returning a sealed brief without `Validator pass:` populated header is
 HARD violation of agent contract.** Origen R24: prior caso T-1.bis
 context-builder returned sealed brief at `partial` flag without spawning
-validator at all. Zero adversarial coverage = zero downstream guarantee.
+validator at all. R28 strengthens: the proof MUST be in the reply, not
+just claimed by header.
 </step>
 
 </workflow>

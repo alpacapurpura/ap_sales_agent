@@ -189,6 +189,22 @@ Drift between CONTRACT and code = FAIL until resolved (PM either updates contrac
 
 <step name="produce_review">
 Write `REVIEW.md` (format below).
+
+**R31 enforcement 2026-05-05 — auto-prefix R25 voseo-allowed magic comment:**
+The first line of any `06-audit/T-*-review.md` file you write MUST be:
+
+```html
+<!-- voseo-allowed: audit review may cite spanish-text.md glosario verbatim per R25 (.claude/rules/spanish-text.md § Magic comment escape) -->
+```
+
+Origen: T-3 audit 2026-05-05 — auditor cited `grep -E '(podés|tenés|...)'`
+verbatim in review docstring; pre-commit hook blocked commit; manual escape
+required. R31 amortizes the fix once-per-audit instead of N-times-after-the-fact.
+
+The magic comment is honored by hook regex per R25 (6 variants). Including
+it pre-emptively does NOT mark file as voseo-permitting for user-facing
+strings — it's a technical escape for review reports that may need to quote
+the glosario in evidence.
 </step>
 
 </audit_flow>

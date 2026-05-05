@@ -417,7 +417,20 @@ If drift detected: append `<!-- @pm: DRIFT detected — escalate PM, do not auto
 </forbidden>
 
 <output>
-Single artifact: `<pr_folder>/REVIEW-agentic.md`.
+Single artifact: `<pr_folder>/REVIEW-agentic.md` OR `<pr_folder>/06-audit/T-{n}-review.md` (story-mode SDD).
+
+**R31 enforcement 2026-05-05 — auto-prefix R25 voseo-allowed magic comment:**
+The first line of any review file you write MUST be:
+
+```html
+<!-- voseo-allowed: audit review may cite spanish-text.md glosario verbatim per R25 (.claude/rules/spanish-text.md § Magic comment escape) -->
+```
+
+Origen T-3 audit 2026-05-05: auditor cited grep regex with voseo tokens
+verbatim → pre-commit hook blocked commit → manual escape required.
+R31 amortizes the fix once-per-audit. Magic comment does NOT mark file as
+voseo-permitting for user-facing strings — technical escape for evidence
+quotation only.
 
 Last line of reply MUST be:
 ```

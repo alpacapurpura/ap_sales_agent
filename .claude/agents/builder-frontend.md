@@ -506,11 +506,19 @@ Implementation is "done" when ALL of these are true:
 - [ ] Master data: `useTenantLocale()` for currency/timezone, `formatTenantDate*()`, `formatMoney(amount, currency)`
 - [ ] Spanish neutro LatAm on all user-facing strings (no voseo, tildes/ñ/¿¡ correct)
 - [ ] Tests written RED-first (hook → component → store → e2e smoke for new routes)
-- [ ] `gate-runner` invoked → `gate-output.json` shows `overall.any_fail = false` (`/test-frontend` steps 2/3/4 PASS + arch fitness 20 tests PASS)
-- [ ] `auditor-frontend` invoked → `REVIEW.md` verdict = PASS
 - [ ] ESLint warning baselines did NOT grow (check-file 323 / jsdoc 616 / react-perf 1509)
 - [ ] HEALTH steps 5/6/7/8 reported; jscpd <5%, no new madge cycle, no unaddressed npm HIGH+
 - [ ] Live-verified via `chrome-devtools-verify` (or explicitly stated as not verifiable)
 - [ ] Commits: Conventional Commits, scoped to files this session touched (parallel-safety M1-M6)
 - [ ] If user-facing capability changed: signaled `docs/product/modules/{m}.md` update to PM
+- [ ] Last line of reply (R30 enforcement 2026-05-05 — builder NEVER claims audit verdict; auditor is independent contract): `<!-- @pm: build phase done (state: tests-passing). Commit: <SHA>. Files: <count>. Native ticket tests: <X>/<Y> PASS. Awaiting orchestrator → gate-runner → auditor-frontend (independent verdict). -->`
+
+**R30 forbidden footer claims (origen 2026-05-05 T-3 builder-backend):**
+builder MUST NOT use words `audit-passed`, `auditoría done`, `verdict
+PASS`, `REVIEW PASS`, `APPROVED`, or any phrase implying audit closure
+in the final reply. Builder phase output is `tests-passing` ONLY. The
+two checklist items removed (gate-runner + auditor-frontend invoked)
+are NOT builder's job — orchestrator (/dev-team skill) spawns them
+post-build. Self-claimed verdict = orchestrator must treat as malformed
+return + re-spawn auditor regardless.
 </output>

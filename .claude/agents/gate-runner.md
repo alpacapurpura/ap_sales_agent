@@ -19,6 +19,7 @@ The invoker MUST pass:
 - `<pr_folder>` — absolute path
 - `<command>` — exact shell command (e.g., `cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/ -v`) OR shortcut name (`test-backend | test-frontend | test-all | verify-pipeline | verify-ui | verify-etl | arch-test`)
 - `<iter>` (optional) — fix-loop iteration number, defaults to `1`
+- `<ticket>` (optional but RECOMMENDED post-R29 2026-05-05) — ticket id (e.g., `T-3`, `T-1.bis`). Enables cross-ticket archive logic (Step 0). If missing, agent assumes single-ticket continuity (last-iter rename only).
 
 If `<pr_folder>` or `<command>` missing, refuse with `ERROR: missing required input <field>`.
 </role>
@@ -41,6 +42,69 @@ If shortcut unknown, refuse with `ERROR: unknown shortcut <command>; pass exact 
 </command_resolution>
 
 <workflow>
+
+<step name="step_0_skeleton_first">
+**MANDATORY pre-condition. R29 enforcement 2026-05-05** — prior caso T-3
+(2026-05-05) gate-runner Haiku exhausted turn budget after Gate 5 of 6
+without ever writing `gate-output.json`. R22 verify-artifacts post-condition
+fired on absent file but agent had already returned. Skeleton-first means
+the JSON exists from turn 1 — truncation later produces partial-but-valid
+output, never zero-output.
+
+**ALSO: stale ticket detection.** If existing `gate-output.json` has `ticket`
+field DIFFERENT from current `<ticket>` input → ARCHIVE first as
+`gate-output.<previous_ticket>.json` BEFORE writing skeleton (else current
+ticket overwrites previous ticket's audit trail).
+
+Execute IMMEDIATELY after parsing inputs (before `prep` step):
+
+1. **Stale-ticket archive (cross-ticket boundary):**
+   ```bash
+   if test -f "<pr_folder>/gate-output.json"; then
+     PREV_TICKET=$(python3 -c "import json; print(json.load(open('<pr_folder>/gate-output.json')).get('ticket','UNKNOWN'))")
+     if [ "$PREV_TICKET" != "<ticket>" ] && [ "$PREV_TICKET" != "UNKNOWN" ]; then
+       mv "<pr_folder>/gate-output.json" "<pr_folder>/gate-output.${PREV_TICKET}.json"
+     fi
+   fi
+   ```
+
+2. **Same-ticket iter-rename (existing logic preserved):** if `gate-output.json`
+   still exists post-archive AND its `iter` field < current `<iter>` → rename to
+   `gate-output.iter-<previous_iter>.json` before skeleton write.
+
+3. **Skeleton write** — minimal valid JSON with `pending: true` markers:
+   ```json
+   {
+     "schema_version": "1.0",
+     "pr_folder": "<pr_folder>",
+     "ticket": "<ticket or null>",
+     "iter": <iter>,
+     "command": "<resolved command>",
+     "started_at": "<ISO 8601 UTC>",
+     "raw_log_path": "<pr_folder>/gate-logs/iter-<iter>-...log",
+     "gates": [],
+     "overall": {
+       "any_fail": null,
+       "fail_gate_names": [],
+       "summary": "PENDING — gate-runner in progress"
+     },
+     "notes": "skeleton (pre-execution); appended incrementally via Edit"
+   }
+   ```
+
+4. **Verify skeleton on disk:**
+   ```bash
+   test -f "<pr_folder>/gate-output.json" && python3 -m json.tool "<pr_folder>/gate-output.json" >/dev/null && echo "SKELETON_OK" || echo "SKELETON_FAIL"
+   ```
+   If `SKELETON_FAIL` → return ERROR immediately (cannot proceed without
+   writable PR-folder).
+
+**Subsequent gate executions APPEND to JSON via Edit** — replace the
+appropriate path in `gates: []` array as each Bash command completes.
+This way: turn 5 truncation = 4 gates captured + skeleton overall.summary
+still says "PENDING" (auditor sees explicit incompleteness, not stale
+data). Turn N final = `overall.summary` updated to final string.
+</step>
 
 <step name="prep">
 Capture start time (ISO 8601). Create raw log file path:
@@ -176,6 +240,9 @@ ERROR explicitly — do NOT pretend success.**
 7. **Idempotent on stable input.** Same command + same git state = same gate-output.json (modulo timestamps + duration_ms). Cache prefix relies on it.
 8. **Preserve previous iters.** Rename old gate-output.json to `gate-output.iter-N.json` before writing new.
 9. **No git ops.** Do NOT `git add` / `git commit` / `git push`. The auditor or builder may stage gate-output.json but you do not.
+10. **Skeleton-first MANDATORY (R29).** Step 0 ALWAYS writes a valid `gate-output.json` skeleton BEFORE executing any command. Truncation mid-execution = partial-but-valid JSON (auditor sees explicit `overall.summary: "PENDING"` rather than stale data from prior ticket).
+11. **Cross-ticket archive (R29).** If existing `gate-output.json` belongs to a different `<ticket>`, archive as `gate-output.<previous_ticket>.json` BEFORE skeleton write. Never let ticket-N output be polluted by ticket-N-1 stale data.
+12. **Incremental Edit pattern.** Each gate completion = ONE `Edit` call updating the `gates: []` array entry for that gate. Final step updates `overall.summary` from "PENDING" → final string. Avoids monolithic Write at end (the failure mode in R29 origen case).
 </rules>
 
 <forbidden>

@@ -395,3 +395,159 @@ estimated (extracción post-hoc next session).
 - `docs/process/checkpoint-protocol.md` (R27 crash recovery)
 
 ---
+
+## 2026-05-05 (cont. 3) — R28-R31 implementation: T-3 cycle pilot post-mortem fixes
+
+**Contexto:** Sesión T-3 cycle (PI-12 S1 sales-agent-litellm-canonicalization)
+piloteó pipeline R1-R27 end-to-end (context-builder → context-validator →
+builder-backend → gate-runner → auditor-backend). 4 errores recurrentes
+detectados — fixes codificados como R28-R31 multi-layer enforcement.
+
+**Cambios cardinales (1 commit pendiente):**
+
+R28 — context-builder Step 12 require literal bash output proof:
+- `.claude/agents/context-builder.md` Step 12 strengthened — agent's final
+  reply MUST include verbatim block `## R24/R28 post-condition proof` with
+  pasted bash output of `test -f` + `stat -c '%s bytes'`. Reply WITHOUT
+  this block = HARD contract violation; orchestrator treats brief as
+  `Validator pass: BLOCKED` regardless of header value.
+- Origen: T-3 (2026-05-05) context-builder Haiku returned summary text
+  saying "Validator will: ..." (future tense) without ever spawning. Step
+  12 post-condition was prompted but the agent's final summary skipped the
+  bash execution. Agent KNEW step 12 said spawn validator + run test -f, but
+  generated narrative summary that simulated completion. R28 fix: proof
+  must be in reply text, not just claimed by header (which the agent set
+  to `_pending_` then forgot to update).
+
+R29 — gate-runner skeleton-first JSON write + cross-ticket archive:
+- `.claude/agents/gate-runner.md` NEW Step 0 `step_0_skeleton_first` BEFORE
+  prep step. Writes minimal valid `gate-output.json` skeleton with
+  `pending: true` markers IMMEDIATELY (turn 1) before running any test.
+  Each gate completion = ONE Edit call updating `gates: []` array entry.
+  Final step updates `overall.summary` from "PENDING" → final string.
+  Truncation mid-execution = partial-but-valid JSON (auditor sees explicit
+  `overall.summary: "PENDING"` + `notes: "skeleton (pre-execution)"`
+  rather than stale data from prior ticket).
+- ALSO: cross-ticket archive logic — if existing `gate-output.json` has
+  `ticket` field DIFFERENT from current `<ticket>` input → archive as
+  `gate-output.<previous_ticket>.json` BEFORE skeleton write. Adds
+  `<ticket>` to mandatory inputs (was implicit before).
+- Schema_version `1.0` + new `ticket` top-level field added.
+- 3 new rules in `<rules>` block (rules 10-12).
+- Origen: T-3 (2026-05-05) gate-runner Haiku 4.5 ran 707s, exhausted turn
+  budget post Gate 5 of 6 without ever writing JSON. Stale T-1.bis JSON
+  remained on disk → orchestrator confused. R22 verify-artifacts post-
+  condition fired on absent file but agent had already returned. Fallback:
+  orchestrator authored JSON manually. R29 means JSON exists from turn 1
+  + cross-ticket boundary safe.
+
+R30 — builder agents prohibit self-audit footer claims:
+- `.claude/agents/builder-backend.md` + `.claude/agents/builder-agentic.md`
+  + `.claude/agents/builder-frontend.md` — Last line of reply template
+  REPLACED. Old: `<!-- @pm: implementación + auditoría done (verdict
+  PASS). PR-{n} listo para /pm "PR-{n} cerrar" -->`. New: `<!-- @pm:
+  build phase done (state: tests-passing). Commit: <SHA>. Files: <count>.
+  Native ticket tests: <X>/<Y> PASS. Awaiting orchestrator → gate-runner
+  → auditor-{backend|agentic|frontend} (independent verdict). -->`.
+- Forbidden phrases section added: builder MUST NOT use `audit-passed`,
+  `auditoría done`, `verdict PASS`, `REVIEW PASS`, `APPROVED`, or any
+  phrase implying audit closure. Self-claimed verdict = orchestrator
+  treats as malformed return.
+- 2 checklist items removed (gate-runner + auditor-X invoked) — those
+  are orchestrator's job, NOT builder's.
+- Origen: T-3 (2026-05-05) builder-backend dutifully echoed contract
+  footer claiming "implementación + auditoría done (verdict PASS)" —
+  but builder doesn't audit. Contract WAS WRONG; agent followed it
+  faithfully. Fixed contract.
+
+R31 — auditor agents auto-prefix R25 voseo-allowed magic comment:
+- `.claude/agents/auditor-backend.md` + `.claude/agents/auditor-agentic.md`
+  + `.claude/agents/auditor-frontend.md` — Step `produce_review` updated.
+  First line of any `06-audit/T-*-review.md` file MUST be:
+  `<!-- voseo-allowed: audit review may cite spanish-text.md glosario
+  verbatim per R25 (.claude/rules/spanish-text.md § Magic comment
+  escape) -->`.
+- Magic comment does NOT mark file as voseo-permitting for user-facing
+  strings — technical escape for evidence quotation only.
+- Origen: T-3 (2026-05-05) audit cited `grep -E '(podés|tenés|...)'`
+  verbatim in review docstring → pre-commit hook blocked commit →
+  manual escape add required. R31 amortizes the fix once-per-audit
+  instead of N-times-after-the-fact (cada audit ticket re-litigates
+  same magic comment placement otherwise).
+
+**Lecciones aprendidas (cross-cutting):**
+
+1. **"Agent prompt strength ≠ agent compliance"** — context-builder Step
+   12 had clear MANDATORY language + post-condition `test -f`. Agent
+   under turn pressure generated narrative that SIMULATED running the
+   check ("Validator will...") instead of running it. Defense: require
+   the agent to PASTE the verbatim output of the check in its final
+   reply. Agent can't fake bash output (orchestrator can grep for it).
+
+2. **"Skeleton-first generalizes beyond context-builder"** — R27 codified
+   skeleton-first for context-builder generic; T-3 piloto demonstrated
+   gate-runner needs SAME pattern. Pattern: any subagent writing a single
+   artifact MUST write skeleton at turn 1, fill incrementally. Truncation
+   cost = capped at "incomplete but valid" not "absent".
+
+3. **"Contract templates can be wrong AND faithfully followed"** — builder
+   footer template literally said "auditoría done (verdict PASS)" — a
+   semantically incorrect claim because builder doesn't audit. Agent
+   followed contract perfectly. Lesson: review agent contracts adversarially
+   for FALSE CLAIMS that agents cannot verify (anything saying "PASS" or
+   "verdict" downstream of a SEPARATE agent's job is suspect).
+
+4. **"Pre-commit hook bypass requires escape codification, not magic"** —
+   R25 magic comment exists, but every audit cycle re-discovered the
+   need + manually edited the file. Fix: codify in agent contract
+   (R31) so magic comment is ALWAYS first line. One-time amortization
+   instead of N-times rediscovery.
+
+5. **"Cross-ticket artifact contamination is invisible"** — gate-runner
+   had iter-rename logic but only WITHIN same ticket. Cross-ticket
+   pollution (T-1.bis output remained when T-3 spawned) was silent.
+   R29 ticket-field check + archive prevents.
+
+6. **"Cost-discipline trumps full re-spawn for trivial fixes"** —
+   validator caught HIGH schema VARCHAR(64) → (32) discrepancy in brief.
+   Could have re-spawned context-builder Haiku (~$0.20) for a 4-character
+   fix. Orchestrator chose Edit + addendum-to-validation-file (~$0.05).
+   Lesson: orchestrator can manually fix VERIFIED HIGH findings if the
+   fix is mechanical + small + verifiable; document fallback path
+   transparently in addendum.
+
+**Token consumption esta sesión (orchestrator-only edits):**
+
+Pure file Edit/Write operations. ~30-50k tokens estimated (post-hoc
+extraction next session).
+
+**Riesgos restantes:**
+
+- **R28 paste-literal-bash-output** depends on agent honesty. Agents
+  could in principle paste fake output. Mitigation: orchestrator can
+  grep brief file for `_pending_` markers + cross-check stat output is
+  plausible (file size, mtime). Future R32 if R28 gets gamed.
+- **R29 skeleton-first** assumes initial JSON write succeeds. If
+  pr_folder is read-only or path doesn't exist, fails immediately.
+  Mitigation: gate-runner Step 0 verifies skeleton on disk before
+  proceeding.
+- **R30 builder footer change** doesn't enforce — orchestrator must
+  GREP `verdict PASS|audit-passed|approved` in builder reply and flag.
+  Could codify as orchestrator post-spawn check (R32 candidate).
+- **R31 R25 magic comment** present but doesn't validate hook honors
+  it. Pre-commit hook regex tested in `tests/scripts/test_pre_commit_hook.py`
+  — confidence high. Future hook update needs corresponding test.
+
+**Commits sesión:**
+- (incoming) feat(harness): R28-R31 multi-layer fixes from T-3 piloto
+
+**Fuentes consultadas:**
+- T-3 cycle artifacts (CONTEXT-BRIEF.md + CONTEXT-BRIEF-validation.md +
+  06-audit/T-3-review.md + gate-output.json + commit 71f39529 +
+  4193cbb3)
+- `.claude/agents/{context-builder,gate-runner,builder-*,auditor-*}.md`
+  (8 agent prompts surveyed for layer integration)
+- `.claude/rules/spanish-text.md` (R25 magic comment variants)
+- `docs/process/learnings.md` 2026-05-05 entries (R1-R27 baseline)
+
+---

@@ -414,11 +414,21 @@ Implementation is "done" when ALL of these are true:
 - [ ] Migration idempotent (raw SQL `IF NOT EXISTS`); schema-clone re-upgrade is no-op
 - [ ] Router registered in `main.py`; `redirect_slashes=False` confirmed
 - [ ] If analytics: `extraction_contract.py` + `make extraction-contract` + arch test in same commit
-- [ ] `gate-runner` invoked → `gate-output.json` shows `overall.any_fail = false`
-- [ ] `auditor-backend` invoked → `REVIEW.md` verdict = PASS
 - [ ] Architecture fitness allowlists shrunk (or unchanged) — never grew without justified commit
 - [ ] If pushing to `main`: `make ci-parity` PASS
 - [ ] Commits: Conventional Commits, scoped to files this session touched (parallel-safety M1-M8)
 - [ ] If user-facing capability changed: signaled `docs/product/modules/{m}.md` update to PM
-- [ ] Last line of reply: `<!-- @pm: implementación + auditoría done (verdict PASS). PR-{n} listo para /pm "PR-{n} cerrar" -->`
+- [ ] Last line of reply (R30 enforcement 2026-05-05 — builder NEVER claims audit verdict; auditor is independent contract): `<!-- @pm: build phase done (state: tests-passing). Commit: <SHA>. Files: <count>. Native ticket tests: <X>/<Y> PASS. Awaiting orchestrator → gate-runner → auditor-backend (independent verdict). -->`
+
+**R30 forbidden footer claims (origen 2026-05-05 T-3 builder):** builder
+MUST NOT use words `audit-passed`, `auditoría done`, `verdict PASS`,
+`REVIEW PASS`, `APPROVED`, or any phrase implying audit closure in the
+final reply. Builder phase output is `tests-passing` ONLY. The /auditor
+spawn is a SEPARATE downstream call by orchestrator — builder cannot
+short-circuit it. Self-claimed verdict in footer = orchestrator must
+treat as malformed return + re-spawn auditor regardless.
+
+The two checklist items removed (gate-runner + auditor-backend invoked)
+are NOT builder's job — orchestrator (/dev-team skill) spawns them
+post-build. Builder's "done" = `tests-passing` state in checkpoint.md.
 </output>
