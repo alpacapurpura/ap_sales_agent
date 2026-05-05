@@ -384,7 +384,10 @@ DO NOT seal flag yet. Validator pass (next step) may escalate to `blocking`.
 </step>
 
 <step name="step_12_spawn_validator_adversarial_probe">
-**MANDATORY post-build. (H6 — Adversarial probe variant)**
+**HARD-FAIL post-build. (H6 — Adversarial probe variant. R24 enforcement
+2026-05-05: prior caso T-1.bis context-builder skipped validator + sealed
+brief at `partial` — flag should have been auto-`blocking` instead.
+Skipping validator is now a contract violation.)**
 
 Spawn second Haiku as `context-validator` to ADVERSARIALLY PROBE the brief:
 
@@ -417,6 +420,30 @@ Update header:
 - `Faithfulness flag: <final clean|partial|blocking>`
 
 If `blocking` → caller MUST re-spawn context-builder with corrected inputs OR escalate Chris.
+
+**HARD post-condition (R24 — verify validator actually ran):**
+
+Before composing your final reply, execute:
+```bash
+test -f "<pr_folder>/CONTEXT-BRIEF-validation.md" && echo "VALIDATOR_RAN" || echo "VALIDATOR_SKIPPED"
+```
+
+If `VALIDATOR_SKIPPED`:
+1. Re-attempt spawn ONE more time (transient API failure may have stopped first attempt)
+2. If second spawn also fails → seal `Faithfulness flag: blocking` automatically
+   AND set header `Validator pass: SKIPPED — see §11 blocking entry`
+3. Append §11 blocking entry: "VALIDATOR_NOT_RUN: adversarial probe was not
+   executed; brief untrusted — caller MUST escalate or accept blocking risk
+   explicitly with magic ack `# context-validator-skipped: <reason>` in
+   downstream agent prompt"
+
+If validator ran but its output file is empty OR <500 bytes → treat as
+SKIP (validator returned without executing scan).
+
+**Returning a sealed brief without `Validator pass:` populated header is
+HARD violation of agent contract.** Origen R24: prior caso T-1.bis
+context-builder returned sealed brief at `partial` flag without spawning
+validator at all. Zero adversarial coverage = zero downstream guarantee.
 </step>
 
 </workflow>

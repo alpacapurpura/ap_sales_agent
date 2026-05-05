@@ -35,6 +35,48 @@
 #        commit 1: `git mv` puro (rename only, zero diff content)
 #        commit 2: scope expansion (modify content)
 #    - Cleaner history. Bisect-friendly. Rename detección git automática.
+#
+# 4. repro_verified field for hot-fix tickets (R26 2026-05-05):
+#    SSoT: .claude/rules/hotfix-repro-mandatory.md
+#
+#    Hot-fix tickets (origin: handoff doc, incident, auditor escalation,
+#    bis sub-numbering) MUST include `repro_verified: bool` + `repro_evidence`:
+#
+#      repro_verified: true
+#      repro_evidence:
+#        command: "cd backend && .venv/bin/pytest tests/X/test_y.py -v"
+#        output: |
+#          AssertionError: '>' not supported between NoneType and int
+#          at line 153 of test_y.py
+#        diagnosis_validates_handoff: false                # if mismatch
+#        diagnosis_correction: "Real cause is X not Y as handoff suggested"
+#
+#    /dev-team Step 0.5 refuses spawn builder if hot-fix ticket missing
+#    `repro_verified: true`. /po Step 2.5 refuses redactar spec without
+#    running repro first. Auditor REVIEW Cat 11 verifies cite presence.
+#
+#    Origen: T-1.bis 2026-05-05. Handoff doc misdiagnosed root cause; sin
+#    repro local, builder Opus habría implementado wrong scope (~$8 waste).
+#
+# 5. production_code flag + dynamic owner_eligibility (R23, 2026-05-05):
+#    Cada ticket declara `production_code: bool` (default: derivado de surface).
+#    - true  = touches src/ (production runtime code, migrations, schema)
+#    - false = touches tests/, docs/, scripts/ tooling, configs no-runtime
+#
+#    /dev-team Step 1 owner-decision logic:
+#    - production_code: true  + surface AGENTIC → claude_opus_required: true HARD
+#    - production_code: true  + BE/FE non-agentic → owner pool [qwen, sonnet, opus]
+#    - production_code: false + ANY surface → owner pool [qwen, sonnet] (Opus
+#      override-able pero NO required, even si surface AGENTIC)
+#
+#    Origen: T-1.bis 2026-05-05 forzó Opus 4.7 para test-only fix porque ticket
+#    heredó `claude_opus_required: true` de Story A surface=AGENTIC. Token waste
+#    ~$8 USD para test bridge migration que sonnet/qwen capable.
+#
+#    Default mapping:
+#    - type: backend|agentic|frontend → production_code: true
+#    - type: tests|docs|tooling|migration-only-no-data → production_code: false
+#    Architect MAY override default explicitly cuando ticket es híbrido.
 
 ---
 story_id: STORY_ID
@@ -79,6 +121,7 @@ T1:
   title: "POST /api/v1/copilot/brand-audit endpoint"
   type: backend
   surface: BE
+  production_code: true                            # R23 — touches src/, migration, runtime code
   state: draft
   owner_eligibility:
     qwen_opencode: true
@@ -123,11 +166,12 @@ T2:
   title: "Agentic: tool wire brand_audit + prompt slot 4 + eval suite"
   type: agentic
   surface: AGENTIC
+  production_code: true                            # R23 — touches modules/{copilot,sales_agent}/ runtime + prompts + tools
   state: draft
   owner_eligibility:
     qwen_opencode: false                          # ⛔
     claude_sonnet: false                          # ⛔
-    claude_opus_required: true                    # ✅ Opus 4.7 OBLIGATORIO
+    claude_opus_required: true                    # ✅ Opus 4.7 OBLIGATORIO (production_code AGENTIC HARD rule)
   priority: 1
   estimate_hours: 3
   decisions_applicable: [D5, A2, A4]              # ⚠️ R6 — agentic decisions (slot architecture, voice fidelity, cost budget)
@@ -172,6 +216,7 @@ T3:
   title: "FE: botón 'Auditar marca' en copilot drawer + telemetría + e2e smoke"
   type: frontend
   surface: FE
+  production_code: true                            # R23 — touches frontend/src/ + e2e smoke spec
   state: draft
   owner_eligibility:
     qwen_opencode: true
@@ -208,4 +253,43 @@ T3:
   blocks: []
   transitions:
     - { state: draft, at: "2026-05-04T15:00Z", by: "/architect" }
+  assigned_to: null
+
+# Optional T-N.bis test-only or docs-only sub-ticket pattern (R23 production_code: false).
+# Example: hot-fix ticket migrating tests after upstream T-N introduced new bridge architecture.
+T4_example_test_only:
+  id: T-4.bis
+  title: "Test bridge migration — fixtures need litellm_call_id stash post-T-1"
+  type: tests
+  surface: BE                                      # surface still BE (tests live there) but production_code=false
+  production_code: false                           # R23 — touches tests/ ONLY, no src/ changes
+  state: ready
+  owner_eligibility:
+    qwen_opencode: true                            # OK for tests-only fix
+    claude_sonnet: true                            # PREFERRED — cheap + capable for test fixtures
+    claude_opus_required: false                    # NOT required even though Story is AGENTIC-adjacent
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [D-T1bis-1, D-T1bis-2]     # cite test-side fix decisions, not production
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch-be.md"
+    rules: [".claude/rules/tdd-mandatory.md"]
+    tessl_skills: ["tessl__pytest-api-testing"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+  deliverables:
+    - "MODIFY tests/modules/{copilot,sales_agent}/observability/test_callback_handler*.py — bridge cost via _stash + litellm_call_id injection"
+    - "OPTIONAL: helper en tests/conftest.py si pattern reused 2+ times"
+  out_of_scope:
+    - "Production cost_recorder.py / base_callback_handler.py (NO src/ touches)"
+  acceptance:
+    - { id: A1, description: "2 repro tests PASS", verifier: { type: pytest, path: "..." } }
+    - { id: A2, description: "Cero src/ in diff", verifier: { type: bash, cmd: "git diff --name-only HEAD~1 | grep '^backend/src/' | wc -l | grep -E '^0$'" } }
+  quality_gates:
+    - "Tests scoped + downstream regression pass"
+  depends_on: ["T-1"]
+  blocks: []
+  transitions:
+    - { state: draft, at: "2026-05-05T11:35Z", by: "/dev-team-orchestrator" }
+    - { state: ready, at: "2026-05-05T11:35Z", by: "/dev-team-orchestrator" }
   assigned_to: null

@@ -46,3 +46,38 @@ Tuteo (`tú`). PROHIBIDO voseo (`vos/sos/tenés/podés/mirá/dejá`) + léxico m
 
 ## Excepción sales_agent
 Output sales_agent respeta voz tenant (puede tener voseo si tenant AR). Ver `sales-agent-expert`.
+
+## Magic comment escape (R25 2026-05-05)
+
+Files que citan glosario voseo verbatim como referencia (rules MD, audit
+review reports, test fixtures que prueban detección voseo) — pre-commit hook
+honra magic comment en cualquiera de estas formas:
+
+```python
+# voseo-allowed                       # Python comment, no reason
+# voseo-allowed: optional reason      # Python comment, with reason after colon
+# voseo-allowed — optional reason     # any unicode separator + reason
+```
+
+```markdown
+<!-- voseo-allowed -->                <!-- Markdown, no reason -->
+<!-- voseo-allowed: optional -->      <!-- Markdown, with reason inside -->
+<!-- voseo-allowed — reason -->       <!-- any unicode separator + reason -->
+```
+
+Magic comment debe aparecer en cualquier línea del archivo (no anchored a
+top). Hook regex (línea 105 `scripts/git-hooks/pre-commit`):
+
+```bash
+grep -qE '(#\s*voseo-allowed([: \t]|$)|<!--\s*voseo-allowed[^>]*-->)' "${FILE}"
+```
+
+**Cuándo NO usar:** user-facing strings (UI labels/copy/email/notification).
+Magic comment es escape para **referencia técnica del glosario** (audit
+reports, rules docs, test fixtures que prueban hook). Si tu archivo
+genuinamente requiere voseo en string user-facing → revisa si pertenece a
+sales_agent voice (excepción documentada arriba). Si NO sales_agent → fix
+the voseo, no marquees con magic comment.
+
+Tests: `backend/tests/scripts/test_pre_commit_hook.py` cubre 4 variantes
+(no-reason, with-reason, em-dash, plain block).

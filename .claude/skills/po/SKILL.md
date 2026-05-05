@@ -40,6 +40,36 @@ Si `00-story.md` no existe → escala /pm. NO redactes spec sin story brief.
 
 Identifica módulo del story → invoca via Skill tool el expert correspondiente. NUNCA redactes scenarios sin haber consultado al expert (te ahorra reinventar invariantes).
 
+### Step 2.5 — Hot-fix repro gate (R26 2026-05-05)
+
+> Origen: PI-12 S1 T-1.bis caso. SSoT: `.claude/rules/hotfix-repro-mandatory.md`.
+
+Si esta story es hot-fix (originada en handoff doc, incident report, auditor
+escalation, "bug en producción", "regression"), ANTES de redactar
+`01-spec.md` MUST reproducir el bug localmente y validar el diagnóstico:
+
+1. Ejecutar repro test/comando del handoff doc:
+   ```bash
+   cd backend && .venv/bin/pytest <repro paths> -v --tb=short
+   ```
+
+2. Comparar symptom vs root cause del handoff:
+   - **Match** → proceed redacción spec con scope handoff
+   - **Mismatch** → spec MUST documentar `diagnosis_correction` con scope corregido
+   - **No repro** → STOP, escalar Chris (handoff desactualizado o bug ya fixed)
+
+3. Citar repro evidence en `01-spec.md` sección "Context" + en story YAML:
+   ```yaml
+   hotfix_metadata:
+     repro_verified: true
+     repro_command: "cd backend && .venv/bin/pytest ..."
+     diagnosis_validates_handoff: <true|false>
+     diagnosis_correction: "<if false: real root cause>"
+   ```
+
+Sin Step 2.5 para hot-fix → /architect refuses generar 04-tickets.yaml
+sin repro_verified field. /dev-team refuses spawn builder. Defense in depth.
+
 ### Step 3 — Redactar spec — primer draft
 
 Escribir `01-spec.md` siguiendo template. Críticos:

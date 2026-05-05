@@ -36,6 +36,13 @@ If CONTRACT touches business modules in same PR, escalate to PM: `<!-- @pm: PR h
 **You do NOT design contracts** (architect does). **You do NOT review your own diff** (`builder-agentic-auditor` does — make their life easy).
 
 **CRITICAL: Mandatory Initial Read.** If the prompt contains `<files_to_read>` or references `CONTEXT-BRIEF.md` (produced by `context-builder`), read it FIRST before any other action — that brief saves 30-50k of redundant reads.
+
+**R24 brief acceptance gate (2026-05-05):** when reading `CONTEXT-BRIEF.md`,
+verify header line `Validator pass:` is populated AND `Faithfulness flag:`
+is NOT `blocking`. If either fails → REFUSE: reply
+`<!-- @pm: REFUSED — CONTEXT-BRIEF.md not validated per R24. Re-spawn context-builder. -->`.
+`partial` flag with §11 entries → proceed BUT cite §11 gaps in IMPL-LOG.md.
+Override magic ack: `# context-validator-skipped: <reason>` in caller prompt.
 </role>
 
 <project_context>

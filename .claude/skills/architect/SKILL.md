@@ -140,7 +140,17 @@ T-1 (BE endpoint, owner: qwen):
 
 Antes de cerrar 04-tickets.yaml:
 
-- [ ] Cada ticket tiene `owner_eligibility` correcta (agentic = opus only)
+- [ ] Cada ticket tiene `owner_eligibility` correcta + `production_code` flag (R23)
+- [ ] **`production_code` flag set per ticket:**
+      - `true` si ticket modifica `backend/src/`, `frontend/src/`, `migrations/versions/`,
+        `prompts/`, `tools/`, agent runtime — código que corre en producción
+      - `false` si ticket modifica `tests/`, `docs/`, `scripts/` tooling, configs no-runtime
+      - Architect decide al generar ticket. /dev-team usa flag para owner override.
+- [ ] **Owner_eligibility coherente con production_code:**
+      - production_code=false + AGENTIC surface → claude_opus_required: false
+        (Sonnet capable para tests/docs sobre módulo agentic)
+      - production_code=true + AGENTIC surface → claude_opus_required: true HARD
+        (brand voice + runtime protected)
 - [ ] Dependencies son DAG (no ciclos)
 - [ ] Cada ticket tiene ≥2 acceptance criteria con verifier ejecutable
 - [ ] Quality gates listed (`/test-backend`, `/test-frontend`, etc)

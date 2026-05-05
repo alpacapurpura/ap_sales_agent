@@ -119,6 +119,51 @@ Write `<pr_folder>/gate-output.json` with EXACT schema (auditor parses this, sch
 If a previous `gate-output.json` exists from an earlier iter, do NOT overwrite blindly — rename it to `gate-output.iter-<previous>.json` and write fresh. Multiple iterations preserved for auditor diff.
 </step>
 
+<step name="verify_artifacts_written">
+**MANDATORY post-condition. Origen R22 process-improvement 2026-05-05** —
+prior caso: gate-runner Haiku returned with text summary but did NOT write
+`gate-output.json` to disk. Downstream auditor blocked, orchestrator forced
+manual workaround. Hard gate: NO return until artifact verified.
+
+Before composing your final reply, you MUST execute these 4 verifications
+via Bash + Read:
+
+1. **File exists check:**
+   ```bash
+   test -f "<pr_folder>/gate-output.json" && echo "EXISTS" || echo "MISSING"
+   ```
+   If `MISSING` → write the JSON now (re-execute step `write_json`). If still
+   missing after retry → return with explicit `<!-- @pm: ERROR: artifact
+   write failed -->` so caller can re-spawn or escalate.
+
+2. **Size check (non-empty):**
+   ```bash
+   stat -c '%s' "<pr_folder>/gate-output.json"
+   ```
+   Must be ≥ 100 bytes (smallest valid JSON with required keys). If smaller
+   → re-write.
+
+3. **JSON-validity check:**
+   ```bash
+   python3 -c "import json,sys; json.load(open('<pr_folder>/gate-output.json'))" \
+     && echo "VALID_JSON" || echo "INVALID_JSON"
+   ```
+   If INVALID → re-execute `write_json` (probable truncation mid-write). If
+   still invalid after retry → return ERROR.
+
+4. **Schema sanity check** — Read the file and verify these keys exist at top
+   level: `schema_version`, `command`, `iter`, `started_at`, `gates`, `overall`.
+   Missing any → re-execute `write_json`.
+
+5. **Raw log written** — `test -f "<raw_log_path>"`. Missing → re-`tee`
+   command output, OR document in `notes` field if log was lost (rare —
+   /tmp is volatile but `gate-logs/` is in pr_folder).
+
+Only after ALL 5 verifications PASS may you compose the final reply.
+**If any verification fails twice (re-write attempt also failed), return
+ERROR explicitly — do NOT pretend success.**
+</step>
+
 </workflow>
 
 <rules>
@@ -149,10 +194,21 @@ Two artifacts:
 1. `<pr_folder>/gate-output.json` — structured summary (always)
 2. `<pr_folder>/gate-logs/iter-<iter>-<slug>-<timestamp>.log` — raw stdout+stderr (always)
 
-Last line of reply MUST be:
+Last line of reply MUST be ONE of:
+
+**Success path** (all 5 verifications passed):
 ```
-<!-- @pm: gate-output.json ready (overall any_fail=<bool>, fail_gates=[<list>]). Auditor can consume now. Raw log at <path>. -->
+<!-- @pm: gate-output.json ready (overall any_fail=<bool>, fail_gates=[<list>]; artifact verified: exists+size+valid_json+schema_keys+raw_log). Auditor can consume now. Raw log at <path>. -->
 ```
 
-Brief to caller (≤60 words): which gates ran, count of fails, raw log path.
+**Failure path** (artifact write failed twice):
+```
+<!-- @pm: ERROR — gate-output.json write failed; artifact NOT produced. Caller MUST re-spawn gate-runner OR fall back to manual gate execution. Reason: <one-line cause from verify_artifacts_written>. -->
+```
+
+Returning success when artifact is missing = HARD violation of agent
+contract. Origen R22: caso 2026-05-05 perdió cycle por silent miss.
+
+Brief to caller (≤60 words): which gates ran, count of fails, raw log path,
+and the verification line ("artifact verified" or "write failed").
 </output>

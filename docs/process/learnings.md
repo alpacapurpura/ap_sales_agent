@@ -241,3 +241,157 @@ Plus orchestrator main session ~150k tokens estimated (tracked post-hoc next ses
 - Anthropic prompt caching `usage` schema (cache breakdown extraction A2)
 
 ---
+
+## 2026-05-05 (cont. 2) — R22-R27 implementation: harness evolution
+
+**Contexto:** Después del piloto T-1.bis end-to-end (sesión cont.), 6 puntos
+de mejora detectados (R22-R27) implementados sistemáticamente — defense in
+depth + multi-layer integration en lugar de parches puntuales. Cada R toca
+agent prompts + skills + rules + hooks + tests + docs según corresponda.
+
+**Cambios cardinales (1 commit):**
+
+R22 — gate-runner JSON write enforcement:
+- `.claude/agents/gate-runner.md` step nuevo `verify_artifacts_written` post-condition
+  con 5 verifications mandatory (file exists + size ≥100B + valid JSON + schema keys
+  present + raw log written) antes de return. Returning without artifact = HARD
+  contract violation. Last-line spec dual: success path vs error path explicit.
+- `.claude/skills/dev-team/SKILL.md` Step 4 + `.claude/skills/auditor/SKILL.md` Step 2
+  ahora documentan post-spawn validation: si gate-runner returns "ERROR — gate-output.json
+  write failed" o test -f missing → re-spawn ONE second time, then fallback manual.
+- Origen: T-1.bis 2026-05-05 — gate-runner returned text summary sin escribir JSON.
+
+R23 — production_code flag + dynamic owner_eligibility:
+- `docs/specs/templates/04-tickets-template.yaml` § 4 docs flag semantics + ejemplo
+  T-N.bis test-only sub-ticket showing owner pool [qwen, sonnet] válido aunque
+  surface AGENTIC.
+- Cada ticket production T-1/T-2/T-3 ejemplo template ahora declara
+  `production_code: true` explícito.
+- `.claude/skills/dev-team/SKILL.md` Step 1 owner-decision tabla + pseudocode
+  rule. AGENTIC + production_code:false (tests/docs) → Sonnet OK; AGENTIC +
+  production_code:true → Opus HARD.
+- `.claude/skills/architect/SKILL.md` Step 5 validation checklist requiere
+  flag set per ticket coherent con surface + scope.
+- Origen: T-1.bis 2026-05-05 forzó Opus 4.7 (~$8 USD) para test-only fix.
+
+R24 — context-builder validator hard-fail:
+- `.claude/agents/context-builder.md` Step 12 `MANDATORY` upgraded to `HARD-FAIL`.
+  Post-condition: `test -f CONTEXT-BRIEF-validation.md`. If skipped twice →
+  auto-seal flag `blocking` + §11 entry `VALIDATOR_NOT_RUN`.
+- 6 consumer agents (`builder-{backend,frontend,agentic}`, `auditor-{backend,frontend,agentic}`,
+  `architect-orchestrator`) heredan R24 brief acceptance gate: REFUSE consume si
+  header `Validator pass:` `_pending_` OR `Faithfulness flag: blocking`. Override
+  magic ack `# context-validator-skipped: <reason>` permite caller assume risk.
+- Defense in depth: producer enforces + consumer enforces. Bypass 1-side requires
+  bypass other-side too.
+- Origen: T-1.bis 2026-05-05 — context-builder sealed brief con flag `partial`
+  sin spawn validator. R24 hace silent skip imposible.
+
+R25 — voseo-allowed regex flexibility:
+- `scripts/git-hooks/pre-commit` Section 2 regex updated:
+  `(#\s*voseo-allowed([: \t]|$)|<!--\s*voseo-allowed[^>]*-->)`
+  Acepta: `# voseo-allowed`, `# voseo-allowed: reason`, `# voseo-allowed —reason`,
+  `<!-- voseo-allowed -->`, `<!-- voseo-allowed: reason -->`, `<!-- voseo-allowed — reason -->`.
+- Locale-safe: drop unicode em-dash from char class (POSIX ERE multi-byte issue);
+  use `[^>]*` for MD content + `[: \t]|$` for Py end-of-line tolerance.
+- 2 nuevos tests: `test_voseo_allowed_marker_with_reason_passes`,
+  `test_voseo_allowed_marker_em_dash_passes`. Total 12/12 PASS.
+- `.claude/rules/spanish-text.md` § Magic comment escape — documenta variantes.
+- Origen: T-1.bis 2026-05-05 — auditor review.md citing glosario verbatim
+  bloqueado por hook regex original `<!-- voseo-allowed -->` literal exact.
+
+R26 — hotfix-repro-mandatory rule (NEW rule):
+- `.claude/rules/hotfix-repro-mandatory.md` (NEW). Workflow Step 1-4: reproduce
+  → diagnose → cite evidence → spawn builder. Match/Mismatch/No-repro decision tree.
+- `.claude/skills/dev-team/SKILL.md` Step 0.5 (entre bootstrap + Step 1):
+  hot-fix ticket detection (signals `bug|hot-fix|regression|incident|bis|revert`)
+  → repro mandatory → REFUSE spawn si `repro_verified: false/missing`.
+- `.claude/skills/po/SKILL.md` Step 2.5 (entre Step 2 cargar skill + Step 3
+  redactar spec): para hot-fix story, repro pre-spec → cite evidence en
+  spec + story YAML.
+- `docs/specs/templates/04-tickets-template.yaml` § 4 docs `repro_verified` field
+  semantics + `repro_evidence` schema + `diagnosis_correction` cuando handoff
+  misdiagnoses.
+- Origen: T-1.bis 2026-05-05 — handoff doc misdiagnosed (suggested provider
+  fallback fix; real bug = test bridge missing). Sin repro local, builder Opus
+  habría wasted ~$8 USD on wrong scope.
+- 5 enforcement layers: /po + /dev-team + template + auditor REVIEW + builder agent.
+
+R27 — crash recovery + persistent artifacts protocol:
+- `docs/process/checkpoint-protocol.md` § Crash recovery (NEW). Documenta:
+  - Subagent contract: write artifacts EARLY (skeleton at Step 0, fill incremental
+    via Edit). Crash mid-build → partial brief + audit log explica what's missing.
+  - Orchestrator contract: commit + push frequent (≤2 commits unpushed). Update
+    checkpoint.md per artifact.
+  - Resume from crash workflow (6 steps from git status to scoped re-run).
+  - Background tasks: NUNCA confíes en bg task output sin re-verify post-crash.
+  - Tests state recovery: ticket-scoped → downstream → module → full (escalate
+    only on red flag).
+- Origen: T-1.bis 2026-05-05 — WSL2 crash mid-pytest pero commits ya pushed →
+  state recovered <2min. Lección codificada.
+
+CLAUDE.md + AGENTS.md sync:
+- `CLAUDE.md` Critical Rules table extended con #14 (R3 + R21 auditor-downstream-regression)
+  + #15 (R26 hotfix-repro-mandatory).
+- Conditional Rules table añade R12 layer 1 process metrics emission + hot-fix
+  routing entry.
+
+**Lecciones aprendidas (cross-cutting):**
+
+1. **"Multi-layer enforcement > single-layer parche"** — cada R applies multiple
+   layers (agent + skill + rule + hook + test). R24 ejemplo: producer (context-
+   builder hard-fail) + consumer (6 agents refuse without validator) + override
+   magic ack. Bypass requires bypass both sides — defense in depth.
+
+2. **"Locale-safe regex en hooks bash"** — R25 reveló que `[—]` em-dash en
+   character class POSIX ERE puede fallar locale-dependent. Lección: avoid
+   multi-byte chars en char classes; use `[^>]*` o explicit alternation.
+
+3. **"Hot-fix tickets son trampa AI-resistant"** — handoff doc misdiagnosis
+   muy fácil pasar gate /po + /architect porque parece scope claro + repro
+   en doc. R26 force repro local PRE-spec — el único momento donde el coste
+   del bug aún es bajo.
+
+4. **"Production_code flag captura clase de tickets antes invisible"** — pre-R23
+   no había forma de distinguir test-only fixes de production fixes en owner
+   policy. Surface alone insuficiente (test sobre módulo agentic → no es
+   agentic-production-code). R23 introduce ortogonalidad explicit.
+
+5. **"Skeleton-first rescata work post-crash"** — R27 codifica pattern existente
+   (context-builder ya hacía skeleton-first H6) generalizado a todos subagents.
+   Crash mid-build = partial artifact + audit log = recovery <30s en lugar de
+   re-spawn from scratch.
+
+6. **"Validator skip hard-fail > silent partial"** — pre-R24, agent sealed brief
+   at `partial` flag without spawn validator. Looked OK to caller → consumed.
+   Post-R24, agent MUST verify CONTEXT-BRIEF-validation.md exists post-spawn,
+   else auto-block. Producer + consumer dual enforcement.
+
+**Token consumption esta sesión (no subagents — orchestrator-only):**
+
+Mejoras meta-process aplicadas via Edit/Write tool calls. ~80-120k tokens
+estimated (extracción post-hoc next session).
+
+**Riesgos restantes:**
+
+- **Existing tickets no migrated to production_code flag** — solo template
+  + nuevo T-N.bis ejemplo tienen flag. Tickets existentes en PIs activos
+  (PI-12 S1) NO tienen flag → /dev-team sin flag debe asumir
+  `production_code: true` default seguro.
+- **Hot-fix tickets ya creados sin repro_verified** — T-1.bis ya merged, no
+  retro-aplica. Próximo hot-fix será primer test del workflow R26.
+- **R27 background-task verification gap** — protocolo documentado pero no
+  enforce automático. Future R28: tooling para detectar bg-task-output stale.
+
+**Commits sesión:**
+- (incoming) feat(harness): R22-R27 multi-layer enforcement evolution
+
+**Fuentes consultadas:**
+- `docs/process/learnings.md` 2026-05-05 entry #2 (T-1.bis closure case)
+- `.claude/agents/{context-builder,gate-runner,builder-*,auditor-*,architect-orchestrator}.md` (6+ agent prompts surveyed for layer integration)
+- `.claude/skills/{dev-team,auditor,architect,po}/SKILL.md` (4 skills updated)
+- `.claude/rules/spanish-text.md` (R25 doc)
+- `docs/specs/templates/04-tickets-template.yaml` (R23 + R26 fields)
+- `docs/process/checkpoint-protocol.md` (R27 crash recovery)
+
+---

@@ -85,6 +85,20 @@ Agent({
 })
 ```
 
+**R22 post-spawn validation (origen 2026-05-05):** después del spawn,
+VERIFY el artifact escribió a disco antes consumir. Si gate-runner last-line
+contiene `ERROR — gate-output.json write failed` OR si `test -f $GATE`
+returns missing post-spawn → NO confíes en text stdout del agent. Re-spawn
+UNA segunda vez. Si falla de nuevo → fallback manual:
+```bash
+cd /home/chris/AISALESHT/backend && .venv/bin/{ruff,pytest,mypy} \
+  ... > /tmp/gate-iter-N.log 2>&1
+# Compose JSON manually con schema gate-runner.md spec.
+python3 -c "import json,subprocess; ..." > $GATE
+```
+Document en T-{n}-review.md sección "Gate-runner failover" + escalate backlog
+R22 retry inventory.
+
 Espera. Lee `gate-output.json`. Si `overall.any_fail=true` → BLOCK sub-auditor spawn, devolver ticket a /dev-team con `state: tests-failing` (auditor no audita código que no pasa gates).
 
 Solo si `any_fail=false` → continuar spawn sub-auditor.

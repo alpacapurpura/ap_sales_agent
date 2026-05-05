@@ -95,8 +95,18 @@ if [ -n "${ALL_TEXT_STAGED}" ]; then
 
     # Per spanish-text.md exception: skill SKILL.md / rules/*.md / process docs
     # may quote voseo glosario or example wrong-then-right pairs. Honor magic
-    # comment `# voseo-allowed:` or `<!-- voseo-allowed -->` in file.
-    if grep -qE '(# voseo-allowed:|<!-- voseo-allowed -->)' "${FILE}" 2>/dev/null; then
+    # comment in any of these forms (R25 flexible regex 2026-05-05):
+    #   # voseo-allowed                     (Python comment, no reason)
+    #   # voseo-allowed: optional reason    (Python comment, with reason)
+    #   # voseo-allowed — optional reason   (any unicode separator + reason)
+    #   <!-- voseo-allowed -->              (Markdown, no reason)
+    #   <!-- voseo-allowed: optional -->    (Markdown, with reason inside)
+    #   <!-- voseo-allowed — reason -->     (any unicode separator + reason)
+    #
+    # Regex strategy: avoid unicode chars in character classes (locale issues
+    # with multi-byte chars in POSIX ERE). Use `[^>]*` for MD and end-of-line
+    # tolerance for Py. Both anchored at literal `voseo-allowed`.
+    if grep -qE '(#\s*voseo-allowed([: \t]|$)|<!--\s*voseo-allowed[^>]*-->)' "${FILE}" 2>/dev/null; then
       continue
     fi
 

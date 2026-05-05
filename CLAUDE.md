@@ -75,7 +75,9 @@ Schema + protocolo: `docs/process/checkpoint-protocol.md`.
 | 10 | Spanish neutro LatAm | `.claude/rules/spanish-text.md` |
 | 11 | PII (`response_model=`) | `@AGENTS.md` → Tessl pii-sanitisation |
 | 12 | Anti-duplication | `.claude/rules/anti-duplication.md` |
-| 13 | Ticket states + checkpoint protocol | `docs/process/{ticket-states,checkpoint-protocol}.md` |
+| 13 | Ticket states + checkpoint protocol + crash recovery (R27) | `docs/process/{ticket-states,checkpoint-protocol}.md` |
+| 14 | Auditor downstream regression scope (R3 + R21) | `.claude/rules/auditor-downstream-regression.md` |
+| 15 | Hot-fix repro mandatory (R26) | `.claude/rules/hotfix-repro-mandatory.md` |
 
 ## Conditional Rules (stub → skill)
 
@@ -97,6 +99,8 @@ Schema + protocolo: `docs/process/checkpoint-protocol.md`.
 | Tech architecture | `architect` skill (orchestra `architect-{be,fe,agentic}`) | `docs/specs/templates/03-arch-template.md` |
 | Code implementation | `dev-team` skill | `docs/specs/templates/T-handoff-template.md` |
 | Code review | `auditor` skill | `docs/specs/templates/T-review-template.md` |
+| Process metrics emission (R12 layer 1) | `dev-team` + `auditor` Step 5.5/4.5 | `scripts/emit_process_metric.py` + `docs/process/metrics/README.md` |
+| Hot-fix ticket origen handoff doc (R26) | `dev-team` Step 0.5 + `po` Step 2.5 | `.claude/rules/hotfix-repro-mandatory.md` |
 
 ## Vision
 

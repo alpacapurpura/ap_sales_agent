@@ -87,3 +87,92 @@ cat docs/projects/active/PI-{N}/sprints/S{n}/stories/{id}/checkpoint.md
 - ❌ Saltarse phases (ej. /architect sin spec ratificada)
 - ❌ No actualizar checkpoint tras escribir artefacto
 - ❌ Ignorar `blocked_reason`
+
+## Crash recovery (R27 2026-05-05)
+
+WSL2 hangs / computer crashes / network blip pueden interrumpir mid-pipeline.
+Para que recovery sea trivial, cada agent + orchestrator MUST:
+
+### Subagent contract (write artifacts EARLY)
+
+Cada subagent escribe su output a disco apenas tiene contenido suficiente
+— NO bufferea hasta el final. Pattern:
+
+| Agent | Artifact | Write trigger |
+|---|---|---|
+| `context-builder` | `CONTEXT-BRIEF.md` | Skeleton at Step 0, fill Edits per Step. Crash mid-build → partial brief + audit log explica what's missing. |
+| `context-validator` | `CONTEXT-BRIEF-validation.md` | Skeleton at Step 0, fill Edits per Step. |
+| `gate-runner` | `gate-output.json` + `gate-logs/iter-N-*.log` | Raw log streamed via `tee` during execute. JSON written + verified post-condition (R22). |
+| `builder-{be,fe,agentic}` | `T-{n}-impl-log.md` | Write skeleton at Step 1. Append per fase. `T-{n}-result.md` + commit hash AFTER push. |
+| `auditor-{be,fe,agentic}` | `T-{n}-review.md` | Write skeleton early, fill cat scores incrementally. |
+
+### Orchestrator contract (frequent commits + push)
+
+`/dev-team` + `/auditor` orchestrator (Claude main session) MUST:
+
+- Commit cada artefacto downstream apenas terminado (never batch ≥3 artefactos)
+- `git push origin development` después de cada commit (no acumular >2 commits unpushed)
+- Update `checkpoint.md` story-level con `last_artifact` + `last_modified` + `next_action`
+
+Razón: crash recovery = `git pull || git fetch` + leer `checkpoint.md` =
+contexto restaurado en <30 seconds. Sin push frecuente, perdés horas de
+work si crash + machine no boots.
+
+### Resume from crash workflow
+
+Sesión nueva post-crash:
+
+```bash
+# 1. State estable
+git status --short                                   # debe estar limpio
+git log --oneline -5                                 # confirmar commits llegaron remoto
+
+# 2. Identificar último ticket en progreso
+ls docs/projects/active/                             # PIs activos
+cat docs/projects/active/PI-N/checkpoint.md          # PI-level
+ls docs/projects/active/PI-N/sprints/SN/stories/     # sprints + stories
+cat docs/projects/active/PI-N/sprints/SN/stories/{id}/checkpoint.md
+
+# 3. Verificar artefactos del ticket interrumpido
+ls -lt docs/projects/active/PI-N/sprints/SN/stories/{id}/05-impl/  # builder outputs
+ls -lt docs/projects/active/PI-N/sprints/SN/stories/{id}/06-audit/ # auditor outputs
+
+# 4. Consultar gate-output.json freshness (R22 post-condition)
+GATE=docs/projects/active/PI-N/sprints/SN/stories/{id}/gate-output.json
+[ -f $GATE ] && jq '.overall.any_fail, .iter' $GATE
+
+# 5. Re-run scoped tests para confirm state consistente
+cd backend && .venv/bin/pytest <ticket scope tests> -v
+
+# 6. Continue from `next_action` field of checkpoint.md
+```
+
+### Background tasks (Bash run_in_background)
+
+Crash kills bg tasks. NUNCA confíes en bg task output sin re-verify:
+- `pytest` corriendo en bg → re-run scoped suite post-crash
+- `npm run test:e2e` corriendo en bg → re-run preflight + smoke
+
+Mejor: usar `run_in_background: true` solo para tasks <5min wall-clock.
+Tasks largas → use Monitor con persistent: true (sobrevive sesión, no
+process crash).
+
+### Tests state recovery
+
+Si crash mid-pytest run, tests no escribieron coverage report ni quizá
+.pytest_cache. Re-run desde scope mínimo (ticket-scoped) → escala scope
+a downstream (R3) → escala scope a full suite si hay tiempo.
+
+| Scope | Comando | Tiempo aprox |
+|---|---|---|
+| Ticket-scoped (verificar fix) | `pytest <ticket test paths>` | 10-30s |
+| Downstream regression (R3) | `pytest <SSoT downstream targets>` | 1-3min |
+| Module-scoped | `pytest tests/modules/{m}/` | 2-5min |
+| Full backend | `pytest -x -q --tb=short` | 8-15min |
+
+Empezar siempre por ticket-scoped. Solo escalas si red flag (memory
+test pollution, unrelated cascade fail).
+
+Origen R27: PI-12 T-1.bis 2026-05-05 — WSL2 crash mid-pytest pero commits
+ya pushed → state recovery <2min via git log + scoped re-run. Lección:
+commits pequeños + push frecuente = zero pérdida.

@@ -225,6 +225,36 @@ def test_nested_tests_subtree_under_shared_excluded_from_r3(fixture_repo: Path) 
     assert result.returncode == 0, f"hook should not block tests under shared: {result.stderr}"
 
 
+def test_voseo_allowed_marker_with_reason_passes(fixture_repo: Path) -> None:
+    """R25 flexible voseo-allowed regex (2026-05-05) — accept reason after marker."""
+    content = (
+        "<!-- voseo-allowed: this fixture cites the voseo glosario verbatim -->\n\n"
+        "# Test of voseo-allowed marker with reason\n\n"
+        "This file contains the word `tenés` for documentation purposes.\n"
+    )
+    f = fixture_repo / "docs" / "rules" / "spanish-text-test.md"
+    f.parent.mkdir(parents=True)
+    f.write_text(content)
+    _git("add", str(f.relative_to(fixture_repo)), cwd=fixture_repo)
+    result = _commit(fixture_repo, "docs: voseo-allowed with reason")
+    assert result.returncode == 0, f"hook should accept marker with reason: {result.stderr}"
+
+
+def test_voseo_allowed_marker_em_dash_passes(fixture_repo: Path) -> None:
+    """R25 — em-dash variant of voseo-allowed marker."""
+    content = (
+        "<!-- voseo-allowed — em-dash variant for cleaner prose -->\n\n"
+        "# Em-dash voseo-allowed test\n\n"
+        "Documentation example: `vos podés` is voseo.\n"
+    )
+    f = fixture_repo / "docs" / "rules" / "spanish-em-dash.md"
+    f.parent.mkdir(parents=True)
+    f.write_text(content)
+    _git("add", str(f.relative_to(fixture_repo)), cwd=fixture_repo)
+    result = _commit(fixture_repo, "docs: voseo em-dash variant")
+    assert result.returncode == 0, f"hook should accept em-dash variant: {result.stderr}"
+
+
 def test_modules_path_not_subject_to_r3_gate(fixture_repo: Path) -> None:
     """C1 only gates `backend/src/shared/`, not `backend/src/modules/`."""
     f = _create_module_file(

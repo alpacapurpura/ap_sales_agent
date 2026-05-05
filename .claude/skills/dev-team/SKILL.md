@@ -55,6 +55,61 @@ Espera context-builder + context-validator (cadena interna). Lee `CONTEXT-BRIEF.
 
 **Pasás `CONTEXT-BRIEF.md` path en TODO prompt subagent downstream** (Step 2A/B/C). Builder/auditor agents YA tienen mandatory initial read clausula que prefiere brief sobre raw docs.
 
+## Step 0.5 — Hot-fix repro gate (R26 2026-05-05)
+
+> Origen: PI-12 S1 T-1.bis 2026-05-05 (`docs/process/learnings.md`).
+> SSoT: `.claude/rules/hotfix-repro-mandatory.md`.
+
+ANTES de spawn builder para hot-fix ticket, reproduce el bug localmente.
+
+Aplica si ticket tiene AL MENOS UNA señal:
+- Title/context contiene `bug`, `hot-fix`, `regression`, `incident`, `bis`, `revert`, `fix forward`
+- Origin field menciona `handoff doc`, `pase a producción failed`, `auditor escalation`
+- Sub-numero `T-N.bis`
+- Spec describe symptom (no design from scratch) + scope quirúrgico ≤2h
+
+Workflow:
+
+1. **Reproduce localmente:**
+   ```bash
+   # Run repro command from handoff doc / ticket context section
+   cd backend && .venv/bin/pytest <repro_test_paths> -v --tb=short
+   ```
+   Captura output verbatim.
+
+2. **Diagnóstico real:**
+   - ✅ **Match:** symptom + traceback + log lines coinciden con causa
+     propuesta → handoff VALIDADO. Proceed con scope handoff.
+   - ⚠️ **Mismatch:** symptom existe pero apunta a código distinto del
+     scope propuesto → handoff MISDIAGNOSED. STOP, re-redactar ticket
+     spec con scope correcto, document `diagnosis_correction` field en
+     ticket.repro_evidence.
+   - ❌ **No repro:** test pasa o handoff desactualizado → STOP.
+     Close ticket `superseded` o escalate Chris.
+
+3. **Cite repro evidence en ticket entry de `04-tickets.yaml`:**
+   ```yaml
+   repro_verified: true
+   repro_evidence:
+     command: "cd backend && .venv/bin/pytest <paths> -v"
+     output: |
+       <verbatim error/traceback first 5-10 lines>
+     diagnosis_validates_handoff: <true|false>
+     diagnosis_correction: "<if false: real root cause + scope correction>"
+   ```
+
+4. **Spawn builder**: prompt MUST cite `repro_verified: true`. Si
+   `repro_verified: false` o ausente → REFUSE spawn:
+   ```
+   ERROR — hot-fix ticket missing repro_verified per
+   .claude/rules/hotfix-repro-mandatory.md. Run repro command first,
+   document evidence, then proceed.
+   ```
+
+Step 0.5 protege contra el ~$8 USD waste/builder-run que ocurriría con
+scope mal-spec'd. T-1.bis caso origen ahorra ~30min wall-clock + 1 builder
+re-spawn cuando handoff está mis-diagnosed.
+
 ## Step 1 — Tomar ticket
 
 ```bash
@@ -63,19 +118,43 @@ cat docs/projects/active/PI-N/sprints/SN/stories/{id}/04-tickets.yaml
 
 Filtrar tickets con `state: ready` (deps cumplidas).
 
-Decidir owner según `owner_eligibility`:
+Decidir owner según `owner_eligibility` + `production_code` flag (R23 2026-05-05):
 
-| Surface | Owner preferido | Razón |
-|---|---|---|
-| BE no-agentic | qwen-opencode | costo, qwen capable |
-| FE no-agentic | qwen-opencode | costo, qwen capable |
-| AGENTIC | claude-opus (este session, NO opencode) | brand voice + protected surfaces + Opus prompt eng |
-| Migration aislada | qwen-opencode | trivial |
-| Cross-module shared | claude-sonnet o opus | complexity |
+| Surface | production_code | Owner preferido | Razón |
+|---|---|---|---|
+| BE no-agentic | true | qwen-opencode | costo, qwen capable |
+| BE no-agentic | false (tests/docs/tooling) | qwen-opencode o claude-sonnet | trivial test/doc work |
+| FE no-agentic | true | qwen-opencode | costo, qwen capable |
+| FE no-agentic | false | qwen-opencode | trivial |
+| AGENTIC | true | claude-opus (MISMA sesión, NO opencode) | brand voice + protected surfaces + Opus prompt eng |
+| **AGENTIC** | **false (tests/docs only)** | **claude-sonnet** | **R23 — test-only/doc-only sobre módulo agentic NO requiere Opus** |
+| Migration aislada | true | qwen-opencode | trivial DDL |
+| Cross-module shared | true | claude-sonnet o opus | complexity |
 
 **Reglas hard:**
-- AGENTIC ticket → SIEMPRE Opus 4.7. Esto se ejecuta en MISMA sesión Claude Code (vos como /dev-team con Opus).
-- Si no estás en Opus y ticket=AGENTIC → STOP, escala Chris: "necesito Opus 4.7 para este ticket. Cambiame de modelo."
+- AGENTIC ticket + `production_code: true` → SIEMPRE Opus 4.7. Esto se ejecuta en MISMA sesión Claude Code (tú como /dev-team con Opus).
+- AGENTIC ticket + `production_code: false` → Sonnet OK. Tests/docs/tooling
+  sobre `modules/{copilot,sales_agent}/` no requieren Opus reasoning. Valida-
+  ción gate downstream (R3) cubre regression risk.
+- Si no estás en Opus y ticket=AGENTIC + production_code=true → STOP, escala
+  Chris: "necesito Opus 4.7 para este ticket. Cambiame de modelo."
+
+**Owner override logic (R23 dynamic):**
+```
+if ticket.production_code == false:
+    if ticket.surface in ["BE", "FE"]:
+        owner = qwen-opencode  # trivial — cheapest capable
+    elif ticket.surface == "AGENTIC":
+        owner = claude-sonnet  # tests/docs sobre agentic — Sonnet capable
+elif ticket.surface == "AGENTIC" and ticket.production_code == true:
+    owner = claude-opus  # HARD rule, brand voice protected
+elif ticket.surface in ["BE", "FE"]:
+    owner = qwen-opencode  # default for production code
+```
+
+**Origen R23 (2026-05-05 caso T-1.bis):** test-only ticket en Story A
+agentic-adjacent forzó Opus 4.7 ($8 USD wasted) cuando Sonnet capable.
+production_code flag corrige policy estática.
 
 Update `04-tickets.yaml` ticket `T-{n}`:
 ```yaml
@@ -205,6 +284,21 @@ Cuando dev termina, leer `T-{n}-result.md` + verificar `gate-output.json`:
                  <iter>: <N>"
       })
       ```
+
+      **R22 post-spawn validation (origen 2026-05-05 caso T-1.bis):**
+      Después del spawn, VERIFY el artifact realmente escribió a disco. Si gate-runner
+      reporta "ERROR — gate-output.json write failed" en su last-line, OR si el
+      file no existe post-spawn, NO confíes en stdout output del agent — re-spawn
+      UNA segunda vez con mismo prompt. Si segunda invocación también falla:
+      ```bash
+      # Fallback manual: orchestrator escribe gate-output.json directo
+      cd /home/chris/AISALESHT/backend && .venv/bin/{ruff,pytest} ... > /tmp/gate.log 2>&1
+      # Compose JSON manually with schema:
+      python3 -c "import json; ..." > <pr_folder>/gate-output.json
+      ```
+      Documentar en T-{n}-impl-log.md sección "Gate-runner failover" + escalar
+      backlog R22 retry.
+
       Read JSON. Si `any_fail=true` → ticket vuelve a `tests-failing`, hand off /dev-team con findings.
 - [ ] Commit SHA presente + git log lo confirma?
 - [ ] Push exitoso (`git push origin development`)?

@@ -23,6 +23,13 @@ The bar is non-negotiable: a build that doesn't survive `/test-backend` is FAIL,
 **Gate output: consume `gate-output.json`** produced by `gate-runner` (Haiku). Do NOT parse raw `/test-backend` stdout — that's the runner's job. If `gate-output.json` is missing or older than latest commit, spawn `gate-runner` first.
 
 **CRITICAL: Mandatory Initial Read.** If the prompt references `CONTEXT-BRIEF.md` (produced by `context-builder`), read it FIRST — saves 30-50k of redundant reads.
+
+**R24 brief acceptance gate (2026-05-05):** when reading `CONTEXT-BRIEF.md`,
+verify header line `Validator pass:` is populated AND `Faithfulness flag:`
+is NOT `blocking`. If either fails → REFUSE: reply
+`<!-- @pm: REFUSED — CONTEXT-BRIEF.md not validated per R24. Re-spawn context-builder. -->`.
+`partial` flag with §11 entries → proceed BUT cite §11 gaps in REVIEW.md.
+Override magic ack: `# context-validator-skipped: <reason>` in caller prompt.
 </role>
 
 <project_context>
