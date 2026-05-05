@@ -146,3 +146,98 @@ Investigation phase produjo:
 - 3d77e81b docs(process): investigation 4 áreas → R12-R20 priorizadas
 
 ---
+
+## 2026-05-05 (cont.) — Process closure A2 + B1 + B2 + A1-partial + C1 + A3 piloto
+
+**Contexto:** Sesión cierre R1-R9 + gaps de paridad detectados + primer piloto end-to-end del pipeline mejorado. Ejecutó 6 ítems + final audit con altísima calidad (audit per-ítem, no batch al final). Computer crash mid-pytest pero state recuperado sin pérdida de avance.
+
+**Cambios cardinales (5 commits):**
+
+A2 — Baseline metrics post-hoc transcripts capture:
+- `scripts/extract_baseline_metrics_from_transcripts.py` — parsea Claude Code JSONL transcripts (~/.claude/projects/-home-chris-AISALESHT/) extrayendo per-agent run metrics (tokens, cache breakdown, tool counts, duration, LOC delta) tanto main turns como subagent invocations via `toolUseResult.agentType` schema discovery.
+- Frozen baseline `docs/process/metrics/baseline-pre-R1-R9.jsonl` (10,750 rows, 3.2MB) cubre 2026-04-29..2026-05-05 — referencia ROI cuando R12 layer 2 aggregation se implemente PI-13.
+- Tests: `backend/tests/scripts/test_extract_baseline_metrics.py` 6/6 PASS.
+- `.gitignore` excluye futuros `runs.jsonl`/`all-runs.jsonl` rolling captures.
+
+B1 — auditor-frontend Step 4.5 downstream regression (R3 parity):
+- Step 4.5 análogo a auditor-agentic insertado entre `consume_gate_output` y `check_warning_baselines`.
+- Tabla SSoT `.claude/rules/auditor-downstream-regression.md` extendida con 14 rows FE: lib/api, lib/tokens, lib/format, hooks/, components/shared, components/ui, features/api+types, lib/zod-schemas, arch fitness allowlists, e2e fixtures, playwright config.
+- Workflow section incluye plantillas de spawn gate-runner para BE pytest + FE vitest + E2E playwright.
+- Verdict math FE: downstream FAIL → overall FAIL Cat 10 / Cat 1.
+- Cierra gap commit a12bf22d que parcheó solo BE + agentic.
+
+B2 — Cat decisions_honored cite (R6 parity agentic + frontend):
+- `auditor-agentic.md` Cat 15 + `auditor-frontend.md` Cat 14, mismo pattern que `auditor-backend.md` Cat 11.
+- Verdict math: cat FAIL → overall FAIL si ticket tiene `decisions_applicable` pero commit body sin "Decisions honored" sección.
+- Output format tablas updated.
+- Cierra gap commit ab56966e que parcheó solo templates + BE.
+
+A1 partial — R12 layer 1 instrumentation orchestrator:
+- `scripts/emit_process_metric.py` — append-only emitter para `docs/process/metrics/runs.jsonl` (gitignored) con orchestrator-level metadata (ticket, phase, verdict, commit_sha, iter, note). Token-level detail viene del extractor post-hoc.
+- `/dev-team` SKILL Step 5.5 + `/auditor` SKILL Step 4.5 invocan emit antes handoff.
+- Best-effort emission (script missing → warn + continue, never blocks pipeline).
+- Tests: `test_emit_process_metric.py` 6/6 PASS.
+
+C1 (R21 nueva) — Pre-commit hook auto-detect tabla SSoT R3 outdated:
+- Hook Section 4: nuevo file (status A/R) bajo `backend/src/shared/.+\.py$` MUST aparecer en tabla SSoT auditor-downstream-regression.md OR carry `# downstream-regression-na: <reason>` magic comment primeras 20 líneas.
+- Side fix crítico: hook ahora usa `git show :file | ruff stdin` en lugar de leer working tree — verifica STAGED content que es lo que va a commitearse. Pre-existing silent-pass bug arreglado (encontrado durante A2 commit).
+- Hook hace `pushd backend` + ruff `--config` implícito para que `--stdin-filename src/...` resuelva chain `__init__.py` correctamente (INP001) y use `pyproject.toml` (line-length=120).
+- Tests: `test_pre_commit_hook.py` 10/10 PASS — clean python, voseo block, ruff staged-violation block, format block, R3 SSoT block, NA marker passes, tabla-listed parent dir passes, M not gated, nested tests/ excluded, modules/ not gated.
+- Rule update: nueva sección "Pre-commit freshness gate" en SSoT.
+
+A3 piloto — T-1.bis micro-ticket pipeline completo:
+- Bug repro confirmed: commits 5856be4d (T-1) introdujeron LiteLLM CustomLogger bridge donde `cost_usd` se obtiene via `pop_cost(litellm_call_id)` (no más `calculate_cost()` runtime). 2 callback-handler tests mock LLMResult sin `litellm_call_id` en response_metadata → cost None → assertions fail.
+- **Misdiagnosis original handoff doc:** sugería fallback en `litellm.get_llm_provider()` raise — pero ese path ya tiene try/except + hint fallback. Real bug = test fixture incompleto.
+- Pipeline ejecutado con improvements vivos: context-builder Phase 0 → builder-backend (test-only fix) → gate-runner (no escribió JSON, gate-output.json escrito manualmente) → auditor-backend con R3 downstream + R6 decisions cite verification → APPROVED.
+- Fix shipped (commit 3cb98fd4): nuevo `prime_cost_bridge(call_id, cost)` helper en `backend/tests/conftest.py` (lifted shared per D-T1bis-3 — pattern usado 2 modules), 2 tests migrados con `litellm_call_id` injection + cost stash.
+- Verification: 27/27 ticket-scoped + 200/200 downstream + 823/823 arch fitness PASS.
+- Cero production code changes (cost_recorder.py + base_callback_handler.py untouched per A4 binding).
+
+**Lecciones aprendidas (cross-cutting):**
+
+1. **"Audit per-ítem > audit batch al final"** — Chris pidió mid-stream cambiar cadencia a implement → audit → fix → commit → next por ítem. Resultado: cada commit aterrizó verde pre-pre-commit hook (excepto un par de roundtrips ruff que cazó el hook nuevo). Cero tech debt acumulado.
+
+2. **"Pre-commit hook doble lección"** — A2 commit reveló bug pre-existing (hook chequeaba working tree, no staged). Fix fold dentro C1 (mismo surface) — atomic change. Lección: cuando agregas check al hook, audita patrón de check ANTES (si chequea filesystem vs git index, asume comportamiento incorrecto).
+
+3. **"Gate-runner subagent escribió zero JSON 1ra vez"** — primera invocación gate-runner produjo "log huge, let me extract" output sin escribir gate-output.json. Workaround: orchestrator escribió JSON manualmente con resultados de scoped tests. Mejora futura: gate-runner prompt MUST validate JSON written before returning. Reportable como R22.
+
+4. **"Misdiagnosis upstream → builder enroped por handoff"** — original handoff doc asumió bug en `get_llm_provider()` raise. Builder spawned con corrección quirúrgica habría implementado fix incorrecto. Fix: orchestrator (Chris+Claude) reproduce bug PRIMERO, decide diagnóstico real, después spawnea con scope corregido. Aplicado: T-1.bis spec correctamente identifica test-side fix vs code-side.
+
+5. **"Computer crash recovery"** — sesión hard-resumed mid-pipeline. State recovered: git limpio + commits intactos + tests pasaron al re-correr. Lección: commits pequeños + frecuentes + push origen development = zero pérdida wall-clock cuando WSL2 cuelga.
+
+6. **"Pre-commit hook bloqueó voseo en su propio test fixture"** — el test que verifica que el hook bloquea voseo INTRODUJO voseo en su test data. Hook bloqueó. Fix: magic comment `<!-- voseo-allowed -->` en docstring del test file. Self-referential edge case.
+
+**Token consumption esta sesión (subagents):**
+
+| Agent | Tokens | Tools | Duration | Did |
+|---|---|---|---|---|
+| context-builder (Haiku) | 113,676 | 35 | 151s | 16-section CONTEXT-BRIEF.md T-1.bis |
+| builder-backend (Opus) | 128,587 | 46 | 416s | 3 test files migration + helper lifted to conftest + commits + push |
+| gate-runner (Haiku) | 55,033 | 25 | 2,022s | parsed full /test-backend log (NO JSON written — manual workaround) |
+| auditor-backend (Opus) | 152,791 | 16 | 176s | R3 + R6 audit categories all green → APPROVED |
+| **Total subagents A3** | **450,087** | **122** | **2,765s** | T-1.bis pipeline end-to-end |
+
+Plus orchestrator main session ~150k tokens estimated (tracked post-hoc next session).
+
+**Riesgos restantes:**
+
+- **gate-runner reliability:** subagent didn't write gate-output.json reliably first invocation. Spawn pattern needs `must_write_json: true` enforcement. Backlog R22.
+- **Pipeline cost sin budget cap:** T-1.bis pipeline = 450k subagent + 150k main = ~600k tokens (~$10-15 USD). Acceptable para pilot, but R11 (token budget cap) sigue diferido a PI-13.
+- **R12 layer 2:** baseline-pre-R1-R9.jsonl + emit_process_metric.py runs.jsonl creados pero NO existe aggregation script (PI-13).
+
+**Commits sesión:**
+- 07f138f3 feat(process-metrics): A2 baseline capture script + frozen pre-R1-R9 snapshot
+- 909721de feat(auditor): B1+B2 R3+R6 parity to FE/agentic auditors
+- ece0ce89 feat(process-metrics): A1 partial R12 layer 1 — orchestrator metric emission
+- 1a868ac5 feat(hooks): C1 R21 R3 SSoT freshness gate + fix staged-content lint check
+- 3cb98fd4 feat(pi-12-T1.bis): test bridge migration for LiteLLM cost
+- d1e099ba docs(pi-12-T1.bis): add result + impl-log for test bridge migration
+
+**Fuentes consultadas:**
+- `docs/process/process-improvement-handoff-2026-05-05.md` (T-1.bis micro-ticket diagnóstico — tracked misdiagnosis)
+- `docs/process/process-improvements-2026-05-05-investigation.md` (R12-R20 backlog — A1 partial implementa R12 layer 1)
+- `.claude/agents/context-builder.md` + `context-validator.md` (H1-H10 hardened in prior session — used live in A3)
+- LiteLLM `kwargs['response_cost']` bridge architecture (decision T-1 A4 binding)
+- Anthropic prompt caching `usage` schema (cache breakdown extraction A2)
+
+---
