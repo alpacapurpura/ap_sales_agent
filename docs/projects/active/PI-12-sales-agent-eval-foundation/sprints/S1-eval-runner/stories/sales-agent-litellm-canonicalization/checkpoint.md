@@ -1,11 +1,11 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: AUDIT_T2_AND_T7_APPROVED
+phase: DEV_T3_DONE
 status: pending
-last_artifact: 06-audit/T-2-review.md
-last_modified: 2026-05-05T10:30Z
-next_action: "T-2 + T-7 APPROVED. T-3 UNBLOCKED (Alembic repair migration). T-4 UNBLOCKED (gemini.py audit checklist 6/6 mandatory + delete 6 archivos legacy adapters). /pm puede spawn dev-team para ambos en paralelo."
+last_artifact: 05-impl/T-3-result.md
+last_modified: 2026-05-05T14:00Z
+next_action: "T-3 DONE (10/10 tests PASS, 823 arch fitness PASS). Awaiting auditor-backend for T-3 review. T-4 also UNBLOCKED (gemini.py audit checklist 6/6 mandatory + delete 6 archivos legacy adapters). /pm puede spawn auditor-backend para T-3 + dev-team para T-4 en paralelo."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
@@ -32,6 +32,8 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 → T-5 → T-6a → T-6b (operation
 
 - 2026-05-05 10:30 — `/auditor` (claude-opus-4-7, auditor-be) revisó T-2 commit `8b6d798f`. Verdict: **APPROVED**. 11/12 categories PASS (Cat 12 mirror-detection PASS — single `def sync_pricing` confirmed; Cat 13 default-flip N/A). Re-ran independently: 6/6 T-2 tests PASS, 191/191 wider observability PASS, 823/823 arch fitness PASS, ruff lint+format clean. Coverage `litellm_sync.py` 86% (delta -2pt vs dev claim 88%, within tolerance, ≥75% threshold satisfied). Decision A5 BINDING (EXTEND, no mirror) verified — yaml cross-check helper inline + drift detect inline. Decision A6 BINDING (ARQ primary, no GHA) verified — `cron(sync_litellm_pricing, hour=3)` preserved + no `.github/workflows/sync-pricing.yml` created. Anti-duplication grep evidence cross-validated. tessl__graceful-degradation: HTTP timeout=30.0s preserved + yaml parse + litellm import wrapped try/except + missing yaml info-log skip. Pre-existing 2 callback_handler.py failures (kimi-k2.6 unslashed fixture) re-confirmed independent of T-2 (T-7 territory). T-3 UNBLOCKED. Phase=AUDIT_T2_APPROVED. Last artifact: `06-audit/T-2-review.md`.
 
+- 2026-05-05 14:00 — `builder-backend` (claude-sonnet-4-6) implementó T-3 Alembic repair migration. NEW `backend/alembic/versions/122_repair_pricing_snapshot_provider_tagging.py` — idempotent raw SQL: DROP IF EXISTS backup, CTAS backup, 3x UPDATE (deepseek→provider='deepseek', kimi/moonshot→provider='kimi', qwen→provider='dashscope'). Downgrade: TRUNCATE + INSERT FROM backup + DROP backup. NEW `backend/tests/migrations/test_t3_pricing_snapshot_repair.py` — 10 tests mock-based (established codebase pattern), all PASS. Architecture fitness: 823/823 PASS (baseline preserved). Downstream: 225/225 tests/migrations + tests/shared/agent_observability PASS. Ruff lint+format clean. Revision chain: 121_leads_deleted_at → 122_repair_pricing_snapshot_provider_tagging. Brain container down at commit time (A1 bash verifier deferred to deployment). Phase=DEV_T3_DONE. Last artifact: `05-impl/T-3-result.md`.
+
 ## Notas
 
 - Story B (`sales-agent-eval-runner-foundation`) está siendo escrita por agente paralelo en este sprint S1. Sus archivos NO han sido tocados por esta sesión.
@@ -52,7 +54,7 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 → T-5 → T-6a → T-6b (operation
 |---|---|---|
 | T-2 | **AUDIT APPROVED** (2026-05-05 10:30Z) | T-2-review.md merged |
 | T-7 | DONE pending /auditor (2026-05-05 04:50Z) | T-7-result.md ready |
-| T-3 | **UNBLOCKED** | /pm puede spawn dev-team (Alembic repair migration) |
+| T-3 | **DEV DONE** (2026-05-05 14:00Z) | 10/10 tests PASS, 823 arch fitness PASS. Awaiting /auditor |
 | T-4 | UNBLOCKED post-T-7-AUDIT_PASS | aguarda /auditor APPROVE T-7 (gemini.py audit checklist 6/6 mandatory + delete 6 archivos legacy) |
 | T-5 | STILL BLOCKED | aguarda T-4 + T-7 (post-AUDIT_PASS) |
 | T-6a | STILL BLOCKED | aguarda T-5 |
