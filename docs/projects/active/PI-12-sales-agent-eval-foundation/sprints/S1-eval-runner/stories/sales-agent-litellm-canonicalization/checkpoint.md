@@ -1,11 +1,11 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: AUDIT_T1_APPROVED
+phase: DEV_T7_DONE
 status: pending
-last_artifact: 06-audit/T-1-review.md
-last_modified: 2026-05-05T07:00Z
-next_action: "/dev-team toma T-2 (sync-pricing extends litellm_sync.py) — puede correr en paralelo con T-7 (tests audit). T-2 + T-7 están desbloqueados por T-1 APPROVED."
+last_artifact: 05-impl/T-7-result.md
+last_modified: 2026-05-05T04:50Z
+next_action: "/auditor revisa T-7 (tests audit migrate per-provider mocks → LiteLLM canonical). T-2 sigue en paralelo (otra sesión)."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
@@ -16,7 +16,7 @@ po_version: 2
 arch_version: 1
 total_tickets: 11
 estimated_total_hours: 38
-critical_path: "T-1 ✅ → T-7 → T-4 → T-5 → T-6a → T-6b (operational gate, ~5 working days) → T-6c"
+critical_path: "T-1 ✅ → T-7 ✅ → T-4 → T-5 → T-6a → T-6b (operational gate, ~5 working days) → T-6c"
 ---
 
 ## Bitácora
@@ -27,6 +27,7 @@ critical_path: "T-1 ✅ → T-7 → T-4 → T-5 → T-6a → T-6b (operational g
 - 2026-05-05 03:30 — `/architect` (Opus, acting standalone for service-story BE-only) produjo `03-arch-be.md` (995 líneas) + `04-tickets.yaml` (877 líneas, 11 tickets). Phase=ARCHITECT_COMPLETE.
 - 2026-05-05 06:30 — `/dev-team` (claude-opus-4-7) implementó T-1 cost recorder canonicalization. Commit `5856be4d` push a `development`. Phase=DEV_T1_DONE.
 - 2026-05-05 07:00 — `/auditor` (claude-opus-4-7, auditor-be) revisó T-1 commit `5856be4d`. Verdict: **APPROVED**. 11/12 categories PASS (Cat 3 N/A — no soft delete operations). Re-ran tests independently: 13/13 ticket tests PASS, 1015/1015 regression PASS, 823/823 arch fitness PASS, ruff lint+format clean, coverage 73% (>43% threshold). Anti-duplication grep evidence verified. Anti-default-flip-audit N/A (T-1 NO flipea ningún flag). Scope creep audit: copilot/sales_agent file changes son schema mirrors + regression adaptations only, autorizados por architect doc § 3.4 + § 5. Phase=AUDIT_T1_APPROVED. Last artifact: `06-audit/T-1-review.md`.
+- 2026-05-05 04:50 — `/dev-team` (claude-opus-4-7) implementó T-7 tests audit. 2 archivos DELETED (`test_openai_compat_providers.py` -280 líneas, `test_provider_routing.py` -217 líneas — cubrían adapters/build_provider_service/`LITELLM_PROXY_ENABLED=False` toggle que T-4+T-5 borran). 1 archivo SIMPLIFIED (`test_router_litellm_dispatch.py`: drop legacy-toggle test + drop setattr). 1 archivo MIGRATED (`test_specialist_provider_routing.py`: drop `TestKimiKwargsForceThinkingDisabled` covered by `test_litellm_kimi_clamp.py`; migrate `TestReasoningBudgetReserveAppliesToDeepSeek` → `TestReasoningBudgetReserveForReasoningSpec` con `ChatModelSpec` inline). Net: -538 líneas test code obsoleto. A1 satisfied (grep returns empty). 881/881 LLM+arch + 13/13 changed-files PASS. Anti-flip-audit Step 1+2 cumplido (Step 3+4 = T-5 scope). 2 pre-existing failures `test_callback_handler.py::test_persists_row_with_sales_columns` + `test_callback_handler_usage_fallbacks.py::test_response_metadata_token_usage_is_used` documentados como out-of-T-7-scope (root cause T-1 fixture data unslashed `kimi-k2.6` → cost recorder BadRequestError). Phase=DEV_T7_DONE. Last artifact: `05-impl/T-7-result.md`.
 
 ## Notas
 
@@ -42,15 +43,15 @@ critical_path: "T-1 ✅ → T-7 → T-4 → T-5 → T-6a → T-6b (operational g
 - pm-nico/current-state updates required post-merge: `docs/product/modules/sales-agent.md` § "LLM routing", `docs/product/capabilities/sales-agent/sales-observability-cost-tracking.yaml` (gaps removal), `docs/domains/llm-routing.md` (Capa 5 reescrita).
 - T-1 audit PASS observations (no blocking): coverage cost_recorder.py 72% (defensive paths uncovered, OK); result.md menciona "diff es solo model field" — realidad incluye también cost_usd null en snapshots (intencional per X2, doc imprecisión leve); `# noqa: F401` para calculate_cost retained — válido (utility de reconciliation); fixture `_reset_cache` accede `_cache` private — aceptable para tests.
 
-## Tickets unblocked post-T1 APPROVED
+## Tickets unblocked post-T1 + T-7 (pending /auditor approval of T-7)
 
 | Ticket | Status | Note |
 |---|---|---|
-| T-2 | UNBLOCKED | Puede empezar inmediato (extends litellm_sync.py + Makefile target) |
-| T-7 | UNBLOCKED | Puede empezar en paralelo con T-2 (tests audit ~20 files) |
+| T-2 | UNBLOCKED (in-progress, parallel session) | T-2-impl-log.md presente |
+| T-7 | DONE pending /auditor (this session, 2026-05-05 04:50Z) | T-7-result.md ready |
 | T-3 | STILL BLOCKED | aguarda T-2 (blocked_by [T-1, T-2]) |
-| T-4 | STILL BLOCKED | aguarda T-7 |
-| T-5 | STILL BLOCKED | aguarda T-4 + T-7 |
+| T-4 | UNBLOCKED post-T-7-AUDIT_PASS | aguarda /auditor APPROVE T-7 (gemini.py audit checklist 6/6 mandatory + delete 6 archivos legacy) |
+| T-5 | STILL BLOCKED | aguarda T-4 + T-7 (post-AUDIT_PASS) |
 | T-6a | STILL BLOCKED | aguarda T-5 |
 | T-8 | STILL BLOCKED | aguarda T-4 + T-5 |
 | T-9 | STILL BLOCKED | aguarda T-8 |

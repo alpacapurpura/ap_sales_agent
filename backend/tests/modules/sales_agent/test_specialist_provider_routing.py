@@ -1,18 +1,25 @@
 """Integration tests — sales_agent specialists per-role multi-provider routing (S4).
 
 These tests verify that the SSoT mapping ``SPECIALIST_TO_ROLE`` plus
-the existing ``MultiRoleLLMRouter`` resolve to the correct provider
-when ``AI_PROVIDER_<ROLE>`` env vars override defaults.
+``settings.get_provider_for_role`` resolve to the correct provider when
+``AI_PROVIDER_<ROLE>`` env vars override defaults. Post PI-12 S1
+sales-agent-litellm-canonicalization T-7 + T-4: every runtime LLM call
+goes through ``LiteLLMService``; per-provider adapter classes (KimiService,
+DeepSeekService, …) are deleted. Mocks target the abstract ``LLMFactory``
+seam — providers are identified by their ``AIProvider`` enum + ``ModelRole``
+mapping, not by class identity.
 
 The tests do NOT make real LLM calls. They:
 
 1. Patch ``LLMFactory`` to capture the ``model_type`` kwarg passed by
-   each specialist. The router's ``settings.get_provider_for_role(role)``
-   logic is exercised via parametrized env-var fixtures.
-2. Verify that switching ``AI_PROVIDER_AGENT=kimi`` routes the closer
-   call through the Kimi service (post-S4 closer maps to AGENT).
-3. Verify reasoning-budget reserve still applies when DeepSeek serves
-   REASONING — the kwargs normalizer adds reserve transparently.
+   each specialist.
+2. Verify that ``settings.get_provider_for_role`` honours per-role
+   overrides + global fallback.
+3. Verify reasoning-budget reserve still applies when a reasoning spec
+   handles REASONING — the kwargs normalizer adds reserve transparently.
+   (Per-provider clamps + thinking-disabled directives are covered
+   end-to-end in ``tests/shared/infrastructure/llm/test_litellm_kimi_clamp.py``
+   via the LiteLLMService canonical path.)
 """
 
 from __future__ import annotations
@@ -182,65 +189,47 @@ class TestSettingsResolvesProviderPerRole:
         assert settings.get_provider_for_role(ModelRole.AGENT) is AIProvider.OPENAI
 
 
-class TestKimiKwargsForceThinkingDisabled:
-    """Regression — Kimi K2.6 client MUST set extra_body.thinking=disabled.
-
-    Required by Moonshot server: thinking-enabled needs reasoning_content
-    round-trip across turns (LangChain doesn't preserve yet → 400).
-    Implemented in ``KimiService._get_chat_model`` via model_kwargs.
-    Test reproduces the path called when sales_agent closer routes to Kimi.
-    """
-
-    def test_kimi_k2_client_has_thinking_disabled(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from src.core.config import settings
-        from src.shared.infrastructure.llm.providers.kimi import KimiService
-
-        # Stub get_model so settings.get_model returns a K2-flavoured name.
-        monkeypatch.setattr(settings, "AI_MODEL_AGENT", "kimi-k2.6")
-        # KIMI_API_KEY may be unset in CI — provide a stub via ctor arg.
-        svc = KimiService(api_key="test-stub-kimi-key")
-        client = svc._get_chat_model(ModelRole.AGENT)
-
-        extra = client.model_kwargs.get("extra_body") or {}
-        thinking = extra.get("thinking")
-        assert thinking == {"type": "disabled"}, (
-            f"Kimi K2.6 client missing thinking-disabled directive: model_kwargs={client.model_kwargs!r}"
-        )
-
-    def test_kimi_k2_client_temperature_clamped(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from src.core.config import settings
-        from src.shared.infrastructure.llm.providers.kimi import (
-            _K2_REQUIRED_TEMPERATURE,
-            KimiService,
-        )
-
-        monkeypatch.setattr(settings, "AI_MODEL_AGENT", "kimi-k2.6")
-        svc = KimiService(api_key="test-stub-kimi-key")
-        # Caller requests 0.4 (closer's pre-S4 temp) — must clamp to 0.6.
-        client = svc._get_chat_model(ModelRole.AGENT, temperature=0.4)
-        assert client.temperature == _K2_REQUIRED_TEMPERATURE
-
-
-class TestReasoningBudgetReserveAppliesToDeepSeek:
+class TestReasoningBudgetReserveForReasoningSpec:
     """Reasoning-model spec MUST inflate max_output_tokens via normalizer.
 
-    Sales_agent qualifier/product_expert route to REASONING. When env var
-    ``AI_PROVIDER_REASONING=deepseek`` activates DeepSeek-V4, the kwargs
-    normalizer adds the 4000-token reserve so the visible answer never
-    starves. Trap reproduced across DeepSeek-V4 / OpenAI o-series /
-    Anthropic extended thinking — covered centrally in ``_kwargs.py``.
+    Sales_agent qualifier/product_expert route to REASONING. When the
+    active spec is reasoning-capable (e.g. DeepSeek-V4 reasoning, OpenAI
+    o-series), the kwargs normalizer adds the per-spec reserve so the
+    visible answer never starves. The reserve mechanism is provider-
+    agnostic — covered centrally in ``providers/_kwargs.py``.
+
+    Pre-T-7: the reasoning-spec instance was imported from
+    ``providers.deepseek.DEEPSEEK_NATIVE_SPEC``. T-4 deletes that adapter,
+    so the test now constructs an equivalent ``ChatModelSpec`` inline
+    (same shape as the deepseek spec: ``is_reasoning_model=True``,
+    ``reasoning_token_reserve=4000``). The ``_kwargs.py`` contract is
+    what we are protecting; the spec instance is just a fixture.
     """
+
+    @staticmethod
+    def _reasoning_spec():
+        from langchain_openai import ChatOpenAI
+
+        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+            ChatModelSpec,
+            build_chat_openai,
+        )
+
+        return ChatModelSpec(
+            chat_class=ChatOpenAI,
+            builder=build_chat_openai,
+            is_reasoning_model=True,
+            reasoning_token_reserve=4000,
+        )
 
     def test_normalizer_inflates_max_tokens_for_reasoning_spec(self) -> None:
         from src.shared.infrastructure.llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
-        from src.shared.infrastructure.llm.providers.deepseek import (
-            DEEPSEEK_NATIVE_SPEC,
-        )
 
+        spec = self._reasoning_spec()
         kwargs = {"max_output_tokens": 700}
-        out = normalize_openai_protocol_kwargs(kwargs, spec=DEEPSEEK_NATIVE_SPEC)
+        out = normalize_openai_protocol_kwargs(kwargs, spec=spec)
         # 700 visible + 4000 reserve = 4700 wire budget.
         assert out["max_tokens"] == 4700
         assert "max_output_tokens" not in out
