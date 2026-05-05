@@ -2,8 +2,8 @@
 pi_id: PI-12
 theme: sales-agent-eval-foundation
 started_at: 2026-05-04
-target_end: 2026-06-08                            # ~5 semanas, 8 stories
-status: planning                                  # planning | active | wrap-up | archived
+target_end: 2026-06-08                            # ~5 semanas, 9 stories
+status: active                                    # planning | active | wrap-up | archived
 checkpoint: ./checkpoint.md
 links:
   roadmap: "../../../product/roadmap.md"
@@ -28,39 +28,40 @@ Al final de PI-12, **cada PR que toca `modules/sales_agent/` se gradea automáti
 
 Resultado: confianza para deployar cambios sales_agent sin "puede que rompa la voz tenant" o "puede que cueste más" ansiedad. CI gate bloquea regressions.
 
-## Objetivos (3)
+## Objetivos (3) — RATIFICADOS Chris 2026-05-04
 
 1. **Eval suite operacional** — `backend/tests/agentic_evals/sales_agent/` con runner + 12+ goldens checked-in + pass^k tracking. Métrica: 6 agentic stories sales_agent con `test_coverage.eval_suite_path != null` + `pass_k_last_run >= 0.5`.
 
 2. **Voice fidelity grader en CI** — gate automático en `/test-backend` o pre-merge. Rubric `voice-fidelity.md` corre contra goldens runtime. Métrica: `voice_fidelity_score >= 0.7` enforced. Falla → PR bloqueado.
 
-3. **Cost tracking accuracy** — deepseek pricing resolver provider mapping fix. Métrica: 0% trials con `cost_usd=0` cuando provider=deepseek.
+3. **Cost tracking accuracy** — deepseek pricing resolver provider mapping fix + budget cap por run. Métrica: 0% trials con `cost_usd=0` cuando provider=deepseek + 0 runs >$5 USD.
 
-## Stories propuestas (8)
+## Stories ratificadas (9) — final scope
 
-> Decomposition pendiente ratificación Chris. Cada story <5d.
+> Decomposition ratificada Chris 2026-05-04. Cada story <5d. Cost-fix movido a S1 (quick win + reporting confiable desde día 1). Budget cap agregado a S1 (defensa preventiva contra runaway en S2/S4).
 
-| Story | Type | Sprint | Estimate | Owner |
-|---|---|---|---|---|
-| `sales-agent-eval-runner-foundation` | service | S1 | 3d | claude-opus (eval infra + python) |
-| `sales-agent-eval-pass-k-tracking` | service | S1 | 2d | claude-opus |
-| `sales-agent-goldens-3-tenants-dataset` | service | S2 | 5d | claude-opus + Chris (curate goldens) |
-| `sales-agent-personas-instrumented-runtime` | agentic | S2 | 2d | claude-opus |
-| `sales-agent-voice-fidelity-grader-runtime` | agentic | S3 | 3d | claude-opus |
-| `sales-agent-voice-fidelity-ci-gate` | service | S3 | 2d | claude-opus |
-| `sales-agent-adversarial-jailbreak-suite` | agentic | S4 | 3d | claude-opus |
-| `sales-agent-cost-tracking-deepseek-fix` | service | S4 | 2d | qwen-opencode (BE non-agentic patch) |
+| # | Story | Type | Sprint | Estimate | Owner pool |
+|---|---|---|---|---|---|
+| 1 | `sales-agent-eval-runner-foundation` | service | S1 | 3d | claude-opus (eval infra) |
+| 2 | `sales-agent-eval-pass-k-tracking` | service | S1 | 2d | claude-opus |
+| 3 | `sales-agent-eval-cost-budget-cap` | service | S1 | 1d | claude-opus |
+| 4 | `sales-agent-cost-tracking-deepseek-fix` | service | S1 | 2d | qwen-opencode (BE non-agentic patch) |
+| 5 | `sales-agent-goldens-3-tenants-dataset` | service | S2 | 5d | agent-helper (extract candidates) + Chris (curate final 12) |
+| 6 | `sales-agent-personas-instrumented-runtime` | agentic | S2 | 2d | claude-opus |
+| 7 | `sales-agent-voice-fidelity-grader-runtime` | agentic | S3 | 3d | claude-opus |
+| 8 | `sales-agent-voice-fidelity-ci-gate` | service | S3 | 2d | claude-opus |
+| 9 | `sales-agent-adversarial-jailbreak-suite` | agentic | S4 | 3d | claude-opus |
 
-**Total estimado:** 22d (~5 semanas con buffer).
+**Total estimado:** 23d (~5 semanas con buffer).
 
 ## Sprints
 
 | Sprint | Slug | Target weeks | Stories | Outcome |
 |---|---|---|---|---|
-| S1 | eval-runner | 1 | 2 | Runner pytest + pass^k computation operacional |
-| S2 | goldens-personas | 2-3 | 2 | 12 goldens × 3 tenants checked-in + personas en CI |
-| S3 | voice-fidelity-gate | 4 | 2 | Voice fidelity rubric runtime + CI gate enforced |
-| S4 | adversarial-cost-fix | 5 | 2 | Adversarial scenarios + deepseek pricing fix |
+| S1 | eval-runner | 1-2 | 4 (~8d) | Runner pytest + pass^k + budget cap operacional + cost tracking accurate |
+| S2 | goldens-personas | 3 | 2 (~7d) | 12 goldens × 3 tenants checked-in + 5 personas instrumentadas en CI |
+| S3 | voice-fidelity-gate | 4 | 2 (~5d) | Voice fidelity grader runtime + CI gate enforced |
+| S4 | adversarial | 5 | 1 (~3d) | Adversarial scenarios (jailbreak/injection/overpromise) instrumentados |
 
 ## Stakeholders
 
@@ -69,15 +70,16 @@ Resultado: confianza para deployar cambios sales_agent sin "puede que rompa la v
 - **Implementation:**
   - Eval infra → claude-opus (Opus 4.7 obligatorio para agentic-stories)
   - Pricing fix → qwen-opencode (BE non-agentic, simple patch)
+  - Goldens curation → agent-helper extract + Chris ratifica
 - **Audit:** /auditor → spawna `auditor-agentic` (eval), `auditor-backend` (pricing fix)
 
 ## Riesgos
 
 | Riesgo | Severidad | Mitigación |
 |---|---|---|
-| Goldens dataset curation lenta (requiere data real tenants) | high | Chris cura 3 tenants representativos. Anonymize PII via `sanitize_payload`. |
+| Goldens dataset curation lenta (requiere data real tenants) | high | Híbrido: agent extrae candidatos via `sales_agent_session` reales + `sanitize_payload`, Chris elige 12 finales. Story 5 explícita. |
 | Voice fidelity grader nondeterministic (LLM judge) | high | Calibrate vs experto humano cada 50 goldens. Threshold 0.7 NO 1.0. Documentar variance esperada. |
-| Cost p95 eval suite alta (3 trials × 12 goldens = 36 LLM calls/run) | medium | Run nightly, no en cada PR. Cache prefix slot 1-5 reuse → costo bajo. Budget cap $5/run. |
+| Cost p95 eval suite alta (12 goldens × 3 trials × 5 personas = 180 LLM calls/run) | medium | Story 3 budget cap $5/run hard guard. Run nightly, no en cada PR. Cache prefix slot 1-5 reuse → costo bajo. |
 | Deepseek pricing fix breaks otra cosa | medium | Test con `pricing_snapshot` table snapshots. Verificar 5 modelos provider mappings post-fix. |
 | Multi-instancia conflict (otra session toca sales_agent) | medium | M1 protocol — sólo 1 sesión activa en sales_agent durante PI-12. checkpoint.md `parallel_safe: false`. |
 
@@ -85,8 +87,9 @@ Resultado: confianza para deployar cambios sales_agent sin "puede que rompa la v
 
 - Eval runner se integra con pytest (no nuevo framework standalone)
 - Personas y rubrics existentes (`docs/specs/{personas,rubrics}/`) — NO crear nuevos sin justificar
-- Goldens checked-in en `backend/tests/agentic_evals/sales_agent/goldens/` (JSON o YAML)
+- Goldens checked-in en `backend/tests/agentic_evals/sales_agent/goldens/` (YAML)
 - Voice fidelity threshold env var `SALES_AGENT_VOICE_FIDELITY_THRESHOLD=0.7` ya declarada (Decision 30)
+- Budget cap env var `SALES_AGENT_EVAL_BUDGET_CAP_USD=5.0` (Story 3)
 - BudgetGuard SA pool wiring respetado en eval (no consume budget tenant real, usa mock budget)
 - Trial policy default: trials=3, pass^3 >= 0.5, cost_cap_per_trial=$0.50
 
@@ -102,21 +105,15 @@ Resultado: confianza para deployar cambios sales_agent sin "puede que rompa la v
 ## Cierre del PI
 
 Criterios:
-- [ ] 8 stories audit-passed + merged
+- [ ] 9 stories audit-passed + merged
 - [ ] 6 stories existentes sales-agent en `product/stories/sales-agent/*.yaml` actualizadas con `test_coverage.eval_suite_path` real
 - [ ] Capability `sales-conversational-engine` y `sales-outbound-orchestrator` con `eval_suite_status: instrumented`
 - [ ] `module sales-agent.md` frontmatter `agentic_eval_suite_path: backend/tests/agentic_evals/sales_agent/` (no null)
 - [ ] CI gate enforced (verificable: 1 PR sintético con voice drift > 0.7 → bloqueado)
-- [ ] `process/learnings.md` entry con decisiones cardinales (threshold tuning, golden curation strategy)
-- [ ] Métricas objetivo alcanzadas (pass^3 >= 0.5, cost_usd=0 trials = 0%)
+- [ ] `process/learnings.md` entry con decisiones cardinales (threshold tuning, golden curation strategy, budget cap rationale)
+- [ ] Métricas objetivo alcanzadas (pass^3 >= 0.5, cost_usd=0 trials = 0%, runs > $5 USD = 0)
 - [ ] Mover folder a `archive/`
 
 ## Próximo paso
 
-`/pm` propone scope. **Chris ratifica:**
-- ¿Aprobás los 3 objetivos?
-- ¿Aprobás decomposition en 8 stories / 4 sprints?
-- ¿Algún ajuste de scope (out-of-scope move o agregar)?
-- ¿Querés priorizar diferente (ej. cost-fix primero porque es S, 2d)?
-
-Una vez ratificado → /pm crea `00-story.md` por cada story → hand off /po story-by-story.
+`/pm` creó scope ratificado + 4 sprints + 9 `00-story.md`. Chris arranca `/po` por Sprint 1 story 1 (`sales-agent-eval-runner-foundation`) para expandir a `01-spec.md` Gherkin.
