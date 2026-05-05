@@ -170,7 +170,12 @@ Per `git add` by exact filename only. NO `git add .` / `git add -A`.
 
 ## Commit reference
 
-(Filled at commit time in transitions table.)
+- **SHA:** `674967c4`
+- **Branch:** `development`
+- **Files:** 3 staged (1 NEW assertions.py, 1 MOD test_eval_runner_fixtures.py, 1 NEW T-4-impl-log.md)
+- **Insertions:** 1499 lines
+- **Deletions:** 0 lines
+- **Push:** `3ff20d6b..674967c4 development -> development` ✅
 
 ---
 
