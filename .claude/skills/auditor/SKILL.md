@@ -60,7 +60,34 @@ git log --oneline -3
 git diff HEAD~1 HEAD --stat   # ver diff que dev pusheó
 ```
 
-## Step 2 — Decidir surface + spawn sub-auditor
+## Step 2 — Decidir surface + verificar gate-output.json + spawn sub-auditor
+
+> **Origen R2 process-improvement 2026-05-05 (D2):** auditor consume `gate-output.json`
+> producido por gate-runner — NO re-corre /test-* desde cero. Ahorro ~10-15% tokens
+> auditor por reuso del JSON. Stale JSON (más viejo que último commit) → re-spawn
+> gate-runner ANTES sub-auditor.
+
+Verificar fresh `gate-output.json`:
+
+```bash
+GATE=docs/projects/active/PI-N/sprints/SN/stories/{id}/gate-output.json
+LATEST_COMMIT_TS=$(git log -1 --format=%ct -- $STORY_DIR)
+GATE_TS=$(stat -c %Y $GATE 2>/dev/null || echo 0)
+```
+
+Si `$GATE_TS < $LATEST_COMMIT_TS` OR `$GATE` no existe → SPAWN gate-runner antes sub-auditor:
+```
+Agent({
+  description: "Refresh gate-output for audit T-{n}",
+  subagent_type: "gate-runner",
+  model: "haiku",
+  prompt: "<pr_folder>: <STORY_DIR>; <command>: test-{backend|frontend|all}; <iter>: <N>"
+})
+```
+
+Espera. Lee `gate-output.json`. Si `overall.any_fail=true` → BLOCK sub-auditor spawn, devolver ticket a /dev-team con `state: tests-failing` (auditor no audita código que no pasa gates).
+
+Solo si `any_fail=false` → continuar spawn sub-auditor.
 
 Según ticket surface:
 

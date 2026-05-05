@@ -188,16 +188,33 @@ Mientras el dev (qwen | builder-{be,fe,agentic}) trabaja, vos:
 - Si dev se cuelga > 30min sin progress visible → escala Chris
 - Si dev reporta `blocked` → registrar en log + escala /pm
 
-## Step 4 — Verificar result
+## Step 4 — Verificar result + gate-runner enforcement
 
-Cuando dev termina, leer `T-{n}-result.md`:
+Cuando dev termina, leer `T-{n}-result.md` + verificar `gate-output.json`:
 
 - [ ] Acceptance criteria self-verified table → todas ✅?
-- [ ] Quality gates output paste → verde?
+- [ ] **`gate-output.json` existe en story-folder + `overall.any_fail = false`?**
+      Si missing → builder no invocó gate-runner. SPAWN gate-runner directo aquí:
+      ```
+      Agent({
+        description: "Force gate-runner T-{n}",
+        subagent_type: "gate-runner",
+        model: "haiku",
+        prompt: "<pr_folder>: docs/projects/active/PI-N/sprints/SN/stories/{id}/;
+                 <command>: test-{backend|frontend|all};
+                 <iter>: <N>"
+      })
+      ```
+      Read JSON. Si `any_fail=true` → ticket vuelve a `tests-failing`, hand off /dev-team con findings.
 - [ ] Commit SHA presente + git log lo confirma?
 - [ ] Push exitoso (`git push origin development`)?
 
 Si cualquier gap → ticket vuelve a `tests-failing` o `building`. Si dev itera ≥5x sin éxito → `blocked` + escala.
+
+> **Origen R2 process-improvement 2026-05-05 (D2):** sin gate-runner enforcement
+> orchestrator, cada subagent corre su propio pytest cycle (~10-15% tokens
+> duplicados). gate-runner Haiku produce JSON estructurado consumible por auditor
+> sin re-correr suite ni parsear stdout.
 
 ## Step 5 — Hand off /auditor
 
