@@ -105,7 +105,7 @@ summary:
 # ── Critical path ──────────────────────────────
 # T-1 → T-7 → T-4 → T-5 → T-6a → T-6b (operational pause) → T-6c
 # (longest chain through code; T-2/T-3 parallel-able after T-1; T-8/T-9 tail)
-# Estimated wall-clock: ~22h dev + 5 working days T-6b gate.
+# Estimated wall-clock: ~22h dev + 1 working day T-6b gate (pre-clientes — R7 2026-05-05).
 
 # ── Detalle (uno por ticket) ─────────────────
 tickets:
@@ -567,8 +567,8 @@ T6b:
 
   deliverables:
     - "T-6a code merged + deployed to prod (verify in pase-produccion log)"
-    - "Min 1 full sprint elapsed OR 5 working days + Chris ratification"
-    - "Streamlit /admin/tenants verifies 0 non-NULL across 4 deprecated cols over verification window (daily check)"
+    - "Min 1 working day elapsed (was 5d pre-clientes — R7 process-improvement 2026-05-05; re-escalable a 5d post-clientes activos)"
+    - "Streamlit /admin/tenants verifies 0 non-NULL across 4 deprecated cols over verification window (1-day check pre-clientes)"
     - "Structured log query confirms 0 reads from factory _extract_tenant_key for 4 deprecated providers (Datadog / structlog aggregation across window)"
     - "Smoke test prod: tenant create/update flow PASS sin referencing 4 cols"
     - "PM /pm sign-off in checkpoint.md before T-6c starts"
@@ -584,7 +584,7 @@ T6b:
         type: manual
         cmd: "PM checks deploy log + ratifies in checkpoint.md"
     - id: A2
-      description: "5+ working days elapsed OR Chris ratification documented"
+      description: "1+ working day elapsed (pre-clientes — R7 2026-05-05; re-escalable a 5d post-clientes activos) OR Chris ratification documented"
       verifier:
         type: manual
         cmd: "checkpoint.md timestamp diff or Chris note"

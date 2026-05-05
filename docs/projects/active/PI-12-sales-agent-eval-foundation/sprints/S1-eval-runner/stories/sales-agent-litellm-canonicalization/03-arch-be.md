@@ -762,21 +762,21 @@ M  backend/src/modules/iam/infrastructure/repositories/tenant_repository.py ← 
 
 **Estimated hours:** 3h.
 
-### T6b — DEPLOY-AND-VERIFY 1 sprint zero-read window (operational gate)
+### T6b — DEPLOY-AND-VERIFY 1-day zero-read window (operational gate, pre-clientes)
 
 **NOT a code ticket.** Operational pause documented as architectural gate.
 
 **Gate criteria (must pass before T6c starts):**
 
 - T6a code merged + deployed to prod.
-- Min 1 full sprint elapsed (or alternative: 5 calendar days + manual ratification by Chris).
-- Streamlit `/admin/tenants` query confirms 0 non-NULL across all 4 deprecated columns over the verification window.
+- **Min 1 working day elapsed** (was 5d — R7 process-improvement 2026-05-05; pre-clientes activos no justifica 5d wall-clock; re-escalable a 5d post-go-live cuando hay tráfico real).
+- Streamlit `/admin/tenants` query confirms 0 non-NULL across all 4 deprecated columns over the 1-day verification window.
 - Structured log query confirms 0 reads from factory `_extract_tenant_key` for the 4 deprecated providers (Datadog / structlog aggregation).
 - Smoke test prod: tenant create/update flow PASS sin referenciar las 4 cols.
 
 **Owner:** PM (`/pm` skill — operational gate). T6c blocked until PM ratifies T6b PASS.
 
-**Estimated hours:** 0 (waiting period). Architect recomienda 1-sprint = 5 working days.
+**Estimated hours:** 0 (waiting period). Pre-clientes: 1 working day. Post-clientes: re-escalable a 1-sprint = 5 working days.
 
 ### T6c — Migration DROP COLUMN
 
