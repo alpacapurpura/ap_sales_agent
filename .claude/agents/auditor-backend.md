@@ -126,6 +126,41 @@ A FAIL on gates 3-7 or 11-13 = automatic verdict FAIL (these don't depend on Pos
 If raw log needed: read `gate-output.raw_log_path` (preserved by gate-runner).
 </step>
 
+<step name="downstream_regression_scope">
+**MANDATORY post `consume_gate_output`. Origen R3 process-improvement 2026-05-05 (D4 caso crítico).**
+
+Cuando diff toca `shared/` o módulo con consumers conocidos, MUST verificar tests downstream cubiertos. SSoT: `.claude/rules/auditor-downstream-regression.md`.
+
+Workflow:
+1. Read `.claude/rules/auditor-downstream-regression.md` SSoT tabla.
+2. List paths modificadas (`git diff --name-only HEAD~N..HEAD`).
+3. Per path → lookup tabla → aggregate downstream_test_targets unión.
+4. Verificar `gate-output.json` scope cubre downstream targets:
+   - `command_alias = test-backend` (full suite) → cubierto, skip a Step audit_categories
+   - command scoped (e.g., `tests/modules/X/`) y NO incluye downstream paths → SPAWN gate-runner downstream:
+     ```
+     Agent({
+       description: "Downstream regression T-{n}",
+       subagent_type: "gate-runner",
+       model: "haiku",
+       prompt: "<pr_folder>: <STORY_DIR>;
+                <command>: cd /home/chris/AISALESHT/backend && .venv/bin/pytest <space-sep downstream_test_targets> -v --tb=short;
+                <iter>: <N>-downstream"
+     })
+     ```
+5. Read new gate-output.json. Si FAIL → REVIEW.md verdict FAIL Cat 10 con cita exacta tests + mapping surface modificada.
+6. Si PASS → continuar.
+
+**Sin este step, repetimos D4** (cost_recorder canonicalization aprobado pese a bug downstream cross-surface — 80min hunt + 500k tokens + T-1-bis micro-ticket).
+
+Append a REVIEW.md sección "Downstream regression scope":
+```
+| Surface modified | Downstream test targets | gate-runner status |
+|---|---|---|
+| `shared/agent_observability/cost/cost_recorder.py` | `tests/modules/copilot/observability/test_callback_handler_usage_fallbacks.py`, `tests/modules/sales_agent/observability/test_callback_handler.py` | PASS / FAIL (cita test fallido) |
+```
+</step>
+
 <step name="audit_categories">
 Score each file against the 11-category checklist below. Per category:
 - **PASS** — fully compliant
@@ -356,6 +391,7 @@ Para CADA file nuevo en este PR (status `??` en git):
 - [ ] If pushed to `main`: `make ci-parity` evidence
 
 ## Verdict Math
+- **Downstream regression scope FAIL** (per `.claude/rules/auditor-downstream-regression.md`) → **overall FAIL** Cat 10 (caso origen D4 PI-12 S1 — cost_recorder pase pero bug cross-surface en callback handlers ambos modulos)
 - Any FAIL in categories 1 / 2 / 8 / 9 / 12 → **overall FAIL**
 - Allowlist grew without justified commit → **overall FAIL**
 - Any `/test-backend` gate FAIL (3-7, 11-13) → **overall FAIL**

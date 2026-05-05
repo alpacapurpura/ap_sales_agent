@@ -68,6 +68,26 @@ If `gate-output.json` does not exist OR is older than the latest commit, spawn `
 
 Then read `gate-output.json` for verdict input.
 
+## Step 4.5 — Downstream regression scope (MANDATORY)
+
+**Origen R3 process-improvement 2026-05-05.** SSoT: `.claude/rules/auditor-downstream-regression.md`.
+
+Cuando diff toca `shared/` o módulo cross-consumer (copilot ↔ sales_agent ↔ analytics ↔ shared/agent_observability), MUST verificar tests downstream cubiertos.
+
+Workflow:
+1. Read `.claude/rules/auditor-downstream-regression.md` SSoT tabla.
+2. List paths modificadas (`git diff --name-only HEAD~N..HEAD`).
+3. Per path → lookup tabla → aggregate downstream_test_targets unión.
+4. Verificar gate-output.json scope cubre downstream:
+   - `command_alias = test-backend` (full suite) → cubierto
+   - command scoped → SPAWN gate-runner downstream con scope=downstream_test_targets unión
+5. Si downstream FAIL → REVIEW-agentic.md verdict FAIL Cat 5 (Observability) o Cat 11 (Tests) según naturaleza.
+6. Si PASS → continuar.
+
+Append a REVIEW-agentic.md sección "Downstream regression scope" con tabla surface→downstream_test_targets→gate-runner status.
+
+Sin este step, repetimos D4 caso (cost_recorder canonicalization aprobado pese a bug downstream cross-surface en callback handlers ambos modulos — 80min hunt + 500k tokens).
+
 ## Step 5 — State-of-the-art validation (DATE-AWARE — Step 0)
 
 If contract introduces patterns the codebase has no precedent for (new LangGraph topology, new cache slot, new eval methodology), validate against LIVE canonical docs BEFORE scoring. Cite sources in REVIEW-agentic.md § Research Notes with `accessed {YYYY-MM-DD from Step 0}`.
