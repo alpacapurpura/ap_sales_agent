@@ -4,7 +4,7 @@
 **Story:** sales-agent-litellm-canonicalization
 **Sprint:** S1-eval-runner / PI-12
 **Builder:** `builder-backend` (Claude Opus 4.7 — `claude_opus_required: true` per architect)
-**Commit:** _pending — appended post-commit_
+**Commit:** `28617716`
 **Date:** 2026-05-05
 
 ## Summary
