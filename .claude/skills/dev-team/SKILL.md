@@ -15,6 +15,46 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 3. `T-{n}-handoff.md` — input self-contained (architect lo escribió)
 4. Story YAML + spec + design + arch (lectura referencia)
 
+## Step 0 — Phase 0: Context pre-flight (MANDATORY antes de Step 1)
+
+> Origen: process-improvement 2026-05-05 R1. Sin context-builder cada subagent
+> re-lee 30-50k tokens de spec+arch+rules. Brief Haiku 5-8k tokens amortiza.
+
+Antes de tomar ticket, asegurás `CONTEXT-BRIEF.md` fresco existe en story-folder.
+
+```bash
+STORY_DIR=docs/projects/active/PI-N/sprints/SN/stories/{id}
+BRIEF=$STORY_DIR/CONTEXT-BRIEF.md
+LATEST_COMMIT=$(git log -1 --format=%H -- $STORY_DIR)
+```
+
+Decidir si spawn context-builder:
+- `CONTEXT-BRIEF.md` no existe → SPAWN
+- `CONTEXT-BRIEF.md` existe + header `Faithfulness flag: blocking` → SPAWN (re-build con corrections)
+- `CONTEXT-BRIEF.md` existe + más viejo que último commit story → SPAWN (stale)
+- `CONTEXT-BRIEF.md` existe + flag `clean|partial` + fresco → SKIP
+
+Si SPAWN:
+```
+Agent({
+  description: "Build context brief for ticket T-{n}",
+  subagent_type: "context-builder",
+  model: "haiku",
+  prompt: "<pr_folder>: <absolute path STORY_DIR>;
+           <modules>: <comma list from story.yaml `modules` field>;
+           <phase>: builder;
+           <subsystem_keywords>: <if you know, comma list — else context-builder auto-infiere H2>;
+           <frameworks>: <if known frameworks involved — fastapi, langgraph, anthropic, sqlalchemy, pydantic, etc.>"
+})
+```
+
+Espera context-builder + context-validator (cadena interna). Lee `CONTEXT-BRIEF.md` header:
+- `Faithfulness flag: clean` → proceder Step 1
+- `Faithfulness flag: partial` → leer §11 gaps, decidir si downstream puede tolerar (típicamente sí — gaps documentados)
+- `Faithfulness flag: blocking` → STOP. Reportar Chris: contexto incompleto, validator escaló blocking. Re-spawn con corrections o escalate.
+
+**Pasás `CONTEXT-BRIEF.md` path en TODO prompt subagent downstream** (Step 2A/B/C). Builder/auditor agents YA tienen mandatory initial read clausula que prefiere brief sobre raw docs.
+
 ## Step 1 — Tomar ticket
 
 ```bash
@@ -55,7 +95,10 @@ Crear `T-{n}-impl-log.md` con plan inicial.
 cat > /tmp/T-{n}-qwen-prompt.md <<EOF
 Eres developer Nicolify ejecutando T-{n} de story {id}.
 
-Lee SOLO estos archivos (self-contained):
+PRIORITY READ — CONTEXT-BRIEF (Haiku-built, 5-8k tokens, contiene spec+arch+rules+anti-dup+canonical docs):
+- $(realpath docs/projects/active/PI-N/sprints/SN/stories/{id}/CONTEXT-BRIEF.md)
+
+Lee TAMBIÉN estos archivos (referencia profunda si brief insuficiente):
 - $(realpath docs/projects/active/PI-N/sprints/SN/stories/{id}/05-impl/T-{n}-handoff.md)
 - $(realpath docs/projects/active/PI-N/sprints/SN/stories/{id}/01-spec.md) — sección scenarios relevantes
 - $(realpath docs/projects/active/PI-N/sprints/SN/stories/{id}/03-arch-{be|fe}.md)
@@ -109,7 +152,9 @@ Spawnás agent `builder-agentic` (Opus 4.7) via Agent tool:
 Agent({
   description: "Build agentic ticket T-{n}",
   subagent_type: "builder-agentic",
-  prompt: "<files_to_read>: docs/projects/.../T-{n}-handoff.md, 01-spec.md, 03-arch-agentic.md, 02-design-agentic.md, story YAML
+  prompt: "<pr_folder>: docs/projects/active/PI-N/sprints/SN/stories/{id}/
+           CONTEXT-BRIEF.md (priority read — 5-8k tokens compresses spec+arch+rules+anti-dup+canonical docs)
+           <files_to_read>: docs/projects/.../T-{n}-handoff.md, 01-spec.md, 03-arch-agentic.md, 02-design-agentic.md, story YAML
            Skill consultados obligatorio: copilot-expert/sales-agent-expert + tessl__langgraph + claude-api + graceful-degradation
            TDD: eval goldens RED first, integration tests, tools tests, etc
            Output: T-{n}-result.md + commit pushed
@@ -121,7 +166,20 @@ Agent({
 
 ## Step 2C — Owner = claude-sonnet (cross-module shared)
 
-Spawnás agent `builder-backend` o `builder-frontend` con model=sonnet (default).
+Spawnás agent `builder-backend` o `builder-frontend` con model=sonnet (default). Prompt SIEMPRE referencia `CONTEXT-BRIEF.md`:
+
+```
+Agent({
+  description: "Build {surface} ticket T-{n}",
+  subagent_type: "builder-{backend|frontend}",
+  model: "sonnet",
+  prompt: "<pr_folder>: docs/projects/active/PI-N/sprints/SN/stories/{id}/
+           Read CONTEXT-BRIEF.md FIRST (saves 30-50k tokens vs raw docs).
+           <files_to_read>: T-{n}-handoff.md, 01-spec.md, 03-arch-{be|fe}.md, story.yaml
+           TDD obligatorio. ...
+           Last line: done -> path/to/T-{n}-result.md"
+})
+```
 
 ## Step 3 — Self-monitor durante build
 

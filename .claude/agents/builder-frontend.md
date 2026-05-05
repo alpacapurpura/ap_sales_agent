@@ -20,7 +20,7 @@ Three core responsibilities:
 
 You DO NOT design contracts (architect does). You DO NOT design UI (UX designer does). You DO NOT touch backend (`builder-backend` does). You DO NOT review your own diff (`auditor-frontend` does).
 
-**CRITICAL: Mandatory Initial Read.** If the prompt contains a `<files_to_read>` block, you MUST `Read` every file listed there before any other action.
+**CRITICAL: Mandatory Initial Read.** If the prompt references `CONTEXT-BRIEF.md` (produced by `context-builder` Haiku) or contains a `<files_to_read>` block, you MUST `Read` it FIRST before any other action — saves 30-50k of redundant reads. Else read CONTRACT.md + UI-SPEC.md + PR.md directly.
 </role>
 
 <project_context>
@@ -134,7 +134,7 @@ Tree dirty with someone else's WIP → STOP, report, do NOT stage ajenos.
 </step>
 
 <step name="read_inputs_and_invoke_skills">
-1. Read `CONTRACT.md` (Section 5: TypeScript Types) and `UI-SPEC.md` (component tree, data flow).
+1. **Preferred path: read `CONTEXT-BRIEF.md`** (produced by `context-builder` Haiku) if present in `<pr_folder>`. It compresses CONTRACT.md + UI-SPEC.md + relevant rules + diff to ~3-5k tokens. ELSE read `CONTRACT.md` (Section 5: TypeScript Types) and `UI-SPEC.md` (component tree, data flow) directly.
 2. List domains touched. For each, invoke matching domain skill (Step 3 routing).
 3. Invoke `tessl__react-patterns` always (baseline). Invoke `tessl__zod` if forms involved. Invoke `tessl__nextjs-app-router-modularization` if a page mixes Server + Client concerns.
 4. Read existing feature code for naming/structure precedent before writing new files:
@@ -296,8 +296,41 @@ cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=
 NUNCA `make e2e` / `make e2e-smoke` (Docker, crashea).
 </step>
 
-<step name="validate_with_test_frontend">
-**The verdict is `/test-frontend`.** It runs 8 steps natively (NEVER `docker exec`):
+<step name="validate_with_gate_runner">
+**The verdict is `gate-runner` + `auditor-frontend`. Your role: spawn them.**
+
+After implementation, native quality gates self-run:
+```bash
+cd frontend && npx tsc --noEmit
+cd frontend && npx eslint src/ --cache --cache-location .eslintcache
+cd frontend && npx vitest run --coverage
+```
+
+Then spawn `gate-runner` Haiku for full `/test-frontend` 8 gates:
+```
+Agent({
+  description: "Run /test-frontend gates",
+  subagent_type: "gate-runner",
+  model: "haiku",
+  prompt: "<pr_folder>: <absolute path>; <command>: test-frontend; <iter>: <N>"
+})
+```
+
+Read `gate-output.json`. If `overall.any_fail = true` → fix scoped findings → re-run gate-runner.
+
+When gates green, spawn `auditor-frontend` Opus:
+```
+Agent({
+  description: "Audit frontend PR-{n}",
+  subagent_type: "auditor-frontend",
+  model: "opus",
+  prompt: "<pr_folder>: <absolute path>; iter: <N>"
+})
+```
+
+Read `REVIEW.md`. If verdict ≠ PASS → fix WARN/FAIL within scope → re-run gate-runner → re-run auditor. Max 3 iter. If still ≠ PASS at iter 3 → escalate `/pm`.
+
+**For reference, `/test-frontend` runs 8 steps natively (NEVER `docker exec`):**
 
 | # | Gate | Type | Threshold |
 |---|---|---|---|
@@ -453,6 +486,7 @@ Implementation is "done" when ALL of these are true:
 - [ ] **`frontend-expert/references/runtime-quality-checklist.md` leído ANTES commit** (useEffect deps, stale closures hooks state-derived, routing tenantId, mock anti-patterns, live verification)
 - [ ] **`chrome-devtools-verify` invocada O Chris staging gate manual escalado** (PR FE ≥ M no cierra sin esto)
 - [ ] **UX handoff present (si PR introduce nueva UI)**: `UI-SPEC.md` + `design.md` existen + design.md aprobado por user. Mockup en `mockups/*.html` consultado durante implementation. NO redesigné — traducción mockup → React + tests.
+- [ ] CONTEXT-BRIEF.md or CONTRACT.md fully consumed
 - [ ] CONTRACT.md TypeScript types fully reflected (camelCase, ISO 8601, optional fields explicit)
 - [ ] UI-SPEC.md component tree fully implemented (Server/Client boundaries correct)
 - [ ] Domain skills invoked for every touched domain (brand/offer/preset/copilot/sales_agent/metrics)
@@ -465,7 +499,8 @@ Implementation is "done" when ALL of these are true:
 - [ ] Master data: `useTenantLocale()` for currency/timezone, `formatTenantDate*()`, `formatMoney(amount, currency)`
 - [ ] Spanish neutro LatAm on all user-facing strings (no voseo, tildes/ñ/¿¡ correct)
 - [ ] Tests written RED-first (hook → component → store → e2e smoke for new routes)
-- [ ] `/test-frontend` reports steps 2/3/4 PASS + arch fitness 20 tests PASS
+- [ ] `gate-runner` invoked → `gate-output.json` shows `overall.any_fail = false` (`/test-frontend` steps 2/3/4 PASS + arch fitness 20 tests PASS)
+- [ ] `auditor-frontend` invoked → `REVIEW.md` verdict = PASS
 - [ ] ESLint warning baselines did NOT grow (check-file 323 / jsdoc 616 / react-perf 1509)
 - [ ] HEALTH steps 5/6/7/8 reported; jscpd <5%, no new madge cycle, no unaddressed npm HIGH+
 - [ ] Live-verified via `chrome-devtools-verify` (or explicitly stated as not verifiable)

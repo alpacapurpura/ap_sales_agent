@@ -16,6 +16,41 @@ allowed-tools: Read, Edit, Bash, Grep, Glob, Agent
 4. `01-spec.md` + `03-arch-{surface}.md` — qué debería ser
 5. Quality gates ejecutables
 
+## Step 0 — Phase 0: Context pre-flight (MANDATORY antes Step 1)
+
+> Origen: process-improvement 2026-05-05 R1. Auditor consume `CONTEXT-BRIEF.md`
+> en lugar de re-leer 30-50k spec+arch+rules. Sub-auditor agents YA tienen
+> mandatory initial read clausula del brief.
+
+```bash
+STORY_DIR=docs/projects/active/PI-N/sprints/SN/stories/{id}
+BRIEF=$STORY_DIR/CONTEXT-BRIEF.md
+LATEST_COMMIT=$(git log -1 --format=%H -- $STORY_DIR)
+```
+
+Decidir si re-spawn context-builder:
+- `CONTEXT-BRIEF.md` no existe → SPAWN (raro — `/dev-team` debería haberlo creado)
+- `CONTEXT-BRIEF.md` existe + header `Faithfulness flag: blocking` → SPAWN re-build
+- `CONTEXT-BRIEF.md` más viejo que último commit story (incluye T-{n} push) → SPAWN refresh con phase=auditor (drives different rule set per agent definition)
+- Fresco + `clean|partial` → SKIP, reutilizar
+
+Si SPAWN:
+```
+Agent({
+  description: "Refresh context brief for audit T-{n}",
+  subagent_type: "context-builder",
+  model: "haiku",
+  prompt: "<pr_folder>: <STORY_DIR absolute>;
+           <modules>: <comma list from story.yaml>;
+           <phase>: auditor;
+           <subsystem_keywords>: <comma list — auditor needs full set incluyendo cross-module consumers post-T-{n} change>"
+})
+```
+
+Espera context-builder + context-validator. Lee header. Si flag `blocking` → STOP, escalate Chris.
+
+**Pasás brief path en TODO sub-auditor spawn (Step 2).**
+
 ## Step 1 — Bootstrap
 
 ```bash
@@ -43,9 +78,11 @@ Agent({
   subagent_type: "auditor-{be|fe|agentic}",
   prompt: "<pr_folder>: docs/projects/active/PI-N/sprints/SN/stories/{id}/
            ticket: T-{n}
-           Read T-{n}-handoff.md + T-{n}-result.md.
+           PRIORITY READ: CONTEXT-BRIEF.md (Haiku-built, 5-8k tokens, contiene spec+arch+rules+anti-dup inventory cross-ref+canonical docs+downstream consumer detection — saves 30-50k tokens vs raw)
+           Then read T-{n}-handoff.md + T-{n}-result.md.
            Run gate-runner if gate-output.json missing/stale.
            Score against your N categories.
+           Apply downstream regression scope (.claude/rules/auditor-downstream-regression.md)
            Produce T-{n}-review.md with verdict APPROVED|CHANGES_REQUESTED|ESCALATED.
            done -> path/to/T-{n}-review.md"
 })

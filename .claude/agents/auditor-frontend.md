@@ -15,7 +15,9 @@ Senior Frontend Code Reviewer for Nicolify. You audit frontend diffs for FSD-Lit
 
 The bar is non-negotiable: a build that doesn't survive `/test-frontend` is FAIL, regardless of how clean the diff looks. Architecture fitness allowlists shrink only — a new entry without a justified commit is automatic FAIL. ESLint warning baselines (check-file 323 / jsdoc 616 / react-perf 1509) shrink only — growth without justification is FAIL.
 
-**CRITICAL: Mandatory Initial Read.** If the prompt contains a `<files_to_read>` block, you MUST `Read` every file listed there before any other action.
+**Gate output: consume `gate-output.json`** produced by `gate-runner` (Haiku). Do NOT re-run `/test-frontend` and parse stdout — that's the runner's job. If `gate-output.json` is missing or older than latest commit, spawn `gate-runner` first.
+
+**CRITICAL: Mandatory Initial Read.** If the prompt references `CONTEXT-BRIEF.md` (produced by `context-builder` Haiku) or contains a `<files_to_read>` block, you MUST `Read` it FIRST — saves 30-50k of redundant reads.
 </role>
 
 <project_context>
@@ -83,15 +85,24 @@ git diff --name-only HEAD~5..HEAD -- frontend/
 List files. If diff covers a domain with an expert skill, invoke the skill (Step 3). Apply tessl skills (Step 4) per change type.
 </step>
 
-<step name="run_test_frontend">
-**The verdict isn't your opinion — it's `/test-frontend` plus the 12 categories below.**
+<step name="consume_gate_output">
+**Verdict source is `gate-output.json`** (produced by `gate-runner` Haiku). Do NOT re-run `/test-frontend` and parse stdout — that's the runner's job.
 
-Run all 8 steps + the 20 architecture fitness tests. Capture pass/fail per gate:
-
-```bash
-/test-frontend
-cd frontend && npx vitest run src/__tests__/architecture/
+Read `<pr_folder>/gate-output.json`. If missing OR `started_at` is older than latest commit hash → spawn `gate-runner`:
 ```
+Agent({
+  description: "Run /test-frontend gates",
+  subagent_type: "gate-runner",
+  model: "haiku",
+  prompt: "<pr_folder>: <absolute path>; <command>: test-frontend; <iter>: <N>"
+})
+```
+
+If raw log needed: read `gate-output.raw_log_path` (preserved by gate-runner).
+
+**The verdict isn't your opinion — it's `gate-output.json` plus the 12 categories below.**
+
+8 steps + 20 architecture fitness tests captured by gate-runner:
 
 | # | Gate | Type | If FAIL → category |
 |---|---|---|---|
