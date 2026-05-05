@@ -22,7 +22,7 @@ summary:
     title: "Pytest plumbing + fixtures (visionarias_tenant_session, eval_run_id, sales_agent_entrypoint, synthetic_tenant)"
     surface: BE
     owner_pool: [claude-opus]
-    state: draft
+    state: tests-passing                       # 2026-05-04 23:55 dev-team Opus completó pytest plumbing + 4 fixtures + 14 meta-tests; awaiting /auditor
     blocked_by: [T-1]
     blocks: [T-3, T-4, T-5, T-6]
   - id: T-3
@@ -116,7 +116,7 @@ tickets:
     title: "Pytest plumbing (--run-evals flag + @pytest.mark.eval) + 4 fixtures + meta-tests TDD"
     type: backend
     surface: BE
-    state: draft
+    state: tests-passing
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -173,7 +173,9 @@ tickets:
     blocks: ["T-3", "T-4", "T-5", "T-6"]
     transitions:
       - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
-    assigned_to: null
+      - { state: building, at: "2026-05-04T23:30Z", by: "dev-team-opus" }
+      - { state: tests-passing, at: "2026-05-04T23:55Z", by: "dev-team-opus" }
+    assigned_to: claude-opus-4-7
 
   - id: T-3
     title: "TrajectorySpy LangChain callback handler + artifacts writer (sanitize_payload reused)"

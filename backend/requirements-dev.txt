@@ -13,3 +13,12 @@ pip-audit>=2.7.0
 # Dev-only: pyproject sin runtime usage. Stage `dev_builder` del Dockerfile
 # lo incluye, stage `final` (prod) NO. Ver docs/domains/copilot/testing-2026-04/01-tooling.md.
 deepeval==3.9.7
+# PI-12 S1 sales-agent-eval-runner-foundation T-2 (Story B): language
+# detection for Capa 3 (output) of the agentic eval harness. Pure-Python
+# port of Google's Java lib (MIT, ~1MB, mature). Imported lazily inside
+# tests/agentic_evals/sales_agent/runner/assertions.py (T-4) so absence
+# does not break default test collection. Decision B5 ratified Chris
+# 2026-05-04: keyword count alone too fragile for Spanish regression
+# detection if voice profile bug regresses agent to English.
+langdetect>=1.0.9
+

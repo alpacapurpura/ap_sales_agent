@@ -6,6 +6,8 @@ addopts = "-m 'not verify' --randomly-seed=last --timeout=30"
 markers = [
     "integration: live integration tests requiring external credentials",
     "verify: data reliability verification tests requiring real DB data",
+    "eval: agentic eval suite — requires --run-evals flag (real LLM cost ~$0.005/run)",
+    "no_eval: opt-out of auto-eval-marking in tests/agentic_evals/sales_agent/ (runs on default CI)",
 ]
 
 [tool.coverage.run]
