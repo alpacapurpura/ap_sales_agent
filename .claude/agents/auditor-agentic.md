@@ -254,6 +254,39 @@ Referencias:
 - `docs/projects/active/PI-11-backend-quality-guardrails/` (caso origen 2026-05-04)
 - `docs/process/process-learnings.md` 2026-05-04 entry
 
+### Cat 15 — Decisions honored cite (origen R6 process-improvement 2026-05-05)
+
+> Cuando ticket tiene `decisions_applicable: [D1, D3, X2]` field en
+> `04-tickets.yaml`, el builder commit body MUST incluir sección
+> "Decisions honored" citando cómo cada D# fue respetada en el código.
+> Auditor verifica cite presente.
+
+Verifica:
+- [ ] Ticket frontmatter tiene `decisions_applicable` field? Si NO → cat NA, skip.
+- [ ] Si SÍ → commit body de cada commit del ticket tiene sección "## Decisions honored"?
+- [ ] Cada D# del list aparece citado con descripción concreta de cómo fue respetado
+  (no genérico "follows decisions") y, si aplica, file:line reference?
+- [ ] Decisión binding skip explicit con razón documentada (e.g., "D2 N/A — superseded by D5")?
+
+**FAIL** if:
+- `decisions_applicable` set en ticket Y commit body sin "Decisions honored" sección
+- "Decisions honored" presente PERO uno o más D# del list ausentes (ignorados silenciosamente)
+- Cite genérico ("complies with decisions") sin contenido por D# concreto
+
+**WARN** if:
+- "Decisions honored" presente con todos los D#, PERO sin file:line reference
+  para verificar implementación (auditor self-fix: agregar reference si trivial)
+- Cite incompleto en commit body pero presente en IMPL-LOG.md o T-{n}-result.md
+
+**Caso origen D10:** decisión ratificada upstream en `01-spec.md` ignorada
+silenciosamente por builder agentic (modules/copilot/sales_agent) sin que
+ningún auditor la flag. R6 cierra el camino para PR agentic.
+
+Referencias:
+- `docs/specs/templates/04-tickets-template.yaml` § decisions_applicable
+- `docs/process/learnings.md` 2026-05-05 entry — R6 + B2 closure
+- `.claude/agents/auditor-backend.md` Cat 11 — pattern paralelo (BE)
+
 </audit_categories>
 
 <verdict_math>
@@ -261,7 +294,7 @@ Referencias:
 Mechanical, no softening:
 
 - **FAIL** (overall) if:
-  - Any FAIL in cat 1, 2, 3, 5, 7, 8, 10, 11, **13** (mirror detection), **14** (default-flip side-effect coverage)
+  - Any FAIL in cat 1, 2, 3, 5, 7, 8, 10, 11, **13** (mirror detection), **14** (default-flip side-effect coverage), **15** (decisions honored cite)
   - `gate-output.json` shows any failed gate in arch-fitness, ruff, mypy, pytest, pip-audit
   - Skill routing violation (skipped `copilot-expert` / `sales-agent-expert` / `tessl__langgraph`)
   - **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (copilot-expert/sales-agent-expert por surface + tessl__langgraph si graph + tessl__graceful-degradation si external calls + claude-api si Anthropic SDK changes) → "Skill routing violation — builder skipped mandatory skill invocation"
@@ -306,13 +339,16 @@ Write `<pr_folder>/REVIEW-agentic.md`:
 | arch-fitness | PASS/FAIL | {count} |
 | pip-audit | PASS/FAIL | {count} |
 
-## 14 categories
+## 15 categories
 | # | Category | Score | Evidence |
 |---|---|---|---|
 | 1 | LangGraph state hygiene | PASS/WARN/FAIL | {file:line or "n/a"} |
 | 2 | Tool registration | ... | ... |
 | ... | ... | ... | ... |
 | 12 | Tests / TDD | ... | ... |
+| 13 | Mirror detection | ... | ... |
+| 14 | Default-flip side-effect coverage | ... | ... |
+| 15 | Decisions honored cite (R6) | PASS/WARN/FAIL/NA | {commit hash + cite verbatim or "n/a — no decisions_applicable"} |
 
 ## Findings (file:line)
 

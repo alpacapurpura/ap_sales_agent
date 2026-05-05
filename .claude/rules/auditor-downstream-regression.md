@@ -46,6 +46,19 @@ Cuando auditor reviewing PR toca código `shared/` o módulo con consumers conoc
 | `modules/analytics/domain/metric_catalog.py` | `tests/modules/analytics/`<br>arch test catalog↔contract alignment | Catalog change |
 | `modules/offer/domain/{archetype,value_level,format}_catalog.py` | bump `_CATALOG_VERSION` + arch tests both stacks | Per offer-catalogs.md |
 | `modules/copilot/domain/module_registry.py` | arch test ModuleDescriptor entry required | Per SSoT guard |
+| `frontend/src/lib/api/fetchClient.ts` | `frontend/src/features/*/api/` tests + smoke E2E (auth-tenant) | Cross-feature API client base |
+| `frontend/src/lib/api/` (other shared API utils) | grep importers + their feature tests | Cross-feature API helpers |
+| `frontend/src/lib/tokens/` design tokens | `frontend/src/__tests__/architecture/test-page-padding.test.ts`<br>studio section pages tests | Design tokens consumed cross-studio |
+| `frontend/src/lib/format/` (formatMoney, formatTenantDate*) | grep importers + currency/locale tests cross-feature | Master-data formatters consumed cross-feature |
+| `frontend/src/hooks/` (global hooks like `useTenantLocale`) | grep importers across `features/` + their tests | Global hooks consumed cross-feature |
+| `frontend/src/components/shared/` | grep importers + their feature tests + visual smoke E2E | Shared components rendered cross-feature |
+| `frontend/src/components/ui/` (Shadcn primitives) | full vitest run (used everywhere) + smoke E2E | UI primitives ripple universally |
+| `frontend/src/features/{m}/api/` | `frontend/src/features/{m}/` full feature tests + smoke E2E for that route | Feature API contract change |
+| `frontend/src/features/{m}/types/` exported | grep cross-feature importers + their tests | Type contract ripple cross-feature |
+| `frontend/src/lib/zod-schemas/` shared schemas | grep importers + form tests cross-feature | Shared validation schemas |
+| `frontend/src/__tests__/architecture/*.test.ts` allowlist shrink | full FE arch fitness suite | Ratchet enforcement |
+| `frontend/e2e/auth.fixture.ts` o `e2e/fixtures/*` | full smoke project + relevant POMs | E2E fixture change ripples to all auth-protected specs |
+| `frontend/playwright.config.ts` | full smoke project | Config change affects every spec |
 
 ## Workflow auditor (Step `downstream_regression_scope`)
 
@@ -59,6 +72,8 @@ Cuando auditor reviewing PR toca código `shared/` o módulo con consumers conoc
    - gate-runner.command was test-backend (full suite)? → cubierto
    - gate-runner.command was scoped (e.g., tests/modules/X/)? → puede no cubrir
 5. Si NO cubre → SPAWN gate-runner adicional con scope=downstream_test_targets:
+
+   **Backend scope:**
    ```
    Agent({
      description: "Run downstream regression for T-{n}",
@@ -69,8 +84,34 @@ Cuando auditor reviewing PR toca código `shared/` o módulo con consumers conoc
               <iter>: <N>-downstream"
    })
    ```
+
+   **Frontend scope (R3 parity, 2026-05-05):**
+   ```
+   Agent({
+     description: "Run downstream FE regression for T-{n}",
+     subagent_type: "gate-runner",
+     model: "haiku",
+     prompt: "<pr_folder>: <STORY_DIR>;
+              <command>: cd /home/chris/AISALESHT/frontend && npx vitest run <space-separated downstream feature/component paths> --reporter=default;
+              <iter>: <N>-downstream-fe"
+   })
+   ```
+
+   **E2E smoke scope (when downstream targets include `frontend/e2e/`):**
+   ```
+   Agent({
+     description: "Run downstream E2E smoke for T-{n}",
+     subagent_type: "gate-runner",
+     model: "haiku",
+     prompt: "<pr_folder>: <STORY_DIR>;
+              <command>: cd /home/chris/AISALESHT/frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke <space-separated specs>;
+              <iter>: <N>-downstream-e2e"
+   })
+   ```
 6. Read new gate-output.json (gate-runner renames previous → gate-output.iter-N.json automatic).
-7. Si downstream tests FAIL → escalate REVIEW.md FAIL Cat 10 (Tests/TDD) — con cita exacta tests fallaron y mapping a surface modificada.
+7. Si downstream tests FAIL → escalate REVIEW.md FAIL — Cat 10 (Tests/TDD) BE/FE,
+   o Cat 1 (FSD-Lite cross-feature import) si FE — con cita exacta tests fallaron
+   y mapping a surface modificada.
 8. Si downstream tests PASS → continuar audit_categories.
 ```
 
@@ -150,8 +191,10 @@ Bug downstream silencioso. Llegó a S1. T-1-bis nuevo micro-ticket creado.
 
 - `.claude/rules/anti-duplication.md` — inventario shared abstractions (este file lista cuáles tienen consumers que requieren downstream regression)
 - `.claude/rules/anti-default-flip-audit.md` — Step 1 grep tests path viejo (ortogonal pero análogo: detect ripple)
-- `.claude/agents/auditor-backend.md` — Step `downstream_regression_scope` (a agregar)
-- `.claude/agents/auditor-agentic.md` — Step idem
+- `.claude/agents/auditor-backend.md` — Step `downstream_regression_scope` (integrado 2026-05-05)
+- `.claude/agents/auditor-agentic.md` — Step idem (integrado 2026-05-05)
+- `.claude/agents/auditor-frontend.md` — Step idem FE-side (integrado 2026-05-05, B1 parity)
 - `docs/process/process-improvement-handoff-2026-05-05.md` — R3 (D4 origen)
+- `docs/process/learnings.md` 2026-05-05 entry — closure ciclo R1-R9 + B1 FE parity
 </content>
 </invoke>

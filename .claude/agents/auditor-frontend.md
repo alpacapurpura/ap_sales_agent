@@ -118,6 +118,38 @@ If raw log needed: read `gate-output.raw_log_path` (preserved by gate-runner).
 A FAIL on steps 2/3/4 or any of the 20 arch fitness tests = automatic verdict FAIL.
 </step>
 
+<step name="downstream_regression_scope">
+**MANDATORY post `consume_gate_output`. Origen R3 process-improvement 2026-05-05.**
+SSoT: `.claude/rules/auditor-downstream-regression.md`.
+
+Cuando el diff toca surfaces FE cross-feature consumer (e.g.,
+`features/X/api/` consumido por `features/Y/components/`,
+`components/shared/`, `lib/`, `hooks/` global, `types/` cross-domain),
+MUST verificar tests downstream cubiertos en gate-output.json.
+
+Workflow:
+1. Read `.claude/rules/auditor-downstream-regression.md` SSoT tabla — match FE rows
+   (`modules/{m}/api/` route changes, `frontend/src/lib/` shared utils,
+   `frontend/src/components/shared/`, `frontend/src/hooks/` global, design-tokens).
+2. List paths modificados (`git diff --name-only HEAD~N..HEAD -- frontend/`).
+3. Per path → lookup tabla → aggregate `downstream_test_targets` unión (FE-side).
+4. Verificar gate-output.json scope cubre downstream:
+   - `command = test-frontend` (full vitest suite) → cubierto
+   - command scoped (single feature) → SPAWN gate-runner downstream con scope
+     unión usando `npx vitest run <space-separated downstream paths>` + `npx playwright test --project=smoke <smoke specs afectados>`
+5. Si downstream tests FAIL → REVIEW.md verdict FAIL Cat 10 (Tests/TDD) o
+   Cat 1 (FSD-Lite cross-feature import) según naturaleza.
+6. Si PASS → continuar `check_warning_baselines`.
+
+Append a REVIEW.md sección "Downstream regression scope" con tabla
+surface→downstream_test_targets→gate-runner status.
+
+Sin este step, repetimos clase D4 (caso BE: cost_recorder approved pese a
+bug callback handlers cross-surface) en stack FE — ej. cambio en
+`useTenantLocale()` rompe consumers en otros studios sin que ningún gate
+lo flag.
+</step>
+
 <step name="check_warning_baselines">
 ESLint warning baselines (`frontend-quality.md`):
 - check-file: 323 (must shrink)
@@ -295,6 +327,39 @@ Para CADA file nuevo en este PR (status `??` en git):
 - Component con suffix `Card` / `List` / `Form` / `Picker` similar en otra feature sin shared component explícito
 - File nuevo con docstring que menciona "similar to X feature" — flag para considerar lift to shared
 
+### Category 14: Decisions honored cite (origen R6 process-improvement 2026-05-05)
+
+> Cuando ticket tiene `decisions_applicable: [D1, D3, X2]` field en
+> `04-tickets.yaml`, el builder commit body MUST incluir sección
+> "Decisions honored" citando cómo cada D# fue respetada en el código.
+> Auditor verifica cite presente.
+
+Verifica:
+- [ ] Ticket frontmatter tiene `decisions_applicable` field? Si NO → cat NA, skip.
+- [ ] Si SÍ → commit body de cada commit del ticket tiene sección "## Decisions honored"?
+- [ ] Cada D# del list aparece citado con descripción concreta de cómo fue respetado
+  (no genérico "follows decisions") y, si aplica, file:line reference?
+- [ ] Decisión binding skip explicit con razón documentada (e.g., "D2 N/A — superseded by D5")?
+
+**FAIL** if:
+- `decisions_applicable` set en ticket Y commit body sin "Decisions honored" sección
+- "Decisions honored" presente PERO uno o más D# del list ausentes (ignorados silenciosamente)
+- Cite genérico ("complies with decisions") sin contenido por D# concreto
+
+**WARN** if:
+- "Decisions honored" presente con todos los D#, PERO sin file:line reference
+  para verificar implementación (auditor self-fix: agregar reference si trivial)
+- Cite incompleto en commit body pero presente en IMPL-LOG.md o T-{n}-result.md
+
+**Caso origen D10:** decisión ratificada upstream en `01-spec.md`/`03-arch-fe.md`
+ignorada silenciosamente por builder frontend. R6 cierra el camino para PR FE.
+
+Referencias:
+- `docs/specs/templates/04-tickets-template.yaml` § decisions_applicable
+- `docs/process/learnings.md` 2026-05-05 entry — R6 + B2 closure
+- `.claude/agents/auditor-backend.md` Cat 11 — pattern paralelo (BE)
+- `.claude/agents/auditor-agentic.md` Cat 15 — pattern paralelo (agentic)
+
 </audit_checklist>
 
 <review_format>
@@ -349,6 +414,8 @@ If any baseline GREW without justified commit message → automatic FAIL Categor
 | 10 | Tests / TDD | P/W/F | n |
 | 11 | Domain Alignment / Agentic UI | P/W/F | n |
 | 12 | Architecture Fitness (20) | P/W/F | n |
+| 13 | Mirror detection | P/W/F | n |
+| 14 | Decisions honored cite (R6) | P/W/F/NA | commit hash + cite or "n/a" |
 
 ## Findings
 
@@ -385,10 +452,16 @@ If any baseline GREW without justified commit message → automatic FAIL Categor
 - [ ] If absent → flag as WARN (Category 5/11) and require evidence before merge
 
 ## Verdict Math
-- Any FAIL in categories 1 / 2 / 3 / 7 / 11 / 12 → **overall FAIL**
+- Any FAIL in categories 1 / 2 / 3 / 7 / 11 / 12 / 14 → **overall FAIL**
 - Allowlist or warning baseline grew without justified commit → **overall FAIL**
 - Any `/test-frontend` blocker (steps 2/3/4) FAIL → **overall FAIL**
 - Any of 20 arch fitness tests FAIL → **overall FAIL**
+- **Downstream regression scope** (Step 4.5) tests FAIL → **overall FAIL** Cat 10
+  (Tests/TDD) o Cat 1 (FSD-Lite cross-feature import) según naturaleza
+  — origen R3 SSoT `.claude/rules/auditor-downstream-regression.md`
+- **Decisions honored cite** (Cat 14) FAIL — ticket has `decisions_applicable`
+  but commit body misses cite — origen R6 SSoT `.claude/rules/anti-default-flip-audit.md`
+  pattern análogo
 - **`IMPL-LOG.md § Skills Consulted` empty OR missing required skills** (frontend-expert + tessl__react-patterns + tessl__shadcn-ui + tessl__tailwind baseline; + domain skill if domain touched; + tessl__zod if forms; + tessl__nextjs-app-router-modularization if Server+Client mix) → **overall FAIL** ("Skill routing violation")
 - **`frontend-expert/references/runtime-quality-checklist.md` not cited in IMPL-LOG** → **overall FAIL** (es OBLIGATORIO leerlo antes commit; ausencia = builder no validó anti-patterns useEffect/closures/routing)
 - **`chrome-devtools-verify` not invoked AND no Chris staging gate manual escalado documentado** → **overall FAIL** (live verification gate FE PR ≥ M es obligatoria — origen S4 PI-1 9 bugs slipped por skip)

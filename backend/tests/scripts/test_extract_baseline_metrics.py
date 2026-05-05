@@ -29,9 +29,7 @@ def _make_assistant_event(
 ) -> dict:
     content: list[dict] = [{"type": "text", "text": "ok"}]
     if tool_use_id and tool_name:
-        content.append(
-            {"type": "tool_use", "id": tool_use_id, "name": tool_name, "input": {}}
-        )
+        content.append({"type": "tool_use", "id": tool_use_id, "name": tool_name, "input": {}})
     return {
         "type": "assistant",
         "isSidechain": False,
@@ -121,9 +119,8 @@ def _make_agent_result_event(
 
 def _write_transcript(tmp_dir: Path, name: str, events: list[dict]) -> Path:
     path = tmp_dir / f"{name}.jsonl"
-    with open(path, "w") as f:
-        for e in events:
-            f.write(json.dumps(e) + "\n")
+    with path.open("w") as f:
+        f.writelines(json.dumps(e) + "\n" for e in events)
     return path
 
 
@@ -138,7 +135,7 @@ def _run_extractor(transcripts_dir: Path, output_path: Path, **flags: str) -> No
     ]
     for k, v in flags.items():
         cmd.extend([f"--{k.replace('_', '-')}", v])
-    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)  # noqa: S603 — fixed-cmd subprocess for fixture-driven test
     assert result.returncode == 0, f"script failed: {result.stderr}"
 
 
@@ -230,7 +227,7 @@ def test_handles_malformed_lines(tmp_path: Path) -> None:
     transcripts_dir.mkdir()
     output = tmp_path / "out.jsonl"
     path = transcripts_dir / "session-broken.jsonl"
-    with open(path, "w") as f:
+    with path.open("w") as f:
         f.write("not json at all\n")
         f.write(json.dumps(_make_assistant_event(input_tokens=42)) + "\n")
         f.write("{partial\n")
@@ -254,9 +251,7 @@ def test_skips_user_results_without_agent_metadata(tmp_path: Path) -> None:
         "sessionId": "session-bash",
         "message": {
             "role": "user",
-            "content": [
-                {"type": "tool_result", "tool_use_id": "tu-bash", "content": "stdout"}
-            ],
+            "content": [{"type": "tool_result", "tool_use_id": "tu-bash", "content": "stdout"}],
         },
         "toolUseResult": {
             "stdout": "ok",
@@ -288,7 +283,7 @@ def test_summary_only_skips_output_write(tmp_path: Path) -> None:
         str(output),
         "--summary-only",
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)  # noqa: S603 — fixed-cmd subprocess for fixture-driven test
     assert result.returncode == 0
     assert not output.exists()
     assert "Summary by agent_type" in result.stderr
