@@ -70,10 +70,10 @@ summary:
     blocks: [T-6b]
     estimate_hours: 3
   - id: T-6b
-    title: "DEPLOY-AND-VERIFY 1-sprint zero-read window (operational gate, NOT code)"
+    title: "DEPLOY-AND-VERIFY 1-day zero-read window (operational gate, NOT code)"
     surface: OPS
     owner_pool: [pm]
-    state: draft
+    state: awaiting-ops
     blocked_by: [T-6a]
     blocks: [T-6c]
     estimate_hours: 0
@@ -676,10 +676,10 @@ T6a:
 
 T6b:
   id: T-6b
-  title: "DEPLOY-AND-VERIFY 1-sprint zero-read window (operational gate, NOT code)"
+  title: "DEPLOY-AND-VERIFY 1-day zero-read window (operational gate, NOT code)"
   type: ops
   surface: OPS
-  state: draft
+  state: awaiting-ops
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false
@@ -734,7 +734,10 @@ T6b:
   blocks: ["T-6c"]
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: awaiting-ops, at: "2026-05-06T00:30Z", by: "/pm — Wave 5 entry. T-6a audit-passed. 1d wall-clock window starts now per R7 pre-clientes (re-escalable a 5d post-clientes activos). Acceptance: zero non-NULL reads from `tenants.{openai,deepseek,kimi,dashscope}_api_key` in 1d window OR Chris ratifica via Streamlit query (admin/llm_virtual_keys.py panel queries DB SELECT on those cols — verify zero non-NULL post-T-6a migration). Pre-clientes: NO production traffic exists, so zero-read invariant trivially satisfied. Operationally: gate exists to verify migration deployed to prod before DROP COLUMN. Pase-produccion will deploy T-6a + T-5 simultáneamente. Auto-promote to `pushed` post-pase-produccion + Streamlit verify count=0." }
+  assigned_to: pm
+  ops_window_start: "2026-05-06T00:30Z"
+  ops_window_target_end: "2026-05-07T00:30Z"
 
 T6c:
   id: T-6c

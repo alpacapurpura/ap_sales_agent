@@ -43,14 +43,14 @@ summary:
     title: "Smoke golden YAML + 4 scenarios test_eval_runner_smoke.py + regenerate_golden.py CLI"
     surface: BE
     owner_pool: [claude-opus]
-    state: draft
+    state: audit-passed
     blocked_by: [T-3, T-4]
     blocks: [T-6]
   - id: T-6
     title: "Makefile target eval-smoke + README.md operability docs"
     surface: BE
     owner_pool: [claude-opus]
-    state: draft
+    state: audit-passed
     blocked_by: [T-5]
     blocks: []
 
@@ -318,7 +318,7 @@ tickets:
     title: "Smoke golden YAML + golden_loader + 4 scenarios test_eval_runner_smoke.py + regenerate_golden.py CLI"
     type: backend
     surface: BE
-    state: draft
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -389,13 +389,17 @@ tickets:
     blocks: ["T-6"]
     transitions:
       - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
-    assigned_to: null
+      - { state: building, at: "2026-05-06T00:30Z", by: "builder-agentic (Opus 4.7)" }
+      - { state: tests-passing, at: "2026-05-06T00:50Z", by: "builder-agentic (commits d5b7886a + e1b67e74)" }
+      - { state: audit-passed, at: "2026-05-06T01:00Z", by: "auditor-agentic (Opus 4.7) — APPROVED with 1 non-blocking Cat 11 WARN (YAML schema drift forward-fill from T-4 precedent); A1/A3/A4/A5 deferred /pase-produccion brain-UP per fixture B2 pre-condition" }
+    assigned_to: claude-opus-4-7
+    audit_review: "06-audit/T-5-review.md"
 
   - id: T-6
     title: "Makefile target eval-smoke + README.md operability docs (cómo agregar goldens, fixtures, run local, cleanup)"
     type: backend
     surface: BE
-    state: draft
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -440,4 +444,9 @@ tickets:
     blocks: []
     transitions:
       - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
+      - { state: building, at: "2026-05-06T01:00Z", by: "builder-agentic (Opus 4.7)" }
+      - { state: tests-passing, at: "2026-05-06T01:15Z", by: "builder-agentic (commits 01c078e4 + d69ddd94)" }
+      - { state: audit-passed, at: "2026-05-06T01:30Z", by: "auditor-agentic (Opus 4.7) — APPROVED, 4 minor R1 ortho misses self-fixed in Wave 5 closure commit" }
+    assigned_to: claude-opus-4-7
+    audit_review: "06-audit/T-6-review.md"
     assigned_to: null

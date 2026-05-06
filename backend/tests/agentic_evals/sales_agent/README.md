@@ -134,7 +134,7 @@ cd backend
 # 6. Commit con `feat(pi-N-T-X): add <golden_id> golden ...`
 ```
 
-### Por que offer_id hardcoded (B2)
+### Por qué offer_id hardcoded (B2)
 
 La oferta vive como UUID literal en el YAML — si admin la soft-deletea,
 el smoke FALLA EXPLÍCITO en la pre-condición de la fixture (no shift
@@ -191,11 +191,11 @@ ratificada en spec, no se eliminará una para favorecer la otra.
 | Cuando corre | Manual local + Story 8 (CI cron nightly futura) | Weekly cron lunes 05:00 UTC (`weekly_sales_agent_quality_eval`) |
 | Origen | PI-12 S1 (mayo 2026) | sales-agent redesign abril 2026 (S10) |
 
-**Por que ambos:** el stub LLM-judge cubre quality drift (la voz del
+**Por qué ambos:** el stub LLM-judge cubre quality drift (la voz del
 tenant se pierde? las respuestas se vuelven genéricas?), mientras que
 este harness cubre regresión estructural (rompimos la trayectoria de
 specialists? un tool prohibido empezó a dispararse? el costo subió
-10x?). Las dos preguntas son ortogonales y necesitan instrumentacion
+10x?). Las dos preguntas son ortogonales y necesitan instrumentación
 distinta.
 
 ---
@@ -294,7 +294,7 @@ roadmap del story para fechas/orden definitivo.
   `RunnableConfig.callbacks=[spy, production_handler]` — no reemplaza.
 - ❌ Override de la voz del tenant en `sales_agent_entrypoint`. El
   harness honra el compiler v2 — la voz es parte de lo que se mide.
-- ❌ Hardcodear `tenant_id` o `offer_id` en el codigo del test. Vienen
+- ❌ Hardcodear `tenant_id` o `offer_id` en el código del test. Vienen
   del YAML golden.
 - ❌ Borrar `_artifacts/` mid-run (corrompe el assertion writer). Solo
   cleanup post-run o pre-run.

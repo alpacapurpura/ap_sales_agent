@@ -1,97 +1,64 @@
 {
   "schema_version": "1.0",
   "pr_folder": "/home/chris/AISALESHT/docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-eval-runner-foundation",
-  "ticket": "T-4",
+  "ticket": "T-6",
   "iter": 1,
-  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check src/ tests/ && .venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\" && .venv/bin/pytest -m \"not integration\" --cov=src/modules --cov=src/shared --cov-report=term-missing -q --tb=short",
-  "command_alias": "test-backend",
-  "started_at": "2026-05-05T23:30:00Z",
-  "finished_at": "2026-05-05T23:50:00Z",
-  "duration_ms": 1200000,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check tests/agentic_evals/ --no-cache && .venv/bin/ruff format --check tests/agentic_evals/ && .venv/bin/pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py -v && bash A1+A2+A3 verifiers",
+  "command_alias": "test-backend (scoped — docs ticket)",
+  "started_at": "2026-05-06T01:00:00Z",
+  "finished_at": "2026-05-06T01:15:00Z",
+  "duration_ms": 900000,
   "exit_code": 0,
   "raw_log_path": "embedded in builder-agentic agent transcript (Opus 4.7) per R22 manual fallback",
-  "shared_with_ticket": "T-6a Story A (sales-agent-litellm-canonicalization) — same HEAD 29b97eba covers both Wave 4 commits 674967c4 (T-4 Story B) + f6e7ad0a (T-6a)",
   "gates": [
     {
       "name": "ruff_lint",
-      "command": ".venv/bin/ruff check src/ tests/ --no-cache",
+      "command": ".venv/bin/ruff check tests/agentic_evals/ --no-cache",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "All checks passed (0 errors)"
+      "summary": "All checks passed (no Python touched but verified clean)"
     },
     {
       "name": "ruff_format",
-      "command": ".venv/bin/ruff format --check src/ tests/",
+      "command": ".venv/bin/ruff format --check tests/agentic_evals/",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "0 files to reformat"
+      "summary": "17 files already formatted"
     },
     {
-      "name": "pytest_architecture",
-      "command": ".venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\"",
+      "name": "pytest_eval_runner_fixtures",
+      "command": ".venv/bin/pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py -v",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "823/823 PASS — baseline preserved"
+      "summary": "39 passed / 4 skipped (eval-marker pre-existing per design). No regression from T-6 docs change."
     },
     {
-      "name": "pytest_coverage",
-      "command": ".venv/bin/pytest -m \"not integration\" --cov=src/modules --cov=src/shared --cov-report=term-missing -q --tb=short",
+      "name": "acceptance_a1_makefile_target",
+      "command": "cd backend && make -n eval-smoke 2>&1 | grep -q 'pytest.*--run-evals'",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "9041 passed, 34 skipped, 16 deselected (integration), exit 0. Includes new T-4 Story B 18 tests (4 acceptance + 14 edge cases) PASS + new T-6a Story A 11 tests PASS.",
-      "tests_passed": 9041,
-      "tests_failed": 0,
-      "tests_skipped": 34,
-      "tests_deselected": 16
+      "summary": "make -n eval-smoke output: 'cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/agentic_evals/sales_agent/test_eval_runner_smoke.py -v --run-evals'"
     },
     {
-      "name": "acceptance_a1_assertions_api_complete",
-      "command": "pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assertions_api_complete",
+      "name": "acceptance_a2_readme_8_sections",
+      "command": "for s in 'Qué es' 'Cómo correr' 'Cómo agregar' 'Fixtures' 'Diferencia' 'Cleanup' 'Cost budget' 'Future story'; do grep -q \"$s\" backend/tests/agentic_evals/sales_agent/README.md || exit 1; done",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "5 assertions exported + LayerAssertionError base + 5 subclasses + .layer_name attr verified per subclass"
+      "summary": "All 8 mandatory section headers present in README.md"
     },
     {
-      "name": "acceptance_a2_assert_output_named_failure",
-      "command": "pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assert_output_named_failure",
+      "name": "acceptance_a3_spanish_neutro",
+      "command": "! grep -E '\\b(podés|tenés|sos|querés|hacés|configurá|seleccioná)\\b' backend/tests/agentic_evals/sales_agent/README.md",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "OutputAssertionError raised with .layer_name='output' on failure"
-    },
-    {
-      "name": "acceptance_a3_assert_voice_fidelity_placeholder",
-      "command": "pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assert_voice_fidelity_is_placeholder",
-      "exit_code": 0,
-      "result": "PASS",
-      "summary": "NotImplementedError raised; message mentions Story 7"
-    },
-    {
-      "name": "acceptance_a4_detect_language_safe",
-      "command": "pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_detect_language_safe_returns_unknown_on_exception",
-      "exit_code": 0,
-      "result": "PASS",
-      "summary": "Lazy import + try/except gracefully handles LangDetectException + ImportError → returns 'unknown'"
-    },
-    {
-      "name": "anti_duplication_grep",
-      "command": "grep -rn 'def detect_lang|def language_detect|def sanitize_payload' backend/tests/agentic_evals/",
-      "exit_code": 1,
-      "result": "PASS",
-      "summary": "0 mirror matches — anti-duplication §0 GATE satisfied"
-    },
-    {
-      "name": "langdetect_lazy_import",
-      "command": "! grep -nE '^import langdetect|^from langdetect' backend/tests/agentic_evals/sales_agent/runner/assertions.py",
-      "exit_code": 0,
-      "result": "PASS",
-      "summary": "0 top-level imports — B5 binding honored. Architecturally enforced via test_assertions_module_no_top_level_langdetect_import (AST walk)."
+      "summary": "0 voseo matches in README.md — Spanish neutro LATAM enforced. Pre-commit hook full glosario regex also clean."
     }
   ],
   "overall": {
     "any_fail": false,
     "fail_gate_names": [],
-    "summary": "T-4 (multi-layer assertion library: 5 assertions + LayerAssertionError hierarchy + Story 7 placeholder + langdetect lazy import) green. All 4 acceptance verifiers PASS + 14 edge case tests PASS. Anti-duplication §0 GATE 4-layer satisfied (lexical grep + AST walk + module no-top-level + tool registry sourcing)."
+    "summary": "T-6 (Makefile target eval-smoke + README operability docs 8 sections) green. All 6 gates PASS including 3 acceptance verifiers. Architect-spec ambiguity resolved: created backend/Makefile (was missing) since A1 verifier expects `cd backend && make -n eval-smoke`. Trade-off documented in T-6-impl-log § Decision."
   },
-  "downstream_regression_note": "T-4 modifies tests/agentic_evals/sales_agent/runner/assertions.py + test_eval_runner_fixtures.py — test-only paths. Per .claude/rules/auditor-downstream-regression.md, no shared/ paths touched → no tabla SSoT entry triggers. Builder report confirms downstream observability tests 200/200 PASS (zero regression, same as T-3).",
-  "notes": "Manual finalization per R22 fallback — builder-agentic Opus 4.7 ran full suite natively in agent transcript context. Justification consistent with Wave 4 sister ticket T-6a Story A (single full-suite covers HEAD 29b97eba including both commits). Two commits in T-4: 674967c4 (main) + e98a21ea (SHA backfill)."
+  "downstream_regression_note": "T-6 modifies backend/Makefile (NEW) + tests/agentic_evals/sales_agent/README.md (REWRITE) — config + docs only. Per .claude/rules/auditor-downstream-regression.md, no shared/ paths touched → no tabla SSoT entry triggers.",
+  "notes": "Manual finalization per R22 fallback. Two commits: 01c078e4 (main) + d69ddd94 (SHA backfill). Story B T-6 closes Story B development scope — Wave 8 REVIEW-final pending."
 }
