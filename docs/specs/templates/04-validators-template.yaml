@@ -1,0 +1,231 @@
+# 04-validators-template.yaml — Validators ejecutables
+#
+# Owner: /architect orchestrator (post pm-redesign 2026-05 Punto 4).
+# Schema v4 — 4 categories: non_functional / functional / visual / agentic_eval.
+#
+# /dev-team itera contra estos validators en bucle hasta GREEN o cap_reached.
+# /auditor verifica cada uno fue corrido + GREEN antes APPROVED.
+#
+# CRITICAL: cada validator MUST tener `must_pass: true` y comando ejecutable shell.
+# Si falla, fix targeted + re-run. NO disable ni skip sin justificación commit.
+#
+# ─────────────────────────────────────────────────────────────────
+
+story_id: STORY_ID
+schema_version: v4
+
+validators:
+  # ═══════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality (lint, format, type-check, arch fitness)
+  # Apply: SIEMPRE, en CUALQUIER story que toque código
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: be_arch_fitness
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 120
+    description: "DDD boundaries, API contracts, conventions, naming, SQLA 2.0, etc."
+
+  - id: be_lint
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff check src/modules/{m}/ tests/modules/{m}/ --no-cache"
+    must_pass: true
+    timeout_sec: 30
+    description: "Ruff 70+ rules, 0 errors"
+
+  - id: be_format
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff format --check src/modules/{m}/ tests/modules/{m}/"
+    must_pass: true
+    timeout_sec: 30
+
+  - id: fe_typecheck
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx tsc --noEmit"
+    must_pass: true
+    timeout_sec: 90
+    description: "TypeScript strict, 0 errors"
+
+  - id: fe_lint
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx eslint src/features/{m}/ --cache --cache-location .eslintcache"
+    must_pass: true
+    timeout_sec: 60
+    description: "ESLint 60+ rules, 0 errors"
+
+  - id: fe_arch_fitness
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/ --reporter=default"
+    must_pass: true
+    timeout_sec: 60
+    description: "FSD-Lite boundaries, ratchet allowlists shrink-only"
+
+  # ═══════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios (happy / negative / edge / adversarial)
+  # Apply: SIEMPRE — 1 validator MIN por scenario en 01-spec.md
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: scenario_happy_path
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/modules/{m}/test_story.py::test_happy -v"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: happy
+
+  - id: scenario_negative
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/modules/{m}/test_story.py::test_negative -v"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: negative
+
+  - id: scenario_edge
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/modules/{m}/test_story.py::test_edge -v"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+
+  - id: scenario_adversarial
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/modules/{m}/test_story.py::test_adversarial -v"
+    must_pass: true
+    timeout_sec: 90
+    scenario_id: adversarial
+
+  - id: integration_e2e
+    category: functional
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/regression/{m}-{story}.spec.ts"
+    must_pass: true
+    timeout_sec: 240
+    description: "Smoke E2E, Clerk auth, full flow"
+
+  # ═══════════════════════════════════════════════════════════════
+  # VISUAL — UI fidelity + responsive (Playwright + screenshots)
+  # Apply: SOLO si story toca UI (FE components, layouts, forms, dashboards)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: visual_fidelity
+    category: visual
+    type: playwright
+    cmd: "cd frontend && npx playwright test e2e/visual/{story}.spec.ts --update-snapshots=false"
+    capture: screenshots
+    must_pass: true
+    timeout_sec: 240
+    description: "Screenshot diff vs baseline. Update baseline si UI cambió: --update-snapshots"
+
+  - id: responsive_breakpoints
+    category: visual
+    type: playwright
+    cmd: "cd frontend && npx playwright test e2e/visual/{story}-responsive.spec.ts --project=mobile,tablet,desktop"
+    must_pass: true
+    timeout_sec: 240
+    description: "Mobile + tablet + desktop coverage"
+
+  - id: a11y_axe
+    category: visual
+    type: playwright
+    cmd: "cd frontend && npx playwright test e2e/a11y/{story}.spec.ts"
+    must_pass: true
+    timeout_sec: 180
+    description: "Accessibility (axe-core). Critical/serious violations = fail"
+
+  # ═══════════════════════════════════════════════════════════════
+  # AGENTIC EVAL — pass^k + rubrics + trajectory + cost/latency
+  # Apply: SOLO si story toca modules/copilot o modules/sales_agent runtime
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: agentic_pass_k
+    category: agentic_eval
+    type: shell
+    cmd: "cd backend && .venv/bin/python scripts/run_agent_evals.py --story={story-id} --personas=A,B,C"
+    rubrics: [voice-fidelity, goal-completion, tool-call-accuracy]
+    pass_k:
+      trials: 3
+      per_trial_threshold: 0.66
+      pass_k_threshold: 0.5
+    must_pass: true
+    timeout_sec: 600
+    description: "Multi-persona conversational eval. LLM-as-judge rubrics + pass^k"
+
+  - id: agentic_trajectory
+    category: agentic_eval
+    type: shell
+    cmd: "cd backend && .venv/bin/python scripts/run_trajectory_eval.py --expected=docs/specs/trajectories/{story-id}.yaml"
+    must_pass: true
+    timeout_sec: 300
+    description: "Tool call sequence + LangGraph state transitions vs expected trajectory (agentevals lib)"
+
+  - id: agentic_cost_budget
+    category: agentic_eval
+    type: shell
+    cmd: "cd backend && .venv/bin/python scripts/check_cost_budget.py --story={story-id}"
+    threshold:
+      cost_usd_max: 0.50
+      tokens_max: 6000
+      latency_p95_max: 8.0
+    must_pass: true
+    timeout_sec: 60
+    description: "Cost USD + tokens + latency p95 vs budget. Falla si excede"
+
+  - id: agentic_voice_fidelity
+    category: agentic_eval
+    type: shell
+    cmd: "cd backend && .venv/bin/python scripts/check_voice_fidelity.py --story={story-id} --tenant-fixtures=A,B,C"
+    rubric: docs/specs/rubrics/voice-fidelity.md
+    threshold: 0.80
+    must_pass: true
+    timeout_sec: 300
+    description: "Voice fidelity grader runtime — voz tenant SSoT respetada"
+
+  - id: agentic_observability
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/modules/{m}/observability/test_trace_invariants.py -v"
+    must_pass: true
+    timeout_sec: 60
+    description: "copilot_trace_event records present + cost_usd > 0 + tokens accounted"
+
+  - id: agentic_adversarial
+    category: agentic_eval
+    type: shell
+    cmd: "cd backend && .venv/bin/python scripts/run_adversarial_suite.py --story={story-id}"
+    must_pass: true
+    timeout_sec: 600
+    description: "Prompt injection + jailbreak + PII leak + scope creep tests"
+
+# ═══════════════════════════════════════════════════════════════
+# Scenario coverage matrix — 1 scenario maps to N validators
+# ═══════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: happy
+    validators: [scenario_happy_path, integration_e2e, visual_fidelity, agentic_pass_k]
+  - scenario_id: negative
+    validators: [scenario_negative, integration_e2e, agentic_pass_k]
+  - scenario_id: edge
+    validators: [scenario_edge, agentic_trajectory]
+  - scenario_id: adversarial
+    validators: [scenario_adversarial, agentic_adversarial]
+
+# ═══════════════════════════════════════════════════════════════
+# Iteration policy — autonomous build behavior
+# ═══════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 10
+  on_fail: "fix targeted file based on test output, re-run failing validator only"
+  on_all_pass: "set state=developing→developed, append iteration_log to T-{n}-impl-log.md"
+  on_cap_reached: "set state=developing→blocked, escalate to Chris with last error trace"

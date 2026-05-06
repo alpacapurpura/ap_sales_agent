@@ -78,9 +78,11 @@ def test_empty_repo_generates_minimal_backlog(tmp_path: Path) -> None:
     assert backlog_md.exists()
 
     data = yaml.safe_load(backlog_yaml.read_text())
-    assert data["caps"]["validated_max"] == 10
+    # v4 caps: refining_max=3, refined_max=5, ready_max=5, etc.
+    assert data["caps"]["refining_max"] == 3
+    assert data["caps"]["ready_max"] == 5
     assert data["buckets"]["idea"] == []
-    assert data["buckets"]["building"] == []
+    assert data["buckets"]["developing"] == []
 
 
 def test_idea_in_pool_appears_in_idea_bucket(tmp_path: Path) -> None:
@@ -104,7 +106,8 @@ def test_idea_in_pool_appears_in_idea_bucket(tmp_path: Path) -> None:
     assert data["buckets"]["idea"][0]["id"] == "test-idea-1"
 
 
-def test_validated_idea_appears_in_validated_bucket(tmp_path: Path) -> None:
+def test_legacy_validated_idea_coerced_to_refining(tmp_path: Path) -> None:
+    """v3 legacy state 'validated' coerces to v4 'refining' (LEGACY_STATE_MAP)."""
     _setup_minimal(tmp_path)
     _write_ideas_pool(
         tmp_path,
@@ -121,8 +124,45 @@ def test_validated_idea_appears_in_validated_bucket(tmp_path: Path) -> None:
     _run(tmp_path)
 
     data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
-    assert len(data["buckets"]["validated"]) == 1
-    assert data["buckets"]["validated"][0]["id"] == "v1"
+    assert len(data["buckets"]["refining"]) == 1
+    assert data["buckets"]["refining"][0]["id"] == "v1"
+
+
+def test_v4_state_refining_appears_in_refining_bucket(tmp_path: Path) -> None:
+    _setup_minimal(tmp_path)
+    _write_story_checkpoint(tmp_path, "my-story", "refining", outcome="my-outcome")
+    _run(tmp_path)
+
+    data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
+    assert len(data["buckets"]["refining"]) == 1
+    assert data["buckets"]["refining"][0]["id"] == "my-story"
+
+
+def test_v4_state_refined_appears_in_refined_bucket(tmp_path: Path) -> None:
+    _setup_minimal(tmp_path)
+    _write_story_checkpoint(tmp_path, "ratified", "refined", outcome="oc")
+    _run(tmp_path)
+
+    data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
+    assert len(data["buckets"]["refined"]) == 1
+
+
+def test_v4_state_developed_appears_in_developed_bucket(tmp_path: Path) -> None:
+    _setup_minimal(tmp_path)
+    _write_story_checkpoint(tmp_path, "built", "developed", outcome="oc")
+    _run(tmp_path)
+
+    data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
+    assert len(data["buckets"]["developed"]) == 1
+
+
+def test_v4_state_reviewing_appears_in_reviewing_bucket(tmp_path: Path) -> None:
+    _setup_minimal(tmp_path)
+    _write_story_checkpoint(tmp_path, "qa", "reviewing", outcome="oc")
+    _run(tmp_path)
+
+    data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
+    assert len(data["buckets"]["reviewing"]) == 1
 
 
 def test_active_story_with_state_ready_appears_in_ready_bucket(tmp_path: Path) -> None:
@@ -136,13 +176,14 @@ def test_active_story_with_state_ready_appears_in_ready_bucket(tmp_path: Path) -
 
 
 def test_outcome_with_metadata_appears(tmp_path: Path) -> None:
+    """v3 outcome state=validated coerces to refining bucket (LEGACY_STATE_MAP)."""
     _setup_minimal(tmp_path)
     _write_outcome(
         tmp_path,
         "test-outcome",
         {
             "id": "test-outcome",
-            "state": "validated",
+            "state": "validated",  # legacy state, coerced to refining
             "title": "Test Outcome",
             "story_ids": ["s1", "s2"],
             "why_now": "because",
@@ -152,7 +193,7 @@ def test_outcome_with_metadata_appears(tmp_path: Path) -> None:
     _run(tmp_path)
 
     data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
-    outcomes = [it for it in data["buckets"]["validated"] if it["kind"] == "outcome"]
+    outcomes = [it for it in data["buckets"]["refining"] if it["kind"] == "outcome"]
     assert len(outcomes) == 1
     assert outcomes[0]["extra"]["why_now"] == "because"
 
@@ -171,27 +212,28 @@ def test_capability_rollup_aggregates_per_module(tmp_path: Path) -> None:
     assert rollup_a["total"] == 2
 
 
-def test_validated_cap_warning_when_exceeded(tmp_path: Path) -> None:
-    _setup_minimal(tmp_path)
-    entries = [{"id": f"v-{i}", "one_liner": f"v{i}", "state": "validated", "created": "2026-05-01"} for i in range(11)]
-    _write_ideas_pool(tmp_path, entries)
-    result = _run(tmp_path)
-    assert result.returncode == 0
-
-    data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
-    assert any("validated cap exceeded" in w for w in data["warnings"])
-    assert "validated cap exceeded" in result.stdout or "validated cap exceeded" in result.stderr
-
-
-def test_building_cap_warning_when_exceeded(tmp_path: Path) -> None:
+def test_refining_cap_warning_when_exceeded(tmp_path: Path) -> None:
+    """v4: refining cap = 3. 4 stories with state=refining → warning."""
     _setup_minimal(tmp_path)
     for i in range(4):
-        _write_story_checkpoint(tmp_path, f"build-{i}", "building")
+        _write_story_checkpoint(tmp_path, f"refine-{i}", "refining", outcome="o")
     result = _run(tmp_path)
     assert result.returncode == 0
 
     data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
-    assert any("building cap exceeded" in w for w in data["warnings"])
+    assert any("refining cap exceeded" in w for w in data["warnings"])
+
+
+def test_developing_cap_warning_when_exceeded(tmp_path: Path) -> None:
+    """v4: developing cap = 3. 4 stories with state=developing → warning."""
+    _setup_minimal(tmp_path)
+    for i in range(4):
+        _write_story_checkpoint(tmp_path, f"build-{i}", "developing", outcome="o")
+    result = _run(tmp_path)
+    assert result.returncode == 0
+
+    data = yaml.safe_load((tmp_path / "docs" / "product" / "BACKLOG.yaml").read_text())
+    assert any("developing cap exceeded" in w for w in data["warnings"])
 
 
 def test_check_mode_returns_0_when_fresh(tmp_path: Path) -> None:
@@ -221,7 +263,8 @@ def test_mermaid_kanban_block_present_in_md(tmp_path: Path) -> None:
     assert "```mermaid" in md
     assert "kanban" in md
     assert "💡 Ideas" in md
-    assert "🔨 Building" in md
+    assert "🔬 Refining" in md
+    assert "🔨 Developing" in md
 
 
 def test_roadmap_section_present_in_md(tmp_path: Path) -> None:
@@ -229,8 +272,11 @@ def test_roadmap_section_present_in_md(tmp_path: Path) -> None:
     _run(tmp_path)
     md = (tmp_path / "docs" / "product" / "BACKLOG.md").read_text()
     assert "Roadmap view" in md
-    assert "Now (state=building" in md
-    assert "Next (state=ready" in md
+    assert "Refining" in md
+    assert "Refined" in md
+    assert "Ready for development" in md
+    assert "Developing" in md
+    assert "Reviewing" in md
 
 
 def test_capabilities_snapshot_present_in_md(tmp_path: Path) -> None:
@@ -245,23 +291,54 @@ def test_capabilities_snapshot_present_in_md(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("phase", "status", "expected_state"),
     [
-        ("PM_DRAFT", "pending", "validated"),
-        ("PO_SPEC", "in-progress", "validated"),
+        # v4 vocabulary: legacy phases map to v4 states
+        ("PM_DRAFT", "pending", "refining"),
+        ("PO_SPEC", "in-progress", "refining"),
         ("ARCH_DONE", "in-progress", "ready"),
-        ("BUILD_T1", "in-progress", "building"),
-        ("AUDIT_T1_APPROVED", "in-progress", "review"),
+        ("BUILD_T1", "in-progress", "developing"),
+        ("AUDIT_T1_APPROVED", "in-progress", "reviewing"),
         ("DONE", "done", "done"),
         ("BUILD_T2", "blocked", "parked"),
     ],
 )
 def test_legacy_phase_mapping_to_macro_state(phase: str, status: str, expected_state: str) -> None:
-    """Direct unit test of legacy phase → macro state mapping."""
+    """Direct unit test of legacy phase → v4 macro state mapping."""
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
     try:
         from generate_backlog import _map_legacy_phase_to_state
     finally:
         sys.path.pop(0)
     assert _map_legacy_phase_to_state(phase, status) == expected_state
+
+
+@pytest.mark.parametrize(
+    ("legacy_state", "expected_v4_state"),
+    [
+        ("validated", "refining"),
+        ("building", "developing"),
+        ("review", "reviewing"),
+        # v4 native states pass through unchanged
+        ("idea", "idea"),
+        ("refining", "refining"),
+        ("refined", "refined"),
+        ("ready", "ready"),
+        ("developing", "developing"),
+        ("developed", "developed"),
+        ("reviewing", "reviewing"),
+        ("done", "done"),
+        ("parked", "parked"),
+    ],
+)
+def test_legacy_state_coercion_v3_to_v4(legacy_state: str, expected_v4_state: str) -> None:
+    """v3 → v4 state coercion via LEGACY_STATE_MAP (R34/Punto 4)."""
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    try:
+        from generate_backlog import LEGACY_STATE_MAP, VALID_STATES
+    finally:
+        sys.path.pop(0)
+    coerced = LEGACY_STATE_MAP.get(legacy_state, legacy_state)
+    assert coerced == expected_v4_state
+    assert coerced in VALID_STATES
 
 
 def test_idempotent_regeneration(tmp_path: Path) -> None:

@@ -48,17 +48,40 @@ import yaml
 
 # ─── Constants ─────────────────────────────────────────────────────────
 
-STATE_ORDER = ("idea", "validated", "ready", "building", "review", "done", "parked", "dropped")
+STATE_ORDER = (
+    "idea",
+    "refining",
+    "refined",
+    "ready",
+    "developing",
+    "developed",
+    "reviewing",
+    "done",
+    "parked",
+    "dropped",
+)
 VALID_STATES = set(STATE_ORDER)
 PRE_BUILD_STATUSES = {"planned", "ratified"}
 
+# Legacy state coercion (paradigm v3 → v4, post 2026-05-06 Punto 4).
+# Active stories should migrate to v4 vocabulary; this map keeps generator
+# robust during transition window. Any state not in v4 enum is coerced.
+LEGACY_STATE_MAP = {
+    "validated": "refining",  # split: refining (drafts) + refined (ratified)
+    "building": "developing",  # split: developing + developed
+    "review": "reviewing",  # rename
+}
+
 CAPS = {
-    "validated_max": 10,
+    "refining_max": 3,
+    "refined_max": 5,
     "ready_max": 5,
-    "building_max": 3,
-    "review_max": 2,
+    "developing_max": 3,
+    "developed_max": 2,
+    "reviewing_max": 2,
     "idea_stale_days": 90,
-    "validated_stale_days": 180,
+    "refining_stale_days": 60,  # active refinement should not stagnate
+    "refined_stale_days": 30,  # awaiting architect — pull through fast
     "done_rolling_days": 90,
 }
 
@@ -152,6 +175,8 @@ def read_ideas_pool(repo: Path) -> list[Item]:
     out: list[Item] = []
     for entry in data.get("ideas") or []:
         state = entry.get("state", "idea")
+        # Coerce legacy v3 → v4
+        state = LEGACY_STATE_MAP.get(state, state)
         if state not in VALID_STATES:
             state = "idea"
         out.append(
@@ -186,11 +211,15 @@ def read_outcomes(repo: Path) -> list[Item]:
             fm = load_frontmatter(f)
         except (FrontmatterError, yaml.YAMLError):
             continue
+        outcome_state = fm.get("state", "refining")
+        outcome_state = LEGACY_STATE_MAP.get(outcome_state, outcome_state)
+        if outcome_state not in VALID_STATES:
+            outcome_state = "refining"
         out.append(
             Item(
                 id=fm.get("id", f.stem),
                 kind="outcome",
-                state=fm.get("state", "validated"),
+                state=outcome_state,
                 title=fm.get("title", fm.get("id", f.stem)),
                 tags=fm.get("tags") or [],
                 created=fm.get("created"),
@@ -230,11 +259,15 @@ def read_active_stories_new(repo: Path) -> list[Item]:
             fm = load_frontmatter(cp)
         except (FrontmatterError, yaml.YAMLError):
             continue
+        story_state = fm.get("state", "ready")
+        story_state = LEGACY_STATE_MAP.get(story_state, story_state)
+        if story_state not in VALID_STATES:
+            story_state = "refining"
         out.append(
             Item(
                 id=fm.get("id", d.name),
                 kind="story",
-                state=fm.get("state", "ready"),
+                state=story_state,
                 title=fm.get("id", d.name),
                 tags=fm.get("tags") or [],
                 last_touched=fm.get("last_modified"),
@@ -307,11 +340,11 @@ def read_legacy_pm_nico_pis(repo: Path) -> list[Item]:
         title_match = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
         title = title_match.group(1).strip() if title_match else d.name
         # Look for state hints in body (rough heuristic — pm-nico uses prose, not frontmatter consistently)
-        state = "validated"  # default for legacy active
+        state = "refining"  # default for legacy active (v4 vocabulary)
         if re.search(r"(?i)\bDONE\b|shipped|cierra|closed", text[:1500]):
             state = "done"
         elif re.search(r"(?i)\bin-progress\b|active\b|S\d+\s+in-progress", text[:1500]):
-            state = "building"
+            state = "developing"
         out.append(
             Item(
                 id=d.name,
@@ -327,29 +360,32 @@ def read_legacy_pm_nico_pis(repo: Path) -> list[Item]:
 
 
 def _map_legacy_phase_to_state(phase: str, status: str) -> str:  # noqa: PLR0911
-    """Map legacy phase strings (PM_DRAFT/PO_SPEC/ARCH_DONE/BUILD_T*/AUDIT_*/DONE) to macro state.
+    """Map legacy phase strings (PM_DRAFT/PO_SPEC/ARCH_DONE/BUILD_T*/AUDIT_*/DONE) to v4 macro state.
 
     Order matters: prefix-qualified phases (ARCH_DONE = arch phase done) checked BEFORE
-    bare DONE (= entire story done). AUDIT_*_APPROVED → review (ready for merge).
+    bare DONE (= entire story done). AUDIT_*_APPROVED → reviewing (Conv 3 in progress).
+
+    Post v4 (Punto 4 2026-05-06): emits 10-state vocabulary directly. Legacy
+    artifacts still keyed by old phase strings — this mapper is the bridge.
     """
     if status == "blocked":
         return "parked"
     p = phase.upper()
     # Check phase-prefix-qualified first (most specific)
     if "AUDIT" in p:
-        return "review"
+        return "reviewing"
     if "BUILD" in p:
-        return "building"
+        return "developing"
     if "ARCH" in p:
         return "ready"
     if "UX" in p or "DESIGN" in p:
-        return "validated"
+        return "refining"
     if "PO_SPEC" in p or "PM_DRAFT" in p:
-        return "validated"
+        return "refining"
     # Bare DONE / MERGED only matches if no other prefix consumed (whole-story done)
     if p in {"DONE", "MERGED"} or "MERGED_TO" in p:
         return "done"
-    return "validated"
+    return "refining"
 
 
 def read_capability_rollup(repo: Path) -> list[CapRollup]:
@@ -403,31 +439,58 @@ def aggregate(repo: Path) -> dict[str, Any]:
         d = days_since(it.last_touched)
         if d is not None and d > CAPS["idea_stale_days"]:
             stale_ideas.append(it.id)
-    stale_validated = []
-    for it in buckets["validated"]:
+    stale_refining = []
+    for it in buckets["refining"]:
         d = days_since(it.last_touched)
-        if d is not None and d > CAPS["validated_stale_days"]:
-            stale_validated.append(it.id)
+        if d is not None and d > CAPS["refining_stale_days"]:
+            stale_refining.append(it.id)
+    stale_refined = []
+    for it in buckets["refined"]:
+        d = days_since(it.last_touched)
+        if d is not None and d > CAPS["refined_stale_days"]:
+            stale_refined.append(it.id)
 
-    # Cap warnings
+    # Cap warnings (legacy stories tagged `legacy:*` exempt — pre-paradigma v4)
+    def _non_legacy(items_: list[Item]) -> list[Item]:
+        return [i for i in items_ if not any(t.startswith("legacy:") for t in i.tags)]
+
     warnings: list[str] = []
-    if len(buckets["validated"]) > CAPS["validated_max"]:
-        warnings.append(f"validated cap exceeded ({len(buckets['validated'])} > {CAPS['validated_max']})")
-    if len(buckets["building"]) > CAPS["building_max"]:
-        warnings.append(f"building cap exceeded ({len(buckets['building'])} > {CAPS['building_max']})")
-    if len(buckets["ready"]) > CAPS["ready_max"]:
-        warnings.append(f"ready cap exceeded ({len(buckets['ready'])} > {CAPS['ready_max']})")
-    if len(buckets["review"]) > CAPS["review_max"]:
-        warnings.append(f"review cap exceeded ({len(buckets['review'])} > {CAPS['review_max']})")
+    if len(_non_legacy(buckets["refining"])) > CAPS["refining_max"]:
+        warnings.append(
+            f"refining cap exceeded ({len(_non_legacy(buckets['refining']))} > {CAPS['refining_max']}, excl. legacy)"
+        )
+    if len(_non_legacy(buckets["refined"])) > CAPS["refined_max"]:
+        warnings.append(
+            f"refined cap exceeded ({len(_non_legacy(buckets['refined']))} > {CAPS['refined_max']}, excl. legacy)"
+        )
+    if len(_non_legacy(buckets["ready"])) > CAPS["ready_max"]:
+        warnings.append(f"ready cap exceeded ({len(_non_legacy(buckets['ready']))} > {CAPS['ready_max']}, excl. legacy)")
+    if len(_non_legacy(buckets["developing"])) > CAPS["developing_max"]:
+        warnings.append(
+            f"developing cap exceeded ({len(_non_legacy(buckets['developing']))} > {CAPS['developing_max']}, excl. legacy)"
+        )
+    if len(_non_legacy(buckets["developed"])) > CAPS["developed_max"]:
+        warnings.append(
+            f"developed cap exceeded ({len(_non_legacy(buckets['developed']))} > {CAPS['developed_max']}, excl. legacy)"
+        )
+    if len(_non_legacy(buckets["reviewing"])) > CAPS["reviewing_max"]:
+        warnings.append(
+            f"reviewing cap exceeded ({len(_non_legacy(buckets['reviewing']))} > {CAPS['reviewing_max']}, excl. legacy)"
+        )
     if stale_ideas:
         warnings.append(f"{len(stale_ideas)} stale ideas (>{CAPS['idea_stale_days']}d untouched)")
+    if stale_refining:
+        warnings.append(f"{len(stale_refining)} stale refining (>{CAPS['refining_stale_days']}d untouched)")
+    if stale_refined:
+        warnings.append(f"{len(stale_refined)} stale refined (>{CAPS['refined_stale_days']}d untouched)")
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "caps": CAPS,
         "warnings": warnings,
         "stale_ideas": stale_ideas,
-        "stale_validated": stale_validated,
+        "stale_refining": stale_refining,
+        "stale_refined": stale_refined,
         "buckets": {state: [_item_to_dict(it) for it in items_] for state, items_ in buckets.items()},
         "capabilities": [
             {
@@ -494,12 +557,23 @@ def render_md(backlog: dict[str, Any]) -> str:  # noqa: PLR0915, C901, PLR0912
             lines.append(f"- {w}")
         lines.append("")
 
-    # ─── Roadmap view ────────────────────────────────────────────────
+    # ─── Roadmap view (v4 — 10 estados) ───────────────────────────────
     lines.append("## 📊 Roadmap view (filtered + curated)")
     lines.append("")
-    lines.append(f"### Now (state=building, {len(buckets['building'])} items)")
-    if buckets["building"]:
-        for it in buckets["building"]:
+    lines.append(f"### 💡 Ideas ({len(buckets['idea'])})")
+    if buckets["idea"]:
+        for it in buckets["idea"][:15]:
+            kind = f" `[{it['kind']}]`"
+            lines.append(f"- {it['id']}{kind}")
+        if len(buckets["idea"]) > 15:
+            lines.append(f"- _... +{len(buckets['idea']) - 15} more_")
+    else:
+        lines.append("- _(none)_")
+    lines.append("")
+
+    lines.append(f"### 🔬 Refining ({len(buckets['refining'])} / cap {CAPS['refining_max']})")
+    if buckets["refining"]:
+        for it in buckets["refining"]:
             outcome = it["extra"].get("outcome")
             phase = it["extra"].get("phase", "")
             tag = f" — outcome `{outcome}`" if outcome else ""
@@ -509,7 +583,17 @@ def render_md(backlog: dict[str, Any]) -> str:  # noqa: PLR0915, C901, PLR0912
         lines.append("- _(none)_")
     lines.append("")
 
-    lines.append(f"### Next (state=ready, {len(buckets['ready'])} items)")
+    lines.append(f"### ✅ Refined — listo para arquitectos ({len(buckets['refined'])} / cap {CAPS['refined_max']})")
+    if buckets["refined"]:
+        for it in buckets["refined"]:
+            outcome = it["extra"].get("outcome")
+            tag = f" — outcome `{outcome}`" if outcome else ""
+            lines.append(f"- **{it['id']}**{tag}")
+    else:
+        lines.append("- _(none)_")
+    lines.append("")
+
+    lines.append(f"### 📦 Ready for development ({len(buckets['ready'])} / cap {CAPS['ready_max']})")
     if buckets["ready"]:
         for it in buckets["ready"]:
             outcome = it["extra"].get("outcome")
@@ -519,20 +603,33 @@ def render_md(backlog: dict[str, Any]) -> str:  # noqa: PLR0915, C901, PLR0912
         lines.append("- _(none)_")
     lines.append("")
 
-    lines.append(f"### Validated (worth solving, {len(buckets['validated'])} items)")
-    if buckets["validated"]:
-        for it in buckets["validated"][:15]:
-            kind = f" `[{it['kind']}]`"
-            lines.append(f"- {it['id']}{kind}")
-        if len(buckets["validated"]) > 15:
-            lines.append(f"- _... +{len(buckets['validated']) - 15} more_")
+    lines.append(f"### 🔨 Developing ({len(buckets['developing'])} / cap {CAPS['developing_max']})")
+    if buckets["developing"]:
+        for it in buckets["developing"]:
+            outcome = it["extra"].get("outcome")
+            phase = it["extra"].get("phase", "")
+            tag = f" — outcome `{outcome}`" if outcome else ""
+            phase_str = f" [{phase}]" if phase else ""
+            lines.append(f"- **{it['id']}**{tag}{phase_str}")
     else:
         lines.append("- _(none)_")
     lines.append("")
 
-    lines.append(f"### Done (review state queue, {len(buckets['review'])} items)")
-    if buckets["review"]:
-        for it in buckets["review"]:
+    lines.append(
+        f"### 🧪 Developed — esperando QA ({len(buckets['developed'])} / cap {CAPS['developed_max']})"
+    )
+    if buckets["developed"]:
+        for it in buckets["developed"]:
+            outcome = it["extra"].get("outcome")
+            tag = f" — outcome `{outcome}`" if outcome else ""
+            lines.append(f"- **{it['id']}**{tag}")
+    else:
+        lines.append("- _(none)_")
+    lines.append("")
+
+    lines.append(f"### 🔍 Reviewing ({len(buckets['reviewing'])} / cap {CAPS['reviewing_max']})")
+    if buckets["reviewing"]:
+        for it in buckets["reviewing"]:
             lines.append(f"- {it['id']}")
     else:
         lines.append("- _(none in review)_")
@@ -569,10 +666,12 @@ def render_md(backlog: dict[str, Any]) -> str:  # noqa: PLR0915, C901, PLR0912
     lines.append("```mermaid")
     lines.append("kanban")
     _emit_mermaid_column(lines, "💡 Ideas", buckets["idea"], cap_label=None)
-    _emit_mermaid_column(lines, "🔍 Validated", buckets["validated"], cap_label=f"cap {CAPS['validated_max']}")
+    _emit_mermaid_column(lines, "🔬 Refining", buckets["refining"], cap_label=f"cap {CAPS['refining_max']}")
+    _emit_mermaid_column(lines, "✅ Refined", buckets["refined"], cap_label=f"cap {CAPS['refined_max']}")
     _emit_mermaid_column(lines, "📦 Ready", buckets["ready"], cap_label=f"cap {CAPS['ready_max']}")
-    _emit_mermaid_column(lines, "🔨 Building", buckets["building"], cap_label=f"cap {CAPS['building_max']}")
-    _emit_mermaid_column(lines, "🔍 Review", buckets["review"], cap_label=f"cap {CAPS['review_max']}")
+    _emit_mermaid_column(lines, "🔨 Developing", buckets["developing"], cap_label=f"cap {CAPS['developing_max']}")
+    _emit_mermaid_column(lines, "🧪 Developed", buckets["developed"], cap_label=f"cap {CAPS['developed_max']}")
+    _emit_mermaid_column(lines, "🔍 Reviewing", buckets["reviewing"], cap_label=f"cap {CAPS['reviewing_max']}")
     _emit_mermaid_column(lines, "✅ Done", done_recent, cap_label=f"{CAPS['done_rolling_days']}d rolling")
     _emit_mermaid_column(lines, "🅿 Parked", buckets["parked"], cap_label=None)
     lines.append("```")
