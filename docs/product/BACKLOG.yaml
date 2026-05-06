@@ -1,0 +1,322 @@
+# docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
+# DO NOT EDIT MANUALLY — modify source artifacts instead.
+# Regenerate: python scripts/generate_backlog.py
+# Generated at: 2026-05-06T04:33:22+00:00
+
+generated_at: '2026-05-06T04:33:22+00:00'
+caps:
+  validated_max: 10
+  ready_max: 5
+  building_max: 3
+  review_max: 2
+  idea_stale_days: 90
+  validated_stale_days: 180
+  done_rolling_days: 90
+warnings: []
+stale_ideas: []
+stale_validated: []
+buckets:
+  idea:
+  - id: calendario-comercial
+    kind: idea
+    state: idea
+    title: Calendario comercial por país (fechas importantes para vender) — admin Streamlit + tenant-extensible
+    tags:
+    - module:commercial-calendar
+    - effort:M
+    - value:business-feature
+    - source:chris
+    last_touched: 2026-04-15
+    extra:
+      promoted_to_outcome: null
+      ost: null
+  - id: metricas-atraccion
+    kind: idea
+    state: idea
+    title: Attraction stage metrics expansion (analytics module)
+    tags:
+    - module:analytics
+    - effort:S
+    - value:user-feedback
+    - source:chris
+    last_touched: 2026-04-20
+    extra:
+      promoted_to_outcome: null
+      ost: null
+  validated:
+  - id: sales-agent-eval-cost-budget-cap
+    kind: story
+    state: validated
+    title: sales-agent-eval-cost-budget-cap
+    tags:
+    - legacy:active
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      phase: PM_DRAFT
+      next_action: Esperar Story 1 (runner) + Story 4 (deepseek-fix) audit-passed → invocar /po acá
+      blocked_by: 'Dependencias: Story 1 runner + Story 4 cost recorder confiable'
+      outcome: active
+      audit_iterations: 0
+      legacy_layout: true
+  - id: sales-agent-eval-pass-k-tracking
+    kind: story
+    state: validated
+    title: sales-agent-eval-pass-k-tracking
+    tags:
+    - legacy:active
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      phase: PM_DRAFT
+      next_action: Esperar Story 1 (eval-runner-foundation) audit-passed → invocar /po acá
+      blocked_by: 'Dependencia: necesita Story 1 runner funcionando'
+      outcome: active
+      audit_iterations: 0
+      legacy_layout: true
+  - id: sales-agent-goldens-3-tenants-dataset
+    kind: story
+    state: validated
+    title: sales-agent-goldens-3-tenants-dataset
+    tags:
+    - legacy:active
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      phase: PM_DRAFT
+      next_action: Esperar Story 1 (runner) audit-passed (estructura YAML compatible) + Chris ratifica 3 tenants → invocar
+        /po acá
+      blocked_by: Dependencia indirecta Story 1 (formato YAML golden definido) + decisión Chris (3 tenants representativos)
+      outcome: active
+      audit_iterations: 0
+      legacy_layout: true
+  - id: sales-agent-personas-instrumented-runtime
+    kind: story
+    state: validated
+    title: sales-agent-personas-instrumented-runtime
+    tags:
+    - legacy:active
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      phase: PM_DRAFT
+      next_action: Esperar Story 1 (runner) + Story 5 (goldens) audit-passed → invocar /po acá
+      blocked_by: 'Dependencia: Story 1 runner + Story 5 goldens (necesita inputs reales para personas reaccionar)'
+      outcome: active
+      audit_iterations: 0
+      legacy_layout: true
+  - id: sales-agent-voice-fidelity-ci-gate
+    kind: story
+    state: validated
+    title: sales-agent-voice-fidelity-ci-gate
+    tags:
+    - legacy:active
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      phase: PM_DRAFT
+      next_action: Esperar Story 7 (grader-runtime) audit-passed → invocar /po acá. Coordinar con Chris la decisión de rollout
+        warning→block (1 semana operacional).
+      blocked_by: 'Dependencias: Stories 1, 2, 3, 5, 6, 7 — todo el stack debe estar arriba'
+      outcome: active
+      audit_iterations: 0
+      legacy_layout: true
+  - id: sales-agent-voice-fidelity-grader-runtime
+    kind: story
+    state: validated
+    title: sales-agent-voice-fidelity-grader-runtime
+    tags:
+    - legacy:active
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      phase: PM_DRAFT
+      next_action: Esperar Stories 5 (goldens) + 6 (personas) audit-passed → invocar /po acá. Chris debe agendar ~2h para
+        etiquetar los 10 outputs de calibración.
+      blocked_by: 'Dependencias: Story 5 goldens + Story 6 personas (necesita data para calibrar grader)'
+      outcome: active
+      audit_iterations: 0
+      legacy_layout: true
+  - id: sales-agent-adversarial-jailbreak-suite
+    kind: story
+    state: validated
+    title: sales-agent-adversarial-jailbreak-suite
+    tags:
+    - legacy:active
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      phase: PM_DRAFT
+      next_action: Esperar Stories 5+7+8 audit-passed → invocar /po acá. Última story del PI-12. Cuando audit-passed → /pm
+        aplica 07-merge.md y cierra PI.
+      blocked_by: 'Dependencias: Stories 5 (goldens base) + 7 (grader) + 8 (CI gate) — reutiliza infra completa'
+      outcome: active
+      audit_iterations: 0
+      legacy_layout: true
+  - id: PI-10-growth-studio-ux-homologation
+    kind: legacy-pi
+    state: validated
+    title: PI-10-growth-studio-ux-homologation
+    tags:
+    - legacy:pm-nico
+    last_touched: null
+    extra:
+      path: docs/pm-nico/pis/active/PI-10-growth-studio-ux-homologation/PI.md
+  ready: []
+  building:
+  - id: PI-11-backend-quality-guardrails
+    kind: legacy-pi
+    state: building
+    title: PI-11 — Backend Quality Guardrails
+    tags:
+    - legacy:pm-nico
+    last_touched: null
+    extra:
+      path: docs/pm-nico/pis/active/PI-11-backend-quality-guardrails/PI.md
+  review:
+  - id: sales-agent-litellm-canonicalization
+    kind: story
+    state: review
+    title: sales-agent-litellm-canonicalization
+    tags:
+    - legacy:active
+    last_touched: 2026-05-06T02:45Z
+    extra:
+      phase: AUDIT_T9_APPROVED_T6B_PM_RATIFIED
+      next_action: 'T-8 + T-9 audit-passed (Wave 7 paralelo). T-6b ratificado por /pm pre-clientes per R7 (zero production
+        traffic = zero-read invariant trivially satisfied; T-6a + T-6c deploy together at /pase-produccion). Wave 6 unblocked:
+        T-6c DROP COLUMN final migration. Story A code scope quasi-COMPLETE (10/11 tickets audit-passed; T-6b ratified PM-only).
+        Wave 8 next: REVIEW-final per story + 07-merge + S1 closure.'
+      blocked_by: null
+      outcome: active
+      audit_iterations: 7
+      legacy_layout: true
+  done:
+  - id: PI-3-sales-agent-improvement
+    kind: legacy-pi
+    state: done
+    title: PI-3-sales-agent-improvement — Mejorar Sales Agent
+    tags:
+    - legacy:pm-nico
+    last_touched: null
+    extra:
+      path: docs/pm-nico/pis/active/PI-3-sales-agent-improvement/PI.md
+  - id: PI-4-brand-evolutive-maintenance
+    kind: legacy-pi
+    state: done
+    title: PI-4-brand-evolutive-maintenance — Mantenimiento Evolutivo Brand Studio
+    tags:
+    - legacy:pm-nico
+    last_touched: null
+    extra:
+      path: docs/pm-nico/pis/active/PI-4-brand-evolutive-maintenance/PI.md
+  - id: PI-5-copilot-multicanal-telegram
+    kind: legacy-pi
+    state: done
+    title: 'PI-5-copilot-multicanal-telegram — Copilot Multicanal: Telegram MVP'
+    tags:
+    - legacy:pm-nico
+    last_touched: null
+    extra:
+      path: docs/pm-nico/pis/active/PI-5-copilot-multicanal-telegram/PI.md
+  - id: PI-9-growth-studio-architecture
+    kind: legacy-pi
+    state: done
+    title: PI-9-growth-studio-architecture
+    tags:
+    - legacy:pm-nico
+    last_touched: null
+    extra:
+      path: docs/pm-nico/pis/active/PI-9-growth-studio-architecture/PI.md
+  parked: []
+  dropped: []
+capabilities:
+- module: advertising
+  live: 3
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 3
+- module: analytics
+  live: 4
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 4
+- module: assets
+  live: 3
+  in_progress: 1
+  planned: 0
+  deprecated: 0
+  total: 4
+- module: brand
+  live: 5
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 5
+- module: campaigns
+  live: 4
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 4
+- module: commercial-calendar
+  live: 1
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 1
+- module: connections
+  live: 3
+  in_progress: 1
+  planned: 0
+  deprecated: 0
+  total: 4
+- module: copilot
+  live: 4
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 4
+- module: crm
+  live: 2
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 2
+- module: iam
+  live: 2
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 2
+- module: landing
+  live: 3
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 3
+- module: offer
+  live: 5
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 5
+- module: sales-agent
+  live: 3
+  in_progress: 2
+  planned: 0
+  deprecated: 0
+  total: 5
+- module: scheduling
+  live: 3
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 3
+- module: social-media
+  live: 2
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 2
+- module: tenant-domains
+  live: 1
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 1

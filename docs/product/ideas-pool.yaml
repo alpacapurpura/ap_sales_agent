@@ -1,0 +1,52 @@
+# docs/product/ideas-pool.yaml — SSoT discovery layer
+#
+# All raw ideas + validated opportunities live here as YAML entries.
+# State machine: idea → validated → (promoted to outcome) | dropped | parked
+#
+# State transitions:
+#   idea → validated     : OST applied + problem worth solving confirmed
+#   validated → promoted : promoted_to_outcome set, outcome.md created
+#   any → dropped        : terminal, won't do
+#   any → parked         : de-prioritized, NOT abandoned
+#
+# Caps (enforced by Stop hook + pre-commit):
+#   max validated = 10  (avoid cementerio "validated")
+#
+# Stale markers (auto-warn):
+#   idea last_touched > 90d         → flag stale
+#   validated last_touched > 180d   → flag stale
+#
+# OST (Opportunity Solution Tree, Torres) — only when state=validated
+#   outcome:        the business outcome this idea contributes to
+#   opportunities:  customer needs / pain points (NOT solutions)
+#   solutions:      candidate solutions for the opportunities
+#   tests:          assumption tests to validate before committing
+#
+# Tag conventions:
+#   module:<name>      e.g. module:sales-agent
+#   effort:S|M|L       rough sizing (S<=2d, M=3-7d, L>7d)
+#   value:<reason>     e.g. value:user-feedback, value:tech-debt
+#   source:<who>       e.g. source:chris, source:user-X, source:gap-report
+
+ideas:
+  - id: calendario-comercial
+    one_liner: "Calendario comercial por país (fechas importantes para vender) — admin Streamlit + tenant-extensible"
+    state: idea
+    tags: [module:commercial-calendar, effort:M, value:business-feature, source:chris]
+    created: 2026-04-15
+    last_touched: 2026-04-15
+    notes: |
+      Migrated from docs/product/ideas/calendario-comercial.md (2026-05-05).
+      Original detail: por País inicial, tenant-extensible para nicho.
+      Admin (Chris) único que elimina fechas globales. Tenant agrega fechas nicho.
+      Data inicial Perú cargada en idea original (Mes/Día/Tema).
+
+  - id: metricas-atraccion
+    one_liner: "Attraction stage metrics expansion (analytics module)"
+    state: idea
+    tags: [module:analytics, effort:S, value:user-feedback, source:chris]
+    created: 2026-04-20
+    last_touched: 2026-04-20
+    notes: |
+      Migrated from docs/product/ideas/metricas-atraccion.md (file was empty,
+      title only). Refine antes de validar.
