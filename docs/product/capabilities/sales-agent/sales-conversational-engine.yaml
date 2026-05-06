@@ -4,7 +4,7 @@ name: "Motor conversacional sales_agent — supervisor + specialists + voz tenan
 module: sales-agent
 backbone_activity: "Vender / pre-calificar / cerrar"
 last_audit: 2026-05-04
-status: live
+status: in-progress
 slice: MVP
 links:
   module_doc: "../../modules/sales-agent.md"

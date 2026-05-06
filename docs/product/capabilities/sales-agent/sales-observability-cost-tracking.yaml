@@ -4,7 +4,7 @@ name: "Observabilidad sales_agent — traces + llm_call + cost tracking"
 module: sales-agent
 backbone_activity: "Trazabilidad turn-a-turn + costo per agent run"
 last_audit: 2026-05-04
-status: live
+status: in-progress
 slice: MVP
 links:
   module_doc: "../../modules/sales-agent.md"

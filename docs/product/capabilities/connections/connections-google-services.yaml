@@ -4,13 +4,13 @@ name: "Google services — Calendar + Gmail + Ads + GA4 OAuth"
 module: connections
 backbone_activity: "Conectar Google ecosystem"
 last_audit: 2026-05-04
-status: live
+status: in-progress
 slice: MVP
 links:
   module_doc: "../../modules/connections.md"
   stories_dir: "../../stories/connections/"
 description: "Bundle OAuth Google: Calendar (scheduling), Gmail (send/receive), Google Ads (advertising), Google Analytics 4 (analytics ETL). Single OAuth flow con incremental scopes + property/account picker per servicio."
-stories_live: 2
+stories_live: 1
 stories_planned: 0
 stories_total: 2
 story_ids:

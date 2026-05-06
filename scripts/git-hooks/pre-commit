@@ -336,4 +336,54 @@ EOF
   fi
 fi
 
+# ─────────────────────────────────────────────────────────────────
+# 5. R32 capability ↔ story status freshness (origen 2026-05-05)
+# ─────────────────────────────────────────────────────────────────
+# Capability YAML at docs/product/capabilities/{m}/{c}.yaml carries derived
+# fields (status, stories_live, stories_planned, stories_total) that MUST
+# stay synced with referenced stories under docs/product/stories/{m}/{s}.yaml.
+#
+# Trigger: any staged change touching docs/product/{capabilities,stories}/.
+# Action: invoke reconciler --check; block on drift with hint to run fix mode.
+
+PRODUCT_TOUCHED=$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null \
+  | grep -E '^docs/product/(capabilities|stories)/' \
+  || true)
+
+if [ -n "${PRODUCT_TOUCHED}" ]; then
+  RECONCILER="${REPO_ROOT}/scripts/reconcile_capabilities.py"
+  VENV_PY="${REPO_ROOT}/backend/.venv/bin/python"
+
+  if [ -x "${VENV_PY}" ] && [ -f "${RECONCILER}" ]; then
+    if ! "${VENV_PY}" "${RECONCILER}" --check >/tmp/reconcile-out.txt 2>&1; then
+      printf "\033[31m"
+      cat <<EOF
+─────────────────────────────────────────────────────────────
+PRE-COMMIT BLOCKED: R32 capability status drift
+─────────────────────────────────────────────────────────────
+You're staging changes under docs/product/{capabilities,stories}/ but the
+capability YAML derived fields (status, stories_live, stories_planned,
+stories_total) no longer match the referenced stories.
+
+Drift detail:
+$(cat /tmp/reconcile-out.txt)
+
+Resolution:
+  python scripts/reconcile_capabilities.py
+  git add docs/product/capabilities/
+  git commit ...
+
+NEVER use --no-verify.
+─────────────────────────────────────────────────────────────
+EOF
+      printf "\033[0m"
+      exit 1
+    fi
+  else
+    printf "\033[33m"
+    echo "WARNING: skipping R32 reconciler — venv or script missing."
+    printf "\033[0m"
+  fi
+fi
+
 exit 0
