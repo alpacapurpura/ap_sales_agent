@@ -1,0 +1,185 @@
+# 04-validators.yaml — Story maintenance-skill-sales-agent-audit
+#
+# Schema v4 (post pm-redesign 2026-05 Punto 4) — 4 categories.
+# Surface: BE only (test pytest + skill .md edits). Sin FE, sin agentic eval.
+# Production code: false (no src/ touches). Owner sonnet/qwen OK (R23).
+#
+# Cada validator MUST tener `must_pass: true` y comando ejecutable native WSL.
+
+story_id: maintenance-skill-sales-agent-audit
+schema_version: v4
+
+validators:
+  # ═══════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality (lint, format, arch fitness)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: be_lint_test_file
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff check tests/scripts/test_skill_sales_agent_audit.py --no-cache"
+    must_pass: true
+    timeout_sec: 15
+    description: "Ruff 70+ rules, 0 errors en el test nuevo del audit."
+
+  - id: be_format_test_file
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff format --check tests/scripts/test_skill_sales_agent_audit.py"
+    must_pass: true
+    timeout_sec: 15
+    description: "Ruff format check (line 120, double quotes, spaces)."
+
+  - id: be_arch_fitness_full
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 120
+    description: "DDD boundaries / API contracts / conventions / SQLA 2.0 — debe pasar (no esperamos tocar nada que afecte estos gates, pero corremos por seguridad)."
+
+  - id: pre_commit_hook_passes
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT && bash scripts/git-hooks/pre-commit"
+    must_pass: true
+    timeout_sec: 30
+    description: "Pre-commit hook (voseo + ruff) pasa con archivos staged. Magic comment <!-- voseo-allowed --> debe estar presente en references/ que citan glosario voseo (Q5)."
+
+  # ═══════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios (happy / negative / edge / adversarial)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: scenario_happy_paths_resolve
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_skill_sales_agent_audit.py::test_skill_paths_resolve_or_have_obsolete_marker -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "Cada path/clase citada en SKILL.md + references/*.md resuelve a archivo/símbolo existente, salvo líneas con OBSOLETO: prefix."
+
+  - id: scenario_happy_skill_has_new_sections
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_skill_sales_agent_audit.py::test_skill_has_new_canonical_sections -v --tb=short"
+    must_pass: true
+    timeout_sec: 15
+    scenario_id: happy
+    description: "SKILL.md contiene literal '## Surfaces compartidas con copilot' Y '## Decisiones cardinales últimos 60 días' (case-sensitive headers)."
+
+  - id: scenario_happy_impl_log_complete
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_skill_sales_agent_audit.py::test_impl_log_has_required_sections tests/scripts/test_skill_sales_agent_audit.py::test_utility_verdicts_cover_all_skill_sections -v --tb=short"
+    must_pass: true
+    timeout_sec: 15
+    scenario_id: happy
+    description: "T-1-impl-log.md tiene 4 H3 obligatorios (Claims removed (archived), Claims updated, Claims added, Utility verdicts) Y la tabla Utility verdicts cubre 100% de secciones H2/H3 del skill + cada archivo references/."
+
+  - id: scenario_negative_obsolete_marker_documented
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_skill_sales_agent_audit.py::test_obsolete_marker_has_inline_reason -v --tb=short"
+    must_pass: true
+    timeout_sec: 15
+    scenario_id: negative
+    description: "Cada línea con prefix OBSOLETO: tiene comentario inline con razón (regex assert non-empty post-marker)."
+
+  - id: scenario_edge_shared_consumers_documented
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_skill_sales_agent_audit.py::test_shared_observability_consumers_documented -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "Set de imports `shared.agent_observability.*` desde modules/sales_agent/**/*.py == set documentado en sección '## Surfaces compartidas con copilot' del skill (set equality)."
+
+  - id: scenario_adversarial_no_self_contradiction
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_skill_sales_agent_audit.py::test_skill_no_self_contradiction tests/scripts/test_skill_sales_agent_audit.py::test_contradiction_detector_flags_synthetic_injection -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "Skill sin contradicción cross-archivo en ≥4 invariantes canónicas (voseo / anti-duplication / §3 protected / PII regex). Positive control: detector flagea inyección sintética."
+
+  # ═══════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL EXTRA — runtime impact (cero src/ changes — gate hard)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: zero_src_changes
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT && git diff --name-only HEAD~1..HEAD -- backend/src/ frontend/src/ | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 5
+    description: "Cero archivos en backend/src/ o frontend/src/ modificados. Story es doc-only."
+
+  - id: ci_parity_optional
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT && make ci-parity"
+    must_pass: false   # OPTIONAL — solo correr si dev-team duda; trigger normal de Chris pre-push-to-main
+    timeout_sec: 1200
+    description: "make ci-parity (BE+FE+arch+migrations completo). Marcado must_pass:false porque story es doc-only — pero si dev-team hizo cambio que dudan, correr para confirmar."
+
+# ═══════════════════════════════════════════════════════════════
+# VISUAL — N/A (no UI changes)
+# ═══════════════════════════════════════════════════════════════
+
+# (Sin validators visuales — story no toca FE.)
+
+# ═══════════════════════════════════════════════════════════════
+# AGENTIC EVAL — N/A (no runtime agentic changes)
+# ═══════════════════════════════════════════════════════════════
+
+# (Sin validators agentic — story es doc-engineering del skill, NO modifica
+#  modules/sales_agent/ runtime. Per R23, surface=BE production_code=false.)
+
+# ═══════════════════════════════════════════════════════════════
+# Scenario coverage matrix — 1 scenario maps to N validators
+# ═══════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: happy
+    description: "audit-happy-path — paths greppeables, secciones nuevas, impl-log completo con utility verdicts"
+    validators:
+      - scenario_happy_paths_resolve
+      - scenario_happy_skill_has_new_sections
+      - scenario_happy_impl_log_complete
+      - be_lint_test_file
+      - be_format_test_file
+      - pre_commit_hook_passes
+      - zero_src_changes
+
+  - scenario_id: negative
+    description: "path-citado-no-existe — marker OBSOLETO: con razón inline, en lugar de borrar"
+    validators:
+      - scenario_negative_obsolete_marker_documented
+      - scenario_happy_paths_resolve   # cross-cobertura: el mismo test acepta OBSOLETO como skip
+
+  - scenario_id: edge
+    description: "surface-compartida-no-documentada — set imports shared.agent_observability == set documentado"
+    validators:
+      - scenario_edge_shared_consumers_documented
+
+  - scenario_id: adversarial
+    description: "skill-self-contradicts — invariantes cross-archivo coherentes (incluye positive control)"
+    validators:
+      - scenario_adversarial_no_self_contradiction
+
+# ═══════════════════════════════════════════════════════════════
+# Iteration policy — autonomous build behavior
+# ═══════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 8
+  on_fail: |
+    Para tests RED por path no resuelto: corregir el skill (agregar OBSOLETO: con razón, o actualizar al path canónico).
+    Para tests RED por sección faltante: agregar la sección al skill siguiendo el formato bullet del 03-arch.md AD3.
+    Para tests RED por contradicción: aplicar política híbrida Q3 (auto-resolve dentro del skill, escalar Chris si vs rules externas).
+    Para tests RED por utility verdict missing: agregar entry a tabla en T-1-impl-log.md.
+    Re-run el validator que falló (no full suite).
+  on_all_pass: "set state=developing→developed, append iteration_log a T-1-impl-log.md con resumen final del audit."
+  on_cap_reached: "set state=developing→blocked, escalate Chris con last failing validator output + diff parcial del skill."

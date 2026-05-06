@@ -1,0 +1,198 @@
+# 06-tickets.yaml — Story maintenance-skill-sales-agent-audit
+# Owner: /architect
+# Schema v4 (post pm-redesign 2026-05 Punto 4)
+#
+# 1 ticket único. Razón: scope coherente (audit + test + impl-log son una unidad
+# lógica), estimate 5-6h <8h cap por ticket, sin handoffs cross-stack.
+
+---
+story_id: maintenance-skill-sales-agent-audit
+outcome: pi-12-sales-agent-eval-foundation
+generated_at: 2026-05-06T19:50Z
+generated_by: /architect
+total_tickets: 1
+estimated_total_hours: 6
+
+# ── Resumen pila ────────────────
+summary:
+  - id: T-1
+    title: "Audit del skill sales-agent-expert + test pytest de regresión"
+    surface: BE
+    production_code: false                          # R23 — touches tests/scripts/ + .claude/skills/ ONLY
+    owner_pool: [qwen-opencode, claude-sonnet]      # Opus NO requerido (R23 production_code=false)
+    state: draft
+    blocks: []
+    blocked_by: []
+
+# ── Detalle ─────────────────
+T1:
+  id: T-1
+  title: "Audit del skill sales-agent-expert + test pytest de regresión"
+  type: tests-and-docs                              # híbrido: test pytest nuevo + doc edits skill
+  surface: BE
+  production_code: false                            # R23 — cero src/ touches; solo tests/scripts/ + .claude/skills/
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true                             # OK — doc-engineering + test pytest puro filesystem
+    claude_sonnet: true                             # PREFERRED — capable de markdown parsing + AST scan + 4 pasadas del audit
+    claude_opus_required: false                     # ⛔ NO required (no agentic production code, no decisión arq compleja)
+  priority: 1
+  estimate_hours: 6
+  decisions_applicable: [AD1, AD2, AD3, AD4, AD5, AD6, Q1, Q2, Q3, Q4, Q5]
+  # AD1-AD6 = 03-arch.md "Decisión arquitectónica clave" + "Decisiones registradas"
+  # Q1-Q5 = 01-spec.md "Decisions ratified" (Chris 2026-05-06 v2)
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch.md"
+    validators: "../04-validators.yaml"
+    guidelines: "../05-guidelines.md"
+    story_md: "../00-story.md"
+    rules:
+      - ".claude/rules/anti-duplication.md"
+      - ".claude/rules/spanish-text.md"
+      - ".claude/rules/parallel-safety.md"
+      - ".claude/rules/git-safety.md"
+      - ".claude/rules/tdd-mandatory.md"
+    tessl_skills:
+      - "tessl__pytest-api-testing"                 # patrones pytest + fixtures
+    domain_skills:
+      - "sales-agent-expert"                        # skill TARGET — leer entero antes de auditar (R: pasada 0)
+  deliverables:
+    - "NEW backend/tests/scripts/test_skill_sales_agent_audit.py — 6+ funciones de test (5 mapeadas a scenarios + 1 positive control + 2 gates impl-log)"
+    - "MODIFY .claude/skills/sales-agent-expert/SKILL.md — 2 secciones nuevas (Surfaces compartidas con copilot, Decisiones cardinales últimos 60 días) + UPDATE/DELETE/RESTRUCTURE per verdicts + marker OBSOLETO: para paths preservados como histórico"
+    - "MODIFY .claude/skills/sales-agent-expert/references/conversation-stages.md — per verdict (probable KEEP con verificación grep paths)"
+    - "MODIFY .claude/skills/sales-agent-expert/references/humanization-rules.md — per verdict (probable UPDATE; magic comment <!-- voseo-allowed --> si cita voseo verbatim)"
+    - "MODIFY .claude/skills/sales-agent-expert/references/sales-agent-brand-voice.md — per verdict (probable KEEP; magic comment <!-- voseo-allowed --> si cita voseo verbatim)"
+    - "MODIFY .claude/skills/sales-agent-expert/references/tool-patterns.md — per verdict (probable UPDATE; verificar tools listados existen en application/tools/registry.py)"
+    - "NEW docs/product/stories/maintenance-skill-sales-agent-audit/T-1-impl-log.md — 4 H3 obligatorios (Claims removed (archived), Claims updated, Claims added, Utility verdicts) + secciones auxiliares (Surfaces compartidas raw scan, Contradictions detected si aplica, Iteration log)"
+    - "MODIFY docs/product/stories/maintenance-skill-sales-agent-audit/checkpoint.md — state transitions developing → developed al cierre"
+  out_of_scope:
+    - "Refactorizar el módulo sales_agent (out-of-scope explícito; si el audit detecta anti-pattern violado, escalar Chris para crear story refactor)"
+    - "Auditar copilot-expert u otros skills (out-of-scope; story focused solo en sales-agent-expert)"
+    - "Cambios en backend/src/ o frontend/src/ (story es doc-only — gate hard zero_src_changes)"
+    - "Crear nuevas reglas en .claude/rules/ (out-of-scope; escalar Chris si audit detecta need)"
+    - "Splittear/mergear archivos de references/ (estructura preservada — AD2)"
+  acceptance:
+    - id: A1
+      description: "Scenario 1 happy — paths citados en skill resuelven o tienen marker OBSOLETO"
+      verifier:
+        type: pytest
+        path: "backend/tests/scripts/test_skill_sales_agent_audit.py::test_skill_paths_resolve_or_have_obsolete_marker"
+      validator_id: scenario_happy_paths_resolve
+
+    - id: A2
+      description: "Scenario 1 happy — SKILL.md contiene 2 secciones nuevas (Surfaces compartidas con copilot + Decisiones cardinales últimos 60 días)"
+      verifier:
+        type: pytest
+        path: "backend/tests/scripts/test_skill_sales_agent_audit.py::test_skill_has_new_canonical_sections"
+      validator_id: scenario_happy_skill_has_new_sections
+
+    - id: A3
+      description: "Scenario 1 happy — T-1-impl-log.md tiene 4 H3 obligatorios + Utility verdicts cubren 100% secciones del skill"
+      verifier:
+        type: pytest
+        path: "backend/tests/scripts/test_skill_sales_agent_audit.py::test_impl_log_has_required_sections backend/tests/scripts/test_skill_sales_agent_audit.py::test_utility_verdicts_cover_all_skill_sections"
+      validator_id: scenario_happy_impl_log_complete
+
+    - id: A4
+      description: "Scenario 2 negative — Cada línea con OBSOLETO: prefix tiene comentario inline con razón"
+      verifier:
+        type: pytest
+        path: "backend/tests/scripts/test_skill_sales_agent_audit.py::test_obsolete_marker_has_inline_reason"
+      validator_id: scenario_negative_obsolete_marker_documented
+
+    - id: A5
+      description: "Scenario 3 edge — Set de imports shared.agent_observability.* desde modules/sales_agent == set documentado en sección Surfaces compartidas con copilot"
+      verifier:
+        type: pytest
+        path: "backend/tests/scripts/test_skill_sales_agent_audit.py::test_shared_observability_consumers_documented"
+      validator_id: scenario_edge_shared_consumers_documented
+
+    - id: A6
+      description: "Scenario 4 adversarial — Skill sin contradicciones cross-archivo en ≥4 invariantes canónicas + positive control flagea inyección sintética"
+      verifier:
+        type: pytest
+        path: "backend/tests/scripts/test_skill_sales_agent_audit.py::test_skill_no_self_contradiction backend/tests/scripts/test_skill_sales_agent_audit.py::test_contradiction_detector_flags_synthetic_injection"
+      validator_id: scenario_adversarial_no_self_contradiction
+
+    - id: A7
+      description: "Cero archivos en backend/src/ o frontend/src/ modificados (gate hard zero_src_changes)"
+      verifier:
+        type: bash
+        cmd: "cd /home/chris/AISALESHT && git diff --name-only HEAD~1..HEAD -- backend/src/ frontend/src/ | wc -l | grep -E '^0$'"
+      validator_id: zero_src_changes
+
+    - id: A8
+      description: "Pre-commit hook pasa con archivos staged (voseo + ruff)"
+      verifier:
+        type: bash
+        cmd: "cd /home/chris/AISALESHT && bash scripts/git-hooks/pre-commit"
+      validator_id: pre_commit_hook_passes
+
+    - id: A9
+      description: "Ruff lint + format verde en test nuevo"
+      verifier:
+        type: bash
+        cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check tests/scripts/test_skill_sales_agent_audit.py --no-cache && .venv/bin/ruff format --check tests/scripts/test_skill_sales_agent_audit.py"
+      validator_id: be_lint_test_file
+
+  quality_gates:
+    - "Todos los 7 validators must_pass:true de 04-validators.yaml verde"
+    - "Test corre 3x consecutivo (pytest --count=3 o equivalente) con mismo resultado (determinismo)"
+    - "T-1-impl-log.md poblado completo antes de marcar developed"
+    - "Política híbrida Q3 aplicada — auto-resolve dentro skill, escalación documentada en impl-log si fue necesaria"
+    - "Si fue necesaria escalación a Chris (Q3 caso cross-skill / vs rules externas), checkpoint state transitions a blocked + reason hasta que Chris ratifique"
+
+  depends_on: []
+  blocks:
+    # Esta story NO bloquea otras stories del outcome técnicamente, pero
+    # CONCEPTUALMENTE bloquea las siguientes hasta que el skill esté
+    # auditado. /pm gestiona el unblock al cerrar la story.
+    - "eval-foundation-tenant-seed-data"
+    - "eval-foundation-simulator-homologation"
+    - "sales-agent-personas-instrumented-runtime"
+    - "sales-agent-goldens-3-tenants-dataset"
+    - "sales-agent-voice-fidelity-grader-runtime"
+    - "sales-agent-eval-pass-k-tracking"
+    - "sales-agent-voice-fidelity-ci-gate"
+    - "sales-agent-eval-cost-budget-cap"
+    - "sales-agent-adversarial-jailbreak-suite"
+  blocks_mode: conceptual                            # NO blocker hard a nivel filesystem; /pm orchestrates unblock
+  transitions:
+    - { state: draft, at: "2026-05-06T19:50Z", by: "/architect" }
+  assigned_to: null
+
+  notes_for_dev_team: |
+    1. Antes de cualquier edit al skill, RUN el test que vas a crear (pasada 0 — TDD strict). Test debe correr RED contra skill pre-audit
+       (cuando lleguen al menos 1-2 paths obsoletos esperados). Luego empezás cambios.
+    2. Pasada 4 (utility verdicts) es la más sutil — NO dispares verdict KEEP para una sección sin haber leído su contenido +
+       verificado grep paths citados. Cada verdict debe tener razón citable, no "looks ok".
+    3. Si Pasada 1 detecta path no resoluble que NO queda obvio si UPDATE o DELETE, default es marcar OBSOLETO: con razón
+       conservadora — preserva trazabilidad histórica. DELETE solo cuando el contenido es claramente irrelevante hoy.
+    4. Pasada 3 fuente (a) `learnings.md`: el archivo puede ser denso. Filtrar por entries con tag `sales_agent` /
+       `agent_observability` / `copilot` (cross-cutting). Cuando dudes si una entry es cardinal, prefiere incluirla.
+    5. Política híbrida Q3 — DOCUMENTÁ en impl-log la decisión por cada contradicción detectada, incluso si fue auto-resolved
+       trivialmente. Trazabilidad total.
+    6. Magic comment `<!-- voseo-allowed -->` debe ir en la primera línea del archivo (o al menos en las primeras 20 líneas)
+       per regex del pre-commit hook. NO debe ir mid-file.
+    7. Cuando aplicás DELETE/RESTRUCTURE — copy-paste el contenido EXACTO (incluyendo formato markdown, code fences, etc.)
+       a `T-1-impl-log.md::Claims removed (archived)` ANTES de eliminar del archivo origen. Cero pérdida.
+    8. Si tabla `Utility verdicts` crece >100 líneas, mantenerla — sigue siendo legible y es la auditoría completa.
+       Si crece >200, considerar pivot table (sección por archivo) en lugar de single tabla — defer al builder.
+    9. Pre-commit hook va a correr al `git add`/`git commit`. Si bloquea por voseo en un archivo references que cita
+       glosario voseo, AGREGÁ el magic comment ANTES de hacer el commit. NO uses `--no-verify` (prohibido).
+    10. Final commit: `chore(skill): audit sales-agent-expert + verify paths against live code (T-1)`. Citar
+        decisions_applicable en commit body sección "Decisions honored": "AD1-AD6 (arch), Q1-Q5 (spec ratified)".
+
+# ═══════════════════════════════════════════════════════════════
+# Owner-decision matrix (R23) — sanity check
+# ═══════════════════════════════════════════════════════════════
+#
+# T-1: surface=BE, production_code=false → owner pool [qwen-opencode, claude-sonnet]
+#       claude_opus NOT required (would be cost waste — no agentic production code,
+#       no compleja decisión arquitectónica que justifique Opus 4.7).
+#
+# /dev-team Step 1 al pickup:
+#   - Si qwen-opencode disponible y story_id en outcome NO crítico → asignar qwen
+#   - Si qwen no disponible o builder reporta complejidad markdown parsing alta → asignar claude-sonnet
+#   - Override claude-opus permitido si Chris explícitamente lo pide (cost-aware decision)
