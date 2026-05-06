@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization",
+  "ticket": "T-6a",
+  "iter": 1,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check src/ tests/ && .venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\" && .venv/bin/pytest -m \"not integration\" --cov=src/modules --cov=src/shared --cov-report=term-missing -q --tb=short",
+  "command_alias": "test-backend",
+  "started_at": "2026-05-05T23:30:00Z",
+  "finished_at": "2026-05-05T23:50:00Z",
+  "duration_ms": 1200000,
+  "exit_code": 0,
+  "raw_log_path": "embedded in builder-backend agent transcript (Opus 4.7) per R22 manual fallback",
+  "shared_with_ticket": "T-4 Story B (sales-agent-eval-runner-foundation) — same HEAD 29b97eba covers both Wave 4 commits f6e7ad0a (T-6a) + 674967c4 (T-4 Story B)",
+  "gates": [
+    {
+      "name": "ruff_lint",
+      "command": ".venv/bin/ruff check src/ tests/ --no-cache",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "All checks passed (0 errors)"
+    },
+    {
+      "name": "ruff_format",
+      "command": ".venv/bin/ruff format --check src/ tests/",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "0 files to reformat"
+    },
+    {
+      "name": "pytest_architecture",
+      "command": ".venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\"",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "823/823 PASS — allowlists unchanged"
+    },
+    {
+      "name": "pytest_coverage",
+      "command": ".venv/bin/pytest -m \"not integration\" --cov=src/modules --cov=src/shared --cov-report=term-missing -q --tb=short",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "9041 passed, 35 skipped, 16 deselected (integration), exit 0 → coverage threshold (43% fail_under) met implicitly. Includes new tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py 11/11 PASS + 18 new T-4 Story B tests.",
+      "tests_passed": 9041,
+      "tests_failed": 0,
+      "tests_skipped": 35,
+      "tests_deselected": 16
+    },
+    {
+      "name": "acceptance_a1_post_migration_zero_non_null",
+      "command": "pytest tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py::test_post_migration_zero_non_null",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "UPDATE statement with WHERE non-null guards verified idempotent via mock-based migration test (T-3 pattern)"
+    },
+    {
+      "name": "acceptance_a2_extract_tenant_key_deleted",
+      "command": "! grep -q 'def _extract_tenant_key' backend/src/shared/infrastructure/llm/factory.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "Method DELETED entirely; only docstring history remains"
+    },
+    {
+      "name": "acceptance_a3_dto_excludes_deprecated",
+      "command": "pytest tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py::test_dto_excludes_deprecated_fields",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "AISettings.model_dump() excludes 4 deprecated fields, retains gemini_api_key"
+    },
+    {
+      "name": "acceptance_a4_alembic_idempotent",
+      "command": "docker exec visionarias_brain_dev alembic upgrade head && docker exec visionarias_brain_dev alembic upgrade head",
+      "exit_code": null,
+      "result": "DEFERRED",
+      "summary": "Brain container DOWN at build/audit time. SQL idempotency contract verified via mock-based migration tests (DROP IF EXISTS, WHERE non-null, downgrade no-op, CTAS-precedes-UPDATE — same pattern as T-3 122_repair_pricing_snapshot_provider_tagging which was also deferred + later validated via /pase-produccion). Live alembic upgrade x2 deferred to /pase-produccion."
+    }
+  ],
+  "overall": {
+    "any_fail": false,
+    "fail_gate_names": [],
+    "summary": "T-6a (Phase 1 expand-contract: deprecate tenant provider API keys + delete orphaned _extract_tenant_key + null cols + Pydantic deprecate + DTO drop + repo stop writes) green. All non-deferred gates PASS. A4 alembic live verification deferred to /pase-produccion (consistent with T-3 deferral pattern)."
+  },
+  "downstream_regression_note": "T-6a modifies modules/iam/persistence (Pydantic + repo) + shared/infrastructure/llm/factory.py + alembic/versions. Per .claude/rules/auditor-downstream-regression.md tabla SSoT, no shared/ paths cross-consumer (factory.py is consumed by shared/infrastructure/llm/router.py only — verified zero downstream consumers post-T-5). Full-suite gate covered all paths.",
+  "notes": "Manual finalization per R22 fallback — builder-backend Opus 4.7 ran full suite natively in agent transcript context. Justification: gate-runner re-spawn would duplicate 10-min pytest run with no additional signal (pre-commit hook already validated lint + ruff format on commit f6e7ad0a). Auditor re-runs independently as standard step. Two commits in T-6a: f6e7ad0a (main) + 29b97eba (SHA backfill)."
+}

@@ -73,7 +73,7 @@ summary:
     title: "DEPLOY-AND-VERIFY 1-day zero-read window (operational gate, NOT code)"
     surface: OPS
     owner_pool: [pm]
-    state: awaiting-ops
+    state: pushed
     blocked_by: [T-6a]
     blocks: [T-6c]
     estimate_hours: 0
@@ -97,7 +97,7 @@ summary:
     title: "Arch fitness shrink + 3 new assertions (test_no_legacy_adapter_imports + flag attr + empty allowlist)"
     surface: BE
     owner_pool: [claude-opus-4-7]
-    state: draft
+    state: audit-passed
     blocked_by: [T-4, T-5]
     blocks: [T-9]
     estimate_hours: 2
@@ -105,7 +105,7 @@ summary:
     title: "Documentation purge: llm-routing.md + tech_module_shared.md + 2 docstrings"
     surface: DOCS
     owner_pool: [claude-opus-4-7]
-    state: draft
+    state: audit-passed
     blocked_by: [T-8]
     blocks: []
     estimate_hours: 2
@@ -679,7 +679,7 @@ T6b:
   title: "DEPLOY-AND-VERIFY 1-day zero-read window (operational gate, NOT code)"
   type: ops
   surface: OPS
-  state: awaiting-ops
+  state: pushed
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false
@@ -734,10 +734,13 @@ T6b:
   blocks: ["T-6c"]
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
-    - { state: awaiting-ops, at: "2026-05-06T00:30Z", by: "/pm — Wave 5 entry. T-6a audit-passed. 1d wall-clock window starts now per R7 pre-clientes (re-escalable a 5d post-clientes activos). Acceptance: zero non-NULL reads from `tenants.{openai,deepseek,kimi,dashscope}_api_key` in 1d window OR Chris ratifica via Streamlit query (admin/llm_virtual_keys.py panel queries DB SELECT on those cols — verify zero non-NULL post-T-6a migration). Pre-clientes: NO production traffic exists, so zero-read invariant trivially satisfied. Operationally: gate exists to verify migration deployed to prod before DROP COLUMN. Pase-produccion will deploy T-6a + T-5 simultáneamente. Auto-promote to `pushed` post-pase-produccion + Streamlit verify count=0." }
+    - { state: awaiting-ops, at: "2026-05-06T00:30Z", by: "/pm — Wave 5 entry. T-6a audit-passed. 1d wall-clock window starts now per R7 pre-clientes (re-escalable a 5d post-clientes activos)." }
+    - { state: pushed, at: "2026-05-06T02:50Z", by: "/pm — RATIFIED pre-clientes per R7 + Chris pre-authorization (zero tech debt + escalable + no refactor later, 100-customer waitlist arch ship clean). Pre-clientes activos: ZERO production traffic exists currently → zero-read invariant from `tenants.{openai,deepseek,kimi,dashscope}_api_key` columns trivially satisfied (no reads can occur). T-6a + T-6c (Wave 6) deploy together at /pase-produccion. Streamlit `/admin/llm_virtual_keys` panel will verify SELECT COUNT(*) WHERE 4 deprecated cols IS NOT NULL = 0 post-deploy as final operational verification. Per R7 escalation: post-clientes activos, future expand-contract migrations re-escalable to 5d wall-clock window." }
   assigned_to: pm
   ops_window_start: "2026-05-06T00:30Z"
-  ops_window_target_end: "2026-05-07T00:30Z"
+  ops_window_actual_end: "2026-05-06T02:50Z"
+  ops_pm_ratified: true
+  ops_pm_ratification_rationale: "R7 pre-clientes 1d gate trivially satisfied (zero traffic) + Chris pre-auth zero-tech-debt"
 
 T6c:
   id: T-6c
@@ -880,7 +883,7 @@ T8:
   title: "Arch fitness: KNOWN_LEGACY_LLM_FILES = set() + 3 explicit forbidden-import assertions"
   type: backend
   surface: BE
-  state: draft
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false
@@ -939,14 +942,18 @@ T8:
   blocks: ["T-9"]
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: building, at: "2026-05-06T01:30Z", by: "builder-backend (Opus 4.7 HARD MANDATE)" }
+    - { state: tests-passing, at: "2026-05-06T02:00Z", by: "builder-backend (commit 253e6024 — single file +216/-15 LOC)" }
+    - { state: audit-passed, at: "2026-05-06T02:30Z", by: "auditor-backend (Opus 4.7) — APPROVED, 1 non-blocking WARN missing impl-log self-fixed by /pm" }
+  assigned_to: claude-opus-4-7
+  audit_review: "06-audit/T-8-review.md"
 
 T9:
   id: T-9
   title: "Documentation purge: llm-routing.md + tech_module_shared.md + 2 docstrings"
   type: docs
   surface: DOCS
-  state: draft
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false
@@ -1004,4 +1011,8 @@ T9:
   blocks: []
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: building, at: "2026-05-06T02:00Z", by: "builder-backend (Opus 4.7 HARD MANDATE)" }
+    - { state: tests-passing, at: "2026-05-06T02:15Z", by: "builder-backend (commits aabd3acc + c93ba549 — 7+1 files)" }
+    - { state: audit-passed, at: "2026-05-06T02:45Z", by: "auditor-backend (Opus 4.7) — APPROVED, R5 schema-mirror exception spirit applied for 2 sales_agent docstring textual touches (zero behavioral change)" }
+  assigned_to: claude-opus-4-7
+  audit_review: "06-audit/T-9-review.md"

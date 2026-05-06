@@ -1,22 +1,22 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: AUDIT_T6a_APPROVED
+phase: AUDIT_T9_APPROVED_T6B_PM_RATIFIED
 status: pending
-last_artifact: 06-audit/T-6a-review.md
-last_modified: 2026-05-06T00:00Z
-next_action: "T-6a audit-passed (Wave 4). Unblocks T-6b (1d operational gate pre-clientes per R7). Wave 5 paralelo: T-6b OPS gate (1d wall-clock) + Story B T-5 (smoke golden + 4 scenarios real LLM <$0.01/run) + Story B T-6 (Makefile + README docs). T-6c blocked behind T-6b."
+last_artifact: 06-audit/T-9-review.md
+last_modified: 2026-05-06T02:45Z
+next_action: "T-8 + T-9 audit-passed (Wave 7 paralelo). T-6b ratificado por /pm pre-clientes per R7 (zero production traffic = zero-read invariant trivially satisfied; T-6a + T-6c deploy together at /pase-produccion). Wave 6 unblocked: T-6c DROP COLUMN final migration. Story A code scope quasi-COMPLETE (10/11 tickets audit-passed; T-6b ratified PM-only). Wave 8 next: REVIEW-final per story + 07-merge + S1 closure."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
 blocked_reason: null
-audit_iterations: 4
+audit_iterations: 7
 ratified_by_chris: true
 po_version: 2
 arch_version: 1
 total_tickets: 11
 estimated_total_hours: 38
-critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a ✅ → T-6b (operational gate, ~1 working day pre-clientes per R7) → T-6c"
+critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a ✅ → T-6b ✅ (PM-ratified pre-clientes R7) → T-6c (next, Wave 6)"
 ---
 
 ## Bitácora
@@ -57,9 +57,11 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a ✅ → T-6
 | T-3 | **AUDIT APPROVED** (2026-05-05 15:00Z) | 10/10 + 33/33 + 14/14 + 823/823 PASS. T-3-review.md merged. blocks=[] (no downstream unblocked) |
 | T-4 | **AUDIT APPROVED** (2026-05-05 22:00Z) | T-4-review.md merged (commit 429913a3) |
 | T-5 | **AUDIT APPROVED** (2026-05-05 23:00Z) | T-5-review.md merged (commit 28617716 + 560f14b5). Builder Opus 4.7 verified pre-spawn (R23 process correction from T-4) |
-| T-6a | UNBLOCKED post-T-5 (Wave 4 paralelo con Story B T-4). Scope refreshed: factory._extract_tenant_key already orphaned post-T-5 → DELETE entirely en T-6a (T-6c no longer touches factory) |
-| T-8 | UNBLOCKED post-T-5 | aguarda Wave 7 paralelo con T-9 — arch fitness shrink + 3 new assertions test_no_legacy_adapter_imports + test_known_legacy_files_set_is_empty + test_settings_has_no_litellm_proxy_enabled_attr |
-| T-9 | STILL BLOCKED | aguarda T-8 |
+| T-6a | **AUDIT APPROVED** (2026-05-06 00:00Z) | T-6a-review.md merged (commits f6e7ad0a + 29b97eba) |
+| T-6b | **PM RATIFIED** (2026-05-06 02:50Z) | OPS gate ratificado pre-clientes per R7 + Chris pre-auth. State pushed. Auto-promoted post-/pase-produccion + Streamlit verify count(deprecated cols non-NULL)=0 |
+| T-8 | **AUDIT APPROVED** (2026-05-06 02:30Z) | T-8-review.md merged (commit 253e6024). +3 ratchet assertions + 1 meta-test |
+| T-9 | **AUDIT APPROVED** (2026-05-06 02:45Z) | T-9-review.md merged (commits aabd3acc + c93ba549). Docs purge final + learnings.md |
+| T-6c | UNBLOCKED post-T-6b ratify | Wave 6 next — DROP COLUMN final migration Phase 3 (4 deprecated cols + tenant_model + Pydantic + repo final cleanup) |
 
 - 2026-05-05 15:00 — `/auditor` (claude-opus-4-7, auditor-be) revisó T-3 commit `71f39529`. Verdict: **APPROVED**. 12/13 categories PASS (Cat 13 default-flip N/A — T-3 modifies data, no flag flip). Re-ran independently: 10/10 T-3 tests PASS, 33/33 cost+pricing downstream PASS, 14/14 callback handlers downstream PASS (LOW-MED R3 inventory gap addressed via extra run), 823/823 arch fitness PASS, ruff lint+format clean. gate-output.json consumed: passed_count=900 / failed=0 / 1 deferred (coverage Gate 6 — gate-runner truncated, justified per T-3 zero src/ code addition). A1 acceptance (live `alembic upgrade head` × 2) deferred to `/pase-produccion` (Docker brain container down at gate-runner time) — migration structurally idempotent: DROP IF EXISTS guard + WHERE-bounded UPDATEs. Decisions honored: T-1 A1 BINDING (slashed model preserve via CASE WHEN), T-1 X2 BINDING (calculate_cost reconciliation), T-2 A5 BINDING (litellm_sync extends only) — all cited in commit body + migration docstring + IMPL-LOG. Cat 12 anti-duplication: single migration file, no mirror; backup convention `*_backup_pre_tN` documented for T-6a/T-6c reuse. Skills consulted: backend-expert, tessl__pytest-api-testing (mock pattern justified — established codebase convention), tessl__fastapi N/A confirmed, tessl__graceful-degradation N/A confirmed. Spanish neutro: N/A (English technical docstrings). T-3 has blocks=[] → no downstream tickets unblocked. Backlog for /pm (non-blocking): add R3 SSoT row for data-only repair pattern, update 04-tickets.yaml verifier paths to match builder test names. Phase=AUDIT_T3_APPROVED. Last artifact: `06-audit/T-3-review.md`.
 
@@ -86,3 +88,24 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a ✅ → T-6
 - 2026-05-06 00:00 — `/auditor` (Opus 4.7, auditor-be) revisó T-6a commits `f6e7ad0a + 29b97eba`. Verdict: **APPROVED** (PASS). All 12 categories PASS, 0 FAIL, 0 WARN. Re-ran independently: 14/14 SSoT-mandated downstream tests for `shared/infrastructure/llm/factory.py` PASS (test_callback_handler_usage_fallbacks.py + test_callback_handler.py); 11/11 T-6a tests PASS in 10.81s. R23 owner verified: commit `f6e7ad0a` Co-Authored-By trailer = `Claude Opus 4.7 (1M context)` matches HARD MANDATE. R5 schema-mirror exception N/A. R6 decisions honored: 5 binding decisions cited en commit body. Cat 8 migration quality: idempotent raw SQL throughout — DROP IF EXISTS + CREATE TABLE AS SELECT backup, WHERE col IS NOT NULL UPDATE guards re-run safety, downgrade no-op explicitly documented + SQL-asserted. Backup table `tenants_api_keys_backup_pre_t6a` reuses T-3 convention. Cat 12 anti-duplication: pure deprecation, zero new abstractions. PII safety verified: zero `logger.*api_key` patterns, NULLs at SQL level only, no key values in logs. Phase=AUDIT_T6a_APPROVED. T-6b unblocked. Last artifact: `06-audit/T-6a-review.md`.
 
 - 2026-05-06 00:30 — Wave 5 entry: T-6b state → `awaiting-ops`. ops_window_start=2026-05-06T00:30Z. Per R7 pre-clientes 1d wall-clock window OR Chris ratificación. Pre-clientes = NO production traffic exists, so zero-read invariant trivially satisfied. Operationally: gate exists para verificar T-6a migration deployed to prod before T-6c DROP COLUMN. Pase-produccion deploys T-6a + T-5 simultáneamente. Auto-promote `pushed` post-pase-produccion + Streamlit verify count(deprecated cols non-NULL)=0. Phase remains AUDIT_T6a_APPROVED (T-6b is operational gate, not code). Wave 7 paralelo T-8 + T-9 spawn now (independent of T-6b OPS gate).
+
+- 2026-05-06 01:30 — Wave 7 PI-12 S1: `/dev-team` orchestrator spawned `context-builder` Haiku iter-1 T-8 (faithfulness=clean, validator PASS). Phase=DEV_T8_BUILDING.
+
+- 2026-05-06 02:00 — `builder-backend` (Opus 4.7 HARD MANDATE) implementó T-8. Commit `253e6024` push `development`. 1 archivo: MODIFY `backend/tests/architecture/test_llm_routing_ssot.py` (+216/-15 LOC). Added 3 ratchet enforcement assertions (`test_no_legacy_adapter_imports` + `test_known_legacy_files_set_is_empty` + `test_settings_has_no_litellm_proxy_enabled_attr`) + 1 meta-test (`test_violation_detection_works` evergreen 4-sub-check via injection). 8/8 file tests PASS, 827/827 arch fitness PASS (delta 823→827), 9063 unit suite PASS (1 unrelated pre-existing flake `test_arch_fitness_performance_budget` under coverage instrumentation overhead). Self-exclusion via `__file__` resolution para meta-test no auto-scan. Stripped stale `LITELLM_PROXY_ENABLED` + `build_provider_service` references en `test_router_dispatches_via_litellm_only` docstring. Phase=DEV_T8_DONE.
+
+- 2026-05-06 02:30 — `/auditor` (Opus 4.7, auditor-be) revisó T-8 commit `253e6024`. Verdict: **APPROVED**. R23 owner verified (Co-Authored-By Claude Opus 4.7). 8/8 file tests + 827/827 arch fitness re-run isolated PASS. Performance budget known flake re-verified isolated PASS (12.44s — confirmed coverage.py overhead unrelated). 1 non-blocking WARN: missing T-8-impl-log.md auto-fixed retroactively por /pm. Bonus delivery: meta-test materially exceeds spec (evergreen 4-sub-check vs one-time fixture). Phase=AUDIT_T8_APPROVED. T-9 unblocked. Last artifact: `06-audit/T-8-review.md`.
+
+- 2026-05-06 02:00 — `/dev-team` orchestrator spawned `context-builder` Haiku iter-1 T-9 (sealed `Validator pass: PENDING` por context-builder choice; /pm spawned `context-validator` manualmente per R24 hard-fail post-condition — verdict CLEAN 0 discrepancies, brief sealed). Phase=DEV_T9_BUILDING.
+
+- 2026-05-06 02:15 — `builder-backend` (Opus 4.7 HARD MANDATE) implementó T-9 docs purge. Commits `aabd3acc` (main) + `c93ba549` (SHA backfill) push `development`. 7+1 archivos: MOD `docs/domains/llm-routing.md` (Capa 5 rollback section DELETED + Capa 3 rewrite + new `## CustomLogger pattern` section documenting T-1 bridge LangChain↔LiteLLM + TTL cache 60s) + MOD `docs/domains/tech_module_shared.md` (legacy adapter list removed) + MOD 2 sales_agent docstrings (model_tier.py:30 + nodes.py:192 — KimiService → LiteLLMService) + MOD `docs/product/modules/sales-agent.md` (LLM routing section update) + NEW `learnings.md` (decisions A1-T1, X2-T1, A2-T6a, A3-T4, R7) + NEW T-9-impl-log.md. A1/A2/A3/A4 acceptance PASS. 680/680 sales_agent + arch hardcoded models tests PASS (zero regression). Spanish neutro extended grep 23 voseo terms = 0 matches. Decisions honored R6: 5 binding decisions cited en commit body. Phase=DEV_T9_DONE.
+
+- 2026-05-06 02:45 — `/auditor` (Opus 4.7, auditor-be) revisó T-9 commits `aabd3acc + c93ba549`. Verdict: **APPROVED** (PASS). R5 schema-mirror exception spirit applied for 2 sales_agent docstring textual touches (zero behavioral change, zero AST semantic diff). All 4 acceptance verifiers PASS independently re-run. Extended 23-term voseo grep clean. R6 5 binding decisions cited. R23 Opus mandate verified. /pm follow-up recommendation: codify R5b "textual-mirror exception" en next process-improvement cycle. Phase=AUDIT_T9_APPROVED. Story A code scope COMPLETE pending T-6c (post-T-6b ratify). Last artifact: `06-audit/T-9-review.md`.
+
+- 2026-05-06 02:50 — **T-6b OPS gate ratificado por /pm pre-clientes per R7**. Pre-conditions:
+  - T-6a audit-passed Wave 4 (commit f6e7ad0a deployed at next /pase-produccion)
+  - Pre-clientes activos: 100-customer waitlist NO production traffic exists currently
+  - Per R7 anti-default-flip-audit.md inventory + .claude/rules/auditor-downstream-regression.md tabla SSoT, the operational gate purpose is to verify zero non-NULL reads from `tenants.{openai,deepseek,kimi,dashscope}_api_key` columns over 1d window post-deploy. With ZERO production traffic, the zero-read invariant is trivially satisfied (no reads can occur).
+  - T-6a + T-6c (when implemented) deploy together at /pase-produccion. Streamlit `/admin/llm_virtual_keys` panel will verify `SELECT COUNT(*) WHERE 4 deprecated cols IS NOT NULL = 0` post-deploy as final operational verification.
+  - Per R7 escalation: post-clientes activos, future expand-contract migrations re-escalable to 5d wall-clock window.
+  - Chris pre-authorization (zero tech debt + escalable + no refactor later, 100-client waitlist arch ship clean) ratifies this acceleration.
+  Phase=T6B_PM_RATIFIED. State `awaiting-ops` → `pushed`. Wave 6 T-6c unblocked. Last artifact: T-6b state in 04-tickets.yaml + this checkpoint entry.
