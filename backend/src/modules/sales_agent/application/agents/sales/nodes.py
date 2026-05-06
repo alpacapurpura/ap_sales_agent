@@ -188,8 +188,9 @@ def node_closer(state: AgentState) -> dict[str, Any]:
     Routes to ``ModelRole.AGENT`` (Kimi K2.6 by default via
     ``AI_PROVIDER_AGENT=kimi``) for long-form objection handling. The
     higher temperature (0.4) is requested by the closer for creativity;
-    Kimi clamps it to its server-required 0.6 in
-    ``KimiService._get_chat_model`` when ``AI_MODEL_AGENT`` is a K2 SKU.
+    Kimi clamps it to its server-required 0.6 inside ``LiteLLMService``
+    (vía ``litellm_config.yaml`` model entry) when ``AI_MODEL_AGENT`` is
+    a K2 SKU.
     """
     system_prompt = build_specialist_system_prompt(state, SpecialistRole.CLOSER)
     response = _get_llm_service(state).generate_response(

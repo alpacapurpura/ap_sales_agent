@@ -2,7 +2,7 @@
 
 > **Owner:** PM + nicolify-architect. Origen: PR-3 PI-2 S2 audit failure 2026-04-30 — codebase tenía dos sistemas paralelos (ModelTier copilot vs ModelRole global) + capa duplicada introducida por PR-3.
 >
-> **Estado actual (2026-04-30):** EN MIGRACIÓN — convergencia ModelTier→ModelRole programada en sprint S3-copilot-llm-stack-convergence. Roadmap final: hybrid 3-capa (env secrets + DB registry + feature flags + LiteLLM Proxy) en S3+S4+S5.
+> **Estado actual (2026-05-06):** **CANONICALIZADO**. LiteLLM Proxy es el camino único de dispatch LLM en runtime (PI-12 S1 sales-agent-litellm-canonicalization, T-4/T-5 merged). Per-provider adapters legacy (`openai.py`, `kimi.py`, `deepseek.py`, `qwen.py`, `gemini.py`, `_openai_compat.py`) eliminados físicamente. El feature flag que históricamente toggleaba proxy vs adapters fue eliminado de `Settings` (no existe fallback ni toggle). Cost runtime se captura vía `CustomLogger` pattern (ver sección dedicada abajo).
 
 ## Regla de oro
 
@@ -18,9 +18,9 @@ provider = settings.get_provider_for_role(ModelRole.NANO)  # AIProvider enum
 
 NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PROVIDER`, `model_config.py` o `provider_factory.py` en `modules/copilot/infrastructure/llm/` — **es deuda técnica deprecada en migración**. NO consumir, NO extender, reportar a `/pm`.
 
-## Capa 5 — LiteLLM Proxy motor multi-provider (S3 PR-2 shipped 2026-04-30)
+## Capa 5 — LiteLLM Proxy = canonical único (PI-12 S1 shipped 2026-05-06)
 
-**Docker svc `visionarias_litellm` v1.83.10-stable** expone `LITELLM_BASE_URL=http://visionarias_litellm:4000/v1` (OpenAI-compat). Routing dispatch único via `LiteLLMService` adapter → reemplaza per-provider adapters interno cuando `LITELLM_PROXY_ENABLED=True` (default).
+**Docker svc `visionarias_litellm` v1.83.10-stable** expone `LITELLM_BASE_URL=http://visionarias_litellm:4000/v1` (OpenAI-compat). Es el único motor de dispatch LLM en runtime. `LiteLLMService` (`backend/src/shared/infrastructure/llm/providers/litellm.py`) es el único adapter — no hay fallback, no hay toggle, no hay reversión.
 
 | Aspecto | Detalle |
 |---|---|
@@ -32,12 +32,62 @@ NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PRO
 | `drop_params` | True (auto-filter unsupported kwargs per provider) |
 | `request_timeout` | 30s |
 | `store_model_in_db` | True (forward-compat S4 admin UI hot-swap) |
-| `disable_spend_logs` | True (PII guard — Nicolify usa `model_pricing_snapshot` SSoT inmutable) |
-| Toggle rollback | `LITELLM_PROXY_ENABLED=False` → fallback per-provider legacy adapters (deprecated, eliminación física S4) |
+| `disable_spend_logs` | True (PII guard — Nicolify usa `model_pricing_snapshot` SSoT inmutable como audit ledger histórico) |
 
-**Recorder D-7:** `copilot_llm_call.model` strip prefix `<provider>/<model>` → bare model name. Preserve queries Streamlit existentes (`/costo-copilot`, `/marketing-kb`).
+**Helpers retenidos** (consumidos por `LiteLLMService`, NO son adapters paralelos):
 
-**Admin Streamlit:** `/admin/llm-virtual-keys` read-only S3 (lista keys via `/key/info`). CRUD UI completo S4 PR-1.
+- `providers/_kwargs.py` — normalización de kwargs común a todos los providers
+- `providers/_chat_model_resolver.py` — selección del wrapper `ChatModel` LangChain compatible
+- `providers/_response_validation.py` — validación de payload de respuesta multi-provider
+
+**Recorder:** `copilot_llm_call.model` y `sales_agent_llm_call.model` preservan el formato slashed `<provider>/<model>` (Decision A1 BINDING T-1). Esto permite reconciliación posterior contra `model_pricing_snapshot` y el registry de LiteLLM.
+
+**Admin Streamlit:** `/admin/llm-virtual-keys` lista keys vía `/key/info` (read-only). CRUD UI shipped S4 PR-1.
+
+**Tenant API keys deprecadas** (PI-12 S1 T-6a, commit `f6e7ad0a`): las columnas `tenants.{openai,deepseek,kimi,dashscope}_api_key` quedaron deprecadas y nullificadas. Las API keys de provider viven en `litellm_config.yaml` (env vars del proxy). DROP COLUMN final ocurre en T-6c post operational gate T-6b. `tenants.gemini_api_key` se preserva (uso paralelo en Vertex AI workflows fuera del proxy LLM-text).
+
+## CustomLogger pattern (cost recorder)
+
+LiteLLM calcula nativamente el costo USD de cada completion y lo expone en `kwargs["response_cost"]` durante sus callbacks. Nicolify **no** vuelve a calcular el costo en runtime — lo captura mediante un `CustomLogger` proceso-wide y lo persiste vía el callback handler de LangChain. Este patrón puente fue introducido en PI-12 S1 T-1 (commit `5856be4d`).
+
+### Componentes
+
+| Componente | Path | Rol |
+|---|---|---|
+| `CostRecorderCustomLogger` | `backend/src/shared/agent_observability/recording/cost_recorder.py` | Hook de LiteLLM. En cada `log_success_event` extrae `kwargs["response_cost"]` y lo guarda en cache TTL keyed by `litellm_call_id` |
+| `BaseAgentCallbackHandler.on_llm_end` | `backend/src/shared/agent_observability/recording/base_callback_handler.py` | Hook de LangChain. Lee `litellm_call_id` desde `response.response_metadata`, llama `pop_cost(call_id)` y persiste en `copilot_llm_call.cost_usd` o `sales_agent_llm_call.cost_usd` |
+| Bootstrap | `main.py` (FastAPI) + `workers/settings.py` (ARQ) | Registra `litellm.callbacks = [CostRecorderCustomLogger()]` una vez al arranque del proceso |
+
+### Por qué es una clase NUEVA (no mirror)
+
+Per anti-duplication §0 evaluado en T-1 + ratificado por architect 03-arch-be.md §10:
+
+- LiteLLM `CustomLogger` y LangChain `BaseCallbackHandler` viven en superficies conceptualmente distintas (proxy-side vs runtime-side) y se invocan en lifecycle points diferentes.
+- Coexisten por diseño: el handler LangChain captura el span LangChain (provider/model/tokens), el `CustomLogger` captura `kwargs["response_cost"]`. Se enlazan vía `litellm_call_id`.
+- No es duplicación de `BaseAgentCallbackHandler` — es una abstracción nueva en una frontera nueva.
+
+### TTL cache 60s + best-effort
+
+```text
+litellm_call_id  →  (cost_usd: Decimal | None, expires_at_monotonic)
+```
+
+Invariantes:
+
+- **Single-use**: `pop_cost(call_id)` drena la entrada. Llamadas repetidas devuelven `None`.
+- **TTL purge**: entradas con TTL excedido (60s default) se eliminan lazy en cada operación de cache. Cada purge emite `structlog.warning("cost_recorder.orphan_entry_purged", call_id=..., cost_usd=...)` para observabilidad — orphan típicamente indica consumer LangChain lento o callback LiteLLM disparado sin hook LangChain emparejado.
+- **Best-effort**: cada mutación va dentro de `try/except` con `structlog.warning`. El callback nunca bloquea ni rompe el turn.
+- **Tenant-agnostic**: la cache es módulo-global (process-wide). El tenant context vive en `BaseAgentCallbackHandler` — el `CustomLogger` se registra una vez al boot sin setup per-request.
+- **NFR p95 < 50ms**: micro-benchmark en `backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_p95_under_50ms` lo verifica.
+
+### Modelo de costo runtime vs reconciliación
+
+| Fuente | Uso | Tabla |
+|---|---|---|
+| `kwargs["response_cost"]` (LiteLLM-native) | Runtime — único origen del valor en `cost_usd` | `copilot_llm_call`, `sales_agent_llm_call` |
+| `model_pricing_snapshot` | Reconciliación / billing audit ledger / análisis histórico | `model_pricing_snapshot` (append-only) |
+
+`shared/agent_observability/cost/calculator.py` quedó como utility de reconciliación post-hoc — **ya no se invoca en runtime path** (Decision X2 BINDING T-1). `make sync-pricing` (`backend/src/shared/agent_observability/cost/litellm_sync.py`, T-2 commit `8b6d798f`) sincroniza `model_pricing_snapshot` desde `litellm_config.yaml` + `litellm.model_cost` cada noche (ARQ cron 03:00 UTC) y emite drift warnings si el upstream diverge >0.0001 USD/token.
 
 ## Arquitectura — capas
 
@@ -65,7 +115,7 @@ NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PRO
 | `AI_PROVIDER` | Provider global default | `openai` |
 | `AI_PROVIDER_<ROLE>` | Override per-role provider | `AI_PROVIDER_REASONING=deepseek` |
 | `AI_MODEL_<ROLE>` | Override per-role model name | `AI_MODEL_NANO=gpt-4o-mini` |
-| `<PROVIDER>_API_KEY` | Provider API keys | `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `KIMI_API_KEY` |
+| `<PROVIDER>_API_KEY` | Provider API keys (consumidas por LiteLLM proxy vía `litellm_config.yaml` env-var refs) | `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `KIMI_API_KEY` |
 
 **Funciones**:
 - `settings.get_model(role: ModelRole) -> str` — modelo activo para role
@@ -75,24 +125,25 @@ NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PRO
 
 ### Capa 3 — Provider routing (cómo hablamos con el provider)
 
-**`src/shared/infrastructure/llm/router.py`** + **`src/shared/infrastructure/llm/providers/`**:
+**`src/shared/infrastructure/llm/router.py`** + **`src/shared/infrastructure/llm/providers/litellm.py`** + **`litellm_config.yaml`**:
 
 | Archivo | Responsabilidad |
 |---|---|
-| `router.py` | Dispatch por provider — toma `(role, messages)`, resuelve provider via `Settings.get_provider_for_role`, delega al adapter |
-| `providers/openai.py` | OpenAI native API (gpt-4o, gpt-5.x) |
-| `providers/kimi.py` | Moonshot Kimi (kimi-k2.6, kimi-latest) |
-| `providers/_openai_compat.py` | DeepSeek + cualquier provider OpenAI-compatible (base_url override) |
+| `router.py` | Dispatch único — toma `(role, messages)`, resuelve provider+model via `Settings.get_provider_for_role` + `Settings.get_model`, delega a `LiteLLMService` |
+| `providers/litellm.py` | `LiteLLMService` — único adapter runtime. Llama al proxy LiteLLM vía interfaz OpenAI-compat |
+| `providers/_kwargs.py` | Normaliza kwargs (temperature/max_tokens/extra_body) cross-provider |
+| `providers/_chat_model_resolver.py` | Selecciona el wrapper `ChatModel` LangChain compatible para el spec activo |
+| `providers/_response_validation.py` | Valida shape de la respuesta del proxy multi-provider |
+| `litellm_config.yaml` | Registry declarativo de modelos + fallback chains + env-var refs para API keys |
 
 **Para agregar provider nuevo** (ej: Anthropic Claude):
-1. Agregar a `AIProvider` enum (`src/core/enums.py`)
-2. Crear `src/shared/infrastructure/llm/providers/anthropic.py` siguiendo el shape de `openai.py`
-3. Wire en `router.py` switch
-4. Agregar env var `ANTHROPIC_API_KEY`
-5. Tests provider integration + fallback
-6. Documentar acá
+1. Agregar entrada `model_list` en `litellm_config.yaml` con `litellm_params.model: anthropic/claude-X` + `api_key: os.environ/ANTHROPIC_API_KEY`
+2. Si el provider expone tier nuevo, agregar `AIProvider` enum value (`src/core/enums.py`) + sumar a `Settings.get_provider_for_role`
+3. Tests integration en `backend/tests/shared/infrastructure/llm/`
+4. `make sync-pricing` regenera `model_pricing_snapshot` a partir del yaml + `litellm.model_cost`
+5. Documentar acá
 
-**NO** crear adapter en `modules/<x>/infrastructure/llm/` — todos los providers viven en `shared/`.
+**NO** crear adapter `providers/anthropic.py` ni `modules/<x>/infrastructure/llm/` — el dispatch corre 100% por LiteLLM proxy. Adapter nuevo per-provider = anti-pattern (ver "Anti-patterns documentados").
 
 ### Capa 4 — Pricing snapshot (billing histórico)
 
@@ -130,7 +181,7 @@ NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PRO
 3. **Editar `.env`** prod: `AI_MODEL_<ROLE>=<new_model>` + `AI_PROVIDER_<ROLE>=<provider>`.
 4. **Redeploy** (hoy obligatorio — post S4 será hot-swap admin UI sin deploy).
 5. **Validar**: query `SELECT DISTINCT model_id FROM copilot_llm_call WHERE created_at > NOW() - INTERVAL '5 minutes'` — confirmar nuevo modelo en uso.
-6. **Rollback** si SLO breach: revert env var + redeploy.
+6. **Reversión** si SLO breach: revertir env var + redeploy.
 
 ## Cómo cambiar modelo POST S4 (estado deseado)
 
@@ -138,7 +189,7 @@ NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PRO
 2. **Promote**: admin UI botón "Promote to active" → UPDATE `llm_role_binding SET is_active=TRUE WHERE role=X AND model=Y`.
 3. **Cache invalidation**: pub/sub Redis emite invalidate → backend pods refrescan en <60s.
 4. **Validación**: dashboard observability muestra ratio (old_model, new_model) en queries siguientes.
-5. **Rollback**: admin UI botón "Rollback" → UPDATE active al binding previo. <30s MTTR.
+5. **Reversión**: admin UI botón "Revertir" → UPDATE active al binding previo. <30s MTTR.
 6. **Per-tenant override**: GrowthBook flag `llm_model_override_<role>` con bucketing por `tenant_id` para A/B + premium tiers.
 
 ## Reglas no-negociables (escala 1000+ tenants)

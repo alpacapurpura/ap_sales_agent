@@ -36,7 +36,7 @@ AI SDR autónomo. Conversa con leads en canales conectados, pre-califica, maneja
 - Envío link pago (Mercado Pago / Stripe / etc)
 - Follow-up engine
 - Specialist agents (closer, follow-up, eval-loop)
-- Semantic router → tier pricing (Kimi K2.5 / DeepSeek V3 / GPT-4o por complejidad)
+- Semantic router → tier pricing (Kimi K2.6 / DeepSeek-Reasoner / GPT-4o por complejidad — dispatch único vía LiteLLM proxy, ver § "LLM routing")
 - Trazabilidad turn-a-turn
 - Eval loop con goldens
 - Per-tenant prompt caching (cache hit rate optimizado)
@@ -75,6 +75,14 @@ AI SDR autónomo. Conversa con leads en canales conectados, pre-califica, maneja
 - Ver últimas conversaciones (parcial)
 - Ajustar voz vía Brand Studio communication-style (sólido)
 - **Gap:** conversación natural con copilot sobre cómo ajustar comportamiento agente
+
+## LLM routing
+- **Dispatch único vía LiteLLM Proxy** (canonicalizado PI-12 S1, 2026-05-06). Ver `docs/domains/llm-routing.md` para SSoT técnica completa.
+- Per-provider adapters legacy (`OpenAIService`, `KimiService`, `DeepSeekService`, `QwenService`, `GeminiService`, `_openai_compat`) eliminados físicamente (T-4 commit `429913a3`).
+- El feature flag que toggleaba proxy vs adapters fue eliminado de `Settings` — no existe fallback ni reversión a per-provider direct (T-5 commits `28617716` + `560f14b5`).
+- API keys de provider viven en `litellm_config.yaml` (env vars del proxy). Las columnas tenant `{openai,deepseek,kimi,dashscope}_api_key` están deprecadas Phase 1 (T-6a commits `f6e7ad0a` + `29b97eba`); DROP COLUMN final en T-6c post operational gate T-6b. `tenants.gemini_api_key` se preserva (uso paralelo Vertex AI).
+- **Cost tracking runtime** vía `CostRecorderCustomLogger` (T-1 commit `5856be4d`) — captura `kwargs["response_cost"]` LiteLLM-native en cache TTL 60s, persiste vía LangChain callback handler en `sales_agent_llm_call.cost_usd`. `model_pricing_snapshot` queda como audit ledger histórico (no se invoca en runtime).
+- Specialist routing por `ModelRole` semántico (NANO/FAST/REASONING/AGENT) declarado en `backend/src/modules/sales_agent/domain/model_tier.py::LLM_ROLE_BY_SITE`. Concrete provider+model resuelven por env vars `AI_PROVIDER_<ROLE>` + `AI_MODEL_<ROLE>`.
 
 ## Estado calidad funcional
 | Capacidad | Estado | Notas |

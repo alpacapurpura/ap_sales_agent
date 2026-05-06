@@ -27,7 +27,8 @@ S4 specialist rationale (matches ``phases/S4-chatmodelspec-tier.md``):
 * **closer → AGENT** — cierres largos con manejo de objeciones.
   ``AI_PROVIDER_AGENT=kimi`` rutea a Kimi K2.6 con auto-cache 75-83%
   savings + `extra_body.thinking={"type": "disabled"}` forzado por
-  ``KimiService`` para mantener compat de tool-call round-trip.
+  ``LiteLLMService`` (vía ``litellm_config.yaml`` model entry) para
+  mantener compat de tool-call round-trip.
 
 S6 broadened sites:
 
