@@ -1,23 +1,23 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-06T21:20:26+00:00`
+> Generated at: `2026-05-06T22:12:10+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### 💡 Ideas (3)
+### 💡 Ideas (4)
 - calendario-comercial `[idea]`
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
+- sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (13 total · 0 cap-eligible / cap 3)
+### 🔬 Refining (12 total · 0 cap-eligible / cap 3)
 - **pi-10-growth-studio-ux-homologation**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
 - **pi-9-growth-studio-architecture**
 - **eval-foundation-simulator-homologation** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
-- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
@@ -26,8 +26,8 @@
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 
-### ✅ Refined — listo para arquitectos (0 / cap 5)
-- _(none)_
+### ✅ Refined — listo para arquitectos (1 / cap 5)
+- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation`
 
 ### 📦 Ready for development (1 / cap 5)
 - **maintenance-skill-sales-agent-audit** — outcome `pi-12-sales-agent-eval-foundation`
@@ -54,23 +54,25 @@
 
 ```mermaid
 kanban
-  💡 Ideas (3)
+  💡 Ideas (4)
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
-  🔬 Refining (13 / cap 3)
+    sales-agent-dialect-configurat[sales-agent-dialect-configuration]
+  🔬 Refining (12 / cap 3)
     pi-10-growth-studio-ux-homolog[pi-10-growth-studio-ux-homologation]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
     pi-9-growth-studio-architectur[pi-9-growth-studio-architecture]
     eval-foundation-simulator-homo[eval-foundation-simulator-homologation]
-    eval-foundation-tenant-seed-da[eval-foundation-tenant-seed-data]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
-    overflow-🔬 Refining[+3 more]
-  ✅ Refined (0 / cap 5)
+    sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
+    overflow-🔬 Refining[+2 more]
+  ✅ Refined (1 / cap 5)
+    eval-foundation-tenant-seed-da[eval-foundation-tenant-seed-data]
   📦 Ready (1 / cap 5)
     maintenance-skill-sales-agent-[maintenance-skill-sales-agent-audit]
   🔨 Developing (0 / cap 3)

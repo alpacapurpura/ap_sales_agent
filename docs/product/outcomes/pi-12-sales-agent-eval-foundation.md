@@ -28,9 +28,12 @@ story_ids:
   - sales-agent-litellm-canonicalization
 
   # foundation new (NEW — sub-épica eval-foundation-*):
-  - maintenance-skill-sales-agent-audit          # 1d, prerequisite absoluto
-  - eval-foundation-tenant-seed-data             # 3-4d, story A — pre-req de todo
+  - maintenance-skill-sales-agent-audit          # 1d, prerequisite absoluto (state=ready 2026-05-06)
+  - eval-foundation-tenant-seed-data             # 5-7d (5 tenants ratified Chris 2026-05-06), story A — pre-req de todo (state=refined 2026-05-06)
   - eval-foundation-simulator-homologation       # 2-3d, story B — wire client_simulator/
+
+  # spawned 2026-05-06 from tenant-seed-data Q7 (placeholder, state=idea):
+  - sales-agent-dialect-configuration            # TBD, feature UX tenant config dialecto BCP-47 + runtime injection
 
   # foundation reframe (story IDs originales preservados — slug intact, narrative reframed):
   - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators
@@ -246,3 +249,5 @@ Original PI.md preservado en `docs/archive/2026/legacy-pis/PI-12-sales-agent-eva
 - 2026-05-06 — Story `sales-agent-litellm-canonicalization` shipped (state=done)
 - 2026-05-06 — Migración a paradigma v4: outcome creado en `docs/product/outcomes/`, 7 stories pendientes movidas a `docs/product/stories/{id}/` flat con `state=refining`, 2 stories done archivadas, legacy folder eliminado
 - 2026-05-06 17:11Z — **Reframe synthetic-first** (Chris ratificó 3 archetypes A1/A2/A3). Outcome narrative re-escrito post-research mayo 2026. 3 stories nuevas: maintenance-skill-sales-agent-audit + eval-foundation-tenant-seed-data + eval-foundation-simulator-homologation. 7 stories existentes preservadas con slug original — reframe narrativo en outcome.
+- 2026-05-06 19:55Z — Story `maintenance-skill-sales-agent-audit` cerró ready package (`/po` v2 ratified → `/architect` consolidado). State refining→refined→ready en una sesión.
+- 2026-05-06 20:55Z — Story `eval-foundation-tenant-seed-data` cerró spec ratification (`/po` v2). **Scope expandido por Chris 3→5 archetypes** (A1 Coach PE + A2 Medicina estética MX + A3 Clínica dental CO + A4 Growth Marketing video+RRSS AR + A5 Agencia Automatización IA neutro 419). State refining→refined. Handoff a `/architect` pendiente. Spawned `sales-agent-dialect-configuration` (placeholder state=idea) durante Q7 — feature UX tenant config dialecto BCP-47, refinement futuro.
