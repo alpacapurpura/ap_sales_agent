@@ -1,11 +1,11 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-06T15:17:26+00:00`
+> Generated at: `2026-05-06T15:18:34+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## ⚠️ Warnings
-- refining cap exceeded (4 > 3, excl. legacy)
+- ready cap exceeded (7 > 5, excl. legacy+outcomes)
 
 ## 📊 Roadmap view (filtered + curated)
 
@@ -14,24 +14,23 @@
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
 
-### 🔬 Refining (11 / cap 3)
+### 🔬 Refining (4 / cap 3)
 - **pi-10-growth-studio-ux-homologation**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
 - **pi-9-growth-studio-architecture**
-- **sales-agent-eval-cost-budget-cap** — outcome `active` [PM_DRAFT]
-- **sales-agent-eval-pass-k-tracking** — outcome `active` [PM_DRAFT]
-- **sales-agent-goldens-3-tenants-dataset** — outcome `active` [PM_DRAFT]
-- **sales-agent-personas-instrumented-runtime** — outcome `active` [PM_DRAFT]
-- **sales-agent-voice-fidelity-ci-gate** — outcome `active` [PM_DRAFT]
-- **sales-agent-voice-fidelity-grader-runtime** — outcome `active` [PM_DRAFT]
-- **sales-agent-adversarial-jailbreak-suite** — outcome `active` [PM_DRAFT]
 
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
 
-### 📦 Ready for development (0 / cap 5)
-- _(none)_
+### 📦 Ready for development (7 / cap 5)
+- **sales-agent-adversarial-jailbreak-suite**
+- **sales-agent-eval-cost-budget-cap**
+- **sales-agent-eval-pass-k-tracking**
+- **sales-agent-goldens-3-tenants-dataset**
+- **sales-agent-personas-instrumented-runtime**
+- **sales-agent-voice-fidelity-ci-gate**
+- **sales-agent-voice-fidelity-grader-runtime**
 
 ### 🔨 Developing (0 / cap 3)
 - _(none)_
@@ -59,20 +58,20 @@ kanban
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
-  🔬 Refining (11 / cap 3)
+  🔬 Refining (4 / cap 3)
     pi-10-growth-studio-ux-homolog[pi-10-growth-studio-ux-homologation]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
     pi-9-growth-studio-architectur[pi-9-growth-studio-architecture]
+  ✅ Refined (0 / cap 5)
+  📦 Ready (7 / cap 5)
+    sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
     sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-    overflow-🔬 Refining[+1 more]
-  ✅ Refined (0 / cap 5)
-  📦 Ready (0 / cap 5)
   🔨 Developing (0 / cap 3)
   🧪 Developed (0 / cap 2)
   🔍 Reviewing (0 / cap 2)

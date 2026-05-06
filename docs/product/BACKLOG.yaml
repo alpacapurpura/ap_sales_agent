@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-06T15:17:26+00:00
+# Generated at: 2026-05-06T15:18:34+00:00
 
-generated_at: '2026-05-06T15:17:26+00:00'
+generated_at: '2026-05-06T15:18:34+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -16,7 +16,7 @@ caps:
   refined_stale_days: 30
   done_rolling_days: 90
 warnings:
-- refining cap exceeded (4 > 3, excl. legacy)
+- ready cap exceeded (7 > 5, excl. legacy+outcomes)
 stale_ideas: []
 stale_refining: []
 stale_refined: []
@@ -172,110 +172,103 @@ buckets:
       - Agregar canal ficticio 'test-channel-x' requiere ≤3 archivos nuevos (registry + dashboard + schema) + ZERO modificación
         a StageDispatcher/ChannelDispatcher
       - Arch fitness test_studio_structure_parity verde para growth-studio en modo factory
-  - id: sales-agent-eval-cost-budget-cap
-    kind: story
-    state: refining
-    title: sales-agent-eval-cost-budget-cap
-    tags:
-    - legacy:active
-    last_touched: 2026-05-04 20:00:00+00:00
-    extra:
-      phase: PM_DRAFT
-      next_action: Esperar Story 1 (runner) + Story 4 (deepseek-fix) audit-passed → invocar /po acá
-      blocked_by: 'Dependencias: Story 1 runner + Story 4 cost recorder confiable'
-      outcome: active
-      audit_iterations: 0
-      legacy_layout: true
-  - id: sales-agent-eval-pass-k-tracking
-    kind: story
-    state: refining
-    title: sales-agent-eval-pass-k-tracking
-    tags:
-    - legacy:active
-    last_touched: 2026-05-04 20:00:00+00:00
-    extra:
-      phase: PM_DRAFT
-      next_action: Esperar Story 1 (eval-runner-foundation) audit-passed → invocar /po acá
-      blocked_by: 'Dependencia: necesita Story 1 runner funcionando'
-      outcome: active
-      audit_iterations: 0
-      legacy_layout: true
-  - id: sales-agent-goldens-3-tenants-dataset
-    kind: story
-    state: refining
-    title: sales-agent-goldens-3-tenants-dataset
-    tags:
-    - legacy:active
-    last_touched: 2026-05-04 20:00:00+00:00
-    extra:
-      phase: PM_DRAFT
-      next_action: Esperar Story 1 (runner) audit-passed (estructura YAML compatible) + Chris ratifica 3 tenants → invocar
-        /po acá
-      blocked_by: Dependencia indirecta Story 1 (formato YAML golden definido) + decisión Chris (3 tenants representativos)
-      outcome: active
-      audit_iterations: 0
-      legacy_layout: true
-  - id: sales-agent-personas-instrumented-runtime
-    kind: story
-    state: refining
-    title: sales-agent-personas-instrumented-runtime
-    tags:
-    - legacy:active
-    last_touched: 2026-05-04 20:00:00+00:00
-    extra:
-      phase: PM_DRAFT
-      next_action: Esperar Story 1 (runner) + Story 5 (goldens) audit-passed → invocar /po acá
-      blocked_by: 'Dependencia: Story 1 runner + Story 5 goldens (necesita inputs reales para personas reaccionar)'
-      outcome: active
-      audit_iterations: 0
-      legacy_layout: true
-  - id: sales-agent-voice-fidelity-ci-gate
-    kind: story
-    state: refining
-    title: sales-agent-voice-fidelity-ci-gate
-    tags:
-    - legacy:active
-    last_touched: 2026-05-04 20:00:00+00:00
-    extra:
-      phase: PM_DRAFT
-      next_action: Esperar Story 7 (grader-runtime) audit-passed → invocar /po acá. Coordinar con Chris la decisión de rollout
-        warning→block (1 semana operacional).
-      blocked_by: 'Dependencias: Stories 1, 2, 3, 5, 6, 7 — todo el stack debe estar arriba'
-      outcome: active
-      audit_iterations: 0
-      legacy_layout: true
-  - id: sales-agent-voice-fidelity-grader-runtime
-    kind: story
-    state: refining
-    title: sales-agent-voice-fidelity-grader-runtime
-    tags:
-    - legacy:active
-    last_touched: 2026-05-04 20:00:00+00:00
-    extra:
-      phase: PM_DRAFT
-      next_action: Esperar Stories 5 (goldens) + 6 (personas) audit-passed → invocar /po acá. Chris debe agendar ~2h para
-        etiquetar los 10 outputs de calibración.
-      blocked_by: 'Dependencias: Story 5 goldens + Story 6 personas (necesita data para calibrar grader)'
-      outcome: active
-      audit_iterations: 0
-      legacy_layout: true
+  refined: []
+  ready:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
-    state: refining
+    state: ready
     title: sales-agent-adversarial-jailbreak-suite
-    tags:
-    - legacy:active
+    tags: []
     last_touched: 2026-05-04 20:00:00+00:00
     extra:
+      outcome: null
       phase: PM_DRAFT
       next_action: Esperar Stories 5+7+8 audit-passed → invocar /po acá. Última story del PI-12. Cuando audit-passed → /pm
         aplica 07-merge.md y cierra PI.
-      blocked_by: 'Dependencias: Stories 5 (goldens base) + 7 (grader) + 8 (CI gate) — reutiliza infra completa'
-      outcome: active
+      blocked_by: null
+      priority_override: null
       audit_iterations: 0
-      legacy_layout: true
-  refined: []
-  ready: []
+  - id: sales-agent-eval-cost-budget-cap
+    kind: story
+    state: ready
+    title: sales-agent-eval-cost-budget-cap
+    tags: []
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      outcome: null
+      phase: PM_DRAFT
+      next_action: Esperar Story 1 (runner) + Story 4 (deepseek-fix) audit-passed → invocar /po acá
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: sales-agent-eval-pass-k-tracking
+    kind: story
+    state: ready
+    title: sales-agent-eval-pass-k-tracking
+    tags: []
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      outcome: null
+      phase: PM_DRAFT
+      next_action: Esperar Story 1 (eval-runner-foundation) audit-passed → invocar /po acá
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: sales-agent-goldens-3-tenants-dataset
+    kind: story
+    state: ready
+    title: sales-agent-goldens-3-tenants-dataset
+    tags: []
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      outcome: null
+      phase: PM_DRAFT
+      next_action: Esperar Story 1 (runner) audit-passed (estructura YAML compatible) + Chris ratifica 3 tenants → invocar
+        /po acá
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: sales-agent-personas-instrumented-runtime
+    kind: story
+    state: ready
+    title: sales-agent-personas-instrumented-runtime
+    tags: []
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      outcome: null
+      phase: PM_DRAFT
+      next_action: Esperar Story 1 (runner) + Story 5 (goldens) audit-passed → invocar /po acá
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: sales-agent-voice-fidelity-ci-gate
+    kind: story
+    state: ready
+    title: sales-agent-voice-fidelity-ci-gate
+    tags: []
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      outcome: null
+      phase: PM_DRAFT
+      next_action: Esperar Story 7 (grader-runtime) audit-passed → invocar /po acá. Coordinar con Chris la decisión de rollout
+        warning→block (1 semana operacional).
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: sales-agent-voice-fidelity-grader-runtime
+    kind: story
+    state: ready
+    title: sales-agent-voice-fidelity-grader-runtime
+    tags: []
+    last_touched: 2026-05-04 20:00:00+00:00
+    extra:
+      outcome: null
+      phase: PM_DRAFT
+      next_action: Esperar Stories 5 (goldens) + 6 (personas) audit-passed → invocar /po acá. Chris debe agendar ~2h para
+        etiquetar los 10 outputs de calibración.
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   developing: []
   developed: []
   reviewing: []
@@ -364,21 +357,6 @@ buckets:
       - Orchestrator real responde DMs Telegram con channel format MarkdownV2 + tool subset filter + memory cost-aware
       - 'Tests passing: 86 copilot telegram tests + 9 arch fitness telegram_separation tests'
       - Latencia <3s p95 turn no-streaming (objetivo S2 — verificable post-deploy con observability S5 deferred)
-  - id: sales-agent-litellm-canonicalization
-    kind: story
-    state: done
-    title: sales-agent-litellm-canonicalization
-    tags:
-    - legacy:active
-    last_touched: 2026-05-06T13:57Z
-    extra:
-      phase: DONE
-      next_action: Migrations T-6a (commit f6e7ad0a) + T-6c await next /pase-produccion. Streamlit verify count(deprecated
-        cols non-NULL)=0 post-deploy. Story formally CLOSED — code COMPLETE, deploy gating only.
-      blocked_by: null
-      outcome: active
-      audit_iterations: 7
-      legacy_layout: true
   parked: []
   dropped: []
 capabilities:
