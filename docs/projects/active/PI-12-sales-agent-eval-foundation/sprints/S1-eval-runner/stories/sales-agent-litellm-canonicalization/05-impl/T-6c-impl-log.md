@@ -4,7 +4,7 @@
 **Story:** sales-agent-litellm-canonicalization
 **Sprint:** S1-eval-runner / PI-12
 **Builder:** `builder-backend` (Claude Opus 4.7 — `claude_opus_required: true` per architect)
-**Commit:** `<SHA filled post-commit>`
+**Commit:** `a10e146c` (pushed to `development` 2026-05-05)
 **Date:** 2026-05-05
 **State (R30):** `tests-passing` — awaiting orchestrator → gate-runner → auditor-backend independent verdict.
 
