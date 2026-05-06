@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-06T15:37:16+00:00
+# Generated at: 2026-05-06T17:17:44+00:00
 
-generated_at: '2026-05-06T15:37:16+00:00'
+generated_at: '2026-05-06T17:17:44+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -90,40 +90,60 @@ buckets:
   - id: pi-12-sales-agent-eval-foundation
     kind: outcome
     state: refining
-    title: Sales Agent — eval foundation (pass^k + voice fidelity + cost accuracy)
+    title: Sales Agent — eval foundation (synthetic-first eval architecture pre-launch)
     tags:
     - module:sales-agent
     - type:agentic-eval-foundation
+    - paradigm:synthetic-first
+    - reframe:2026-05-06
     last_touched: 2026-05-06
     extra:
       story_ids:
       - sales-agent-eval-runner-foundation
       - sales-agent-litellm-canonicalization
-      - sales-agent-eval-cost-budget-cap
-      - sales-agent-eval-pass-k-tracking
-      - sales-agent-goldens-3-tenants-dataset
+      - maintenance-skill-sales-agent-audit
+      - eval-foundation-tenant-seed-data
+      - eval-foundation-simulator-homologation
       - sales-agent-personas-instrumented-runtime
+      - sales-agent-goldens-3-tenants-dataset
       - sales-agent-voice-fidelity-grader-runtime
+      - sales-agent-eval-pass-k-tracking
       - sales-agent-voice-fidelity-ci-gate
+      - sales-agent-eval-cost-budget-cap
       - sales-agent-adversarial-jailbreak-suite
-      why_now: '6 agentic stories sales_agent declaradas sin pass^k tracking, sin voice fidelity
+      why_now: 'Sales_agent NO está en producción + NO hay conversaciones reales (no podemos
 
-        grader runs reales, sin goldens dataset checked-in. Bloqueo: cada PR a sales_agent
+        lanzar algo que funcione a medias — una venta perdida = cliente perdido).
 
-        llega a producción con "puede que rompa la voz tenant" o "puede que cueste más"
+        Necesitamos validar el agente PRE-LAUNCH con synthetic-first eval (dual-LLM
 
-        ansiedad. Necesitamos CI gate automático que bloquee regressions.
+        simulator pattern, state-of-the-art mayo 2026). State-of-the-art (Anthropic
+
+        Bloom + AWS Strands Evals + τ-Bench + PersonaGym): empezar con tenants seed
+
+        realistas + personas como simulators + 20-30 goldens curados manualmente +
+
+        pass^k all-trials threshold. CI gate bloquea regressions. Cuando salgamos
+
+        a prod con clientes reales, layer "production-replay" se agrega encima sin
+
+        tirar nada.
 
         '
       why_next: null
       target_end: null
       priority: 1
       success_metrics:
-      - Cada PR a modules/sales_agent/ se gradea automáticamente vs voice fidelity, no-hallucination, tool trajectory, pass^3
-        >= 0.5, cost <= budget
-      - 0% trials con cost_usd=0 en provider=deepseek (post fix)
-      - Voice fidelity score >= 0.7 enforced en CI gate. Falla → PR bloqueado
-      - 12+ goldens checked-in en backend/tests/agentic_evals/sales_agent/
+      - 3 tenants seed con data realística completa (brand+offer+personality+pricing+buyer_personas) checked-in y consumibles
+        por sales_agent runtime sin mocks
+      - client_simulator/ homologado a backend/tests/agentic_evals/sales_agent/simulator/ con dual-LLM pattern (1 LLM=user
+        persona, 1 LLM=sales_agent real)
+      - 20-30 goldens generados desde simulación + curados manualmente por Chris, checked-in
+      - pass^k=3 trials all-pass threshold enforced en CI (Bloom 4-stage Understanding/Ideation/Rollout/Judgment)
+      - Voice fidelity grader MAJ-EVAL multi-judge debate >= 0.7 promedio. Falla → PR bloqueado
+      - Cost <= $0.50/session p95, 0% trials cost_usd=0
+      - 'PersonaGym 5-axis coverage: Action Justification, Expected Action, Linguistic Habits, Persona Consistency, Toxicity
+        Control'
   - id: pi-3-sales-agent-improvement
     kind: outcome
     state: refining
@@ -171,6 +191,51 @@ buckets:
       - Agregar canal ficticio 'test-channel-x' requiere ≤3 archivos nuevos (registry + dashboard + schema) + ZERO modificación
         a StageDispatcher/ChannelDispatcher
       - Arch fitness test_studio_structure_parity verde para growth-studio en modo factory
+  - id: eval-foundation-simulator-homologation
+    kind: story
+    state: refining
+    title: eval-foundation-simulator-homologation
+    tags:
+    - legacy:exempt
+    last_touched: 2026-05-06 17:11:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: PM_DRAFT
+      next_action: Esperar `eval-foundation-tenant-seed-data` a refined → luego /po redacta 01-spec.md service-story → ratificación
+        Chris → /architect
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: eval-foundation-tenant-seed-data
+    kind: story
+    state: refining
+    title: eval-foundation-tenant-seed-data
+    tags:
+    - legacy:exempt
+    last_touched: 2026-05-06 17:11:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: PM_DRAFT
+      next_action: Esperar `maintenance-skill-sales-agent-audit` a refined → luego /po-ux (UI std data seeding flow) o /po
+        (service) redacta 01-spec.md → ratificación Chris → /architect
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: maintenance-skill-sales-agent-audit
+    kind: story
+    state: refining
+    title: maintenance-skill-sales-agent-audit
+    tags:
+    - legacy:exempt
+    last_touched: 2026-05-06 17:11:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: PM_DRAFT
+      next_action: /po redacta 01-spec.md (service-story, type=maintenance) → ratificación Chris → state=refining→refined
+        → /architect produce ready package → ejecutar audit + actualizar references/ del skill sales-agent-expert
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: refining
@@ -219,11 +284,13 @@ buckets:
     title: sales-agent-goldens-3-tenants-dataset
     tags:
     - legacy:pi-12
-    last_touched: 2026-05-06 15:30:00+00:00
+    last_touched: 2026-05-06 17:11:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: PM_DRAFT
-      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
+      phase: PM_DRAFT_REFRAMED
+      next_action: Esperar A/B/C (tenant-seed + simulator-homologation + personas-as-simulators) refined. Después /po redacta
+        01-spec.md v2 (reframe synthetic-first). Ya NO es 'extraer 12 goldens de prod' — es 'generar 20-30 goldens desde simulator
+        + curar manualmente'.
       blocked_by: null
       priority_override: null
       audit_iterations: 0

@@ -20,3 +20,4 @@ migrated_from: docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/*/
 
 - 2026-05-04 20:00 — `/pm` creó folder + `00-story.md`. Phase=PM_DRAFT, status=pending. Bloqueado hasta Story 1 + Story 4.
 - 2026-05-06 — Migrado a paradigma v4: state=refining (legacy_exempt). Pendiente /po para spec ratification.
+- 2026-05-06 17:11Z — Reframe synthetic-first (outcome `pi-12-sales-agent-eval-foundation.md`). Rol en sub-épica eval-foundation-* = **H — cost-cap**. Spec ratification awaits A (tenant-seed) + B (simulator-homologation) refined.
