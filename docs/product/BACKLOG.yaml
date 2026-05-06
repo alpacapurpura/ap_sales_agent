@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-06T15:18:34+00:00
+# Generated at: 2026-05-06T15:19:19+00:00
 
-generated_at: '2026-05-06T15:18:34+00:00'
+generated_at: '2026-05-06T15:19:19+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -16,7 +16,7 @@ caps:
   refined_stale_days: 30
   done_rolling_days: 90
 warnings:
-- ready cap exceeded (7 > 5, excl. legacy+outcomes)
+- refining cap exceeded (7 > 3, excl. legacy+outcomes)
 stale_ideas: []
 stale_refining: []
 stale_refined: []
@@ -172,103 +172,99 @@ buckets:
       - Agregar canal ficticio 'test-channel-x' requiere ≤3 archivos nuevos (registry + dashboard + schema) + ZERO modificación
         a StageDispatcher/ChannelDispatcher
       - Arch fitness test_studio_structure_parity verde para growth-studio en modo factory
-  refined: []
-  ready:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
-    state: ready
+    state: refining
     title: sales-agent-adversarial-jailbreak-suite
     tags: []
-    last_touched: 2026-05-04 20:00:00+00:00
+    last_touched: 2026-05-06 15:30:00+00:00
     extra:
-      outcome: null
+      outcome: pi-12-sales-agent-eval-foundation
       phase: PM_DRAFT
-      next_action: Esperar Stories 5+7+8 audit-passed → invocar /po acá. Última story del PI-12. Cuando audit-passed → /pm
-        aplica 07-merge.md y cierra PI.
+      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
       blocked_by: null
       priority_override: null
       audit_iterations: 0
   - id: sales-agent-eval-cost-budget-cap
     kind: story
-    state: ready
+    state: refining
     title: sales-agent-eval-cost-budget-cap
     tags: []
-    last_touched: 2026-05-04 20:00:00+00:00
+    last_touched: 2026-05-06 15:30:00+00:00
     extra:
-      outcome: null
+      outcome: pi-12-sales-agent-eval-foundation
       phase: PM_DRAFT
-      next_action: Esperar Story 1 (runner) + Story 4 (deepseek-fix) audit-passed → invocar /po acá
+      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
       blocked_by: null
       priority_override: null
       audit_iterations: 0
   - id: sales-agent-eval-pass-k-tracking
     kind: story
-    state: ready
+    state: refining
     title: sales-agent-eval-pass-k-tracking
     tags: []
-    last_touched: 2026-05-04 20:00:00+00:00
+    last_touched: 2026-05-06 15:30:00+00:00
     extra:
-      outcome: null
+      outcome: pi-12-sales-agent-eval-foundation
       phase: PM_DRAFT
-      next_action: Esperar Story 1 (eval-runner-foundation) audit-passed → invocar /po acá
+      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
       blocked_by: null
       priority_override: null
       audit_iterations: 0
   - id: sales-agent-goldens-3-tenants-dataset
     kind: story
-    state: ready
+    state: refining
     title: sales-agent-goldens-3-tenants-dataset
     tags: []
-    last_touched: 2026-05-04 20:00:00+00:00
+    last_touched: 2026-05-06 15:30:00+00:00
     extra:
-      outcome: null
+      outcome: pi-12-sales-agent-eval-foundation
       phase: PM_DRAFT
-      next_action: Esperar Story 1 (runner) audit-passed (estructura YAML compatible) + Chris ratifica 3 tenants → invocar
-        /po acá
+      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
       blocked_by: null
       priority_override: null
       audit_iterations: 0
   - id: sales-agent-personas-instrumented-runtime
     kind: story
-    state: ready
+    state: refining
     title: sales-agent-personas-instrumented-runtime
     tags: []
-    last_touched: 2026-05-04 20:00:00+00:00
+    last_touched: 2026-05-06 15:30:00+00:00
     extra:
-      outcome: null
+      outcome: pi-12-sales-agent-eval-foundation
       phase: PM_DRAFT
-      next_action: Esperar Story 1 (runner) + Story 5 (goldens) audit-passed → invocar /po acá
+      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
       blocked_by: null
       priority_override: null
       audit_iterations: 0
   - id: sales-agent-voice-fidelity-ci-gate
     kind: story
-    state: ready
+    state: refining
     title: sales-agent-voice-fidelity-ci-gate
     tags: []
-    last_touched: 2026-05-04 20:00:00+00:00
+    last_touched: 2026-05-06 15:30:00+00:00
     extra:
-      outcome: null
+      outcome: pi-12-sales-agent-eval-foundation
       phase: PM_DRAFT
-      next_action: Esperar Story 7 (grader-runtime) audit-passed → invocar /po acá. Coordinar con Chris la decisión de rollout
-        warning→block (1 semana operacional).
+      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
       blocked_by: null
       priority_override: null
       audit_iterations: 0
   - id: sales-agent-voice-fidelity-grader-runtime
     kind: story
-    state: ready
+    state: refining
     title: sales-agent-voice-fidelity-grader-runtime
     tags: []
-    last_touched: 2026-05-04 20:00:00+00:00
+    last_touched: 2026-05-06 15:30:00+00:00
     extra:
-      outcome: null
+      outcome: pi-12-sales-agent-eval-foundation
       phase: PM_DRAFT
-      next_action: Esperar Stories 5 (goldens) + 6 (personas) audit-passed → invocar /po acá. Chris debe agendar ~2h para
-        etiquetar los 10 outputs de calibración.
+      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
       blocked_by: null
       priority_override: null
       audit_iterations: 0
+  refined: []
+  ready: []
   developing: []
   developed: []
   reviewing: []
