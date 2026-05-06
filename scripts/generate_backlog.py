@@ -263,13 +263,28 @@ def read_active_stories_new(repo: Path) -> list[Item]:
         story_state = LEGACY_STATE_MAP.get(story_state, story_state)
         if story_state not in VALID_STATES:
             story_state = "refining"
+        # legacy_exempt:true → tag with legacy:* so cap counter excludes it
+        story_tags = list(fm.get("tags") or [])
+        if fm.get("legacy_exempt") and not any(t.startswith("legacy:") for t in story_tags):
+            migrated_from = fm.get("migrated_from", "")
+            tag_suffix = "exempt"
+            if "PI-" in migrated_from:
+                # Extract PI-N from migrated_from path
+                import re as _re
+
+                m = _re.search(r"PI-\d+", migrated_from)
+                if m:
+                    tag_suffix = m.group(0).lower()
+            story_tags.append(f"legacy:{tag_suffix}")
+        # v4 schema uses story_id; v3 used id; fallback to folder name
+        story_id = fm.get("story_id") or fm.get("id") or d.name
         out.append(
             Item(
-                id=fm.get("id", d.name),
+                id=story_id,
                 kind="story",
                 state=story_state,
-                title=fm.get("id", d.name),
-                tags=fm.get("tags") or [],
+                title=story_id,
+                tags=story_tags,
                 last_touched=fm.get("last_modified"),
                 extra={
                     "outcome": fm.get("outcome"),
@@ -580,7 +595,12 @@ def render_md(backlog: dict[str, Any]) -> str:  # noqa: PLR0915, C901, PLR0912
         lines.append("- _(none)_")
     lines.append("")
 
-    lines.append(f"### 🔬 Refining ({len(buckets['refining'])} / cap {CAPS['refining_max']})")
+    refining_eligible = sum(
+        1 for it in buckets["refining"] if it["kind"] == "story" and not any(t.startswith("legacy:") for t in it.get("tags", []))
+    )
+    lines.append(
+        f"### 🔬 Refining ({len(buckets['refining'])} total · {refining_eligible} cap-eligible / cap {CAPS['refining_max']})"
+    )
     if buckets["refining"]:
         for it in buckets["refining"]:
             outcome = it["extra"].get("outcome")

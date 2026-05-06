@@ -1,11 +1,8 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-06T15:19:19+00:00`
+> Generated at: `2026-05-06T15:37:16+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
-
-## ⚠️ Warnings
-- refining cap exceeded (7 > 3, excl. legacy+outcomes)
 
 ## 📊 Roadmap view (filtered + curated)
 
@@ -14,7 +11,7 @@
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
 
-### 🔬 Refining (11 / cap 3)
+### 🔬 Refining (11 total · 0 cap-eligible / cap 3)
 - **pi-10-growth-studio-ux-homologation**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**

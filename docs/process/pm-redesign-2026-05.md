@@ -648,6 +648,15 @@ Spawn agent `general-purpose` con scope skills:
 | 2 — Migration pm-nico/ | ✅ DONE | f23c3403 |
 | 3 — Skills + paradigm refresh | ✅ DONE | b3d09e38 |
 | 4 — Stop hook + automation | ✅ DONE | 26191622 |
-| 5 — Punto 4: 10 estados + agentic eval methodology (F1-F7) | 🟡 IN PROGRESS | (F1 pending commit) |
+| 5 — Punto 4: 10 estados + agentic eval methodology (F1-F7) | ✅ DONE | F1=38ac9940 · F2=e9034426 · F3+F4=fb65897c · F5={Olas 1-5} · F6=c2d95aae |
 
-Sistema PM Nicolify v4 (post Punto 4) operativo cuando F1-F7 cierre. Próximo step Chris: usar `/pm` con vocabulario 10-estados + migrar PI-12 stories a `refining`.
+Sistema PM Nicolify v4 (post Punto 4) operativo. Resumen Wave 5:
+- F1: doc canónico Punto 4 + CLAUDE.md + AGENTS.md + /pm friendly output
+- F2: 6 pipeline skills adopt 10-state vocabulary (po, po-ux, ux-agentico, architect, dev-team, auditor)
+- F3: generate_backlog.py recognize 10 states + LEGACY_STATE_MAP coercion + tests + pre-commit Section 7 (state enum validator)
+- F4: 00-research-template.md + 04-validators-template.yaml (4 categories) + checkpoint-template.md v4
+- F5: PI-12 migration (5 olas) — outcome creado + 2 done stories archived + 7 PM_DRAFT stories migradas a state=refining + carcasa legacy eliminada + cleanup refs
+- F6: validate_session_close.py adopts 10-state caps + 16/16 tests PASS
+- F7: regen + 934/934 tests PASS
+
+Próximo step Chris: `/pm` 10-state pipeline operativo. Para refinar las 7 PI-12 stories pendientes usar `/po` (service-stories) o `/po + /ux-agentico` (agentic-stories) según cada caso.

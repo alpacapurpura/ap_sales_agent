@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-06T15:19:19+00:00
+# Generated at: 2026-05-06T15:37:16+00:00
 
-generated_at: '2026-05-06T15:19:19+00:00'
+generated_at: '2026-05-06T15:37:16+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -15,8 +15,7 @@ caps:
   refining_stale_days: 60
   refined_stale_days: 30
   done_rolling_days: 90
-warnings:
-- refining cap exceeded (7 > 3, excl. legacy+outcomes)
+warnings: []
 stale_ideas: []
 stale_refining: []
 stale_refined: []
@@ -176,7 +175,8 @@ buckets:
     kind: story
     state: refining
     title: sales-agent-adversarial-jailbreak-suite
-    tags: []
+    tags:
+    - legacy:pi-12
     last_touched: 2026-05-06 15:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
@@ -189,7 +189,8 @@ buckets:
     kind: story
     state: refining
     title: sales-agent-eval-cost-budget-cap
-    tags: []
+    tags:
+    - legacy:pi-12
     last_touched: 2026-05-06 15:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
@@ -202,7 +203,8 @@ buckets:
     kind: story
     state: refining
     title: sales-agent-eval-pass-k-tracking
-    tags: []
+    tags:
+    - legacy:pi-12
     last_touched: 2026-05-06 15:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
@@ -215,7 +217,8 @@ buckets:
     kind: story
     state: refining
     title: sales-agent-goldens-3-tenants-dataset
-    tags: []
+    tags:
+    - legacy:pi-12
     last_touched: 2026-05-06 15:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
@@ -228,7 +231,8 @@ buckets:
     kind: story
     state: refining
     title: sales-agent-personas-instrumented-runtime
-    tags: []
+    tags:
+    - legacy:pi-12
     last_touched: 2026-05-06 15:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
@@ -241,7 +245,8 @@ buckets:
     kind: story
     state: refining
     title: sales-agent-voice-fidelity-ci-gate
-    tags: []
+    tags:
+    - legacy:pi-12
     last_touched: 2026-05-06 15:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
@@ -254,7 +259,8 @@ buckets:
     kind: story
     state: refining
     title: sales-agent-voice-fidelity-grader-runtime
-    tags: []
+    tags:
+    - legacy:pi-12
     last_touched: 2026-05-06 15:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
