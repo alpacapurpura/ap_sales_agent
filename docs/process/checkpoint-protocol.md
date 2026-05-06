@@ -47,7 +47,8 @@ docs/projects/active/PI-12-{theme}/
 | `/architect` | Tras escribir `04-tickets.yaml`. |
 | `/dev-team` | Por ticket: cambio state. |
 | `/auditor` | Tras escribir `T-{n}-review.md` y `REVIEW-final.md`. |
-| Hook `post-edit-checkpoint.sh` | Auto: `last_artifact` + `last_modified`. |
+
+> Nota: el hook `post-edit-checkpoint.sh` fue removido 2026-05-06. La actualización de `last_artifact` + `last_modified` ahora es responsabilidad explícita del skill que cierra el handoff (escribe el campo en el frontmatter del checkpoint).
 
 ## Resume protocol — paso a paso
 

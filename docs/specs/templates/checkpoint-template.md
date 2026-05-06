@@ -1,7 +1,7 @@
 # Checkpoint Template — Resume Protocol (v4 — Punto 4 2026-05-06)
 
 > Cada story tiene SU `checkpoint.md`. Cualquier sesión nueva lee este archivo PRIMERO para saber dónde retomar.
-> Hooks `.claude/hooks/post-edit-checkpoint.sh` actualizan `last_artifact` + `last_modified` automáticamente.
+> El skill que cierra cada handoff (`/pm`, `/po`, `/po-ux`, `/architect`, `/dev-team`, `/auditor`) actualiza `last_artifact` + `last_modified` manualmente al escribir el frontmatter. NO existe hook automático (el viejo `post-edit-checkpoint.sh` fue removido 2026-05-06 — lógica rota).
 
 ---
 story_id: STORY_ID                                # match folder name

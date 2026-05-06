@@ -118,5 +118,4 @@ Si esta sesión muere:
 - **NO tocar `pis/active/PI-3..11/`** — los builders activos terminan ahí.
 - Cada agente nuevo o renombrado: `tools:` mínimas (Vercel principle).
 - Cada skill carga ÚNICAMENTE sus refs cuando se invoca.
-- `checkpoint.md` per nivel (PI/sprint/story) escrito por `/pm` y actualizado por hooks.
-- Hooks `.claude/hooks/post-edit-checkpoint.sh` actualiza `last_artifact` automáticamente.
+- `checkpoint.md` per story escrito y actualizado manualmente por el skill que cierra cada handoff (`/pm`, `/po`, `/po-ux`, `/architect`, `/dev-team`, `/auditor`). El hook `post-edit-checkpoint.sh` fue removido 2026-05-06 (lógica rota — ver `ticket-states.md` § Hooks).

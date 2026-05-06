@@ -119,8 +119,6 @@ transitions:
 
 ## Hooks
 
-`/architect`, `/dev-team`, `/auditor`, `/pm` actualizan transitions automáticamente al ejecutar acciones.
+`/architect`, `/dev-team`, `/auditor`, `/pm` actualizan transitions manualmente al ejecutar acciones (escriben `checkpoint.md` durante el handoff).
 
-Hook `.claude/hooks/post-edit-checkpoint.sh` también:
-- Detecta cambio en ticket state
-- Touchea `checkpoint.md` del story con `last_artifact + last_modified`
+Hook automático `post-edit-checkpoint.sh` fue removido 2026-05-06 — su lógica `find -mmin -5` no detectaba la edición real, sólo archivos modificados recientemente por otros procesos. La actualización del `last_modified` queda como responsabilidad explícita del skill que cierra el handoff.
