@@ -1,30 +1,45 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-06T14:05:57+00:00`
+> Generated at: `2026-05-06T15:17:26+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
+## ⚠️ Warnings
+- refining cap exceeded (4 > 3, excl. legacy)
+
 ## 📊 Roadmap view (filtered + curated)
 
-### Now (state=building, 0 items)
+### 💡 Ideas (3)
+- calendario-comercial `[idea]`
+- metricas-atraccion `[idea]`
+- live-selling-whatsapp-assistant `[idea]`
+
+### 🔬 Refining (11 / cap 3)
+- **pi-10-growth-studio-ux-homologation**
+- **pi-12-sales-agent-eval-foundation**
+- **pi-3-sales-agent-improvement**
+- **pi-9-growth-studio-architecture**
+- **sales-agent-eval-cost-budget-cap** — outcome `active` [PM_DRAFT]
+- **sales-agent-eval-pass-k-tracking** — outcome `active` [PM_DRAFT]
+- **sales-agent-goldens-3-tenants-dataset** — outcome `active` [PM_DRAFT]
+- **sales-agent-personas-instrumented-runtime** — outcome `active` [PM_DRAFT]
+- **sales-agent-voice-fidelity-ci-gate** — outcome `active` [PM_DRAFT]
+- **sales-agent-voice-fidelity-grader-runtime** — outcome `active` [PM_DRAFT]
+- **sales-agent-adversarial-jailbreak-suite** — outcome `active` [PM_DRAFT]
+
+### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
 
-### Next (state=ready, 0 items)
+### 📦 Ready for development (0 / cap 5)
 - _(none)_
 
-### Validated (worth solving, 10 items)
-- pi-10-growth-studio-ux-homologation `[outcome]`
-- pi-3-sales-agent-improvement `[outcome]`
-- pi-9-growth-studio-architecture `[outcome]`
-- sales-agent-eval-cost-budget-cap `[story]`
-- sales-agent-eval-pass-k-tracking `[story]`
-- sales-agent-goldens-3-tenants-dataset `[story]`
-- sales-agent-personas-instrumented-runtime `[story]`
-- sales-agent-voice-fidelity-ci-gate `[story]`
-- sales-agent-voice-fidelity-grader-runtime `[story]`
-- sales-agent-adversarial-jailbreak-suite `[story]`
+### 🔨 Developing (0 / cap 3)
+- _(none)_
 
-### Done (review state queue, 0 items)
+### 🧪 Developed — esperando QA (0 / cap 2)
+- _(none)_
+
+### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
 
 ### Recently shipped (last 90d, 3 items)
@@ -44,8 +59,9 @@ kanban
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
-  🔍 Validated (10 / cap 10)
+  🔬 Refining (11 / cap 3)
     pi-10-growth-studio-ux-homolog[pi-10-growth-studio-ux-homologation]
+    pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
     pi-9-growth-studio-architectur[pi-9-growth-studio-architecture]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
@@ -54,10 +70,12 @@ kanban
     sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-    sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
+    overflow-🔬 Refining[+1 more]
+  ✅ Refined (0 / cap 5)
   📦 Ready (0 / cap 5)
-  🔨 Building (0 / cap 3)
-  🔍 Review (0 / cap 2)
+  🔨 Developing (0 / cap 3)
+  🧪 Developed (0 / cap 2)
+  🔍 Reviewing (0 / cap 2)
   ✅ Done (3 / 90d rolling)
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
