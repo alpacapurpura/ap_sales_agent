@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/campaigns/"
   stories_dir: "../stories/campaigns/"
   domain_doc: "../../domains/module_campaigns.md"
-  legacy_pm_nico: "../../pm-nico/current-state/campaigns.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 

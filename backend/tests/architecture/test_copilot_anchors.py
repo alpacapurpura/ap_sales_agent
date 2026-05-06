@@ -50,9 +50,9 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "COPILOT-ROUTING-WIRE-F11": "docs/domains/copilot/redesign-2026-04/learnings/F11-housekeeping.md",
     "COPILOT-RAG-EVAL-F11": "docs/domains/copilot/redesign-2026-04/learnings/F11-housekeeping.md",
     "COPILOT-ROUTING-PARALLEL-FP3": "docs/domains/copilot/fpos-2026-04/phases/FP3-routing-parallel-ttfb.md",
-    # PI-5 — Copilot multicanal Telegram (S2 PR-2)
-    "COPILOT-INVOKE-RESULT-PR2-PI5": "docs/pm-nico/pis/active/PI-5-copilot-multicanal-telegram/sprints/S2-telegram-orchestrator-memory-cache/prs/PR-2-telegram-orchestrator-hookup/CONTRACT.md",
-    "COPILOT-TELEGRAM-CHANNEL-CONTEXT": "docs/pm-nico/pis/active/PI-5-copilot-multicanal-telegram/sprints/S2-telegram-orchestrator-memory-cache/prs/PR-2-telegram-orchestrator-hookup/CONTRACT.md",
+    # PI-5 — Copilot multicanal Telegram (S2 PR-2) — archived 2026-05-06 in Wave 2 PM redesign
+    "COPILOT-INVOKE-RESULT-PR2-PI5": "docs/archive/2026/legacy-pis/PI-5-copilot-multicanal-telegram/sprints/S2-telegram-orchestrator-memory-cache/prs/PR-2-telegram-orchestrator-hookup/CONTRACT.md",
+    "COPILOT-TELEGRAM-CHANNEL-CONTEXT": "docs/archive/2026/legacy-pis/PI-5-copilot-multicanal-telegram/sprints/S2-telegram-orchestrator-memory-cache/prs/PR-2-telegram-orchestrator-hookup/CONTRACT.md",
 }
 
 # Only scan backend Python sources (not tests — anchors in tests are for

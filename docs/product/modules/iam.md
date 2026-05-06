@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/iam/"
   stories_dir: "../stories/iam/"
   domain_doc: "../../domains/module_iam.md"
-  legacy_pm_nico: "../../pm-nico/current-state/iam.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,12 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 Identidad + acceso. User entra a Nicolify, se autentica, opera dentro de su tenant aislado. Sin esto nada existe.
 
-## Capacidades actuales
-- Login / signup vía Clerk (email + password, OAuth Google)
-- Onboarding inicial (datos básicos negocio)
-- Resolver tenant correcto desde sesión
-- Permisos por rol (owner, member — nivel básico)
-- Settings de cuenta + perfil de negocio
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/iam/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Update perfil negocio (vía `/settings/perfil-negocio`) — parcial

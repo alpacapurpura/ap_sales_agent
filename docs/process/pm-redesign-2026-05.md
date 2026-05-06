@@ -289,3 +289,60 @@ Spawn agent `general-purpose` con scope skills:
 
 - 2026-05-05 — Sesión inicial. Puntos 1, 2, 3 cerrados.
 - 2026-05-05 — Wave 1 implementada (folder skeleton + ideas-pool + generate_backlog.py + tests + pre-commit hook Section 6). Lint clean. 21 tests verde.
+- 2026-05-06 — **Wave 2 ejecutada** (`docs/pm-nico/` eliminada por completo).
+
+### Wave 2 — Resumen ejecución (2026-05-06)
+
+**PIs migrados a outcomes (still-active):** 6
+- `pi-3-sales-agent-improvement` → state=validated (discovery placeholder)
+- `pi-4-brand-evolutive-maintenance` → state=building (rolling maintenance)
+- `pi-5-copilot-multicanal-telegram` → state=building (S1+S2 shipped, S3+ pendientes)
+- `pi-9-growth-studio-architecture` → state=validated (discovery, blocked by PI-8)
+- `pi-10-growth-studio-ux-homologation` → state=validated (placeholder, blocked by PI-9)
+- `pi-11-backend-quality-guardrails` → state=building (PR-1+PR-3+PR-4 shipped, PR-2 partial)
+
+**PIs archivados a `docs/archive/2026/legacy-pis/` (DONE / preserved as audit trail):** 11 total
+- PI-1, PI-1.1, PI-2, PI-7, PI-8 (originalmente en `pm-nico/pis/archive/`)
+- PI-3, PI-4, PI-5, PI-9, PI-10, PI-11 (originalmente en `pm-nico/pis/active/`, contenido completo preservado además de outcomes/ migration)
+
+**Modules refactorizados:** 16 archivos `docs/product/modules/*.md`
+- Stripped: `capabilities_count`, `stories_count`, `legacy_pm_nico` desde frontmatter
+- Replaced: sección `## Capacidades actuales` (+ subsecciones `### Cap: ...` arrastradas) → marker `## Capacidades > Auto-list generated...`
+- Excepción: `campaigns.md` (sin sección "Capacidades actuales" — formato distinto, dejado intacto)
+
+**Otros artefactos migrados:**
+- `pm-nico/current-state/` (16 archivos) → `docs/archive/2026/legacy-pm-nico-current-state/current-state/` (audit trail; contenido vivo está en `docs/product/modules/`)
+- `pm-nico/opportunities/` (6 archivos) → `docs/product/opportunities/` (mantener accesibles como SSoT discovery)
+- `pm-nico/ideas/live-selling-whatsapp-assistant.md` (research-rich) → entry agregada a `docs/product/ideas-pool.yaml` + archivo original preservado en `docs/archive/2026/legacy-pm-nico-research/ideas/`
+- `pm-nico/story-map/backbone.md` → `docs/product/story-map/backbone.md`
+- `pm-nico/process/` → `docs/archive/2026/legacy-pm-nico-research/process/` (templates legacy superseded por `docs/specs/templates/`; learnings ya migrados a `docs/process/learnings.md`)
+- `pm-nico/research/` (6 docs) → `docs/archive/2026/legacy-pm-nico-research/research/`
+- `pm-nico/glossary.md` → `docs/product/glossary.md` (no existía, copia directa)
+- `pm-nico/vision-compressed.md` → `docs/product/vision.md` (no existía, copia directa)
+- `pm-nico/INDEX.md` + `pm-nico/TEMPLATES/` + `pm-nico/roadmap.md` → archived a `docs/archive/2026/legacy-pm-nico-research/` (superseded por `docs/product/INDEX.md` + `docs/product/BACKLOG.md` auto-gen)
+
+**Code refs actualizados (pm-nico → archive paths):** 9 archivos
+- BE arch tests: `test_copilot_anchors.py`, `test_sales_agent_anchors.py`, `test_campaign_state_additive.py`, `test_outbound_orchestrator_non_breaking.py`
+- BE source: `modules/copilot/application/orchestrator/invoke_result.py`, `modules/sales_agent/application/orchestrator/outbound_orchestrator.py`
+- BE other tests: `tests/quality/golden/test_voice_fidelity_outbound.py`, `tests/integration/test_outbox_cutover_e2e.py`, `tests/modules/sales_agent/application/orchestrator/test_state_additive.py`
+- Hook: `scripts/git-hooks/pre-commit` (removed `pm-nico/pis/active/` from BACKLOG_SOURCES regex; updated comment)
+- Generator: `scripts/generate_backlog.py` (docstring update; legacy reader returns `[]` defensively when path absent)
+
+**Decisiones / juicio aplicado:**
+- PI-4 marcado `building` (rolling track) en vez de `validated` — track sigue activo aunque sin sprint nuevo en vuelo, refleja realidad mejor que `validated`.
+- PI-11 marcado `building` (no `done`) porque PR-2 commit `6a352df2` mergeado pero sin RESULT.md formal y S2 no iniciado; closure formal pendiente.
+- `pm-nico/current-state/` archivado en vez de eliminado — contenido nominal duplicado por `docs/product/modules/` (Wave 1) pero algunos pm-nico files tienen info marginalmente distinta; archive preserva como audit trail.
+- `pm-nico/opportunities/` migrado a `docs/product/opportunities/` (no archived) — son artefactos vivos de discovery, no historia legacy.
+- `live-selling-whatsapp-assistant.md` agregada a ideas-pool.yaml con notes section + archivo original preservado en archive (research detail demasiado rico para perder).
+- `campaigns.md` dejado sin refactor (no tenía sección "Capacidades actuales"; estructura alternativa "S1 SHIPPED / S2 SHIPPED" con info única no duplicada).
+
+**Conflictos / archivos sobrescritos:** ninguno (no hubo destinos pre-existentes que requirieran archivar a `conflicts/`).
+
+**Verificación post-migración:**
+- `docs/pm-nico/` no existe (verificado con `ls docs/pm-nico` → No such file or directory)
+- `python3 scripts/generate_backlog.py` regenera limpio; nuevos outcomes visibles en BACKLOG.md
+- `python3 scripts/reconcile_capabilities.py --check` PASS
+- `pytest tests/scripts/test_generate_backlog.py --no-cov -q` 21/21 PASS
+- `pytest` arch tests modificadas (4 archivos) 15/15 PASS
+- `ruff check` clean en files touched
+- `python3 scripts/generate_backlog.py --check` PASS (sin drift)

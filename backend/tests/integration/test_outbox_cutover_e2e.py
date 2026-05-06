@@ -13,7 +13,7 @@ No live Postgres required here; we mock at the OutboxService boundary.
 
 For truly end-to-end DB-level verification (row in domain_event_outbox),
 run the verify_pending_payments worker in a test container. That path is
-documented in ``docs/pm-nico/pis/active/PI-1.../IMPL-LOG.md``.
+documented in ``docs/archive/2026/legacy-pis/PI-1-campaigns-module/.../IMPL-LOG.md``.
 """
 
 from __future__ import annotations

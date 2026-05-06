@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/analytics/"
   stories_dir: "../stories/analytics/"
   domain_doc: "../../domains/module_analytics.md"
-  legacy_pm_nico: "../../pm-nico/current-state/analytics.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,19 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 ETL + dashboards. Visualiza desempeño marketing/ventas end-to-end via diagrama Bowtie (Vistas → Leads → Clientes → Reventas). User ve dónde está sangrando dinero, dónde puede optimizar.
 
-## Capacidades actuales
-- ETL pipeline 12+ providers (Meta, Google Ads, GA4, Shopify, MailerLite, Mercado Pago, Manychat, etc)
-- Bowtie funnel visualization (interactive)
-- Action triggers (clic en nodo → right slider con accion ejecutable)
-- Stage services (Attraction, Capture, Nurture, Convert, Retain)
-- Channel registry SSoT
-- Progressive loading (4 tiers)
-- Cache warming
-- Verification layer (4-layer protocol: ETL execution → source probe → pipeline integrity → UI fidelity)
-- Multi-currency (per-channel detection)
-- Multi-timezone
-- Period vs daily metrics correctness (Meta time_increment=1)
-- Extraction contract (SSoT) sincronizado código + docs
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/analytics/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Preguntas sobre métricas (parcial)

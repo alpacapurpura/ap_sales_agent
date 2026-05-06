@@ -6,11 +6,8 @@ links:
   capabilities_dir: "../capabilities/connections/"
   stories_dir: "../stories/connections/"
   domain_doc: "../../domains/module_connections.md"
-  legacy_pm_nico: "../../pm-nico/current-state/connections.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 capability_registry_status: bootstrapped-2026-05-04
-capabilities_count: 4
-stories_count: 8
 ---
 
 # connections — Estado funcional
@@ -26,30 +23,9 @@ stories_count: 8
 ## Qué hace por el user
 Conexiones a sistemas externos. User conecta sus redes/sistemas/pasarelas y Nicolify orquesta. Sin connections, ni sales_agent ni analytics ni assets funcionan.
 
-## Capacidades actuales
-Plataformas conectadas:
-- **Meta Business Suite** (Facebook + Instagram)
-- **Instagram** (organic + ads + DM via Manychat)
-- **Facebook** (organic + ads + DM via Manychat)
-- **TikTok** (orgánico + DM via Manychat)
-- **Manychat** (chatbot multi-canal)
-- **Telegram** (bot)
-- **Shopify** (e-commerce)
-- **Mercado Pago** (LATAM payments)
-- **Payoneer** + **PayPal**
-- **Google Calendar** (scheduling sync)
-- **Gmail** (email send/receive)
-- **MailerLite** (email marketing)
-- **Google Ads** + **Google Analytics 4**
-
-Capacidades:
-- OAuth flows
-- Webhook receivers
-- Channel adapters
-- Status monitoring (healthy/disconnected/expired)
-- Credential rotation handling
-- Test connection
-- Reconnect flow
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/connections/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Status conexión (sólido)

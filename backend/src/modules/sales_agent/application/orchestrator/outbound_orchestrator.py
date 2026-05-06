@@ -23,7 +23,7 @@ abort the user-visible send. The graph invocation itself is the only
 surface where a failure aborts the turn (returns
 ``error_code='graph_invocation_failed'``).
 
-# [SALES-AGENT-OUTBOUND-PR7] -> docs/pm-nico/pis/active/PI-1-campaigns-module/
+# [SALES-AGENT-OUTBOUND-PR7] -> docs/archive/2026/legacy-pis/PI-1-campaigns-module/
 #                                sprints/S3-mvp-telegram/prs/PR-7-outbound-orchestrator/CONTRACT.md
 """
 

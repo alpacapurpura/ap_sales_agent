@@ -1,6 +1,6 @@
 """PR-7 Sub-J — campaign-state ADDITIVE arch gate.
 
-# [SALES-AGENT-OUTBOUND-PR7] -> docs/pm-nico/pis/active/PI-1-campaigns-module/
+# [SALES-AGENT-OUTBOUND-PR7] -> docs/archive/2026/legacy-pis/PI-1-campaigns-module/
 #                                sprints/S3-mvp-telegram/prs/PR-7-outbound-orchestrator/CONTRACT.md
 
 Locks in CONTRACT.md Decision 28 (additive TypedDict, no separate

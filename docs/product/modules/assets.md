@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/assets/"
   stories_dir: "../stories/assets/"
   domain_doc: "../../domains/module_assets.md"
-  legacy_pm_nico: "../../pm-nico/current-state/assets.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,12 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 Genera material promocional automático. Copies para redes/ads/videos, flyers, imágenes, brochures. Acceso desde Offer individual y Brand Studio.
 
-## Capacidades actuales
-- AI generation copies (redes, ads, video ideas)
-- Flyers / images / brochures
-- Storage R2 (Cloudflare)
-- MIME handling
-- Templates dinámicas
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/assets/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Generar copy para X canal (parcial)

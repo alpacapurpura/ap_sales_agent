@@ -1,6 +1,6 @@
 """PR-7 Sub-J — outbound orchestrator NON-BREAKING arch gate.
 
-# [SALES-AGENT-OUTBOUND-PR7] -> docs/pm-nico/pis/active/PI-1-campaigns-module/
+# [SALES-AGENT-OUTBOUND-PR7] -> docs/archive/2026/legacy-pis/PI-1-campaigns-module/
 #                                sprints/S3-mvp-telegram/prs/PR-7-outbound-orchestrator/CONTRACT.md
 
 Locks in CONTRACT.md §12 invariants 1, 8, 10:

@@ -12,11 +12,11 @@ Reads (during transition both old and new paradigms):
     docs/product/capabilities/{m}/*.yaml  → capability rollups (R32 reconciled)
     docs/product/modules/*.md             → module-level metadata
 
-  Sources (legacy — read during transition, NOT migrated until Wave 2)
-  --------------------------------------------------------------------
-    docs/projects/active/PI-*/checkpoint.md                     → legacy active PIs
+  Sources (legacy — read during transition)
+  -----------------------------------------
+    docs/projects/active/PI-*/checkpoint.md                     → legacy active PIs (PI-12+ paradigm)
     docs/projects/active/PI-*/sprints/*/stories/*/checkpoint.md → legacy active stories
-    docs/pm-nico/pis/active/*/PI.md                             → legacy pm-nico PIs
+    docs/pm-nico/pis/active/*/PI.md                             → legacy pm-nico PIs (folder removed Wave 2 — read returns []  as guard)
 
   Outputs
   -------

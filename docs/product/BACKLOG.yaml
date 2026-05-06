@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-06T04:33:22+00:00
+# Generated at: 2026-05-06T05:04:00+00:00
 
-generated_at: '2026-05-06T04:33:22+00:00'
+generated_at: '2026-05-06T05:04:00+00:00'
 caps:
   validated_max: 10
   ready_max: 5
@@ -43,7 +43,93 @@ buckets:
     extra:
       promoted_to_outcome: null
       ost: null
+  - id: live-selling-whatsapp-assistant
+    kind: idea
+    state: idea
+    title: Asistente AI por WhatsApp ephemeral para acompañar TikTok Live de microempresarios LATAM (screenshot→producto→pago→notificación
+      al vendedor, sin memoria post-sesión)
+    tags:
+    - module:sales-agent
+    - module:connections
+    - effort:L
+    - value:business-model
+    - source:chris
+    - channel:whatsapp
+    last_touched: 2026-05-01
+    extra:
+      promoted_to_outcome: null
+      ost: null
   validated:
+  - id: pi-10-growth-studio-ux-homologation
+    kind: outcome
+    state: validated
+    title: Growth Studio — UX visual homologada cross-studio
+    tags:
+    - module:analytics
+    - type:ux-redesign
+    last_touched: 2026-05-05
+    extra:
+      story_ids: []
+      why_now: 'Usuario nuevo navega Brand Studio + Offer Studio + Growth Studio y siente
+
+        "pertenecen a apps distintas". Coherencia visual + interacción cross-studio
+
+        necesaria post Growth Studio architecture refactor (PI-9).
+
+        '
+      why_next: null
+      target_end: null
+      priority: 3
+      success_metrics:
+      - Usuario nuevo navega Brand+Offer+Growth Studio sin sentir 'apps distintas' (visual + interaction coherentes)
+      - Decisión drawer-vs-nested-route consolidada en una sola UX
+  - id: pi-3-sales-agent-improvement
+    kind: outcome
+    state: validated
+    title: Mejorar Sales Agent post redesign 2026-04
+    tags: []
+    last_touched: 2026-05-05
+    extra:
+      story_ids: []
+      why_now: 'Redesign 2026-04 dejó base sólida (voz marca, tools, observabilidad). Próxima
+
+        etapa es profundizar en cierre real (vs solo conversar bien) y completar
+
+        multi-canal (WhatsApp pendiente).
+
+        '
+      why_next: null
+      target_end: null
+      priority: 2
+      success_metrics:
+      - Cuantitativo TBD (% leads → cita, % citas → cliente)
+      - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
+  - id: pi-9-growth-studio-architecture
+    kind: outcome
+    state: validated
+    title: Growth Studio — refactor estructural FE escalable
+    tags:
+    - module:analytics
+    - type:refactor-fe
+    last_touched: 2026-05-05
+    extra:
+      story_ids: []
+      why_now: 'Cientos de clientes proyectados 1 mes → arquitectura FE escalable mandatoria.
+
+        Roadmap exige agregar canales/editar dashboards/modificar stages sin refactor
+
+        cada vez. Growth Studio FE NO sigue patrón post-refactor brand/offer (falta
+
+        pages/, actions/, schemas/, hardcoded "5 stages").
+
+        '
+      why_next: null
+      target_end: null
+      priority: 2
+      success_metrics:
+      - Agregar canal ficticio 'test-channel-x' requiere ≤3 archivos nuevos (registry + dashboard + schema) + ZERO modificación
+        a StageDispatcher/ChannelDispatcher
+      - Arch fitness test_studio_structure_parity verde para growth-studio en modo factory
   - id: sales-agent-eval-cost-budget-cap
     kind: story
     state: validated
@@ -146,26 +232,88 @@ buckets:
       outcome: active
       audit_iterations: 0
       legacy_layout: true
-  - id: PI-10-growth-studio-ux-homologation
-    kind: legacy-pi
-    state: validated
-    title: PI-10-growth-studio-ux-homologation
-    tags:
-    - legacy:pm-nico
-    last_touched: null
-    extra:
-      path: docs/pm-nico/pis/active/PI-10-growth-studio-ux-homologation/PI.md
   ready: []
   building:
-  - id: PI-11-backend-quality-guardrails
-    kind: legacy-pi
+  - id: pi-11-backend-quality-guardrails
+    kind: outcome
     state: building
-    title: PI-11 — Backend Quality Guardrails
+    title: Backend quality guardrails — anti-default-flip + test integrity
     tags:
-    - legacy:pm-nico
-    last_touched: null
+    - type:hardening
+    - type:transversal
+    - blocking:deploy
+    last_touched: 2026-05-05
     extra:
-      path: docs/pm-nico/pis/active/PI-11-backend-quality-guardrails/PI.md
+      story_ids: []
+      why_now: 'Failed /pase-produccion 2026-05-04 detectó 25 BE failures + 2 FE failures
+
+        + polluter no identificable post 3h investigación. Causa raíz: default flip
+
+        USE_OUTBOX_PATTERN_* sin auditar tests path viejo. Sin guardrails, cada
+
+        futuro deploy replica un % de este costo (~500k tokens, ~3h sesión).
+
+        '
+      why_next: null
+      target_end: null
+      priority: 1
+      success_metrics:
+      - 0 BE failures, 0 FE failures con pytest+vitest sin flags especiales
+      - Polluter snapshot test fixed at source (sin band-aid @flaky permanente)
+      - Singletons class-level documentados + reseteados (autouse fixture exhaustivo)
+      - Tests legacy EventBus mocks 100% migrados a adapter_bus / outbox table inspection
+      - Arch fitness test_no_legacy_eventbus_mock_when_outbox_on bloqueador
+  - id: pi-4-brand-evolutive-maintenance
+    kind: outcome
+    state: building
+    title: Mantenimiento evolutivo Brand Studio (rolling)
+    tags:
+    - module:brand
+    - type:rolling-maintenance
+    last_touched: 2026-05-05
+    extra:
+      story_ids: []
+      why_now: 'Track rolling para responder feedback usuario sobre schema/UX Brand Studio
+
+        sin pelear cap Now con feature PIs. Permite eliminar/fusionar/renombrar
+
+        fields existentes en days, no weeks.
+
+        '
+      why_next: null
+      target_end: null
+      priority: 3
+      success_metrics:
+      - Completion rate buyer persona post-cleanup
+      - 'Cualitativo: ''los formularios no me piden cosas que no necesito'''
+      - Tiempo desde feedback → ship < 5 días
+  - id: pi-5-copilot-multicanal-telegram
+    kind: outcome
+    state: building
+    title: Copilot multicanal — Telegram MVP
+    tags:
+    - module:copilot
+    - type:feature
+    - channel:telegram
+    last_touched: 2026-05-05
+    extra:
+      story_ids: []
+      why_now: 'Dueño usa más Telegram que web fuera de horario laboral. Mobile-first
+
+        consulta del copilot = ganancia productividad real. HITL Telegram baja
+
+        churn de leads alto ticket (hoy se enfrían cuando dueño tarda en responder
+
+        edge case sales_agent).
+
+        '
+      why_next: null
+      target_end: null
+      priority: 1
+      success_metrics:
+      - '>=10 capacidades clave consultables desde Telegram + >=3 tipos encargo, latencia <3s p95'
+      - '>=70% adopción Telegram link entre tenants activos a 30 días post-launch'
+      - 'Cualitativo: ''el copilot me responde como mi account manager — le pregunto desde el celular'''
   review:
   - id: sales-agent-litellm-canonicalization
     kind: story
@@ -184,43 +332,7 @@ buckets:
       outcome: active
       audit_iterations: 7
       legacy_layout: true
-  done:
-  - id: PI-3-sales-agent-improvement
-    kind: legacy-pi
-    state: done
-    title: PI-3-sales-agent-improvement — Mejorar Sales Agent
-    tags:
-    - legacy:pm-nico
-    last_touched: null
-    extra:
-      path: docs/pm-nico/pis/active/PI-3-sales-agent-improvement/PI.md
-  - id: PI-4-brand-evolutive-maintenance
-    kind: legacy-pi
-    state: done
-    title: PI-4-brand-evolutive-maintenance — Mantenimiento Evolutivo Brand Studio
-    tags:
-    - legacy:pm-nico
-    last_touched: null
-    extra:
-      path: docs/pm-nico/pis/active/PI-4-brand-evolutive-maintenance/PI.md
-  - id: PI-5-copilot-multicanal-telegram
-    kind: legacy-pi
-    state: done
-    title: 'PI-5-copilot-multicanal-telegram — Copilot Multicanal: Telegram MVP'
-    tags:
-    - legacy:pm-nico
-    last_touched: null
-    extra:
-      path: docs/pm-nico/pis/active/PI-5-copilot-multicanal-telegram/PI.md
-  - id: PI-9-growth-studio-architecture
-    kind: legacy-pi
-    state: done
-    title: PI-9-growth-studio-architecture
-    tags:
-    - legacy:pm-nico
-    last_touched: null
-    extra:
-      path: docs/pm-nico/pis/active/PI-9-growth-studio-architecture/PI.md
+  done: []
   parked: []
   dropped: []
 capabilities:

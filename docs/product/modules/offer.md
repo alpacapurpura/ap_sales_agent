@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/offer/"
   stories_dir: "../stories/offer/"
   domain_doc: "../../domains/module_offer.md"
-  legacy_pm_nico: "../../pm-nico/current-state/offer.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,17 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 Construye Offer Ladder (gratis → low → high ticket). Para cada oferta individual, blueprint de producto con info completa (qué incluye, precio, posicionamiento, value level, archetype, variantes).
 
-## Capacidades actuales
-- Offer Ladder visual por tipo de negocio
-- 21 secciones offer (homologadas, post pre-venta)
-- 7 catálogos SSoT (ExpertBusinessType, ValueLevel, Section, VariantStructure, Archetype, Format, LadderHints, OfferTypePreset)
-- 76 presets por tipo de negocio
-- Conditional questions por preset
-- Variantes (TIER, BUNDLE, etc)
-- Lead magnet flow
-- Upsell/downsell relationships
-- Pricing con multi-currency (TenantLocale)
-- Sections referencias módulos externos: LOCATION → scheduling, PRICING → connections, INSTRUCTORS → brand team
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/offer/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Auto-fill desde docs/scraping (sólido)

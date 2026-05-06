@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/social-media/"
   stories_dir: "../stories/social-media/"
   domain_doc: "../../domains/module_social-media.md"
-  legacy_pm_nico: "../../pm-nico/current-state/social-media.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,10 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 **Placeholder.** No implementado como módulo. Lectura social orgánico vive en `connections` (channels via Manychat / IG / FB / TikTok). Generación contenido vive en `assets` + skill `content-hunter`.
 
-## Capacidades actuales
-- (Vía assets) Generar copies / ideas videos / flyers
-- (Vía analytics) Métricas orgánico (reach, engagement)
-- (Vía connections) Programación posteo (limitada — depende canal)
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/social-media/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Generar copy para post (parcial — vía assets/content-hunter)

@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/landing/"
   stories_dir: "../stories/landing/"
   domain_doc: "../../domains/module_landing.md"
-  legacy_pm_nico: "../../pm-nico/current-state/landing.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,13 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 Genera landing page automática para cada oferta. Toma data brand + offer y produce página publicable con dominio del tenant.
 
-## Capacidades actuales
-- Auto-gen landing desde Offer (templates dinámicas)
-- Preview antes publicar
-- Slug editable
-- Publish / unpublish
-- Sections múltiples (hero, beneficios, testimonios, FAQ, CTA)
-- Custom domain integration (vía tenant_domains)
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/landing/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Crear landing desde oferta (parcial)

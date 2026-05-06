@@ -1,6 +1,6 @@
 """PR-7 Sub-I — voice fidelity outbound golden test.
 
-# [SALES-AGENT-OUTBOUND-PR7] -> docs/pm-nico/pis/active/PI-1-campaigns-module/
+# [SALES-AGENT-OUTBOUND-PR7] -> docs/archive/2026/legacy-pis/PI-1-campaigns-module/
 #                                sprints/S3-mvp-telegram/prs/PR-7-outbound-orchestrator/CONTRACT.md
 
 Golden gate threshold for outbound voice fidelity. Threshold is read from

@@ -6,7 +6,7 @@ serialized to HTTP. The Telegram worker consumes ``response_text`` and routes
 it through ``format_for_channel_impl`` then ``CopilotTelegramBot.send_message``.
 
 # [COPILOT-INVOKE-RESULT-PR2-PI5]
-# -> docs/pm-nico/pis/active/PI-5-copilot-multicanal-telegram/
+# -> docs/archive/2026/legacy-pis/PI-5-copilot-multicanal-telegram/
 #    sprints/S2-telegram-orchestrator-memory-cache/
 #    prs/PR-2-telegram-orchestrator-hookup/CONTRACT.md
 """

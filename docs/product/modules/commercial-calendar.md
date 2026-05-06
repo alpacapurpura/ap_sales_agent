@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/commercial-calendar/"
   stories_dir: "../stories/commercial-calendar/"
   domain_doc: "../../domains/module_commercial-calendar.md"
-  legacy_pm_nico: "../../pm-nico/current-state/commercial-calendar.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,10 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 Calendario eventos comerciales — feriados sistema-wide + promociones del tenant. Útil para timing de campañas (Black Friday, Día de Madres LATAM, etc).
 
-## Capacidades actuales
-- Sistema-wide holidays (multi-país LATAM)
-- Tenant-specific promotional events
-- Country code filtering
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/commercial-calendar/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Consultar próximos eventos (parcial)

@@ -50,3 +50,29 @@ ideas:
     notes: |
       Migrated from docs/product/ideas/metricas-atraccion.md (file was empty,
       title only). Refine antes de validar.
+
+  - id: live-selling-whatsapp-assistant
+    one_liner: "Asistente AI por WhatsApp ephemeral para acompañar TikTok Live de microempresarios LATAM (screenshot→producto→pago→notificación al vendedor, sin memoria post-sesión)"
+    state: idea
+    tags: [module:sales-agent, module:connections, effort:L, value:business-model, source:chris, channel:whatsapp]
+    created: 2026-05-01
+    last_touched: 2026-05-01
+    notes: |
+      Migrated from docs/pm-nico/ideas/live-selling-whatsapp-assistant.md (2026-05-06)
+      as part of Wave 2 PM redesign. Full original (research stack +
+      competidores + viabilidad técnica + riesgos) preserved at
+      docs/archive/2026/legacy-pm-nico-research/ideas/live-selling-whatsapp-assistant.md.
+
+      Highlights del archivo original:
+      - Pricing target: 20-50 PEN por sesión
+      - Diferenciador compuesto vs mercado: livestream context + ephemeral
+        session + screenshot-to-buy + real-time seller notification (ningún
+        competidor directo encontrado)
+      - Tech stack viable: WhatsApp Business API (Baileys o Cloud API) +
+        Google Vision Product Search / CLIP + Culqi/ITPago links Yape/Plin
+        + WhatsApp In-App Browser para checkout sin salir
+      - Riesgos: WhatsApp API session stability, Yape/Plin sin API oficial
+        comercios, screenshot quality con TikTok UI overlay, concurrencia,
+        compliance Sunat
+      - Estado original: "Idea validada como realizable. Ningún componente
+        bloqueante. Ningún competidor directo." Pendiente JTBD + OST formal.

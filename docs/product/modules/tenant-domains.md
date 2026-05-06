@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/tenant-domains/"
   stories_dir: "../stories/tenant-domains/"
   domain_doc: "../../domains/module_tenant-domains.md"
-  legacy_pm_nico: "../../pm-nico/current-state/tenant-domains.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,12 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 Permite al user usar su dominio propio para landings, booking pages, etc. Vía Cloudflare Custom Hostnames.
 
-## Capacidades actuales
-- Add custom domain
-- DNS verification
-- SSL automático (Cloudflare)
-- Status monitoring
-- Remove domain
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/tenant-domains/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - **Gap:** flow OAuth + verificación DNS conversacional

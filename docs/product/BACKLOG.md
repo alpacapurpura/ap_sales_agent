@@ -1,18 +1,23 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-06T04:33:22+00:00`
+> Generated at: `2026-05-06T05:04:00+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### Now (state=building, 1 items)
-- **PI-11-backend-quality-guardrails**
+### Now (state=building, 3 items)
+- **pi-11-backend-quality-guardrails**
+- **pi-4-brand-evolutive-maintenance**
+- **pi-5-copilot-multicanal-telegram**
 
 ### Next (state=ready, 0 items)
 - _(none)_
 
-### Validated (worth solving, 8 items)
+### Validated (worth solving, 10 items)
+- pi-10-growth-studio-ux-homologation `[outcome]`
+- pi-3-sales-agent-improvement `[outcome]`
+- pi-9-growth-studio-architecture `[outcome]`
 - sales-agent-eval-cost-budget-cap `[story]`
 - sales-agent-eval-pass-k-tracking `[story]`
 - sales-agent-goldens-3-tenants-dataset `[story]`
@@ -20,7 +25,6 @@
 - sales-agent-voice-fidelity-ci-gate `[story]`
 - sales-agent-voice-fidelity-grader-runtime `[story]`
 - sales-agent-adversarial-jailbreak-suite `[story]`
-- PI-10-growth-studio-ux-homologation `[legacy-pi]`
 
 ### Done (review state queue, 1 items)
 - sales-agent-litellm-canonicalization
@@ -36,10 +40,14 @@
 
 ```mermaid
 kanban
-  💡 Ideas (2)
+  💡 Ideas (3)
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
-  🔍 Validated (8 / cap 10)
+    live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
+  🔍 Validated (10 / cap 10)
+    pi-10-growth-studio-ux-homolog[pi-10-growth-studio-ux-homologation]
+    pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
+    pi-9-growth-studio-architectur[pi-9-growth-studio-architecture]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
@@ -47,10 +55,11 @@ kanban
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
-    PI-10-growth-studio-ux-homolog[PI-10-growth-studio-ux-homologation]
   📦 Ready (0 / cap 5)
-  🔨 Building (1 / cap 3)
-    PI-11-backend-quality-guardrai[PI-11-backend-quality-guardrails]
+  🔨 Building (3 / cap 3)
+    pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
+    pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
+    pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
   🔍 Review (1 / cap 2)
     sales-agent-litellm-canonicali[sales-agent-litellm-canonicalization]
   ✅ Done (0 / 90d rolling)

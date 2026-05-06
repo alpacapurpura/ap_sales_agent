@@ -6,11 +6,8 @@ links:
   capabilities_dir: "../capabilities/scheduling/"
   stories_dir: "../stories/scheduling/"
   domain_doc: "../../domains/module_scheduling.md"
-  legacy_pm_nico: "../../pm-nico/current-state/scheduling.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 capability_registry_status: bootstrapped-2026-05-04
-capabilities_count: 3
-stories_count: 6
 ---
 
 # scheduling — Estado funcional
@@ -26,14 +23,9 @@ stories_count: 6
 ## Qué hace por el user
 Sistema agendamiento integrado Google Calendar. Sales Agent agenda reuniones según disponibilidad user. Landing pública (clon Calendly) donde lead reserva cita.
 
-## Capacidades actuales
-- Sync Google Calendar (OAuth)
-- Event types (tipos de cita configurables)
-- Disponibilidad por timezone tenant
-- Booking link público (slug)
-- Custom domain integration
-- Confirmación + recordatorios (vía email)
-- Cancelación / reagendar
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/scheduling/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - Crear event type nuevo (parcial)

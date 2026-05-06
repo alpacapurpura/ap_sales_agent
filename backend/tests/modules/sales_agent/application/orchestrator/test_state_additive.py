@@ -7,7 +7,7 @@ Verifica:
 - Llamado con campaign params produce el state con esos campos seteados.
 - Cero campo existente removido o modificado en su tipo / default.
 
-# [PR-7-OUTBOUND-ORCHESTRATOR] -> docs/pm-nico/pis/active/PI-1-campaigns-module/
+# [PR-7-OUTBOUND-ORCHESTRATOR] -> docs/archive/2026/legacy-pis/PI-1-campaigns-module/
 #   sprints/S3-mvp-telegram/prs/PR-7-outbound-orchestrator/CONTRACT.md
 """
 

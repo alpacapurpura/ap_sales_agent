@@ -6,7 +6,6 @@ links:
   capabilities_dir: "../capabilities/advertising/"
   stories_dir: "../stories/advertising/"
   domain_doc: "../../domains/module_advertising.md"
-  legacy_pm_nico: "../../pm-nico/current-state/advertising.md"
 active_projects: []                              # auto-populated by /pm cuando hay PIs activos tocando este módulo
 ---
 
@@ -23,8 +22,9 @@ active_projects: []                              # auto-populated by /pm cuando 
 ## Qué hace por el user
 **Placeholder.** No implementado como módulo. Data ads vive en `analytics` ETL (Meta Ads, Google Ads). Acción sobre ads ocurre vía `analytics` action triggers.
 
-## Capacidades actuales
-- (Sólo lectura, vía analytics) ROAS, CPL, CPM, CPC, gasto, conversiones
+## Capacidades
+> Auto-list generated from `docs/product/capabilities/advertising/`.
+> See `docs/product/BACKLOG.md` "Capabilities snapshot" for current count + status.
 
 ## Capacidades operables desde copilot
 - **Gap general:** crear/modificar/pausar campañas ads conversacionalmente. Hoy es solo lectura.
