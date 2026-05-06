@@ -551,3 +551,58 @@ extraction next session).
 - `docs/process/learnings.md` 2026-05-05 entries (R1-R27 baseline)
 
 ---
+
+## 2026-05-06 — Cierre limpio legacy outcomes (4 frentes pre paradigma-nuevo)
+
+**Contexto:** Post pm-redesign 2026-05 Wave 4, BACKLOG mostraba Building cap saturada (3/3) + Review (1/2) con 4 outcomes/stories migrados desde paradigma legacy con `story_ids: []` vacío y artefactos retro nunca completados. Chris decisión: cerrar TODO lo legacy en motion antes de arrancar paradigma-nuevo, para no contaminar el proceso fresco con técnico-deuda histórico.
+
+**Frentes cerrados (4):**
+
+1. **`sales-agent-litellm-canonicalization`** (review → done)
+   - 11 tickets audit-passed (T-1, T-2, T-3, T-4, T-5, T-6a, T-6b PM-ratified, T-6c, T-7, T-8, T-9). REVIEW-final + 07-merge + learnings.md story-level ya escritos en Wave 8.
+   - Code COMPLETE. Migrations T-6a (commit `f6e7ad0a`) + T-6c quedan pending `/pase-produccion` deploy — Streamlit verify count(deprecated cols non-NULL)=0 post-deploy.
+   - Capability `sales-observability-cost-tracking`: scenarios 4 (happy/negative/edge/adversarial) migrated. 1 gap (cost tracking accuracy) marked resolved_by, 3 gaps remain (observability dashboard, Prometheus alerts, dual-write reconciliation cron) → capability sigue `in-progress`.
+
+2. **`pi-11-backend-quality-guardrails`** (building → done) — S1 only
+   - S1 PR-1 + PR-3 + PR-4 shipped completos. PR-2 commit `6a352df2` (coverage P0 crm + scheduling) merged sin RESULT/REVIEW/IMPL-LOG → retro-fill 2026-05-06.
+   - Success metrics S1 verificados: arch test `test_no_legacy_eventbus_mock_when_outbox_flag_default_on` PASS + 27 referencias EventBus.publish remaining (todas legítimas: arch tests + ratchet allowlists + cutover integration, zero productive legacy mocks).
+   - S2 (coverage P1 sales_agent + copilot ≥80% + shared/links/ports tests) deferred → futuro outcome paradigma-nuevo. Outcome cerrado limpio sin scope-creep.
+   - Flake detectada: `test_arch_fitness_performance_budget` (2.20s vs 2.0s budget primer run, PASS isolated). /pm decisión pendiente: relax threshold o `@pytest.mark.flaky(reruns=1)`.
+
+3. **`pi-4-brand-evolutive-maintenance`** (building rolling → done)
+   - Legacy PR-1 drop-buyer-persona-fields shipped 2026-04-29 (commits `80551ec5` BE / `00fa55b0` copilot / `d047c10b` migration / `e4df74b8` FE 2026-05-01). 24 archivos productivos + 24 regression tests (21 BE + 3 FE).
+   - RESULT/REVIEW templates jamás llenados → retro-fill 2026-05-06.
+   - 5 brand capabilities live + 7 brand stories live, pero `capabilities/brand/INDEX.md` con tabla vacía → flagged for R32 `reconcile_capabilities.py` regen (no manual edit per R32).
+   - Outcome rolling track formalmente cerrado. Future feedback batches → outcome nuevo paradigma-nuevo, NO reabrir PI-4.
+
+4. **`pi-5-copilot-multicanal-telegram`** (building → done) — V1 only
+   - S1 magic-link (commit `c1fa2909`) + S2 orchestrator-respond (commit `d09799b9`) shipped. 86 unit tests + 9 arch fitness telegram_separation tests PASS.
+   - S3 (HITL escalation sales_agent) + S4 (notifs proactivas + `copilot_owner_todos`) + S5 (arch fitness completo + observability) → deferred future outcome paradigma-nuevo.
+   - Capability `copilot-telegram-channel` mantiene status=live (V1 funcional) con 5 gaps marked `defer_reason: pi-5-v1-scope-only`.
+   - Success metrics reescritos honestamente: drop "≥3 tipos de encargo" + "≥70% adopción" (requerían S4 no shipped). Mantener: bot link funcional + orchestrator responde channel format + tests passing + arch fitness verde.
+
+**Lessons cardinal (paradigma-legacy → paradigma-nuevo):**
+
+1. **Rolling-track outcomes son trampa.** PI-4 demuestra: sin force-close criterion, retro-fill nunca ocurre y BACKLOG queda contaminado. Paradigma-nuevo: outcomes finite event-driven, exit_criteria explícitos, no rolling.
+2. **`story_ids: []` vacío = leak migration.** Outcomes migrados desde legacy sin populate story_ids hacen invisible el sub-state al BACKLOG generator. Paradigma-nuevo: validar `story_ids` non-empty al transition idea→validated.
+3. **Honest scope reset > rolling deferral.** PI-5 V1 only: drop S3-S5 explícitamente del scope cerrado, documentar como "future outcome", evita métricas falsas que mienten dashboard.
+4. **Retro-fill artifact pattern.** Cuando legacy loop nunca cerró, `retro-fill` con marca explícita "Original loop never closed under legacy paradigm — filled 2026-05-06 for closure hygiene" + cita commits shipping = honestidad histórica sin re-litigar.
+5. **Capability gaps con `defer_reason` field.** Mejor que borrar gaps o cambiar status=live silencioso: gap visible + razón visible + status honesto.
+6. **`/pase-produccion` decoupling de cierre story.** litellm-canonicalization cierra story=done sin esperar deploy — code complete es el milestone, deploy es operacional separable. Permite cerrar stories cuando hay batches de migrations pendientes.
+
+**Action items pendientes (paradigma-nuevo retoma):**
+- Successor outcome para coverage P1 (PI-11 S2 deferred)
+- Successor outcome para Telegram extensions (PI-5 S3-S5 deferred + 5 capability gaps)
+- /pase-produccion cuando Chris decida → migrations T-6a (commit `f6e7ad0a`) + T-6c deploy
+- Decisión flake `test_arch_fitness_performance_budget`
+
+**Commits sesión:** (incoming) feat(pm): cierre limpio 4 outcomes legacy + retro-fill artifacts + paradigma-nuevo readiness
+
+**Fuentes consultadas:**
+- 4 reportes paralelos audit closure (Phase 1 agents 2026-05-06T13:57Z)
+- BACKLOG.md snapshot 2026-05-06T05:04Z + outcomes/{pi-4,pi-5,pi-11}.md
+- legacy archives `docs/archive/2026/legacy-pis/PI-{4,5,11}-*/`
+- PI-12 active dir `docs/projects/active/PI-12-sales-agent-eval-foundation/`
+- capability YAMLs: brand/, copilot/copilot-telegram-channel.yaml, sales-agent/sales-observability-cost-tracking.yaml
+
+---

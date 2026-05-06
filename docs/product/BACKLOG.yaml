@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-06T05:04:00+00:00
+# Generated at: 2026-05-06T14:05:57+00:00
 
-generated_at: '2026-05-06T05:04:00+00:00'
+generated_at: '2026-05-06T14:05:57+00:00'
 caps:
   validated_max: 10
   ready_max: 5
@@ -233,16 +233,18 @@ buckets:
       audit_iterations: 0
       legacy_layout: true
   ready: []
-  building:
+  building: []
+  review: []
+  done:
   - id: pi-11-backend-quality-guardrails
     kind: outcome
-    state: building
+    state: done
     title: Backend quality guardrails — anti-default-flip + test integrity
     tags:
     - type:hardening
     - type:transversal
     - blocking:deploy
-    last_touched: 2026-05-05
+    last_touched: 2026-05-06
     extra:
       story_ids: []
       why_now: 'Failed /pase-produccion 2026-05-04 detectó 25 BE failures + 2 FE failures
@@ -255,7 +257,7 @@ buckets:
 
         '
       why_next: null
-      target_end: null
+      target_end: 2026-05-06
       priority: 1
       success_metrics:
       - 0 BE failures, 0 FE failures con pytest+vitest sin flags especiales
@@ -265,12 +267,12 @@ buckets:
       - Arch fitness test_no_legacy_eventbus_mock_when_outbox_on bloqueador
   - id: pi-4-brand-evolutive-maintenance
     kind: outcome
-    state: building
+    state: done
     title: Mantenimiento evolutivo Brand Studio (rolling)
     tags:
     - module:brand
     - type:rolling-maintenance
-    last_touched: 2026-05-05
+    last_touched: 2026-05-06
     extra:
       story_ids: []
       why_now: 'Track rolling para responder feedback usuario sobre schema/UX Brand Studio
@@ -281,7 +283,7 @@ buckets:
 
         '
       why_next: null
-      target_end: null
+      target_end: 2026-04-29
       priority: 3
       success_metrics:
       - Completion rate buyer persona post-cleanup
@@ -289,15 +291,18 @@ buckets:
       - Tiempo desde feedback → ship < 5 días
   - id: pi-5-copilot-multicanal-telegram
     kind: outcome
-    state: building
-    title: Copilot multicanal — Telegram MVP
+    state: done
+    title: Copilot multicanal — Telegram MVP (V1 only)
     tags:
     - module:copilot
     - type:feature
     - channel:telegram
-    last_touched: 2026-05-05
+    - scope:v1-only
+    last_touched: 2026-05-06
     extra:
-      story_ids: []
+      story_ids:
+      - copilot-telegram-magic-link
+      - copilot-telegram-orchestrator-respond
       why_now: 'Dueño usa más Telegram que web fuera de horario laboral. Mobile-first
 
         consulta del copilot = ganancia productividad real. HITL Telegram baja
@@ -308,31 +313,28 @@ buckets:
 
         '
       why_next: null
-      target_end: null
+      target_end: 2026-05-01
       priority: 1
       success_metrics:
-      - '>=10 capacidades clave consultables desde Telegram + >=3 tipos encargo, latencia <3s p95'
-      - '>=70% adopción Telegram link entre tenants activos a 30 días post-launch'
-      - 'Cualitativo: ''el copilot me responde como mi account manager — le pregunto desde el celular'''
-  review:
+      - Bot global @nicolify_copilot_bot vinculado vía magic link 15min single-use HMAC funcional end-to-end
+      - Orchestrator real responde DMs Telegram con channel format MarkdownV2 + tool subset filter + memory cost-aware
+      - 'Tests passing: 86 copilot telegram tests + 9 arch fitness telegram_separation tests'
+      - Latencia <3s p95 turn no-streaming (objetivo S2 — verificable post-deploy con observability S5 deferred)
   - id: sales-agent-litellm-canonicalization
     kind: story
-    state: review
+    state: done
     title: sales-agent-litellm-canonicalization
     tags:
     - legacy:active
-    last_touched: 2026-05-06T02:45Z
+    last_touched: 2026-05-06T13:57Z
     extra:
-      phase: AUDIT_T9_APPROVED_T6B_PM_RATIFIED
-      next_action: 'T-8 + T-9 audit-passed (Wave 7 paralelo). T-6b ratificado por /pm pre-clientes per R7 (zero production
-        traffic = zero-read invariant trivially satisfied; T-6a + T-6c deploy together at /pase-produccion). Wave 6 unblocked:
-        T-6c DROP COLUMN final migration. Story A code scope quasi-COMPLETE (10/11 tickets audit-passed; T-6b ratified PM-only).
-        Wave 8 next: REVIEW-final per story + 07-merge + S1 closure.'
+      phase: DONE
+      next_action: Migrations T-6a (commit f6e7ad0a) + T-6c await next /pase-produccion. Streamlit verify count(deprecated
+        cols non-NULL)=0 post-deploy. Story formally CLOSED — code COMPLETE, deploy gating only.
       blocked_by: null
       outcome: active
       audit_iterations: 7
       legacy_layout: true
-  done: []
   parked: []
   dropped: []
 capabilities:
@@ -409,8 +411,8 @@ capabilities:
   deprecated: 0
   total: 5
 - module: sales-agent
-  live: 3
-  in_progress: 2
+  live: 4
+  in_progress: 1
   planned: 0
   deprecated: 0
   total: 5

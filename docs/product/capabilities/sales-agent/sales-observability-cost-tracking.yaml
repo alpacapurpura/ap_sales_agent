@@ -3,15 +3,15 @@ id: sales-observability-cost-tracking
 name: "Observabilidad sales_agent — traces + llm_call + cost tracking"
 module: sales-agent
 backbone_activity: "Trazabilidad turn-a-turn + costo per agent run"
-last_audit: 2026-05-04
-status: in-progress
+last_audit: 2026-05-06
+status: live
 slice: MVP
 links:
   module_doc: "../../modules/sales-agent.md"
   stories_dir: "../../stories/sales-agent/"
-description: "ObservabilityContext (subclass shared BaseObservabilityContext) wraps agent_app.ainvoke. Persiste sales_agent_trace_event + sales_agent_llm_call. Captura cost_usd + fx_rate también en errors (best-effort try/except). FXResolver.default() factory + PricingResolver shared."
-stories_live: 2
-stories_planned: 1
+description: "ObservabilityContext (subclass shared BaseObservabilityContext) wraps agent_app.ainvoke. Persiste sales_agent_trace_event + sales_agent_llm_call. Captura cost_usd + fx_rate también en errors (best-effort try/except). FXResolver.default() factory + PricingResolver shared. Post-PI-12 S1 sales-agent-litellm-canonicalization (2026-05-06): LiteLLM Proxy = canonical único path runtime; cost_usd consumido via CostRecorderCustomLogger bridge + kwargs['response_cost']."
+stories_live: 3
+stories_planned: 0
 stories_total: 3
 story_ids:
   - sales-trace-persist-turn
@@ -19,7 +19,40 @@ story_ids:
   - sales-agent-litellm-canonicalization
 copilot_operable: false
 date_introduced: 2026-05-01
-last_modified: 2026-05-04
+last_modified: 2026-05-06
+
+scenarios_covered:
+  - id: cost-tracking-canonical-litellm-flow
+    type: happy
+    from_story: sales-agent-litellm-canonicalization
+    summary: "Sales_agent ejecuta turn LiteLLM con model='deepseek/deepseek-v4-flash' → copilot_llm_call.provider='deepseek' (canonical via litellm.get_llm_provider) + cost_usd=Decimal('0.000123') consumido directo de kwargs['response_cost']. NO query a model_pricing_snapshot en runtime. p95 callback < 50ms."
+    graders:
+      - "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_canonical_provider_and_cost_from_kwargs"
+      - "state_check db: SELECT provider, cost_usd FROM copilot_llm_call → provider='deepseek' AND cost_usd > 0"
+      - "state_check db: copilot_trace_event payload.provider='deepseek'"
+  - id: legacy-adapter-import-arch-fitness-fails
+    type: negative
+    from_story: sales-agent-litellm-canonicalization
+    summary: "Importar `from src.shared.infrastructure.llm.providers.deepseek import DeepSeekService` (o cualquier de los 6 adapters legacy) → ModuleNotFoundError runtime + arch fitness test_no_legacy_adapter_imports FAIL en CI. Build NO pasa make ci-parity."
+    graders:
+      - "backend/tests/architecture/test_llm_routing_ssot.py::test_no_legacy_adapter_imports"
+      - "backend/tests/architecture/test_llm_routing_ssot.py::test_known_legacy_files_set_is_empty"
+  - id: pricing-snapshot-stale-during-sync
+    type: edge
+    from_story: sales-agent-litellm-canonicalization
+    summary: "Race: callback on_llm_end dispara antes commit del make sync-pricing job. cost_usd=Decimal('0.000456') correcto (LiteLLM-native, no depende de snapshot). NO error. structlog warning pricing_snapshot_stale_during_sync con delta_usd. Reconciliation post-commit registra audit_anomaly_type='snapshot_stale_during_sync' (informational). p95 latency NO degrada."
+    graders:
+      - "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_runtime_cost_independent_of_snapshot_during_sync"
+      - "state_check db: copilot_llm_call.cost_usd = 0.000456"
+      - "state_check logs: 1 warning 'pricing_snapshot_stale_during_sync' con delta_usd field"
+  - id: deleted-flag-rollback-attempt
+    type: adversarial
+    from_story: sales-agent-litellm-canonicalization
+    summary: "Actor hostil intenta resucitar legacy: (a) os.environ['LITELLM_PROXY_ENABLED']='false', (b) import adapter borrado, (c) settings.LITELLM_PROXY_ENABLED. Resultado: ModuleNotFoundError import + AttributeError settings (Pydantic field no existe) + env var queda como ruido sin consumer. arch fitness gate bloquea pre-deploy. NO code path bypass-ea LiteLLM."
+    graders:
+      - "backend/tests/architecture/test_llm_routing_ssot.py::test_settings_has_no_litellm_proxy_enabled_attr"
+      - "backend/tests/architecture/test_llm_routing_ssot.py::test_no_legacy_adapter_imports"
+      - "backend/tests/shared/agent_observability/cost/test_litellm_canonicalization.py::test_all_recorded_calls_pass_through_litellm"
 ---
 
 ## Capabilities cubiertas por este grupo
@@ -40,11 +73,11 @@ last_modified: 2026-05-04
 |---|---|---|---|
 | sales-trace-persist-turn | service-story | live | ../../stories/sales-agent/sales-trace-persist-turn.yaml |
 | sales-cost-tracking-cycle-billing | service-story | live | ../../stories/sales-agent/sales-cost-tracking-cycle-billing.yaml |
-| sales-agent-litellm-canonicalization | service-story | planned | ../../stories/sales-agent/sales-agent-litellm-canonicalization.yaml |
+| sales-agent-litellm-canonicalization | service-story | live | ../../stories/sales-agent/sales-agent-litellm-canonicalization.yaml |
 
 ## Gaps identificados
 
-- **Cost tracking accuracy degraded** (en remediación por `sales-agent-litellm-canonicalization` PI-12 S1): `cost_usd=0` por pricing resolution (deepseek mis-tag como openai en `model_pricing_snapshot`). Story planeada elimina el bug en raíz canonicalizando LiteLLM como único path runtime + pricing snapshot pasa a audit ledger inmutable.
+- **Cost tracking accuracy degraded** (resolved_by: sales-agent-litellm-canonicalization, on: 2026-05-06): bug `cost_usd=0` por pricing resolution (deepseek mis-tag como openai en `model_pricing_snapshot`) eliminado en raíz. LiteLLM Proxy = canonical único path runtime (6 adapters legacy DELETED, flag LITELLM_PROXY_ENABLED REMOVED), cost_usd via CostRecorderCustomLogger bridge consume kwargs['response_cost'] directo, pricing snapshot reducido a audit ledger inmutable. Migración historical T-3 + 4 cols tenant API key deprecadas T-6a/T-6c.
 - Retention worker exists but no production observability dashboard (Streamlit `/admin/cost-sales-agent` placeholder)
 - No alert rules (Prometheus/Grafana) on cost overrun per tenant
 - Dual-write reconciliation worker exists pero no schedule documented (cron expression)

@@ -1,11 +1,12 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: AUDIT_T9_APPROVED_T6B_PM_RATIFIED
-status: pending
-last_artifact: 06-audit/T-9-review.md
-last_modified: 2026-05-06T02:45Z
-next_action: "T-8 + T-9 audit-passed (Wave 7 paralelo). T-6b ratificado por /pm pre-clientes per R7 (zero production traffic = zero-read invariant trivially satisfied; T-6a + T-6c deploy together at /pase-produccion). Wave 6 unblocked: T-6c DROP COLUMN final migration. Story A code scope quasi-COMPLETE (10/11 tickets audit-passed; T-6b ratified PM-only). Wave 8 next: REVIEW-final per story + 07-merge + S1 closure."
+phase: DONE
+status: done
+deploy_pending: true
+last_artifact: 07-merge.md
+last_modified: 2026-05-06T13:57Z
+next_action: "Migrations T-6a (commit f6e7ad0a) + T-6c await next /pase-produccion. Streamlit verify count(deprecated cols non-NULL)=0 post-deploy. Story formally CLOSED — code COMPLETE, deploy gating only."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
@@ -100,6 +101,8 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a ✅ → T-6
 - 2026-05-06 02:15 — `builder-backend` (Opus 4.7 HARD MANDATE) implementó T-9 docs purge. Commits `aabd3acc` (main) + `c93ba549` (SHA backfill) push `development`. 7+1 archivos: MOD `docs/domains/llm-routing.md` (Capa 5 rollback section DELETED + Capa 3 rewrite + new `## CustomLogger pattern` section documenting T-1 bridge LangChain↔LiteLLM + TTL cache 60s) + MOD `docs/domains/tech_module_shared.md` (legacy adapter list removed) + MOD 2 sales_agent docstrings (model_tier.py:30 + nodes.py:192 — KimiService → LiteLLMService) + MOD `docs/product/modules/sales-agent.md` (LLM routing section update) + NEW `learnings.md` (decisions A1-T1, X2-T1, A2-T6a, A3-T4, R7) + NEW T-9-impl-log.md. A1/A2/A3/A4 acceptance PASS. 680/680 sales_agent + arch hardcoded models tests PASS (zero regression). Spanish neutro extended grep 23 voseo terms = 0 matches. Decisions honored R6: 5 binding decisions cited en commit body. Phase=DEV_T9_DONE.
 
 - 2026-05-06 02:45 — `/auditor` (Opus 4.7, auditor-be) revisó T-9 commits `aabd3acc + c93ba549`. Verdict: **APPROVED** (PASS). R5 schema-mirror exception spirit applied for 2 sales_agent docstring textual touches (zero behavioral change, zero AST semantic diff). All 4 acceptance verifiers PASS independently re-run. Extended 23-term voseo grep clean. R6 5 binding decisions cited. R23 Opus mandate verified. /pm follow-up recommendation: codify R5b "textual-mirror exception" en next process-improvement cycle. Phase=AUDIT_T9_APPROVED. Story A code scope COMPLETE pending T-6c (post-T-6b ratify). Last artifact: `06-audit/T-9-review.md`.
+
+- 2026-05-06 13:57 — **Story formally CLOSED — code COMPLETE, deploy gating only**. Wave 8 closure: REVIEW-final.md (verdict APPROVED, all 11 tickets resolved — 10 audit-APPROVED + T-6b PM-ratified per R7) + 07-merge.md (PM ratification PROCEED) + learnings.md (3 durable decisions captured: CostRecorderCustomLogger NEW class T-1, T-6b 1d ops gate pre-clientes R7, gemini audit 6/6 PASS T-4). Story YAML status `ratified` → `live` + last_audit=2026-05-06. Capability `sales-observability-cost-tracking` updated: 4 scenarios migrated (cost-tracking-canonical-litellm-flow, legacy-adapter-import-arch-fitness-fails, pricing-snapshot-stale-during-sync, deleted-flag-rollback-attempt) under `scenarios_covered:` from this story; "Cost tracking accuracy degraded" gap marked resolved_by this story. Pending /pase-produccion: T-6a (commit f6e7ad0a) + T-6c migrations live `alembic upgrade head` + Streamlit `SELECT COUNT(*) WHERE 4 deprecated cols IS NOT NULL = 0` final verification. /pm runtime emits learnings.md aggregate entry + regenerates BACKLOG. Phase=STORY_CLOSED_PRE_DEPLOY. State `pending` → `done`. Last artifact: `07-merge.md`.
 
 - 2026-05-06 02:50 — **T-6b OPS gate ratificado por /pm pre-clientes per R7**. Pre-conditions:
   - T-6a audit-passed Wave 4 (commit f6e7ad0a deployed at next /pase-produccion)

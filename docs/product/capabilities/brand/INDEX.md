@@ -15,6 +15,10 @@
 
 ## Capabilities
 
+> **2026-05-06 — INDEX requires regen by `scripts/reconcile_capabilities.py` (R32). `/pm` runtime will execute.**
+> 5 capability YAMLs exist in this directory but the table below has never been auto-populated.
+> NOT to be regenerated manually — R32 reconcile script is the SSoT generator.
+
 | ID | Name | Status | Stories live/planned |
 |----|------|--------|----------------------|
-| _(vacío)_ |
+| _(pending reconcile_capabilities.py — see note above)_ |

@@ -45,8 +45,15 @@ last_modified: 2026-05-01
 
 ## Gaps identificados
 
-- **DTO cache token fields hardcoded 0 (S5 wire-up pendiente)** — invoke_text outer except defensive set_turn_error
-- **UNIQUE constraint conversations multi-channel deferred S5 PR-5** — race posible en SELECT-then-INSERT
-- BotFather setWebhook prod `@nicolify_bot` post-deploy = operación pendiente Chris
-- No eval suite Telegram-specific (memory windowing + cache prefix con persona simulated)
-- Adversarial: prompt injection via Telegram caption — no testeado
+- **DTO cache token fields hardcoded 0 (S5 wire-up pendiente)** — invoke_text outer except defensive set_turn_error · `defer_reason: pi-5-v1-scope-only`
+- **UNIQUE constraint conversations multi-channel deferred S5 PR-5** — race posible en SELECT-then-INSERT · `defer_reason: pi-5-v1-scope-only`
+- BotFather setWebhook prod `@nicolify_bot` post-deploy = operación pendiente Chris · `defer_reason: pi-5-v1-scope-only`
+- No eval suite Telegram-specific (memory windowing + cache prefix con persona simulated) · `defer_reason: pi-5-v1-scope-only`
+- Adversarial: prompt injection via Telegram caption — no testeado · `defer_reason: pi-5-v1-scope-only`
+
+> Closure note 2026-05-06: outcome `pi-5-copilot-multicanal-telegram` cerrado
+> V1-only (S1+S2 shipped; S3-S5 deferred a outcome fresh paradigma nuevo si
+> futuro retomar). Estos 5 gaps quedan pendientes — capability sigue
+> `status: live` porque V1 funciona end-to-end; gaps son ampliaciones no
+> regresiones. Ver `docs/product/outcomes/pi-5-copilot-multicanal-telegram.md`
+> § Closure note.

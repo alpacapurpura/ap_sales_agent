@@ -1,15 +1,13 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-06T05:04:00+00:00`
+> Generated at: `2026-05-06T14:05:57+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### Now (state=building, 3 items)
-- **pi-11-backend-quality-guardrails**
-- **pi-4-brand-evolutive-maintenance**
-- **pi-5-copilot-multicanal-telegram**
+### Now (state=building, 0 items)
+- _(none)_
 
 ### Next (state=ready, 0 items)
 - _(none)_
@@ -26,11 +24,13 @@
 - sales-agent-voice-fidelity-grader-runtime `[story]`
 - sales-agent-adversarial-jailbreak-suite `[story]`
 
-### Done (review state queue, 1 items)
-- sales-agent-litellm-canonicalization
+### Done (review state queue, 0 items)
+- _(none in review)_
 
-### Recently shipped (last 90d, 0 items)
-- _(none recent)_
+### Recently shipped (last 90d, 3 items)
+- pi-11-backend-quality-guardrails — 2026-05-06
+- pi-4-brand-evolutive-maintenance — 2026-05-06
+- pi-5-copilot-multicanal-telegram — 2026-05-06
 
 ### Parked (0) · Dropped (0)
 
@@ -56,13 +56,12 @@ kanban
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
   📦 Ready (0 / cap 5)
-  🔨 Building (3 / cap 3)
+  🔨 Building (0 / cap 3)
+  🔍 Review (0 / cap 2)
+  ✅ Done (3 / 90d rolling)
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🔍 Review (1 / cap 2)
-    sales-agent-litellm-canonicali[sales-agent-litellm-canonicalization]
-  ✅ Done (0 / 90d rolling)
   🅿 Parked (0)
 ```
 
@@ -84,9 +83,9 @@ kanban
 | iam | 2 | 0 | 0 | 0 | 2 |
 | landing | 3 | 0 | 0 | 0 | 3 |
 | offer | 5 | 0 | 0 | 0 | 5 |
-| sales-agent | 3 | 2 | 0 | 0 | 5 |
+| sales-agent | 4 | 1 | 0 | 0 | 5 |
 | scheduling | 3 | 0 | 0 | 0 | 3 |
 | social-media | 2 | 0 | 0 | 0 | 2 |
 | tenant-domains | 1 | 0 | 0 | 0 | 1 |
-| **TOTAL** | **48** | **4** | **0** | **0** | **52** |
+| **TOTAL** | **49** | **3** | **0** | **0** | **52** |
 

@@ -8,9 +8,9 @@ id: sales-agent-litellm-canonicalization
 type: service-story
 module: sales-agent
 capability: sales-observability-cost-tracking
-status: ratified
+status: live
 slice: MVP
-last_audit: 2026-05-04
+last_audit: 2026-05-06
 ratified:
   by: po
   on: 2026-05-04
