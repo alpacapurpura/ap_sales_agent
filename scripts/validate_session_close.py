@@ -30,10 +30,15 @@ Checks (each block-or-warn classified):
      - Stories with state in {refining,refined,ready,developing,developed,reviewing} but checkpoint.md
        last_modified > 7d → flag stale
 
-Exit codes:
-  0 — all clean (session may close)
-  1 — BLOCK (cap violation; user must fix)
-  2 — WARN (proceed but show issues)
+Exit codes (Claude Code Stop hook protocol):
+  0 — session may close. Either fully clean OR warnings only (non-blocking).
+       WARNs print to stderr (visible to user, NOT fed back to model — avoids loop).
+  2 — BLOCK. Fed back to model as feedback (model must fix before closing).
+       Reserved for true blockers: WIP cap violations.
+
+Rationale: previous contract returned 2 for WARN as well, which made Claude
+Code re-prompt the model with the hook output every turn — uncommitted files
+caused infinite Stop-hook loops. WARN is now informational only.
 
 Run:
   python scripts/validate_session_close.py [--repo PATH] [--quiet]
@@ -107,7 +112,10 @@ def check_wip_caps(backlog: dict) -> list[str]:
         items = buckets.get(state, [])
         # Filter cap-eligible: kind=story AND no legacy:* tag
         eligible = [
-            it for it in items if it.get("kind") == "story" and not any(t.startswith("legacy:") for t in it.get("tags", []))
+            it
+            for it in items
+            if it.get("kind") == "story"
+            and not any(t.startswith("legacy:") for t in it.get("tags", []))
         ]
         n = len(eligible)
         cap = CAPS[cap_key]
@@ -141,7 +149,9 @@ def check_backlog_freshness(repo: Path) -> list[str]:
             timeout=30,
         )
         if result.returncode != 0:
-            warns.append(f"{label}: {result.stdout.strip().splitlines()[0] if result.stdout else 'failed'}")
+            warns.append(
+                f"{label}: {result.stdout.strip().splitlines()[0] if result.stdout else 'failed'}"
+            )
     return warns
 
 
@@ -190,7 +200,9 @@ def check_checkpoint_staleness(repo: Path) -> list[str]:
         mtime = cp.stat().st_mtime
         if mtime < cutoff:
             age_days = int((datetime.now(timezone.utc).timestamp() - mtime) / 86400)
-            warns.append(f"{d.name}: state={state}, checkpoint.md {age_days}d stale (>7d)")
+            warns.append(
+                f"{d.name}: state={state}, checkpoint.md {age_days}d stale (>7d)"
+            )
     return warns
 
 
@@ -203,7 +215,9 @@ def main() -> int:
         default=Path(__file__).resolve().parents[1],
         help="Repo root. Default: script's parent.",
     )
-    parser.add_argument("--quiet", action="store_true", help="Only print on warn/block.")
+    parser.add_argument(
+        "--quiet", action="store_true", help="Only print on warn/block."
+    )
     args = parser.parse_args()
 
     backlog = _read_backlog_yaml(args.repo)
@@ -220,6 +234,7 @@ def main() -> int:
     warns.extend(check_checkpoint_staleness(args.repo))
 
     if block_violations:
+        # BLOCK → stdout (Claude Code feeds stdout back to model on exit 2)
         print("\n\033[31m" + "─" * 65)  # noqa: T201
         print("STOP HOOK BLOCKED — WIP caps exceeded:")  # noqa: T201
         print("─" * 65)  # noqa: T201
@@ -227,18 +242,21 @@ def main() -> int:
             print(f"  ❌ {v}")  # noqa: T201
         print("─" * 65)  # noqa: T201
         print("Resolution: park/drop/finish stories before closing session.")  # noqa: T201
-        print("Edit checkpoint.md state field OR ideas-pool.yaml entry to park/drop.\033[0m")  # noqa: T201
-        return 1
+        print(
+            "Edit checkpoint.md state field OR ideas-pool.yaml entry to park/drop.\033[0m"
+        )  # noqa: T201
+        return 2
 
     if warns:
+        # WARN → stderr (visible to user, NOT fed to model — exit 0 avoids loop)
         if not args.quiet:
-            print("\n\033[33m" + "─" * 65)  # noqa: T201
-            print("STOP HOOK WARN — review before close:")  # noqa: T201
-            print("─" * 65)  # noqa: T201
+            print("\n\033[33m" + "─" * 65, file=sys.stderr)  # noqa: T201
+            print("STOP HOOK WARN — review before close:", file=sys.stderr)  # noqa: T201
+            print("─" * 65, file=sys.stderr)  # noqa: T201
             for w in warns:
-                print(f"  ⚠ {w}")  # noqa: T201
-            print("─" * 65 + "\033[0m")  # noqa: T201
-        return 2
+                print(f"  ⚠ {w}", file=sys.stderr)  # noqa: T201
+            print("─" * 65 + "\033[0m", file=sys.stderr)  # noqa: T201
+        return 0
 
     if not args.quiet:
         print("\033[32m✅ Stop hook OK — session clean.\033[0m")  # noqa: T201

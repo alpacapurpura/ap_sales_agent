@@ -62,7 +62,11 @@ def _story_items(n: int, prefix: str = "s") -> list[dict]:
 
 
 def test_clean_repo_returns_0(tmp_path: Path) -> None:
-    """Clean repo (no caps exceeded, no WIP, fresh) → exit 0."""
+    """Clean repo (no caps exceeded, no WIP, fresh) → exit 0.
+
+    Exit 0 is now the only acceptable outcome for non-blocked repos
+    (WARN was reclassified to exit 0 to prevent Claude Code Stop hook loops).
+    """
     _setup_minimal(tmp_path)
     _write_backlog(tmp_path, _empty_v4_buckets())
     subprocess.run(
@@ -76,12 +80,12 @@ def test_clean_repo_returns_0(tmp_path: Path) -> None:
         check=True,
     )
     result = _run(tmp_path, quiet=True)
-    # Exit 2 (warn) is acceptable since freshness checks may flag missing scripts; key is no BLOCK
-    assert result.returncode in {0, 2}, result.stdout + result.stderr
+    # Exit 0 — clean OR warn-only (warn no longer blocks).
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 def test_developing_cap_exceeded_blocks(tmp_path: Path) -> None:
-    """4 developing stories (cap 3) → exit 1 (BLOCK)."""
+    """4 developing stories (cap 3) → exit 2 (BLOCK, fed back to model)."""
     _setup_minimal(tmp_path)
     buckets = _empty_v4_buckets()
     buckets["developing"] = _story_items(4, "b")
@@ -90,13 +94,13 @@ def test_developing_cap_exceeded_blocks(tmp_path: Path) -> None:
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
-    assert result.returncode == 1
+    assert result.returncode == 2
     assert "developing" in result.stdout
     assert "cap 3" in result.stdout
 
 
 def test_refining_cap_exceeded_blocks(tmp_path: Path) -> None:
-    """4 refining stories (cap 3) → exit 1."""
+    """4 refining stories (cap 3) → exit 2."""
     _setup_minimal(tmp_path)
     buckets = _empty_v4_buckets()
     buckets["refining"] = _story_items(4, "r")
@@ -105,12 +109,12 @@ def test_refining_cap_exceeded_blocks(tmp_path: Path) -> None:
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
-    assert result.returncode == 1
+    assert result.returncode == 2
     assert "refining" in result.stdout
 
 
 def test_ready_cap_exceeded_blocks(tmp_path: Path) -> None:
-    """6 ready stories (cap 5) → exit 1."""
+    """6 ready stories (cap 5) → exit 2."""
     _setup_minimal(tmp_path)
     buckets = _empty_v4_buckets()
     buckets["ready"] = _story_items(6, "r")
@@ -119,12 +123,12 @@ def test_ready_cap_exceeded_blocks(tmp_path: Path) -> None:
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
-    assert result.returncode == 1
+    assert result.returncode == 2
     assert "ready" in result.stdout
 
 
 def test_reviewing_cap_exceeded_blocks(tmp_path: Path) -> None:
-    """3 reviewing stories (cap 2) → exit 1."""
+    """3 reviewing stories (cap 2) → exit 2."""
     _setup_minimal(tmp_path)
     buckets = _empty_v4_buckets()
     buckets["reviewing"] = _story_items(3, "rv")
@@ -133,7 +137,7 @@ def test_reviewing_cap_exceeded_blocks(tmp_path: Path) -> None:
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
-    assert result.returncode == 1
+    assert result.returncode == 2
     assert "reviewing" in result.stdout
 
 
@@ -148,8 +152,8 @@ def test_legacy_exempt_stories_dont_count(tmp_path: Path) -> None:
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
-    # Should NOT block (no cap violation for legacy)
-    assert result.returncode in {0, 2}, f"Expected 0 or 2, got {result.returncode}: {result.stdout}"
+    # Should NOT block (legacy exempt). Exit 0 always now (warn no longer 2).
+    assert result.returncode == 0, f"Expected 0, got {result.returncode}: {result.stdout}\n{result.stderr}"
 
 
 def test_outcomes_dont_count_toward_cap(tmp_path: Path) -> None:
@@ -163,12 +167,16 @@ def test_outcomes_dont_count_toward_cap(tmp_path: Path) -> None:
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
-    # Should NOT block
-    assert result.returncode in {0, 2}, f"Expected 0 or 2, got {result.returncode}"
+    # Should NOT block. Exit 0 always.
+    assert result.returncode == 0, f"Expected 0, got {result.returncode}"
 
 
 def test_uncommitted_wip_warns(tmp_path: Path) -> None:
-    """Modified files → warn (exit 2)."""
+    """Modified files → WARN (exit 0, message on stderr — non-blocking).
+
+    Reclassified from exit 2 to exit 0 to avoid Claude Code Stop hook
+    feedback loop on uncommitted WIP.
+    """
     _setup_minimal(tmp_path)
     _write_backlog(tmp_path, _empty_v4_buckets())
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
@@ -177,30 +185,32 @@ def test_uncommitted_wip_warns(tmp_path: Path) -> None:
     (tmp_path / "newfile.txt").write_text("uncommitted")
 
     result = _run(tmp_path)
-    assert result.returncode == 2
-    assert "uncommitted" in result.stdout
+    assert result.returncode == 0
+    assert "uncommitted" in result.stderr
+    assert result.stdout.strip() == ""
 
 
 def test_missing_backlog_warns(tmp_path: Path) -> None:
-    """No BACKLOG.yaml → warn."""
+    """No BACKLOG.yaml → WARN (exit 0, message on stderr)."""
     _setup_minimal(tmp_path)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     subprocess.run(["git", "commit", "--allow-empty", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
-    assert result.returncode == 2
-    assert "BACKLOG.yaml missing" in result.stdout
+    assert result.returncode == 0
+    assert "BACKLOG.yaml missing" in result.stderr
 
 
 def test_quiet_mode_suppresses_warn_output(tmp_path: Path) -> None:
-    """--quiet suppresses warn output but keeps exit code."""
+    """--quiet suppresses WARN output on both streams + exit 0."""
     _setup_minimal(tmp_path)
     _write_backlog(tmp_path, _empty_v4_buckets())
     (tmp_path / "newfile.txt").write_text("x")
 
     result = _run(tmp_path, quiet=True)
-    assert result.returncode == 2
-    assert result.stdout.strip() == ""  # quiet suppresses
+    assert result.returncode == 0
+    assert result.stdout.strip() == ""
+    assert result.stderr.strip() == ""
 
 
 @pytest.mark.parametrize(
@@ -215,7 +225,7 @@ def test_quiet_mode_suppresses_warn_output(tmp_path: Path) -> None:
     ],
 )
 def test_cap_violation_reported_with_count(tmp_path: Path, state: str, cap_label: str) -> None:
-    """Each v4 cap violation reports state + cap label."""
+    """Each v4 cap violation reports state + cap label, exits 2 (BLOCK to model)."""
     _setup_minimal(tmp_path)
     buckets = _empty_v4_buckets()
     buckets[state] = _story_items(100, "x")  # massive overflow
@@ -224,6 +234,6 @@ def test_cap_violation_reported_with_count(tmp_path: Path, state: str, cap_label
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
-    assert result.returncode == 1
+    assert result.returncode == 2
     assert state in result.stdout
     assert cap_label in result.stdout
