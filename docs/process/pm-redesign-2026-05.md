@@ -417,3 +417,38 @@ Spawn agent `general-purpose` con scope skills:
 - Builder/auditor agent files (.claude/agents/*) — added anti-telephone-game return contract HEADER but did NOT deeply restructure category grids/checklists (per task constraints "DO NOT modify deeply — Wave 4 revisits")
 - pm-nico cleanup in agent prompts: replaced "pm-nico/current-state" with new "capability YAML + modules/{m}.md" wording inline (rather than removing entirely) — preserves the *intent* (post-merge SSoT update reminder) under new vocabulary
 - `architect` skill emits both `03-arch.md` consolidado AND sub-arquitecturas (`03-arch-{be,fe,agentic}.md`) — matched against pm-redesign spec which lists single `03-arch.md` in 5-file ready package; rationale: orchestrator's 03-arch.md is the consolidated entry point, sub-files are persisted detail (avoids losing detail from sub-architects but keeps single canonical entry)
+
+---
+
+### Wave 4 deliverables (2026-05-06)
+
+**R34 Stop hook validator (`scripts/validate_session_close.py`):**
+- 4 checks at session close:
+  - WIP cap enforcement (BLOCK exit 1) — building≤3, ready≤5, validated≤10, review≤2
+  - BACKLOG freshness (WARN exit 2) — generate_backlog --check + reconcile_capabilities --check
+  - Uncommitted WIP (WARN) — git status not clean
+  - Story checkpoint staleness (WARN) — checkpoint.md > 7d para stories ready/building/review
+- 12 unit tests (`backend/tests/scripts/test_validate_session_close.py`)
+- Lint clean, format clean
+
+**Stop hook integration en `.claude/settings.json`:**
+- Stop hook block invocando validator --quiet (only print on violations)
+- 30s timeout
+
+**Story Map 2D HTML (Eleventy) — DEFERRED:**
+- Mermaid kanban en BACKLOG.md (Wave 1) suficiente Phase 1
+- Phase 2 si uso real demuestra necesidad
+
+**Bitácora Wave 4:**
+- 2026-05-06 — Wave 4 implementada. Pipeline completo (Wave 1-4) operativo.
+
+## Estado final pm-redesign 2026-05
+
+| Wave | Status | Commit |
+|---|---|---|
+| 1 — Foundation | ✅ DONE | 207760c1 |
+| 2 — Migration pm-nico/ | ✅ DONE | f23c3403 |
+| 3 — Skills + paradigm refresh | ✅ DONE | b3d09e38 |
+| 4 — Stop hook + automation | ✅ DONE | (pending) |
+
+Sistema PM Nicolify v3 operativo. Próximo step Chris: usar /pm paradigma nuevo en próximo outcome.
