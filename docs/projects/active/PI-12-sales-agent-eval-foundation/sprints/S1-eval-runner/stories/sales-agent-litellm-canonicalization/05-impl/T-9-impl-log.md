@@ -77,4 +77,46 @@ T-9 modifies 2 docstrings inside `modules/sales_agent/{domain,application}` — 
 - Read checkpoint.md for T-6b operational gate rationale (R7 pre-clientes 1d wall-clock window).
 
 ### 01:05 — Implementation
-[appended below as steps execute]
+
+1. Edited `docs/domains/llm-routing.md`:
+   - Updated header "Estado actual" line to reflect 2026-05-06 canonicalized state.
+   - Rewrote Capa 5 intro + table (no rollback row).
+   - Rewrote Capa 3 provider routing table (LiteLLMService única + retained helpers).
+   - Updated Capa 2 env vars table footnote to reflect proxy consumption pattern.
+   - Rephrased 2 unrelated "Rollback" admin-UI procedure terms to "Reversión" (semantics preserved, A1 verifier pass).
+   - Inserted new top-level section `## CustomLogger pattern (cost recorder)` between Capa 5 and "Arquitectura — capas".
+2. Edited `docs/domains/tech_module_shared.md` § infrastructure list — replaced 2 stale lines with 5 current lines (router + LiteLLMService + helpers + cost_recorder + model_registry).
+3. Edited `backend/src/modules/sales_agent/domain/model_tier.py:30` — KimiService → LiteLLMService.
+4. Edited `backend/src/modules/sales_agent/application/agents/sales/nodes.py:192` — KimiService._get_chat_model → LiteLLMService.
+5. Created `docs/projects/active/.../learnings.md` — 3 sections (CostRecorderCustomLogger NEW class justification, T-6b operational gate rationale, gemini audit 6/6 PASS).
+6. Edited `docs/product/modules/sales-agent.md` — line 39 update (Kimi K2.5→K2.6, DeepSeek V3→Reasoner) + new `## LLM routing` section after `## Capacidades operables desde copilot`.
+
+### 01:30 — Acceptance + quality gates
+
+| Gate | Verifier | Result |
+|---|---|---|
+| A1 | `! grep -E 'LITELLM_PROXY_ENABLED|rollback' docs/domains/llm-routing.md` | PASS |
+| A2 | `! grep -E 'KimiService|DeepSeekService|OpenAIService|QwenService|GeminiService' <2 sales_agent files>` | PASS |
+| A3 | `grep -q '## CustomLogger pattern' docs/domains/llm-routing.md` | PASS |
+| A4 | `! grep -E '\b(podés\|tenés\|querés\|hacés\|venís\|mirá\|dejá\|usá)\b' <llm-routing + learnings>` | PASS |
+| Voseo extended | grep across all 4 modified docs (vos\|sos\|sabés\|configurá\|elegí\|...) | PASS — clean |
+| ruff check | sales_agent domain/model_tier.py + sales/nodes.py | All checks passed! |
+| ruff format --check | same files | 2 files already formatted |
+| Python smoke import | `from src.modules.sales_agent.domain.model_tier import LLM_ROLE_BY_SITE, SPECIALIST_TO_ROLE; from src.modules.sales_agent.application.agents.sales.nodes import node_closer, node_product_expert` | imports OK, dicts intact |
+| pytest sales_agent + arch hardcoded models | `tests/architecture/test_no_hardcoded_models_sales_agent.py + tests/modules/sales_agent/` | 680/680 PASS, zero regression |
+| Cross-refs valid | manual `test -f` for cited paths | All cited files exist |
+
+### 01:35 — Commit + push
+
+- Pre-commit hook caught voseo glosario citation in this impl-log (legitimate audit trail of the rule consulted). Added R25 magic comment `<!-- voseo-allowed: technical reference citing the voseo→neutro glosario verbatim from .claude/rules/spanish-text.md (R2 audit trail in Skills Consulted table) -->` per spanish-text.md § "Magic comment escape".
+- Commit `aabd3acc` (`development`). 7 files changed, 315 insertions, 28 deletions, 2 new files.
+- Push origin/development successful (253e6024..aabd3acc).
+
+### State at handoff to gate-runner + auditor
+
+- All A1/A2/A3/A4 acceptance verifiers PASS.
+- Native lint + format clean on the 2 Python files modified.
+- 680/680 sales_agent + arch hardcoded-models tests PASS.
+- Zero behavioral diff (docstring textual changes only).
+- Ajenos files in working tree (T-8 session, CONTEXT-BRIEF-validation auto-modified during T-9 brief gen) preserved untouched per parallel-safety M1/M8.
+- T-9 commit SHA: `aabd3acc`.
