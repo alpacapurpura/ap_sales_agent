@@ -25,6 +25,7 @@ from tests.agentic_evals.sales_agent.fixtures import (
     create_synthetic_eval_lead,
     eval_run_id,
     sales_agent_entrypoint,
+    synthetic_tenant,
     visionarias_tenant_session,
 )
 

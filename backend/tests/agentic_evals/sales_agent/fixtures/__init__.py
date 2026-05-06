@@ -10,11 +10,17 @@ from tests.agentic_evals.sales_agent.fixtures.entrypoint import (
     sales_agent_entrypoint,
 )
 from tests.agentic_evals.sales_agent.fixtures.run_id import eval_run_id
+from tests.agentic_evals.sales_agent.fixtures.synthetic_tenant import (
+    seed_t2_synthetic_tenant_with_offer,
+    synthetic_tenant,
+)
 from tests.agentic_evals.sales_agent.fixtures.tenant import visionarias_tenant_session
 
 __all__ = [
     "create_synthetic_eval_lead",
     "eval_run_id",
     "sales_agent_entrypoint",
+    "seed_t2_synthetic_tenant_with_offer",
+    "synthetic_tenant",
     "visionarias_tenant_session",
 ]

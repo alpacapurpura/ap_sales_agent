@@ -1,0 +1,121 @@
+# Smoke golden — Visionarias single-turn cold-lead conversation.
+#
+# Per `03-arch-be.md` § "Golden YAML schema" + ticket T-5 deliverable 2,
+# this is the ONE hardcoded golden consumed by Scenario 1 of the smoke
+# runner. It is intentionally minimal so the harness can be exercised in
+# CI with a small real-LLM cost (< $0.01).
+#
+# Decision binding (ratified Chris 2026-05-04):
+#   - B2: offer_id is HARDCODED below; if the offer disappears (admin soft-
+#     deletes), the smoke FAILS EXPLICITLY (not silent shift to another
+#     offer). Re-run `regenerate_golden.py visionarias-smoke-001` to
+#     refresh the YAML when an admin deliberately rotates offers.
+#   - B4: forbidden_tools list below is the deduplicated union of
+#     STAGE_TOOL_SCOPE registry entries (presentation + closing stages),
+#     verified against
+#     backend/src/modules/sales_agent/application/tools/registry.py:56.
+#     This list is DOCUMENTATION + FORBIDDEN GATE — the registry remains
+#     the SSoT (the smoke test verifies "no tool from this list fired",
+#     not "this list is exhaustive").
+#   - B5: language uses "es" (ISO-639-1 prefix) so langdetect normalisation
+#     accepts both "es" and "es-AR" outputs from the agent.
+#   - B6: voice_fidelity_grader is Story 7 — out of scope here. The golden
+#     does NOT carry a brand_voice template field.
+#
+# Spanish neutro LATAM check: `input_message` uses tuteo (tu, eres, tienes,
+# puedes) — NO voseo. Acceptance A6 verifies via:
+# bash `! grep -E "\b(pod[e]s|ten[e]s|s[o]s|quer[e]s|hac[e]s)\b" THIS_FILE`.
+# (Forbidden voseo word patterns are obfuscated in this comment so the
+# grep itself does not match the documentation line.)
+---
+id: "visionarias-smoke-001"
+version: 1
+schema_version: 1
+
+# Tenant binding — fixture resolves VISIONARIAS_TENANT_ID env var; this
+# YAML stores the canonical UUID for fail-explicit (B2) so a refactor of
+# the env-var name does not break the test.
+tenant_id: "00000000-0000-0000-0000-000000000001"
+
+# Offer binding — B2 hardcoded UUID. If the offer disappears
+# (deleted_at != NULL), Scenario 1 FAILS EXPLICITLY at fixture-precondition
+# stage (`visionarias_tenant_session` skips with explicit reason). Re-run
+# `regenerate_golden.py visionarias-smoke-001` to refresh.
+#
+# NOTE: This UUID is a deterministic placeholder. The smoke test reads
+# the live offer via `visionarias_tenant_session["offer"]` (top-1 active
+# from DB) — the UUID below documents the EXPECTED offer for human
+# audit; the fixture skips if any active offer is missing. Run
+# `regenerate_golden.py` after first run to bind the real UUID.
+offer_id: "00000000-0000-0000-0000-000000000001"
+
+# Spanish neutro LATAM (no voseo) — tuteo throughout. The first-turn
+# message simulates a buyer who saw a Visionarias ad and wants to know
+# pricing + methodology before committing. Single-turn cold-lead = the
+# qualifier specialist should answer; closer / payment tools must NOT
+# fire (B4 binding).
+input_message: |
+  Hola, vi su publicidad sobre Visionarias. ¿Cuanto cuesta y como es la metodologia?
+
+# Specialist trajectory expectation (Capa 1 — assert_trajectory mode=includes).
+# Cold-lead first turn → outer supervisor routes to "sales_agent" subgraph,
+# inner sales supervisor routes to "qualifier". Spy captures both via
+# state["next_node"] at on_chain_end of each supervisor. Mode "includes"
+# (subset semantic) — closer / product_expert MUST NOT appear; tool_executor
+# only appears if a tool fires (forbidden by B4).
+expected_specialists:
+  - "qualifier"
+
+# Required tools (Capa 2 — assert_tool_calls.required).
+# Empty list per spec § "Scenario 1": cold-lead single-turn does NOT
+# require any tool to fire (intent classification is the SemanticRouter
+# service, NOT a `@tool` — confirmed by sales-agent-expert SSoT).
+required_tools: []
+
+# Forbidden tools (Capa 2 — assert_tool_calls.forbidden).
+# B4 binding: deduplicated union of presentation + closing + discovery
+# stages from STAGE_TOOL_SCOPE registry
+# (backend/src/modules/sales_agent/application/tools/registry.py:56).
+# rapport stage (where cold-lead lives) has frozenset() — no tools at all.
+# Any tool below firing in this turn = regression.
+forbidden_tools:
+  - "send_payment_link"            # closing stage
+  - "generate_payment_link"        # closing stage
+  - "create_payment_link"          # closing stage (S9 payment lifecycle)
+  - "mark_enrollment_paid_manual"  # closing stage
+  - "create_enrollment"            # closing stage
+  - "grant_access"                 # closing stage (S9 access grant)
+  - "create_booking_link"          # closing + presentation stages
+  - "promote_waitlist_to_edition"  # closing stage
+  - "list_waitlist"                # closing + presentation stages
+  - "list_public_editions"         # closing + presentation + discovery
+  - "get_available_slots"          # closing + presentation + discovery
+
+# Must-mention substrings (Capa 3 — assert_output.must_mention).
+# Case-insensitive. Smoke verifies the agent named the brand at least once
+# (anchor for Spanish-marker downstream + no language drift).
+must_mention:
+  - "Visionarias"
+
+# Language expectation (Capa 3 — assert_output.language).
+# "es" prefix tolerates both "es" and "es-AR" outputs from langdetect.
+language: "es"
+
+# Cost budget (Capa 4 — assert_cost_recorded.max_cost_usd).
+# Smoke single-turn with default model (DeepSeek V4-Flash via LiteLLM
+# proxy) = ~$0.001-0.005. 0.01 ceiling absorbs prefix cache miss spikes.
+max_cost_usd: 0.01
+
+# Latency threshold (Capa 5 — assert_latency.max_ms).
+# 30s = p95 SLA per spec. Smoke real-LLM single-turn typically ~3-8s.
+max_latency_ms: 30000
+
+# Metadata — populated/updated by `regenerate_golden.py`.
+# `regenerated_from` is null for the initial hand-crafted golden; the CLI
+# script overwrites this on each run with the previous offer_id (or
+# git_commit_sha for "regenerated_from" provenance).
+metadata:
+  created_at: "2026-05-05T00:00:00Z"
+  regenerated_from: null
+  trial_policy:
+    trials_per_scenario: 1
