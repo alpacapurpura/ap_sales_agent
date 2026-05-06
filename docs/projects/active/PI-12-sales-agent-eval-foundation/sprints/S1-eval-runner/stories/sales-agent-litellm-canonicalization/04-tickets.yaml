@@ -81,7 +81,7 @@ summary:
     title: "Migration DROP COLUMN tenant API keys — Phase 3"
     surface: DB+BE
     owner_pool: [claude-opus-4-7]
-    state: draft
+    state: audit-passed
     blocked_by: [T-6b]
     blocks: []
     estimate_hours: 2
@@ -747,7 +747,7 @@ T6c:
   title: "Migration DROP COLUMN tenant API keys (Phase 3 expand-contract: physical removal)"
   type: migration
   surface: DB+BE
-  state: draft
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false
@@ -806,7 +806,11 @@ T6c:
   blocks: []
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: building, at: "2026-05-06T03:00Z", by: "builder-backend (Opus 4.7 HARD MANDATE)" }
+    - { state: tests-passing, at: "2026-05-06T03:30Z", by: "builder-backend (commits a10e146c + dc1714d0 — 9 files)" }
+    - { state: audit-passed, at: "2026-05-06T03:50Z", by: "auditor-backend (Opus 4.7) — APPROVED, 0 FAIL/0 WARN, 9070 full BE PASS, gemini preservation verified across 6 surfaces" }
+  assigned_to: claude-opus-4-7
+  audit_review: "06-audit/T-6c-review.md"
 
 T7:
   id: T-7

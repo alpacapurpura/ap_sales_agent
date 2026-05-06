@@ -1,71 +1,123 @@
 {
   "schema_version": "1.0",
   "pr_folder": "/home/chris/AISALESHT/docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization",
-  "ticket": "T-9",
+  "ticket": "T-6c",
   "iter": 1,
-  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/modules/sales_agent/{domain/model_tier.py,application/agents/sales/nodes.py} --no-cache && .venv/bin/ruff format --check <same> && .venv/bin/pytest tests/architecture/test_no_hardcoded_models_sales_agent.py tests/modules/sales_agent/ -x -q --no-cov && bash A1+A2+A3+A4 verifiers",
-  "command_alias": "test-backend (scoped — docs ticket)",
-  "started_at": "2026-05-06T02:00:00Z",
-  "finished_at": "2026-05-06T02:15:00Z",
-  "duration_ms": 900000,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check src/ tests/ && .venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\" && .venv/bin/pytest -m \"not integration and not verify\" --cov=src/modules --cov=src/shared --cov-report=term-missing -q --tb=short",
+  "command_alias": "test-backend",
+  "started_at": "2026-05-06T03:00:00Z",
+  "finished_at": "2026-05-06T03:30:00Z",
+  "duration_ms": 1800000,
   "exit_code": 0,
   "raw_log_path": "embedded in builder-backend agent transcript (Opus 4.7) per R22 manual fallback",
   "gates": [
     {
       "name": "ruff_lint",
-      "command": ".venv/bin/ruff check src/modules/sales_agent/{domain/model_tier.py,application/agents/sales/nodes.py} --no-cache",
+      "command": ".venv/bin/ruff check src/ tests/ --no-cache",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "All checks passed (scoped lint of 2 modified files)"
+      "summary": "All checks passed"
     },
     {
       "name": "ruff_format",
-      "command": ".venv/bin/ruff format --check <2 files>",
+      "command": ".venv/bin/ruff format --check src/ tests/",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "2 files already formatted"
+      "summary": "2329 files already formatted"
     },
     {
-      "name": "pytest_sales_agent_arch",
-      "command": ".venv/bin/pytest tests/architecture/test_no_hardcoded_models_sales_agent.py tests/modules/sales_agent/ -x -q --no-cov",
+      "name": "pytest_iam_full",
+      "command": ".venv/bin/pytest tests/modules/iam/ -x -v",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "680/680 PASS in 16.97s — zero regression on sales_agent module + arch hardcoded models test"
+      "summary": "195/195 PASS — full iam regression (includes 9 new T-6c tests + T-6a tests + baseline)"
     },
     {
-      "name": "acceptance_a1_no_proxy_or_rollback_in_llm_routing",
-      "command": "! grep -E 'LITELLM_PROXY_ENABLED|rollback' docs/domains/llm-routing.md",
+      "name": "pytest_architecture",
+      "command": ".venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\"",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "0 stale flag/rollback references in llm-routing.md"
+      "summary": "827/827 PASS — no ratchet violations"
     },
     {
-      "name": "acceptance_a2_no_legacy_service_refs_in_sales_agent",
-      "command": "! grep -E 'KimiService|DeepSeekService|OpenAIService|QwenService|GeminiService' backend/src/modules/sales_agent/domain/model_tier.py backend/src/modules/sales_agent/application/agents/sales/nodes.py",
+      "name": "pytest_downstream_regression",
+      "command": ".venv/bin/pytest tests/modules/sales_agent/ tests/modules/copilot/observability/ -x -q",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "0 legacy service refs in 2 sales_agent docstring locations (replaced with LiteLLMService)"
+      "summary": "837/837 PASS — sales_agent + copilot observability zero regression"
     },
     {
-      "name": "acceptance_a3_customlogger_pattern_section",
-      "command": "grep -q '## CustomLogger pattern' docs/domains/llm-routing.md",
+      "name": "pytest_coverage_full",
+      "command": ".venv/bin/pytest -m \"not integration and not verify\" --cov=src/modules --cov=src/shared --cov-report=term-missing -q --tb=short",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "New section added documenting T-1 bridge LangChain↔LiteLLM + TTL cache"
+      "summary": "9070 passed, 0 failed, 29 skipped — coverage threshold met implicitly via exit 0",
+      "tests_passed": 9070,
+      "tests_failed": 0,
+      "tests_skipped": 29
     },
     {
-      "name": "acceptance_a4_spanish_neutro",
-      "command": "! grep -E '\\b(podés|tenés|querés|hacés|venís|mirá|dejá|usá)\\b' docs/domains/llm-routing.md docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization/learnings.md",
+      "name": "acceptance_a1_alembic_idempotent_mock",
+      "command": "pytest tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_alembic_drop_column_idempotent",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "0 voseo matches across modified docs + new learnings.md. Extended grep across 23 voseo terms also clean."
+      "summary": "Migration mock-based idempotent verification (IF EXISTS guards SQL-level)"
+    },
+    {
+      "name": "acceptance_a2_model_columns_dropped",
+      "command": "pytest tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_tenant_model_columns_dropped",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "TenantModel.__table__.columns: 4 deprecated cols ABSENT, gemini_api_key PRESENT"
+    },
+    {
+      "name": "acceptance_a3_pydantic_fields_dropped",
+      "command": "pytest tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_pydantic_fields_dropped",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "Tenant + AISettings + TenantSettingsUpdate model_fields: 4 deprecated fields ABSENT (across 3 classes), gemini_api_key PRESENT"
+    },
+    {
+      "name": "acceptance_a4_repo_no_legacy_refs",
+      "command": "pytest tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_repo_no_legacy_col_references",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "tenant_repository.py: 0 references to 4 legacy cols (T-6a removed writes; T-6c verified zero residual reads)"
+    },
+    {
+      "name": "acceptance_a5_alembic_live",
+      "command": "docker exec visionarias_brain_dev alembic upgrade head && docker exec visionarias_brain_dev alembic upgrade head",
+      "exit_code": null,
+      "result": "DEFERRED_BRAIN_DOWN",
+      "summary": "Live alembic dual-run deferred to /pase-produccion (brain container DOWN; T-3 + T-6a precedent). IF EXISTS contract enforced via mock-based A1 test."
+    },
+    {
+      "name": "regression_factory_extract_tenant_key_still_deleted",
+      "command": "pytest tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_factory_extract_tenant_key_method_still_deleted",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "T-6a deletion of LLMFactory._extract_tenant_key preserved (regression check)"
+    },
+    {
+      "name": "bonus_migration_revision_metadata",
+      "command": "pytest tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_migration_revision_metadata",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "Revision chain T-6a (123) → T-6c (124) correct"
+    },
+    {
+      "name": "bonus_migration_downgrade",
+      "command": "pytest tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_migration_downgrade_adds_columns_back",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "Downgrade ADD COLUMN IF NOT EXISTS for 4 cols (rollback path; cannot restore data — ephemeral)"
     }
   ],
   "overall": {
     "any_fail": false,
     "fail_gate_names": [],
-    "summary": "T-9 (docs purge — final code ticket Story A) green. All 4 acceptance verifiers PASS. Spanish neutro enforced. 680/680 sales_agent module tests PASS (no regression). 5 R6 binding decisions cited in commit body."
+    "summary": "T-6c (Phase 3 expand-contract DROP COLUMN final) green. All 4 acceptance verifiers PASS + 3 bonus tests PASS + regression check PASS. 9070 full BE suite PASS. 195 iam full regression PASS. 837 downstream observability PASS. 827 arch fitness PASS. A5 alembic live deferred /pase-produccion per T-3 + T-6a precedent. gemini_api_key PRESERVED across migration + 3 Pydantic classes + repo + tests. Story A FINAL code ticket complete."
   },
-  "downstream_regression_note": "T-9 modifies docs/domains/{llm-routing,tech_module_shared}.md + docs/product/modules/sales-agent.md + 2 sales_agent docstrings (no behavioral change) + creates learnings.md + impl-log. Per .claude/rules/auditor-downstream-regression.md, no shared/ paths touched (sales_agent docstring touch is textual, not behavioral) → no tabla SSoT entry triggers.",
-  "notes": "Manual finalization per R22 fallback. 2 commits aabd3acc (main 7 files) + c93ba549 (SHA backfill). Pre-commit voseo magic comment escape used legitimately on impl-log per R25 (technical reference citing glosario verbatim). All staged files explicitly named, no git add .|-A|-u."
+  "downstream_regression_note": "T-6c modifies modules/iam/persistence (tenant_model.py + tenant.py) + tenant_repository.py + alembic/versions + tests/modules/iam. Per .claude/rules/auditor-downstream-regression.md tabla SSoT, no shared/ paths cross-consumer touched. Sales_agent + copilot observability tests 837/837 PASS confirms zero downstream regression.",
+  "notes": "Manual finalization per R22 fallback. Two commits a10e146c (main 9 files) + dc1714d0 (SHA backfill). T-6c is final code ticket Story A. Story A code scope COMPLETE post-audit (10/11 tickets audit-passed pending T-6c, plus T-6b PM-ratified)."
 }

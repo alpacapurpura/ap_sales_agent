@@ -3,14 +3,14 @@ level: PI
 id: PI-12
 phase: EXECUTING                                 # PLANNING | EXECUTING | WRAP_UP | ARCHIVED
 status: in-progress                              # pending | in-progress | done | blocked
-last_artifact: PI.md
-last_modified: 2026-05-04T20:00:00Z
-next_action: "Chris invoca /po dentro de sprints/S1-eval-runner/stories/sales-agent-eval-runner-foundation/ → expandir 00-story.md a 01-spec.md Gherkin"
+last_artifact: sprints/S1-eval-runner/stories/sales-agent-litellm-canonicalization/07-merge.md
+last_modified: 2026-05-06T03:55Z
+next_action: "S1 wrap-up: Story A + Story B audit-passed (REVIEW-final.md + 07-merge.md per story written). Story C + D deferred to S2 planning. /pase-produccion deploys A + B together. Post-deploy: /pm closes deferred A1/A3/A4/A5 verifiers + auto-promotes T-6b → verified per Streamlit query. Then S2 planning kicks off (pass-k-tracking + budget-cap)."
 spawned_at: 2026-05-04T19:00:00Z
 spawned_by: /pm
 parallel_safe: false                             # PI-12 toca sales_agent — single session only durante este PI
 blocked_reason: null
-audit_iterations: 0
+audit_iterations: 13
 ---
 
 ## Phases (PI-level)
@@ -51,3 +51,11 @@ audit_iterations: 0
 2. `cat docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/checkpoint.md`
 3. Identificar primera story con phase `PM_DRAFT` y status `pending` → invocar `/po` ahí
 4. Phase orden ejecución S1: `eval-runner-foundation` → `eval-pass-k-tracking` (depends 1) → `eval-cost-budget-cap` (depends 1) → `cost-tracking-deepseek-fix` (independiente, paralelizable con qwen-opencode)
+
+- 2026-05-06 03:55 — **S1 Wave 8 closure** — `/pm` writes REVIEW-final.md + 07-merge.md per story:
+  - Story A `sales-agent-litellm-canonicalization`: 11/11 tickets resolved (10 audit-APPROVED + T-6b PM-ratified per R7). REVIEW-final.md verdict APPROVED. 07-merge.md ready for /pase-produccion deploy.
+  - Story B `sales-agent-eval-runner-foundation`: 6/6 tickets audit-passed. REVIEW-final.md verdict APPROVED. 07-merge.md ready for /pase-produccion smoke verify.
+  - Story C `sales-agent-eval-pass-k-tracking`: DEFERRED to S2 planning (not started this sprint).
+  - Story D `sales-agent-eval-cost-budget-cap`: DEFERRED to S2 planning (not started this sprint).
+  - sprint.md status `wrap-up` (not done since 2 stories deferred). Retrospective brief documented (wins + process improvements + risks + S2 recommendations).
+  - PI-12 status remains in-progress (more sprints/stories pending: S2 + S3 + S4).
