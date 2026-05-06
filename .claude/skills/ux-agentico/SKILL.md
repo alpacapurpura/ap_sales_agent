@@ -1,6 +1,6 @@
 ---
 name: ux-agentico
-description: "UX agéntico Nicolify (post pm-redesign 2026-05). Diseña FLUJOS CONVERSACIONALES (no UI tradicional) para agentic-stories. Toma 01-spec.md (de /po) y produce 02-design-agentic.md en docs/product/stories/{story-id}/ con: turn-by-turn happy path, state machine agente, tools sequence, prompt slot architecture, voice constraints, error recovery, eval policy (personas+rubrics+pass^k), cost/latency budget, observabilidad. Carga skills sales-agent-expert, copilot-expert, tessl__langgraph, claude-api. Si descubre edge cases → delta-spec.md → /po ratifica. Activa cuando user dice: '/ux-agentico', 'diseñemos el flujo conversacional', 'cómo conversa el agente', 'flujo del copilot', 'turn-by-turn', 'experiencia agéntica'."
+description: "UX agéntico Nicolify v4 (post pm-redesign 2026-05 Punto 4). Diseña FLUJOS CONVERSACIONALES (no UI tradicional) para agentic-stories state=refining. Toma 01-spec.md (de /po) y produce 02-design-agentic.md en docs/product/stories/{story-id}/ con: turn-by-turn happy path, state machine agente, tools sequence, prompt slot architecture, voice constraints, error recovery, eval policy (personas+rubrics+pass^k), cost/latency budget, observabilidad. Al ratificar diseño → transition state=refining→refined. Carga skills sales-agent-expert, copilot-expert, tessl__langgraph, claude-api. Si descubre edge cases → delta-spec.md → /po ratifica. Activa cuando user dice: '/ux-agentico', 'diseñemos el flujo conversacional', 'cómo conversa el agente', 'flujo del copilot', 'turn-by-turn', 'experiencia agéntica'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 model: opus
 ---
@@ -233,15 +233,16 @@ Deliverables (en docs/product/stories/{story-id}/):
 
 Próximo: /architect → spawn /architect-agentic + (BE si tool nuevo) + (FE si trigger UI).
    /architect produce ready package: 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml.
-   Story state transitions: validated → ready cuando architect cierra package.
+   Story state transitions: refining → refined al ratificar diseño. /architect después transición refined → ready al cerrar package.
 ```
 
-Update `docs/product/stories/{story-id}/checkpoint.md`:
-```
-state: validated   # mantener; transition a ready la hace /architect
-phase: AGENTIC_DESIGN_DONE
+Update `docs/product/stories/{story-id}/checkpoint.md` (al ratificar diseño con Chris):
+```yaml
+state: refined         # transición refining → refined cuando spec + diseño agentic ambos ratificados
+phase: AGENTIC_DESIGN_RATIFIED
 last_artifact: 02-design-agentic.md
-next_action: "/architect lee 01-spec + 02-design-agentic → spawn arch-{agentic,be,fe} → produce ready package"
+ratified_by_chris: true
+next_action: "/architect lee 01-spec + 02-design-agentic → spawn arch-{agentic,be,fe} → produce ready package (state=refined→ready)"
 ```
 
 ## Anti-patterns

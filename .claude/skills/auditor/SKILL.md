@@ -1,6 +1,6 @@
 ---
 name: auditor
-description: "Auditor independiente (Conv 3 — Review+Merge, post pm-redesign 2026-05). Toma story state=review (en docs/product/stories/{story-id}/) → spawna auditor-{be,fe,agentic} según surface. Veredicto: APPROVED | CHANGES_REQUESTED | ESCALATED. Self-fix triviales (lint/typo/format) cap 2 iter. Diseño/security/arch → escala. Cuando todos tickets audit-passed, escribe CHECKPOINTS.md (C1-C5 grid: Code | Spec | Architecture | Cross-cutting | Trace) → hand off /pm para merge. Activa cuando user dice: '/auditor', 'audita story', 'revisa tickets', 'verdict', 'review final', 'CHECKPOINTS'."
+description: "Auditor independiente v4 (Conv 3 — Review+Merge, post pm-redesign 2026-05 Punto 4). Toma story state=developed (Chris triggered manualmente para controlar gasto Opus) → transition state=developed→reviewing → spawna auditor-{be,fe,agentic} según surface. Veredicto: APPROVED | CHANGES_REQUESTED | ESCALATED. Self-fix triviales (lint/typo/format) cap 2 iter. Diseño/security/arch → escala. Cuando todos tickets audit-passed, escribe CHECKPOINTS.md (C1-C5 grid: Code | Spec | Architecture | Cross-cutting | Trace) → hand off /pm para merge. Activa cuando user dice: '/auditor', 'audita story', 'revisa tickets', 'verdict', 'review final', 'CHECKPOINTS'."
 allowed-tools: Read, Edit, Bash, Grep, Glob, Agent
 model: opus
 ---
@@ -11,7 +11,7 @@ model: opus
 
 ## Inputs obligatorios
 
-1. `docs/product/stories/{story-id}/checkpoint.md` — state=review requerido
+1. `docs/product/stories/{story-id}/checkpoint.md` — state=developed requerido (Chris triggered manualmente; auditor transition a `reviewing` al picking up)
 2. `docs/product/stories/{story-id}/06-tickets.yaml` — pila tickets pushed
 3. `docs/product/stories/{story-id}/T-{n}-result.md` por ticket (qué dice el dev que entregó)
 4. `docs/product/stories/{story-id}/T-{n}-impl-log.md` por ticket (iteration_log autonomous loop)
@@ -56,7 +56,7 @@ Espera context-builder + context-validator. Lee header. Si flag `blocking` → S
 ## Step 1 — Bootstrap
 
 ```bash
-cat $STORY_DIR/checkpoint.md          # verify state=review
+cat $STORY_DIR/checkpoint.md          # verify state=developed; transition a reviewing al pickup
 cat $STORY_DIR/06-tickets.yaml        # tickets pushed
 ls $STORY_DIR/T-*-result.md           # results existen
 git log --oneline -10
@@ -96,7 +96,7 @@ python3 -c "import json,subprocess; ..." > $GATE
 ```
 Document en T-{n}-review.md sección "Gate-runner failover" + escalate backlog R22 retry inventory.
 
-Espera. Lee `gate-output.json`. Si `overall.any_fail=true` → BLOCK sub-auditor spawn, devolver story a `/dev-team` con `state: building` (auditor no audita código que no pasa gates).
+Espera. Lee `gate-output.json`. Si `overall.any_fail=true` → BLOCK sub-auditor spawn, devolver story a `/dev-team` con `state: developing` (auditor no audita código que no pasa gates).
 
 Solo si `any_fail=false` → continuar spawn sub-auditor.
 
@@ -332,12 +332,12 @@ C3: 6/6 ✅
 C4: 6/6 ✅
 C5: 6/6 ✅ (ready for /pm to action)
 
-Próximo: /pm aplica 07-merge.md → state=review→done → scenarios migran a capability → archive story a docs/archive/{year}/stories/{story-id}/.
+Próximo: /pm aplica 07-merge.md → state=reviewing→done → scenarios migran a capability → archive story a docs/archive/{year}/stories/{story-id}/.
 ```
 
 Update `docs/product/stories/{story-id}/checkpoint.md`:
 ```yaml
-state: review     # mantener — /pm transitiona a done en merge step
+state: reviewing     # mantener — /pm transitiona a done en merge step
 phase: AUDIT_DONE
 last_artifact: CHECKPOINTS.md
 next_action: "/pm aplica merge → archive story"

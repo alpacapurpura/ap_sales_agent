@@ -1,6 +1,6 @@
 ---
 name: po
-description: "Product Owner Nicolify v3 (post pm-redesign 2026-05). SCOPE: service-stories only (BE endpoint sin UI, sin agentic) o agentic-stories spec (que después /ux-agentico diseña flow). Para UI std (CRUD/list/form/dashboard) → use /po-ux fusión. Toma 1 user story → produce 01-spec.md ratificada por Chris + escribe checkpoint state=validated. Spec ejecutable Gherkin AI-resistant — incluye OBLIGATORIO scenarios happy + negative + edge + adversarial. Loop iterativo. Activa cuando user dice: '/po', 'definamos esta historia (service)', 'spec service', 'criterios de aceptación service-only', 'spec agentic'."
+description: "Product Owner Nicolify v4 (post pm-redesign 2026-05 Punto 4). SCOPE: service-stories only (BE endpoint sin UI, sin agentic) o agentic-stories spec (que después /ux-agentico diseña flow). Para UI std (CRUD/list/form/dashboard) → use /po-ux fusión. Toma 1 user story state=refining → produce 01-spec.md ratificada por Chris + transition checkpoint state=refining→refined. Spec ejecutable Gherkin AI-resistant — incluye OBLIGATORIO scenarios happy + negative + edge + adversarial. Loop iterativo. Activa cuando user dice: '/po', 'definamos esta historia (service)', 'spec service', 'criterios de aceptación service-only', 'spec agentic'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 model: opus
 ---
@@ -21,8 +21,8 @@ model: opus
 
 ## Inputs obligatorios
 
-1. Idea/outcome de Chris/`/pm` (state=`validated` en `ideas-pool.yaml` o `outcomes/{id}.md`)
-2. `docs/product/stories/{story-id}/checkpoint.md` (creado por `/pm` con state=validated)
+1. Outcome de Chris/`/pm` con story en state=`refining` (idea ya pasó por trigger Chris "refinemos")
+2. `docs/product/stories/{story-id}/checkpoint.md` (creado por `/pm` con state=refining)
 3. (opcional) `docs/product/stories/{story-id}/00-story.md` — si `/pm` ya escribió brief
 4. `docs/product/modules/{m}.md` — estado funcional módulo
 5. `docs/product/capabilities/{m}/` — capabilities existentes (no duplicar)
@@ -41,12 +41,12 @@ model: opus
 
 ```bash
 cat docs/product/BACKLOG.md                           # estado overall
-cat docs/product/stories/{story-id}/checkpoint.md     # state=validated requirido
+cat docs/product/stories/{story-id}/checkpoint.md     # state=refining requerido
 cat docs/product/ideas-pool.yaml | grep -A5 {idea}    # contexto idea origen
 ls docs/product/capabilities/{m}/                     # caps existentes (no duplicar)
 ```
 
-Si no existe `checkpoint.md` → escala `/pm` para crear story folder. NO redactes spec sin checkpoint.
+Si checkpoint state ≠ `refining` → STOP. Si state=`idea`, escala `/pm` para transition idea→refining. Si state=`refined` o avanzado, story ya pasó por `/po`.
 
 ### Step 2 — Cargar domain skill
 
@@ -177,14 +177,27 @@ Próximo paso según type:
 
 Si Chris dice "single-shot" → invocar `/ux-agentico` o `/architect` como Skill tool en mismo session.
 
-### Step 7 — Update checkpoint
+### Step 7 — Update checkpoint (transition refining → refined)
+
+**Service-story:** spec ratificada → directo a `state: refined`.
+
+**Agentic-story:** spec ratificada pero falta diseño conversacional. Mantener `state: refining` hasta que `/ux-agentico` produzca `02-design-agentic.md` ratificado por Chris. Recién ahí transition a `refined`.
 
 ```yaml
-state: validated   # mantenemos validated; transition a 'ready' la hace /architect cuando cierra package
+# Service-story (transition al ratificar):
+state: refined
 phase: SPEC_RATIFIED
 last_artifact: 01-spec.md
 last_modified: 2026-05-06T...
-next_action: "/ux-agentico (si agentic) o /architect (si service) → produce siguientes artefactos"
+ratified_by_chris: true
+next_action: "/architect orchestrator → produce ready package (03-arch + 04-validators + 05-guidelines + 06-tickets)"
+
+# Agentic-story (mantener refining hasta diseño):
+state: refining
+phase: SPEC_RATIFIED_AWAITING_DESIGN
+last_artifact: 01-spec.md
+last_modified: 2026-05-06T...
+next_action: "/ux-agentico → produce 02-design-agentic.md (state=refining → refined al ratificar diseño)"
 ```
 
 ## UX delta loop
@@ -218,7 +231,7 @@ NUNCA dumps. Cita paths para que Chris pueda leer.
 
 ## Referencias
 
-- `docs/process/pm-redesign-2026-05.md` — paradigma 3 conversaciones + ready package
+- `docs/process/pm-redesign-2026-05.md` — paradigma 3 conversaciones + ready package + § Punto 4 (10 estados)
 - `docs/specs/templates/01-spec-template.md` — template base
 - `.claude/rules/spanish-text.md` — voseo glosario
 - `.claude/rules/hotfix-repro-mandatory.md` — R26 hot-fix gate

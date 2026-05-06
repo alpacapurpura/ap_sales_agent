@@ -1,13 +1,13 @@
 ---
 name: dev-team
-description: "Developer team router (Conv 2 — autonomous build, post pm-redesign 2026-05). Reads ready package (01-spec.md + 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml) en docs/product/stories/{story-id}/. Itera ticket-por-ticket: implement → run validators → fix targeted file → repeat hasta GREEN o cap_reached. Decide owner según owner_eligibility + production_code flag (R23). qwen-opencode/Sonnet preferido para BE/FE no-agentic + tests/docs sobre agentic. Opus 4.7 obligatorio para AGENTIC production code. Mantiene T-{n}-impl-log.md vivo. TDD obligatorio. On all GREEN: state=building→review. On cap reached: state=building→blocked, escalate. Activa cuando user dice: '/dev-team', 'toma ticket T-N', 'implementa T-N', 'arranca build', 'autonomous build'."
+description: "Developer team router v4 (Conv 2 — autonomous build, post pm-redesign 2026-05 Punto 4). Reads ready package (01-spec.md + 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml) en docs/product/stories/{story-id}/ state=ready. Itera ticket-por-ticket: implement → run validators (4 categorías: non_functional/functional/visual/agentic_eval) → fix targeted file → repeat hasta GREEN o cap_reached. Decide owner según owner_eligibility + production_code flag (R23). qwen-opencode/Sonnet preferido para BE/FE no-agentic + tests/docs sobre agentic. Opus 4.7 obligatorio para AGENTIC production code. Mantiene T-{n}-impl-log.md vivo. TDD obligatorio. On pickup: state=ready→developing. On all GREEN all tickets: state=developing→developed. On cap reached: state=developing→blocked, escalate. Activa cuando user dice: '/dev-team', 'toma ticket T-N', 'implementa T-N', 'arranca build', 'autonomous build'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 model: opus
 ---
 
 # /dev-team — Developer Team Router (Conv 2 autonomous build)
 
-> Owner: `T-{n}-impl-log.md` + `T-{n}-result.md` en `docs/product/stories/{story-id}/`. Toma 1 ticket → ejecuta TDD + iteración contra `04-validators.yaml` → push. On GREEN all tickets → state=building→review.
+> Owner: `T-{n}-impl-log.md` + `T-{n}-result.md` en `docs/product/stories/{story-id}/`. Toma 1 ticket → ejecuta TDD + iteración contra `04-validators.yaml` → push. On pickup: state=ready→developing. On GREEN all tickets → state=developing→developed (awaiting QA, NO automatic transition a reviewing — Chris triggers /auditor manualmente para controlar gasto Opus).
 
 ## Inputs obligatorios (ready package)
 
@@ -23,7 +23,7 @@ model: opus
 
 ```bash
 STORY_DIR=docs/product/stories/{story-id}
-cat $STORY_DIR/checkpoint.md      # verify state=ready (o state=building si retomas)
+cat $STORY_DIR/checkpoint.md      # verify state=ready (o state=developing si retomas)
 cat $STORY_DIR/06-tickets.yaml    # pila tickets
 cat $STORY_DIR/04-validators.yaml # ★ corazón autonomous loop ★
 cat $STORY_DIR/05-guidelines.md   # patterns + files in scope
@@ -32,7 +32,7 @@ cat $STORY_DIR/05-guidelines.md   # patterns + files in scope
 Si state=ready → transition a building (primera vez):
 ```yaml
 # checkpoint.md
-state: building   # ★ TRANSITION ready → building ★
+state: developing   # ★ TRANSITION ready → developing ★
 phase: BUILD_T1
 ```
 
@@ -300,7 +300,7 @@ Si TODOS tickets pushed → transition story a review:
 
 ```yaml
 # checkpoint.md
-state: review     # ★ TRANSITION building → review ★
+state: developed   # ★ TRANSITION developing → developed (awaiting QA — Chris triggers /auditor) ★
 phase: AWAIT_AUDIT
 last_artifact: T-{N}-result.md (last ticket)
 next_action: "/auditor toma story {id} para Conv 3 review+merge"
@@ -314,7 +314,7 @@ Story {id} all tickets pushed.
 - T-3 (commit 9876abc) ✅
 
 Quality gates: validators all GREEN.
-Story state: building → review.
+Story state: developing → developed (awaiting QA, Chris triggers /auditor).
 WIP cap check: building (was N) now N-1; review (was M) now M+1 / cap 2.
 
 Próximo: /auditor (Conv 3) lee T-{n}-result.md + corre tests independientes + CHECKPOINTS.md C1-C5.
@@ -378,7 +378,7 @@ iteration_log summary:
 - Iter 4-6: refactor approach Y, still RED
 - Iter 7-10: edge case Z not handled by guidelines
 
-Story state: building → blocked.
+Story state: developing → blocked.
 
 Próximo: Chris reviews docs/product/stories/{story-id}/T-{n}-impl-log.md →
 decide:

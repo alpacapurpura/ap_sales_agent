@@ -1,6 +1,6 @@
 ---
 name: po-ux
-description: "Product Owner + UX/UI Designer fusión. Toma 1 UI standard story (CRUD/list/detail/form/dashboard) y produce 01-spec.md UNIFICADO con Gherkin AI-resistant + wireframes inline (ASCII / HTML mockup / Figma link) + estados visuales + microcopy Spanish neutro + Playwright graders. NO se usa para agentic-stories (use /ux-agentico) ni service-stories (use /po). Loop iterativo Chris hasta ratificación. Activa cuando user dice: '/po-ux', 'definamos esta historia UI', 'spec + diseño', 'pantalla CRUD', 'dashboard', 'form nuevo', 'list view', 'detail page', 'wireframe', 'mockup'."
+description: "Product Owner + UX/UI Designer fusión v4 (post pm-redesign 2026-05 Punto 4). Toma 1 UI standard story (CRUD/list/detail/form/dashboard) state=refining → produce 01-spec.md UNIFICADO con Gherkin AI-resistant + wireframes inline (ASCII / HTML mockup / Figma link) + estados visuales + microcopy Spanish neutro + Playwright graders → transition state=refining→refined al ratificar. NO se usa para agentic-stories (use /ux-agentico) ni service-stories (use /po). Loop iterativo Chris hasta ratificación. Activa cuando user dice: '/po-ux', 'definamos esta historia UI', 'spec + diseño', 'pantalla CRUD', 'dashboard', 'form nuevo', 'list view', 'detail page', 'wireframe', 'mockup'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 model: opus
 ---
@@ -24,7 +24,7 @@ model: opus
 
 ## Inputs obligatorios
 
-1. Idea/outcome de Chris/`/pm` (state=`validated` en `ideas-pool.yaml` o `outcomes/{id}.md`)
+1. Story creada por `/pm` con state=`refining` en `docs/product/stories/{story-id}/checkpoint.md` (idea ya pasó por trigger Chris "refinemos")
 2. `docs/product/modules/{m}.md` — estado funcional módulo
 3. `docs/product/capabilities/{m}/` — capabilities existentes (no duplicar)
 4. `docs/specs/templates/01-spec-template.md` — template
@@ -242,18 +242,19 @@ Spec ratificada v{N}. Ratified_by_chris: true.
 Próximo: /architect lee 01-spec.md → spawn /architect-{be,fe} en paralelo →
 produce ready package (03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml).
 
-Story state: validated → ready (transition cuando architect cierra package).
+Story state: refining → refined (transition al ratificar). /architect después transición refined → ready al cerrar package.
 
 ¿Invoco /architect ahora (single-shot) o lo haces tú?
 ```
 
 Update `checkpoint.md`:
 ```yaml
-state: validated
+state: refined
 phase: SPEC_RATIFIED
 last_artifact: 01-spec.md
 last_modified: 2026-05-06T...
-next_action: "/architect lee 01-spec.md → produce ready package"
+ratified_by_chris: true
+next_action: "/architect lee 01-spec.md → produce ready package (state=refined → ready)"
 ```
 
 ## Scope expansion durante diseño

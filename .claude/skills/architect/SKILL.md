@@ -1,19 +1,19 @@
 ---
 name: architect
-description: "Architect orchestrator Nicolify v3 (post pm-redesign 2026-05). Lee 01-spec.md (de /po-ux o /po) + 02-design-agentic.md (si agentic). Decide qué surfaces toca (BE/FE/agentic). Spawna sub-architects en paralelo (/architect-be, /architect-fe, /architect-agentic). Reúne sus 03-arch-*.md y produce el READY PACKAGE: 03-arch.md (consolidado) + 04-validators.yaml (★CRITICAL — pytest/playwright/shell commands must_pass:true ejecutables) + 05-guidelines.md (patterns required/forbidden + files in scope) + 06-tickets.yaml (work units atómicos). Cierra story state validated → ready. Activa cuando user dice: '/architect', 'diseñemos la arq', 'tickets', 'qué tickets salen', 'arquitectura técnica', 'cómo lo construimos técnicamente', 'cerrá el ready package'."
+description: "Architect orchestrator Nicolify v4 (post pm-redesign 2026-05 Punto 4). Lee 01-spec.md (de /po-ux o /po) + 02-design-agentic.md (si agentic) en stories state=refined. Decide qué surfaces toca (BE/FE/agentic). Spawna sub-architects en paralelo (/architect-be, /architect-fe, /architect-agentic). Reúne sus 03-arch-*.md y produce el READY PACKAGE: 03-arch.md (consolidado) + 04-validators.yaml (★CRITICAL — pytest/playwright/shell commands must_pass:true ejecutables, 4 categories: non_functional/functional/visual/agentic_eval) + 05-guidelines.md (patterns required/forbidden + files in scope) + 06-tickets.yaml (work units atómicos). Cierra story state refined → ready. Activa cuando user dice: '/architect', 'diseñemos la arq', 'tickets', 'qué tickets salen', 'arquitectura técnica', 'cómo lo construimos técnicamente', 'cerrá el ready package'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 model: opus
 ---
 
 # /architect — Architect Orchestrator (Conv 1 cierre — produce ready package)
 
-> Owner: `docs/product/stories/{story-id}/03-arch.md` + `04-validators.yaml` + `05-guidelines.md` + `06-tickets.yaml`. Cuando los 4 cerrados → state=`validated → ready`. Conv 2 (autonomous build) puede arrancar.
+> Owner: `docs/product/stories/{story-id}/03-arch.md` + `04-validators.yaml` + `05-guidelines.md` + `06-tickets.yaml`. Cuando los 4 cerrados → state=`refined → ready`. Conv 2 (autonomous build) puede arrancar.
 
 ## Inputs obligatorios
 
 1. `01-spec.md` — ratificada por Chris (de `/po-ux` para UI std, `/po` para service/agentic)
 2. `02-design-agentic.md` — si agentic-story o mixed
-3. `docs/product/stories/{story-id}/checkpoint.md` — state=validated requerido
+3. `docs/product/stories/{story-id}/checkpoint.md` — state=refined requerido (spec + diseño UX/agentic ratificados por Chris)
 4. `docs/product/modules/{m}.md` — estado funcional
 5. `docs/domains/INDEX.md` — routing técnico
 6. `.claude/rules/anti-duplication.md` — inventario shared abstractions
@@ -113,43 +113,97 @@ Template:
 
 ```yaml
 # docs/product/stories/{story-id}/04-validators.yaml
+# v4 schema: 4 categories — non_functional / functional / visual / agentic_eval
 
 validators:
-  - id: be_unit_create_endpoint
-    type: pytest
-    cmd: "cd backend && .venv/bin/pytest tests/modules/{m}/test_create.py -v --tb=short"
-    must_pass: true
-    timeout_sec: 60
-    
+  # ─── NON-FUNCTIONAL (lint, arch fitness, type-check, format) ───
   - id: be_arch_fitness
+    category: non_functional
     type: pytest
     cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
     must_pass: true
     timeout_sec: 120
-    
+
   - id: be_lint
+    category: non_functional
     type: shell
     cmd: "cd backend && .venv/bin/ruff check src/modules/{m}/ tests/modules/{m}/ --no-cache && .venv/bin/ruff format --check src/modules/{m}/ tests/modules/{m}/"
     must_pass: true
     timeout_sec: 30
-    
+
   - id: fe_typecheck
+    category: non_functional
     type: shell
     cmd: "cd frontend && npx tsc --noEmit"
     must_pass: true
     timeout_sec: 90
-    
+
+  # ─── FUNCTIONAL (Gherkin scenarios — happy/negative/edge/adversarial) ───
+  - id: be_unit_create_endpoint
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/modules/{m}/test_create.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+
   - id: fe_unit
+    category: functional
     type: shell
     cmd: "cd frontend && npx vitest run src/features/{m}/"
     must_pass: true
     timeout_sec: 60
-    
+
   - id: e2e_happy
+    category: functional
     type: playwright
     cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/regression/{m}-{story}.spec.ts"
     must_pass: true
     timeout_sec: 180
+
+  # ─── VISUAL (responsive + visual fidelity Playwright + screenshots) ───
+  - id: visual_fidelity
+    category: visual
+    type: playwright
+    cmd: "cd frontend && npx playwright test e2e/visual/{story}.spec.ts --update-snapshots=false"
+    capture: screenshots
+    must_pass: true
+    timeout_sec: 240
+
+  - id: responsive_breakpoints
+    category: visual
+    type: playwright
+    cmd: "cd frontend && npx playwright test e2e/visual/{story}-responsive.spec.ts --project=mobile,tablet,desktop"
+    must_pass: true
+    timeout_sec: 240
+
+  # ─── AGENTIC EVAL (pass^k, rubrics, trajectory, cost/latency budgets) ───
+  # Solo si story toca modules/copilot o modules/sales_agent runtime
+  - id: agentic_pass_k
+    category: agentic_eval
+    type: shell
+    cmd: "cd backend && .venv/bin/python scripts/run_agent_evals.py --story={story-id} --personas=A,B,C"
+    rubrics: [voice-fidelity, goal-completion, tool-call-accuracy]
+    pass_k:
+      trials: 3
+      per_trial_threshold: 0.66
+      pass_k_threshold: 0.5
+    must_pass: true
+    timeout_sec: 600
+
+  - id: agentic_trajectory
+    category: agentic_eval
+    type: shell
+    cmd: "cd backend && .venv/bin/python scripts/run_trajectory_eval.py --expected=docs/specs/trajectories/{story-id}.yaml"
+    must_pass: true
+    timeout_sec: 300
+
+  - id: agentic_cost_budget
+    category: agentic_eval
+    type: shell
+    cmd: "cd backend && .venv/bin/python scripts/check_cost_budget.py --story={story-id}"
+    threshold: { cost_usd_max: 0.50, tokens_max: 6000, latency_p95_max: 8.0 }
+    must_pass: true
+    timeout_sec: 60
 
 scenario_coverage:
   - scenario_id: happy
@@ -164,8 +218,8 @@ scenario_coverage:
 iteration:
   max_iterations: 10
   on_fail: "fix targeted file based on test output, re-run failing validator only"
-  on_all_pass: "set state=building→review, append iteration_log to T-{n}-impl-log.md"
-  on_cap_reached: "set state=building→blocked, escalate to Chris with last error trace"
+  on_all_pass: "set state=developing→developed, append iteration_log to T-{n}-impl-log.md"
+  on_cap_reached: "set state=developing→blocked, escalate to Chris with last error trace"
 ```
 
 **Validation gate:** Every scenario in `01-spec.md` MUST appear in `scenario_coverage`. If any uncovered → architect itera hasta cubrirlos.
@@ -358,10 +412,10 @@ Owner mix:
 
 Dependencies: T-2 depends T-1; T-3 depends T-2.
 
-Story state: validated → ready.
+Story state: refined → ready.
 WIP cap check: ready (was N) now N+1 / cap 5.
 
-Próximo: Conv 2 (autonomous build). /dev-team toma T-1 (state: ready).
+Próximo: Conv 2 (autonomous build). /dev-team toma T-1 (state: ready → developing).
 ```
 
 ## Anti-patterns
