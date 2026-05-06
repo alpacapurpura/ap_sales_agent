@@ -1,22 +1,22 @@
 ---
 level: story
 id: sales-agent-litellm-canonicalization
-phase: DEV_T6A_TESTS_PASSING
+phase: AUDIT_T6a_APPROVED
 status: pending
-last_artifact: 05-impl/T-6a-result.md
-last_modified: 2026-05-05T19:00Z
-next_action: "T-6a build complete: 9 files (1 NEW migration + 1 NEW test + 7 MOD). 11/11 T-6a tests PASS, 9041 full-suite PASS, 823 arch fitness PASS. A4 (alembic upgrade x2) deferred to /pase-produccion (brain container DOWN). Awaiting /dev-team orchestrator → gate-runner Haiku → auditor-backend Opus independent verdict."
+last_artifact: 06-audit/T-6a-review.md
+last_modified: 2026-05-06T00:00Z
+next_action: "T-6a audit-passed (Wave 4). Unblocks T-6b (1d operational gate pre-clientes per R7). Wave 5 paralelo: T-6b OPS gate (1d wall-clock) + Story B T-5 (smoke golden + 4 scenarios real LLM <$0.01/run) + Story B T-6 (Makefile + README docs). T-6c blocked behind T-6b."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
 blocked_reason: null
-audit_iterations: 3
+audit_iterations: 4
 ratified_by_chris: true
 po_version: 2
 arch_version: 1
 total_tickets: 11
 estimated_total_hours: 38
-critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a → T-6b (operational gate, ~1 working day pre-clientes per R7) → T-6c"
+critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a ✅ → T-6b (operational gate, ~1 working day pre-clientes per R7) → T-6c"
 ---
 
 ## Bitácora
@@ -78,3 +78,9 @@ critical_path: "T-1 ✅ → T-7 ✅ → T-4 ✅ → T-5 ✅ → T-6a → T-6b (o
 - 2026-05-05 23:00 — `/auditor` (Opus 4.7, auditor-be) revisó T-5 commits `28617716 + 560f14b5`. Verdict: **APPROVED** (PASS). 9 quality gates PASS, 4 acceptance verifiers PASS (A1 settings no attr / A2 build_provider_service deleted / A3 commit body ≥4 H2 headers / A4 inventory updated). Anti-default-flip-audit DELETION 4-step variant end-to-end verified. Zero regressions across 9012 backend tests. Builder Opus 4.7 verified (R23 process correction from T-4 correctly applied). R6 Decisions Honored explicit table en impl-log + commit body. R3 downstream regression independently re-verified (197 observability + 278 iam + 103 admin + 67 LLM tests). 4 info-level non-blocking annotations: (a) `reset_cache` dead-bug cleanup honoring T-4 audit handoff (correctly within T-5 scope); (b) factory.py dead Path 1 deletion architecturally forced by build_provider_service removal — minor scope expansion vs T-6a/T-6c boundary, properly preserved `_extract_tenant_key` method per architect §2.4 (T-6a refresh updated to delete method since now orphaned); (c) pyproject.toml INP001 per-file-ignore architecturally correct (namespace-package + pre-commit-hook stdin interaction); (d) selective docstring-history retention in 3 LLM source + 2 test files (T-8 will supersede). Phase=AUDIT_T5_APPROVED. T-6a + T-8 unblocked. Last artifact: `06-audit/T-5-review.md`.
 
 - 2026-05-05 19:00 — `builder-backend` (Claude Opus 4.7, HARD MANDATE per architect `claude_opus_required: true` verified pre-spawn) implementó T-6a Phase 1 expand-contract. 9 archivos: NEW `alembic/versions/123_deprecate_tenant_provider_api_keys.py` (UPDATE 4 cols → NULL + backup table `tenants_api_keys_backup_pre_t6a` per T-3 convention + downgrade no-op), MOD `iam/domain/tenant.py` (Pydantic `Field(deprecated=True, exclude=True)` x4 fields, gemini_api_key UNCHANGED), MOD `iam/api/settings.py` (drop deprecated key passthrough + write paths), MOD `iam/infrastructure/repositories/tenant_repository.py` (drop deprecated col writes), MOD `shared/infrastructure/llm/factory.py` (DELETE `_extract_tenant_key` method entirely — orphaned post-T-5 confirmed), NEW `tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py` (11 tests covering A1-A4 — mock-based migration + Pydantic exclusion + repo source grep + factory hasattr/source assertions), MOD `tests/modules/iam/{test_settings.py, test_domain_models.py, test_tenant_repository.py}` (intentional baseline updates). Quality gates: ruff lint+format clean (823 arch fitness PASS), 11/11 T-6a tests PASS, 186/186 IAM PASS, 67/67 LLM downstream PASS, 197/197 observability downstream PASS (per R3 SSoT table), 9041 full-suite PASS (35 skipped, 16 deselected, 113 warnings, 648.94s, exit 0). A4 alembic upgrade x2 DEFERRED to `/pase-produccion` (brain container DOWN at build time) — SQL idempotency contract verified via mock-based tests (DROP IF EXISTS, WHERE non-null guards, downgrade no-op, CTAS-precedes-UPDATE). Decisions honored: §2.4 (4 cols deprecated, gemini retained), §3.2 (DTO drops 4 fields), auditor T-5 BINDING (delete `_extract_tenant_key` now), T-3 BINDING (`*_backup_pre_tN` convention), A2 BINDING (Phase 1 of 3). Phase=DEV_T6A_TESTS_PASSING. Last artifact: `05-impl/T-6a-result.md`.
+
+- 2026-05-05 23:30 — Wave 4 PI-12 S1: `/dev-team` orchestrator spawned `context-builder` Haiku iter-2 fresh T-6a brief (faithfulness=clean, validator PASS 0 discrepancies). Phase=DEV_T6A_BUILDING.
+
+- 2026-05-05 23:50 — `builder-backend` (Opus 4.7 HARD MANDATE explicitly verified pre-spawn) implementó T-6a. Commits `f6e7ad0a` (main) + `29b97eba` (SHA backfill) push a `development`. 9 archivos backend src + 1 NEW alembic migration `123_deprecate_tenant_provider_api_keys.py` (idempotent raw SQL UPDATE 4 cols NULL WHERE non-null + downgrade no-op + backup table convention from T-3); 1 NEW `tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py` (11/11 PASS); MOD iam domain/api/repo (Pydantic deprecate 4 fields + DTO drops + repo stop writes); DELETE `_extract_tenant_key` method en factory.py (orphaned post-T-5 per auditor T-5 recommendation); `gemini_api_key` PRESERVED throughout T-6c. A1/A2/A3 PASS, A4 alembic-live x2 DEFERRED a /pase-produccion (brain container DOWN — SQL idempotency contract verified via mock-based migration tests T-3 pattern). Decisions honored: §2.4 (4 cols deprecated + gemini retained), §3.2 (DTO drops 4 fields), auditor T-5 review (delete `_extract_tenant_key` now), T-3 `*_backup_pre_tN` convention, A2 expand-contract Phase 1. Phase=DEV_T6A_DONE.
+
+- 2026-05-06 00:00 — `/auditor` (Opus 4.7, auditor-be) revisó T-6a commits `f6e7ad0a + 29b97eba`. Verdict: **APPROVED** (PASS). All 12 categories PASS, 0 FAIL, 0 WARN. Re-ran independently: 14/14 SSoT-mandated downstream tests for `shared/infrastructure/llm/factory.py` PASS (test_callback_handler_usage_fallbacks.py + test_callback_handler.py); 11/11 T-6a tests PASS in 10.81s. R23 owner verified: commit `f6e7ad0a` Co-Authored-By trailer = `Claude Opus 4.7 (1M context)` matches HARD MANDATE. R5 schema-mirror exception N/A. R6 decisions honored: 5 binding decisions cited en commit body. Cat 8 migration quality: idempotent raw SQL throughout — DROP IF EXISTS + CREATE TABLE AS SELECT backup, WHERE col IS NOT NULL UPDATE guards re-run safety, downgrade no-op explicitly documented + SQL-asserted. Backup table `tenants_api_keys_backup_pre_t6a` reuses T-3 convention. Cat 12 anti-duplication: pure deprecation, zero new abstractions. PII safety verified: zero `logger.*api_key` patterns, NULLs at SQL level only, no key values in logs. Phase=AUDIT_T6a_APPROVED. T-6b unblocked. Last artifact: `06-audit/T-6a-review.md`.

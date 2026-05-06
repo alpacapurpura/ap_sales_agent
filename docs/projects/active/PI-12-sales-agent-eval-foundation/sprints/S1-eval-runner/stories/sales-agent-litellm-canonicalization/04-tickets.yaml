@@ -65,7 +65,7 @@ summary:
     title: "Migration deprecation tenant API keys — Phase 1 (NULL + code stops reading)"
     surface: DB+BE
     owner_pool: [claude-opus-4-7]
-    state: draft
+    state: audit-passed
     blocked_by: [T-5]
     blocks: [T-6b]
     estimate_hours: 3
@@ -606,7 +606,7 @@ T6a:
   title: "Migration deprecation tenant API keys (Phase 1 expand-contract: NULL + code stops reading)"
   type: backend
   surface: DB+BE
-  state: draft
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false
@@ -668,7 +668,11 @@ T6a:
   blocks: ["T-6b"]
   transitions:
     - { state: draft, at: "2026-05-05T03:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: building, at: "2026-05-05T23:30Z", by: "builder-backend (Opus 4.7)" }
+    - { state: tests-passing, at: "2026-05-05T23:50Z", by: "builder-backend (commits f6e7ad0a + 29b97eba)" }
+    - { state: audit-passed, at: "2026-05-06T00:00Z", by: "auditor-backend (Opus 4.7) — APPROVED, 12/12 categories PASS, A4 alembic-live deferred /pase-produccion per T-3 precedent" }
+  assigned_to: claude-opus-4-7
+  audit_review: "06-audit/T-6a-review.md"
 
 T6b:
   id: T-6b

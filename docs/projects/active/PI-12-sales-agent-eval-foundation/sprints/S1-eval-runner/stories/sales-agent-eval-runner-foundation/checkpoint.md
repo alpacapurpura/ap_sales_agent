@@ -2,16 +2,16 @@
 ---
 level: story
 id: sales-agent-eval-runner-foundation
-phase: AUDIT_T3_APPROVED
+phase: AUDIT_T4_APPROVED
 status: in-progress
-last_artifact: 06-audit/T-3-review.md
-last_modified: 2026-05-05T22:00Z
-next_action: "T-3 audit-passed (Wave 2). Unblocks T-4 (multi-layer assertion library). /pm spawn /dev-team for T-4 (Wave 4 paralelo con Story A T-6a)."
+last_artifact: 06-audit/T-4-review.md
+last_modified: 2026-05-06T00:00Z
+next_action: "T-4 audit-passed (Wave 4). Unblocks T-5 (smoke golden YAML + 4 scenarios real-LLM <$0.01/run + regenerate_golden.py CLI). Wave 5 paralelo: T-5 + T-6 (Makefile + README docs). T-5 first — T-6 depends on T-5."
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
 parallel_safe: false
 blocked_reason: null
-audit_iterations: 2
+audit_iterations: 4
 ratified_by_chris: true
 po_version: 2
 ---
@@ -57,3 +57,9 @@ T-3 audit-passed. T-4 UNBLOCKED (multi-layer assertion library + langdetect lazy
 - 2026-05-05 21:40 — `gate-runner` (compartido con Story A T-4 — single full-suite cubre HEAD 4a5d57a2 ambos commits). gate-output.json finalizado manualmente per R22 fallback: any_fail=false, 4 gates PASS (lint/format/arch-823/coverage-9012), 1 DEFERRED (eval-marker → Story B T-5 smoke real-LLM gate per ticket plan). Phase=GATE_T3_PASS.
 
 - 2026-05-05 22:00 — `/auditor` (Opus 4.7, auditor-agentic) revisó T-3 commit `555c81c1`. Verdict: **APPROVED**. Cat 13 mirror detection CRITICAL PASS — anti-duplication §0 satisfied at 4 layers (lexical grep + AST walk + type-system `not issubclass` + commit body declaration). Cat 15 decisions honored R6 PASS — B1-B7 cited verbatim, each tied a file:line evidence. Cat 5 observability + Cat 11 DDD: production handler runs first (DB writes), spy second (in-memory). Best-effort try/except + structlog warning every callback. Zero src/modules ni src/shared touch — read-only consumer. Skills consultados: copilot-expert + sales-agent-expert + tessl__langgraph + tessl__graceful-degradation. R3 downstream N/A (test-only paths). Cero CROSS-SCOPE flags. Phase=AUDIT_T3_APPROVED. T-4 unblocked. Last artifact: `06-audit/T-3-review.md`.
+
+- 2026-05-05 23:30 — Wave 4 PI-12 S1: `/dev-team` orchestrator spawned `context-builder` Haiku para T-4 (faithfulness=clean, validator PASS, 16/16 sections). Phase=DEV_T4_BUILDING.
+
+- 2026-05-05 23:50 — `builder-agentic` (Opus 4.7 HARD MANDATE per CLAUDE.md AGENTIC story rule) implementó T-4. Commits `674967c4` (main) + `e98a21ea` (SHA backfill) push a `development`. 3 archivos: NEW `runner/assertions.py` (5 layer assertions + LayerAssertionError hierarchy + Story 7 placeholder + langdetect lazy import via importlib.import_module), MOD `test_eval_runner_fixtures.py` +18 tests (4 acceptance + 14 edge cases — trajectory exact-mode strict, tool-call required+forbidden B4 binding, output case-insensitive, language unknown skip, latency aggregate/per-tool/no-signal, cost zero/None/pattern-mismatch/over-budget/happy, AST-walk no-top-level-langdetect), NEW T-4-impl-log.md. 18/18 ticket tests PASS, 39 total agentic_evals PASS / 4 SKIP, 9041 full BE suite PASS, 823 arch fitness PASS. Anti-duplication §0 GATE 4-layer satisfied: 0 mirrors of detect_lang/sanitize_payload/BaseAgentCallbackHandler. Langdetect lazy: 0 top-level imports (architecturally enforced via test_assertions_module_no_top_level_langdetect_import AST walk). Decisions honored: B4 forbidden_tools sourced from registry (no inline hardcode), B5 langdetect lazy via importlib.import_module, B7 cache_hit_rate=Story 7 → assert_voice_fidelity placeholder NotImplementedError. Tenant isolation: assert_cost_recorded filters BOTH tenant_id AND turn_id. Spanish neutro LATAM. Cero src/ modificación. Phase=DEV_T4_DONE.
+
+- 2026-05-06 00:00 — `/auditor` (Opus 4.7, auditor-agentic) revisó T-4 commits `674967c4 + e98a21ea`. Verdict: **APPROVED** (1 non-blocking WARN). All categories PASS or N/A. Cat 5+11 PASS — assert_cost_recorded._build_cost_query (assertions.py:420-423) filters BOTH tenant_id AND turn_id satisfying tenant isolation hard rule. Cat 12+13 PASS — TDD 18 RED→GREEN, B5 lazy import enforced via AST-walk arch test (ratchet-grade). Cat 11 WARN (non-blocking) — drift documented: builder's 4 assertion signatures + LayerAssertionError(Exception) base diverge from 03-arch-be.md prescriptive code blocks (AssertionError base, assert_output con spanish_marker_min_count, assert_trajectory con forbidden_specialists, assert_cost_recorded con min_cost_usd, assert_latency con start_ts/end_ts). CONTEXT-BRIEF (validator-approved, faithfulness=clean) aligned con builder's actual signatures, so brief was authoritative. Drift forward-compatible — T-5 smoke can compose/wrap. Independent re-run: 5 passed, 38 deselected, 1 warning in 11.73s. Skills consultados: copilot-expert, sales-agent-expert, tessl__langgraph (NA confirmed), tessl__graceful-degradation (Rule 6 verified). Phase=AUDIT_T4_APPROVED. T-5 unblocked. Last artifact: `06-audit/T-4-review.md`.

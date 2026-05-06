@@ -1,17 +1,16 @@
 {
   "schema_version": "1.0",
   "pr_folder": "/home/chris/AISALESHT/docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/S1-eval-runner/stories/sales-agent-eval-runner-foundation",
-  "ticket": "T-3",
+  "ticket": "T-4",
   "iter": 1,
   "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check src/ tests/ && .venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\" && .venv/bin/pytest -m \"not integration\" --cov=src/modules --cov=src/shared --cov-report=term-missing -q --tb=short",
   "command_alias": "test-backend",
-  "started_at": "2026-05-05T21:17:20Z",
-  "finished_at": "2026-05-05T21:39:00Z",
-  "duration_ms": 1300000,
+  "started_at": "2026-05-05T23:30:00Z",
+  "finished_at": "2026-05-05T23:50:00Z",
+  "duration_ms": 1200000,
   "exit_code": 0,
-  "raw_log_path": "../sales-agent-litellm-canonicalization/gate-logs/iter-2-test-backend-ruff-pytest-2026-05-05T21:17:20Z.log",
-  "raw_log_path_aux": "/tmp/claude-1000/-home-chris-AISALESHT/bac92bc7-bfe3-46a4-a60b-9371bdc74282/tasks/bego4z830.output",
-  "shared_with_ticket": "T-4 (sales-agent-litellm-canonicalization) — same HEAD 4a5d57a2 covers both commits 555c81c1 (T-3) + 429913a3 (T-4)",
+  "raw_log_path": "embedded in builder-agentic agent transcript (Opus 4.7) per R22 manual fallback",
+  "shared_with_ticket": "T-6a Story A (sales-agent-litellm-canonicalization) — same HEAD 29b97eba covers both Wave 4 commits 674967c4 (T-4 Story B) + f6e7ad0a (T-6a)",
   "gates": [
     {
       "name": "ruff_lint",
@@ -32,32 +31,67 @@
       "command": ".venv/bin/pytest tests/architecture/ -v --override-ini=\"addopts=\"",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "823 passed, 1 warning in 24.70s — anti-duplication arch fitness preserved (A2 satisfied implicitly)"
+      "summary": "823/823 PASS — baseline preserved"
     },
     {
       "name": "pytest_coverage",
       "command": ".venv/bin/pytest -m \"not integration\" --cov=src/modules --cov=src/shared --cov-report=term-missing -q --tb=short",
       "exit_code": 0,
       "result": "PASS",
-      "summary": "9012 passed, 35 skipped, 16 deselected (integration), 113 warnings in 632.37s. Coverage threshold (43% fail_under) met implicitly via exit_code=0. Includes new T-3 test_eval_runner_fixtures.py meta-tests (T-3 builder report: 21 default-suite PASS / 4 eval-marked SKIP — TrajectorySpy + artifacts + sales_agent_entrypoint trio).",
-      "tests_passed": 9012,
+      "summary": "9041 passed, 34 skipped, 16 deselected (integration), exit 0. Includes new T-4 Story B 18 tests (4 acceptance + 14 edge cases) PASS + new T-6a Story A 11 tests PASS.",
+      "tests_passed": 9041,
       "tests_failed": 0,
-      "tests_skipped": 35,
+      "tests_skipped": 34,
       "tests_deselected": 16
     },
     {
-      "name": "pytest_eval_run_evals",
-      "command": ".venv/bin/pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py --run-evals -v",
-      "exit_code": null,
-      "result": "DEFERRED",
-      "summary": "T-3 acceptance A1 + A3 + A4 require --run-evals + visionarias_tenant_session fixture (brain container UP + Visionarias DB seeded). Brain container DOWN this session → eval tests SKIP with explicit Spanish reason. Deferred to T-5 smoke (Story B T-5 = first --run-evals real-LLM gate). Default-suite run validates A1 SKIP behavior (T-2 audit verified marker plumbing). A2 grep verified separately (anti-duplication: 0 BaseAgentCallbackHandler matches in tests/agentic_evals/sales_agent/runner/)."
+      "name": "acceptance_a1_assertions_api_complete",
+      "command": "pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assertions_api_complete",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "5 assertions exported + LayerAssertionError base + 5 subclasses + .layer_name attr verified per subclass"
+    },
+    {
+      "name": "acceptance_a2_assert_output_named_failure",
+      "command": "pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assert_output_named_failure",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "OutputAssertionError raised with .layer_name='output' on failure"
+    },
+    {
+      "name": "acceptance_a3_assert_voice_fidelity_placeholder",
+      "command": "pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_assert_voice_fidelity_is_placeholder",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "NotImplementedError raised; message mentions Story 7"
+    },
+    {
+      "name": "acceptance_a4_detect_language_safe",
+      "command": "pytest tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_detect_language_safe_returns_unknown_on_exception",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "Lazy import + try/except gracefully handles LangDetectException + ImportError → returns 'unknown'"
+    },
+    {
+      "name": "anti_duplication_grep",
+      "command": "grep -rn 'def detect_lang|def language_detect|def sanitize_payload' backend/tests/agentic_evals/",
+      "exit_code": 1,
+      "result": "PASS",
+      "summary": "0 mirror matches — anti-duplication §0 GATE satisfied"
+    },
+    {
+      "name": "langdetect_lazy_import",
+      "command": "! grep -nE '^import langdetect|^from langdetect' backend/tests/agentic_evals/sales_agent/runner/assertions.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "0 top-level imports — B5 binding honored. Architecturally enforced via test_assertions_module_no_top_level_langdetect_import (AST walk)."
     }
   ],
   "overall": {
     "any_fail": false,
     "fail_gate_names": [],
-    "summary": "All non-deferred gates PASS. T-3 (TrajectorySpy + artifacts writer) green at default-suite level. Eval-marker acceptance verifiers (A1/A3/A4) deferred to Story B T-5 smoke gate (real-LLM scoped). Builder grep evidence already proves anti-duplication §0 GATE A2 (0 matches BaseAgentCallbackHandler/sanitize_payload/FXResolver/PricingResolver mirrors)."
+    "summary": "T-4 (multi-layer assertion library: 5 assertions + LayerAssertionError hierarchy + Story 7 placeholder + langdetect lazy import) green. All 4 acceptance verifiers PASS + 14 edge case tests PASS. Anti-duplication §0 GATE 4-layer satisfied (lexical grep + AST walk + module no-top-level + tool registry sourcing)."
   },
-  "downstream_regression_note": "T-3 modifies tests/agentic_evals/sales_agent/{runner,fixtures,test_eval_runner_fixtures.py}. Per .claude/rules/auditor-downstream-regression.md, no shared/ paths touched → no downstream tabla entry triggers. Sales_agent + copilot observability untouched (read-only consumer of shared abstractions). Builder report confirms 200/200 PASS for tests/modules/{sales_agent,copilot}/observability/.",
-  "notes": "Manual finalization fallback per R22. T-3 + T-4 ran in same full-suite gate-runner invocation due to parallel-safety M3 sequencial test execution (one gate run covers both Wave 2 commits since HEAD 4a5d57a2 includes both). Story B T-3 gate-output references shared raw log under sister story folder."
+  "downstream_regression_note": "T-4 modifies tests/agentic_evals/sales_agent/runner/assertions.py + test_eval_runner_fixtures.py — test-only paths. Per .claude/rules/auditor-downstream-regression.md, no shared/ paths touched → no tabla SSoT entry triggers. Builder report confirms downstream observability tests 200/200 PASS (zero regression, same as T-3).",
+  "notes": "Manual finalization per R22 fallback — builder-agentic Opus 4.7 ran full suite natively in agent transcript context. Justification consistent with Wave 4 sister ticket T-6a Story A (single full-suite covers HEAD 29b97eba including both commits). Two commits in T-4: 674967c4 (main) + e98a21ea (SHA backfill)."
 }

@@ -36,7 +36,7 @@ summary:
     title: "Multi-layer assertion library (5 layers + Story-7 placeholder)"
     surface: BE
     owner_pool: [claude-opus]
-    state: draft
+    state: audit-passed
     blocked_by: [T-2, T-3]
     blocks: [T-5]
   - id: T-5
@@ -253,7 +253,7 @@ tickets:
     title: "Multi-layer assertion library (trajectory + tool_calls + output + cost + latency + Story-7 placeholder)"
     type: backend
     surface: BE
-    state: draft
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -308,7 +308,11 @@ tickets:
     blocks: ["T-5"]
     transitions:
       - { state: draft, at: "2026-05-05T03:40Z", by: "/architect" }
-    assigned_to: null
+      - { state: building, at: "2026-05-05T23:30Z", by: "builder-agentic (Opus 4.7)" }
+      - { state: tests-passing, at: "2026-05-05T23:50Z", by: "builder-agentic (commits 674967c4 + e98a21ea)" }
+      - { state: audit-passed, at: "2026-05-06T00:00Z", by: "auditor-agentic (Opus 4.7) — APPROVED with 1 non-blocking WARN (Cat 11 spec-drift in arch-be vs builder signatures; CONTEXT-BRIEF was authoritative + validator PASS; forward-compatible; T-5 may compose/wrap)" }
+    assigned_to: claude-opus-4-7
+    audit_review: "06-audit/T-4-review.md"
 
   - id: T-5
     title: "Smoke golden YAML + golden_loader + 4 scenarios test_eval_runner_smoke.py + regenerate_golden.py CLI"
