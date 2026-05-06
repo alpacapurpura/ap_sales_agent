@@ -29,12 +29,12 @@ class TenantModel(Base):
     # ETL extraction priority: higher value = extracted first (premium tenants)
     extraction_priority = Column(Integer, server_default="0", nullable=False)
 
-    # AI Provider Configuration (Multitenant)
-    openai_api_key = Column(String, nullable=True)
+    # AI Provider Configuration (Multitenant).
+    # T-6c (PI-12 S1, alembic 124_drop_tenant_provider_api_keys) physically
+    # dropped 4 deprecated per-tenant provider API key columns. gemini_api_key
+    # remains active per architect §2.4 (Q4 ratification) because landing
+    # extractors still call Gemini directly bypassing the LiteLLM Proxy.
     gemini_api_key = Column(String, nullable=True)
-    deepseek_api_key = Column(String, nullable=True)
-    kimi_api_key = Column(String, nullable=True)
-    dashscope_api_key = Column(String, nullable=True)
     webhook_secret = Column(String, nullable=True)
     can_use_platform_keys = Column(Boolean, default=False)
 

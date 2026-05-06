@@ -1,17 +1,15 @@
 """Tests for IAM domain models — Pydantic validation, defaults, construction.
 
-T-6a (PI-12 S1): the per-tenant provider API key fields
-``openai_api_key``/``deepseek_api_key``/``kimi_api_key``/``dashscope_api_key``
-are deprecated. Tests below use ``gemini_api_key`` (still active) for
-construction assertions to avoid emitting DeprecationWarnings on each
-attribute access. Domain still permits the deprecated fields on
-construction (ORM bridge until T-6c drops the columns) but
-``model_dump`` excludes them — see
-``test_T6a_deprecate_tenant_api_keys.py`` for the deprecation contract.
+T-6c (PI-12 S1, Phase 3 expand-contract): the 4 deprecated per-tenant
+provider API key fields (``openai_api_key``, ``deepseek_api_key``,
+``kimi_api_key``, ``dashscope_api_key``) have been physically removed
+from the Pydantic models. Tests below use ``gemini_api_key`` (still
+active per architect §2.4). Old clients sending the deprecated keys
+via raw JSON will have those keys silently ignored by Pydantic v2
+(default ``extra='ignore'``).
 """
 
 import uuid
-import warnings
 
 import pytest
 from pydantic import ValidationError
@@ -61,11 +59,11 @@ class TestTenant:
         t = Tenant(id=uuid.uuid4(), name="X", slug="x")
         assert t.gemini_api_key is None
         assert t.webhook_secret is None
-        # Deprecated fields default None — wrap access to suppress
-        # T-6a DeprecationWarning emitted by Field(deprecated=True).
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            assert t.openai_api_key is None
+        # T-6c (Phase 3): the 4 deprecated provider API key fields no
+        # longer exist on the Tenant model. Pydantic v2 silently ignores
+        # them in raw-JSON construction (extra='ignore') — see
+        # test_t6c_drop_tenant_api_keys.py for the post-drop contract.
+        assert not hasattr(t, "openai_api_key")
 
     def test_name_required(self):
         with pytest.raises(ValidationError):
@@ -76,13 +74,16 @@ class TestTenant:
             Tenant(id=uuid.uuid4(), name="No Slug")  # type: ignore[call-arg]
 
     def test_from_orm_mode(self):
-        """model_validate works with dict (simulating ORM row)."""
+        """model_validate works with dict (simulating ORM row).
+
+        T-6c: the 4 deprecated keys are no longer model fields.
+        Pydantic v2 silently ignores extras (default extra='ignore').
+        """
         data = {
             "id": str(uuid.uuid4()),
             "name": "ORM Tenant",
             "slug": "orm-tenant",
             "config_json": {},
-            "openai_api_key": None,
             "gemini_api_key": None,
             "webhook_secret": None,
             "can_use_platform_keys": False,

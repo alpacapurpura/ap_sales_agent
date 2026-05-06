@@ -1,16 +1,14 @@
 """Tenant Repository implementation.
 
-T-6a (PI-12 S1 — sales-agent-litellm-canonicalization, Phase 1
-expand-contract): ``create`` and ``update`` no longer assign to the
-deprecated provider API key columns (``openai_api_key``,
-``deepseek_api_key``, ``kimi_api_key``, ``dashscope_api_key``). The
-columns still exist in the DB and the SQLAlchemy ORM still loads them
-on read (so ``Tenant.model_validate`` works), but the Python write path
-is severed. T-6c will physically ``DROP COLUMN`` and remove the fields
-from the SQLAlchemy model.
+T-6c (PI-12 S1 — sales-agent-litellm-canonicalization, Phase 3
+expand-contract): the 4 deprecated per-tenant provider API key
+columns have been physically dropped from the ``tenants`` table by
+alembic ``124_drop_tenant_provider_api_keys``. The matching Pydantic
+fields and SQLAlchemy ``Column`` declarations have also been removed.
+This repo writes only currently-active fields.
 
-``gemini_api_key`` writes are preserved (out of scope per architect §2.4
-— still active for landing extractors).
+``gemini_api_key`` remains active (out of scope per architect §2.4 —
+still consumed by landing extractors bypassing the LiteLLM Proxy).
 """
 
 from uuid import UUID
@@ -52,16 +50,15 @@ class TenantRepository:
         """Handle create operation.
 
         Writes only currently-active fields. The 4 deprecated provider
-        API key columns (``openai_api_key``, ``deepseek_api_key``,
-        ``kimi_api_key``, ``dashscope_api_key``) are intentionally NOT
-        assigned — they default to NULL at the DB level (T-6a).
+        API key columns were physically dropped in T-6c (alembic
+        ``124_drop_tenant_provider_api_keys``).
         """
         db_tenant = TenantModel(
             id=tenant.id,
             name=tenant.name,
             slug=tenant.slug,
             config_json=tenant.config_json,
-            gemini_api_key=tenant.gemini_api_key,  # still active per arch §2.4
+            gemini_api_key=tenant.gemini_api_key,
             webhook_secret=tenant.webhook_secret,
             can_use_platform_keys=tenant.can_use_platform_keys,
             is_active=tenant.is_active,
@@ -74,16 +71,15 @@ class TenantRepository:
     def update(self, tenant: Tenant) -> Tenant:
         """Handle update operation.
 
-        Writes only currently-active fields. Deprecated provider key
-        columns are deliberately not touched — they were NULLed by the
-        T-6a migration and stay NULL until T-6c drops them.
+        Writes only currently-active fields. The 4 deprecated provider
+        API key columns were physically dropped in T-6c.
         """
         db_tenant = self.db.execute(select(TenantModel).where(TenantModel.id == tenant.id)).scalars().first()
         if db_tenant:
             db_tenant.name = tenant.name
             db_tenant.slug = tenant.slug
             db_tenant.config_json = tenant.config_json
-            db_tenant.gemini_api_key = tenant.gemini_api_key  # still active per arch §2.4
+            db_tenant.gemini_api_key = tenant.gemini_api_key
             db_tenant.webhook_secret = tenant.webhook_secret
             db_tenant.can_use_platform_keys = tenant.can_use_platform_keys
             db_tenant.is_active = tenant.is_active
