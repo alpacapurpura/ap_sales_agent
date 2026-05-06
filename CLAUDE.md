@@ -20,20 +20,26 @@ SSoT funcional vive en `docs/{product,process,specs}/`. Migración Mayo 2026 (`p
 | `docs/projects/active/PI-12-...` (legacy) | Última iniciativa estructura PI/Sprint. Cierra paradigma viejo, no migra mid-flight. | `/pm` |
 | `docs/archive/{year}/` | Stories `done` snapshot inmutable + legacy PIs preservados. | `/pm` |
 
-### Vocabulary (NEW paradigma)
+### Vocabulary (NEW paradigma — v4 post Punto 4 2026-05-06)
 
-7 estados macro unificados cross-nivel (idea/outcome/story/capability):
+10 estados macro unificados cross-nivel (idea/outcome/story/capability). Detalle completo: `docs/process/pm-redesign-2026-05.md` § Punto 4.
 
-| Estado | Significado | Trigger entry | WIP cap |
-|---|---|---|---|
-| `idea` | Spark crudo, no validado | Chris tira | sin cap |
-| `validated` | Problem worth solving (OST aplicado) | `/pm` confirma | ≤ 10 |
-| `ready` | Paquete autocontenido completo para autonomous build | `/architect` cierra | ≤ 5 |
-| `building` | Autonomous loop opencode + Sonnet iterando contra `04-validators.yaml` | opencode pickup | ≤ 3 |
-| `review` | Validators GREEN, audit pendiente | autonomous build cierra | ≤ 2 |
-| `done` | Merged a development + scenarios migrados a capability | `/auditor` APPROVED → `/pm` merge | rolling 90d |
-| `parked` | De-prioritized, NO abandonado | manual | sin cap |
-| `dropped` | Won't do (terminal) | manual | sin cap |
+| # | Estado | Significado | Trigger entry | Owner | WIP cap |
+|---|---|---|---|---|---|
+| 1 | `idea` | Spark + research opcional (`00-research.md`). Puede nunca implementarse | Chris tira | Chris + `/pm` | ∞ |
+| 2 | `refining` | Decompose stories + drafts spec/UX/agentic. Loop iterativo Chris | Chris dice "refinemos {x}" | `/pm` + `/po-ux`/`/po`/`/ux-agentico` | ≤ 3 |
+| 3 | `refined` | Spec + UX/diseño ratificados Chris. Listo para architects | Chris ratifica | `/pm` cierra | ≤ 5 |
+| 4 | `ready` | Paquete autocontenido completo (`03-arch` + `04-validators` + `05-guidelines` + `06-tickets`) | `/architect` cierra | `/architect` Opus | ≤ 5 |
+| 5 | `developing` | Autonomous build activo iterando vs validators | `/dev-team` picks | opencode/Sonnet (Opus si agentic prod) | ≤ 3 |
+| 6 | `developed` | Validators GREEN. Build cerrado, awaiting QA | `/dev-team` cierra | `/dev-team` | ≤ 2 |
+| 7 | `reviewing` | Auditor QA en curso (Opus C1-C3 + Sonnet tests) | Chris triggers manual | `/auditor` | ≤ 2 |
+| 8 | `done` | Auditor APPROVED + merge + capability promovida + docs | auditor APPROVED → `/pm` merge | `/pm` | rolling 90d |
+| 9 | `parked` | De-prioritized, NO abandonado | manual | Chris | ∞ |
+| 10 | `dropped` | Won't do (terminal) | manual | Chris | ∞ |
+
+**Mapeo old→new:** `validated` → split en `refining` + `refined` · `building` → split en `developing` + `developed` · `review` → rename `reviewing`. Resto sin cambio.
+
+**Legacy exempt:** stories pre-paradigma (PI-12 sales-agent-eval) NO violan caps al migrar; cap aplica forward-only post 2026-05-06.
 
 Outcome (epic) = agrupación semántica de stories por objetivo común. Story = work unit. Ticket = sub-unit. Outcome cierra event-driven (no time-driven). NO PI/Sprint.
 
@@ -53,13 +59,13 @@ docs/product/stories/{story-id}/
 
 Tickets flat dentro: `T-{n}-impl-log.md`, `T-{n}-result.md`, `T-{n}-review.md`. Si > 10 tickets → story es demasiado grande, split.
 
-### Flujo extremo-a-extremo (3 conversaciones)
+### Flujo extremo-a-extremo (3 conversaciones — v4 con 10 estados)
 
 ```
 Conv 1 — DISCOVERY + READY  (Chris + /pm + /po-ux + /architect)
-  → idea (ideas-pool.yaml)
-  → validated (OST aplicado, outcome creado)
-  → /po-ux | /po | /ux-agentico produce 01-spec.md (+ 02-design-agentic.md si agentic)
+  → idea (ideas-pool.yaml + opcional 00-research.md con competitive analysis + viability + mockups HTML)
+  → [Chris dice "refinemos"] → refining (/po-ux | /po | /ux-agentico drafts 01-spec + 02-design-*)
+  → [Chris ratifica spec + UX] → refined
   → /architect spawna /architect-{be,fe,agentic} en paralelo → 03-arch.md
   → /architect emite 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml
   → state=ready
@@ -67,15 +73,28 @@ Conv 1 — DISCOVERY + READY  (Chris + /pm + /po-ux + /architect)
 Conv 2 — AUTONOMOUS BUILD   (opencode + Sonnet iterando contra validators)
   → /dev-team toma 06-tickets.yaml ticket-por-ticket
   → loop: implement → run validators → fix targeted file → repeat hasta GREEN o cap_reached
-  → on GREEN: state=building→review, append iteration_log
-  → on cap reached: state=building→blocked, escalate Chris
+  → on GREEN: state=developing→developed, append iteration_log
+  → on cap reached: state=developing→blocked, escalate Chris
 
-Conv 3 — REVIEW + MERGE     (/auditor + /pm merge)
+Conv 3 — REVIEW + MERGE     (Chris triggers /auditor + /pm merge)
+  → state=developed → reviewing (manual por Chris para controlar gasto Opus auditor)
   → /auditor spawna auditor-{be,fe,agentic}
   → CHECKPOINTS.md C1-C5 grid: Code | Spec | Architecture | Cross-cutting | Trace
   → APPROVED → /pm aplica merge → scenarios migran a capability → story archive a docs/archive/{year}/stories/{id}/
-  → state=review→done
+  → state=reviewing→done
 ```
+
+### Cost-routing por phase (model split)
+
+| Phase | Modelo | Razón |
+|---|---|---|
+| `idea`/`refining`/`refined` (research, decomposition, specs, designs) | **Opus 4.7** | Pensamiento estratégico, alto valor, baja frecuencia |
+| `/architect` orchestrator + sub-architects | **Opus 4.7** | Decisiones arquitectónicas, ROI altísimo |
+| `/dev-team` BE/FE no-agentic | **Sonnet/opencode** | Ejecución contra validators, barato |
+| `/dev-team` agentic production code (R23) | **Opus 4.7** | Calidad agentic = experiencia usuario |
+| `/auditor` C1-C3 (código + spec + arch) | **Opus 4.7** | Juicio cualitativo |
+| `/auditor` tests/lint/format | **Sonnet** | Determinístico |
+| `gate-runner` / `context-builder` | **Haiku** | Ejecuta + parsea |
 
 ### Skills ejes
 

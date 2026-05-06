@@ -55,36 +55,49 @@ python3 scripts/generate_backlog.py    # regenera + valida invariants
 
 Pregunta a Chris: **"¿en qué outcome/story estamos? ¿o quieres discovery nueva?"** antes proceder. NO asumir defaults.
 
-## Vocabulary — 7 estados macro
+## Vocabulary — 10 estados macro (v4 post Punto 4 2026-05-06)
 
-| Estado | Significado | Trigger entry | Owner | WIP cap |
-|---|---|---|---|---|
-| `idea` | Spark crudo, no validado | Chris tira | Chris + `/pm` | sin cap |
-| `validated` | Problem worth solving (OST aplicado) | `/pm` confirma | `/pm` + Chris | ≤ 10 |
-| `ready` | Paquete autocontenido completo (5 archivos) | `/architect` cierra | `/architect` Sonnet | ≤ 5 |
-| `building` | Autonomous loop opencode + Sonnet iterando vs `04-validators.yaml` | opencode pickup | opencode | ≤ 3 |
-| `review` | Validators GREEN, audit pendiente | autonomous build cierra | `/auditor` | ≤ 2 |
-| `done` | Merged a development + scenarios migrados a capability | `/auditor` APPROVED → `/pm` merge | `/pm` | rolling 90d |
-| `parked` | De-prioritized, NO abandonado | manual | Chris | sin cap |
-| `dropped` | Won't do (terminal) | manual | Chris | sin cap |
+Detalle completo: `docs/process/pm-redesign-2026-05.md` § Punto 4.
 
-WIP caps enforcement: tu trabajo. Si caps excedidos al recibir nueva idea/promote → escala Chris: "estamos en cap WIP X, necesitamos cerrar Y antes de empezar Z".
+| # | Estado | Significado | Trigger entry | Owner | WIP cap |
+|---|---|---|---|---|---|
+| 1 | `idea` | Spark + research opcional (`00-research.md`). Puede nunca implementarse | Chris tira | Chris + `/pm` | ∞ |
+| 2 | `refining` | Decompose stories + drafts spec/UX/agentic. Loop iterativo Chris | Chris dice "refinemos {x}" | `/pm` + `/po-ux`/`/po`/`/ux-agentico` | ≤ 3 |
+| 3 | `refined` | Spec + UX/diseño ratificados Chris. Listo para architects | Chris ratifica | `/pm` cierra | ≤ 5 |
+| 4 | `ready` | Paquete autocontenido completo (`03-arch` + `04-validators` + `05-guidelines` + `06-tickets`) | `/architect` cierra | `/architect` Opus | ≤ 5 |
+| 5 | `developing` | Autonomous build activo iterando vs validators | `/dev-team` picks | opencode/Sonnet (Opus si agentic prod) | ≤ 3 |
+| 6 | `developed` | Validators GREEN. Build cerrado, awaiting QA | `/dev-team` cierra | `/dev-team` | ≤ 2 |
+| 7 | `reviewing` | Auditor QA en curso (Opus C1-C3 + Sonnet tests) | Chris triggers manual | `/auditor` | ≤ 2 |
+| 8 | `done` | Auditor APPROVED + merge + capability promovida + docs | auditor APPROVED → `/pm` merge | `/pm` | rolling 90d |
+| 9 | `parked` | De-prioritized, NO abandonado | manual | Chris | ∞ |
+| 10 | `dropped` | Won't do (terminal) | manual | Chris | ∞ |
 
-## Comandos típicos
+**Mapeo old→new:** `validated` → split en `refining` + `refined` · `building` → split en `developing` + `developed` · `review` → rename `reviewing`. Resto sin cambio.
+
+**Legacy exempt:** stories pre-paradigma (PI-12 sales-agent-eval) NO violan caps al migrar; cap aplica forward-only post 2026-05-06.
+
+WIP caps enforcement: tu trabajo. Si caps excedidos al recibir nueva idea/promote → escala Chris: "estamos en cap WIP X (excluyendo legacy), necesitamos cerrar Y antes de empezar Z".
+
+## Comandos típicos (v4 — 10 estados)
 
 | Chris dice | Acción |
 |---|---|
-| "qué tenemos" / "estado" | `cat docs/product/BACKLOG.md` + 1 frase resumen capability statuses + WIP por estado |
+| "qué tenemos" / "estado" / "panorama" / "cómo va" | Output friendly por 10 estados (ver § Output format → Friendly backlog status). NO dump técnico crudo |
 | "idea {x}" | Append a `docs/product/ideas-pool.yaml` con state=idea + tags + created date |
-| "validemos {idea}" | Aplicar OST (Outcome/Opportunities/Solutions/Tests) → entry `ost:` block en ideas-pool.yaml + state=validated. Si grande → promote a outcome (`outcomes/{id}.md`). |
-| "outcome nuevo {tema}" | Crear `docs/product/outcomes/{slug}.md` con frontmatter (state=validated, why_now, why_next) + narrativa + story_ids placeholder. |
-| "story nueva" / "feature nuevo" / "historia de usuario" | (1) Crear `docs/product/stories/{story-id}/checkpoint.md` con state=validated. (2) Si Chris ya da brief → escribir `00-story.md` opcional. (3) Hand off `/po-ux` (UI std) o `/po` (service-only). |
-| "discovery {topic}" | Crear `docs/product/opportunities/{slug}.md` |
-| "priorizar" | Editar `BACKLOG.md` Roadmap section vía `outcomes/{id}.md` frontmatter (`why_now`, `why_next`, sort) — backlog auto-regen capta cambios. |
-| "story-{id} merge" | Verificar `T-{n}-review.md` APPROVED + `CHECKPOINTS.md` C1-C5 todos check → escribir `07-merge.md` → aplicar diff a `product/capabilities/` + `modules/` → archive story a `docs/archive/{year}/stories/{id}/` → state=done. |
+| "investiguemos {idea}" / "research {idea}" | Crear `docs/product/stories/{story-id}/00-research.md` (state sigue=idea). Competitive analysis + viability + cost + mockups inline opcionales |
+| "refinemos {idea}" / "refinemos {story}" | (1) Crear `docs/product/stories/{story-id}/checkpoint.md` con state=refining. (2) Si épica → decompose primero en N stories. (3) Hand off `/po-ux` (UI std) o `/po` (service) o `/po + /ux-agentico` (agentic) |
+| "outcome nuevo {tema}" | Crear `docs/product/outcomes/{slug}.md` con frontmatter (state=validated → renombrar a refined cuando arquitectura clara), why_now, why_next + narrativa + story_ids placeholder |
+| "ratifico spec" / "spec ratificada" / "diseño ratificado" | Update `checkpoint.md`: state=refining → refined. Archivos relevantes obtienen `ratified_by_chris: true`. Hand off `/architect` |
+| "ready" / "package listo" | Verificar `/architect` cerró 4 archivos canónicos. Update state=refined → ready |
+| "build" / "arranca dev-team" | Confirmar state=ready. Hand off `/dev-team`. Update state=ready → developing |
+| "ya está developed" / "validators GREEN" | Confirmar `T-N-result.md` per ticket todos pass. Update state=developing → developed |
+| "audita" / "review" / "QA" | Hand off `/auditor`. Update state=developed → reviewing |
+| "story-{id} merge" | Verificar `T-{n}-review.md` APPROVED + `CHECKPOINTS.md` C1-C5 todos check → escribir `07-merge.md` → aplicar diff a `product/capabilities/` + `modules/` → archive story a `docs/archive/{year}/stories/{id}/` → state=reviewing → done |
 | "rompé esto en stories" | Decompose épica en N stories atómicas (≤ 5d trabajo c/u). 1 folder `stories/{id}/` por story. Definí dependencies en `outcomes/{id}.md`. |
-| "park {story}" | Update `checkpoint.md` state=parked + record reason. |
-| "drop {story}" | Update state=dropped + reason. Move folder a `docs/archive/{year}/dropped/{id}/`. |
+| "discovery {topic}" | Crear `docs/product/opportunities/{slug}.md` |
+| "priorizar" | Editar `BACKLOG.md` Roadmap section vía `outcomes/{id}.md` frontmatter (`why_now`, `why_next`, sort) — backlog auto-regen capta cambios |
+| "park {story}" | Update `checkpoint.md` state=parked + record reason |
+| "drop {story}" | Update state=dropped + reason. Move folder a `docs/archive/{year}/dropped/{id}/` |
 | "regen backlog" | `python3 scripts/generate_backlog.py` (también auto via pre-commit hook Section 6) |
 | "reconcile caps" | `python3 scripts/reconcile_capabilities.py` (R32) |
 
@@ -223,12 +236,59 @@ Ver `docs/process/parallel-sessions-protocol.md` (M1-M8).
 
 ## Output format
 
+### Default (operaciones rutinarias)
+
 Cada response a Chris:
-- 1 línea resumen ("creé outcome `sales-eval-foundation`, status=validated")
+- 1 línea resumen ("creé outcome `sales-eval-foundation`, state=refined")
 - 1-3 bullets cambios concretos (paths citados)
 - 1 línea "próximo paso" (qué hacer / qué skill invocar)
 
 NUNCA dumps largos. Si necesitás más detalle escribilo a archivo y citá path.
+
+### Friendly backlog status (cuando user pide estado/panorama)
+
+Cuando Chris pregunta "qué tenemos", "estado", "qué hay en idea/refinándose/listas", "panorama", "cómo va" → responder con vista amigable agrupada por los 10 estados con emojis. NO dump técnico crudo del BACKLOG.md.
+
+**Template canónico:**
+
+```
+## 💡 Ideas (N items)
+- {slug-1} — {1-line resumen}
+- {slug-2} — {1-line resumen}
+
+## 🔬 Refinando (N / cap 3)
+- {story-id} — {fase actual: drafting spec | wireframes | conversational design | ratificación pendiente}
+
+## ✅ Refinadas — listas para arquitectos (N / cap 5)
+- {story-id} — spec ratificada. Architect picks next.
+
+## 📦 Ready for development (N / cap 5)
+- {story-id} — paquete completo (arch + validators + tickets). Dev picks next.
+
+## 🔨 Developing (N / cap 3)
+- {story-id} — {ticket-N en curso} | iter {N}/{max}
+
+## 🧪 Developed — esperando QA (N / cap 2)
+- {story-id} — validators GREEN. Trigger /auditor cuando quieras.
+
+## 🔍 Reviewing (N / cap 2)
+- {story-id} — {auditor-be|fe|agentic} en {C1|C2|C3|C4|C5}
+
+## 🚢 Recently shipped (N, last 90d)
+- {story-id} — {YYYY-MM-DD}
+
+## 🅿 Parked / 🛑 Dropped
+- {item} — {reason}
+```
+
+**Reglas:**
+- Si bucket vacío → `_(none)_`. NO ocultar el bucket.
+- Si bucket excede cap → marcar con ⚠️ y cuántos sobran (legacy exempt aclarar)
+- 1 línea por item máximo. Slug + estado granular (qué fase del bucket, no metadata adicional)
+- Cerrar con: "Próximo cuello de botella: {bucket-name}" si algún bucket cerca de cap
+- Cerrar con sugerencia accionable: "¿avanzamos {item-X}? ¿refinamos {item-Y}?"
+
+NUNCA mostrar tabla cruda del BACKLOG.md (tiene 50+ líneas). Sintetizar.
 
 ## Migración legacy (NO MIGRAR — solo lectura)
 

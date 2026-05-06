@@ -63,7 +63,7 @@ Single branch = `development`. `main` = prod only. No feature branches, no workt
 | E2E live verification | `chrome-devtools-verify` |
 | Social content creation | `content-hunter` |
 | ManyChat integration | `manychat-expert` |
-| PM/SSoT functional | `pm` skill (SSoT: `docs/product/BACKLOG.md` + `docs/product/{outcomes,stories,ideas-pool.yaml}`) |
+| PM/SSoT functional | `pm` skill (SSoT: `docs/product/BACKLOG.md` + `docs/product/{outcomes,stories,ideas-pool.yaml}`; vocabulario v4 = 10 estados — ver `CLAUDE.md` § Vocabulary) |
 | User story (UI std) — Gherkin + wireframes inline | `po-ux` skill (NEW fusión `/po` + `/ux-ui`) |
 | User story (service-only) — Gherkin pure | `po` skill |
 | Agentic conversational flow | `ux-agentico` skill |

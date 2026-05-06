@@ -219,6 +219,204 @@ docs/
 
 ---
 
+### Punto 4 — Pipeline 10 estados + agentic eval methodology (CERRADO 2026-05-06)
+
+> **Origen:** sesión 2026-05-06 con Chris. Friction percibido: 7 estados macro mezclaban "raw idea con research" + "spec ratificada" en mismo bucket `validated`. Mezclaban "build en curso" + "build cerrado pre-audit" en mismo bucket `building`. Necesidad: pipeline más granular que distinga claramente fases de discovery (idea/research) vs refinement (decompose+specs+UX) vs architect-package vs build vs review. Adicional: formalizar metodología validable conversacional state-of-art 2026.
+
+#### State machine — 10 estados (REEMPLAZA 7 estados de Punto 1)
+
+```
+                                       ┌── parked (manual, opt-out reversible)
+                                       │
+idea ─→ refining ─→ refined ─→ ready ─→ developing ─→ developed ─→ reviewing ─→ done
+  │       │           │         │           │             │            │           │
+  └─→ dropped (terminal won't do)                                                   └─→ archive
+```
+
+| # | Estado | Disparador entry | Owner | Output canónico | WIP cap |
+|---|---|---|---|---|---|
+| 1 | `idea` | Chris tira | Chris + `/pm` | ideas-pool entry + (opcional) `00-research.md` | ∞ |
+| 2 | `refining` | Chris dice "refinemos {idea}" | `/pm` orquesta + `/po-ux` o `/po` + `/ux-agentico` | `00-story.md` + `01-spec.md` (drafts) + `02-design-*.md` (drafts) + decomposition stories | ≤ 3 |
+| 3 | `refined` | Chris ratifica spec + diseño UX/conversacional | `/pm` cierra | mismos archivos pero `ratified_by_chris: true` | ≤ 5 |
+| 4 | `ready` | `/architect` orchestrator cierra package | `/architect` (Opus) | `03-arch.md` + `04-validators.yaml` + `05-guidelines.md` + `06-tickets.yaml` | ≤ 5 |
+| 5 | `developing` | `/dev-team` picks ticket | opencode/Sonnet (Opus si agentic prod) | `T-N-impl-log.md` + iteration logs | ≤ 3 |
+| 6 | `developed` | Todos validators GREEN | `/dev-team` cierra | `T-N-result.md` por ticket | ≤ 2 |
+| 7 | `reviewing` | Chris triggers `/auditor` | `/auditor` (Opus + Sonnet split) | `T-N-review.md` + `CHECKPOINTS.md` (C1-C5) | ≤ 2 |
+| 8 | `done` | Auditor APPROVED + `/pm` merge | `/pm` | `07-merge.md` + capabilities promoted + archive | rolling 90d |
+| 9 | `parked` | Manual Chris | Chris | reason field | ∞ |
+| 10 | `dropped` | Manual Chris | Chris | reason field | ∞ (terminal) |
+
+#### Mapeo old (7) → new (10)
+
+| Old state | New state(s) | Razón split |
+|---|---|---|
+| `idea` | `idea` | sin cambio. Aclara que research opcional vive aquí (`00-research.md`) |
+| `validated` | `refining` (en proceso) + `refined` (specs ratificadas, awaiting architect) | separa "Chris ratificando spec activamente" de "spec lista para architect" |
+| `ready` | `ready` | sin cambio (architect package autocontenido) |
+| `building` | `developing` (build en curso) + `developed` (validators GREEN, awaiting QA) | separa "build activo" de "build cerrado, esperando review" |
+| `review` | `reviewing` | rename solo (más natural en español/inglés mixto) |
+| `done` | `done` | sin cambio |
+| `parked` / `dropped` | `parked` / `dropped` | sin cambio |
+
+**Caps cambian:** sumando 3 estados nuevos, total WIP discovery+refinement+development capabilities sigue limitado pero distribuido más finamente. `idea` sin cap (capturar libre); `refining` ≤ 3 (focus deep work); `refined` ≤ 5 (queue para architects); `ready` ≤ 5 (queue para devs); `developing` ≤ 3 (concurrent builds); `developed` ≤ 2 (queue para auditor); `reviewing` ≤ 2 (concurrent audits).
+
+#### Gates de transición
+
+| Transition | Gate (qué Chris/sistema verifica) |
+|---|---|
+| `idea → refining` | Chris explícito ("refinemos {x}"). NO automático. Pueden coexistir 50 ideas sin nunca refinarse |
+| `refining → refined` | Chris ratifica: (a) spec scenarios completos (happy/negative/edge/adversarial), (b) UX/diseño conversacional ratificado, (c) decomposition stories si épica |
+| `refined → ready` | `/architect` Opus produce paquete autocontenido (4 archivos canónicos: arch + validators + guidelines + tickets) |
+| `ready → developing` | `/dev-team` picks. Autonomous build SIN supervisión humana (paquete autocontenido cualquier AI debería poder) |
+| `developing → developed` | TODOS validators GREEN. NO escalations open. NO uncommitted WIP |
+| `developed → reviewing` | Chris triggers manual (controla cuándo gastar Opus auditor). NO automático |
+| `reviewing → done` | Auditor APPROVED + `/pm` aplica merge + capabilities promovidas + docs actualizados |
+
+#### Cost-routing por phase (model split óptimo)
+
+| Phase | Modelo | Razón |
+|---|---|---|
+| `idea`/`refining` (research, decomposition, decisión coherencia) | **Opus 4.7** | Pensamiento estratégico, alto valor, baja frecuencia |
+| `/po-ux` + `/po` + `/ux-agentico` (specs + designs) | **Opus 4.7** | Calidad spec define todo downstream |
+| `/architect` orchestrator + sub-architects | **Opus 4.7** | Decisiones arquitectónicas, ROI altísimo |
+| `/dev-team` BE/FE no-agentic | **Sonnet/opencode** | Ejecución contra validators, barato |
+| `/dev-team` agentic production code (R23 hard rule) | **Opus 4.7** | Calidad agentic = experiencia usuario directa |
+| `/auditor` categorías críticas (C1 código + C2 spec + C3 arch) | **Opus 4.7** | Juicio cualitativo |
+| `/auditor` tests/lint/format runs | **Sonnet** | Determinístico, barato |
+| `gate-runner` ejecutor `make ci-parity` etc. | **Haiku** | Solo ejecuta + parsea JSON |
+| `context-builder` lecturas previas | **Haiku** | Solo agrega contexto |
+
+#### Metodología validable conversacional (state-of-art 2026)
+
+> **Trigger:** stories con `category: agentic` o `frontend_conversational`. Bind durante `refining` → formalize durante `ready` (architect produce machinery en `04-validators.yaml`).
+
+**Stack canónico:**
+
+| Capa | Qué | Cuándo aplicarlo |
+|---|---|---|
+| **Spec-driven development** | Markdown estructurado con scenarios Gherkin AI-resistant + invariantes | `refining` |
+| **Personas + golden datasets** | Mix hand-crafted (Chris ratifica) + sampled production traces (anonimizado via `sanitize_payload`) | `refining` |
+| **LLM-as-judge rubrics** | Voice fidelity · goal completion · tone · helpfulness · scope | `refining` (selección) → `ready` (binding) |
+| **Trajectory evaluators** (`agentevals` LangChain) | Tool call sequence + LangGraph state transitions + subagent isolation | `ready` |
+| **Code-based assertions** | Programmatic checks (state DB, cost USD < X, tokens < Y) | `ready` |
+| **Multi-turn evals** (LangSmith Threads) | Conversación entera como unidad coherente, no turn-by-turn aislado | `ready` |
+| **Pass^k metric** | trials_per_scenario · per_trial_threshold · pass_k_threshold | `refining` (definir umbrales) |
+| **Adversarial set** | Prompt injection · out-of-scope · loop bait · PII probes · jailbreak | `refining` |
+| **Observability invariants** | `copilot_trace_event` records · cost budget · latency p95 | `ready` |
+| **Self-Refine / Reflexion loops** | LLM evaluator feedback iterativo durante build | `developing` |
+| **HITL annotation queues** | Sample dudosos → Chris labelea → re-bootstrap rubric | `developed`/`done` |
+
+**Sources:**
+- LangSmith Evaluation Framework (`langchain.com/langsmith/evaluation`)
+- agentevals — LangGraph trajectory evaluators (`github.com/langchain-ai/agentevals`)
+- Insights Agent + Multi-turn Evals (`blog.langchain.com/insights-agent-multiturn-evals-langsmith/`)
+- Evaluation and Benchmarking of LLM Agents — Survey (`arxiv.org/html/2507.21504v1`)
+- Agentic Workflows 2026 — Vellum (`vellum.ai/blog/agentic-workflows-emerging-architectures-and-design-patterns`)
+- State of Agent Engineering — LangChain (`langchain.com/state-of-agent-engineering`)
+- Practical Guide for Designing Production-Grade Agentic AI Workflows (`arxiv.org/html/2512.08769v1`)
+
+#### Artefactos por estado (template carpeta canónico)
+
+```
+docs/product/stories/{story-id}/
+├── checkpoint.md                       # state machine vivo (todo estado)
+├── 00-research.md                      # estado=idea (OPCIONAL — research deep, competitive analysis, mockups HTML)
+├── 00-story.md                         # estado=refining (brief decomposed)
+├── 01-spec.md                          # estado=refining→refined (Gherkin + scenarios + grader refs)
+├── 02-design-ui.md                     # estado=refining→refined (si UI std/disruptiva)
+├── 02-design-agentic.md                # estado=refining→refined (si conversacional)
+├── 03-arch.md                          # estado=refined→ready (sub-arq BE/FE/agentic consolidado)
+├── 04-validators.yaml                  # estado=refined→ready (★ tests ejecutables — non_functional/functional/visual/agentic_eval)
+├── 05-guidelines.md                    # estado=refined→ready (patterns + skills + rutas)
+├── 06-tickets.yaml                     # estado=refined→ready (T-1, T-2, ...)
+├── T-{n}-impl-log.md                   # estado=developing
+├── T-{n}-result.md                     # estado=developed
+├── T-{n}-review.md                     # estado=reviewing
+├── CHECKPOINTS.md                      # estado=reviewing (C1-C5 grid)
+└── 07-merge.md                         # estado=done (capability promotion record)
+```
+
+#### `04-validators.yaml` — categorías extendidas
+
+```yaml
+validators:
+  # NON-FUNCTIONAL (lint, arch fitness, type-check, format)
+  - id: arch-fitness-be
+    category: non_functional
+    command: "cd backend && .venv/bin/pytest tests/architecture/ -x -q"
+    must_pass: true
+
+  - id: lint-ruff
+    category: non_functional
+    command: "cd backend && .venv/bin/ruff check src/ tests/"
+    must_pass: true
+
+  # FUNCTIONAL (Gherkin scenarios — happy/negative/edge/adversarial)
+  - id: scenario-happy-path
+    category: functional
+    command: "cd backend && .venv/bin/pytest tests/modules/X/test_story.py::test_happy -v"
+    must_pass: true
+
+  # AGENTIC EVAL (pass^k, rubrics, trajectory, cost/latency budgets)
+  - id: agentic-pass-k
+    category: agentic_eval
+    runner: "python scripts/run_agent_evals.py --story={id} --personas=A,B,C"
+    rubrics: [voice-fidelity, goal-completion, tool-call-accuracy]
+    pass_k:
+      trials: 3
+      per_trial_threshold: 0.66
+      pass_k_threshold: 0.5
+    must_pass: true
+
+  - id: trajectory-tool-sequence
+    category: agentic_eval
+    runner: "python scripts/run_trajectory_eval.py --expected=docs/specs/trajectories/{story}.yaml"
+    must_pass: true
+
+  - id: cost-budget
+    category: agentic_eval
+    threshold: { cost_usd_max: 0.50, tokens_max: 6000, latency_p95_max: 8.0 }
+    must_pass: true
+
+  # VISUAL (responsive + visual fidelity Playwright + screenshots)
+  - id: visual-fidelity
+    category: visual
+    runner: "cd frontend && npx playwright test e2e/visual/{story}.spec.ts"
+    capture: screenshots
+    must_pass: true
+
+  - id: responsive-coverage
+    category: visual
+    breakpoints: [mobile, tablet, desktop]
+    must_pass: true
+```
+
+#### Decisiones cardinales adicionales (ratificadas Chris 2026-05-06)
+
+1. ✅ **10 estados ratificados** (idea/refining/refined/ready/developing/developed/reviewing/done/parked/dropped)
+2. ✅ **Legacy exempt cap going forward** — stories pre-paradigma (PI-12 sales-agent-eval) NO violan caps al migrar; cap aplica solo a stories nuevas creadas post 2026-05-06
+3. ✅ **`00-research.md` opcional** — encouraged para ideas grandes (>5d trabajo), pequeñas pueden saltar directo a refining
+4. ✅ **Validators visual ahora** — agregar `category: visual` desde día 1 a templates; `must_pass: true` cuando spec lo defina (Playwright screenshots baseline opcional iter 1)
+5. ✅ **Output `/pm` amigable** — cuando user pide estado backlog, agrupar por 10 estados con emojis + 1 línea resumen por bucket. NO dump técnico crudo
+
+#### Plan de implementación Punto 4 (F1-F7)
+
+| Fase | Scope | Status |
+|---|---|---|
+| **F1** | Doc canónico (este Punto 4) + CLAUDE.md + AGENTS.md + PM friendly output | 🟡 EN CURSO |
+| **F2** | Update skills `/pm` `/po` `/po-ux` `/ux-agentico` `/architect` `/dev-team` `/auditor` con nuevos estados | 🔴 PENDIENTE |
+| **F3** | Update `generate_backlog.py` + `pre-commit` Section 7 + tests | 🔴 PENDIENTE |
+| **F4** | Crear template `00-research-template.md` + extender `04-validators-template.yaml` con categorías | 🔴 PENDIENTE |
+| **F5** | Migración PI-12 (Olas 1-5 — stories sin spec → `refining`) | 🔴 PENDIENTE |
+| **F6** | Update Stop hook validator `validate_session_close.py` WIP caps a 10 estados | 🔴 PENDIENTE |
+| **F7** | Regen backlog + tests + commit final | 🔴 PENDIENTE |
+
+#### Bitácora Punto 4
+
+- 2026-05-06 — Chris ratifica propuesta 10 estados + metodología agéntica state-of-art + cost-routing per phase + 5 decisiones (legacy exempt + research opcional + validators visual ahora + friendly output `/pm` + F1 first then F2-F7). F1 inicia inmediato.
+
+---
+
 ## Wave plan implementación (4 waves)
 
 | Wave | Scope | Status | Risk |
@@ -449,6 +647,7 @@ Spawn agent `general-purpose` con scope skills:
 | 1 — Foundation | ✅ DONE | 207760c1 |
 | 2 — Migration pm-nico/ | ✅ DONE | f23c3403 |
 | 3 — Skills + paradigm refresh | ✅ DONE | b3d09e38 |
-| 4 — Stop hook + automation | ✅ DONE | (pending) |
+| 4 — Stop hook + automation | ✅ DONE | 26191622 |
+| 5 — Punto 4: 10 estados + agentic eval methodology (F1-F7) | 🟡 IN PROGRESS | (F1 pending commit) |
 
-Sistema PM Nicolify v3 operativo. Próximo step Chris: usar /pm paradigma nuevo en próximo outcome.
+Sistema PM Nicolify v4 (post Punto 4) operativo cuando F1-F7 cierre. Próximo step Chris: usar `/pm` con vocabulario 10-estados + migrar PI-12 stories a `refining`.
