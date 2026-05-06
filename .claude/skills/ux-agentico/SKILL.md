@@ -1,23 +1,36 @@
 ---
 name: ux-agentico
-description: "UX agéntico Nicolify. Diseña FLUJOS CONVERSACIONALES (no UI tradicional) para agentic-stories. Toma 01-spec.md y produce 02-design-agentic.md con: turn-by-turn happy path, state machine agente, tools sequence, prompt slot architecture, voice constraints, error recovery, eval policy (personas+rubrics+pass^k), cost/latency budget, observabilidad. Carga skills sales-agent-expert, copilot-expert, tessl__langgraph, claude-api. Si descubre edge cases → delta-spec.md → /po ratifica. Activa cuando user dice: '/ux-agentico', 'diseñemos el flujo conversacional', 'cómo conversa el agente', 'flujo del copilot', 'turn-by-turn', 'experiencia agéntica'."
+description: "UX agéntico Nicolify (post pm-redesign 2026-05). Diseña FLUJOS CONVERSACIONALES (no UI tradicional) para agentic-stories. Toma 01-spec.md (de /po) y produce 02-design-agentic.md en docs/product/stories/{story-id}/ con: turn-by-turn happy path, state machine agente, tools sequence, prompt slot architecture, voice constraints, error recovery, eval policy (personas+rubrics+pass^k), cost/latency budget, observabilidad. Carga skills sales-agent-expert, copilot-expert, tessl__langgraph, claude-api. Si descubre edge cases → delta-spec.md → /po ratifica. Activa cuando user dice: '/ux-agentico', 'diseñemos el flujo conversacional', 'cómo conversa el agente', 'flujo del copilot', 'turn-by-turn', 'experiencia agéntica'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
+model: opus
 ---
 
 # /ux-agentico — UX Agéntico (Conversational Flow Designer)
 
-> Owner: `02-design-agentic.md` + (si aplica) `mockups/conversation-{flow}.md`. Diseña la EXPERIENCIA conversacional del agente. Análogo a /ux-ui pero para LLM.
+> Owner: `docs/product/stories/{story-id}/02-design-agentic.md` + (si aplica) `mockups/conversation-{flow}.md`. Diseña la EXPERIENCIA conversacional del agente. Sister skill de `/po-ux` (UI std).
 
-## Diferencia vs /ux-ui
+## Cuándo usar — decision matrix
 
-| /ux-ui | /ux-agentico |
+| Tipo story | Skill |
 |---|---|
-| Pantallas, layouts, componentes | Turns, tools, prompts, voz |
-| Mockups HTML | Conversation transcripts ejemplo |
+| **Agentic-only** (conversational flow, no UI tradicional) | **`/po` (spec) → `/ux-agentico` (este skill, flow design)** |
+| **UI mixed** (UI std + tool calls agentic) | `/po-ux` para spec UI + sección agentic-handoff → `/ux-agentico` para flow |
+| **UI standard** (CRUD/list/form/dashboard) | `/po-ux` (fusión, NO usar este skill) |
+| **Service-only** (BE endpoint sin LLM) | `/po` standalone (NO usar este skill) |
+
+**Razón fusión NO aplica a agentic:** state machine + slot architecture + voice fidelity + eval pass^k son bestia distinta del UI std (constrained Tailwind+Shadcn). Por eso `/ux-agentico` se mantiene separado de `/po`, mientras `/po-ux` fusiona `/po` + `/ux-ui` para UI std.
+
+## Diferencia vs /po-ux (UI std)
+
+| /po-ux (UI std) | /ux-agentico (agentic) |
+|---|---|
+| Pantallas, layouts, componentes Shadcn | Turns, tools, prompts, voz |
+| Wireframes ASCII / HTML mockups | Conversation transcripts ejemplo |
 | Estados UI (loading/error/empty) | Estados agente (gathering/reasoning/acting/responding/done) |
 | Responsive breakpoints | Channels (web/telegram/whatsapp/manychat) |
-| Shadcn + Tailwind | Slot architecture + cache TTL |
+| Shadcn + Tailwind tokens | Slot architecture + cache TTL |
 | Accessibility WCAG | Voice fidelity + persona robustness |
+| Output: `01-spec.md` UNIFICADO | Output: `02-design-agentic.md` (consume `01-spec.md` previo de `/po`) |
 
 ## Inputs obligatorios
 
@@ -213,19 +226,22 @@ Loop hasta aprobación.
 
 ```
 UX agentic done.
-Deliverables:
+Deliverables (en docs/product/stories/{story-id}/):
 - 02-design-agentic.md
 - (opcional) mockups/conversation-{flow}.md con transcript ejemplo
 - delta-spec.md si aplica
 
 Próximo: /architect → spawn /architect-agentic + (BE si tool nuevo) + (FE si trigger UI).
+   /architect produce ready package: 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml.
+   Story state transitions: validated → ready cuando architect cierra package.
 ```
 
-Update checkpoint:
+Update `docs/product/stories/{story-id}/checkpoint.md`:
 ```
-phase: UX_AGENTIC → ARCHITECT
+state: validated   # mantener; transition a ready la hace /architect
+phase: AGENTIC_DESIGN_DONE
 last_artifact: 02-design-agentic.md
-next_action: "/architect lee 01+02 → spawn arch-agentic+arch-be+arch-fe → produce 04-tickets.yaml"
+next_action: "/architect lee 01-spec + 02-design-agentic → spawn arch-{agentic,be,fe} → produce ready package"
 ```
 
 ## Anti-patterns

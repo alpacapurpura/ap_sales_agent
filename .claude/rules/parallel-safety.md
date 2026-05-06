@@ -36,16 +36,16 @@ Stage por nombre solo archivos esta sesión. PROHIBIDO `git add .|-A|-u`. Status
 
 | # | Regla |
 |---|---|
-| M1 | Sesiones paralelas tocan PRs DE MÓDULOS DISTINTOS por default. Cross-módulo OK con M8 |
-| M2 | `docs/pm-nico/process/process-learnings.md` + `roadmap.md` + `MEMORY.md` SOLO `/pm`. Builders nunca |
+| M1 | Sesiones paralelas tocan stories DE MÓDULOS DISTINTOS por default. Cross-módulo OK con M8 |
+| M2 | `docs/process/learnings.md` + `docs/product/BACKLOG.md` (auto-gen) + `MEMORY.md` SOLO `/pm`. Builders nunca |
 | M3 | Tests/CI/Docker SECUENCIAL. Una sesión a la vez `/test-all`/`/dev-up`/`make ci-parity`. Container/port collision invisible hasta crash |
-| M4 | Claim by commit: `/pm` cambia `Estado: in-progress` PR.md + commit/push inmediato |
+| M4 | Claim by commit: `/pm` cambia `state: building` en checkpoint.md + commit/push inmediato |
 | M5 | NO pull. NO force push. NO revert sin aprobación. Push falla → STOP |
-| M6 | Bootstrap PM pregunta `¿en qué PI?` antes proceder |
-| M7 | Subagentes paths PRIMARIOS PR + read all + "extend, no destroy" ajenos. PM prefija PI completo prompts |
+| M6 | Bootstrap PM pregunta `¿en qué outcome/story?` antes proceder (legacy: `¿en qué PI?` solo aplica a PI-12 last-legacy) |
+| M7 | Subagentes paths PRIMARIOS story + read all + "extend, no destroy" ajenos. PM prefija story-id completo en prompts |
 | M8 | Tocar archivos otra sesión OK si: (a) entendés leyendo, (b) extend/append no replace, (c) rompe → STOP escalate Chris. Filosofía Chris (2026-04-29) |
 
-Detalle: `docs/pm-nico/process/parallel-sessions-protocol.md`.
+Detalle: `docs/process/parallel-sessions-protocol.md`.
 
 ## Cierre
 
@@ -58,4 +58,4 @@ Detalle: `docs/pm-nico/process/parallel-sessions-protocol.md`.
 
 ## Prohibido
 
-`git pull` (cualquier forma) · `fetch && merge` · `push --force`/`--force-with-lease` · `revert` sin aprobación · `reset --hard` sin aprobación · `add .`/`-A`/`-u` · `commit --no-verify` · feature branches/worktrees · checkout fuera `development`/`main` · tree sucio ajeno tocado · cierre sin commit/reporte · push `origin main` sin aprobación · builders editando `process-learnings.md`/`roadmap.md`/`MEMORY.md` · tests/Docker dos sesiones simul.
+`git pull` (cualquier forma) · `fetch && merge` · `push --force`/`--force-with-lease` · `revert` sin aprobación · `reset --hard` sin aprobación · `add .`/`-A`/`-u` · `commit --no-verify` · feature branches/worktrees · checkout fuera `development`/`main` · tree sucio ajeno tocado · cierre sin commit/reporte · push `origin main` sin aprobación · builders editando `learnings.md`/`BACKLOG.md`/`MEMORY.md` · tests/Docker dos sesiones simul.

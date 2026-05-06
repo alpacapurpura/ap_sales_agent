@@ -113,7 +113,7 @@ type FormData = z.infer<typeof schema>;
 
 Output al orchestrator:
 ```
-done -> docs/projects/active/PI-N/sprints/SN/stories/{id}/03-arch-fe.md
+done -> docs/product/stories/{story-id}/03-arch-fe.md
 ```
 
 ## Anti-patterns

@@ -58,13 +58,20 @@ Single branch = `development`. `main` = prod only. No feature branches, no workt
 | `brand/` identity/positioning | `brand-expert` |
 | Backend quality, DDD, currency, arch fitness | `backend-expert` |
 | Frontend quality, form runtime | `frontend-expert` |
-| New features (full stack) | `nicolify-feature` |
 | Git/PR/release | `git-manager` |
 | Deploy to production | `pase-produccion` |
 | E2E live verification | `chrome-devtools-verify` |
 | Social content creation | `content-hunter` |
 | ManyChat integration | `manychat-expert` |
-| PM/SSoT functional | `pm` (custom skill) |
+| PM/SSoT functional | `pm` skill (SSoT: `docs/product/BACKLOG.md` + `docs/product/{outcomes,stories,ideas-pool.yaml}`) |
+| User story (UI std) — Gherkin + wireframes inline | `po-ux` skill (NEW fusión `/po` + `/ux-ui`) |
+| User story (service-only) — Gherkin pure | `po` skill |
+| Agentic conversational flow | `ux-agentico` skill |
+| Architecture + ready package (validators + guidelines + tickets) | `architect` skill |
+| Autonomous build (Conv 2) | `dev-team` skill |
+| Code review (Conv 3) | `auditor` skill |
+| Backlog freshness (R33) | `scripts/generate_backlog.py` (auto via pre-commit hook Section 6) |
+| Capability reconciliation (R32) | `scripts/reconcile_capabilities.py` |
 
 ## Quality Gates
 

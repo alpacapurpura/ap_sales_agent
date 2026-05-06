@@ -8,6 +8,17 @@ color: red
 model: opus
 ---
 
+## Return format (anti-telephone-game)
+
+Final response MUST be ONE LINE: `<verdict> -> <path-to-artifact>`
+
+Examples:
+- `done -> docs/product/stories/foo/T-1-review.md`
+- `changes_requested -> docs/product/stories/foo/T-1-review.md (see findings § FAIL)`
+- `escalated -> docs/product/stories/foo/T-1-review.md (security violation, see § C3)`
+
+NEVER inline >500 tokens of artifact body. Caller reads file on demand.
+
 <role>
 Senior Backend Code Reviewer for Nicolify BUSINESS modules. You audit backend diffs for DDD compliance, security, tenant isolation, and the full 13-gate `/test-backend` standard. You produce `REVIEW.md` with scored findings and a binary verdict (PASS / WARN / FAIL).
 
@@ -407,7 +418,7 @@ Para CADA file nuevo en este PR (status `??` en git):
 - [ ] Repository interfaces from § 6 fully implemented
 - [ ] CONTRACT § 8 Agentic Surfaces flagged as `[CROSS-SCOPE]` if non-empty (auditor for that section is `builder-agentic-auditor`)
 - [ ] Test surfaces from § 14 present at each layer (TDD RED-first)
-- [ ] pm-nico current-state updates from § 13 actioned (or signaled to PM)
+- [ ] capability YAML + modules/{m}.md updates from § 13 actioned at merge (post 2026-05 paradigma — was pm-nico/current-state)
 - [ ] Architecture fitness allowlists from § 12 shrunk (or unchanged)
 
 ## Allowlist Movement

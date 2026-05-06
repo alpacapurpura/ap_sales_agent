@@ -1,6 +1,6 @@
 # PRD Template — Multi-variant
 
-> Producto del PM al final del discovery. Para Nicolify usamos PR atómico (`docs/pm-nico/pis/PI-N/prs/PR-n.md`). Variantes según scope.
+> Producto del PM al final del discovery. Para Nicolify post-redesign 2026-05 usamos `docs/product/stories/{story-id}/01-spec.md` (autocontenido) — variantes según scope siguen siendo útiles para framing al redactar el spec.
 
 ## Cuándo usar cuál
 

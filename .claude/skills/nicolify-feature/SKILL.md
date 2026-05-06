@@ -1,21 +1,51 @@
 ---
-name: nicolify-feature
-description: Full-stack feature development pipeline for Nicolify. Orchestrates 6 specialized agents (architect, backend, agentic, backend-auditor, ux-designer, frontend) through 4 phases with user checkpoints. Use when building new features, adding CRUD endpoints, creating new UI screens, or implementing cross-stack functionality.
-triggers:
-  - "nueva funcionalidad"
-  - "nuevo feature"
-  - "implementa feature"
-  - "crea feature"
-  - "build feature"
-  - "nicolify-feature"
-  - "full-stack feature"
-  - "crear módulo"
-  - "agregar funcionalidad"
+name: nicolify-feature-deprecated
+description: "DEPRECATED skill (post pm-redesign 2026-05-06 Wave 3). Replaced by 3-conversation flow (Discovery+Ready / Autonomous Build / Review+Merge) orchestrated by /pm + /po-ux + /architect + /dev-team + /auditor. NEVER invoke this skill — its monolithic 4-phase orchestrator is incompatible with the new context-isolated 3-conversation paradigm. For new full-stack features, follow: idea → /pm validates → /po-ux or /po (spec) → /architect (ready package) → /dev-team (autonomous build) → /auditor (review+merge). See docs/process/pm-redesign-2026-05.md."
 ---
 
-# Nicolify Feature Pipeline
+# Nicolify Feature Pipeline — DEPRECATED (Wave 3 pm-redesign 2026-05-06)
 
-You are the orchestrator for Nicolify's full-stack feature development. You coordinate 6 specialized agents through 4 phases, with user approval checkpoints between phases.
+> **🛑 DEPRECATED.** Do NOT invoke this skill.
+>
+> **Replaced by 3-conversation flow** orchestrated by:
+> - `/pm` — director, owner BACKLOG.{yaml,md} + outcomes/ + stories/
+> - `/po-ux` (UI std) or `/po` (service) or `/po + /ux-agentico` (agentic) — spec
+> - `/architect` — ready package (03-arch + 04-validators + 05-guidelines + 06-tickets)
+> - `/dev-team` — autonomous build Conv 2 (opencode + Sonnet iterating vs validators)
+> - `/auditor` — review+merge Conv 3 (CHECKPOINTS.md C1-C5)
+>
+> **Why deprecated:** the monolithic 4-phase orchestrator with 6 hardcoded subagents is incompatible with:
+> - Context isolation between Conversations (each Conv has its own model + scope)
+> - 7-state vocabulary (idea/validated/ready/building/review/done/parked/dropped)
+> - WIP caps (validated≤10, ready≤5, building≤3, review≤2)
+> - Autonomous build mode (opencode + Sonnet iterating against `04-validators.yaml` without supervision)
+> - Story folder structure flat at `docs/product/stories/{story-id}/`
+>
+> **For history:** legacy content preserved below for reference. Active workflow → see `docs/process/pm-redesign-2026-05.md`.
+
+## Replacement workflow
+
+```
+Conv 1 — DISCOVERY + READY  (Chris + /pm + /po-ux + /architect)
+  Chris idea → /pm validates (OST) → state=validated →
+  /po-ux (UI std) o /po (service) o /po + /ux-agentico (agentic) → 01-spec.md ratificada →
+  /architect spawna /architect-{be,fe,agentic} → ready package →
+  state=validated → ready
+
+Conv 2 — AUTONOMOUS BUILD   (opencode + Sonnet iterando vs validators)
+  /dev-team toma 06-tickets.yaml ticket-por-ticket →
+  loop: implement → run validators → fix → repeat hasta GREEN o cap_reached →
+  state=ready → building → review
+
+Conv 3 — REVIEW + MERGE     (/auditor + /pm merge)
+  /auditor spawna auditor-{be,fe,agentic} → CHECKPOINTS.md C1-C5 →
+  /pm aplica merge → scenarios migran a capability → archive story →
+  state=review → done
+```
+
+## Legacy reference (DO NOT invoke)
+
+> The original nicolify-feature skill orchestrated 6 agents through 4 phases (Analysis, Architecture, Backend+Agentic+Auditor parallel, UX+Frontend) with user checkpoints. This forced a single conversation context to handle all phases, causing token bloat and scope drift. The new 3-conversation paradigm uses context isolation to keep each phase efficient.
 
 ## Prerequisites
 

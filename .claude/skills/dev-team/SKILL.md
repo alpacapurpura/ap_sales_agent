@@ -1,38 +1,60 @@
 ---
 name: dev-team
-description: "Developer team router. Toma 1 ticket de 04-tickets.yaml. Decide owner según owner_eligibility (qwen-opencode preferido para BE/FE no-agentic; Opus 4.7 obligatorio para AGENTIC). Para qwen → invoca via Bash con prompt pre-cocido. Para Opus → spawna agent builder-{be,fe,agentic}. Mantiene T-{n}-impl-log.md vivo. TDD obligatorio. Corre /test-{backend,frontend} + Playwright + agentic evals. Push commit. Update ticket state. Activa cuando user dice: '/dev-team', 'tomá ticket T-N', 'implementá T-N', 'arrancá build'."
+description: "Developer team router (Conv 2 — autonomous build, post pm-redesign 2026-05). Reads ready package (01-spec.md + 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml) en docs/product/stories/{story-id}/. Itera ticket-por-ticket: implement → run validators → fix targeted file → repeat hasta GREEN o cap_reached. Decide owner según owner_eligibility + production_code flag (R23). qwen-opencode/Sonnet preferido para BE/FE no-agentic + tests/docs sobre agentic. Opus 4.7 obligatorio para AGENTIC production code. Mantiene T-{n}-impl-log.md vivo. TDD obligatorio. On all GREEN: state=building→review. On cap reached: state=building→blocked, escalate. Activa cuando user dice: '/dev-team', 'toma ticket T-N', 'implementa T-N', 'arranca build', 'autonomous build'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
+model: opus
 ---
 
-# /dev-team — Developer Team Router
+# /dev-team — Developer Team Router (Conv 2 autonomous build)
 
-> Owner: `T-{n}-impl-log.md` + `T-{n}-result.md`. Toma 1 ticket → ejecuta TDD → push.
+> Owner: `T-{n}-impl-log.md` + `T-{n}-result.md` en `docs/product/stories/{story-id}/`. Toma 1 ticket → ejecuta TDD + iteración contra `04-validators.yaml` → push. On GREEN all tickets → state=building→review.
 
-## Inputs obligatorios
+## Inputs obligatorios (ready package)
 
-1. `04-tickets.yaml` — pila tickets del story
-2. Ticket específico que tomás (`T-{n}` con `state: ready`)
-3. `T-{n}-handoff.md` — input self-contained (architect lo escribió)
-4. Story YAML + spec + design + arch (lectura referencia)
+1. `docs/product/stories/{story-id}/06-tickets.yaml` — pila tickets del story
+2. `docs/product/stories/{story-id}/04-validators.yaml` — ★ comandos shell ejecutables, must_pass:true ★
+3. `docs/product/stories/{story-id}/05-guidelines.md` — patterns required/forbidden + files in scope
+4. `docs/product/stories/{story-id}/03-arch.md` (+ `03-arch-{be,fe,agentic}.md`)
+5. `docs/product/stories/{story-id}/01-spec.md` (+ `02-design-agentic.md` si aplica)
+6. Ticket específico que tomas (`T-{n}` con `state: ready`)
+7. `docs/product/stories/{story-id}/checkpoint.md` — state=ready requerido
 
-## Step 0 — Phase 0: Context pre-flight (MANDATORY antes de Step 1)
+## Step 0 — Bootstrap + state transition
+
+```bash
+STORY_DIR=docs/product/stories/{story-id}
+cat $STORY_DIR/checkpoint.md      # verify state=ready (o state=building si retomas)
+cat $STORY_DIR/06-tickets.yaml    # pila tickets
+cat $STORY_DIR/04-validators.yaml # ★ corazón autonomous loop ★
+cat $STORY_DIR/05-guidelines.md   # patterns + files in scope
+```
+
+Si state=ready → transition a building (primera vez):
+```yaml
+# checkpoint.md
+state: building   # ★ TRANSITION ready → building ★
+phase: BUILD_T1
+```
+
+WIP cap check: `building` ≤ 3. Si excedido → escala Chris antes proceder.
+
+## Step 0.5 — Phase 0: Context pre-flight (MANDATORY antes Step 1)
 
 > Origen: process-improvement 2026-05-05 R1. Sin context-builder cada subagent
-> re-lee 30-50k tokens de spec+arch+rules. Brief Haiku 5-8k tokens amortiza.
+> re-lee 30-50k tokens spec+arch+rules. Brief Haiku 5-8k tokens amortiza.
 
 Antes de tomar ticket, asegurás `CONTEXT-BRIEF.md` fresco existe en story-folder.
 
 ```bash
-STORY_DIR=docs/projects/active/PI-N/sprints/SN/stories/{id}
 BRIEF=$STORY_DIR/CONTEXT-BRIEF.md
 LATEST_COMMIT=$(git log -1 --format=%H -- $STORY_DIR)
 ```
 
 Decidir si spawn context-builder:
 - `CONTEXT-BRIEF.md` no existe → SPAWN
-- `CONTEXT-BRIEF.md` existe + header `Faithfulness flag: blocking` → SPAWN (re-build con corrections)
-- `CONTEXT-BRIEF.md` existe + más viejo que último commit story → SPAWN (stale)
-- `CONTEXT-BRIEF.md` existe + flag `clean|partial` + fresco → SKIP
+- `CONTEXT-BRIEF.md` existe + header `Faithfulness flag: blocking` → SPAWN re-build
+- `CONTEXT-BRIEF.md` más viejo que último commit story → SPAWN refresh
+- Fresco + `clean|partial` → SKIP
 
 Si SPAWN:
 ```
@@ -40,85 +62,36 @@ Agent({
   description: "Build context brief for ticket T-{n}",
   subagent_type: "context-builder",
   model: "haiku",
-  prompt: "<pr_folder>: <absolute path STORY_DIR>;
-           <modules>: <comma list from story.yaml `modules` field>;
+  prompt: "<pr_folder>: <STORY_DIR absolute>;
+           <modules>: <comma list from story spec>;
            <phase>: builder;
-           <subsystem_keywords>: <if you know, comma list — else context-builder auto-infiere H2>;
-           <frameworks>: <if known frameworks involved — fastapi, langgraph, anthropic, sqlalchemy, pydantic, etc.>"
+           <subsystem_keywords>: <comma list>;
+           <frameworks>: <fastapi, langgraph, anthropic, sqlalchemy, pydantic, etc.>"
 })
 ```
 
-Espera context-builder + context-validator (cadena interna). Lee `CONTEXT-BRIEF.md` header:
-- `Faithfulness flag: clean` → proceder Step 1
-- `Faithfulness flag: partial` → leer §11 gaps, decidir si downstream puede tolerar (típicamente sí — gaps documentados)
-- `Faithfulness flag: blocking` → STOP. Reportar Chris: contexto incompleto, validator escaló blocking. Re-spawn con corrections o escalate.
+Espera context-builder + context-validator. Lee header. Si flag `blocking` → STOP, escalate Chris.
 
-**Pasás `CONTEXT-BRIEF.md` path en TODO prompt subagent downstream** (Step 2A/B/C). Builder/auditor agents YA tienen mandatory initial read clausula que prefiere brief sobre raw docs.
+**Pasás `CONTEXT-BRIEF.md` path en TODO prompt subagent downstream.**
 
-## Step 0.5 — Hot-fix repro gate (R26 2026-05-05)
+## Step 0.6 — Hot-fix repro gate (R26 2026-05-05)
 
-> Origen: PI-12 S1 T-1.bis 2026-05-05 (`docs/process/learnings.md`).
 > SSoT: `.claude/rules/hotfix-repro-mandatory.md`.
 
-ANTES de spawn builder para hot-fix ticket, reproduce el bug localmente.
+Si ticket es hot-fix (señales: title contiene `bug|hot-fix|regression|incident|bis|revert`, origin `handoff doc|incident|escalation`, sub-num `T-N.bis`, scope quirúrgico ≤2h), ANTES de spawn builder, reproducir bug local + validar diagnóstico. Cita `repro_evidence` en ticket entry de `06-tickets.yaml`.
 
-Aplica si ticket tiene AL MENOS UNA señal:
-- Title/context contiene `bug`, `hot-fix`, `regression`, `incident`, `bis`, `revert`, `fix forward`
-- Origin field menciona `handoff doc`, `pase a producción failed`, `auditor escalation`
-- Sub-numero `T-N.bis`
-- Spec describe symptom (no design from scratch) + scope quirúrgico ≤2h
-
-Workflow:
-
-1. **Reproduce localmente:**
-   ```bash
-   # Run repro command from handoff doc / ticket context section
-   cd backend && .venv/bin/pytest <repro_test_paths> -v --tb=short
-   ```
-   Captura output verbatim.
-
-2. **Diagnóstico real:**
-   - ✅ **Match:** symptom + traceback + log lines coinciden con causa
-     propuesta → handoff VALIDADO. Proceed con scope handoff.
-   - ⚠️ **Mismatch:** symptom existe pero apunta a código distinto del
-     scope propuesto → handoff MISDIAGNOSED. STOP, re-redactar ticket
-     spec con scope correcto, document `diagnosis_correction` field en
-     ticket.repro_evidence.
-   - ❌ **No repro:** test pasa o handoff desactualizado → STOP.
-     Close ticket `superseded` o escalate Chris.
-
-3. **Cite repro evidence en ticket entry de `04-tickets.yaml`:**
-   ```yaml
-   repro_verified: true
-   repro_evidence:
-     command: "cd backend && .venv/bin/pytest <paths> -v"
-     output: |
-       <verbatim error/traceback first 5-10 lines>
-     diagnosis_validates_handoff: <true|false>
-     diagnosis_correction: "<if false: real root cause + scope correction>"
-   ```
-
-4. **Spawn builder**: prompt MUST cite `repro_verified: true`. Si
-   `repro_verified: false` o ausente → REFUSE spawn:
-   ```
-   ERROR — hot-fix ticket missing repro_verified per
-   .claude/rules/hotfix-repro-mandatory.md. Run repro command first,
-   document evidence, then proceed.
-   ```
-
-Step 0.5 protege contra el ~$8 USD waste/builder-run que ocurriría con
-scope mal-spec'd. T-1.bis caso origen ahorra ~30min wall-clock + 1 builder
-re-spawn cuando handoff está mis-diagnosed.
-
-## Step 1 — Tomar ticket
-
-```bash
-cat docs/projects/active/PI-N/sprints/SN/stories/{id}/04-tickets.yaml
+Si `repro_verified: false` o ausente en hot-fix ticket → REFUSE spawn:
+```
+ERROR — hot-fix ticket missing repro_verified per
+.claude/rules/hotfix-repro-mandatory.md.
+Run repro command first, document evidence, then proceed.
 ```
 
-Filtrar tickets con `state: ready` (deps cumplidas).
+Detalle workflow Step 1-3 (reproduce → diagnóstico → cite evidence) en rule SSoT.
 
-Decidir owner según `owner_eligibility` + `production_code` flag (R23 2026-05-05):
+## Step 1 — Tomar ticket + decidir owner
+
+Filtrar tickets con `state: ready` (deps cumplidas). Decidir owner según `owner_eligibility` + `production_code` flag (R23):
 
 | Surface | production_code | Owner preferido | Razón |
 |---|---|---|---|
@@ -132,80 +105,79 @@ Decidir owner según `owner_eligibility` + `production_code` flag (R23 2026-05-0
 | Cross-module shared | true | claude-sonnet o opus | complexity |
 
 **Reglas hard:**
-- AGENTIC ticket + `production_code: true` → SIEMPRE Opus 4.7. Esto se ejecuta en MISMA sesión Claude Code (tú como /dev-team con Opus).
+- AGENTIC ticket + `production_code: true` → SIEMPRE Opus 4.7. Esto se ejecuta en MISMA sesión Claude Code (tú como `/dev-team` con Opus).
 - AGENTIC ticket + `production_code: false` → Sonnet OK. Tests/docs/tooling
-  sobre `modules/{copilot,sales_agent}/` no requieren Opus reasoning. Valida-
-  ción gate downstream (R3) cubre regression risk.
+  sobre `modules/{copilot,sales_agent}/` no requieren Opus reasoning.
 - Si no estás en Opus y ticket=AGENTIC + production_code=true → STOP, escala
   Chris: "necesito Opus 4.7 para este ticket. Cambiame de modelo."
 
-**Owner override logic (R23 dynamic):**
-```
-if ticket.production_code == false:
-    if ticket.surface in ["BE", "FE"]:
-        owner = qwen-opencode  # trivial — cheapest capable
-    elif ticket.surface == "AGENTIC":
-        owner = claude-sonnet  # tests/docs sobre agentic — Sonnet capable
-elif ticket.surface == "AGENTIC" and ticket.production_code == true:
-    owner = claude-opus  # HARD rule, brand voice protected
-elif ticket.surface in ["BE", "FE"]:
-    owner = qwen-opencode  # default for production code
-```
-
-**Origen R23 (2026-05-05 caso T-1.bis):** test-only ticket en Story A
-agentic-adjacent forzó Opus 4.7 ($8 USD wasted) cuando Sonnet capable.
-production_code flag corrige policy estática.
-
-Update `04-tickets.yaml` ticket `T-{n}`:
+Update `06-tickets.yaml` ticket `T-{n}`:
 ```yaml
 state: assigned
 assigned_to: qwen-opencode | claude-opus | claude-sonnet
-assigned_at: 2026-05-04T...
+assigned_at: 2026-05-06T...
 transitions:
   - { state: assigned, at: ..., by: "/dev-team", to: "<owner>" }
 ```
 
-Crear `T-{n}-impl-log.md` con plan inicial.
+Crear `docs/product/stories/{story-id}/T-{n}-impl-log.md` con plan inicial + iteration_log empty.
 
-## Step 2A — Owner = qwen-opencode (BE/FE no-agentic)
+## Step 2 — Spawn builder (model-specific)
+
+### Step 2A — Owner = qwen-opencode (BE/FE no-agentic)
+
+Construir prompt para qwen invocando opencode CLI:
 
 ```bash
-# Construir prompt para qwen
 cat > /tmp/T-{n}-qwen-prompt.md <<EOF
-Eres developer Nicolify ejecutando T-{n} de story {id}.
+Eres developer Nicolify ejecutando T-{n} de story {story-id}.
 
 PRIORITY READ — CONTEXT-BRIEF (Haiku-built, 5-8k tokens, contiene spec+arch+rules+anti-dup+canonical docs):
-- $(realpath docs/projects/active/PI-N/sprints/SN/stories/{id}/CONTEXT-BRIEF.md)
+- $(realpath docs/product/stories/{story-id}/CONTEXT-BRIEF.md)
 
-Lee TAMBIÉN estos archivos (referencia profunda si brief insuficiente):
-- $(realpath docs/projects/active/PI-N/sprints/SN/stories/{id}/05-impl/T-{n}-handoff.md)
-- $(realpath docs/projects/active/PI-N/sprints/SN/stories/{id}/01-spec.md) — sección scenarios relevantes
-- $(realpath docs/projects/active/PI-N/sprints/SN/stories/{id}/03-arch-{be|fe}.md)
+Lee TAMBIÉN estos archivos del READY PACKAGE (si brief insuficiente):
+- $(realpath docs/product/stories/{story-id}/01-spec.md) — Gherkin scenarios + (si UI std) wireframes
+- $(realpath docs/product/stories/{story-id}/03-arch.md) — technical decisions
+- $(realpath docs/product/stories/{story-id}/04-validators.yaml) — ★ comandos must_pass para iterar contra ★
+- $(realpath docs/product/stories/{story-id}/05-guidelines.md) — patterns required/forbidden + files in scope
+- $(realpath docs/product/stories/{story-id}/06-tickets.yaml) — find your ticket entry T-{n}
+
+AUTONOMOUS LOOP:
+1. Read 04-validators.yaml. Run validators ASOCIADOS al ticket T-{n} (acceptance.validator_ids list).
+2. RED: tests fallarán (no implementation yet).
+3. Implementá MÍNIMO para que validators GREEN — solo files dentro 05-guidelines.md "Files in scope".
+4. Re-run validators. Si fallan: fix targeted file por error trace, re-run failing validator only.
+5. Repeat hasta TODOS validators GREEN o iteration cap reached (default 10).
+6. Update T-{n}-impl-log.md con iteration_log VIVO mientras trabajás (cada iter: timestamp + validator + result + fix applied).
 
 Reglas TDD obligatorias:
-1. RED: escribí tests que fallen primero
-2. GREEN: implementá mínimo para pasar
+1. RED: validators fallan primero (sin implementation)
+2. GREEN: implementa mínimo
 3. REFACTOR: limpiar
 
-Convenciones (.claude/rules/*):
+Convenciones (.claude/rules/* — citados también en 05-guidelines.md):
 - backend-ddd.md o frontend-fsd.md
 - tenant-isolation.md
 - spanish-text.md (Spanish neutro, no voseo)
 - backend-migrations.md (idempotente)
+- anti-duplication.md
+- tdd-mandatory.md
 
 Quality gates antes push:
-- /test-backend o /test-frontend completo verde
-- Coverage no baja
-- Mypy strict si aplica
-
-Mantenelo el T-{n}-impl-log.md actualizado VIVO mientras trabajás.
+- TODOS validators de 04-validators.yaml asociados al ticket → GREEN
+- 05-guidelines.md "Files in scope" respected (no escape)
 
 Output al terminar:
-- T-{n}-result.md con diff resumen + quality gates output literal + commit SHA
-- Estado ticket: pushed
+- T-{n}-result.md con diff resumen + validator gates output literal + commit SHA
+- Estado ticket: pushed (en 06-tickets.yaml)
+- Last line del response: "done -> T-{n}-result.md"
+
+Si cap_reached (10 iter sin GREEN):
+- T-{n}-impl-log.md sección "Cap reached — escalating"
+- Estado ticket: blocked
+- Last line: "blocked -> T-{n}-impl-log.md (see iteration_log)"
 EOF
 
-# Invocar opencode con qwen
 cd /home/chris/AISALESHT
 opencode run \
   --prompt-file /tmp/T-{n}-qwen-prompt.md \
@@ -217,13 +189,13 @@ opencode run \
 # echo "Pegá esto en opencode CLI: $(cat /tmp/T-{n}-qwen-prompt.md)"
 ```
 
-Mientras qwen trabaja → vos NO interferís. Cuando termina:
-1. Verificás `T-{n}-result.md` existe y dice `state: pushed`
+Mientras qwen trabaja → tú NO interfieres. Cuando termina:
+1. Verificás `T-{n}-result.md` existe y dice `state: pushed` (o blocked)
 2. Verificás commit SHA en git log
-3. Actualizás `04-tickets.yaml` ticket → state: pushed
-4. Hand off `/auditor`
+3. Actualizás `06-tickets.yaml` ticket → state: pushed o blocked
+4. Si pushed → continúa Step 4 (next ticket). Si blocked → escalate.
 
-## Step 2B — Owner = claude-opus (AGENTIC)
+### Step 2B — Owner = claude-opus (AGENTIC production code)
 
 Spawnás agent `builder-agentic` (Opus 4.7) via Agent tool:
 
@@ -231,19 +203,20 @@ Spawnás agent `builder-agentic` (Opus 4.7) via Agent tool:
 Agent({
   description: "Build agentic ticket T-{n}",
   subagent_type: "builder-agentic",
-  prompt: "<pr_folder>: docs/projects/active/PI-N/sprints/SN/stories/{id}/
-           CONTEXT-BRIEF.md (priority read — 5-8k tokens compresses spec+arch+rules+anti-dup+canonical docs)
-           <files_to_read>: docs/projects/.../T-{n}-handoff.md, 01-spec.md, 03-arch-agentic.md, 02-design-agentic.md, story YAML
+  prompt: "<pr_folder>: docs/product/stories/{story-id}/
+           PRIORITY READ: CONTEXT-BRIEF.md (Haiku-built, 5-8k tokens compresses spec+arch+rules+anti-dup+canonical docs)
+           READY PACKAGE: 01-spec.md + 02-design-agentic.md + 03-arch.md + 03-arch-agentic.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml
            Skill consultados obligatorio: copilot-expert/sales-agent-expert + tessl__langgraph + claude-api + graceful-degradation
+           AUTONOMOUS LOOP: implement → run validators (04-validators.yaml acceptance.validator_ids) → fix → repeat hasta GREEN o cap_reached
            TDD: eval goldens RED first, integration tests, tools tests, etc
            Output: T-{n}-result.md + commit pushed
-           Last line: done -> path/to/T-{n}-result.md"
+           Last line: done -> T-{n}-result.md (o blocked -> T-{n}-impl-log.md)"
 })
 ```
 
-`builder-agentic` corre tests + eval suite (`pytest tests/agentic_evals/{m}/{story}_eval.py --trials=3`) + push. Devuelve `done -> T-{n}-result.md`.
+`builder-agentic` corre validators + push. Devuelve `done -> T-{n}-result.md`.
 
-## Step 2C — Owner = claude-sonnet (cross-module shared)
+### Step 2C — Owner = claude-sonnet (cross-module shared o tests/docs sobre agentic)
 
 Spawnás agent `builder-backend` o `builder-frontend` con model=sonnet (default). Prompt SIEMPRE referencia `CONTEXT-BRIEF.md`:
 
@@ -252,26 +225,27 @@ Agent({
   description: "Build {surface} ticket T-{n}",
   subagent_type: "builder-{backend|frontend}",
   model: "sonnet",
-  prompt: "<pr_folder>: docs/projects/active/PI-N/sprints/SN/stories/{id}/
+  prompt: "<pr_folder>: docs/product/stories/{story-id}/
            Read CONTEXT-BRIEF.md FIRST (saves 30-50k tokens vs raw docs).
-           <files_to_read>: T-{n}-handoff.md, 01-spec.md, 03-arch-{be|fe}.md, story.yaml
+           READY PACKAGE: 01-spec.md + 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml
+           AUTONOMOUS LOOP: implement → run validators → fix → repeat
            TDD obligatorio. ...
-           Last line: done -> path/to/T-{n}-result.md"
+           Last line: done -> T-{n}-result.md"
 })
 ```
 
 ## Step 3 — Self-monitor durante build
 
-Mientras el dev (qwen | builder-{be,fe,agentic}) trabaja, vos:
+Mientras el dev (qwen | builder-{be,fe,agentic}) trabaja, tú:
 - Touchéas `T-{n}-impl-log.md` periodically con timestamps "still in progress"
 - Si dev se cuelga > 30min sin progress visible → escala Chris
-- Si dev reporta `blocked` → registrar en log + escala /pm
+- Si dev reporta `blocked` → registrar en log + escala `/pm`
 
 ## Step 4 — Verificar result + gate-runner enforcement
 
 Cuando dev termina, leer `T-{n}-result.md` + verificar `gate-output.json`:
 
-- [ ] Acceptance criteria self-verified table → todas ✅?
+- [ ] Validators de 04-validators.yaml asociados al ticket → todos ✅?
 - [ ] **`gate-output.json` existe en story-folder + `overall.any_fail = false`?**
       Si missing → builder no invocó gate-runner. SPAWN gate-runner directo aquí:
       ```
@@ -279,7 +253,7 @@ Cuando dev termina, leer `T-{n}-result.md` + verificar `gate-output.json`:
         description: "Force gate-runner T-{n}",
         subagent_type: "gate-runner",
         model: "haiku",
-        prompt: "<pr_folder>: docs/projects/active/PI-N/sprints/SN/stories/{id}/;
+        prompt: "<pr_folder>: docs/product/stories/{story-id}/;
                  <command>: test-{backend|frontend|all};
                  <iter>: <N>"
       })
@@ -293,13 +267,12 @@ Cuando dev termina, leer `T-{n}-result.md` + verificar `gate-output.json`:
       ```bash
       # Fallback manual: orchestrator escribe gate-output.json directo
       cd /home/chris/AISALESHT/backend && .venv/bin/{ruff,pytest} ... > /tmp/gate.log 2>&1
-      # Compose JSON manually with schema:
       python3 -c "import json; ..." > <pr_folder>/gate-output.json
       ```
       Documentar en T-{n}-impl-log.md sección "Gate-runner failover" + escalar
       backlog R22 retry.
 
-      Read JSON. Si `any_fail=true` → ticket vuelve a `tests-failing`, hand off /dev-team con findings.
+      Read JSON. Si `any_fail=true` → ticket vuelve a `tests-failing`, hand off `/dev-team` con findings.
 - [ ] Commit SHA presente + git log lo confirma?
 - [ ] Push exitoso (`git push origin development`)?
 
@@ -310,9 +283,9 @@ Si cualquier gap → ticket vuelve a `tests-failing` o `building`. Si dev itera 
 > duplicados). gate-runner Haiku produce JSON estructurado consumible por auditor
 > sin re-correr suite ni parsear stdout.
 
-## Step 5 — Hand off /auditor
+## Step 5 — Avanzar a siguiente ticket o cerrar story
 
-Update `04-tickets.yaml`:
+Update `06-tickets.yaml`:
 ```yaml
 state: pushed
 push_commit_sha: abc1234
@@ -321,19 +294,30 @@ transitions:
   - { state: pushed, ..., commit: "abc1234" }
 ```
 
-Output:
-```
-T-{n} pushed (commit abc1234).
-Acceptance criteria self-verified: A1✅ A2✅ A3✅
-Quality gates: /test-backend verde
-Próximo: /auditor lee T-{n}-result.md + corre tests independientes.
+Si quedan tickets `ready` → continuar Step 1 con next ticket.
+
+Si TODOS tickets pushed → transition story a review:
+
+```yaml
+# checkpoint.md
+state: review     # ★ TRANSITION building → review ★
+phase: AWAIT_AUDIT
+last_artifact: T-{N}-result.md (last ticket)
+next_action: "/auditor toma story {id} para Conv 3 review+merge"
 ```
 
-Update checkpoint:
+Output:
 ```
-phase: DEV_T{n} → AUDIT_T{n}
-last_artifact: T-{n}-result.md
-next_action: "/auditor toma T-{n} para review"
+Story {id} all tickets pushed.
+- T-1 (commit abc1234) ✅
+- T-2 (commit def5678) ✅
+- T-3 (commit 9876abc) ✅
+
+Quality gates: validators all GREEN.
+Story state: building → review.
+WIP cap check: building (was N) now N-1; review (was M) now M+1 / cap 2.
+
+Próximo: /auditor (Conv 3) lee T-{n}-result.md + corre tests independientes + CHECKPOINTS.md C1-C5.
 ```
 
 ## Step 5.5 — R12 layer 1: emit process metric
@@ -348,8 +332,6 @@ Antes de cerrar Step 5, append metric row a `docs/process/metrics/runs.jsonl`:
 
 ```bash
 python3 scripts/emit_process_metric.py \
-  --pi "PI-N" \
-  --sprint "SN-{slug}" \
   --story "{story-id}" \
   --ticket "T-{n}" \
   --phase build \
@@ -363,14 +345,48 @@ python3 scripts/emit_process_metric.py \
   --note "<1-line context if relevant>"
 ```
 
-`runs.jsonl` is gitignored (rolling). Periodic aggregation: post-PI close,
-PM runs analysis script comparing `runs.jsonl` to `baseline-pre-R1-R9.jsonl`
-to validate R1-R9 ROI.
+`runs.jsonl` is gitignored (rolling). Periodic aggregation: post-story close,
+`/pm` runs analysis script comparing `runs.jsonl` to baseline.
 
 If `python3 scripts/emit_process_metric.py` fails (script missing, etc.) →
 log warning + continue. Metrics emission is best-effort, NEVER blocks the
-pipeline. (Pattern coherente con copilot observability — try/except
-structlog warning, no rompe turn.)
+pipeline.
+
+## Cap reached (autonomous loop blocked)
+
+Si dev itera ≥10x sin GREEN (cap from `04-validators.yaml` `iteration.max_iterations`):
+
+```yaml
+# checkpoint.md
+state: blocked     # NOT review — autonomous failed
+phase: BUILD_T{n}_BLOCKED
+last_artifact: T-{n}-impl-log.md
+next_action: "Chris reviews iteration_log to decide: refine validators / refine guidelines / split ticket / restart"
+```
+
+Output:
+```
+Story {id} ticket T-{n} BLOCKED — autonomous loop cap reached (10 iter).
+
+Last error trace (verbatim):
+---
+{paste last validator failure}
+---
+
+iteration_log summary:
+- Iter 1-3: implementation phase, RED on validator X
+- Iter 4-6: refactor approach Y, still RED
+- Iter 7-10: edge case Z not handled by guidelines
+
+Story state: building → blocked.
+
+Próximo: Chris reviews docs/product/stories/{story-id}/T-{n}-impl-log.md →
+decide:
+- Refine 04-validators.yaml (validator was wrong)
+- Refine 05-guidelines.md (missing pattern guidance)
+- Split T-{n} (too large)
+- Restart with different approach
+```
 
 ## Multi-ticket parallel
 
@@ -381,21 +397,35 @@ Si 2 tickets independientes (no `depends_on`) están `ready` simultáneamente:
 
 ## Anti-patterns
 
-- ❌ AGENTIC ticket asignado a qwen (HARD BAN)
-- ❌ Skip TDD (escribir código sin test RED primero)
+- ❌ AGENTIC ticket production_code=true asignado a qwen/Sonnet (HARD BAN — Opus only)
+- ❌ Skip TDD (escribir código sin validators RED primero)
 - ❌ `git add .` / `git add -A` / `git add -u` (parallel-safety)
 - ❌ `git commit --no-verify`
 - ❌ `git pull` antes commit (parallel-safety)
 - ❌ Push falla non-fast-forward → NO `git pull`. STOP, escala.
-- ❌ Marcar ticket pushed sin verify quality gates verde
-- ❌ Self-fix más de 5 iteraciones sin escalar bloqueo
-- ❌ Dev tocando archivos out_of_scope del ticket
+- ❌ Marcar ticket pushed sin verify TODOS validators ticket-asociados → GREEN
+- ❌ Self-fix más de cap_reached iter sin escalar bloqueo
+- ❌ Dev tocando archivos out_of_scope (5-guidelines.md "Files in scope" hard)
 - ❌ Dumpear código en chat (anti-teléfono — todo en archivos)
+- ❌ Editar paths legacy `docs/projects/active/PI-N/sprints/SN/...` (paradigma viejo)
+- ❌ Skip 04-validators.yaml — implementar sin validators es paradigma viejo
+- ❌ Cerrar story como done sin pasar por `/auditor` Conv 3
 
 ## Output format
 
 Cada update al user/PM:
 - 1 frase status ticket
-- Quality gates resumen
+- Quality gates resumen (validators ID + ✅/❌)
 - Próximo paso
 - NO dump de diff o tests output (cita paths)
+
+## Referencias
+
+- `docs/process/pm-redesign-2026-05.md` — paradigma 3 conversaciones + autonomous build
+- `.claude/rules/tdd-mandatory.md` — TDD obligatorio + R31 default flag flips
+- `.claude/rules/anti-duplication.md` — inventario shared abstractions
+- `.claude/rules/hotfix-repro-mandatory.md` — R26 hot-fix gate
+- `.claude/rules/parallel-safety.md` — M1-M8 multi-session
+- `.claude/agents/builder-{backend,frontend,agentic}.md` — sub-builders specs
+- `.claude/agents/gate-runner.md` — gate-output.json producer (Haiku)
+- `.claude/agents/context-builder.md` — CONTEXT-BRIEF.md producer (Haiku)

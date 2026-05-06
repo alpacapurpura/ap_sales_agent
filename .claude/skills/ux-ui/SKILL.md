@@ -1,12 +1,38 @@
 ---
-name: ux-ui
-description: "UX/UI Designer Nicolify. Toma 01-spec.md (ui-story o mixed) y produce 02-design-ui.md + mockups HTML. Iterative dialogue con Chris hasta aprobación. Si descubre edge cases nuevos → propone delta-spec.md, /po ratifica. Cargá skills sales-agent-expert, brand-expert, frontend-expert, tessl__shadcn-ui, tessl__tailwind. Activa cuando user dice: '/ux-ui', 'diseñemos la pantalla', 'mockup', 'wireframe', 'rediseña', 'la UI de X'."
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
+name: ux-ui-deprecated
+description: "DEPRECATED skill (post pm-redesign 2026-05-06 Wave 3). Replaced by /po-ux fusión for UI standard stories (CRUD/list/detail/form/dashboard). For novel/disruptive UI use /ux-disruptivo (7-fase Design Thinking). For agentic conversational flows use /ux-agentico. NEVER invoke this skill — it is kept only for historical reference of legacy paradigm where 01-spec.md (PO) and 02-design-ui.md (UX) were separate artifacts. The fusion (/po-ux) is more efficient because Nicolify UI std uses constrained design system (Tailwind tokens + Shadcn primitives + FSD-Lite) where separating spec/design produced 60% redundant content."
+allowed-tools: Read
+model: opus
 ---
 
-# /ux-ui — UX/UI Designer
+# /ux-ui — DEPRECATED (Wave 3 pm-redesign 2026-05-06)
 
-> Owner: `02-design-ui.md` + `mockups/*.html` en story folder. Diseña UI de ui-story (o mixed) con scope discipline + design system fidelity.
+> **🛑 DEPRECATED.** Do NOT invoke this skill.
+>
+> **Replaced by:**
+> - `/po-ux` (fusión `/po` + `/ux-ui`) for **UI standard stories** (CRUD/list/detail/form/dashboard)
+> - `/ux-disruptivo` for **novel UI** (7-fase Design Thinking workflow)
+> - `/ux-agentico` for **agentic conversational flows** (state machine + slot architecture)
+>
+> **Why deprecated:** UI std in Nicolify uses constrained design system (Tailwind tokens + Shadcn primitives + FSD-Lite). Separating `01-spec.md` (PO) and `02-design-ui.md` (UX) produced 2 docs with ~60% solapamiento (microcopy duplicado, estados duplicados, scenarios verificando estados visuales separados de Gherkin). Wave 3 pm-redesign (2026-05-06) fused both into `/po-ux` producing single `01-spec.md` UNIFICADO.
+>
+> **For history:** legacy content of this skill preserved below for reference. Active workflow → use `/po-ux`.
+
+## Decision matrix (which skill to use instead)
+
+| Tipo story | Skill replacement |
+|---|---|
+| **UI standard** (CRUD/list/detail/form/dashboard reusable Shadcn primitives) | **`/po-ux` (NEW fusión)** |
+| **UI mixed** (UI std + tool calls agentic) | `/po-ux` para spec + sección agentic-handoff → `/ux-agentico` para flow |
+| **UI disruptiva/novel** (paradigma visual nuevo, no Shadcn pattern) | `/ux-disruptivo` 7-fase → `/po` formaliza spec |
+| **Cross-feature navigation audit** | `/ux-flow-architect` → outputs UI-SPEC para `/po-ux` formalizar |
+| **Agentic conversational flow** | `/ux-agentico` (state machine + voice + eval pass^k) |
+
+## Legacy reference (DO NOT invoke)
+
+> The original ux-ui skill produced `02-design-ui.md` separately from `01-spec.md` (PO output). This created friction: changes needed 2-file coordination, microcopy/estados duplicated. New `/po-ux` fusion writes ONE artifact with Gherkin + wireframes inline + estados + microcopy + graders.
+
+Owner: ~`02-design-ui.md`~ → now `01-spec.md` UNIFICADO via `/po-ux`.
 
 ## Inputs obligatorios
 

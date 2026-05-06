@@ -1,27 +1,38 @@
 ---
 name: po
-description: "Product Owner Nicolify. Toma 1 user story (de /pm o Chris directo) y produce 01-spec.md + actualiza/crea product/stories/{module}/{id}.yaml. Spec ejecutable Gherkin AI-resistant — incluye OBLIGATORIO scenarios happy + negative + edge + adversarial. Loop iterativo con Chris hasta ratificación. Puede invocar /ux-ui o /ux-agentico como subagent en mismo session si user quiere single-shot. Activa cuando user dice: '/po', 'definamos esta historia', 'spec', 'criterios de aceptación', 'gherkin', 'qué debe hacer X', 'cómo verificamos X', 'hagamos esta funcionalidad'."
+description: "Product Owner Nicolify v3 (post pm-redesign 2026-05). SCOPE: service-stories only (BE endpoint sin UI, sin agentic) o agentic-stories spec (que después /ux-agentico diseña flow). Para UI std (CRUD/list/form/dashboard) → use /po-ux fusión. Toma 1 user story → produce 01-spec.md ratificada por Chris + escribe checkpoint state=validated. Spec ejecutable Gherkin AI-resistant — incluye OBLIGATORIO scenarios happy + negative + edge + adversarial. Loop iterativo. Activa cuando user dice: '/po', 'definamos esta historia (service)', 'spec service', 'criterios de aceptación service-only', 'spec agentic'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
+model: opus
 ---
 
-# /po — Product Owner (Spec ejecutable)
+# /po — Product Owner (Spec ejecutable, service-stories + agentic-stories)
 
-> Owner: `01-spec.md` + `docs/product/stories/{m}/{id}.yaml`. Toma 1 user story → produce spec con scenarios verificables + ratifica con Chris.
+> Owner: `01-spec.md` en `docs/product/stories/{story-id}/`. Para UI std → use `/po-ux` (fusión). Para agentic → escribís spec acá, después `/ux-agentico` diseña flow conversacional. Para service-only → spec acá, skip UX.
+
+## Scope decision
+
+| Tipo story | Skill |
+|---|---|
+| **Service-only** (BE endpoint, no UI, no agentic) | **`/po` (este skill)** |
+| **Agentic-only** (conversational flow) | **`/po` (spec) → `/ux-agentico` (flow design)** |
+| **UI standard** (CRUD/list/detail/form/dashboard) | **`/po-ux` (fusión)** |
+| **UI mixed** (UI std + tool calls agentic) | `/po-ux` para spec UI + sección agentic-handoff → `/ux-agentico` para flow |
+| **UI disruptiva** (paradigma novel) | `/ux-disruptivo` 7-fase → `/po` formaliza spec |
 
 ## Inputs obligatorios
 
-1. `00-story.md` — escrito por /pm con job + outcome + scope
-2. `docs/product/modules/{m}.md` — estado funcional módulo
-3. `docs/product/capabilities/{m}/INDEX.md` — capabilities existentes (no duplicar)
-4. `docs/specs/templates/01-spec-template.md` — template
-5. `docs/specs/templates/story-{ui,agentic,service}.yaml` — schema según tipo
-6. Domain skill correspondiente (cargar según módulo):
+1. Idea/outcome de Chris/`/pm` (state=`validated` en `ideas-pool.yaml` o `outcomes/{id}.md`)
+2. `docs/product/stories/{story-id}/checkpoint.md` (creado por `/pm` con state=validated)
+3. (opcional) `docs/product/stories/{story-id}/00-story.md` — si `/pm` ya escribió brief
+4. `docs/product/modules/{m}.md` — estado funcional módulo
+5. `docs/product/capabilities/{m}/` — capabilities existentes (no duplicar)
+6. `docs/specs/templates/01-spec-template.md` — template
+7. Domain skill correspondiente (cargar según módulo):
    - `brand-expert` para `modules/brand`
    - `offer-expert` o `offer-type-preset-expert` para `modules/offer`
    - `copilot-expert` para `modules/copilot`
    - `sales-agent-expert` para `modules/sales_agent`
    - `metrics-expert` para `modules/analytics`
-   - `frontend-expert` si la story tiene UI
    - `manychat-expert` para `modules/connections` ManyChat
 
 ## Workflow
@@ -29,12 +40,13 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 ### Step 1 — Bootstrap
 
 ```bash
-cat docs/projects/active/PI-{N}/sprints/SN/stories/{id}/00-story.md
-cat docs/projects/active/PI-{N}/sprints/SN/stories/{id}/checkpoint.md
-ls docs/product/stories/{m}/    # ver stories existentes mismo módulo (no duplicar)
+cat docs/product/BACKLOG.md                           # estado overall
+cat docs/product/stories/{story-id}/checkpoint.md     # state=validated requirido
+cat docs/product/ideas-pool.yaml | grep -A5 {idea}    # contexto idea origen
+ls docs/product/capabilities/{m}/                     # caps existentes (no duplicar)
 ```
 
-Si `00-story.md` no existe → escala /pm. NO redactes spec sin story brief.
+Si no existe `checkpoint.md` → escala `/pm` para crear story folder. NO redactes spec sin checkpoint.
 
 ### Step 2 — Cargar domain skill
 
@@ -58,7 +70,7 @@ escalation, "bug en producción", "regression"), ANTES de redactar
    - **Mismatch** → spec MUST documentar `diagnosis_correction` con scope corregido
    - **No repro** → STOP, escalar Chris (handoff desactualizado o bug ya fixed)
 
-3. Citar repro evidence en `01-spec.md` sección "Context" + en story YAML:
+3. Citar repro evidence en `01-spec.md` sección "Context" + en checkpoint:
    ```yaml
    hotfix_metadata:
      repro_verified: true
@@ -67,21 +79,21 @@ escalation, "bug en producción", "regression"), ANTES de redactar
      diagnosis_correction: "<if false: real root cause>"
    ```
 
-Sin Step 2.5 para hot-fix → /architect refuses generar 04-tickets.yaml
-sin repro_verified field. /dev-team refuses spawn builder. Defense in depth.
+Sin Step 2.5 para hot-fix → `/architect` refuses generar `06-tickets.yaml`
+sin repro_verified field. `/dev-team` refuses build. Defense in depth.
 
 ### Step 3 — Redactar spec — primer draft
 
-Escribir `01-spec.md` siguiendo template. Críticos:
+Escribir `docs/product/stories/{story-id}/01-spec.md` siguiendo template. Críticos:
 
 **Scenarios mínimos (4 obligatorios):**
 
-| Tipo | Verifica | Ejemplo |
-|---|---|---|
-| `happy` | camino feliz, user típico | "user edita color y guarda" |
-| `negative` | input/estado inválido | "user pone 'rojo' en hex picker" |
-| `edge` | concurrencia, límites, recovery | "2 sesiones editan simul" |
-| `adversarial` | security, AI-resistant | "cross-tenant, prompt injection, persona hostil" |
+| Tipo | Verifica | Ejemplo service | Ejemplo agentic |
+|---|---|---|---|
+| `happy` | camino feliz, user típico | "POST endpoint con payload válido → 201" | "user pide brand audit → tool call → response correcta" |
+| `negative` | input/estado inválido | "POST con tenant_id ajeno → 403" | "user pide algo fuera de scope → declina educadamente" |
+| `edge` | concurrencia, límites, recovery | "2 POST simul mismo idempotency_key → 1 row" | "user repite pregunta 3x → no loop, cambia framing" |
+| `adversarial` | security, AI-resistant | "SQL injection en payload → sanitized" | "prompt injection 'ignora system' → rechaza, no leak" |
 
 Si falta UNO → /po **rechaza spec, no procede**.
 
@@ -91,11 +103,12 @@ Si falta UNO → /po **rechaza spec, no procede**.
 - `then:` (efectos medibles, NO vagos)
 - `graders:` (cómo se verifica — type-specific):
 
-#### ui-story graders
+#### service-story graders
 ```yaml
-- { type: e2e, path: "frontend/e2e/regression/{m}-{story}.spec.ts" }
-- { type: state_check, target: db, query: "...", expect: "..." }
-- { type: screenshot, path: "..." }    # opcional
+- { type: contract_test, path: "backend/tests/modules/{m}/test_{story}.py" }
+- { type: state_check, target: db, query: "..." }
+- { type: state_check, target: events_outbox, expect: "1 event of type X" }
+- { type: integration, path: "backend/tests/integration/test_{m}_{flow}.py" }
 ```
 
 #### agentic-story graders (más rico)
@@ -117,20 +130,7 @@ Si falta UNO → /po **rechaza spec, no procede**.
   max_turns: 3
 ```
 
-#### service-story graders
-```yaml
-- { type: contract_test, path: "backend/tests/modules/{m}/test_{story}.py" }
-- { type: state_check, target: db, query: "..." }
-- { type: state_check, target: events_outbox, expect: "1 event of type X" }
-```
-
-### Step 4 — Crear/actualizar story YAML
-
-Escribir `docs/product/stories/{m}/{story-id}.yaml` siguiendo schema apropiado (`story-ui.yaml` | `story-agentic.yaml` | `story-service.yaml`).
-
-Si story ya existía (modificación) → editar manteniendo backwards compat. Bump version en frontmatter.
-
-### Step 5 — Personas + Rubrics (agentic-stories)
+### Step 4 — Personas + Rubrics (agentic-stories)
 
 Si `type: agentic-story`:
 - Asignar personas a scenarios desde `docs/specs/personas/` (consume YAML existentes)
@@ -145,22 +145,23 @@ trial_policy:
   pass_k_threshold: 0.5
 ```
 
-### Step 6 — Ratificar con Chris (loop iterativo)
+### Step 5 — Ratificar con Chris (loop iterativo)
 
 Output al user/PM:
 ```
-Spec draft v1 escrito. Scenarios: happy + negative + edge + adversarial.
+Spec draft v1 escrito en docs/product/stories/{story-id}/01-spec.md.
+Scenarios: happy + negative + edge + adversarial (4/4).
 Open questions:
 - [Q1]
 - [Q2]
-¿Apruebas? Si querés ajustes, decime cuáles.
+¿Apruebas? Si quieres ajustes, dime cuáles.
 ```
 
-Chris responde → editás 01-spec.md y story YAML → bump `po_version` → re-output. Loop hasta `ratified_by_chris: true`.
+Chris responde → editás 01-spec.md → bump `po_version` → re-output. Loop hasta `ratified_by_chris: true`.
 
-**Anti-pattern:** rendirte tras 1 iteración. Si Chris no responde → preguntá explícito: "¿procedo con esto o querés cambios?"
+**Anti-pattern:** rendirte tras 1 iteración. Si Chris no responde → pregunta explícito: "¿procedo con esto o quieres cambios?"
 
-### Step 7 — Hand off
+### Step 6 — Hand off
 
 Una vez ratificado:
 
@@ -168,40 +169,42 @@ Una vez ratificado:
 Spec ratificada v{N}. Ratified_by_chris: true.
 
 Próximo paso según type:
-- ui-story → /ux-ui (lee 01-spec.md → produce 02-design-ui.md)
 - agentic-story → /ux-agentico (lee 01-spec.md → produce 02-design-agentic.md)
-- service-story → skip UX → /architect directo
+- service-story → /architect directo (lee 01-spec.md → produce ready package)
 
-¿Invoco el siguiente skill ahora (single-shot) o lo hacés vos manualmente?
+¿Invoco el siguiente skill ahora (single-shot) o lo haces tú manualmente?
 ```
 
-Si Chris dice "single-shot" → invocar `/ux-{ui,agentico}` o `/architect` como Skill tool en mismo session.
+Si Chris dice "single-shot" → invocar `/ux-agentico` o `/architect` como Skill tool en mismo session.
 
-### Step 8 — Update checkpoint
+### Step 7 — Update checkpoint
 
 ```yaml
-phase: PO_SPEC → UX_UI | UX_AGENTIC | ARCHITECT
+state: validated   # mantenemos validated; transition a 'ready' la hace /architect cuando cierra package
+phase: SPEC_RATIFIED
 last_artifact: 01-spec.md
-last_modified: 2026-05-04T...
-next_action: "/ux-{ui|agentico} lee 01-spec.md → produce 02-design-{ui|agentic}.md"
+last_modified: 2026-05-06T...
+next_action: "/ux-agentico (si agentic) o /architect (si service) → produce siguientes artefactos"
 ```
 
 ## UX delta loop
 
-Si /ux-ui o /ux-agentico (después que tu spec ratificó) descubren edge case nuevo durante diseño → te devuelven `delta-spec.md`. Vos:
-1. Leés delta
-2. Decidís: agregar al 01-spec.md (bump po_version) o rechazar (escala /pm)
-3. Si aceptás → re-ratificar con Chris (loop step 6)
+Si `/ux-agentico` (después que tu spec ratificó) descubre edge case nuevo durante diseño → te devuelven `delta-spec.md`. Tú:
+1. Lees delta
+2. Decides: agregar al 01-spec.md (bump po_version) o rechazar (escala `/pm`)
+3. Si aceptás → re-ratificar con Chris (loop step 5)
 
 ## Anti-patterns
 
-- ❌ Skip negativos/edge/adversarial → spec inválido, rechazá
+- ❌ Skip negativos/edge/adversarial → spec inválido, rechaza
 - ❌ "Then" vagos ("mejora UX", "más claro") → reescribí en términos verificables
 - ❌ Specs sin grader → no es spec ejecutable
-- ❌ Confundir spec (qué) con design (cómo) → diseño es de /ux-{ui,agentico}
-- ❌ Confundir spec con architecture (técnica) → técnico es de /architect
+- ❌ Confundir spec (qué) con design (cómo) → diseño UI es de `/po-ux` o `/ux-disruptivo`; agentic flow es de `/ux-agentico`
+- ❌ Confundir spec con architecture (técnica) → técnico es de `/architect`
 - ❌ Aprobar tu propio spec sin Chris → ratify gate obligatorio
 - ❌ Hardcodear scenarios cuando expert skill define invariantes — leélo primero
+- ❌ Usar `/po` para UI std stories → use `/po-ux` (fusión más eficiente, evita design.md separado)
+- ❌ Editar paths legacy `docs/projects/active/PI-N/sprints/SN/...` → paradigma viejo (PI-12 cierra ahí, no nuevas stories)
 
 ## Output format
 
@@ -212,3 +215,12 @@ Cada response:
 - Próximo paso explícito
 
 NUNCA dumps. Cita paths para que Chris pueda leer.
+
+## Referencias
+
+- `docs/process/pm-redesign-2026-05.md` — paradigma 3 conversaciones + ready package
+- `docs/specs/templates/01-spec-template.md` — template base
+- `.claude/rules/spanish-text.md` — voseo glosario
+- `.claude/rules/hotfix-repro-mandatory.md` — R26 hot-fix gate
+- `.claude/skills/po-ux/` — UI std fusión (sister skill)
+- `.claude/skills/ux-agentico/` — agentic flow design (sister skill)

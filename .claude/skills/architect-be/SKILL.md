@@ -126,7 +126,7 @@ Sin esto + flip → builder REVIEW FAIL automático.
 
 Output al orchestrator:
 ```
-done -> docs/projects/active/PI-N/sprints/SN/stories/{id}/03-arch-be.md
+done -> docs/product/stories/{story-id}/03-arch-be.md
 ```
 
 NO esperás más. Orchestrator reúne con otros 03-arch-* y produce 04-tickets.yaml.

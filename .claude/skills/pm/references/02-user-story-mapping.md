@@ -33,7 +33,7 @@ skel        skel        skel        skel        skel        skel
 
 ## Backbone Nicolify (vivo)
 
-Ver `docs/pm-nico/story-map/backbone.md`. 9 actividades. Walking skeleton existe ya.
+Ver `docs/product/story-map/backbone.md`. 9 actividades. Walking skeleton existe ya.
 
 ## Antipatterns
 

@@ -290,6 +290,7 @@ Spawn agent `general-purpose` con scope skills:
 - 2026-05-05 — Sesión inicial. Puntos 1, 2, 3 cerrados.
 - 2026-05-05 — Wave 1 implementada (folder skeleton + ideas-pool + generate_backlog.py + tests + pre-commit hook Section 6). Lint clean. 21 tests verde.
 - 2026-05-06 — **Wave 2 ejecutada** (`docs/pm-nico/` eliminada por completo).
+- 2026-05-06 — **Wave 3 ejecutada** (skills + CLAUDE.md + AGENTS.md + rules updated to nuevo paradigma).
 
 ### Wave 2 — Resumen ejecución (2026-05-06)
 
@@ -346,3 +347,73 @@ Spawn agent `general-purpose` con scope skills:
 - `pytest` arch tests modificadas (4 archivos) 15/15 PASS
 - `ruff check` clean en files touched
 - `python3 scripts/generate_backlog.py --check` PASS (sin drift)
+
+### Wave 3 — Resumen ejecución (2026-05-06)
+
+**Skills creados:** 1
+- `/po-ux` (NEW fusión `/po` + `/ux-ui`) — para UI standard stories. Produce `01-spec.md` UNIFICADO con Gherkin + wireframes inline + estados visuales + microcopy + Playwright graders en single artifact.
+
+**Skills updated to nuevo paradigma:** 6
+- `/pm` — paradigma 7 estados + WIP caps + bootstrap single-read BACKLOG.md + capability promotion R32+R33 + comandos típicos refresh
+- `/po` — scope clarificado (service-only + agentic spec; UI std → `/po-ux`); paths actualizados a `docs/product/stories/{id}/`
+- `/ux-agentico` — paths actualizados; cross-link a `/po-ux` + decision matrix
+- `/architect` — orchestrator produces ready package (03-arch + 04-validators + 05-guidelines + 06-tickets); state transition validated→ready; templates inline
+- `/dev-team` — Conv 2 autonomous build mode; iteration loop vs `04-validators.yaml`; cap_reached → blocked + escalate
+- `/auditor` — Conv 3 review+merge; CHECKPOINTS.md C1-C5 grid replacing REVIEW-final.md categories; spawns auditor-{be,fe,agentic}
+
+**Skills deprecated (kept con deprecation notice):** 2
+- `/ux-ui` → marked DEPRECATED, redirects to `/po-ux` (UI std), `/ux-disruptivo` (novel UI), `/ux-agentico` (agentic flows)
+- `/nicolify-feature` → marked DEPRECATED, redirects to 3-conversation flow `/pm + /po-ux + /architect + /dev-team + /auditor`
+
+**Skills NOT consolidated (deferred per task spec):** 8 domain experts
+- brand-expert, offer-expert, offer-type-preset-expert, sales-agent-expert, copilot-expert, metrics-expert, manychat-expert, frontend-expert/backend-expert — kept separate. Future work item.
+
+**Anti-telephone-game rule added to:** 11 agent prompts
+- `builder-{backend,frontend,agentic}.md` — `done|blocked|failed -> path`
+- `auditor-{backend,frontend,agentic}.md` — `done|changes_requested|escalated -> path`
+- `architect-orchestrator.md` — `done|blocked|escalated -> path`
+- `context-builder.md` — `done|partial|blocking -> path`
+- `context-validator.md` — `clean|partial|blocking -> path`
+- `gate-runner.md` — `done|ERROR -> path`
+- `grep-bot.md` — `found|not_found|RECOMMEND_SONNET_EXPLORE -> short-result`
+
+**Root files updated:** 2
+- `CLAUDE.md` — paradigma updated (vocabulary 7 estados + 3 conversaciones + ready package + skills ejes table refresh + resume protocol single-read + conditional rules table refresh + R32/R33 mentions)
+- `AGENTS.md` — Skills (load when touching) table refresh; new entries po-ux/po/ux-agentico/architect/dev-team/auditor + R33/R32 hooks
+
+**Rules updated:** 3
+- `.claude/rules/pm-nico-ssot.md` — replaced with deprecation stub pointing to `docs/product/BACKLOG.md` + `docs/product/{outcomes,stories,capabilities,modules}` as new SSoT
+- `.claude/rules/parallel-safety.md` — M1/M2/M4/M6/M7 + bottom prohibitions list updated to new paradigm vocabulary (story instead of PR, learnings.md instead of process-learnings.md, BACKLOG.md instead of roadmap.md, etc.)
+- `.claude/skills/pm/references/pm-nico-ssot.md` — replaced with deprecation stub
+- `.claude/skills/pm/references/04-prd-template.md` — pm-nico path replaced with `docs/product/stories/{id}/01-spec.md` reference
+- `.claude/skills/pm/references/02-user-story-mapping.md` — pm-nico backbone path → `docs/product/story-map/backbone.md`
+
+**Sub-architects path updates:** 3
+- `architect-be/SKILL.md`, `architect-fe/SKILL.md`, `architect-agentic/SKILL.md` — output paths updated `docs/product/stories/{story-id}/03-arch-{be,fe,agentic}.md`
+
+**Other skill path updates:** 3
+- `ux-flow-architect/SKILL.md` — PM handoff mode path updated; legacy reference preserved
+- `data-storyteller/SKILL.md` — standalone output path updated
+- `copilot-expert/SKILL.md` + `sales-agent-expert/SKILL.md` — PR-2 CONTRACT.md ref redirected to `docs/archive/2026/legacy-pis/`
+
+**Agent prompts pm-nico cleanup:** 4
+- `architect-orchestrator.md` (4 places), `auditor-backend.md` (1), `auditor-frontend.md` (1) — `pm-nico/current-state` → `capability YAML + modules/{m}.md` (post 2026-05 paradigma)
+
+**Verification results:**
+- `python3 scripts/generate_backlog.py --check` PASS
+- `python3 scripts/reconcile_capabilities.py --check` PASS
+- `pytest tests/scripts/ --no-cov -q` 75/75 PASS
+- `pytest tests/architecture/ --no-cov -q --override-ini='addopts='` 827/827 PASS
+- Combined: 902/902 PASS
+- Active `pm-nico` references in `.claude/`: 0 (only deprecation/migration notes remain — explicit + acceptable)
+- Active legacy `PI-N/sprints/SN/stories` references in `.claude/`: 0 (only "Legacy PI-12" disclaimers remain)
+
+**Decisiones / juicio aplicado durante Wave 3:**
+- Created `.claude/skills/po-ux/` as new folder (no existing nicolify-feature legacy folder to replace; cleaner delineation)
+- Marked `/ux-ui` DEPRECATED instead of deleting — preserved historical content under deprecation notice for safety per task constraints (parallel-safety: never destructive)
+- Marked `/nicolify-feature` DEPRECATED for same reason — its monolithic orchestrator pattern incompatible with 3-conversation paradigm
+- Sub-architect skills (architect-be/fe/agentic) — light touch path updates only (output paths to new story location); deeper refactor deferred since they're invoked by `/architect` orchestrator which already has new paradigm
+- Domain expert consolidation deferred per task spec (low priority, time-bounded)
+- Builder/auditor agent files (.claude/agents/*) — added anti-telephone-game return contract HEADER but did NOT deeply restructure category grids/checklists (per task constraints "DO NOT modify deeply — Wave 4 revisits")
+- pm-nico cleanup in agent prompts: replaced "pm-nico/current-state" with new "capability YAML + modules/{m}.md" wording inline (rather than removing entirely) — preserves the *intent* (post-merge SSoT update reminder) under new vocabulary
+- `architect` skill emits both `03-arch.md` consolidado AND sub-arquitecturas (`03-arch-{be,fe,agentic}.md`) — matched against pm-redesign spec which lists single `03-arch.md` in 5-file ready package; rationale: orchestrator's 03-arch.md is the consolidated entry point, sub-files are persisted detail (avoids losing detail from sub-architects but keeps single canonical entry)

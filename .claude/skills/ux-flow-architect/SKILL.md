@@ -4,7 +4,7 @@ description: "Interactive cross-feature navigation architect for Nicolify. Audit
 ---
 
 > **⚠️ DEPRECATED 2026-05-04** — Este skill quedó absorbed por `/ux-ui` (paradigma SDD Level 3).
-> Outputs nuevos van a `docs/projects/active/PI-N/sprints/SN/stories/{id}/mockups/` + `02-design-ui.md`.
+> Outputs nuevos (post 2026-05 paradigma) van a `docs/product/stories/{story-id}/mockups/` + spec `01-spec.md` (UNIFICADO via `/po-ux`). Legacy PI-12 puede aún usar `docs/projects/active/PI-N/sprints/SN/stories/{id}/`.
 > Sesiones legacy referenciadas en este skill viven en `docs/_archive/pre-sdd-2026-05-04/ux-sessions/`.
 > Invocá `/ux-ui` para nuevas sesiones UX. Este skill se mantiene SOLO por backwards compat.
 
@@ -83,7 +83,7 @@ Before starting any phase, detect the user's intent — or ASK directly if uncle
 | "Journey de onboarding" / "flujo de nuevo usuario" | **Journey-focused** | Phase 1 (light) + Phase 2 (deep for that journey) + 3-6 |
 | "Conecta [feature A] con [feature B]" | **Micro-connection** | Skip to Phase 4, generate targeted proposal |
 | "Solo muéstrame el mapa" / "mapa de navegación" | **Audit-only** | Phase 1 only, present map, stop |
-| **"Diseñar UX para `docs/pm-nico/pis/PI-N-x/prs/PR-n-{slug}.md`"** | **PR-driven** | **PM handoff mode** — see below |
+| **"Diseñar UX para `docs/product/stories/{story-id}/01-spec.md`"** | **Story-driven** | **PM handoff mode** — see below (formerly PR-driven, paradigm migrated 2026-05-06) |
 
 Announce the detected mode to the user before proceeding.
 
@@ -91,7 +91,7 @@ Announce the detected mode to the user before proceeding.
 
 ## PM Handoff Mode — Input from `/pm`
 
-When invoked with input pointing at a `docs/pm-nico/pis/PI-{N}-{theme}/prs/PR-{n}-{slug}.md` file, you are receiving a Product Requirement from the `/pm` skill (Senior PM Nicolify). The PR is the **functional contract** — already validated. Your job: design UX for it.
+When invoked with input pointing at a `docs/product/stories/{story-id}/01-spec.md` file (post 2026-05 redesign — formerly `docs/pm-nico/pis/PI-{N}-{theme}/prs/PR-{n}-{slug}.md`), you are receiving a ratified spec from `/po-ux` or `/po`. The spec is the **functional contract** — already validated by Chris. Your job: design UX flow for it (typically used for cross-feature navigation audit).
 
 **Steps:**
 

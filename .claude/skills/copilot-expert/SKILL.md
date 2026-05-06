@@ -409,8 +409,9 @@ if not decision.allowed:
 
 **MV stale soft cap:** si `mv_refresh_log.get_last_refresh('mv_daily_llm_cost_per_tenant_v2')` > 1h → `BudgetGuard` aplica soft cap 105% (admite 5% overrun para no bloquear). Documented in PR-2 CONTRACT.md §7.2.
 
-**Detalle vivo en PR-2 CONTRACT.md.** Skill solo agrega anchor — ver:
-`docs/pm-nico/pis/active/PI-1-campaigns-module/sprints/S0-foundation/prs/PR-2-billing-and-compliance/CONTRACT.md`
+**Detalle vivo en PR-2 CONTRACT.md (legacy paradigma).** Skill solo agrega anchor — ver:
+`docs/archive/2026/legacy-pis/PI-1-campaigns-module/sprints/S0-foundation/prs/PR-2-billing-and-compliance/CONTRACT.md`
+(Archived as part of Wave 2 pm-redesign 2026-05-06; PR.md / CONTRACT.md format superseded by `docs/product/stories/{id}/{01-spec.md, 03-arch.md}`.)
 
 ## Project invariants (read on demand)
 
