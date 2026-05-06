@@ -9,11 +9,15 @@ context loss / no orphan state across sessions.
 
 Checks (each block-or-warn classified):
 
-  1. WIP cap enforcement (BLOCK if exceeded):
-     - building stories ≤ 3
+  1. WIP cap enforcement (BLOCK if exceeded — v4 paradigma 10 estados):
+     - refining stories ≤ 3 (drafts en curso)
+     - refined stories ≤ 5 (awaiting architect)
+     - ready stories ≤ 5 (architect package complete)
+     - developing stories ≤ 3 (autonomous build active)
+     - developed stories ≤ 2 (validators GREEN, awaiting QA)
+     - reviewing stories ≤ 2 (auditor en curso)
      - ready stories ≤ 5
-     - validated entries ≤ 10
-     - review stories ≤ 2
+     (legacy_exempt: stories tagged legacy:* exempt — forward-only enforcement)
 
   2. BACKLOG freshness (WARN if stale):
      - generate_backlog.py --check passes
@@ -23,7 +27,7 @@ Checks (each block-or-warn classified):
      - git status reports modified/untracked files
 
   4. Story checkpoint freshness (WARN):
-     - Stories with state in {ready,building,review} but checkpoint.md
+     - Stories with state in {refining,refined,ready,developing,developed,reviewing} but checkpoint.md
        last_modified > 7d → flag stale
 
 Exit codes:
@@ -62,12 +66,15 @@ import yaml
 # ─── Constants (must match scripts/generate_backlog.py CAPS) ───────────
 
 CAPS = {
-    "validated_max": 10,
+    "refining_max": 3,
+    "refined_max": 5,
     "ready_max": 5,
-    "building_max": 3,
-    "review_max": 2,
+    "developing_max": 3,
+    "developed_max": 2,
+    "reviewing_max": 2,
 }
 CHECKPOINT_STALE_DAYS = 7
+ACTIVE_STATES = {"refining", "refined", "ready", "developing", "developed", "reviewing"}
 
 
 def _read_backlog_yaml(repo: Path) -> dict | None:
@@ -82,19 +89,32 @@ def _read_backlog_yaml(repo: Path) -> dict | None:
 
 
 def check_wip_caps(backlog: dict) -> list[str]:
-    """Return list of cap violations (BLOCK)."""
+    """Return list of cap violations (BLOCK).
+
+    v4 paradigma: only kind=story counted (outcomes are epics, exempt).
+    Legacy stories tagged `legacy:*` exempt (forward-only enforcement).
+    """
     violations: list[str] = []
     buckets = backlog.get("buckets", {})
     for state, cap_key in [
-        ("validated", "validated_max"),
+        ("refining", "refining_max"),
+        ("refined", "refined_max"),
         ("ready", "ready_max"),
-        ("building", "building_max"),
-        ("review", "review_max"),
+        ("developing", "developing_max"),
+        ("developed", "developed_max"),
+        ("reviewing", "reviewing_max"),
     ]:
-        n = len(buckets.get(state, []))
+        items = buckets.get(state, [])
+        # Filter cap-eligible: kind=story AND no legacy:* tag
+        eligible = [
+            it for it in items if it.get("kind") == "story" and not any(t.startswith("legacy:") for t in it.get("tags", []))
+        ]
+        n = len(eligible)
         cap = CAPS[cap_key]
         if n > cap:
-            violations.append(f"{state}: {n} items > cap {cap} ({n - cap} over). Park or finish before adding more.")
+            violations.append(
+                f"{state}: {n} cap-eligible stories > cap {cap} ({n - cap} over). Park or finish before adding more."
+            )
     return violations
 
 
@@ -165,7 +185,7 @@ def check_checkpoint_staleness(repo: Path) -> list[str]:
             if line.startswith("state:"):
                 state = line.split(":", 1)[1].strip()
                 break
-        if state not in {"ready", "building", "review"}:
+        if state not in ACTIVE_STATES:
             continue
         mtime = cp.stat().st_mtime
         if mtime < cutoff:

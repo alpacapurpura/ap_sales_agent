@@ -40,13 +40,31 @@ def _run(repo: Path, *, quiet: bool = False) -> subprocess.CompletedProcess:
     return subprocess.run(args, capture_output=True, text=True, check=False)  # noqa: S603
 
 
+def _empty_v4_buckets() -> dict[str, list]:
+    """Empty buckets for all v4 states."""
+    return {
+        "idea": [],
+        "refining": [],
+        "refined": [],
+        "ready": [],
+        "developing": [],
+        "developed": [],
+        "reviewing": [],
+        "done": [],
+        "parked": [],
+        "dropped": [],
+    }
+
+
+def _story_items(n: int, prefix: str = "s") -> list[dict]:
+    """N story items (kind=story) — eligible for cap counting."""
+    return [{"id": f"{prefix}{i}", "kind": "story", "tags": []} for i in range(n)]
+
+
 def test_clean_repo_returns_0(tmp_path: Path) -> None:
     """Clean repo (no caps exceeded, no WIP, fresh) → exit 0."""
     _setup_minimal(tmp_path)
-    _write_backlog(
-        tmp_path,
-        {"validated": [], "ready": [], "building": [], "review": []},
-    )
+    _write_backlog(tmp_path, _empty_v4_buckets())
     subprocess.run(
         ["git", "add", "."],
         cwd=tmp_path,
@@ -62,59 +80,41 @@ def test_clean_repo_returns_0(tmp_path: Path) -> None:
     assert result.returncode in {0, 2}, result.stdout + result.stderr
 
 
-def test_building_cap_exceeded_blocks(tmp_path: Path) -> None:
-    """4 building stories → exit 1 (BLOCK)."""
+def test_developing_cap_exceeded_blocks(tmp_path: Path) -> None:
+    """4 developing stories (cap 3) → exit 1 (BLOCK)."""
     _setup_minimal(tmp_path)
-    _write_backlog(
-        tmp_path,
-        {
-            "validated": [],
-            "ready": [],
-            "building": [{"id": f"b{i}"} for i in range(4)],
-            "review": [],
-        },
-    )
+    buckets = _empty_v4_buckets()
+    buckets["developing"] = _story_items(4, "b")
+    _write_backlog(tmp_path, buckets)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
     assert result.returncode == 1
-    assert "building" in result.stdout
+    assert "developing" in result.stdout
     assert "cap 3" in result.stdout
 
 
-def test_validated_cap_exceeded_blocks(tmp_path: Path) -> None:
-    """11 validated entries → exit 1."""
+def test_refining_cap_exceeded_blocks(tmp_path: Path) -> None:
+    """4 refining stories (cap 3) → exit 1."""
     _setup_minimal(tmp_path)
-    _write_backlog(
-        tmp_path,
-        {
-            "validated": [{"id": f"v{i}"} for i in range(11)],
-            "ready": [],
-            "building": [],
-            "review": [],
-        },
-    )
+    buckets = _empty_v4_buckets()
+    buckets["refining"] = _story_items(4, "r")
+    _write_backlog(tmp_path, buckets)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
     assert result.returncode == 1
-    assert "validated" in result.stdout
+    assert "refining" in result.stdout
 
 
 def test_ready_cap_exceeded_blocks(tmp_path: Path) -> None:
-    """6 ready stories → exit 1."""
+    """6 ready stories (cap 5) → exit 1."""
     _setup_minimal(tmp_path)
-    _write_backlog(
-        tmp_path,
-        {
-            "validated": [],
-            "ready": [{"id": f"r{i}"} for i in range(6)],
-            "building": [],
-            "review": [],
-        },
-    )
+    buckets = _empty_v4_buckets()
+    buckets["ready"] = _story_items(6, "r")
+    _write_backlog(tmp_path, buckets)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
@@ -123,30 +123,54 @@ def test_ready_cap_exceeded_blocks(tmp_path: Path) -> None:
     assert "ready" in result.stdout
 
 
-def test_review_cap_exceeded_blocks(tmp_path: Path) -> None:
-    """3 review stories → exit 1."""
+def test_reviewing_cap_exceeded_blocks(tmp_path: Path) -> None:
+    """3 reviewing stories (cap 2) → exit 1."""
     _setup_minimal(tmp_path)
-    _write_backlog(
-        tmp_path,
-        {
-            "validated": [],
-            "ready": [],
-            "building": [],
-            "review": [{"id": f"rv{i}"} for i in range(3)],
-        },
-    )
+    buckets = _empty_v4_buckets()
+    buckets["reviewing"] = _story_items(3, "rv")
+    _write_backlog(tmp_path, buckets)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
     result = _run(tmp_path)
     assert result.returncode == 1
-    assert "review" in result.stdout
+    assert "reviewing" in result.stdout
+
+
+def test_legacy_exempt_stories_dont_count(tmp_path: Path) -> None:
+    """Stories tagged legacy:* are forward-only exempt — no cap violation."""
+    _setup_minimal(tmp_path)
+    buckets = _empty_v4_buckets()
+    # 7 legacy stories in refining (would exceed cap=3 if counted)
+    buckets["refining"] = [{"id": f"l{i}", "kind": "story", "tags": ["legacy:pi-12"]} for i in range(7)]
+    _write_backlog(tmp_path, buckets)
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
+
+    result = _run(tmp_path)
+    # Should NOT block (no cap violation for legacy)
+    assert result.returncode in {0, 2}, f"Expected 0 or 2, got {result.returncode}: {result.stdout}"
+
+
+def test_outcomes_dont_count_toward_cap(tmp_path: Path) -> None:
+    """kind=outcome items don't count toward story-level WIP cap."""
+    _setup_minimal(tmp_path)
+    buckets = _empty_v4_buckets()
+    # 10 outcomes in refining (would exceed cap=3 if counted; outcomes are epics)
+    buckets["refining"] = [{"id": f"o{i}", "kind": "outcome", "tags": []} for i in range(10)]
+    _write_backlog(tmp_path, buckets)
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
+
+    result = _run(tmp_path)
+    # Should NOT block
+    assert result.returncode in {0, 2}, f"Expected 0 or 2, got {result.returncode}"
 
 
 def test_uncommitted_wip_warns(tmp_path: Path) -> None:
     """Modified files → warn (exit 2)."""
     _setup_minimal(tmp_path)
-    _write_backlog(tmp_path, {"validated": [], "ready": [], "building": [], "review": []})
+    _write_backlog(tmp_path, _empty_v4_buckets())
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
     # Create untracked file
@@ -171,7 +195,7 @@ def test_missing_backlog_warns(tmp_path: Path) -> None:
 def test_quiet_mode_suppresses_warn_output(tmp_path: Path) -> None:
     """--quiet suppresses warn output but keeps exit code."""
     _setup_minimal(tmp_path)
-    _write_backlog(tmp_path, {"validated": [], "ready": [], "building": [], "review": []})
+    _write_backlog(tmp_path, _empty_v4_buckets())
     (tmp_path / "newfile.txt").write_text("x")
 
     result = _run(tmp_path, quiet=True)
@@ -182,18 +206,20 @@ def test_quiet_mode_suppresses_warn_output(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("state", "cap_label"),
     [
-        ("building", "cap 3"),
-        ("validated", "cap 10"),
+        ("refining", "cap 3"),
+        ("refined", "cap 5"),
         ("ready", "cap 5"),
-        ("review", "cap 2"),
+        ("developing", "cap 3"),
+        ("developed", "cap 2"),
+        ("reviewing", "cap 2"),
     ],
 )
 def test_cap_violation_reported_with_count(tmp_path: Path, state: str, cap_label: str) -> None:
-    """Each cap violation reports state + cap label."""
+    """Each v4 cap violation reports state + cap label."""
     _setup_minimal(tmp_path)
-    sizes = {"validated": 0, "ready": 0, "building": 0, "review": 0}
-    sizes[state] = 100  # massive overflow
-    _write_backlog(tmp_path, {s: [{"id": f"x{i}"} for i in range(sizes[s])] for s in sizes})
+    buckets = _empty_v4_buckets()
+    buckets[state] = _story_items(100, "x")  # massive overflow
+    _write_backlog(tmp_path, buckets)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp_path, check=True)
 
