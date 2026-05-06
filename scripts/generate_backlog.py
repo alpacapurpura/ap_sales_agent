@@ -450,32 +450,41 @@ def aggregate(repo: Path) -> dict[str, Any]:
         if d is not None and d > CAPS["refined_stale_days"]:
             stale_refined.append(it.id)
 
-    # Cap warnings (legacy stories tagged `legacy:*` exempt — pre-paradigma v4)
-    def _non_legacy(items_: list[Item]) -> list[Item]:
-        return [i for i in items_ if not any(t.startswith("legacy:") for t in i.tags)]
+    # Cap warnings — only stories + ideas count vs WIP cap.
+    # Outcomes (epics) span multiple stories and shouldn't consume WIP slots.
+    # Legacy stories tagged `legacy:*` exempt (pre-paradigma v4 forward-only enforcement).
+    def _cap_eligible(items_: list[Item]) -> list[Item]:
+        """Filter for cap counting: kind=story (not outcome/legacy-pi) AND no legacy:* tag."""
+        return [
+            i
+            for i in items_
+            if i.kind == "story" and not any(t.startswith("legacy:") for t in i.tags)
+        ]
 
     warnings: list[str] = []
-    if len(_non_legacy(buckets["refining"])) > CAPS["refining_max"]:
+    if len(_cap_eligible(buckets["refining"])) > CAPS["refining_max"]:
         warnings.append(
-            f"refining cap exceeded ({len(_non_legacy(buckets['refining']))} > {CAPS['refining_max']}, excl. legacy)"
+            f"refining cap exceeded ({len(_cap_eligible(buckets['refining']))} > {CAPS['refining_max']}, excl. legacy+outcomes)"
         )
-    if len(_non_legacy(buckets["refined"])) > CAPS["refined_max"]:
+    if len(_cap_eligible(buckets["refined"])) > CAPS["refined_max"]:
         warnings.append(
-            f"refined cap exceeded ({len(_non_legacy(buckets['refined']))} > {CAPS['refined_max']}, excl. legacy)"
+            f"refined cap exceeded ({len(_cap_eligible(buckets['refined']))} > {CAPS['refined_max']}, excl. legacy+outcomes)"
         )
-    if len(_non_legacy(buckets["ready"])) > CAPS["ready_max"]:
-        warnings.append(f"ready cap exceeded ({len(_non_legacy(buckets['ready']))} > {CAPS['ready_max']}, excl. legacy)")
-    if len(_non_legacy(buckets["developing"])) > CAPS["developing_max"]:
+    if len(_cap_eligible(buckets["ready"])) > CAPS["ready_max"]:
         warnings.append(
-            f"developing cap exceeded ({len(_non_legacy(buckets['developing']))} > {CAPS['developing_max']}, excl. legacy)"
+            f"ready cap exceeded ({len(_cap_eligible(buckets['ready']))} > {CAPS['ready_max']}, excl. legacy+outcomes)"
         )
-    if len(_non_legacy(buckets["developed"])) > CAPS["developed_max"]:
+    if len(_cap_eligible(buckets["developing"])) > CAPS["developing_max"]:
         warnings.append(
-            f"developed cap exceeded ({len(_non_legacy(buckets['developed']))} > {CAPS['developed_max']}, excl. legacy)"
+            f"developing cap exceeded ({len(_cap_eligible(buckets['developing']))} > {CAPS['developing_max']}, excl. legacy+outcomes)"
         )
-    if len(_non_legacy(buckets["reviewing"])) > CAPS["reviewing_max"]:
+    if len(_cap_eligible(buckets["developed"])) > CAPS["developed_max"]:
         warnings.append(
-            f"reviewing cap exceeded ({len(_non_legacy(buckets['reviewing']))} > {CAPS['reviewing_max']}, excl. legacy)"
+            f"developed cap exceeded ({len(_cap_eligible(buckets['developed']))} > {CAPS['developed_max']}, excl. legacy+outcomes)"
+        )
+    if len(_cap_eligible(buckets["reviewing"])) > CAPS["reviewing_max"]:
+        warnings.append(
+            f"reviewing cap exceeded ({len(_cap_eligible(buckets['reviewing']))} > {CAPS['reviewing_max']}, excl. legacy+outcomes)"
         )
     if stale_ideas:
         warnings.append(f"{len(stale_ideas)} stale ideas (>{CAPS['idea_stale_days']}d untouched)")
