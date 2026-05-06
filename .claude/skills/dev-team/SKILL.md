@@ -407,7 +407,7 @@ Si 2 tickets independientes (no `depends_on`) están `ready` simultáneamente:
 - ❌ Self-fix más de cap_reached iter sin escalar bloqueo
 - ❌ Dev tocando archivos out_of_scope (5-guidelines.md "Files in scope" hard)
 - ❌ Dumpear código en chat (anti-teléfono — todo en archivos)
-- ❌ Editar paths legacy `docs/projects/active/PI-N/sprints/SN/...` (paradigma viejo)
+- ❌ Editar paths legacy `docs/archive/2026/legacy-pis/PI-N/...` (snapshot inmutable)
 - ❌ Skip 04-validators.yaml — implementar sin validators es paradigma viejo
 - ❌ Cerrar story como done sin pasar por `/auditor` Conv 3
 

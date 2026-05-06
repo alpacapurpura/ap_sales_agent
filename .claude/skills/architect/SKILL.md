@@ -430,7 +430,7 @@ Próximo: Conv 2 (autonomous build). /dev-team toma T-1 (state: ready → develo
 - ❌ Saltarte sub-architects y redactar 03-arch-* vos mismo (rompe parallelization + expertise)
 - ❌ Aprobar tu propio ready package sin verificar coherencia entre 03-arch-*
 - ❌ Asignar Opus a tickets BE/FE non-agentic (cost waste)
-- ❌ Editar paths legacy `docs/projects/active/PI-N/sprints/SN/...` (paradigma viejo)
+- ❌ Editar paths legacy `docs/archive/2026/legacy-pis/PI-N/...` (snapshot inmutable)
 - ❌ Cerrar state=ready con WIP cap=5 ya alcanzado (escalate Chris primero)
 - ❌ `05-guidelines.md` con "be careful" / "follow best practices" (vago — usa patterns concretos)
 

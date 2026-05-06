@@ -457,7 +457,7 @@ Verdict:
 
 Referencias:
 - `.claude/rules/anti-default-flip-audit.md`
-- `docs/projects/active/PI-11-backend-quality-guardrails/` (caso origen 2026-05-04)
+- `docs/archive/2026/legacy-pis/PI-11-backend-quality-guardrails/` (caso origen 2026-05-04, snapshot)
 
 > Cross-scope flags do NOT enter overall verdict math (they escalate to agentic-auditor; verdict here is for business modules only).
 ```

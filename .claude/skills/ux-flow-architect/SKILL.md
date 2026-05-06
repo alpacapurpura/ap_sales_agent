@@ -4,7 +4,7 @@ description: "Interactive cross-feature navigation architect for Nicolify. Audit
 ---
 
 > **⚠️ DEPRECATED 2026-05-04** — Este skill quedó absorbed por `/ux-ui` (paradigma SDD Level 3).
-> Outputs nuevos (post 2026-05 paradigma) van a `docs/product/stories/{story-id}/mockups/` + spec `01-spec.md` (UNIFICADO via `/po-ux`). Legacy PI-12 puede aún usar `docs/projects/active/PI-N/sprints/SN/stories/{id}/`.
+> Outputs nuevos (paradigma v4 post 2026-05-06) van a `docs/product/stories/{story-id}/mockups/` + spec `01-spec.md` (UNIFICADO via `/po-ux`). Legacy PI snapshots inmutables en `docs/archive/2026/legacy-pis/`.
 > Sesiones legacy referenciadas en este skill viven en `docs/_archive/pre-sdd-2026-05-04/ux-sessions/`.
 > Invocá `/ux-ui` para nuevas sesiones UX. Este skill se mantiene SOLO por backwards compat.
 

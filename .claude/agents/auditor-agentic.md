@@ -269,7 +269,7 @@ Verifica:
 
 Referencias:
 - `.claude/rules/anti-default-flip-audit.md` (rule cardinal + 6 flags inventario + 7 enforcement layers)
-- `docs/projects/active/PI-11-backend-quality-guardrails/` (caso origen 2026-05-04)
+- `docs/archive/2026/legacy-pis/PI-11-backend-quality-guardrails/` (caso origen 2026-05-04, snapshot)
 - `docs/process/process-learnings.md` 2026-05-04 entry
 
 ### Cat 15 — Decisions honored cite (origen R6 process-improvement 2026-05-05)

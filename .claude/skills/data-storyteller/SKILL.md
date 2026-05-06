@@ -173,7 +173,7 @@ When the user asks to see a proposal:
 3. Fill every section using context from all phases
 4. Write the file:
    - If inside a pipeline (nicolify-feature): write to the feature's working directory
-   - If standalone: write to `docs/product/stories/{story-id}/01-spec.md` (sección charts inline — paradigm post 2026-05). Legacy PI-12 still uses `docs/projects/active/PI-N/sprints/SN/stories/{id}/02-design-ui.md` (sección charts).
+   - If standalone: write to `docs/product/stories/{story-id}/01-spec.md` (sección charts inline — paradigm v4 post 2026-05-06). Legacy snapshots de PI-1..PI-12 viven en `docs/archive/2026/legacy-pis/` (read-only).
    - If Copilot-inline mode: output is direct HTML, not VIZ-SPEC
 
 ***

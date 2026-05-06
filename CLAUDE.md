@@ -10,14 +10,14 @@ Brand/Offer: `brand`, `offer` · Assets: `landing`, `assets` · Growth: `analyti
 
 ## Spec-Driven Development (SDD Level 3) — paradigma actual
 
-SSoT funcional vive en `docs/{product,process,specs}/`. Migración Mayo 2026 (`pm-nico/` eliminado Wave 2; `docs/projects/active/PI-12-...` es la última carpeta legacy y cierra paradigma viejo).
+SSoT funcional vive en `docs/{product,process,specs}/`. Migración Mayo 2026 completada (Wave 5 Punto 4 — 2026-05-06): `pm-nico/` eliminado, PI-12 migrado a outcome `docs/product/outcomes/pi-12-sales-agent-eval-foundation.md` con 7 stories en `docs/product/stories/{id}/` flat (state=refining, legacy_exempt). Paradigma viejo PI/Sprint **completamente cerrado** — `docs/projects/` no existe.
 
 | Carpeta | Significado | Owner |
 |---|---|---|
 | `docs/product/` | SSoT vivo del producto. `BACKLOG.{yaml,md}` (auto-gen), `ideas-pool.yaml`, `outcomes/`, `stories/{id}/`, `capabilities/{module}/`, `modules/`. | `/pm` |
 | `docs/process/` | Reglas transversales: ticket-states, checkpoint-protocol, parallel-sessions, learnings, pm-redesign. | `/pm` |
 | `docs/specs/` | Templates + Rubrics + Personas (reusable cross-stories). | varios |
-| `docs/projects/active/PI-12-...` (legacy) | Última iniciativa estructura PI/Sprint. Cierra paradigma viejo, no migra mid-flight. | `/pm` |
+| `docs/archive/2026/legacy-pis/` | Audit trail paradigma legacy PI/Sprint (PI-1..PI-12). Snapshot inmutable, NO modificar. | `/pm` (read-only) |
 | `docs/archive/{year}/` | Stories `done` snapshot inmutable + legacy PIs preservados. | `/pm` |
 
 ### Vocabulary (NEW paradigma — v4 post Punto 4 2026-05-06)

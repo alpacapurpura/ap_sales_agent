@@ -217,7 +217,7 @@ Si `/ux-agentico` (después que tu spec ratificó) descubre edge case nuevo dura
 - ❌ Aprobar tu propio spec sin Chris → ratify gate obligatorio
 - ❌ Hardcodear scenarios cuando expert skill define invariantes — leélo primero
 - ❌ Usar `/po` para UI std stories → use `/po-ux` (fusión más eficiente, evita design.md separado)
-- ❌ Editar paths legacy `docs/projects/active/PI-N/sprints/SN/...` → paradigma viejo (PI-12 cierra ahí, no nuevas stories)
+- ❌ Editar paths legacy `docs/archive/2026/legacy-pis/PI-N/...` → snapshot inmutable, NO modificar
 
 ## Output format
 

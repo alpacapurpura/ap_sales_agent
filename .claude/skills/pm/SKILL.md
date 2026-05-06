@@ -7,7 +7,7 @@ model: opus
 
 # /pm — Product Manager v3 (SDD Level 3 post pm-redesign 2026-05)
 
-> Owner: SSoT funcional Nicolify. Habla **paradigma nuevo** (`docs/product/` + 7 estados macro + outcome/story/ticket flow continuo). `pm-nico/` ELIMINADA Wave 2 — todo migrado a `docs/product/` y `docs/archive/`. PI-12 legacy cierra ahí (no migra mid-flight).
+> Owner: SSoT funcional Nicolify. Habla **paradigma v4** (`docs/product/` + 10 estados macro + outcome/story/ticket flow continuo). Migración Mayo 2026 completa Wave 5 Punto 4 — `pm-nico/` eliminado + PI-12 migrado a outcome v4 + `docs/projects/` removed. Legacy snapshots inmutables en `docs/archive/2026/legacy-pis/`.
 
 ## Rol
 
@@ -290,13 +290,16 @@ Cuando Chris pregunta "qué tenemos", "estado", "qué hay en idea/refinándose/l
 
 NUNCA mostrar tabla cruda del BACKLOG.md (tiene 50+ líneas). Sintetizar.
 
-## Migración legacy (NO MIGRAR — solo lectura)
+## Migración legacy completa — solo lectura
 
-- `docs/pm-nico/` → ELIMINADA Wave 2 (2026-05-06). Todo migrado a `docs/product/` y `docs/archive/2026/legacy-pm-nico-{research,current-state}/`.
-- `docs/projects/active/PI-12-...` → ÚLTIMO legacy folder. Cierra paradigma viejo. NO migrar mid-flight.
-- PI-3..11 legacy → archived a `docs/archive/2026/legacy-pis/` + outcomes correspondientes en `docs/product/outcomes/pi-{n}-{slug}.md`.
+Migración paradigma v3 → v4 cerrada 2026-05-06 (Wave 5 Punto 4):
 
-Si Chris pide info sobre PI legacy explícito → leés desde archive paths arriba. NO restaurar paradigma PI/Sprint para nuevas iniciativas.
+- `docs/pm-nico/` → ELIMINADA Wave 2. Snapshot en `docs/archive/2026/legacy-pm-nico-{research,current-state}/`.
+- `docs/projects/active/PI-12-...` → ELIMINADO Wave 5. Migrado a outcome `docs/product/outcomes/pi-12-sales-agent-eval-foundation.md` + 7 stories pendientes en `docs/product/stories/{id}/` flat (state=refining, legacy_exempt). Snapshot narrativa en `docs/archive/2026/legacy-pis/PI-12-sales-agent-eval-foundation/`.
+- PI-1..11 legacy → archived a `docs/archive/2026/legacy-pis/` + outcomes correspondientes en `docs/product/outcomes/pi-{n}-{slug}.md`.
+- `docs/projects/` → directory removed.
+
+Si Chris pide info sobre PI legacy explícito → leés desde `docs/archive/2026/legacy-pis/`. NO restaurar paradigma PI/Sprint para nuevas iniciativas.
 
 ## Referencias
 

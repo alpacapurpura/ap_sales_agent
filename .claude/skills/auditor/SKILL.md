@@ -370,7 +370,7 @@ Cap absoluto: 2 self-fix iter por ticket. Después → CHANGES_REQUESTED.
 - ❌ Saltar CHECKPOINTS.md story-level (verificación end-to-end es obligatoria pre-merge)
 - ❌ Auditor sub-agent sin invocar skills mandatory
 - ❌ Aprobar ticket sin verificar diff cumple acceptance.validator_ids
-- ❌ Editar paths legacy `docs/projects/active/PI-N/sprints/SN/...` (paradigma viejo)
+- ❌ Editar paths legacy `docs/archive/2026/legacy-pis/PI-N/...` (snapshot inmutable)
 - ❌ Producir REVIEW-final.md (paradigma viejo — usa CHECKPOINTS.md C1-C5 grid)
 
 ## Output format
