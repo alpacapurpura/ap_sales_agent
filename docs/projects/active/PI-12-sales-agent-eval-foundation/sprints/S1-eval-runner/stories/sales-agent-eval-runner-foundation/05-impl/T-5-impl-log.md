@@ -7,7 +7,7 @@
 **Phase:** builder
 **Surface:** BE (test harness only — `production_code: false`; reads from `src/`, never writes)
 **Started:** 2026-05-05 (Wave 5 spawn, post T-4 audit-passed)
-**Commit:** TBD (recorded at end)
+**Commit:** `d5b7886a` (pushed to `origin/development` 2026-05-05)
 **State on completion:** `tests-passing` (orchestrator → gate-runner → auditor-agentic)
 
 ---
