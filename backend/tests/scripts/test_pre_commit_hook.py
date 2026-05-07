@@ -265,3 +265,81 @@ def test_modules_path_not_subject_to_r3_gate(fixture_repo: Path) -> None:
     _git("add", str(f.relative_to(fixture_repo)), cwd=fixture_repo)
     result = _commit(fixture_repo, "feat: new module file")
     assert result.returncode == 0, f"hook should not gate modules/: {result.stderr}"
+
+
+def test_blocks_pii_in_seed_tenants(fixture_repo: Path) -> None:
+    """Section 8 — PII scan blocks commit when staged seed YAML contains real PII.
+
+    Tests two scenarios:
+      1. YAML with real email + phone staged → hook exits 1 (PII detected).
+      2. YAML with only synthetic values (whitelisted) staged → hook exits 0.
+
+    Reuses fixture_repo, _git, _commit helpers from existing test infrastructure.
+    """
+    # Wire scanner script into the throwaway repo so the hook can find it.
+    scanner_src = REPO_ROOT / "backend" / "scripts" / "scan_seed_pii.py"
+    if not scanner_src.is_file():
+        pytest.skip(f"scan_seed_pii.py not found at {scanner_src} — T-2 scanner not yet created")
+
+    scanner_dst_dir = fixture_repo / "backend" / "scripts"
+    scanner_dst_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy(scanner_src, scanner_dst_dir / "scan_seed_pii.py")
+
+    # Wire backend venv symlink for python interpreter (reuse existing fixture_repo pattern)
+    venv_bin = fixture_repo / "backend" / ".venv" / "bin"
+    venv_bin.mkdir(parents=True, exist_ok=True)
+    real_venv_py = REPO_ROOT / "backend" / ".venv" / "bin" / "python"
+    if real_venv_py.exists() and not (venv_bin / "python").exists():
+        (venv_bin / "python").symlink_to(real_venv_py)
+
+    # Create seed tenants directory structure (mirrors real layout)
+    tenants_dir = fixture_repo / "backend" / "tests" / "fixtures" / "eval" / "tenants"
+    tenants_dir.mkdir(parents=True, exist_ok=True)
+
+    # -- Scenario 1: YAML with real PII → hook should block --
+    tenant_pii_dir = tenants_dir / "tenant_real_pii"
+    tenant_pii_dir.mkdir(parents=True, exist_ok=True)
+    pii_yaml_content = "contact:\n  email: chris@nicolify.com\n  phone: '+51 999 888 777'\nname: Carlos Lopez\n"
+    pii_yaml_file = tenant_pii_dir / "test.yaml"
+    pii_yaml_file.write_text(pii_yaml_content, encoding="utf-8")
+    _git("add", str(pii_yaml_file.relative_to(fixture_repo)), cwd=fixture_repo)
+
+    result_pii = _commit(fixture_repo, "test: add real PII yaml")
+    assert result_pii.returncode != 0, (
+        "Hook should block commit with real PII in seed YAML. "
+        f"Got returncode={result_pii.returncode}. "
+        f"stdout={result_pii.stdout!r} stderr={result_pii.stderr!r}"
+    )
+    out_pii = result_pii.stdout + result_pii.stderr
+    assert "PII detected in seed/" in out_pii, (
+        f"Hook error message should mention 'PII detected in seed/'. Got: {out_pii!r}"
+    )
+
+    # Unstage the PII file (it was not committed) and remove it from working tree
+    # so the scanner does not detect it in scenario 2 when it scans the full dir.
+    _git("restore", "--staged", str(pii_yaml_file.relative_to(fixture_repo)), cwd=fixture_repo)
+    pii_yaml_file.unlink()  # remove PII file from disk so scanner won't see it in scenario 2
+
+    # -- Scenario 2: YAML with only synthetic (whitelisted) content → hook passes --
+    # Add .eval-whitelist so the scanner accepts synthetic values
+    real_whitelist = REPO_ROOT / "backend" / "tests" / "fixtures" / "eval" / "tenants" / ".eval-whitelist"
+    if real_whitelist.is_file():
+        shutil.copy(real_whitelist, tenants_dir / ".eval-whitelist")
+
+    tenant_clean_dir = tenants_dir / "tenant_clean_synthetic"
+    tenant_clean_dir.mkdir(parents=True, exist_ok=True)
+    clean_yaml_content = "contact:\n  email: soporte@example.com\n  phone: '+99 0 1234 5678'\nname: Persona Sintética\n"
+    clean_yaml_file = tenant_clean_dir / "test.yaml"
+    clean_yaml_file.write_text(clean_yaml_content, encoding="utf-8")
+    _git("add", str(clean_yaml_file.relative_to(fixture_repo)), cwd=fixture_repo)
+    # Also stage the whitelist if present
+    whitelist_in_repo = tenants_dir / ".eval-whitelist"
+    if whitelist_in_repo.is_file():
+        _git("add", str(whitelist_in_repo.relative_to(fixture_repo)), cwd=fixture_repo)
+
+    result_clean = _commit(fixture_repo, "test: add clean synthetic yaml")
+    assert result_clean.returncode == 0, (
+        "Hook should allow commit with only synthetic (whitelisted) PII. "
+        f"Got returncode={result_clean.returncode}. "
+        f"stdout={result_clean.stdout!r} stderr={result_clean.stderr!r}"
+    )

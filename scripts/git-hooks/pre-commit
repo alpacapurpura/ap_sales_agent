@@ -508,4 +508,56 @@ EOF
   fi
 fi
 
+# ─────────────────────────────────────────────────────────────────
+# 8. PII scan on staged eval seed YAMLs (origen T-2 eval-foundation-tenant-seed-data)
+# ─────────────────────────────────────────────────────────────────
+# Activates ONLY if there are YAML files staged under
+# backend/tests/fixtures/eval/tenants/. Runs scan_seed_pii.py against
+# the full tenants directory (not just the diff) to catch PII introduced
+# by any change — including modifications to previously clean files.
+#
+# Scanner exit codes: 0=clean, 1=PII detected, 2=error.
+# On exit 1: commit is blocked with actionable hint.
+# On exit 2: commit is blocked with error detail from stderr.
+#
+# Bypass: NEVER use --no-verify. If scanner flags a legitimate value
+# (e.g., a real public URL or synthetic placeholder), add it to
+# backend/tests/fixtures/eval/tenants/.eval-whitelist with justification.
+
+STAGED_SEED_YAMLS=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '^backend/tests/fixtures/eval/tenants/.*\.yaml$' || true)
+SCANNER_PY="${REPO_ROOT}/backend/scripts/scan_seed_pii.py"
+SEED_TENANTS_DIR="${REPO_ROOT}/backend/tests/fixtures/eval/tenants"
+
+if [ -n "${STAGED_SEED_YAMLS}" ] && [ -f "${SCANNER_PY}" ]; then
+  VENV_PY="${REPO_ROOT}/backend/.venv/bin/python"
+  if [ ! -x "${VENV_PY}" ]; then
+    printf "\033[33m"
+    echo "WARNING: backend venv not found — skipping PII scan (Section 8)."
+    printf "\033[0m"
+  else
+    if ! "${VENV_PY}" "${SCANNER_PY}" "${SEED_TENANTS_DIR}" 2>/tmp/pii-scan-err.txt; then
+      printf "\033[31m"
+      cat <<EOF
+─────────────────────────────────────────────────────────────
+PRE-COMMIT BLOCKED: PII detected in seed/ — commit blocked.
+─────────────────────────────────────────────────────────────
+See backend/tests/fixtures/eval/tenants/.eval-whitelist.
+
+$(cat /tmp/pii-scan-err.txt 2>/dev/null || true)
+
+Resolution:
+  1. Replace real PII with synthetic equivalents (e.g., +99 0 1234 5678 for phones,
+     user@example.com for emails, fake ID numbers).
+  2. If the flagged value is a legitimate public reference, add it to
+     backend/tests/fixtures/eval/tenants/.eval-whitelist with justification.
+
+NEVER use --no-verify (.claude/rules/git-safety.md prohibits).
+─────────────────────────────────────────────────────────────
+EOF
+      printf "\033[0m"
+      exit 1
+    fi
+  fi
+fi
+
 exit 0

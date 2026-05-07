@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T01:59:42+00:00
+# Generated at: 2026-05-07T02:26:16+00:00
 
-generated_at: '2026-05-07T01:59:42+00:00'
+generated_at: '2026-05-07T02:26:16+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -359,12 +359,12 @@ buckets:
     title: eval-foundation-tenant-seed-data
     tags:
     - legacy:exempt
-    last_touched: 2026-05-06 23:00:00+00:00
+    last_touched: 2026-05-07 00:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: BUILD_T2
-      next_action: '/dev-team builder-backend builds T-2: PII scanner (backend/scripts/scan_seed_pii.py) + .eval-whitelist
-        + pre-commit hook Section 7 + test_seed_pii_scanner.py. T-1 closed pushed.'
+      phase: BUILD_T3
+      next_action: '/dev-team builder-backend builds T-3: drafts iniciales 5 tenants seed YAMLs (6 YAMLs + README per tenant)
+        + scanner GREEN. T-1+T-2 closed pushed.'
       blocked_by: null
       priority_override: null
       audit_iterations: 0

@@ -31,7 +31,7 @@ summary:
     surface: BE
     production_code: false
     owner_pool: [qwen-opencode, claude-sonnet]
-    state: draft
+    state: pushed
     blocks: [T-3, T-4]
     blocked_by: [T-1]
 
@@ -160,7 +160,7 @@ T2:
   type: tests-and-infra
   surface: BE
   production_code: false                              # R23 — solo backend/scripts/ + scripts/git-hooks/ + tests/, no src/
-  state: draft
+  state: pushed
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true
@@ -228,7 +228,9 @@ T2:
   blocks: ["T-3", "T-4"]
   transitions:
     - { state: draft, at: "2026-05-06T21:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: assigned, at: "2026-05-06T23:05Z", by: "/dev-team", to: "claude-sonnet (builder-backend)" }
+    - { state: pushed, at: "2026-05-07T00:30Z", by: "claude-sonnet (builder-backend)", note: "5 files created/modified, ruff GREEN, arch fitness 827/827, 20/20 tests GREEN (7 scanner + 1 hook + 12 existing). Hook added as Section 8 (not 7 — hook already had 7 sections post T-1 state enum validator)." }
+  assigned_to: "claude-sonnet (builder-backend)"
   notes_for_dev_team: |
     1. Scanner es STANDALONE script — no importa modules de backend/src/. Solo regex + pathlib + yaml para parsear .eval-whitelist.
     2. Regex DNI/CUIT/RUT/CURP/RFC tienen riesgo de false positives (e.g., DNI peruano 8 dígitos puede matchear ID interno random). Mitigación: usar lookahead/lookbehind context guards (no preceded by `=` o `:` o `id=`) per 05-guidelines.md.

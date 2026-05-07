@@ -1,0 +1,19 @@
+# Whitelist URLs/emails/phones públicos legítimamente referenciados en seed YAMLs.
+# El scanner PII skipea estos patrones (no falsos positivos).
+# Cada entry MUST tener `justification` inline.
+
+whitelisted_urls:
+  - url: "https://visionarias.lat"
+    justification: "Reference real público A1 Coach LatAm humano (visited 2026-05-06, public site)"
+  - url: "https://www.youtube.com/@visionarias.oficial"
+    justification: "Podcast YouTube público A1, citado en communication_assets.yaml"
+
+whitelisted_email_domains:
+  - domain: "@example.com"
+    justification: "Synthetic emails per RFC 2606 — used in sample_exchanges of personality_profile.yaml"
+
+whitelisted_phone_prefixes:
+  - prefix: "+99 0"
+    justification: "Synthetic phones reserved (ITU-T E.164 not assigned) — used in sample_exchanges"
+  - prefix: "+99 9"
+    justification: "Synthetic phones reserved — alternative pattern"

@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-07T01:59:42+00:00`
+> Generated at: `2026-05-07T02:26:16+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -35,7 +35,7 @@
 - _(none)_
 
 ### 🔨 Developing (1 / cap 3)
-- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation` [BUILD_T2]
+- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation` [BUILD_T3]
 
 ### 🧪 Developed — esperando QA (0 / cap 2)
 - _(none)_
