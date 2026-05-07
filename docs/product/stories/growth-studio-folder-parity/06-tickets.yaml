@@ -88,7 +88,13 @@ T1:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-07T22:35:00Z
+  pushed_at: 2026-05-07T18:05:00Z
+  transitions:
+    - { state: assigned, at: "2026-05-07T22:35:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: pushed, at: "2026-05-07T18:05:00Z", by: "claude-sonnet", note: "GREEN - 9+12+4+18 tests PASS. TSC 0 errors. 0 ESLint errors. 25/25 arch fitness." }
   owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
   priority: 1
   estimate_hours: 2

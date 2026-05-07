@@ -1,11 +1,13 @@
 ---
 story_id: growth-studio-folder-parity
 outcome: growth-copilot-layout-unification
-state: ready
-phase: READY_PACKAGE_CLOSED
-last_artifact: 06-tickets.yaml
-last_modified: 2026-05-07T06:35:00Z
-next_action: "/dev-team toma T-1 (Phase 1 Registries SSoT). Sequential 8 tickets T-1 → T-8 (~18h total). Coordination story 1: T-4 depends story-1::T-8 (VR helpers); T-5 depends story-1::T-7 (rename arch test). PRECEDE 2B sequential."
+state: developing
+phase: BUILD_T2
+last_artifact: docs/product/stories/growth-studio-folder-parity/T-1-result.md
+last_modified: 2026-05-07T18:05:00Z
+next_action: "T-1 DONE (pushed). T-2 ready to build: Factory dispatchers (StageDispatcher + ChannelDispatcher + sections + routes thin delegate). Blocked by nothing — T-1 shipped. Build T-2 next."
+build_started_at: 2026-05-07T22:30:00Z
+build_started_by: /dev-team
 ratified_by_chris: true
 ratified_at: 2026-05-07T04:15:00Z
 ready_at: 2026-05-07T06:35:00Z

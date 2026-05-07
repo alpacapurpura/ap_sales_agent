@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T22:38:16+00:00
+# Generated at: 2026-05-07T22:55:47+00:00
 
-generated_at: '2026-05-07T22:38:16+00:00'
+generated_at: '2026-05-07T22:55:47+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -375,13 +375,12 @@ buckets:
     state: developing
     title: growth-studio-folder-parity
     tags: []
-    last_touched: 2026-05-07 22:30:00+00:00
+    last_touched: 2026-05-07 18:05:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_T1
-      next_action: '/dev-team Conv 2 autonomous build IN PROGRESS — T-1 (Phase 1 Registries SSoT). Sequential 8 tickets T-1
-        → T-8. Coordination story 1: T-4 depends story-1::T-8 (VR helpers); T-5 depends story-1::T-7 (rename arch test). PARALLEL
-        with story 1.'
+      phase: BUILD_T2
+      next_action: 'T-1 DONE (pushed). T-2 ready to build: Factory dispatchers (StageDispatcher + ChannelDispatcher + sections
+        + routes thin delegate). Blocked by nothing — T-1 shipped. Build T-2 next.'
       blocked_by: null
       priority_override: null
       audit_iterations: 0
