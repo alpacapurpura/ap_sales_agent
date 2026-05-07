@@ -3,7 +3,7 @@
 **Story:** eval-foundation-tenant-seed-data
 **Ticket:** T-3 (3 of 4)
 **State:** pushed
-**Commit SHA:** _(set after commit)_
+**Commit SHA:** d4654e5e
 
 ## Diff resumen
 
