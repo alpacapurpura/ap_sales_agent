@@ -1,0 +1,348 @@
+# 04-validators.yaml — Story eval-foundation-simulator-homologation
+#
+# /architect orchestrator delivered (2026-05-07). Schema v4 — 4 categories.
+# /dev-team itera contra estos hasta GREEN o cap_reached. /auditor verifica
+# cada uno corrió + GREEN antes APPROVED.
+#
+# Story type: service-story (test infrastructure + 1 BE migration). NO FE.
+# Surfaces: BE prod-code R5 (1 ticket) + BE test-infra (3 tickets) + AGENTIC test-infra (6 tickets).
+# Native-first WSL — NUNCA Docker para tests.
+
+story_id: eval-foundation-simulator-homologation
+schema_version: v4
+last_modified: 2026-05-07T22:30:00Z
+arch_link: 03-arch.md
+
+validators:
+  # ═══════════════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: be_arch_fitness_full
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 180
+    description: "Full BE architectural fitness suite — DDD boundaries, API contracts, conventions, naming, SQLA 2.0, schema-mirror exception. Includes 5 NEW gates from this story (allowlists empty, shrink-only)."
+
+  - id: be_lint
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff check src/modules/sales_agent/observability/eval_simulator/ src/shared/infrastructure/agent_observability_bootstrap.py tests/agentic_evals/sales_agent/simulator/ tests/migrations/test_extend_eval_simulator_observability.py --no-cache"
+    must_pass: true
+    timeout_sec: 30
+    description: "Ruff 70+ rules, 0 errors. Scope: paths in scope of this story only."
+
+  - id: be_format
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff format --check src/modules/sales_agent/observability/eval_simulator/ src/shared/infrastructure/agent_observability_bootstrap.py tests/agentic_evals/sales_agent/simulator/ tests/migrations/test_extend_eval_simulator_observability.py"
+    must_pass: true
+    timeout_sec: 30
+
+  - id: be_mypy_strict
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/mypy --strict src/modules/sales_agent/observability/eval_simulator/ tests/agentic_evals/sales_agent/simulator/ --ignore-missing-imports"
+    must_pass: true
+    timeout_sec: 90
+    description: "Mypy strict — Pydantic v2 BaseModel + LangGraph state types fully annotated."
+
+  - id: be_coverage_simulator_module
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/ tests/migrations/test_extend_eval_simulator_observability.py --cov=src/modules/sales_agent/observability/eval_simulator --cov=tests/agentic_evals/sales_agent/simulator --cov-report=term-missing --cov-fail-under=60"
+    must_pass: true
+    timeout_sec: 300
+    description: "Coverage threshold 60% para módulos nuevos (sobre 43% baseline global)."
+
+  - id: legacy_client_simulator_intact
+    category: non_functional
+    type: shell
+    cmd: |
+      cd /home/chris/AISALESHT && \
+      git diff HEAD --name-only -- client_simulator/src/simulator/ | grep -q . && \
+      echo "FAIL: legacy client_simulator/src/simulator/ modified — D6 violation" && exit 1 || \
+      echo "OK: legacy client_simulator/src/simulator/ intact"
+    must_pass: true
+    timeout_sec: 10
+    description: "D6 preservation gate — client_simulator/src/simulator/ MUST be byte-equal post-merge."
+
+  - id: jscpd_no_duplication
+    category: non_functional
+    type: shell
+    cmd: "cd backend && jscpd src/modules/sales_agent/observability/eval_simulator/ tests/agentic_evals/sales_agent/simulator/ --min-tokens 50 --threshold 5 --reporters consoleFull"
+    must_pass: true
+    timeout_sec: 60
+    description: "Anti-duplication: cero copy-paste >5% between simulator files."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios from 01-spec.md
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # --- Scenario 1 happy (parametrize × 5 archetypes) ---
+
+  - id: scenario_happy_dual_llm_per_archetype
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_dual_llm_e2e_per_archetype --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 480
+    scenario_id: happy
+    description: "5-archetype parametrize: tenant_coach_lat / tenant_medicina_estetica / tenant_clinica_dental / tenant_agencia_growth_video / tenant_agencia_automatizacion_ia × actor_profile_lead_frio_impaciente × max_turns=3 × trial_n=0. Each runs in-process agent_app.ainvoke. Asserts: ≥2 turns, termination ∈ {goal_completion,max_turns,customer_exit}, simulation_id deterministic uuid5, schema_version=1, eval_simulator_llm_call ≥1 row, eval_simulator_trace_event ≥2 rows, transcript artifact exists, individual cost <$0.05, suite total <$0.30, tenant isolation 1 distinct tenant_id per simulation."
+
+  # --- Scenario 2 negative ---
+
+  - id: scenario_negative_invalid_archetype
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_invalid_archetype_raises_valueerror -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: negative
+    description: "ValueError raised w/ valid slugs listed. Cero rows DB. Cero artifact. structlog warning emitted. Fixture eval_tenant_seeded NOT invoked (no DB inserts)."
+
+  # --- Scenario 3 edge ---
+
+  - id: scenario_edge_max_turns_cap
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_max_turns_cap --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 90
+    scenario_id: edge
+    description: "actor_profile_loop_forever × max_turns=2 → exact 2 agent turns, termination_reason=max_turns, transcript len ≥4 ≤5, artifact JSON contains termination_reason+cost_summary, cost_usd <$0.05."
+
+  - id: scenario_edge_idempotency_simulation_id
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_idempotency_simulation_id --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "H2 idempotency — re-run with same (run_id, slug, actor_profile.id, trial_n) → same simulation_id deterministic UUID5. Artifact path stable."
+
+  # --- Scenario 4 adversarial (2 sub-cases) ---
+
+  - id: scenario_adversarial_agent_error_graceful
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_agent_error_graceful_subcase_a --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: adversarial
+    description: "Sub-case A: monkeypatch LLM router empty response → termination_reason=agent_error, error_subtype=empty_response, simulation graceful (no exception bubbles), structlog event simulator.agent_empty_response emitted, transcript captures partial turn w/ marker."
+
+  - id: scenario_adversarial_no_prompt_leak
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_no_system_prompt_leak_subcase_b --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 90
+    scenario_id: adversarial
+    description: "Sub-case B: actor_profile_jailbreak_attempt × tenant_coach_lat real agent runtime. Transcript NOT contains FORBIDDEN_LEAK_STRINGS. sanitize_payload applied. Tenant isolation 1 distinct tenant_id. Cero FS writes outside _artifacts/. metadata.eval_run_kind='simulator' present."
+
+  # --- Hardening (H1-H10) functional gates ---
+
+  - id: hardening_h1_schema_migration_regression
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_schema_migration_regression.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "H1+H10 — load frozen golden_v1_simulation_result.yaml + assert deserializable to CURRENT_SCHEMA_VERSION + assert SCHEMA_MIGRATIONS registry exhaustive."
+
+  - id: hardening_h3_concurrency_property
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_concurrency_property.py --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 600
+    description: "H3+H4 — N=10 simulations parallel via asyncio.gather → unique simulation_ids deterministic, no race conditions DB, semaphore caps active LLM calls."
+
+  - id: hardening_h8_termination_registry
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_termination_registry.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "H8 — register_termination_policy('test_custom', predicate) → graph honors w/o core modification. Verify default 4 policies registered. Cleanup teardown removes test policy."
+
+  # --- Migration test ---
+
+  - id: migration_apply_rollback_idempotent
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/migrations/test_extend_eval_simulator_observability.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 120
+    description: "Migration 124 apply → assert tables created + indexes + spec registered. Rollback → assert clean. Re-apply → idempotent (raw SQL IF NOT EXISTS)."
+
+  - id: fixture_tenant_seeded_test
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/fixtures/test_tenant_seeded.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "Fixture eval_tenant_seeded inserts rows from TenantContext + tenant_id=uuid5 deterministic + soft-delete teardown idempotent + cross-tenant isolation."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # AGENTIC EVAL — cost + observability + voice fidelity
+  # Note: pass^k + voice rubrics + adversarial suite full = stories E/F/G/I.
+  # Story B baseline gates only.
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: agentic_observability_invariants
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_eval_simulator_observability_invariants.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "Spec registered post-bootstrap import. eval_simulator_llm_call + eval_simulator_trace_event tables exist. Mandatory eval_metadata jsonb fields enforced (eval_run_kind/archetype_slug/actor_profile_id/trial_n/simulation_id/run_id). sanitize_payload applied pre-write."
+
+  - id: agentic_cost_budget_baseline
+    category: agentic_eval
+    type: shell
+    cmd: |
+      cd backend && .venv/bin/python -c "
+      import asyncio
+      from sqlalchemy import create_engine, select, func
+      from sqlalchemy.orm import Session
+      from src.core.config import settings
+      from src.modules.sales_agent.observability.eval_simulator.persistence.models import EvalSimulatorLLMCallModel
+      engine = create_engine(settings.database_url)
+      with Session(engine) as db:
+          # Last test run cost summary
+          per_sim = db.execute(
+              select(EvalSimulatorLLMCallModel.eval_metadata['simulation_id'].astext.label('sim_id'),
+                     func.sum(EvalSimulatorLLMCallModel.cost_usd).label('total'))
+              .group_by(EvalSimulatorLLMCallModel.eval_metadata['simulation_id'].astext)
+          ).all()
+          assert all(row.total < 0.05 for row in per_sim), f'Individual cost cap violated: {per_sim}'
+          suite_total = sum(row.total for row in per_sim)
+          assert suite_total < 0.30, f'Suite total cost cap violated: {suite_total}'
+          print(f'PASS — {len(per_sim)} simulations, max indiv ${max(r.total for r in per_sim):.4f}, suite total ${suite_total:.4f}')
+      "
+    must_pass: true
+    timeout_sec: 60
+    description: "D9 cost cap — individual <$0.05, suite total <$0.30 across 5-archetype parametrize + 4 single-tenant scenarios."
+
+  - id: agentic_eval_kind_tag_enforced
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_simulator_writes_eval_kind_tag.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "H5 — every row written by simulator has metadata.eval_run_kind='simulator'. Streamlit prod queries safely filter eval traffic out."
+
+  - id: agentic_no_mirrors_shared
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_simulator_no_mirrors_shared.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "H9 anti-mirror — no new file under simulator/*.py duplicates basename in shared/agent_observability/. Subclass via inheritance, no copy."
+
+  - id: agentic_public_api_surface
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_simulator_public_api_surface.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "H9 — simulator/__init__.py exports exactly 7 names. No _internal symbols leaked."
+
+  - id: agentic_termination_policy_registry_contract
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_termination_policy_registry_contract.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "H8 — TERMINATION_POLICIES registry exposes register_termination_policy publicly. Default 4 policies registered. Story I/H append-safe."
+
+# ═══════════════════════════════════════════════════════════════════════
+# Scenario coverage matrix — every spec scenario MUST appear here
+# ═══════════════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: happy
+    spec_section: "Scenario 1 — simulator-runs-dual-llm-per-archetype (parametrized × 5)"
+    validators:
+      - scenario_happy_dual_llm_per_archetype
+      - agentic_observability_invariants
+      - agentic_cost_budget_baseline
+      - agentic_eval_kind_tag_enforced
+
+  - scenario_id: negative
+    spec_section: "Scenario 2 — tenant-archetype-slug-invalid"
+    validators:
+      - scenario_negative_invalid_archetype
+
+  - scenario_id: edge
+    spec_section: "Scenario 3 — max-turns-cap-honored-and-budget-tracking"
+    validators:
+      - scenario_edge_max_turns_cap
+      - scenario_edge_idempotency_simulation_id
+
+  - scenario_id: adversarial
+    spec_section: "Scenario 4 — agent-error-graceful-and-no-prompt-leak (2 sub-cases)"
+    validators:
+      - scenario_adversarial_agent_error_graceful
+      - scenario_adversarial_no_prompt_leak
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening coverage matrix — H1-H10 must each have at least 1 validator
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_coverage:
+  - id: H1
+    spec_section: "Schema versioning forward-compatible"
+    validators: [hardening_h1_schema_migration_regression]
+  - id: H2
+    spec_section: "Deterministic simulation_id idempotency"
+    validators: [scenario_edge_idempotency_simulation_id]
+  - id: H3
+    spec_section: "Async-first concurrency-safe"
+    validators: [hardening_h3_concurrency_property]
+  - id: H4
+    spec_section: "Rate-limiting customer LLM (asyncio.Semaphore)"
+    validators: [hardening_h3_concurrency_property]   # property test verifies semaphore caps
+  - id: H5
+    spec_section: "Observability tags eval-vs-prod separation"
+    validators: [agentic_eval_kind_tag_enforced, agentic_observability_invariants]
+  - id: H6
+    spec_section: "Cost bucket separation (eval_simulator_llm_call table)"
+    validators: [agentic_observability_invariants, agentic_cost_budget_baseline]
+  - id: H7
+    spec_section: "Failure-mode taxonomy (AgentErrorSubtype + structlog)"
+    validators: [scenario_adversarial_agent_error_graceful]
+  - id: H8
+    spec_section: "Termination policy registry (Strategy pattern)"
+    validators: [hardening_h8_termination_registry, agentic_termination_policy_registry_contract]
+  - id: H9
+    spec_section: "Public API surface minimal"
+    validators: [agentic_public_api_surface, agentic_no_mirrors_shared]
+  - id: H10
+    spec_section: "Frozen golden v1 fixture for migration regression"
+    validators: [hardening_h1_schema_migration_regression]
+
+# ═══════════════════════════════════════════════════════════════════════
+# Iteration policy — autonomous build behavior
+# ═══════════════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 3                   # D11 ratificado — service-story 2-3d, 3 cycles bastan
+  on_fail: |
+    1) Read failing validator output
+    2) Identify exact file/line target (no shotgun edits)
+    3) Apply minimal fix preserving spec intent + arch decisions
+    4) Re-run failing validator only (not full suite)
+    5) If pass → continue to next pending validator
+  on_all_pass: |
+    set state=developing→developed
+    append iteration_log to T-{n}-impl-log.md
+    transition checkpoint phase=BUILD_GREEN
+  on_cap_reached: |
+    set state=developing→blocked
+    write blocker analysis to checkpoint.md
+    escalate to Chris with last error trace + diagnosis hypothesis

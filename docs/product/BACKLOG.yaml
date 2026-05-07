@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T20:41:47+00:00
+# Generated at: 2026-05-07T22:14:02+00:00
 
-generated_at: '2026-05-07T20:41:47+00:00'
+generated_at: '2026-05-07T22:14:02+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -236,65 +236,6 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
-  - id: app-shell-sidebar-copilot-decoupling
-    kind: story
-    state: refining
-    title: app-shell-sidebar-copilot-decoupling
-    tags: []
-    last_touched: 2026-05-07 03:55:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: PO_DRAFT_V2_AWAITING_RATIFICATION
-      next_action: Chris ratifica spec v2 (10 open questions). Diagnosis correction documentada — bug NO es z-index overlap.
-        Real = content starvation + mutex absence + offset hook drift + mobile gaps. Solution = DashboardShell parent + useShellMutex
-        + SSoT widths + tokens + AppSidebar mobile drawer + FAB + arch test extension.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
-  - id: eval-foundation-simulator-homologation
-    kind: story
-    state: refining
-    title: eval-foundation-simulator-homologation
-    tags:
-    - legacy:exempt
-    last_touched: 2026-05-06 17:11:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: PM_DRAFT
-      next_action: Esperar `eval-foundation-tenant-seed-data` a refined → luego /po redacta 01-spec.md service-story → ratificación
-        Chris → /architect
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
-  - id: growth-studio-actions-schemas-real
-    kind: story
-    state: refining
-    title: growth-studio-actions-schemas-real
-    tags: []
-    last_touched: 2026-05-07 03:30:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: PO_DRAFTING
-      next_action: /po redacta 01-spec.md (4 real copilot actions + 4 real zod schemas). BLOCKED por growth-studio-folder-parity
-        (2A) — necesita pages/actions/schemas/ + factory dispatchers.
-      blocked_by:
-      - growth-studio-folder-parity
-      priority_override: null
-      audit_iterations: 0
-  - id: growth-studio-folder-parity
-    kind: story
-    state: refining
-    title: growth-studio-folder-parity
-    tags: []
-    last_touched: 2026-05-07 03:30:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: PO_DRAFTING
-      next_action: /po redacta 01-spec.md (folder parity + factory dispatchers + legacy purge + arch fitness extension + allowlist
-        cleanup 6 dashboards). Sequential PRECEDE de growth-studio-actions-schemas-real (2B).
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: refining
@@ -395,8 +336,53 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  refined: []
-  ready: []
+  refined:
+  - id: growth-studio-actions-schemas-real
+    kind: story
+    state: refined
+    title: growth-studio-actions-schemas-real
+    tags: []
+    last_touched: 2026-05-07 04:15:00+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: SPEC_RATIFIED
+      next_action: '/architect orchestrator → produce ready package CON sub-architects /architect-be (3 BE tools NEW: get_stage_metrics
+        REPLACE legacy + get_channel_overview + trigger_etl_refresh con confirmation flow + metric-catalog endpoint + RateLimiter
+        reuse) + /architect-fe (3 action React components + 4 zod schemas + 2 SSoTs contract test) + /architect-agentic (copilot
+        tool registration + legacy migration eval goldens). Sequential build: BLOCKED hasta 2A done.'
+      blocked_by:
+      - growth-studio-folder-parity
+      priority_override: null
+      audit_iterations: 0
+  ready:
+  - id: app-shell-sidebar-copilot-decoupling
+    kind: story
+    state: ready
+    title: app-shell-sidebar-copilot-decoupling
+    tags: []
+    last_touched: 2026-05-07 05:55:00+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: READY_PACKAGE_CLOSED
+      next_action: /dev-team toma T-1 (Phase 1 skeleton SSoT + DashboardShell passthrough). Sequential 9 tickets T-1 → T-9
+        (~22h total estimate). Conv 2 autonomous build.
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: growth-studio-folder-parity
+    kind: story
+    state: ready
+    title: growth-studio-folder-parity
+    tags: []
+    last_touched: 2026-05-07 06:35:00+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: READY_PACKAGE_CLOSED
+      next_action: '/dev-team toma T-1 (Phase 1 Registries SSoT). Sequential 8 tickets T-1 → T-8 (~18h total). Coordination
+        story 1: T-4 depends story-1::T-8 (VR helpers); T-5 depends story-1::T-7 (rename arch test). PRECEDE 2B sequential.'
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   developing: []
   developed: []
   reviewing: []
@@ -485,20 +471,6 @@ buckets:
       - Orchestrator real responde DMs Telegram con channel format MarkdownV2 + tool subset filter + memory cost-aware
       - 'Tests passing: 86 copilot telegram tests + 9 arch fitness telegram_separation tests'
       - Latencia <3s p95 turn no-streaming (objetivo S2 — verificable post-deploy con observability S5 deferred)
-  - id: eval-foundation-tenant-seed-data
-    kind: story
-    state: done
-    title: eval-foundation-tenant-seed-data
-    tags:
-    - legacy:exempt
-    last_touched: 2026-05-07 08:30:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: ARCHIVED
-      next_action: Story closed + merged + archived. Outcome PI-12 desbloqueado para próxima story `eval-foundation-simulator-homologation`.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   parked:
   - id: growth-studio-visual-coherence-pass
     kind: story

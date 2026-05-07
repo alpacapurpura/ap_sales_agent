@@ -1,0 +1,656 @@
+# 06-tickets.yaml — Story eval-foundation-simulator-homologation
+#
+# /architect orchestrator delivered (2026-05-07).
+# 10 tickets atomic, DAG dependencies, owner_eligibility per R23 + Chris mandate.
+
+---
+story_id: eval-foundation-simulator-homologation
+outcome: pi-12-sales-agent-eval-foundation
+generated_at: 2026-05-07T22:45:00Z
+generated_by: /architect
+total_estimate_hours: 22                # 2-3d total per arch consolidation
+ticket_count: 10
+
+tickets:
+  # ═════════════════════════════════════════════════════════════════════
+  # T-1 — Migration 124 + 4 SQLAlchemy models + spec registration + bootstrap
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-1
+    title: "Migration 124 + eval_simulator observability schema mirror"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                # production code R5 schema-mirror exception
+      claude_sonnet: true                 # ✅ R5 schema-mirror permite builder-backend Sonnet
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 3
+    production_code: true                 # Alembic migration + persistence/models/ schema mirror
+    decisions_applicable: [D1, D2, D11, H5, H6, H10]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-be.md
+      conventions: ".claude/rules/backend-ddd.md, backend-migrations.md, anti-duplication.md"
+      tessl_skills: [tessl__fastapi, tessl__pytest-api-testing]
+      required_skills: [backend-expert, sales-agent-expert]
+      precedent: "backend/alembic/versions/083_*.py + modules/campaigns/observability/* (paridad campaigns precedent)"
+    deliverables:
+      - "Migration `backend/alembic/versions/124_add_eval_simulator_observability_tables.py` — idempotente raw SQL: 3 tablas (eval_simulator_llm_call, eval_simulator_trace_event, eval_synthetic_tenants) + 6 índices + sanitize_payload jsonb fields"
+      - "SQLAlchemy mirror `backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_llm_call.py`"
+      - "SQLAlchemy mirror `backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_trace_event.py`"
+      - "SQLAlchemy mirror `backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_synthetic_tenants.py`"
+      - "Spec registration `backend/src/modules/sales_agent/observability/eval_simulator/spec.py` — invokes `register_agent_observability(agent_kind='eval_simulator', llm_call_model=..., trace_event_model=...)`"
+      - "Bootstrap 1-line edit `backend/src/shared/infrastructure/agent_observability_bootstrap.py` — append `from src.modules.sales_agent.observability.eval_simulator import spec  # noqa: F401`"
+      - "`__init__.py` files cascading"
+    out_of_scope:
+      - "Migration test (T-2)"
+      - "Fixture eval_tenant_seeded (T-3)"
+      - "Anything under simulator/ (T-4..T-10)"
+      - "Modify modules/sales_agent/{domain,application,api,observability/recording,observability/persistence}/ — R5 SOLO permite eval_simulator/persistence/models/"
+    acceptance:
+      - id: A1
+        description: "Migration applies idempotent (raw SQL IF NOT EXISTS)"
+        verifier:
+          type: shell
+          cmd: "docker exec visionarias_brain_dev alembic upgrade head && docker exec visionarias_brain_dev alembic upgrade head"
+      - id: A2
+        description: "3 new tables exist post-upgrade"
+        verifier:
+          type: shell
+          cmd: "docker exec visionarias_brain_dev psql -U $POSTGRES_USER -d $POSTGRES_DB -c \"SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'eval_simulator%' OR tablename='eval_synthetic_tenants';\" | grep -c eval_"
+      - id: A3
+        description: "Spec registered post-bootstrap import"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_eval_simulator_observability_invariants.py"
+    quality_gates:
+      - validator_ids: [be_arch_fitness_full, be_lint, be_format, be_mypy_strict, jscpd_no_duplication, agentic_observability_invariants]
+    depends_on: []
+    blocks: [T-2, T-3, T-5]
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+    assigned_to: null
+    audit_verdict: null
+    audit_iterations: 0
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-2 — Migration test + arch fitness gate observability invariants
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-2
+    title: "Migration test + arch fitness gate eval_simulator_observability_invariants"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [H5, H6]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-be.md
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert]
+    deliverables:
+      - "Migration test `backend/tests/migrations/test_extend_eval_simulator_observability.py` — apply + assert tables/indexes/spec → rollback → assert clean → re-apply idempotent"
+      - "Arch fitness gate `backend/tests/architecture/test_eval_simulator_observability_invariants.py` — verify spec registered + 3 tables exist + mandatory eval_metadata fields enforced + sanitize_payload pre-write"
+    out_of_scope:
+      - "Fixture (T-3)"
+      - "Simulator code (T-4..T-9)"
+    acceptance:
+      - id: A1
+        description: "Migration test pass apply+rollback+idempotent"
+        verifier:
+          type: pytest
+          path: "backend/tests/migrations/test_extend_eval_simulator_observability.py"
+      - id: A2
+        description: "Arch fitness gate green"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_eval_simulator_observability_invariants.py"
+    quality_gates:
+      - validator_ids: [migration_apply_rollback_idempotent, agentic_observability_invariants, be_arch_fitness_full]
+    depends_on: [T-1]
+    blocks: []
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-3 — Fixture eval_tenant_seeded + fixture test
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-3
+    title: "Fixture eval_tenant_seeded + fixture test"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2.5
+    production_code: false
+    decisions_applicable: [D2, H2]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-be.md
+      conventions: ".claude/rules/tenant-isolation.md, anti-duplication.md"
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert]
+      tenant_loader: "backend/tests/fixtures/eval/tenants/loader.py::load_eval_tenant"
+    deliverables:
+      - "Fixture `backend/tests/agentic_evals/sales_agent/simulator/fixtures/tenant_seeded.py::eval_tenant_seeded(archetype_slug)` — generates `tenant_id = uuid5(NS_DNS, f'eval-{slug}')` deterministic, inserts mínimas DB rows from TenantContext (tenants, brand_identity, personality_profiles, offers, pricing, buyer_personas, communication_assets), marks via `eval_synthetic_tenants` lookup table (NO new column added to business tables — Opción B per arch §2.4-D-BE-4), returns (tenant_id, tenant_context)"
+      - "Teardown: soft-delete `deleted_at = utc_now()` for inserted rows + `eval_synthetic_tenants` row at session end"
+      - "Idempotent upsert (re-run safe)"
+      - "Fixture test `backend/tests/agentic_evals/sales_agent/simulator/fixtures/test_tenant_seeded.py` — verify insert + teardown + cross-tenant isolation + uuid5 deterministic + lookup table populated"
+    out_of_scope:
+      - "Pydantic state machines (T-4)"
+      - "Customer node (T-6)"
+      - "Modify modules/sales_agent (R5 limit)"
+    acceptance:
+      - id: A1
+        description: "Fixture seeds DB rows + returns deterministic tenant_id"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/fixtures/test_tenant_seeded.py::test_seeds_and_returns_uuid5"
+      - id: A2
+        description: "Teardown soft-deletes idempotently"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/fixtures/test_tenant_seeded.py::test_teardown_soft_delete_idempotent"
+      - id: A3
+        description: "Cross-tenant isolation — 5 archetype fixtures don't bleed"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/fixtures/test_tenant_seeded.py::test_cross_tenant_isolation"
+    quality_gates:
+      - validator_ids: [fixture_tenant_seeded_test, be_lint, be_format, be_mypy_strict]
+    depends_on: [T-1]
+    blocks: [T-10]
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-4 — Pydantic state machines + schema migrations registry
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-4
+    title: "Pydantic state + actor_profile + result + termination + schema_migrations"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                # agentic test-infra production_code=false but R23+complexity → Opus
+      claude_sonnet: false
+      claude_opus_required: true          # ✅ Opus 4.7 — schema versioning + Pydantic Strategy patterns critical
+    priority: 1
+    estimate_hours: 3
+    production_code: false                # test infrastructure under backend/tests/
+    decisions_applicable: [D4, D5, H1, H2, H8]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-agentic.md
+      conventions: ".claude/rules/anti-duplication.md, backend-ddd.md"
+      tessl_skills: [tessl__langgraph]
+      required_skills: [sales-agent-expert]
+      legacy_reference: "client_simulator/src/simulator/state.py + client_simulator/src/domain/models.py"
+    deliverables:
+      - "`backend/tests/agentic_evals/sales_agent/simulator/state.py` — `SimulationState(BaseModel, schema_version=1)` Pydantic v2 con todos campos del spec scenario 1"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/actor_profile.py` — `ActorProfile(BaseModel, schema_version=1)` con campos: id, name, dialect_code (BCP-47), traits, context, actor_goal"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/result.py` — `SimulationResult` + `ConversationTurn` + `CostSummary` Pydantic"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/termination.py` — `TerminationReason` StrEnum 6 values + `AgentErrorSubtype` StrEnum 4 values + `TERMINATION_POLICIES: dict[str, TerminationPredicate]` registry + `register_termination_policy(name, predicate)` public + 4 default policies"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/schema_migrations.py` — `SCHEMA_MIGRATIONS: dict[tuple[str, int, int], Callable]` registry stub (empty inicial — frozen golden v1 verifies registry exhaustive)"
+      - "`__init__.py` files cascading bajo `simulator/` y `_internal/`"
+    out_of_scope:
+      - "Customer node + agent_bridge + graph (T-6/T-7/T-8)"
+      - "Observability subclasses (T-5)"
+      - "Public API __init__ + arch fitness gates (T-9)"
+    acceptance:
+      - id: A1
+        description: "All Pydantic classes deserializable + frozen + schema_version field"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_pydantic_models_unit.py"
+      - id: A2
+        description: "TERMINATION_POLICIES registry exposes 4 default policies + register_termination_policy public"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_termination_registry.py::test_default_policies_registered"
+      - id: A3
+        description: "SCHEMA_MIGRATIONS registry stub importable + arch fitness gate exhaustive (story B no migrations needed yet — registry empty valid)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_schema_migrations_registry_complete.py"
+    quality_gates:
+      - validator_ids: [be_lint, be_format, be_mypy_strict, hardening_h8_termination_registry, agentic_termination_policy_registry_contract, jscpd_no_duplication]
+    depends_on: []
+    blocks: [T-5, T-6, T-7, T-8]
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-5 — EvalSimulator observability subclasses
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-5
+    title: "EvalSimulator{ObservabilityContext,CallbackHandler} subclasses"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ✅ Anti-mirror discipline crítica + observability invariants
+    priority: 1
+    estimate_hours: 2.5
+    production_code: false
+    decisions_applicable: [H5, H6]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-agentic.md
+      conventions: ".claude/rules/anti-duplication.md, copilot-observability.md, copilot-resilience.md"
+      tessl_skills: [tessl__graceful-degradation]
+      required_skills: [sales-agent-expert, copilot-expert]
+      shared_base_classes:
+        - "shared.agent_observability.recording.turn_envelope.BaseObservabilityContext"
+        - "shared.agent_observability.recording.base_callback_handler.BaseAgentCallbackHandler"
+    deliverables:
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/observability.py` — `EvalSimulatorObservabilityContext(BaseObservabilityContext)` subclass + `EvalSimulatorCallbackHandler(BaseAgentCallbackHandler)` subclass overriding solo `_persist_llm_call_row` + `_persist_trace_event_row` Template Method"
+      - "Mandatory metadata jsonb fields enforced en EACH write: eval_run_kind='simulator', archetype_slug, actor_profile_id, trial_n, simulation_id, run_id (H5)"
+      - "`sanitize_payload(...)` aplicado pre-write (heredado del shared base, NO re-implementar)"
+      - "Best-effort writes: try/except + structlog warning (no rompe simulation)"
+      - "Cero mirror — anti-duplication gate Step 0 grep evidence en commit body"
+    out_of_scope:
+      - "Customer node LLM dispatch (T-6)"
+      - "Agent bridge (T-7)"
+      - "Graph compose (T-8)"
+    acceptance:
+      - id: A1
+        description: "EvalSimulator subclasses inherit from shared base, no mirror"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_no_mirrors_shared.py"
+      - id: A2
+        description: "Mandatory metadata fields enforced per row written"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_writes_eval_kind_tag.py"
+      - id: A3
+        description: "Best-effort writes — failure during persist NO breaks simulation"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_observability_resilience.py::test_persist_failure_logs_warning_no_raise"
+    quality_gates:
+      - validator_ids: [be_lint, be_format, be_mypy_strict, agentic_no_mirrors_shared, agentic_eval_kind_tag_enforced, agentic_observability_invariants]
+    depends_on: [T-1, T-4]
+    blocks: [T-7]
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-6 — Customer node + prompt v1 + llm_roles registry + concurrency
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-6
+    title: "Customer node LangGraph + customer_persona_prompt v1 + eval-only LLM roles + concurrency semaphore"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ✅ Voice fidelity defense + cache prefix safety + dialect injection
+    priority: 1
+    estimate_hours: 3
+    production_code: false
+    decisions_applicable: [D3, H1, H4]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-agentic.md
+      conventions: ".claude/rules/sales-agent-brand-voice.md, spanish-text.md, anti-duplication.md"
+      tessl_skills: [tessl__langgraph, claude-api]
+      required_skills: [sales-agent-expert]
+      legacy_reference: "client_simulator/src/simulator/customer_node.py::PERSONA_SYSTEM_PROMPT"
+      shared_llm_router: "backend/src/shared/infrastructure/llm/router.py::MultiRoleLLMRouter via LLMFactory"
+    deliverables:
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/llm_roles.py` — `EVAL_LLM_ROLES = {'EVAL_USER_SIMULATOR': 'gpt-5-nano'}` eval-only registry. NO modify `LLM_ROLE_BY_SITE` SSoT (decisión §2.1)"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/customer_persona_prompt.py` — `CUSTOMER_PERSONA_PROMPT_V1` constant adapted from legacy. Versioned (H1). NO `{tenant_name}` mid-block (cache prefix safe). Voseo permitido si dialect_code=es-AR (magic comment escape `# voseo-allowed: actor persona dialect injection`)"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/concurrency.py` — `EVAL_SIMULATOR_SEMAPHORE = asyncio.Semaphore(int(os.getenv('EVAL_SIMULATOR_MAX_CONCURRENCY', '10')))` global per worker (H4)"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/customer_node.py` — LangGraph node async. Build prompt from ActorProfile (dialect-aware). Call `LLMFactory.get_service(model_type=ModelRole.NANO, model_override='gpt-5-nano').generate_response(...)` w/ `agent_kind='eval_simulator'`. Persist row to `eval_simulator_llm_call` via callback handler (T-5). Honor concurrency semaphore. Initial turn 0 = `actor_profile.context.initial_message` (no LLM call). Subsequent turns LLM-generated."
+    out_of_scope:
+      - "Agent bridge (T-7)"
+      - "Graph compose (T-8)"
+      - "Public API surface (T-9)"
+    acceptance:
+      - id: A1
+        description: "Customer node generates message from ActorProfile + dialect respected"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_customer_node_unit.py::test_dialect_es_ar_voseo"
+      - id: A2
+        description: "Concurrency semaphore caps active LLM calls"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_concurrency_property.py"
+      - id: A3
+        description: "EVAL_LLM_ROLES NOT polluting LLM_ROLE_BY_SITE SSoT"
+        verifier:
+          type: shell
+          cmd: "! grep -q 'EVAL_USER_SIMULATOR' backend/src/modules/sales_agent/domain/model_tier.py"
+    quality_gates:
+      - validator_ids: [be_lint, be_format, be_mypy_strict, hardening_h3_concurrency_property, jscpd_no_duplication]
+    depends_on: [T-4]
+    blocks: [T-8]
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-7 — Agent_bridge in-process + leak_assertions
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-7
+    title: "Agent bridge in-process agent_app.ainvoke + leak_assertions defense-in-depth"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ✅ Anti-prompt-injection defense + observability heredada
+    priority: 1
+    estimate_hours: 2.5
+    production_code: false
+    decisions_applicable: [D1, H7, H10]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-agentic.md
+      conventions: ".claude/rules/sales-agent-brand-voice.md"
+      tessl_skills: [tessl__langgraph, tessl__graceful-degradation]
+      required_skills: [sales-agent-expert]
+      production_runtime_entrypoint: "backend/src/modules/sales_agent/application/orchestrator/graph.py::agent_app"
+      production_pipeline_helpers: "backend/src/modules/sales_agent/application/orchestrator/conversation_pipeline.py::ConversationPipeline.{build_identity, build_brand_voice, create_initial_state}"
+      reuse_fixture: "backend/tests/agentic_evals/sales_agent/fixtures/entrypoint.py (sales_agent_entrypoint pattern)"
+    deliverables:
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/leak_assertions.py` — `FORBIDDEN_LEAK_STRINGS: frozenset[str]` con valores: ['compiler v2', 'system_instruction', 'BRAND_VOICE', 'slot 5', 'ASÍ HABLAS', 'ASÍ NO']. Function `assert_no_leak(transcript_content: str) → None` raises AssertionError si match"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/agent_bridge.py` — LangGraph node async. (1) Extract last customer turn from state.transcript. (2) Build initial_state via ConversationPipeline helpers. (3) Wire EvalSimulatorObservabilityContext (T-5). (4) Call `await agent_app.ainvoke(initial_state)` in-process. (5) Extract response text. (6) Apply `assert_no_leak` defense-in-depth (logs warning if match). (7) Append agent turn to state.transcript. (8) Failure modes: timeout → AgentErrorSubtype.TIMEOUT; empty response → EMPTY_RESPONSE; HTTP error → HTTP_ERROR; invalid state → INVALID_STATE. Each emits structured structlog event."
+    out_of_scope:
+      - "Graph compose (T-8)"
+      - "Public API (T-9)"
+    acceptance:
+      - id: A1
+        description: "Agent bridge invokes agent_app.ainvoke in-process (NO HTTP)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_agent_bridge_unit.py::test_in_process_invocation"
+      - id: A2
+        description: "Failure modes mapped to AgentErrorSubtype + structlog"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_agent_bridge_unit.py::test_failure_modes_taxonomy"
+      - id: A3
+        description: "Defense-in-depth assert_no_leak triggers warning on match"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_leak_assertions_unit.py"
+    quality_gates:
+      - validator_ids: [be_lint, be_format, be_mypy_strict, scenario_adversarial_no_prompt_leak, scenario_adversarial_agent_error_graceful]
+    depends_on: [T-4, T-5]
+    blocks: [T-8]
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-8 — Graph compose + run_simulation orchestrator
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-8
+    title: "LangGraph graph compose + run_simulation orchestrator + artifact persistence"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true
+    priority: 1
+    estimate_hours: 3
+    production_code: false
+    decisions_applicable: [D2, D5, D10, H2, H3, H8]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-agentic.md
+      conventions: ".claude/rules/anti-duplication.md, sales-agent-brand-voice.md"
+      tessl_skills: [tessl__langgraph]
+      required_skills: [sales-agent-expert]
+      legacy_reference: "client_simulator/src/simulator/graph.py + termination.py"
+    deliverables:
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/graph.py` — `build_simulation_graph() → CompiledGraph`. Topology: customer_node → agent_bridge → increment_turn → [conditional should_continue → customer_node | END]. **NO `from __future__ import annotations`** (LangGraph runtime introspection). Uses TERMINATION_POLICIES registry from T-4."
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_internal/runner.py` — `async def run_simulation(tenant_archetype_slug: str, actor_profile: ActorProfile, max_turns: int = 10, trial_n: int = 0) → SimulationResult`. (1) Validate slug ∈ valid 5 (raise ValueError w/ valid list if not). (2) Compute deterministic `simulation_id = uuid5(NS_DNS, f'{run_id}_{slug}_{actor.id}_{trial_n}')`. (3) Resolve `tenant_id = uuid5(NS_DNS, f'eval-{slug}')`. (4) Invoke fixture `eval_tenant_seeded(slug)`. (5) Build initial SimulationState. (6) Compile graph. (7) `await graph.ainvoke(state)`. (8) Determine termination via registry. (9) Compute CostSummary from observability rows. (10) Build SimulationResult Pydantic. (11) Write artifact JSON to `_artifacts/{run_id}/simulator/{simulation_id}/transcript.json` (D10). (12) Return SimulationResult."
+    out_of_scope:
+      - "Public API + frozen golden + arch gates (T-9)"
+      - "Smoke tests (T-10)"
+    acceptance:
+      - id: A1
+        description: "Graph compiled w/o `from __future__ import annotations`"
+        verifier:
+          type: shell
+          cmd: "! grep -q 'from __future__ import annotations' backend/tests/agentic_evals/sales_agent/simulator/_internal/graph.py"
+      - id: A2
+        description: "run_simulation deterministic simulation_id (re-run → same UUID)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_runner_unit.py::test_simulation_id_deterministic"
+      - id: A3
+        description: "Invalid archetype_slug → ValueError w/ valid list"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_runner_unit.py::test_invalid_archetype_raises"
+      - id: A4
+        description: "Artifact transcript.json written + populated correctly"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_runner_unit.py::test_artifact_persistence"
+    quality_gates:
+      - validator_ids: [be_lint, be_format, be_mypy_strict, scenario_negative_invalid_archetype, scenario_edge_idempotency_simulation_id, scenario_edge_max_turns_cap]
+    depends_on: [T-6, T-7]
+    blocks: [T-9]
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-9 — Public API + 3 ActorProfile fixtures + frozen golden v1 + 4 arch gates
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-9
+    title: "Public API surface + ActorProfile fixtures + frozen golden v1 + 4 arch fitness gates"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ✅ H9/H10 invariants — public API contract permanente
+    priority: 1
+    estimate_hours: 2.5
+    production_code: false
+    decisions_applicable: [D7, H1, H9, H10]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-agentic.md
+      conventions: ".claude/rules/anti-duplication.md, architectural-fitness.md, spanish-text.md"
+      required_skills: [sales-agent-expert]
+    deliverables:
+      - "`backend/tests/agentic_evals/sales_agent/simulator/__init__.py` — `__all__ = ['run_simulation', 'SimulationResult', 'SimulationState', 'ActorProfile', 'TerminationReason', 'AgentErrorSubtype', 'register_termination_policy']` exact 7 names. Cero `_internal` symbols leaked."
+      - "`backend/tests/agentic_evals/sales_agent/simulator/fixtures/actor_profiles.py` — 3 hardcoded ActorProfile fixtures Pydantic: `actor_profile_lead_frio_impaciente` (happy/edge/negative — tenant_coach_lat dialect), `actor_profile_loop_forever` (edge max_turns scenario), `actor_profile_jailbreak_attempt` (adversarial scenario 4 sub-case B)"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/_fixtures/golden_v1_simulation_result.yaml` — frozen golden v1 NUNCA editar (H10)"
+      - "`backend/tests/architecture/test_simulator_public_api_surface.py` — H9 enforces 7-name __all__"
+      - "`backend/tests/architecture/test_simulator_no_mirrors_shared.py` — H9 anti-mirror cross-codebase"
+      - "`backend/tests/architecture/test_simulator_writes_eval_kind_tag.py` — H5 metadata.eval_run_kind enforced"
+      - "`backend/tests/architecture/test_termination_policy_registry_contract.py` — H8 registry public API"
+      - "`backend/tests/architecture/test_schema_migrations_registry_complete.py` — H1 registry exhaustive vs Pydantic schema_version"
+    out_of_scope:
+      - "Smoke tests (T-10)"
+      - "Concurrency property test (T-10)"
+    acceptance:
+      - id: A1
+        description: "__all__ exactly 7 names, _internal not leaked"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_public_api_surface.py"
+      - id: A2
+        description: "No mirror of shared abstractions"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_no_mirrors_shared.py"
+      - id: A3
+        description: "5 arch fitness gates green w/ empty allowlists"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/"
+      - id: A4
+        description: "Frozen golden v1 deserializable to current SimulationResult"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_schema_migration_regression.py"
+    quality_gates:
+      - validator_ids: [be_lint, be_format, be_mypy_strict, agentic_public_api_surface, agentic_no_mirrors_shared, agentic_eval_kind_tag_enforced, agentic_termination_policy_registry_contract, hardening_h1_schema_migration_regression]
+    depends_on: [T-4, T-5, T-6, T-7, T-8]
+    blocks: [T-10]
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-10 — Smoke tests + property-based concurrency + schema regression + downstream rule update
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-10
+    title: "Smoke test parametrized 5×archetype + property concurrency + schema regression + R3 rule SSoT update"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ✅ Spec scenario coverage end-to-end
+    priority: 1
+    estimate_hours: 3
+    production_code: false
+    decisions_applicable: [D1, D2, D5, D8, D9, D10, H2, H3, H4, H5, H6, H7, H8, H10]
+    inputs:
+      spec: ../01-spec.md
+      arch_doc: ../03-arch-agentic.md
+      validators: ../04-validators.yaml
+      conventions: ".claude/rules/auditor-downstream-regression.md (UPDATE entry)"
+      required_skills: [sales-agent-expert, copilot-expert]
+    deliverables:
+      - "`backend/tests/agentic_evals/sales_agent/simulator/conftest.py` — pytest fixtures wiring + `--run-evals` flag honor"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py` — 9 test cases: 5-archetype parametrize happy + 1 negative + 2 edge + 2 adversarial sub-cases per spec"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/test_concurrency_property.py` — property-based H3+H4: N=10 simulations parallel via asyncio.gather, verify unique simulation_ids deterministic, no race conditions DB, semaphore caps active calls"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/test_schema_migration_regression.py` — H1+H10 frozen golden v1 deserialization + migration registry exhaustive"
+      - "`backend/tests/agentic_evals/sales_agent/simulator/test_termination_registry.py` — H8 register_termination_policy works + cleanup teardown"
+      - "Update `.claude/rules/auditor-downstream-regression.md` § tabla SSoT — add entry: `backend/src/modules/sales_agent/observability/eval_simulator/**` → downstream_test_targets (story B owns smoke + property + schema regression). When stories C/D/E/F/G/H/I land, each appends own consumer paths."
+      - "Update `docs/product/capabilities/sales_agent/sales-conversational-engine.yaml` — append `eval.simulator_path: backend/tests/agentic_evals/sales_agent/simulator/`, `eval.dual_llm_pattern: true`, `eval.actor_profile_schema_version: 1`, `eval.simulation_state_schema_version: 1`, `eval.observability_table_eval_simulator_llm_call: true`"
+    out_of_scope:
+      - "Streamlit dashboard updates (out of scope esta story — separate story future)"
+      - "Modules narrative update sales-agent.md (post-merge by /pm)"
+    acceptance:
+      - id: A1
+        description: "All 9 smoke test cases green covering 4 spec scenarios"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py"
+          extra: "--run-evals -v"
+      - id: A2
+        description: "Concurrency property test green N=10 paralelos"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/simulator/test_concurrency_property.py"
+          extra: "--run-evals"
+      - id: A3
+        description: "Cost cap individual <$0.05 + suite total <$0.30"
+        verifier:
+          type: shell
+          cmd: "see validator agentic_cost_budget_baseline cmd in 04-validators.yaml"
+      - id: A4
+        description: "auditor-downstream-regression.md SSoT updated w/ entry"
+        verifier:
+          type: shell
+          cmd: "grep -q 'eval_simulator' .claude/rules/auditor-downstream-regression.md"
+      - id: A5
+        description: "capability YAML bumped"
+        verifier:
+          type: shell
+          cmd: "grep -q 'simulator_path' docs/product/capabilities/sales_agent/sales-conversational-engine.yaml"
+    quality_gates:
+      - validator_ids:
+          - scenario_happy_dual_llm_per_archetype
+          - scenario_negative_invalid_archetype
+          - scenario_edge_max_turns_cap
+          - scenario_edge_idempotency_simulation_id
+          - scenario_adversarial_agent_error_graceful
+          - scenario_adversarial_no_prompt_leak
+          - hardening_h1_schema_migration_regression
+          - hardening_h3_concurrency_property
+          - hardening_h8_termination_registry
+          - agentic_cost_budget_baseline
+          - be_coverage_simulator_module
+          - legacy_client_simulator_intact
+    depends_on: [T-3, T-9]
+    blocks: []
+    transitions:
+      - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+
+# ═══════════════════════════════════════════════════════════════════════
+# Dependency graph (DAG)
+# ═══════════════════════════════════════════════════════════════════════
+#
+#   T-1 (BE prod-code R5)
+#   ├─→ T-2 (migration test)
+#   ├─→ T-3 (fixture seed)
+#   │    └─→ T-10 (smoke + R3 update)
+#   └─→ T-5 (observability subclasses)
+#        └─→ T-7 (agent_bridge)
+#             └─→ T-8 (graph + runner)
+#                  └─→ T-9 (public API + arch gates)
+#                       └─→ T-10 (smoke + R3 update)
+#
+#   T-4 (Pydantic models + termination + schema_migrations)
+#   ├─→ T-5 (also depends T-1)
+#   ├─→ T-6 (customer node + prompt + LLM roles + concurrency)
+#   ├─→ T-7 (also depends T-5)
+#   └─→ T-8 (also depends T-6, T-7)
+#
+# Critical path: T-1/T-4 (parallel) → T-5 → T-7 → T-8 → T-9 → T-10
+# Estimated: 22h sequential. Parallel possible: T-1+T-4, T-2+T-3+T-5, T-6+T-7
+
+# ═══════════════════════════════════════════════════════════════════════
+# Owner routing summary
+# ═══════════════════════════════════════════════════════════════════════
+#
+# - 3 tickets BE non-agentic (T-1, T-2, T-3) → builder-backend Sonnet (R5 schema-mirror permits)
+# - 7 tickets AGENTIC test-infra (T-4..T-10) → builder-agentic Opus 4.7 RECOMMENDED (R23 permits Sonnet
+#   pero Chris mandate cero deuda + complejidad cross-cutting agentic justifica Opus)
+# - PM confirms final routing antes Conv 2 starts.
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening invariants per ticket coverage
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_per_ticket:
+  H1_schema_versioning: [T-4, T-9, T-10]
+  H2_idempotency_uuid5: [T-3, T-8, T-10]
+  H3_async_concurrency: [T-6, T-8, T-10]
+  H4_rate_limiting: [T-6, T-10]
+  H5_observability_tags: [T-1, T-5, T-9, T-10]
+  H6_cost_buckets: [T-1, T-5, T-10]
+  H7_failure_taxonomy: [T-7]
+  H8_termination_registry: [T-4, T-9, T-10]
+  H9_public_api_minimal: [T-9]
+  H10_frozen_golden: [T-9, T-10]
