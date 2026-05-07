@@ -15,7 +15,7 @@ why_now: |
 target_end: null
 priority: 1
 created: 2026-05-04
-last_modified: 2026-05-06
+last_modified: 2026-05-07
 migrated_from: docs/projects/active/PI-12-sales-agent-eval-foundation/
 reframe_date: 2026-05-06
 reframe_reason: |
@@ -29,8 +29,8 @@ story_ids:
 
   # foundation new (NEW — sub-épica eval-foundation-*):
   # - maintenance-skill-sales-agent-audit        # DONE 2026-05-06 (archived, skill SSoT auditado)
-  - eval-foundation-tenant-seed-data             # 5-7d (5 tenants ratified Chris 2026-05-06), story A — pre-req de todo (state=refined 2026-05-06)
-  - eval-foundation-simulator-homologation       # 2-3d, story B — wire client_simulator/
+  # - eval-foundation-tenant-seed-data           # DONE 2026-05-07 (archived, 5 tenants seed curados densamente — story A foundation)
+  - eval-foundation-simulator-homologation       # 2-3d, story B — wire client_simulator/ — UNBLOCKED (was waiting seed-data)
 
   # spawned 2026-05-06 from tenant-seed-data Q7 (placeholder, state=idea):
   - sales-agent-dialect-configuration            # TBD, feature UX tenant config dialecto BCP-47 + runtime injection

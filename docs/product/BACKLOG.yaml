@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T20:24:28+00:00
+# Generated at: 2026-05-07T20:41:47+00:00
 
-generated_at: '2026-05-07T20:24:28+00:00'
+generated_at: '2026-05-07T20:41:47+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -168,12 +168,11 @@ buckets:
     - type:agentic-eval-foundation
     - paradigm:synthetic-first
     - reframe:2026-05-06
-    last_touched: 2026-05-06
+    last_touched: 2026-05-07
     extra:
       story_ids:
       - sales-agent-eval-runner-foundation
       - sales-agent-litellm-canonicalization
-      - eval-foundation-tenant-seed-data
       - eval-foundation-simulator-homologation
       - sales-agent-dialect-configuration
       - sales-agent-personas-instrumented-runtime
@@ -399,22 +398,7 @@ buckets:
   refined: []
   ready: []
   developing: []
-  developed:
-  - id: eval-foundation-tenant-seed-data
-    kind: story
-    state: developed
-    title: eval-foundation-tenant-seed-data
-    tags:
-    - legacy:exempt
-    last_touched: 2026-05-07 07:00:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: AWAIT_AUDIT
-      next_action: Story state developing → developed. Awaiting Chris triggers `/auditor` Conv 3 manualmente para review final
-        + merge. T-1+T-2+T-3+T-4 closed pushed.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
+  developed: []
   reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails
@@ -501,6 +485,20 @@ buckets:
       - Orchestrator real responde DMs Telegram con channel format MarkdownV2 + tool subset filter + memory cost-aware
       - 'Tests passing: 86 copilot telegram tests + 9 arch fitness telegram_separation tests'
       - Latencia <3s p95 turn no-streaming (objetivo S2 — verificable post-deploy con observability S5 deferred)
+  - id: eval-foundation-tenant-seed-data
+    kind: story
+    state: done
+    title: eval-foundation-tenant-seed-data
+    tags:
+    - legacy:exempt
+    last_touched: 2026-05-07 08:30:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: ARCHIVED
+      next_action: Story closed + merged + archived. Outcome PI-12 desbloqueado para próxima story `eval-foundation-simulator-homologation`.
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   parked:
   - id: growth-studio-visual-coherence-pass
     kind: story

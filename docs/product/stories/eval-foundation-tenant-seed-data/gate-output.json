@@ -1,61 +1,57 @@
 {
   "schema_version": "1.0",
-  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/eval-foundation-tenant-seed-data/",
-  "ticket": "T-3",
-  "iter": 1,
-  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check tests/fixtures/eval/tenants/ scripts/scan_seed_pii.py --no-cache && .venv/bin/ruff format --check tests/fixtures/eval/tenants/ scripts/scan_seed_pii.py && .venv/bin/pytest tests/fixtures/eval/tenants/ -v --tb=short && .venv/bin/pytest tests/scripts/test_pre_commit_hook.py -v --tb=short && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/eval-foundation-tenant-seed-data",
+  "ticket": "T-4",
+  "iter": 2,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check tests/fixtures/eval/tenants/ scripts/scan_seed_pii.py --no-cache && .venv/bin/ruff format --check tests/fixtures/eval/tenants/ scripts/scan_seed_pii.py && .venv/bin/pytest tests/fixtures/eval/tenants/ -v --tb=short && .venv/bin/pytest tests/scripts/test_pre_commit_hook.py -v --tb=short && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts=' && .venv/bin/python scripts/scan_seed_pii.py tests/fixtures/eval/tenants/",
   "command_alias": null,
-  "started_at": "2026-05-06T00:00:00Z",
-  "finished_at": "2026-05-06T00:01:00Z",
-  "duration_ms": 60000,
+  "started_at": "2026-05-07T20:29:12Z",
+  "finished_at": "2026-05-07T20:30:37Z",
+  "duration_ms": 85403,
   "exit_code": 0,
-  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/eval-foundation-tenant-seed-data/gate-logs/iter-1-eval-tenants-validation-20260506.log",
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/eval-foundation-tenant-seed-data/gate-logs/iter-2-eval-tenants-20260507.log",
   "gates": [
     {
-      "name": "ruff-check",
+      "name": "ruff_check",
       "status": "PASS",
       "errors_count": 0,
       "first_5_errors": []
     },
     {
-      "name": "ruff-format",
+      "name": "ruff_format",
       "status": "PASS",
       "errors_count": 0,
       "first_5_errors": []
     },
     {
-      "name": "pytest-eval-tenants",
+      "name": "pytest_eval_tenants",
       "status": "PASS",
       "errors_count": 0,
-      "first_5_errors": [],
-      "tests_passed": 79,
-      "tests_breakdown": {
-        "test_seed_pii_scanner": 7,
-        "test_dialect_catalog": 4,
-        "test_realism_smoke": 30,
-        "test_loader": 22,
-        "test_schema_alignment": 16
-      }
+      "details": "79 passed, 1 warning in 13.54s"
     },
     {
-      "name": "pytest-pre-commit-hook",
+      "name": "pytest_pre_commit_hook",
       "status": "PASS",
       "errors_count": 0,
-      "first_5_errors": [],
-      "tests_passed": 13
+      "details": "13 passed, 1 warning in 12.28s"
     },
     {
-      "name": "pytest-architecture",
+      "name": "pytest_architecture",
       "status": "PASS",
       "errors_count": 0,
-      "first_5_errors": [],
-      "tests_passed": 827
+      "details": "827 passed, 1 warning in 27.34s"
+    },
+    {
+      "name": "scan_seed_pii",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
     }
   ],
   "overall": {
     "any_fail": false,
     "fail_gate_names": [],
-    "summary": "All 5 gates passed. ruff-check OK (0 errors), ruff-format OK (9 files), pytest-eval-tenants 79/79 PASS (pii_scanner 7 + dialect_catalog 4 + realism_smoke 30 + loader 22 + schema_alignment 16), pytest-pre-commit-hook 13/13 PASS, pytest-architecture 827/827 PASS"
+    "summary": "All gates PASSED: ruff (0 errors), pytest_eval_tenants (79/79), pytest_pre_commit_hook (13/13), pytest_architecture (827/827), scan_seed_pii (0 PII detected)"
   },
-  "notes": "T-3 builder handoff validation complete. All 35 files created verified: 5 tenants × 7 files, full PII coverage, dialect/catalog/schema alignment, pre-commit hooks enforced, architecture fitness full suite green. Ready for orchestrator manual commit."
+  "notes": "T-4 iter 2 refresh post-commit. All validators GREEN. Story ready for audit."
 }

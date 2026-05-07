@@ -22,7 +22,7 @@ summary:
     surface: BE
     production_code: false
     owner_pool: [qwen-opencode, claude-sonnet]
-    state: draft
+    state: audit-passed
     blocks: [T-2, T-3, T-4]
     blocked_by: []
 
@@ -31,7 +31,7 @@ summary:
     surface: BE
     production_code: false
     owner_pool: [qwen-opencode, claude-sonnet]
-    state: pushed
+    state: audit-passed
     blocks: [T-3, T-4]
     blocked_by: [T-1]
 
@@ -40,7 +40,7 @@ summary:
     surface: BE
     production_code: false
     owner_pool: [claude-sonnet]                       # PREFERRED — markdown/YAML drafting con references reales
-    state: pushed
+    state: audit-passed
     blocks: [T-4]
     blocked_by: [T-1, T-2]
 
@@ -49,7 +49,7 @@ summary:
     surface: BE
     production_code: false
     owner_pool: [claude-opus, claude-sonnet]
-    state: pushed
+    state: audit-passed
     blocks: []
     blocked_by: [T-3]
 
@@ -61,7 +61,7 @@ T1:
   type: tests-and-infra
   surface: BE
   production_code: false                              # R23 — solo tests/fixtures/, no src/
-  state: pushed
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true
@@ -160,7 +160,7 @@ T2:
   type: tests-and-infra
   surface: BE
   production_code: false                              # R23 — solo backend/scripts/ + scripts/git-hooks/ + tests/, no src/
-  state: pushed
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true
@@ -361,7 +361,7 @@ T4:
   type: docs-and-ratification
   surface: BE
   production_code: false                              # R23 — solo edits a YAMLs anteriores + capability docs/
-  state: pushed
+  state: audit-passed
   owner_eligibility:
     qwen_opencode: false                              # ⛔ requires Chris-builder back-and-forth
     claude_sonnet: true                               # PREFERRED — asistente de Chris

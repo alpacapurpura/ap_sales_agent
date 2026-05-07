@@ -3,7 +3,7 @@ id: sales-conversational-engine
 name: "Motor conversacional sales_agent — supervisor + specialists + voz tenant"
 module: sales-agent
 backbone_activity: "Vender / pre-calificar / cerrar"
-last_audit: 2026-05-04
+last_audit: 2026-05-07
 status: in-progress
 slice: MVP
 links:
@@ -18,6 +18,8 @@ story_ids:
   - sales-inbound-conversation-close
   - sales-brand-voice-fidelity
   - sales-agent-eval-runner-foundation
+# Archived stories que contribuyeron a la capability (referenciadas por eval block):
+# - eval-foundation-tenant-seed-data (merged 2026-05-07, archived a docs/archive/2026/stories/)
 copilot_operable: false
 date_introduced: 2026-04
 last_modified: 2026-05-07
@@ -40,6 +42,14 @@ eval:
   seed_curated_by: chris
   seed_pii_scanner_path: "backend/scripts/scan_seed_pii.py"
   seed_whitelist_path: "backend/tests/fixtures/eval/tenants/.eval-whitelist"
+  seed_story_introduced: eval-foundation-tenant-seed-data
+  seed_merged_at: 2026-05-07
+  seed_test_coverage:
+    - "backend/tests/fixtures/eval/tenants/test_loader.py"
+    - "backend/tests/fixtures/eval/tenants/test_realism_smoke.py"
+    - "backend/tests/fixtures/eval/tenants/test_schema_alignment.py"
+    - "backend/tests/fixtures/eval/tenants/test_dialect_catalog.py"
+    - "backend/tests/fixtures/eval/tenants/test_seed_pii_scanner.py"
 ---
 
 ## Capabilities cubiertas por este grupo
@@ -62,6 +72,7 @@ eval:
 | sales-inbound-conversation-close | agentic-story | live | ../../stories/sales-agent/sales-inbound-conversation-close.yaml |
 | sales-brand-voice-fidelity | agentic-story | live | ../../stories/sales-agent/sales-brand-voice-fidelity.yaml |
 | sales-agent-eval-runner-foundation | service-story | planned | ../../stories/sales-agent/sales-agent-eval-runner-foundation.yaml |
+| eval-foundation-tenant-seed-data | service-story | live (merged 2026-05-07) | docs/archive/2026/stories/eval-foundation-tenant-seed-data/ |
 
 ## Gaps identificados
 
