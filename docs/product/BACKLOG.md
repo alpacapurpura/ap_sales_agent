@@ -1,23 +1,25 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-06T22:12:10+00:00`
+> Generated at: `2026-05-07T00:36:55+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### 💡 Ideas (4)
+### 💡 Ideas (5)
 - calendario-comercial `[idea]`
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
+- solo-mode-chat-first-layout `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (12 total · 0 cap-eligible / cap 3)
-- **pi-10-growth-studio-ux-homologation**
+### 🔬 Refining (13 total · 2 cap-eligible / cap 3)
+- **growth-copilot-layout-unification**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
-- **pi-9-growth-studio-architecture**
+- **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification` [PM_DRAFT]
 - **eval-foundation-simulator-homologation** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
+- **growth-studio-architectural-parity** — outcome `growth-copilot-layout-unification` [PM_DRAFT]
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
@@ -26,10 +28,11 @@
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 
-### ✅ Refined — listo para arquitectos (1 / cap 5)
-- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation`
+### ✅ Refined — listo para arquitectos (0 / cap 5)
+- _(none)_
 
-### 📦 Ready for development (1 / cap 5)
+### 📦 Ready for development (2 / cap 5)
+- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation`
 - **maintenance-skill-sales-agent-audit** — outcome `pi-12-sales-agent-eval-foundation`
 
 ### 🔨 Developing (0 / cap 3)
@@ -46,7 +49,10 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (0) · Dropped (0)
+### Parked (1) · Dropped (2)
+- 🅿 growth-studio-visual-coherence-pass
+- ❌ ~~pi-10-growth-studio-ux-homologation~~
+- ❌ ~~pi-9-growth-studio-architecture~~
 
 ---
 
@@ -54,26 +60,27 @@
 
 ```mermaid
 kanban
-  💡 Ideas (4)
+  💡 Ideas (5)
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
+    solo-mode-chat-first-layout[solo-mode-chat-first-layout]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (12 / cap 3)
-    pi-10-growth-studio-ux-homolog[pi-10-growth-studio-ux-homologation]
+  🔬 Refining (13 / cap 3)
+    growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
-    pi-9-growth-studio-architectur[pi-9-growth-studio-architecture]
+    app-shell-sidebar-copilot-deco[app-shell-sidebar-copilot-decoupling]
     eval-foundation-simulator-homo[eval-foundation-simulator-homologation]
+    growth-studio-architectural-pa[growth-studio-architectural-parity]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
-    sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
-    overflow-🔬 Refining[+2 more]
-  ✅ Refined (1 / cap 5)
+    overflow-🔬 Refining[+3 more]
+  ✅ Refined (0 / cap 5)
+  📦 Ready (2 / cap 5)
     eval-foundation-tenant-seed-da[eval-foundation-tenant-seed-data]
-  📦 Ready (1 / cap 5)
     maintenance-skill-sales-agent-[maintenance-skill-sales-agent-audit]
   🔨 Developing (0 / cap 3)
   🧪 Developed (0 / cap 2)
@@ -82,7 +89,8 @@ kanban
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🅿 Parked (0)
+  🅿 Parked (1)
+    growth-studio-visual-coherence[growth-studio-visual-coherence-pass]
 ```
 
 ---

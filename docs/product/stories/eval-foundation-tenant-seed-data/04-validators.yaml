@@ -1,0 +1,220 @@
+# 04-validators.yaml — Story eval-foundation-tenant-seed-data
+#
+# Schema v4 (post pm-redesign 2026-05 Punto 4) — 4 categories.
+# Surface: BE only (data-fixtures + tests + scripts). Sin FE, sin agentic eval.
+# Production code: false (no src/ touches). Owner sonnet/qwen OK (R23).
+
+story_id: eval-foundation-tenant-seed-data
+schema_version: v4
+
+validators:
+  # ═══════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality (lint, format, arch fitness)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: be_lint_fixtures_and_scripts
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff check tests/fixtures/eval/tenants/ scripts/scan_seed_pii.py --no-cache"
+    must_pass: true
+    timeout_sec: 30
+    description: "Ruff 70+ rules sobre loader.py + tests + scanner script"
+
+  - id: be_format_fixtures_and_scripts
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff format --check tests/fixtures/eval/tenants/ scripts/scan_seed_pii.py"
+    must_pass: true
+    timeout_sec: 30
+    description: "Ruff format check (line 120, double quotes, spaces)"
+
+  - id: be_arch_fitness_full
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 120
+    description: "DDD boundaries / API contracts / conventions — debe pasar (no esperamos tocar nada que afecte estos gates, pero corremos por seguridad)"
+
+  - id: pre_commit_hook_passes
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT && bash scripts/git-hooks/pre-commit"
+    must_pass: true
+    timeout_sec: 30
+    description: "Pre-commit hook (voseo + ruff + nueva Section 7 PII scan) pasa con archivos staged. Magic comment <!-- voseo-allowed --> debe estar presente en personality_profile.yaml de A4 (es-AR) que cita voseo verbatim en sample_exchanges."
+
+  - id: zero_src_changes
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT && git diff --name-only HEAD~5..HEAD -- backend/src/ frontend/src/ | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 5
+    description: "Cero archivos en backend/src/ o frontend/src/ modificados. Story es data-fixtures + scripts + tests (no runtime)."
+
+  - id: zero_migrations_added
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT && git diff --name-only HEAD~5..HEAD -- backend/alembic/versions/ | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 5
+    description: "Cero migrations Alembic. Story es in-memory only (Q4)."
+
+  # ═══════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios (happy / negative / edge / adversarial)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: scenario_happy_5_tenants_loadable
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/test_loader.py::test_loads_all_5_archetype_slugs tests/fixtures/eval/tenants/test_loader.py::test_dialect_code_per_archetype_matches_table tests/fixtures/eval/tenants/test_loader.py::test_buyer_personas_count_3_per_tenant tests/fixtures/eval/tenants/test_loader.py::test_pricing_currency_pen_for_all -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "5 tenants cargan via loader; dialect_code matchea tabla (PE/MX/CO/AR/419); buyer_personas count == 3; currency PEN para los 5"
+
+  - id: scenario_happy_realism_smoke
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/test_realism_smoke.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "Cada YAML tiene ≥5 campos no-null (5 tenants × 6 YAMLs = 30 parametrizaciones)"
+
+  - id: scenario_happy_schema_alignment
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/test_schema_alignment.py::test_brand_yaml_validates_against_pydantic_model tests/fixtures/eval/tenants/test_schema_alignment.py::test_offer_ladder_yaml_validates_against_pydantic_model tests/fixtures/eval/tenants/test_schema_alignment.py::test_personality_profile_yaml_validates_against_pydantic_model -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "Cada YAML valida contra Pydantic model existente (brand / offer / personality_profile compiler v2)"
+
+  - id: scenario_happy_dialect_catalog
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/test_dialect_catalog.py::test_catalog_has_min_13_entries tests/fixtures/eval/tenants/test_dialect_catalog.py::test_catalog_contains_all_archetype_dialects tests/fixtures/eval/tenants/test_dialect_catalog.py::test_each_entry_has_required_fields -v --tb=short"
+    must_pass: true
+    timeout_sec: 15
+    scenario_id: happy
+    description: "Catálogo BCP-47 ≥13 entries; cada dialect_code de los 5 tenants ⊆ catalog; cada entry tiene fields required"
+
+  - id: scenario_happy_capability_updated
+    category: functional
+    type: shell
+    cmd: "grep -q 'seed_tenants_path' /home/chris/AISALESHT/docs/product/capabilities/sales-agent/sales-conversational-engine.yaml && grep -q 'seed_archetype_slugs' /home/chris/AISALESHT/docs/product/capabilities/sales-agent/sales-conversational-engine.yaml"
+    must_pass: true
+    timeout_sec: 5
+    scenario_id: happy
+    description: "Capability YAML tiene los 2 fields nuevos: eval.seed_tenants_path + eval.seed_archetype_slugs"
+
+  - id: scenario_negative_required_field_missing
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/test_schema_alignment.py::test_loader_raises_on_missing_required_field tests/fixtures/eval/tenants/test_dialect_catalog.py::test_invalid_dialect_code_raises -v --tb=short"
+    must_pass: true
+    timeout_sec: 15
+    scenario_id: negative
+    description: "Loader raises Pydantic ValidationError con archivo + campo en stderr cuando campo requerido omitido. Loader raises custom error cuando dialect_code no presente en catálogo."
+
+  - id: scenario_edge_offer_ladder_no_l0
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/test_loader.py::test_offer_ladder_no_lead_magnet_emits_warning_proceeds_load -v --tb=short"
+    must_pass: true
+    timeout_sec: 15
+    scenario_id: edge
+    description: "A4 (Growth Marketing) y A5 (Automatización IA) sin L0 → warning structlog 'offer_ladder_missing_lead_magnet' + load proceed + has_lead_magnet=False. A1+A2+A3 con L0 → has_lead_magnet=True, sin warning."
+
+  - id: scenario_adversarial_pii_detection
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_4_categories_detected_on_adversarial_fixtures tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_no_pii_in_committed_seeds tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_whitelist_skips_known_public_urls tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_whitelist_skips_synthetic_fixtures_in_sample_exchanges -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "Scanner detecta email/teléfono/DNI-CUIT-RUT-CURP-RFC/URL-interna en fixtures sintéticas adversariales. Cero PII en YAMLs reales committed. Whitelist skipea URLs públicas (visionarias.lat) + emails @example.com + teléfonos +99 0 ..."
+
+  - id: scenario_adversarial_pre_commit_hook_blocks_pii
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_pre_commit_hook.py::test_blocks_pii_in_seed_tenants -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "Pre-commit hook Section 7 nuevo bloquea commit con exit_code != 0 + stderr contiene 'PII detected in seed/' cuando se intenta commit YAML con PII real."
+
+  - id: determinism_check
+    category: functional
+    type: shell
+    cmd: "cd backend && for i in 1 2 3; do .venv/bin/pytest tests/fixtures/eval/tenants/ -q --tb=line || exit 1; done"
+    must_pass: true
+    timeout_sec: 90
+    description: "Tests corren 3x consecutivos GREEN — determinismo idempotente (pure filesystem reads, no DB/network/LLM)"
+
+# ═══════════════════════════════════════════════════════════════
+# VISUAL — N/A (no UI changes)
+# ═══════════════════════════════════════════════════════════════
+
+# (Sin validators visuales — story no toca FE.)
+
+# ═══════════════════════════════════════════════════════════════
+# AGENTIC EVAL — N/A (no runtime agentic changes)
+# ═══════════════════════════════════════════════════════════════
+
+# (Sin validators agentic — story es data-fixtures, NO modifica runtime sales_agent.
+#  Per AD9, surface=BE production_code=false. La feature dialect-configuration que
+#  consume estos seeds en runtime es story aparte.)
+
+# ═══════════════════════════════════════════════════════════════
+# Scenario coverage matrix — 1 scenario maps to N validators
+# ═══════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: happy
+    description: "5 tenants seed checked-in + loader carga + Pydantic schemas validan + dialect catalog completo + capability actualizada"
+    validators:
+      - scenario_happy_5_tenants_loadable
+      - scenario_happy_realism_smoke
+      - scenario_happy_schema_alignment
+      - scenario_happy_dialect_catalog
+      - scenario_happy_capability_updated
+      - be_lint_fixtures_and_scripts
+      - be_format_fixtures_and_scripts
+      - zero_src_changes
+      - zero_migrations_added
+      - pre_commit_hook_passes
+      - determinism_check
+
+  - scenario_id: negative
+    description: "YAML con campo requerido omitido o dialect_code no en catálogo → ValidationError citando archivo + campo"
+    validators:
+      - scenario_negative_required_field_missing
+
+  - scenario_id: edge
+    description: "offer_ladder sin L0 (A4 + A5) → warning structlog + load proceed + has_lead_magnet=False"
+    validators:
+      - scenario_edge_offer_ladder_no_l0
+
+  - scenario_id: adversarial
+    description: "PII real (email/teléfono/DNI-CUIT-RUT-CURP-RFC/URL-interna) en YAML → scanner detecta + pre-commit hook bloquea + whitelist correcto"
+    validators:
+      - scenario_adversarial_pii_detection
+      - scenario_adversarial_pre_commit_hook_blocks_pii
+
+# ═══════════════════════════════════════════════════════════════
+# Iteration policy — autonomous build behavior
+# ═══════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 12
+  on_fail: |
+    Para tests RED por Pydantic ValidationError: ajustar YAML (campo faltante, tipo inválido) hasta validar.
+    Para tests RED por dialect_code no válido: ajustar dialect_code en personality_profile.yaml o agregar entry al catálogo.
+    Para tests RED por realism_smoke (≥5 campos no-null): poblar más campos en el YAML afectado.
+    Para tests RED por scanner PII: sanitizar el patrón con sintético equivalente o agregar a .eval-whitelist (con justificación documentada en T-{n}-impl-log.md).
+    Para tests RED por edge L0 warning: revisar lógica del loader; A4+A5 deben emitir warning, A1+A2+A3 no.
+    Re-run el validator que falló (no full suite).
+  on_all_pass: "set state=developing→developed, append iteration_log a T-{n}-impl-log.md con resumen final del ticket."
+  on_cap_reached: "set state=developing→blocked, escalate Chris con last failing validator output + diff parcial."

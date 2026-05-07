@@ -1,0 +1,460 @@
+# 06-tickets.yaml — Story eval-foundation-tenant-seed-data
+# Owner: /architect
+# Schema v4 (post pm-redesign 2026-05 Punto 4)
+#
+# 4 tickets en cascada T-1 → T-2 → T-3 → T-4. Razón split (AD10):
+# - Story 5-7d excede 8h cap por ticket
+# - Phases naturales: infra → scanner+hook → drafts content → curación
+# - Cada ticket cierra GREEN antes que el siguiente arranque
+
+---
+story_id: eval-foundation-tenant-seed-data
+outcome: pi-12-sales-agent-eval-foundation
+generated_at: 2026-05-06T21:30Z
+generated_by: /architect
+total_tickets: 4
+estimated_total_hours: 56  # 5-7 días × 8h/d, cap 14h por ticket
+
+# ── Resumen pila ────────────────
+summary:
+  - id: T-1
+    title: "Schema + Loader + Dialect Catalog + Tests baseline (RED)"
+    surface: BE
+    production_code: false
+    owner_pool: [qwen-opencode, claude-sonnet]
+    state: draft
+    blocks: [T-2, T-3, T-4]
+    blocked_by: []
+
+  - id: T-2
+    title: "PII Scanner + Pre-commit hook Section 7 + .eval-whitelist"
+    surface: BE
+    production_code: false
+    owner_pool: [qwen-opencode, claude-sonnet]
+    state: draft
+    blocks: [T-3, T-4]
+    blocked_by: [T-1]
+
+  - id: T-3
+    title: "Drafts iniciales 5 tenants seed YAMLs + READMEs"
+    surface: BE
+    production_code: false
+    owner_pool: [claude-sonnet]                       # PREFERRED — markdown/YAML drafting con references reales
+    state: draft
+    blocks: [T-4]
+    blocked_by: [T-1, T-2]
+
+  - id: T-4
+    title: "Curación Chris + ratificación + capability update + GREEN final"
+    surface: BE
+    production_code: false
+    owner_pool: [claude-sonnet]                       # asistente de Chris durante ratificación
+    state: draft
+    blocks: []
+    blocked_by: [T-3]
+
+# ── Detalle ─────────────────
+
+T1:
+  id: T-1
+  title: "Schema + Loader + Dialect Catalog + Tests baseline (RED)"
+  type: tests-and-infra
+  surface: BE
+  production_code: false                              # R23 — solo tests/fixtures/, no src/
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 12                                  # 1.5d
+  decisions_applicable: [AD1, AD2, AD3, AD4, AD7, AD9, Q1, Q2, Q3, Q4, Q7, Q8]
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch.md"
+    validators: "../04-validators.yaml"
+    guidelines: "../05-guidelines.md"
+    story_md: "../00-story.md"
+    rules:
+      - ".claude/rules/anti-duplication.md"
+      - ".claude/rules/parallel-safety.md"
+      - ".claude/rules/git-safety.md"
+      - ".claude/rules/tdd-mandatory.md"
+      - ".claude/rules/backend-ddd.md"
+    tessl_skills:
+      - "tessl__pytest-api-testing"
+    domain_skills:
+      - "sales-agent-expert"
+      - "brand-expert"
+      - "offer-expert"
+  deliverables:
+    - "NEW backend/tests/fixtures/eval/tenants/__init__.py"
+    - "NEW backend/tests/fixtures/eval/tenants/conftest.py — fixtures shareables (parametrize archetype_slug × yaml_filename)"
+    - "NEW backend/tests/fixtures/eval/tenants/loader.py — function load_eval_tenant() + @dataclass(frozen=True) TenantContext + has_lead_magnet computed property"
+    - "NEW backend/tests/fixtures/eval/tenants/dialect_catalog.yaml — 15 entries BCP-47 (es-419, es-AR, es-CL, es-CO, es-CR, es-CU, es-DO, es-EC, es-ES, es-MX, es-PE, es-PR, es-PY, es-UY, es-VE) per 05-guidelines.md catálogo inicial"
+    - "NEW backend/tests/fixtures/eval/tenants/test_loader.py — 6 funciones (test_loads_all_5_archetype_slugs parametrizado + test_dialect_code_per_archetype_matches_table + test_offer_ladder_no_lead_magnet_emits_warning_proceeds_load + test_buyer_personas_count_3_per_tenant + test_pricing_currency_pen_for_all + test_loader_raises_on_missing_archetype_slug)"
+    - "NEW backend/tests/fixtures/eval/tenants/test_realism_smoke.py — parametrizado 5 tenants × 6 YAMLs = 30 funcs efectivas"
+    - "NEW backend/tests/fixtures/eval/tenants/test_schema_alignment.py — 4 funcs (brand/offer_ladder/personality_profile validates + raises_on_missing_required_field)"
+    - "NEW backend/tests/fixtures/eval/tenants/test_dialect_catalog.py — 4 funcs (catalog_has_min_13 + contains_all_archetype_dialects + each_entry_has_required_fields + invalid_dialect_code_raises)"
+  out_of_scope:
+    - "Crear los 30 YAMLs reales con contenido (es T-3)"
+    - "Scanner PII (es T-2)"
+    - "Pre-commit hook Section 7 (es T-2)"
+    - "Capability YAML update (es T-4)"
+    - "Cambios en backend/src/ o frontend/src/"
+  acceptance:
+    - id: A1
+      description: "Loader function definida + TenantContext dataclass + has_lead_magnet computed property"
+      verifier:
+        type: bash
+        cmd: "grep -q 'def load_eval_tenant' backend/tests/fixtures/eval/tenants/loader.py && grep -q '@dataclass(frozen=True)' backend/tests/fixtures/eval/tenants/loader.py && grep -q 'has_lead_magnet' backend/tests/fixtures/eval/tenants/loader.py"
+      validator_id: scenario_happy_5_tenants_loadable
+    - id: A2
+      description: "Dialect catalog YAML con ≥13 entries + cada entry tiene fields required"
+      verifier:
+        type: pytest
+        path: "backend/tests/fixtures/eval/tenants/test_dialect_catalog.py::test_catalog_has_min_13_entries backend/tests/fixtures/eval/tenants/test_dialect_catalog.py::test_each_entry_has_required_fields"
+      validator_id: scenario_happy_dialect_catalog
+    - id: A3
+      description: "Tests baseline RED (esperado fallar hasta T-3 cuando se creen los YAMLs reales)"
+      verifier:
+        type: bash
+        cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/test_loader.py -v --tb=line 2>&1 | grep -E 'FAILED|PASSED' | wc -l | grep -E '^[1-9]'"
+      validator_id: null   # RED esperado en T-1, GREEN en T-4
+    - id: A4
+      description: "Ruff lint + format verde en archivos nuevos"
+      verifier:
+        type: bash
+        cmd: "cd backend && .venv/bin/ruff check tests/fixtures/eval/tenants/ --no-cache && .venv/bin/ruff format --check tests/fixtures/eval/tenants/"
+      validator_id: be_lint_fixtures_and_scripts
+    - id: A5
+      description: "Cero archivos en backend/src/ o frontend/src/ modificados"
+      verifier:
+        type: bash
+        cmd: "git diff --name-only HEAD~1..HEAD -- backend/src/ frontend/src/ | wc -l | grep -E '^0$'"
+      validator_id: zero_src_changes
+  quality_gates:
+    - "Ruff lint + format verde"
+    - "Arch fitness verde (`pytest tests/architecture/`)"
+    - "Determinismo: tests corren idempotente"
+    - "T-1-impl-log.md poblado"
+  depends_on: []
+  blocks: ["T-2", "T-3", "T-4"]
+  transitions:
+    - { state: draft, at: "2026-05-06T21:30Z", by: "/architect" }
+  assigned_to: null
+  notes_for_dev_team: |
+    1. Step 0 — verificar pre-requisito story `maintenance-skill-sales-agent-audit` está al menos refined (mejor ready). Si state<refined → escalar Chris.
+    2. Step 0.5 — read existing Pydantic models de brand/offer/personality_compiler v2 antes de redactar test_schema_alignment.py. Si los modelos exponen subset distinto al esperado por el spec → ajustar test (no model).
+    3. TDD strict: tests escritos PRIMERO. Algunos tests quedan RED en T-1 (ej. test_loads_all_5_archetype_slugs falla porque no hay YAMLs aún). RED es esperado hasta T-3.
+    4. Loader API estable: `load_eval_tenant(archetype_slug: str) → TenantContext`. NO cambiar signature post-T-1 (consumers downstream dependen).
+    5. TenantContext es `@dataclass(frozen=True)` — inmutable post-load. Campos: `brand`, `personality_profile`, `offer_ladder` (con `has_lead_magnet: bool` computed), `pricing`, `buyer_personas`, `communication_assets`, `archetype_slug`, `dialect_code`.
+    6. Dialect catalog YAML SSoT — los 5 dialect codes ratificados (es-PE, es-MX, es-CO, es-AR, es-419) DEBEN existir en el catálogo desde T-1.
+    7. Conventional commit: `feat(eval-fixtures): seed loader + dialect catalog + tests baseline (T-1)`. Decisions honored: AD1-AD7, AD9, Q1-Q4, Q7, Q8.
+
+T2:
+  id: T-2
+  title: "PII Scanner + Pre-commit hook Section 7 + .eval-whitelist"
+  type: tests-and-infra
+  surface: BE
+  production_code: false                              # R23 — solo backend/scripts/ + scripts/git-hooks/ + tests/, no src/
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 8                                   # 1d
+  decisions_applicable: [AD5, AD9, Q5]
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch.md"
+    validators: "../04-validators.yaml"
+    guidelines: "../05-guidelines.md"
+    rules:
+      - ".claude/rules/anti-duplication.md"
+      - ".claude/rules/spanish-text.md"
+      - ".claude/rules/parallel-safety.md"
+      - ".claude/rules/tdd-mandatory.md"
+      - ".tessl/tiles/maria/fastapi/rules/pii-sanitisation.md"
+    tessl_skills:
+      - "tessl__pytest-api-testing"
+    domain_skills:
+      - "sales-agent-expert"
+  deliverables:
+    - "NEW backend/scripts/scan_seed_pii.py — CLI scanner regex (email RFC 5322 + teléfono LatAm/intl + DNI/CUIT/RUT/CURP/RFC + URL interna *.nicolify.com). CLI args: <path>. Exit 0/1/2."
+    - "NEW backend/tests/fixtures/eval/tenants/.eval-whitelist — YAML con whitelisted_urls + whitelisted_email_domains + whitelisted_phone_prefixes (contenido inicial mínimo per 05-guidelines.md)"
+    - "NEW backend/tests/fixtures/eval/tenants/test_seed_pii_scanner.py — 4 funcs (test_4_categories_detected_on_adversarial_fixtures parametrizado por categoría + test_no_pii_in_committed_seeds + test_whitelist_skips_known_public_urls + test_whitelist_skips_synthetic_fixtures_in_sample_exchanges)"
+    - "MODIFY scripts/git-hooks/pre-commit — agregar Section 7 (invocar scan_seed_pii.py contra archivos staged en backend/tests/fixtures/eval/tenants/)"
+    - "MODIFY backend/tests/scripts/test_pre_commit_hook.py — agregar test_blocks_pii_in_seed_tenants scenario"
+  out_of_scope:
+    - "Drafts de los 30 YAMLs reales (es T-3)"
+    - "Capability YAML update (es T-4)"
+    - "Cambios en backend/src/ o frontend/src/"
+    - "Modificar el sanitizer shared (`shared/agent_observability/recording/sanitization.py`) — el scanner es read-only check, NO duplicate sanitizer"
+  acceptance:
+    - id: A1
+      description: "Scanner detecta 4 categorías PII en fixtures adversariales"
+      verifier:
+        type: pytest
+        path: "backend/tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_4_categories_detected_on_adversarial_fixtures"
+      validator_id: scenario_adversarial_pii_detection
+    - id: A2
+      description: "Whitelist skipea URLs públicas (visionarias.lat) + emails sintéticos (@example.com) + teléfonos sintéticos (+99 0 ...)"
+      verifier:
+        type: pytest
+        path: "backend/tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_whitelist_skips_known_public_urls backend/tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_whitelist_skips_synthetic_fixtures_in_sample_exchanges"
+      validator_id: scenario_adversarial_pii_detection
+    - id: A3
+      description: "Pre-commit hook Section 7 bloquea commit con exit_code != 0 + stderr contains 'PII detected in seed/'"
+      verifier:
+        type: pytest
+        path: "backend/tests/scripts/test_pre_commit_hook.py::test_blocks_pii_in_seed_tenants"
+      validator_id: scenario_adversarial_pre_commit_hook_blocks_pii
+    - id: A4
+      description: "Cero archivos en backend/src/ o frontend/src/ modificados"
+      verifier:
+        type: bash
+        cmd: "git diff --name-only HEAD~1..HEAD -- backend/src/ frontend/src/ | wc -l | grep -E '^0$'"
+      validator_id: zero_src_changes
+  quality_gates:
+    - "Ruff lint + format verde sobre scan_seed_pii.py"
+    - "Pre-commit hook completo verde (Sections 1-7)"
+    - "Existing tests test_pre_commit_hook.py siguen verde post-edit"
+    - "T-2-impl-log.md poblado"
+  depends_on: ["T-1"]
+  blocks: ["T-3", "T-4"]
+  transitions:
+    - { state: draft, at: "2026-05-06T21:30Z", by: "/architect" }
+  assigned_to: null
+  notes_for_dev_team: |
+    1. Scanner es STANDALONE script — no importa modules de backend/src/. Solo regex + pathlib + yaml para parsear .eval-whitelist.
+    2. Regex DNI/CUIT/RUT/CURP/RFC tienen riesgo de false positives (e.g., DNI peruano 8 dígitos puede matchear ID interno random). Mitigación: usar lookahead/lookbehind context guards (no preceded by `=` o `:` o `id=`) per 05-guidelines.md.
+    3. Pre-commit hook Section 7: bash scripting; solo activate si `git diff --cached --name-only` matchea `backend/tests/fixtures/eval/tenants/.*\.yaml$`. No correr scanner sobre todo el repo (overhead).
+    4. Test del hook: extender fixture en backend/tests/scripts/test_pre_commit_hook.py reusando helpers existentes (`fixture_repo`, `_git`, `_commit`).
+    5. Conventional commit: `feat(eval-fixtures): seed PII scanner + pre-commit hook section 7 (T-2)`. Decisions honored: AD5, AD9, Q5.
+
+T3:
+  id: T-3
+  title: "Drafts iniciales 5 tenants seed YAMLs + READMEs"
+  type: docs-and-data
+  surface: BE
+  production_code: false                              # R23 — solo tests/fixtures/, no src/
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                              # ⛔ qwen no produce contenido marketing/branding consistente con references reales
+    claude_sonnet: true                               # ✅ PREFERRED — markdown/YAML drafting + references reales contextualizadas
+    claude_opus_required: false                       # NOT required (no decisión arq compleja, content drafting)
+  priority: 1
+  estimate_hours: 16                                  # 2d (drafts iniciales + ajustes pre-Chris)
+  decisions_applicable: [AD1, AD2, AD3, AD4, AD6, AD7, AD8, Q1, Q2, Q3, Q6, Q7, Q8]
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch.md"
+    validators: "../04-validators.yaml"
+    guidelines: "../05-guidelines.md"
+    rules:
+      - ".claude/rules/spanish-text.md"
+      - ".claude/rules/sales-agent-brand-voice.md"
+      - ".claude/rules/parallel-safety.md"
+    tessl_skills:
+      - "tessl__pytest-api-testing"
+    domain_skills:
+      - "brand-expert"
+      - "offer-expert"
+      - "sales-agent-expert"
+  deliverables:
+    - "NEW 6 YAMLs + README en backend/tests/fixtures/eval/tenants/tenant_coach_lat/ — A1 Coach LatAm humano (Visionarias-style), dialect_code: es-PE, currency: PEN, CON L0 lead magnet, 3 buyer personas (2 base + 1 adversarial)"
+    - "NEW 6 YAMLs + README en backend/tests/fixtures/eval/tenants/tenant_medicina_estetica/ — A2 Medicina estética, dialect_code: es-MX, currency: PEN, CON L0 (consulta evaluación gratis), 3 buyer personas"
+    - "NEW 6 YAMLs + README en backend/tests/fixtures/eval/tenants/tenant_clinica_dental/ — A3 Clínica dental, dialect_code: es-CO (bogotano tuteo), currency: PEN, CON L0 (consulta primera vez), 3 buyer personas"
+    - "NEW 6 YAMLs + README en backend/tests/fixtures/eval/tenants/tenant_agencia_growth_video/ — A4 Growth Marketing video+RRSS, dialect_code: es-AR (voseo), currency: PEN, SIN L0 (entra por casos de éxito), 3 buyer personas. Magic comment <!-- voseo-allowed --> en personality_profile.yaml"
+    - "NEW 6 YAMLs + README en backend/tests/fixtures/eval/tenants/tenant_agencia_automatizacion_ia/ — A5 Agencia Automatización IA + Software con IA (NO vibe-code), dialect_code: es-419 neutro, currency: PEN, SIN L0 (entra por discovery call), 3 buyer personas"
+  out_of_scope:
+    - "Curación final Chris + ratificación (es T-4)"
+    - "Capability YAML update (es T-4)"
+    - "Cambios en backend/src/ o frontend/src/"
+    - "Refactor del loader/scanner (cerrados en T-1/T-2)"
+  acceptance:
+    - id: A1
+      description: "30 YAMLs presentes (5 tenants × 6 archivos)"
+      verifier:
+        type: bash
+        cmd: "find backend/tests/fixtures/eval/tenants -name '*.yaml' -path '*/tenant_*' | wc -l | grep -E '^30$'"
+      validator_id: scenario_happy_5_tenants_loadable
+    - id: A2
+      description: "5 READMEs presentes con sección 'Inspiración' + URL referencia"
+      verifier:
+        type: bash
+        cmd: "find backend/tests/fixtures/eval/tenants -name 'README.md' | wc -l | grep -E '^5$' && for slug in tenant_coach_lat tenant_medicina_estetica tenant_clinica_dental tenant_agencia_growth_video tenant_agencia_automatizacion_ia; do grep -q 'Inspiración' backend/tests/fixtures/eval/tenants/$slug/README.md || exit 1; done"
+      validator_id: scenario_happy_5_tenants_loadable
+    - id: A3
+      description: "Schemas validan contra Pydantic models existentes (drift detection passes)"
+      verifier:
+        type: pytest
+        path: "backend/tests/fixtures/eval/tenants/test_schema_alignment.py"
+      validator_id: scenario_happy_schema_alignment
+    - id: A4
+      description: "Realism smoke ≥5 fields no-null per YAML"
+      verifier:
+        type: pytest
+        path: "backend/tests/fixtures/eval/tenants/test_realism_smoke.py"
+      validator_id: scenario_happy_realism_smoke
+    - id: A5
+      description: "A4 + A5 sin L0 (test edge warning); A1+A2+A3 con L0 (sin warning)"
+      verifier:
+        type: pytest
+        path: "backend/tests/fixtures/eval/tenants/test_loader.py::test_offer_ladder_no_lead_magnet_emits_warning_proceeds_load"
+      validator_id: scenario_edge_offer_ladder_no_l0
+    - id: A6
+      description: "PII scanner GREEN sobre los 30 YAMLs reales (cero PII committed)"
+      verifier:
+        type: pytest
+        path: "backend/tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_no_pii_in_committed_seeds"
+      validator_id: scenario_adversarial_pii_detection
+    - id: A7
+      description: "Pre-commit hook completo verde con los 30 YAMLs staged"
+      verifier:
+        type: bash
+        cmd: "cd /home/chris/AISALESHT && bash scripts/git-hooks/pre-commit"
+      validator_id: pre_commit_hook_passes
+    - id: A8
+      description: "Cero archivos en backend/src/ o frontend/src/ modificados"
+      verifier:
+        type: bash
+        cmd: "git diff --name-only HEAD~1..HEAD -- backend/src/ frontend/src/ | wc -l | grep -E '^0$'"
+      validator_id: zero_src_changes
+  quality_gates:
+    - "30 YAMLs validan via Pydantic"
+    - "Sample_exchanges respetan dialect_code (voseo solo en A4 es-AR; tuteo en A1/A2/A3/A5)"
+    - "Magic comment <!-- voseo-allowed --> presente en A4 personality_profile.yaml"
+    - "PII scanner cero hits sobre los 30 YAMLs"
+    - "T-3-impl-log.md poblado con secciones obligatorias + diff de drafts"
+  depends_on: ["T-1", "T-2"]
+  blocks: ["T-4"]
+  transitions:
+    - { state: draft, at: "2026-05-06T21:30Z", by: "/architect" }
+  assigned_to: null
+  notes_for_dev_team: |
+    1. Drafts iniciales — content debe ser realístico pero NO scrap del sitio real. Builder cita references aggregate (visionarias.lat para A1, dentalindo para A3, brander.studio/toga.pe para A4, brandtech.pe para A5) en sección README "Inspiración" pero inventa la data específica.
+    2. Personality_profile.yaml::sample_exchanges 4-7 ejemplos por tenant, en dialecto correcto. A4 (es-AR) usa voseo legítimo; A1 (es-PE) usa tuteo claro; A2 (es-MX) usa tuteo neutral mexicano; A3 (es-CO) usa tuteo bogotano; A5 (es-419) usa neutro pan-LatAm.
+    3. Buyer personas count = 3 EXACTO per tenant. Estructura: 2 base + 1 adversarial-edge. Adversarial = persona difícil (escéptico extremo, hostile, intenta jailbreak, etc.) — útil para grader voice fidelity downstream.
+    4. Offer ladder por archetype:
+       - A1 Coach: L0 PDF gratis "5 errores que cometes" + L1 workshop $49 + L2 curso $297 + L3 comunidad $89/mes + L4 mentoría 1:1 $1,490
+       - A2 Medicina estética: L0 consulta evaluación gratis + L1 limpieza facial $150 + L2 tratamiento facial paquete $800 + L3 tratamiento corporal $2,500 + L4 plan integral mensual recurrente $400/mes
+       - A3 Clínica dental: L0 primera consulta gratis + L1 profilaxis $80 + L2 ortodoncia paquete $2,000 + L3 estética dental $3,500 + L4 control anual recurrente $250/año
+       - A4 Growth Marketing video+RRSS: SIN L0; L1 audit growth $500 + L2 producción video paquete 4 reels $1,200 + L3 retainer mensual gestión RRSS $2,500/mes + L4 consultoría estratégica $5,000
+       - A5 Automatización IA: SIN L0; L1 discovery call gratis pero NO lead magnet (es discovery) + L2 audit procesos $1,000 + L3 implementación agente IA paquete $8,000 + L4 retainer mensual operación $4,000/mes
+       (currency PEN para los 5; los precios anteriores son orientativos LatAm — ajustar a contexto realista PE).
+    5. Communication_assets.yaml: URLs reales aggregate (https://visionarias.lat para A1; refs IG handles para A2/A3/A4/A5 sintéticos pero plausibles tipo @clinica_estetica_pe, @drsmile_dental_co, @growthlab_ar, @ainomadtech). Recordá Q9: solo schema valid, no HTTP 200 check.
+    6. README per tenant: secciones "Inspiración" (URL real + por qué archetype) + "Justificación per data point" (por qué este pricing, por qué este offer ladder, por qué estas personas). Spanish neutro siempre.
+    7. Stage commits granular per tenant (5 commits o 1 commit per tenant if Chris prefiere). Conventional commit: `feat(eval-fixtures): drafts {N} tenants seed YAMLs + READMEs (T-3)`. Decisions honored: AD1-AD8, Q1, Q2, Q3, Q6, Q7, Q8.
+
+T4:
+  id: T-4
+  title: "Curación Chris + ratificación + capability update + GREEN final"
+  type: docs-and-ratification
+  surface: BE
+  production_code: false                              # R23 — solo edits a YAMLs anteriores + capability docs/
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                              # ⛔ requires Chris-builder back-and-forth
+    claude_sonnet: true                               # PREFERRED — asistente de Chris
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 16-24                               # 2-3d Chris-pace dependent
+  decisions_applicable: [AD1, AD2, AD9, Q1-Q10]
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch.md"
+    validators: "../04-validators.yaml"
+    guidelines: "../05-guidelines.md"
+    rules:
+      - ".claude/rules/spanish-text.md"
+      - ".claude/rules/git-safety.md"
+    domain_skills:
+      - "brand-expert"
+      - "offer-expert"
+      - "sales-agent-expert"
+  deliverables:
+    - "MODIFY 30 YAMLs anteriores (ajustes per ratificación Chris — content tuning, fix typos, mejora realism)"
+    - "MODIFY 5 README.md anteriores (clarificaciones per Chris feedback)"
+    - "MODIFY docs/product/capabilities/sales-agent/sales-conversational-engine.yaml — agregar campos eval.seed_tenants_path: 'backend/tests/fixtures/eval/tenants/' + eval.seed_archetype_slugs: [tenant_coach_lat, tenant_medicina_estetica, tenant_clinica_dental, tenant_agencia_growth_video, tenant_agencia_automatizacion_ia]"
+    - "T-4-impl-log.md con sección 'Chris feedback rounds' (cada ronda: feedback + resolución)"
+    - "Final commit con todos los validators GREEN"
+  out_of_scope:
+    - "Cambios estructurales (loader/scanner/hook ya cerrados en T-1/T-2)"
+    - "Cambios en backend/src/ o frontend/src/"
+    - "Refinement story sales-agent-dialect-configuration (placeholder, fuera de scope)"
+  acceptance:
+    - id: A1
+      description: "Capability YAML actualizada con 2 fields nuevos"
+      verifier:
+        type: bash
+        cmd: "grep -q 'seed_tenants_path' docs/product/capabilities/sales-agent/sales-conversational-engine.yaml && grep -q 'seed_archetype_slugs' docs/product/capabilities/sales-agent/sales-conversational-engine.yaml"
+      validator_id: scenario_happy_capability_updated
+    - id: A2
+      description: "TODOS los validators de scenario_coverage GREEN"
+      verifier:
+        type: bash
+        cmd: "cd backend && .venv/bin/pytest tests/fixtures/eval/tenants/ -v --tb=short"
+      validator_id: null   # cobertura completa — multiple validator_ids
+    - id: A3
+      description: "Determinismo verificado: pytest 3x consecutivos GREEN"
+      verifier:
+        type: bash
+        cmd: "cd backend && for i in 1 2 3; do .venv/bin/pytest tests/fixtures/eval/tenants/ -q --tb=line || exit 1; done"
+      validator_id: determinism_check
+    - id: A4
+      description: "make ci-parity GREEN end-to-end"
+      verifier:
+        type: bash
+        cmd: "cd /home/chris/AISALESHT && make ci-parity"
+      validator_id: null   # quality gate transversal
+    - id: A5
+      description: "Cero archivos en backend/src/ o frontend/src/ modificados (final check, todo el span de tickets)"
+      verifier:
+        type: bash
+        cmd: "git diff --name-only HEAD~10..HEAD -- backend/src/ frontend/src/ | wc -l | grep -E '^0$'"
+      validator_id: zero_src_changes
+    - id: A6
+      description: "Cero migrations Alembic creadas span tickets"
+      verifier:
+        type: bash
+        cmd: "git diff --name-only HEAD~10..HEAD -- backend/alembic/versions/ | wc -l | grep -E '^0$'"
+      validator_id: zero_migrations_added
+  quality_gates:
+    - "Chris ratificó los 5 tenants completos"
+    - "Capability YAML válida (parseable + fields esperados)"
+    - "make ci-parity GREEN"
+    - "T-4-impl-log.md poblado"
+    - "Story state developing → developed listo"
+  depends_on: ["T-3"]
+  blocks: []
+  transitions:
+    - { state: draft, at: "2026-05-06T21:30Z", by: "/architect" }
+  assigned_to: null
+  notes_for_dev_team: |
+    1. Loop iterativo Chris — el builder asiste presentando drafts, Chris feedbackea, builder ajusta. Builder NO hace cambios estructurales (loader/scanner/hook cerrados); solo content tuning.
+    2. Capability YAML — verificar existe (`docs/product/capabilities/sales-agent/sales-conversational-engine.yaml`); si no existe, crearla siguiendo precedente capabilities (esquema mínimo: id, module, status, eval). Agregar 2 fields nuevos sin tocar otros.
+    3. Builder mantiene `T-4-impl-log.md` vivo durante el loop con secciones: "Chris feedback round 1/2/3..." + "Resolución per round" + "Final state" + "Iteration log".
+    4. Cuando Chris dice "ratificado, mergeable" → builder corre todos los validators de scenario_coverage uno por uno. Si todos GREEN → state=developing→developed, commit final, awaiting /auditor (Conv 3).
+    5. Final commit: `feat(eval-fixtures): ratify Chris curation + capability update + GREEN (T-4)`. Decisions honored: AD1-AD10, Q1-Q10.
+    6. Spanish neutro en commit body. NO voseo en commit body (es internal dev).
+
+# ═══════════════════════════════════════════════════════════════
+# Owner-decision matrix (R23) — sanity check
+# ═══════════════════════════════════════════════════════════════
+#
+# T-1: surface=BE, production_code=false → owner pool [qwen-opencode, claude-sonnet]
+# T-2: surface=BE, production_code=false → owner pool [qwen-opencode, claude-sonnet]
+# T-3: surface=BE, production_code=false → owner pool [claude-sonnet] (PREFERRED — content drafting)
+# T-4: surface=BE, production_code=false → owner pool [claude-sonnet] (PREFERRED — Chris assistance)
+#
+# claude_opus NOT required en ningún ticket (cero agentic production code, cero compleja
+# decisión arquitectónica que justifique Opus 4.7).
+#
+# /dev-team Step 1 al pickup:
+#   - T-1, T-2: prefer qwen-opencode (cheap, capable de lint/format/test pytest patterns).
+#     Override claude-sonnet si scope cresce (e.g., regex PII complex requires more reasoning).
+#   - T-3, T-4: claude-sonnet por content drafting markdown/YAML + Chris back-and-forth.
+#   - Override claude-opus permitido si Chris explícitamente lo pide.

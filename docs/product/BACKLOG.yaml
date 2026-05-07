@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-06T22:12:10+00:00
+# Generated at: 2026-05-07T00:36:55+00:00
 
-generated_at: '2026-05-06T22:12:10+00:00'
+generated_at: '2026-05-07T00:36:55+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -63,6 +63,22 @@ buckets:
     extra:
       promoted_to_outcome: null
       ost: null
+  - id: solo-mode-chat-first-layout
+    kind: idea
+    state: idea
+    title: 'SOLO Mode — toggle UI top-bar invierte layout: copilot chat principal centro/izq, contenido secundario derecha
+      (estilo Claude Desktop / Cowork)'
+    tags:
+    - module:copilot
+    - module:shared
+    - type:layout-paradigm-shift
+    - effort:L
+    - value:product-direction
+    - source:chris
+    last_touched: 2026-05-06
+    extra:
+      promoted_to_outcome: null
+      ost: null
   - id: sales-agent-dialect-configuration
     kind: story
     state: idea
@@ -79,29 +95,40 @@ buckets:
       priority_override: null
       audit_iterations: 0
   refining:
-  - id: pi-10-growth-studio-ux-homologation
+  - id: growth-copilot-layout-unification
     kind: outcome
     state: refining
-    title: Growth Studio — UX visual homologada cross-studio
+    title: Growth Studio + Copilot — unificación arquitectural y de layout (paridad cross-studio)
     tags:
     - module:analytics
-    - type:ux-redesign
-    last_touched: 2026-05-05
+    - module:copilot
+    - module:shared
+    - type:refactor-fe
+    - type:layout-fix
+    - type:cross-cutting
+    last_touched: 2026-05-06
     extra:
-      story_ids: []
-      why_now: 'Usuario nuevo navega Brand Studio + Offer Studio + Growth Studio y siente
-
-        "pertenecen a apps distintas". Coherencia visual + interacción cross-studio
-
-        necesaria post Growth Studio architecture refactor (PI-9).
-
-        '
+      story_ids:
+      - app-shell-sidebar-copilot-decoupling
+      - growth-studio-architectural-parity
+      - growth-studio-visual-coherence-pass
+      why_now: "Dos pains convergentes hoy bloquean escalabilidad y degradan experiencia\ncross-app:\n\n1. **Sidebar global\
+        \ se superpone con la barra del copilot** (cross-app, no\n   solo Growth Studio). Bug visual visible en producción\
+        \ que afecta TODA\n   la app, no aislable a un studio. User explícito: \"afecta otras\n   funcionalidades más, es\
+        \ un tema arquitectural\" (2026-05-06).\n\n2. **Growth Studio FE quedó fuera del refactor de hace ~1 mes** que\n \
+        \  homologó Brand Studio + Offer Studio (folders `pages/` + `actions/` +\n   `schemas/`, dispatchers SSoT, arch fitness\
+        \ `test-studio-structure-parity`).\n   Growth tiene `config/` + `context/` + `__mocks__/` legacy y NO tiene\n   `pages/`\
+        \ ni `actions/` ni `schemas/`. Roadmap exige agregar canales\n   sin refactor cada vez.\n\nBowtie superior + métricas\
+        \ dashboard NO se tocan — visualmente están bien\ny son invariante de negocio (Chris, 2026-05-06).\n"
       why_next: null
       target_end: null
-      priority: 3
+      priority: 1
       success_metrics:
-      - Usuario nuevo navega Brand+Offer+Growth Studio sin sentir 'apps distintas' (visual + interaction coherentes)
-      - Decisión drawer-vs-nested-route consolidada en una sola UX
+      - Sidebar global NO se superpone con barra del copilot en ningún viewport (≥375px) ni en ningún studio (brand/offer/growth/copilot/sales/closer/connections)
+      - Agregar canal ficticio 'test-channel-x' a Growth Studio requiere ≤3 archivos nuevos (registry + dashboard + schema)
+        + ZERO modificación a StageDispatcher/ChannelDispatcher
+      - Arch fitness test_studio_structure_parity verde para growth-studio (modo factory adaptado)
+      - Bowtie superior + métricas dashboard intactos pixel-perfect post-refactor (screenshot regression)
   - id: pi-12-sales-agent-eval-foundation
     kind: outcome
     state: refining
@@ -181,32 +208,20 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
-  - id: pi-9-growth-studio-architecture
-    kind: outcome
+  - id: app-shell-sidebar-copilot-decoupling
+    kind: story
     state: refining
-    title: Growth Studio — refactor estructural FE escalable
-    tags:
-    - module:analytics
-    - type:refactor-fe
-    last_touched: 2026-05-05
+    title: app-shell-sidebar-copilot-decoupling
+    tags: []
+    last_touched: 2026-05-06 22:54:54+00:00
     extra:
-      story_ids: []
-      why_now: 'Cientos de clientes proyectados 1 mes → arquitectura FE escalable mandatoria.
-
-        Roadmap exige agregar canales/editar dashboards/modificar stages sin refactor
-
-        cada vez. Growth Studio FE NO sigue patrón post-refactor brand/offer (falta
-
-        pages/, actions/, schemas/, hardcoded "5 stages").
-
-        '
-      why_next: null
-      target_end: null
-      priority: 2
-      success_metrics:
-      - Agregar canal ficticio 'test-channel-x' requiere ≤3 archivos nuevos (registry + dashboard + schema) + ZERO modificación
-        a StageDispatcher/ChannelDispatcher
-      - Arch fitness test_studio_structure_parity verde para growth-studio en modo factory
+      outcome: growth-copilot-layout-unification
+      phase: PM_DRAFT
+      next_action: /po-ux audita live con chrome-devtools-verify (sidebar+copilot overlap cross-studio) → produce 01-spec.md
+        unificado con wireframes inline + Gherkin scenarios
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   - id: eval-foundation-simulator-homologation
     kind: story
     state: refining
@@ -219,6 +234,20 @@ buckets:
       phase: PM_DRAFT
       next_action: Esperar `eval-foundation-tenant-seed-data` a refined → luego /po redacta 01-spec.md service-story → ratificación
         Chris → /architect
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: growth-studio-architectural-parity
+    kind: story
+    state: refining
+    title: growth-studio-architectural-parity
+    tags: []
+    last_touched: 2026-05-06 22:54:54+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: PM_DRAFT
+      next_action: /po redacta 01-spec.md service-like (refactor sin UI change). Architect después produce ready package con
+        plan de migración por capas.
       blocked_by: null
       priority_override: null
       audit_iterations: 0
@@ -322,24 +351,24 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  refined:
+  refined: []
+  ready:
   - id: eval-foundation-tenant-seed-data
     kind: story
-    state: refined
+    state: ready
     title: eval-foundation-tenant-seed-data
     tags:
     - legacy:exempt
-    last_touched: 2026-05-06 20:55:00+00:00
+    last_touched: 2026-05-06 21:35:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: SPEC_RATIFIED
-      next_action: /architect orchestrator → produce ready package (03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml).
-        Service-story BE-only data-seeding (sin FE, sin agentic), 5 tenants × 6 YAMLs + loader + dialect catalog + scanner
-        PII + pre-commit hook Section 7. Estimate 5-7d.
+      phase: READY_PACKAGE_CLOSED
+      next_action: /dev-team Conv 2 autonomous build → toma T-1 (state ready→developing). 4 tickets en cascada T-1→T-2→T-3→T-4.
+        Total 5-7d. Surfaces BE only, production_code=false los 4. Owner pool [qwen-opencode, claude-sonnet] para T-1+T-2;
+        claude-sonnet preferred para T-3+T-4 (content drafting + Chris assistance).
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  ready:
   - id: maintenance-skill-sales-agent-audit
     kind: story
     state: ready
@@ -443,8 +472,72 @@ buckets:
       - Orchestrator real responde DMs Telegram con channel format MarkdownV2 + tool subset filter + memory cost-aware
       - 'Tests passing: 86 copilot telegram tests + 9 arch fitness telegram_separation tests'
       - Latencia <3s p95 turn no-streaming (objetivo S2 — verificable post-deploy con observability S5 deferred)
-  parked: []
-  dropped: []
+  parked:
+  - id: growth-studio-visual-coherence-pass
+    kind: story
+    state: parked
+    title: growth-studio-visual-coherence-pass
+    tags: []
+    last_touched: 2026-05-06 22:54:54+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: PM_DRAFT
+      next_action: 'Esperar shipping de stories 1 (sidebar-copilot-decoupling) + 2 (growth-architectural-parity). Si post-shipping
+        queda inconsistencia visual detectable cross-studio → unparkear → /po-ux refina. Probable que NO se ejecute (Chris
+        2026-05-06: ''visualmente si se ve bien'').'
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  dropped:
+  - id: pi-10-growth-studio-ux-homologation
+    kind: outcome
+    state: dropped
+    title: Growth Studio — UX visual homologada cross-studio
+    tags:
+    - module:analytics
+    - type:ux-redesign
+    last_touched: 2026-05-06
+    extra:
+      story_ids: []
+      why_now: 'Usuario nuevo navega Brand Studio + Offer Studio + Growth Studio y siente
+
+        "pertenecen a apps distintas". Coherencia visual + interacción cross-studio
+
+        necesaria post Growth Studio architecture refactor (PI-9).
+
+        '
+      why_next: null
+      target_end: null
+      priority: 3
+      success_metrics:
+      - Usuario nuevo navega Brand+Offer+Growth Studio sin sentir 'apps distintas' (visual + interaction coherentes)
+      - Decisión drawer-vs-nested-route consolidada en una sola UX
+  - id: pi-9-growth-studio-architecture
+    kind: outcome
+    state: dropped
+    title: Growth Studio — refactor estructural FE escalable
+    tags:
+    - module:analytics
+    - type:refactor-fe
+    last_touched: 2026-05-06
+    extra:
+      story_ids: []
+      why_now: 'Cientos de clientes proyectados 1 mes → arquitectura FE escalable mandatoria.
+
+        Roadmap exige agregar canales/editar dashboards/modificar stages sin refactor
+
+        cada vez. Growth Studio FE NO sigue patrón post-refactor brand/offer (falta
+
+        pages/, actions/, schemas/, hardcoded "5 stages").
+
+        '
+      why_next: null
+      target_end: null
+      priority: 2
+      success_metrics:
+      - Agregar canal ficticio 'test-channel-x' requiere ≤3 archivos nuevos (registry + dashboard + schema) + ZERO modificación
+        a StageDispatcher/ChannelDispatcher
+      - Arch fitness test_studio_structure_parity verde para growth-studio en modo factory
 capabilities:
 - module: advertising
   live: 3
