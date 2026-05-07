@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-07T22:14:02+00:00`
+> Generated at: `2026-05-07T22:33:12+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -29,12 +29,11 @@
 ### ✅ Refined — listo para arquitectos (1 / cap 5)
 - **growth-studio-actions-schemas-real** — outcome `growth-copilot-layout-unification`
 
-### 📦 Ready for development (2 / cap 5)
-- **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification`
+### 📦 Ready for development (1 / cap 5)
 - **growth-studio-folder-parity** — outcome `growth-copilot-layout-unification`
 
-### 🔨 Developing (0 / cap 3)
-- _(none)_
+### 🔨 Developing (1 / cap 3)
+- **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification` [BUILD_T1]
 
 ### 🧪 Developed — esperando QA (0 / cap 2)
 - _(none)_
@@ -78,10 +77,10 @@ kanban
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
   ✅ Refined (1 / cap 5)
     growth-studio-actions-schemas-[growth-studio-actions-schemas-real]
-  📦 Ready (2 / cap 5)
-    app-shell-sidebar-copilot-deco[app-shell-sidebar-copilot-decoupling]
+  📦 Ready (1 / cap 5)
     growth-studio-folder-parity[growth-studio-folder-parity]
-  🔨 Developing (0 / cap 3)
+  🔨 Developing (1 / cap 3)
+    app-shell-sidebar-copilot-deco[app-shell-sidebar-copilot-decoupling]
   🧪 Developed (0 / cap 2)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (3 / 90d rolling)

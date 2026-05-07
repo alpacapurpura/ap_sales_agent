@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T22:14:02+00:00
+# Generated at: 2026-05-07T22:33:12+00:00
 
-generated_at: '2026-05-07T22:14:02+00:00'
+generated_at: '2026-05-07T22:33:12+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -355,20 +355,6 @@ buckets:
       priority_override: null
       audit_iterations: 0
   ready:
-  - id: app-shell-sidebar-copilot-decoupling
-    kind: story
-    state: ready
-    title: app-shell-sidebar-copilot-decoupling
-    tags: []
-    last_touched: 2026-05-07 05:55:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: READY_PACKAGE_CLOSED
-      next_action: /dev-team toma T-1 (Phase 1 skeleton SSoT + DashboardShell passthrough). Sequential 9 tickets T-1 → T-9
-        (~22h total estimate). Conv 2 autonomous build.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   - id: growth-studio-folder-parity
     kind: story
     state: ready
@@ -383,7 +369,21 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  developing: []
+  developing:
+  - id: app-shell-sidebar-copilot-decoupling
+    kind: story
+    state: developing
+    title: app-shell-sidebar-copilot-decoupling
+    tags: []
+    last_touched: 2026-05-07 22:30:00+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: BUILD_T1
+      next_action: /dev-team Conv 2 autonomous build IN PROGRESS — T-1 (Phase 1 skeleton SSoT + DashboardShell passthrough).
+        Sequential 9 tickets T-1 → T-9.
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   developed: []
   reviewing: []
   done:

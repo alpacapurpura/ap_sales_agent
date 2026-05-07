@@ -81,6 +81,7 @@ tickets:
       - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
       - { state: tests-passing, at: 2026-05-07T23:30Z, by: claude-sonnet }
     assigned_to: claude-sonnet
+    push_commit_sha: "9c541ed5"
     push_commit_sha: _pending_
     audit_verdict: null
     audit_iterations: 0

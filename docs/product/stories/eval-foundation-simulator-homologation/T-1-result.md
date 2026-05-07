@@ -63,4 +63,4 @@ backend/pyproject.toml (+5 lines EDIT - mypy override)
 
 ## Commit SHA
 
-_Pending commit — see below_
+`9c541ed5`
