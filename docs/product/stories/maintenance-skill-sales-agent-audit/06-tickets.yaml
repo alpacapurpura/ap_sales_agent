@@ -20,9 +20,12 @@ summary:
     surface: BE
     production_code: false                          # R23 — touches tests/scripts/ + .claude/skills/ ONLY
     owner_pool: [qwen-opencode, claude-sonnet]      # Opus NO requerido (R23 production_code=false)
-    state: developed
+    state: pushed
     assigned_to: claude-sonnet (builder-backend)
     assigned_at: 2026-05-06T22:00:00Z
+    completed_at: 2026-05-06T23:59:00Z
+    pushed_at: 2026-05-06T20:05:30Z
+    push_commit_sha: 376ebbc6
     blocks: []
     blocked_by: []
 
@@ -33,10 +36,12 @@ T1:
   type: tests-and-docs                              # híbrido: test pytest nuevo + doc edits skill
   surface: BE
   production_code: false                            # R23 — cero src/ touches; solo tests/scripts/ + .claude/skills/
-  state: developed
+  state: pushed
   assigned_to: claude-sonnet (builder-backend)
   assigned_at: 2026-05-06T22:00:00Z
   completed_at: 2026-05-06T23:59:00Z
+  pushed_at: 2026-05-06T20:05:30Z
+  push_commit_sha: 376ebbc6
   owner_eligibility:
     qwen_opencode: true                             # OK — doc-engineering + test pytest puro filesystem
     claude_sonnet: true                             # PREFERRED — capable de markdown parsing + AST scan + 4 pasadas del audit
@@ -167,6 +172,7 @@ T1:
     - { state: draft, at: "2026-05-06T19:50Z", by: "/architect" }
     - { state: assigned, at: "2026-05-06T22:00:00Z", by: "/dev-team", to: "claude-sonnet (builder-backend)" }
     - { state: developed, at: "2026-05-06T23:59:00Z", by: "builder-backend", validators: "A1-A9 GREEN (10/10 pytest PASS, ruff 0 errors, arch 827/827)" }
+    - { state: pushed, at: "2026-05-06T20:05:30Z", by: "/dev-team", commit: "376ebbc6", gate_output: "gate-output.json any_fail=false" }
   assigned_to: "claude-sonnet (builder-backend)"
 
   notes_for_dev_team: |

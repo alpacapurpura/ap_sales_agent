@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T01:02:06+00:00
+# Generated at: 2026-05-07T01:05:12+00:00
 
-generated_at: '2026-05-07T01:02:06+00:00'
+generated_at: '2026-05-07T01:05:12+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -377,12 +377,12 @@ buckets:
     title: maintenance-skill-sales-agent-audit
     tags:
     - legacy:exempt
-    last_touched: 2026-05-06 23:59:00+00:00
+    last_touched: 2026-05-06 20:05:30+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: BUILD_T1_COMPLETE
-      next_action: 'T-1 validators GREEN (10/10 tests PASS, ruff clean, arch fitness 827/827). Awaiting orchestrator → gate-runner
-        → auditor-backend (independent verdict). State: developed.'
+      phase: AWAIT_AUDIT
+      next_action: T-1 pushed (commit 376ebbc6). gate-output.json any_fail=false (ruff lint+format+pytest 10/10 PASS). Chris
+        triggers /auditor manualmente cuando quiera Conv 3.
       blocked_by: null
       priority_override: null
       audit_iterations: 0
