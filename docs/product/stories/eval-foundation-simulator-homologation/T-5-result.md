@@ -208,9 +208,9 @@ git diff HEAD --name-only -- client_simulator/src/simulator/  # → empty
 
 ## Commit SHA
 
-`<placeholder — replaced post-push>` — pushed to `origin/development`. Files
-staged by exact name per parallel-safety M5/M7. Pre-commit hook native
-enforced (no `--no-verify`).
+`14c354f1` — pushed to `origin/development` 2026-05-07. Files staged by
+exact name per parallel-safety M5/M7. Pre-commit hook native enforced (no
+`--no-verify`).
 
 ## Next builders
 
