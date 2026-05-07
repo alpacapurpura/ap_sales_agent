@@ -29,10 +29,10 @@ NUNCA mirror `turn_envelope.py` / `callback_handler.py` / `cost_calculator.py` /
 | Surface | Razón |
 |---|---|
 | `closer_studio.py` API + WS | Live ops + Streamlit + FE dependen. |
-| `BufferService.smart_debounce` | CPM/canales LATAM tuned producción. |
+| `SmartBufferService` (smart_debounce_runner.py) | CPM/canales LATAM tuned producción. |
 | `OutputManager.process_response` chunking | CPM_SPEED + cap calibrados. `typing_simulation_cpm` per-canal lo extiende vía registry (S12), fallback global preservado. |
 | `enrollment_*` end-to-end | Producción. S9 EXTIENDE. |
-| `agent_state_checkpoint` schema | Migración riesgosa. |
+| `agent_state_checkpoints` schema (tabla, plural) | Migración riesgosa. |
 | Webhook adapters (Telegram/WhatsApp/IG) | Auth + signature frágiles. |
 | `follow_up_engine` cadence math | Timing horario + tz tenant. |
 | `PromptVersionModel` | Sales necesita override DB-backed per tenant. |
@@ -77,6 +77,41 @@ Tocar §3 → **PARAR, preguntar al usuario**.
 - **PII regex sync (no Presidio) — WONT-FIX (S12)** — Presidio overhead 50-200ms incompatible con hot path <10ms p99. Reabrir solo con enterprise contract.
 - **typing_simulation_cpm (S12)** — registry override per-canal, fallback `CPM_SPEED` cuando None / 0 / negativo.
 - **Voz del agente — voseo del tenant respetado** — `.claude/rules/spanish-text.md` NO aplica al output del agente. Voseo del tenant es feature.
+
+## Surfaces compartidas con copilot (consumers shared/agent_observability)
+
+Estas abstracciones viven en `shared/` y son consumidas por ambos módulos (sales_agent + copilot). NUNCA duplicar — extender desde shared.
+
+- `shared.agent_observability.recording.base_callback_handler.BaseAgentCallbackHandler` → consumed by `modules/sales_agent/observability/recording/callback_handler.py` (subclase `SalesAgentCallbackHandler`)
+- `shared.agent_observability.recording.turn_envelope.BaseObservabilityContext` → consumed by `modules/sales_agent/observability/recording/turn_envelope.py` (subclase `SalesAgentObservabilityContext`)
+- `shared.agent_observability.cost.fx_resolver.FXResolver` → consumed by `modules/sales_agent/observability/recording/factory.py` + `turn_envelope.py`
+- `shared.agent_observability.pricing.resolver.PricingResolver` → consumed by `modules/sales_agent/observability/recording/factory.py`
+- `shared.agent_observability.persistence.pricing_snapshot_repository.PricingSnapshotRepository` → consumed by `modules/sales_agent/observability/recording/factory.py`
+- `shared.agent_observability.persistence.tenant_billing_config_repository.TenantBillingConfigRepository` → consumed by `modules/sales_agent/observability/recording/factory.py`
+- `shared.agent_observability.persistence.base_trace_event_repo.BaseTraceEventRepoProtocol` → structural protocol, implemented by `modules/sales_agent/observability/persistence/trace_event_repository.py`
+- `shared.agent_observability.persistence.base_llm_call_repo.BaseLLMCallRepoProtocol` → structural protocol, implemented by `modules/sales_agent/observability/persistence/llm_call_repository.py`
+- `shared.agent_observability.channels.format.get_channel_format` + `CHANNEL_FORMATS` → consumed by `infrastructure/external/output_manager.py` + `application/prompts/compose.py`
+- `shared.agent_observability.channels.format_for_channel` (LangChain tool wrapper) → available for specialist use (deterministic, no LLM)
+- `shared.agent_observability.recording.sanitization.sanitize_payload` → consumed by `application/quality/judge.py` + `observability/domain_events/subscribers.py`
+- `shared.agent_observability.registry` → consumed by `modules/sales_agent/observability/__init__.py`
+- `shared.billing.application.llm_guards.BudgetGuardingLLMService` + `budget_guard.BudgetGuard` → consumed by `application/orchestrator/conversation_pipeline.py` + `outbound_orchestrator.py`
+
+Ver inventario canónico completo en `.claude/rules/anti-duplication.md`.
+
+## Decisiones cardinales últimos 60 días
+
+Decisiones arquitectónicas que impactan el módulo, ordenadas por fecha. Fuentes: `docs/process/learnings.md`, git log, stories archivadas.
+
+- 2026-05-06 — `sales-agent-litellm-canonicalization` cerrado (review → done): LiteLLM es el único path de despacho LLM. Legacy adapters OpenAI/Kimi/DeepSeek directos eliminados en T-4. (`docs/archive/2026/stories/sales-agent-litellm-canonicalization/`)
+- 2026-05-06 — Reframe PI-12 a synthetic-first eval architecture: eval foundation prioriza datos sintéticos de 5 tenants antes de goldens humanos. (`learnings.md 2026-05-06`)
+- 2026-05-05 — `BaseObservabilityContext` + `FXResolver.default()` lifted a `shared/agent_observability/` (commit d80d15f5). Bug #2 + #8 resueltos: sales_agent ahora emite `turn_start` + `turn_end` rows vía `SalesAgentObservabilityContext`.
+- 2026-05-05 — R23 rule: agentic tickets `production_code=true` requieren Opus 4.7; `production_code=false` (tests/docs sobre agentic) → Sonnet OK. (`learnings.md R23`)
+- 2026-05-05 — `builder-backend` MAY touch `modules/{copilot,sales_agent}/persistence/models/` para schema mirror desde shared/ migration (exception codificada en `.claude/rules/backend-ddd.md`). (`learnings.md 2026-05-05`)
+- 2026-05-02 — Cost recorder LiteLLM canonicalization (commit 5856be4d, T-1 PI-12 S1): `cost_usd` ahora via `pop_cost(litellm_call_id)` desde CustomLogger bridge, no `calculate_cost()` runtime. Test fixtures deben incluir `litellm_call_id` en `response_metadata`.
+- 2026-04-30 — Outbox cutover ON (commit 7b2de359): `USE_OUTBOX_PATTERN_SALES_AGENT=True`. Event emission via `event_bus_adapter.adapter_bus.publish`. Tests deben mockear path nuevo, no `EventBus.publish` legacy.
+- 2026-04-28 — LiteLLM Proxy integration como motor multi-proveedor (commit 06065f6c, S3 PR-2). Antes: adaptadores separados por proveedor. Ahora: proxy unificado.
+- 2026-04-24/25 — Revert cycle `turn_envelope` wiring (commits 73ae51d2/03f5462c): hot-fix requirió repro local obligatorio antes spawn builder (R26 rule origin).
+- 2026-04-17 — S12 close-out (commit 0da30299): redesign completo cerrado. `typing_simulation_cpm` registry per-canal, `sales_agent_routing_log` Streamlit, SalesAgentJudge + 20 goldens, zero floating tech-debt.
 
 ## SSoT vivos
 
@@ -179,7 +214,7 @@ PR-2 expone primitivas, **NO modifica specialists**. S2 wirea:
 - `qualifier` / `product_expert` / `closer` / `supervisor` antes de cada LLM call → `BudgetGuard.check`.
 - `OutputManager.send_outbound_message` → `OutboundRateLimiter.check` antes de `process_response`.
 
-§3 protected surfaces (Closer Studio, BufferService, OutputManager.process_response chunking) NO se tocan — el gate vive antes del entry point.
+§3 protected surfaces (Closer Studio, SmartBufferService, OutputManager.process_response chunking) NO se tocan — el gate vive antes del entry point.
 
 **Detalle vivo en PR-2 CONTRACT.md (legacy paradigma).** Skill solo agrega anchor — ver:
 `docs/archive/2026/legacy-pis/PI-1-campaigns-module/sprints/S0-foundation/prs/PR-2-billing-and-compliance/CONTRACT.md`

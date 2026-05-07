@@ -20,7 +20,9 @@ summary:
     surface: BE
     production_code: false                          # R23 — touches tests/scripts/ + .claude/skills/ ONLY
     owner_pool: [qwen-opencode, claude-sonnet]      # Opus NO requerido (R23 production_code=false)
-    state: draft
+    state: developed
+    assigned_to: claude-sonnet (builder-backend)
+    assigned_at: 2026-05-06T22:00:00Z
     blocks: []
     blocked_by: []
 
@@ -31,7 +33,10 @@ T1:
   type: tests-and-docs                              # híbrido: test pytest nuevo + doc edits skill
   surface: BE
   production_code: false                            # R23 — cero src/ touches; solo tests/scripts/ + .claude/skills/
-  state: draft
+  state: developed
+  assigned_to: claude-sonnet (builder-backend)
+  assigned_at: 2026-05-06T22:00:00Z
+  completed_at: 2026-05-06T23:59:00Z
   owner_eligibility:
     qwen_opencode: true                             # OK — doc-engineering + test pytest puro filesystem
     claude_sonnet: true                             # PREFERRED — capable de markdown parsing + AST scan + 4 pasadas del audit
@@ -160,7 +165,9 @@ T1:
   blocks_mode: conceptual                            # NO blocker hard a nivel filesystem; /pm orchestrates unblock
   transitions:
     - { state: draft, at: "2026-05-06T19:50Z", by: "/architect" }
-  assigned_to: null
+    - { state: assigned, at: "2026-05-06T22:00:00Z", by: "/dev-team", to: "claude-sonnet (builder-backend)" }
+    - { state: developed, at: "2026-05-06T23:59:00Z", by: "builder-backend", validators: "A1-A9 GREEN (10/10 pytest PASS, ruff 0 errors, arch 827/827)" }
+  assigned_to: "claude-sonnet (builder-backend)"
 
   notes_for_dev_team: |
     1. Antes de cualquier edit al skill, RUN el test que vas a crear (pasada 0 — TDD strict). Test debe correr RED contra skill pre-audit

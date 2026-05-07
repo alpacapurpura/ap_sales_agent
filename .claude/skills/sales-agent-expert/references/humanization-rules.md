@@ -6,16 +6,17 @@ LLMs default to helpful-assistant mode: formal, thorough, eager. A sales agent m
 
 ## Voice Matching Protocol
 
-The agent's voice comes from Brand Studio data (`identity.voice_tone`, `identity.communication_style`). But these fields are often empty or generic. The skill must handle both cases.
+The agent's voice comes from `PersonalityProfile.system_instruction` compiled by `PersonalityCompiler` (slot 5 `BRAND_VOICE` cache prefix). See `references/sales-agent-brand-voice.md` for the canonical SSoT.
+
+> **Actualización 2026-04-24 (Fase 06):** `identity.voice_tone` e `identity.communication_style` están **DEPRECATED** en Brand Studio (`FieldStatus.DEPRECATED`). Ya no se proponen ni aparecen en la UI. La voz fluye exclusivamente por `brand_personality.*` → `PersonalityProfile` → `PersonalityCompiler.compile()` → slot 5 `BRAND_VOICE`.
 
 ### When Brand Data Has Voice Info
 
-Use it directly in the system prompt. But REINFORCE with behavioral rules:
+The compiled `system_instruction` carries the full voice fingerprint. It is injected as slot 5 in `compose_system_prompt`. REINFORCE with behavioral rules in the volatile section:
 
 ```jinja2
 ## Tu Forma de Hablar
-{{ identity.voice_tone }}
-{{ identity.communication_style }}
+{{ compiled_brand_voice }}
 
 REGLAS DE ESTILO:
 - Escribe como si estuvieras respondiendo un DM, no un email

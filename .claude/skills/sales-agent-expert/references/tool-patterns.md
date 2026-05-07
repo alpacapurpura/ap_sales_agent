@@ -1,8 +1,10 @@
 # Tool Implementation Patterns — Full Reference
 
+> **Nota de vigencia (2026-05-06 audit T-1):** Este archivo es la referencia conceptual de diseño de herramientas (S5–S9). Los nombres de herramientas en ejemplos de código pueden diferir de los registrados en producción. Para nombres canónicos actuales consultar: `application/agents/sales/tools.py::TOOL_REGISTRY` + `application/tools/registry.py::STAGE_TOOL_SCOPE`. Ejemplo de divergencia conocida: `check_schedule` → `get_available_slots`, `book_appointment` → `create_booking_link`, `recommend_product` → implementado via specialist routing, `lookup_customer` → `IdentityResolver` (S11B).
+
 ## Why Tools Are Critical
 
-The current sales agent is a "robot parlanchín" (talking robot) because it can only TALK. A real sales agent ACTS: books meetings, sends payment links, looks up products, recognizes customers. Tools are what transform the agent from a chatbot into an AI SDR.
+The current sales agent acts as a full AI SDR: books meetings, sends payment links, looks up products, recognizes customers. Tools are what enable this (S5–S9 redesign).
 
 ## LangGraph Tool Integration Pattern
 

@@ -217,31 +217,28 @@ sobre nuestros programas. Y si en algún momento prefieres hablar con
 
 **Close by offer type:**
 
+> **Actualización 2026-05-06 audit T-1:** Los value levels en el código canónico son `OfferValueLevel` enum (`LEAD_MAGNET`, `ACTIVACION`, `TRANSFORMACION`, `MAXIMIZACION`, `CORPORATIVO`). El pseudocódigo abajo usa nombres ilustrativos — para la lógica de cierre actual ver `application/agents/sales/nodes.py` y el specialist `closer`.
+
 ```python
-# Pseudocode for close strategy selection
-if offer.value_level in ("level_0_free", "level_1_low_ticket"):
+# Pseudocode for close strategy selection (updated level names — 2026-05-06)
+if offer.value_level in ("LEAD_MAGNET", "ACTIVACION"):
     # DIRECT PAYMENT — no friction
     tool = "send_payment_link"
     message = "Listo! Aquí tienes el link para inscribirte: {link}"
 
-elif offer.value_level == "level_2_mid_ticket":
+elif offer.value_level == "TRANSFORMACION":
     if offer.calendar_type_id:
         # MEETING then payment
-        tool = "book_appointment"
+        tool = "create_booking_link"
         message = "Genial! Te propongo una llamada rápida para resolver dudas..."
     else:
         # DIRECT PAYMENT
         tool = "send_payment_link"
 
-elif offer.value_level in ("level_3_high_ticket", "level_5_ultra_high"):
+elif offer.value_level in ("MAXIMIZACION", "CORPORATIVO"):
     # ALWAYS MEETING FIRST
-    tool = "book_appointment"
+    tool = "create_booking_link"
     message = "El siguiente paso es una llamada estratégica de 30 min..."
-
-elif offer.value_level == "level_4_recurring":
-    # STRATEGY CALL
-    tool = "book_appointment"
-    message = "Para asegurarme de que es la mejor opción para ti..."
 ```
 
 **Closing rules:**
