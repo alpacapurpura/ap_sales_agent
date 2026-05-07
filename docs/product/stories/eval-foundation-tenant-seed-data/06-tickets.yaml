@@ -61,7 +61,7 @@ T1:
   type: tests-and-infra
   surface: BE
   production_code: false                              # R23 — solo tests/fixtures/, no src/
-  state: draft
+  state: pushed
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true
@@ -142,7 +142,9 @@ T1:
   blocks: ["T-2", "T-3", "T-4"]
   transitions:
     - { state: draft, at: "2026-05-06T21:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: assigned, at: "2026-05-06T22:05Z", by: "/dev-team", to: "claude-sonnet (builder-backend)" }
+    - { state: pushed, at: "2026-05-06T23:00Z", by: "claude-sonnet (builder-backend)", note: "8 files created, ruff GREEN, arch fitness 827/827, dialect catalog 4/4 GREEN, loader 1/22 GREEN (RED baseline confirmed)" }
+  assigned_to: "claude-sonnet (builder-backend)"
   notes_for_dev_team: |
     1. Step 0 — verificar pre-requisito story `maintenance-skill-sales-agent-audit` está al menos refined (mejor ready). Si state<refined → escalar Chris.
     2. Step 0.5 — read existing Pydantic models de brand/offer/personality_compiler v2 antes de redactar test_schema_alignment.py. Si los modelos exponen subset distinto al esperado por el spec → ajustar test (no model).

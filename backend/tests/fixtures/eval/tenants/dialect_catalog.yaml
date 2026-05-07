@@ -1,0 +1,80 @@
+# Catálogo dialectos BCP-47 — SSoT temporal hasta que story sales-agent-dialect-configuration
+# migre a backend/src/modules/sales_agent/.
+# Mantener ordenado por code para diff legible.
+
+dialects:
+  - code: es-419
+    display_name: "Español neutro (LatAm)"
+    voseo: false
+    country_code: null
+    description: "Convención mediática pan-LatAm. Default seguro."
+  - code: es-AR
+    display_name: "Rioplatense (Argentina)"
+    voseo: true
+    country_code: AR
+    description: "Voseo + sh para ll/y + lunfardo."
+  - code: es-CL
+    display_name: "Chileno"
+    voseo: parcial
+    country_code: CL
+    description: "Voseo verbal informal + chilenismos."
+  - code: es-CO
+    display_name: "Colombiano"
+    voseo: parcial
+    country_code: CO
+    description: "Tuteo bogotano / voseo paisa."
+  - code: es-CR
+    display_name: "Costarricense"
+    voseo: parcial
+    country_code: CR
+    description: "Voseo + tuteo mixed."
+  - code: es-CU
+    display_name: "Cubano"
+    voseo: false
+    country_code: CU
+    description: "Caribeño con aspiración s."
+  - code: es-DO
+    display_name: "Dominicano"
+    voseo: false
+    country_code: DO
+    description: "Caribeño con aspiración s + uso de tú."
+  - code: es-EC
+    display_name: "Ecuatoriano"
+    voseo: false
+    country_code: EC
+    description: "Andino similar a PE."
+  - code: es-ES
+    display_name: "Castellano (España)"
+    voseo: false
+    country_code: ES
+    description: "Peninsular. Vosotros (informal plural). Distinción c/z vs s."
+  - code: es-MX
+    display_name: "Mexicano"
+    voseo: false
+    country_code: MX
+    description: "Tuteo neutral + lexicón mexicano."
+  - code: es-PE
+    display_name: "Peruano (limeño/andino)"
+    voseo: false
+    country_code: PE
+    description: "Andino claro + tuteo."
+  - code: es-PR
+    display_name: "Puertorriqueño"
+    voseo: false
+    country_code: PR
+    description: "Caribeño con aspiración s + influencia inglés."
+  - code: es-PY
+    display_name: "Paraguayo"
+    voseo: true
+    country_code: PY
+    description: "Bilingüe español-guaraní + voseo."
+  - code: es-UY
+    display_name: "Rioplatense (Uruguay)"
+    voseo: true
+    country_code: UY
+    description: "Similar AR con sutilezas léxicas."
+  - code: es-VE
+    display_name: "Venezolano"
+    voseo: false
+    country_code: VE
+    description: "Caribeño + andino mix."
