@@ -27,3 +27,4 @@ home for the same pattern (see :mod:`model_registry`).
 from src.modules.campaigns import observability as _campaigns_observability  # noqa: F401
 from src.modules.copilot import observability as _copilot_observability  # noqa: F401
 from src.modules.sales_agent import observability as _sales_agent_observability  # noqa: F401
+from src.modules.sales_agent.observability.eval_simulator import spec as _eval_simulator_observability  # noqa: F401

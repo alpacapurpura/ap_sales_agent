@@ -503,6 +503,11 @@ disable_error_code = ["misc"]
 module = "src.modules.campaigns.*"
 disable_error_code = ["misc", "type-arg"]
 
+# --- PI-12 Story B: eval_simulator observability models (Base subclass — schema mirror) ---
+[[tool.mypy.overrides]]
+module = "src.modules.sales_agent.observability.eval_simulator.*"
+disable_error_code = ["misc", "type-arg"]
+
 # --- Third-party libs without stubs ---
 [[tool.mypy.overrides]]
 module = ["sqlalchemy.*", "langchain.*", "langchain_core.*", "langchain_openai.*", "langgraph.*", "deepagents.*", "deepeval.*", "qdrant_client.*", "structlog.*", "arq.*", "redis.*"]
