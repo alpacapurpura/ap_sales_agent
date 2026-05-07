@@ -318,10 +318,27 @@ tickets:
           path: "backend/tests/agentic_evals/sales_agent/simulator/test_observability_resilience.py::test_persist_failure_logs_warning_no_raise"
     quality_gates:
       - validator_ids: [be_lint, be_format, be_mypy_strict, agentic_no_mirrors_shared, agentic_eval_kind_tag_enforced, agentic_observability_invariants]
+      - results:
+          be_lint: PASS (0 errors)
+          be_format: PASS (2/2 files clean)
+          be_mypy_strict: PASS (0 errors)
+          native_ticket_tests: PASS (13/13)
+          full_simulator_suite: PASS (59/59)
+          cross_module_smoke: PASS (224/224 sales_agent obs + shared agent_obs)
+          architecture_fitness_full: PASS (881/881 — no regression)
+          agentic_no_mirrors_shared: NOT_YET_CREATED  # T-9 deliverable; preconditions in place
+          agentic_eval_kind_tag_enforced: NOT_YET_CREATED  # T-9 deliverable; preconditions in place
+          agentic_observability_invariants: NOT_YET_CREATED  # T-2 deliverable; preconditions in place
     depends_on: [T-1, T-4]
     blocks: [T-7]
     transitions:
       - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+      - { state: developing, at: 2026-05-07T18:00Z, by: builder-agentic }
+      - { state: developed, at: 2026-05-07T18:30Z, by: builder-agentic, validators_pass: true }
+    assigned_to: builder-agentic-opus-4.7
+    push_commit_sha: _pending_
+    audit_verdict: pending
+    audit_iterations: 0
 
   # ═════════════════════════════════════════════════════════════════════
   # T-6 — Customer node + prompt v1 + llm_roles registry + concurrency
