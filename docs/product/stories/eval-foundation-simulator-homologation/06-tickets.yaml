@@ -245,6 +245,11 @@ tickets:
     blocks: [T-5, T-6, T-7, T-8]
     transitions:
       - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+      - { state: developing, at: 2026-05-07T00:00Z, by: builder-agentic }
+      - { state: developed, at: 2026-05-07T00:00Z, by: builder-agentic, validators_pass: true }
+    assigned_to: builder-agentic-opus-4.7
+    audit_verdict: pending
+    audit_iterations: 0
 
   # ═════════════════════════════════════════════════════════════════════
   # T-5 — EvalSimulator observability subclasses

@@ -2,11 +2,11 @@
 ---
 story_id: eval-foundation-simulator-homologation
 outcome: pi-12-sales-agent-eval-foundation
-state: ready
-phase: READY_PACKAGE_CLOSED
-last_artifact: 06-tickets.yaml
-last_modified: 2026-05-07T22:45:00Z
-next_action: "/dev-team Conv 2 autonomous build — toma T-1 first (state: ready → developing). Critical path: T-1+T-4 paralelo → T-5 → T-7 → T-8 → T-9 → T-10. Estimate 22h sequential, ~14h parallel."
+state: developing
+phase: BUILD_GREEN_T-4
+last_artifact: T-4-impl-log.md
+last_modified: 2026-05-07T00:00:00Z
+next_action: "T-4 done (state: developed; 57 ticket-tests + 838 arch fitness GREEN). Awaiting orchestrator to spawn gate-runner + auditor-agentic for independent verdict. Other tickets T-1..T-3 (BE) y T-5..T-10 (AGENTIC) restan."
 ratified_by_chris: true                  # mandato 2026-05-07: "vos decidís cero deuda 1000+ tenants"
 spawned_at: 2026-05-06T17:11:00Z
 spawned_by: /pm
@@ -36,6 +36,7 @@ critical_path: [T-1, T-5, T-7, T-8, T-9, T-10]
 - 2026-05-07 22:30Z — `/architect` orchestrator (este Skill invocation) escribió `04-validators.yaml` (24 validators across 3 categories: non_functional / functional / agentic_eval; scenario_coverage 4/4; hardening_coverage H1-H10).
 - 2026-05-07 22:35Z — `/architect` escribió `05-guidelines.md` (patterns required + forbidden + files in scope + reference docs + native-first + TDD orden + owner routing).
 - 2026-05-07 22:45Z — `/architect` escribió `06-tickets.yaml` (10 tickets DAG, owner_eligibility per R23 + Chris mandate, hardening per ticket coverage matrix). **state: refined → ready**.
+- 2026-05-07 (today) — `builder-agentic` Opus 4.7 cerró T-4: Pydantic state machines (SimulationState, ActorProfile, ConversationTurn, CostSummary, SimulationResult) + termination registry (TerminationReason 6 values + AgentErrorSubtype 4 values + register_termination_policy public + 4 default policies) + SCHEMA_MIGRATIONS registry stub (v1 baseline) + 3 acceptance tests (57 tests) + 1 arch fitness gate (test_schema_migrations_registry_complete.py — 11 tests). All quality gates GREEN: ruff, format, mypy strict (file-level), jscpd 0.74% < 5%. Arch fitness 838 PASS (no regression). D6 preservation gate PASS. **T-4 state: ready → developing → developed**. Story global state remains `developing` (T-1..T-3 + T-5..T-10 pending).
 
 ## Ready package contents
 
