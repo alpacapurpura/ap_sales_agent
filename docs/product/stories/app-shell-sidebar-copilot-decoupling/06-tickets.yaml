@@ -1,0 +1,437 @@
+# 06-tickets.yaml — App Shell ↔ Copilot Decoupling
+# Story 1 of outcome growth-copilot-layout-unification
+# Surface: FE only. NO agentic, NO BE.
+
+---
+story_id: app-shell-sidebar-copilot-decoupling
+outcome: growth-copilot-layout-unification
+generated_at: 2026-05-07T05:55:00Z
+generated_by: /architect
+total_tickets: 9
+estimated_total_hours: 22
+
+# ── Resumen pila (alto nivel) ────────────────
+summary:
+  - id: T-1
+    title: "Phase 1 — Skeleton + SSoT modules (no behavior change)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 3
+    blocks: [T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9]
+  - id: T-2
+    title: "Phase 2 — Migrate consumers to SSoT widths (drift fix)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 2
+    blocked_by: [T-1]
+    blocks: [T-3]
+  - id: T-3
+    title: "Phase 3 — Activate min-content-width floor (Scenario 1)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 2
+    blocked_by: [T-2]
+    blocks: [T-4]
+  - id: T-4
+    title: "Phase 4 — Activate mutex policy (Scenarios 1, 3)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 3
+    blocked_by: [T-3]
+    blocks: [T-5]
+  - id: T-5
+    title: "Phase 5 — CopilotFAB + AppSidebar mobile aria-labels (Scenario 3)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 2
+    blocked_by: [T-4]
+    blocks: [T-6]
+  - id: T-6
+    title: "Phase 6 — Z-index migration to tokens (shell scope, Scenario 4)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 2
+    blocked_by: [T-5]
+    blocks: [T-7, T-10]
+  - id: T-7
+    title: "Phase 7+8 — Arch test rename/extension + 3 NEW arch tests + ESLint rules + DashboardLayoutClient deletion (Scenario 4)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 3
+    blocked_by: [T-6]
+    blocks: [T-8, T-9]
+  - id: T-8
+    title: "Phase 9 — Visual regression baselines + smoke E2E specs"
+    surface: FE
+    owner_pool: [claude-sonnet]                  # Playwright skill expertise preferida
+    state: draft
+    estimate_hours: 3
+    blocked_by: [T-7]
+    blocks: [T-9]
+  - id: T-9
+    title: "Phase 10 — Modal z-index alignment ui/* primitives"
+    surface: FE
+    owner_pool: [claude-sonnet, claude-opus]     # toca Shadcn primitives — review más cuidadoso
+    state: draft
+    estimate_hours: 2
+    blocked_by: [T-7, T-8]
+    blocks: []
+
+# ── Detalle (uno por ticket) ─────────────────
+
+T1:
+  id: T-1
+  title: "Phase 1 — Skeleton DashboardShell + SSoT modules + hooks (no behavior change)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 3
+  decisions_applicable: [AD1, AD4, AD5, AD6]
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/frontend-fsd.md", ".claude/rules/anti-duplication.md", ".claude/rules/tdd-mandatory.md"]
+    tessl_skills: ["tessl__nextjs-app-router-modularization", "tessl__react-patterns"]
+    domain_skills: ["frontend-expert", "copilot-expert"]
+  deliverables:
+    - "NEW frontend/src/lib/tokens/z-index.ts (Z_INDEX + Z_INDEX_CLASSES exports). No consumers yet."
+    - "NEW frontend/src/features/copilot/lib/copilot-shell-widths.ts (COPILOT_WIDTHS frozen). No consumers yet."
+    - "NEW frontend/src/hooks/use-viewport.ts (SSR-safe matchMedia wrapper)."
+    - "NEW frontend/src/stores/shell-mutex-store.ts (zustand factory tenant-namespaced + persist localStorage)."
+    - "NEW frontend/src/hooks/use-shell-mutex.ts (logic in place; effects gated behind useEffect, no UI consumer yet)."
+    - "NEW frontend/src/components/shared/layout/DashboardShell.tsx (Server Component passthrough)."
+    - "NEW frontend/src/components/shared/layout/DashboardShellClient.tsx (Client passthrough — same JSX as DashboardLayoutClient today)."
+    - "MODIFY frontend/src/app/(main)/[tenantId]/(dashboard)/layout.tsx — render <DashboardShell tenantId={params.tenantId}>{children}</DashboardShell>. Keep DashboardLayoutClient.tsx file unused for rollback."
+    - "Tests: use-viewport.test.ts (matchMedia mock + breakpoint transitions). use-shell-mutex.test.ts (no-op state in Phase 1). DashboardShell render snapshot."
+  out_of_scope:
+    - "Activating min-width floor (T-3)"
+    - "Activating mutex policy (T-4)"
+    - "Modifying AppSidebar / CopilotSidebar (T-2 onward)"
+    - "Z-index token consumption (T-6)"
+  acceptance:
+    - validator_ids: [fe_typecheck, fe_lint_shell, fe_arch_fitness_full]
+    - description: "All existing E2E smoke pass + manual Chris check 4 viewports (regression)"
+  quality_gates:
+    - "tsc --noEmit clean"
+    - "Existing visual-regression-drawer-bowtie.test.tsx passes (no regression)"
+    - "All existing Playwright smoke pass"
+  depends_on: []
+  blocks: ["T-2", "T-3", "T-4", "T-5", "T-6", "T-7", "T-8", "T-9"]
+
+T2:
+  id: T-2
+  title: "Phase 2 — Migrate useCopilotOffset + CopilotSidebar to SSoT widths (drift fix, Scenario 2)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [AD6]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/tdd-mandatory.md"]
+    tessl_skills: ["tessl__react-patterns"]
+    domain_skills: ["copilot-expert", "frontend-expert"]
+  deliverables:
+    - "MODIFY frontend/src/hooks/use-copilot-offset.ts — replace literals 380/60/0 with COPILOT_WIDTHS constants. Migrate from isOpen boolean to sidebarState 3-state. Replace internal resize listener with useViewport()."
+    - "Re-export COPILOT_OPEN_WIDTH + COPILOT_RAIL_WIDTH as @deprecated aliases for 1 ciclo."
+    - "MODIFY frontend/src/features/copilot/components/CopilotSidebar.tsx lines 86-87 — replace literal '0px'/'400px'/'60px'/'280px' with `${COPILOT_WIDTHS.collapsed}px` / `${COPILOT_WIDTHS.chat}px` / etc."
+    - "Tests: use-copilot-offset.test.ts (hook return per state === SSoT). CopilotSidebar-grid-widths.test.tsx (grid template === SSoT)."
+  out_of_scope:
+    - "Z-index changes (T-6)"
+    - "Mutex policy (T-4)"
+  acceptance:
+    - validator_ids: [scenario_2_ssot_widths_unit, fe_typecheck, fe_lint_shell, fe_arch_fitness_full, visual_bowtie_regression_unit]
+  quality_gates:
+    - "Existing visual-regression-drawer-bowtie passes (offsets shift but bowtie pattern preserved by masking — RED → re-baseline if needed)"
+    - "Any existing Vitest test that asserted on old 380 value migrated to new SSoT"
+  depends_on: ["T-1"]
+  blocks: ["T-3"]
+
+T3:
+  id: T-3
+  title: "Phase 3 — Activate min-content-width floor 720px @≥1024 (Scenario 1)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [AD3]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["frontend-expert"]
+  deliverables:
+    - "MODIFY frontend/src/components/shared/layout/DashboardShellClient.tsx — apply <main className='... lg:min-w-[var(--shell-content-min-width,720px)]'> + CSS var wiring `<div style={{ '--shell-content-min-width': '720px' }}>`."
+    - "Tests: DashboardShell-min-width-floor.test.tsx (Vitest unit — render with mocked viewport widths × copilot states; assert main.style.minWidth)."
+  out_of_scope:
+    - "Mutex policy (T-4)"
+    - "Mobile drawer (T-5)"
+  acceptance:
+    - validator_ids: [scenario_1_min_width_unit, fe_typecheck, fe_lint_shell]
+  quality_gates:
+    - "Manual Chris check 4 viewports (regression spot-check)"
+  depends_on: ["T-2"]
+  blocks: ["T-4"]
+
+T4:
+  id: T-4
+  title: "Phase 4 — Activate useShellMutex policy + remove SidebarContext inline matchMedia (Scenarios 1, 3)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 3
+  decisions_applicable: [AD2, AD4, AD8]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/tdd-mandatory.md"]
+    tessl_skills: ["tessl__react-patterns"]
+    domain_skills: ["frontend-expert", "copilot-expert"]
+  deliverables:
+    - "MODIFY frontend/src/components/shared/layout/SidebarContext.tsx — remove inline useEffect+matchMedia(<1279) auto-collapse. Add expandSidebar() + collapseSidebar() imperative actions."
+    - "MODIFY frontend/src/components/shared/layout/DashboardShellClient.tsx — mount useShellMutex() (effects fire internally)."
+    - "MODIFY frontend/src/features/copilot/components/CopilotSidebar.tsx — backdrop click + Esc handler dispatch useShellMutex.closePanel() instead of setSidebarState('collapsed') directly."
+    - "MODIFY frontend/src/components/shared/layout/AppSidebar.tsx — remove local isMobileOpen useState. Wire <Sheet open={shellMutex.activePanel === 'app-sidebar'} onOpenChange={...}>. NOTE: Sheet primitive YA EXISTE L667-687 — refactor existing trigger, NO new Sheet (per AD8 ratification post architect-fe)."
+    - "Tests: use-shell-mutex.test.ts (mutex policy unit per breakpoint + ping-pong idempotency)."
+  out_of_scope:
+    - "CopilotFAB (T-5)"
+    - "aria-labels (T-5)"
+  acceptance:
+    - validator_ids: [scenario_1_min_width_unit, scenario_3_mobile_mutex_unit, fe_typecheck, fe_lint_shell, fe_arch_fitness_full]
+  quality_gates:
+    - "No infinite loop ping-pong (unit test cubre)"
+    - "Tenant switch resets mutex state (manual Chris verify)"
+  depends_on: ["T-3"]
+  blocks: ["T-5"]
+
+T5:
+  id: T-5
+  title: "Phase 5 — CopilotFAB component + AppSidebar mobile aria-labels (Scenario 3 a11y)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [AD7, AD8, AD9]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/spanish-text.md", ".claude/rules/tdd-mandatory.md"]
+    tessl_skills: ["tessl__react-patterns", "tessl__shadcn-ui"]
+    domain_skills: ["frontend-expert", "copilot-expert"]
+  deliverables:
+    - "NEW frontend/src/features/copilot/components/CopilotFAB.tsx — bottom-right fixed Button con aria-label='Abrir asistente'. Mobile-only + collapsed-only. onClick → useShellMutex.openPanel('copilot'). z-class via Z_INDEX_CLASSES.FAB."
+    - "MODIFY frontend/src/components/shared/layout/DashboardShellClient.tsx — mount <CopilotFAB /> (component returns null when off-mobile or copilot non-collapsed)."
+    - "MODIFY frontend/src/components/shared/layout/AppSidebar.tsx — add aria-label='Abrir menú principal' on hamburger trigger (line 669-672). Add aria-label='Cerrar menú principal' on Sheet close button. Add role='status' aria-live='polite' announcement region en Sheet content."
+    - "Tests: CopilotFAB.test.tsx (visibility transitions + click→mutex). AppSidebar-mobile-drawer.test.tsx (aria-label assertions + drawer trigger)."
+  out_of_scope:
+    - "Z-index migration (T-6)"
+  acceptance:
+    - validator_ids: [scenario_3_mobile_mutex_unit, fe_typecheck, fe_lint_shell]
+  quality_gates:
+    - "Manual mobile check (375 viewport via DevTools responsive mode)"
+  depends_on: ["T-4"]
+  blocks: ["T-6"]
+
+T6:
+  id: T-6
+  title: "Phase 6 — Z-index migration to tokens shell scope (Scenario 4)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [AD5]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["frontend-expert"]
+  deliverables:
+    - "MODIFY frontend/src/components/shared/layout/AppSidebar.tsx:650 — z-50 → z-[40] (Z_INDEX_CLASSES.APP_SIDEBAR)."
+    - "MODIFY frontend/src/components/shared/layout/AppSidebar.tsx:664 — topbar z-50 → z-[50] (Z_INDEX_CLASSES.TOPBAR)."
+    - "MODIFY frontend/src/features/copilot/components/CopilotSidebar.tsx:110 — backdrop z-40 → z-[50] (Z_INDEX_CLASSES.COPILOT_BACKDROP)."
+    - "MODIFY frontend/src/features/copilot/components/CopilotSidebar.tsx:125 — drawer max-md:z-50 → max-md:z-[60] (Z_INDEX_CLASSES.COPILOT_DRAWER)."
+    - "MODIFY AppSidebar Sheet wrapper container z-class → z-[60] (Z_INDEX_CLASSES.APP_SIDEBAR_DRAWER)."
+    - "VERIFY CopilotFAB uses z-[70] (Z_INDEX_CLASSES.FAB) per T-5 deliverable."
+  out_of_scope:
+    - "Modal z-index ui/* primitives (T-9 Phase 10)"
+  acceptance:
+    - validator_ids: [scenario_4_arch_adversarial, fe_typecheck, fe_lint_shell]
+  quality_gates:
+    - "Manual visual check no z-stacking regression"
+  depends_on: ["T-5"]
+  blocks: ["T-7", "T-9"]
+
+T7:
+  id: T-7
+  title: "Phase 7+8 — Arch test rename/extension + 3 NEW arch tests + ESLint rules + DashboardLayoutClient deletion (Scenario 4)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 3
+  decisions_applicable: [AD5, AD6]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/architectural-fitness.md", ".claude/rules/anti-duplication.md"]
+    domain_skills: ["frontend-expert"]
+  deliverables:
+    - "RENAME frontend/src/__tests__/architecture/test-growth-studio-copilot-offset.test.ts → test-shell-copilot-offset.test.ts. **R9: git mv puro commit FIRST, scope expansion second commit.**"
+    - "MODIFY scope ampliado: scan 3 dirs (features/growth-studio + components/shared/layout + features/copilot/components). Allowlists scope-keyed: KNOWN_VIOLATIONS_GROWTH (existing 6) + KNOWN_VIOLATIONS_SHELL (empty post-fix) + KNOWN_VIOLATIONS_COPILOT (empty)."
+    - "NEW frontend/src/__tests__/architecture/test-zindex-tokens-only.test.ts — scans shell+copilot paths for hardcoded z-NN classes."
+    - "NEW frontend/src/__tests__/architecture/test-copilot-widths-ssot.test.ts — scans frontend/src for raw width literals matching {380,400,460,60,280,680} permitir solo en copilot-shell-widths.ts."
+    - "NEW frontend/src/__tests__/architecture/test-no-shadowing-copilot-offset.test.ts — scans imports useCopilotOffset, permits ONLY from @/hooks/use-copilot-offset or @/features/copilot/lib/copilot-shell-widths."
+    - "NEW frontend/eslint-rules/no-shadowing-copilot-offset.ts ESLint rule."
+    - "NEW frontend/eslint-rules/use-shell-mutex-for-drawer-toggles.ts ESLint rule (level=warn initially)."
+    - "MODIFY frontend/eslint.config.mjs — wire 2 custom rules."
+    - "DELETE frontend/src/app/(main)/[tenantId]/(dashboard)/DashboardLayoutClient.tsx (no longer imported)."
+  out_of_scope:
+    - "Visual regression baselines (T-8)"
+    - "Modal z-index (T-9)"
+  acceptance:
+    - validator_ids: [scenario_4_arch_adversarial, fe_arch_fitness_shell, fe_arch_fitness_full, fe_lint_shell, fe_typecheck]
+  quality_gates:
+    - "All arch tests GREEN"
+    - "Allowlist freshness check (KNOWN_VIOLATIONS_SHELL = empty)"
+  depends_on: ["T-6"]
+  blocks: ["T-8", "T-9"]
+
+T8:
+  id: T-8
+  title: "Phase 9 — Visual regression baselines + 5 Playwright smoke specs"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                          # Playwright smoke + visual regression — Sonnet preferida (skill expertise)
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 3
+  decisions_applicable: [AD10]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    live_repro: "../00-live-repro.md"
+    rules: [".claude/rules/e2e-testing.md", ".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["playwright-expert", "frontend-expert"]
+  deliverables:
+    - "RE-BASELINE frontend/src/features/growth-studio/__tests__/visual-regression-drawer-bowtie.test.tsx snapshot."
+    - "NEW frontend/e2e/specs/smoke/app-shell-min-content-width.spec.ts — 8 routes × 4 viewports × 3 copilot states = 96 main.width assertions."
+    - "NEW frontend/e2e/specs/smoke/dialog-centered-correctly.spec.ts — dialog/sheet centered ±5px tolerance."
+    - "NEW frontend/e2e/specs/smoke/app-shell-mobile-mutex-fab.spec.ts — 8-step mobile flow + axe-core embedded."
+    - "NEW frontend/e2e/specs/smoke/app-shell-visual-regression.spec.ts — bowtie+nav+copilot pixel-perfect, main MASKED."
+    - "NEW frontend/e2e/specs/smoke/app-shell-a11y.spec.ts — axe-core scan dedicated."
+    - "Routes 8 testeados: brand-studio, offer-studio, growth-studio, sales, settings, connections, brand-settings, audit (or avatars)."
+  out_of_scope:
+    - "Modal z-index (T-9)"
+  acceptance:
+    - validator_ids: [visual_min_content_width_e2e, visual_dialog_centered_e2e, visual_mobile_mutex_e2e, visual_regression_pixel_perfect, visual_a11y_axe, visual_bowtie_regression_unit]
+  quality_gates:
+    - "All Playwright smoke GREEN with native execution (NEVER make e2e Docker)"
+    - "Visual baselines ratified by Chris before commit (manual review)"
+    - "axe-core 0 critical/serious violations"
+  depends_on: ["T-7"]
+  blocks: ["T-9"]
+
+T9:
+  id: T-9
+  title: "Phase 10 — Modal z-index alignment ui/* Shadcn primitives (post v3 Chris ratification)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                          # Shadcn primitives critical surface — review Sonnet/Opus
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 2
+  estimate_hours: 2
+  decisions_applicable: [AD5]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/architectural-fitness.md", ".claude/rules/tdd-mandatory.md"]
+    tessl_skills: ["tessl__shadcn-ui"]
+    domain_skills: ["frontend-expert"]
+  deliverables:
+    - "MODIFY frontend/src/components/ui/dialog.tsx — z-50 hardcoded → Z_INDEX_CLASSES.MODAL (z-[80])."
+    - "MODIFY frontend/src/components/ui/alert-dialog.tsx — z-50 → MODAL (z-[80])."
+    - "MODIFY frontend/src/components/ui/sheet.tsx — z-50 → contextual (MODAL=80 if standalone; MOBILE_DRAWER=60 if shell-drawer-pattern). Architect decide per-instance."
+    - "MODIFY frontend/src/components/ui/popover.tsx — z-50 → DROPDOWN=85 (entre MODAL y TOOLTIP, NEW token if needed)."
+    - "MODIFY frontend/src/components/ui/dropdown-menu.tsx — idem popover."
+    - "MODIFY frontend/src/components/ui/tooltip.tsx — z-50 → Z_INDEX_CLASSES.TOOLTIP (z-[90])."
+    - "EXTEND test-zindex-tokens-only.test.ts arch test scope para incluir components/ui/ paths con allowlist initial KNOWN_VIOLATIONS_UI = []."
+    - "VERIFY full smoke E2E suite GREEN post-migration (cross-codebase regression)."
+  out_of_scope:
+    - "Other Shadcn primitives no listados aquí"
+  acceptance:
+    - validator_ids: [scenario_4_arch_adversarial, fe_arch_fitness_full, fe_typecheck, fe_lint_shell, visual_dialog_centered_e2e, visual_min_content_width_e2e]
+  quality_gates:
+    - "Full smoke suite GREEN (cross-codebase)"
+    - "Manual Chris check dialog/popover/tooltip stack ordering"
+  depends_on: ["T-7", "T-8"]
+  blocks: []
+
+# ── Tickets list ─────────────────────────────
+tickets:
+  - $ref: "#/T1"
+  - $ref: "#/T2"
+  - $ref: "#/T3"
+  - $ref: "#/T4"
+  - $ref: "#/T5"
+  - $ref: "#/T6"
+  - $ref: "#/T7"
+  - $ref: "#/T8"
+  - $ref: "#/T9"

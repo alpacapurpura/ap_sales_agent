@@ -1,0 +1,154 @@
+# 04-validators.yaml — Growth Studio Folder Parity
+# Story 2A of outcome growth-copilot-layout-unification
+# Schema v4 — 4 categories
+# Surface: FE only
+
+story_id: growth-studio-folder-parity
+schema_version: v4
+
+validators:
+  # ═══════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: fe_typecheck
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx tsc --noEmit"
+    must_pass: true
+    timeout_sec: 90
+
+  - id: fe_lint_growth
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx eslint src/features/growth-studio/ --cache --cache-location .eslintcache"
+    must_pass: true
+    timeout_sec: 60
+
+  - id: fe_arch_fitness_growth
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/test-studio-structure-parity.test.ts src/__tests__/architecture/test-no-hardcoded-stage-list.test.ts src/__tests__/architecture/test-no-hardcoded-channel-slugs.test.ts --reporter=default"
+    must_pass: true
+    timeout_sec: 60
+    description: "test-studio-structure-parity adapter mode (incluye growth) + 2 NEW arch tests (stage list / channel slugs hardcoded)"
+
+  - id: fe_arch_fitness_full
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/ --reporter=default"
+    must_pass: true
+    timeout_sec: 90
+    description: "Full arch fitness suite — verify no regression"
+
+  - id: fe_test_shell_copilot_offset
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/test-shell-copilot-offset.test.ts --reporter=default"
+    must_pass: true
+    timeout_sec: 60
+    description: "Allowlist KNOWN_VIOLATIONS_GROWTH = new Set() post-2A. DEPENDS story 1 T-7 rename landed."
+
+  # ═══════════════════════════════════════════════════════════════
+  # FUNCTIONAL — 4 scenarios
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: scenario_1_canonical_files_unit
+    category: functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/features/growth-studio/__tests__/folder-parity-canonical-files.test.ts src/features/growth-studio/__tests__/StageDispatcher.test.tsx src/features/growth-studio/__tests__/ChannelDispatcher.test.tsx"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: folder-parity-canonical-files-exist
+
+  - id: scenario_2_arch_test_hardcoded
+    category: functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/test-no-hardcoded-channel-slugs.test.ts src/__tests__/architecture/test-no-hardcoded-stage-list.test.ts"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: arch-fitness-rejects-hardcoded-channel
+    description: "Adversarial dev hardcoded canal NEW → arch test bloquea. Adversarial 5 stages array → bloquea."
+
+  - id: scenario_3_visual_bowtie_pixel_perfect
+    category: functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/features/growth-studio/__tests__/visual-regression-drawer-bowtie.test.tsx"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: bowtie-and-dashboard-pixel-perfect-post-refactor
+    description: "Pre-refactor screenshot diff vs post-refactor. NOTE: si story 1 VR helpers landed primero → use new pattern; sino legacy."
+
+  - id: scenario_4_ratchet_fsd_arch_adversarial
+    category: functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/test-shell-copilot-offset.test.ts src/__tests__/architecture/test-no-hardcoded-stage-list.test.ts && cd frontend && npx eslint src/features/growth-studio/"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: ratchet-allowlist-shrinks-and-fsd-isolation-respected
+    description: "Allowlist set vacío + ESLint boundaries 0 violations + arch test stage list rejected."
+
+  - id: integration_e2e_growth_smoke
+    category: functional
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/specs/smoke/growth-studio-stages.spec.ts"
+    must_pass: true
+    timeout_sec: 180
+    description: "Playwright smoke 5 stages routes render OK post-refactor (StageDispatcher delegate verified)"
+
+  # ═══════════════════════════════════════════════════════════════
+  # VISUAL — Playwright + chrome-devtools live verify (per Chris note)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: visual_bowtie_pixel_perfect_e2e
+    category: visual
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/visual/growth-studio-bowtie.spec.ts --update-snapshots=false"
+    capture: screenshots
+    must_pass: true
+    timeout_sec: 240
+    description: "Bowtie superior + métricas dashboard pixel-perfect post-refactor. DEPENDS story 1 T-8 VR helpers shared lifted. Si no shipped → use existing visual-regression-drawer-bowtie.test.tsx Vitest."
+
+  - id: visual_dashboard_responsive
+    category: visual
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=mobile,tablet,desktop e2e/visual/growth-studio-responsive.spec.ts"
+    must_pass: true
+    timeout_sec: 240
+    description: "5 stages × 3 breakpoints (mobile/tablet/desktop) — bowtie + KPI cards responsive intact"
+
+  - id: visual_chrome_devtools_live_verify
+    category: visual
+    type: shell
+    cmd: "echo 'OPTIONAL — Chris invokes chrome-devtools-verify skill manually post-build vs dev-app.nicolify.com para ratificar 5 stages routes + 6 channel dashboards visualmente. Non-blocking.'"
+    must_pass: false
+    timeout_sec: 5
+    description: "Live verify post-build — Chris invokes /chrome-devtools-verify para sesión real autenticada. Recommended pre-/auditor."
+
+  # ═══════════════════════════════════════════════════════════════
+  # AGENTIC EVAL — N/A (no agentic surface)
+  # ═══════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════
+# Scenario coverage matrix
+# ═══════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: folder-parity-canonical-files-exist
+    validators: [scenario_1_canonical_files_unit, fe_arch_fitness_growth, integration_e2e_growth_smoke]
+  - scenario_id: arch-fitness-rejects-hardcoded-channel
+    validators: [scenario_2_arch_test_hardcoded, fe_arch_fitness_growth]
+  - scenario_id: bowtie-and-dashboard-pixel-perfect-post-refactor
+    validators: [scenario_3_visual_bowtie_pixel_perfect, visual_bowtie_pixel_perfect_e2e, visual_dashboard_responsive]
+  - scenario_id: ratchet-allowlist-shrinks-and-fsd-isolation-respected
+    validators: [scenario_4_ratchet_fsd_arch_adversarial, fe_test_shell_copilot_offset, fe_arch_fitness_full]
+
+# ═══════════════════════════════════════════════════════════════
+# Iteration policy
+# ═══════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 10
+  on_fail: "fix targeted file based on test output, re-run failing validator only"
+  on_all_pass: "set state=developing→developed, append iteration_log to T-{n}-impl-log.md"
+  on_cap_reached: "set state=developing→blocked, escalate to Chris with last error trace"

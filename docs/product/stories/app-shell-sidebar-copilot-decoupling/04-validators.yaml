@@ -1,0 +1,175 @@
+# 04-validators.yaml — App Shell ↔ Copilot Decoupling
+# Story 1 of outcome growth-copilot-layout-unification
+# Schema v4 — 4 categories: non_functional / functional / visual / agentic_eval
+#
+# Surface: FE only. NO agentic_eval validators required.
+# Visual category EMPHASIZED per Chris note 2026-05-07 — Playwright + chrome-devtools live verify.
+
+story_id: app-shell-sidebar-copilot-decoupling
+schema_version: v4
+
+validators:
+  # ═══════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — quality gates (lint, format, type-check, arch fitness)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: fe_typecheck
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx tsc --noEmit"
+    must_pass: true
+    timeout_sec: 90
+    description: "TypeScript strict, 0 errors"
+
+  - id: fe_lint_shell
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx eslint src/components/shared/layout/ src/features/copilot/components/ src/hooks/use-shell-mutex.ts src/hooks/use-viewport.ts src/hooks/use-copilot-offset.ts src/stores/shell-mutex-store.ts src/lib/tokens/z-index.ts src/features/copilot/lib/copilot-shell-widths.ts --cache --cache-location .eslintcache"
+    must_pass: true
+    timeout_sec: 60
+    description: "ESLint 60+ rules + custom nicolify/no-shadowing-copilot-offset + nicolify/use-shell-mutex-for-drawer-toggles"
+
+  - id: fe_arch_fitness_shell
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/test-shell-copilot-offset.test.ts src/__tests__/architecture/test-zindex-tokens-only.test.ts src/__tests__/architecture/test-copilot-widths-ssot.test.ts src/__tests__/architecture/test-no-shadowing-copilot-offset.test.ts --reporter=default"
+    must_pass: true
+    timeout_sec: 60
+    description: "Arch fitness ratchet shell scope: rename test-growth-studio-copilot-offset → test-shell-copilot-offset (allowlists scope-keyed), 3 NEW tests (zindex tokens / SSoT widths / no-shadowing)"
+
+  - id: fe_arch_fitness_full
+    category: non_functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/ --reporter=default"
+    must_pass: true
+    timeout_sec: 90
+    description: "Full arch fitness suite — verify no regression in other arch tests"
+
+  # ═══════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios (4 ratified)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: scenario_1_min_width_unit
+    category: functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/components/shared/layout/__tests__/DashboardShell-min-width-floor.test.tsx src/components/shared/layout/__tests__/use-shell-mutex.test.ts src/hooks/__tests__/use-viewport.test.ts"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: min-content-width-enforced-via-mutex-and-floor
+    description: "Vitest unit — DashboardShell min-width policy + useShellMutex per breakpoint + useViewport SSR-safe"
+
+  - id: scenario_2_ssot_widths_unit
+    category: functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/hooks/__tests__/use-copilot-offset.test.ts src/features/copilot/components/__tests__/CopilotSidebar-grid-widths.test.tsx"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: useCopilotOffset-aligned-with-CopilotSidebar-ssot
+    description: "Hook return value === SSoT constants. Grid template === SSoT values."
+
+  - id: scenario_3_mobile_mutex_unit
+    category: functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/components/shared/layout/__tests__/AppSidebar-mobile-drawer.test.tsx src/features/copilot/components/__tests__/CopilotFAB.test.tsx"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: mobile-mutex-drawers-and-fab-and-a11y
+    description: "AppSidebar mobile drawer rewire trigger + CopilotFAB visibility + click→mutex"
+
+  - id: scenario_4_arch_adversarial
+    category: functional
+    type: shell
+    cmd: "cd frontend && npx vitest run src/__tests__/architecture/test-zindex-tokens-only.test.ts src/__tests__/architecture/test-no-shadowing-copilot-offset.test.ts src/__tests__/architecture/test-shell-copilot-offset.test.ts"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: arch-fitness-extends-shell-zindex-tokens-and-rejects-shadowing
+    description: "Adversarial — arch tests bloquean hardcoded z-index, shadowing useCopilotOffset, fixed/portal sin offset hook"
+
+  # ═══════════════════════════════════════════════════════════════
+  # VISUAL — Playwright + chrome-devtools live verify (EMPHASIZED per Chris 2026-05-07)
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: visual_min_content_width_e2e
+    category: visual
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/specs/smoke/app-shell-min-content-width.spec.ts"
+    must_pass: true
+    timeout_sec: 360
+    scenario_id: min-content-width-enforced-via-mutex-and-floor
+    description: "8 routes × 4 viewports (375/768/1024/1440) × 3 copilot states (closed/rail/open) = 96 main.width assertions. Routes: brand-studio, offer-studio, growth-studio, sales, settings, connections, brand-settings, audit. Asserts main.width >= 720px @≥1024 + mutex auto-collapse <1280."
+
+  - id: visual_dialog_centered_e2e
+    category: visual
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/specs/smoke/dialog-centered-correctly.spec.ts"
+    must_pass: true
+    timeout_sec: 180
+    scenario_id: useCopilotOffset-aligned-with-CopilotSidebar-ssot
+    description: "Dialog/Sheet/AlertDialog/DetailPanel open con copilot rail/full → dialog.left + dialog.width/2 ≈ availableContentArea/2 ±5px tolerance. Verifica drift fix end-to-end."
+
+  - id: visual_mobile_mutex_e2e
+    category: visual
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/specs/smoke/app-shell-mobile-mutex-fab.spec.ts"
+    must_pass: true
+    timeout_sec: 240
+    scenario_id: mobile-mutex-drawers-and-fab-and-a11y
+    description: "8-step mobile flow (375 viewport): tap hamburger → drawer abre / tap copilot trigger → drawer cierra + copilot abre / tap backdrop → copilot cierra + FAB visible / tap FAB → copilot reabre / inverso 3 transitions. axe-core scan embedded — 0 violations."
+
+  - id: visual_regression_pixel_perfect
+    category: visual
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/specs/smoke/app-shell-visual-regression.spec.ts --update-snapshots=false"
+    capture: screenshots
+    must_pass: true
+    timeout_sec: 360
+    scenario_id: min-content-width-enforced-via-mutex-and-floor
+    description: "Bowtie + AppSidebar nav + CopilotSidebar pixel-perfect vs baseline. Main content area MASKED (Q9 ratified) — main cambia por floor, NO debe contar como diff."
+
+  - id: visual_bowtie_regression_unit
+    category: visual
+    type: shell
+    cmd: "cd frontend && npx vitest run src/features/growth-studio/__tests__/visual-regression-drawer-bowtie.test.tsx"
+    must_pass: true
+    timeout_sec: 60
+    description: "Existing growth-studio bowtie visual snapshot — re-baselined post Phase 2 SSoT migration"
+
+  - id: visual_a11y_axe
+    category: visual
+    type: playwright
+    cmd: "cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/specs/smoke/app-shell-a11y.spec.ts"
+    must_pass: true
+    timeout_sec: 180
+    description: "axe-core scan — hamburger aria-label, FAB aria-label, drawer focus trap (Sheet primitive Radix), Esc closes active drawer, Tab order coherent. 0 critical/serious violations."
+
+  - id: visual_chrome_devtools_live_verify
+    category: visual
+    type: shell
+    cmd: "echo 'OPTIONAL — Chris invokes chrome-devtools-verify skill manually post-build vs dev-app.nicolify.com to ratify visual fix in real session before /auditor approval. NOT a CI gate.'"
+    must_pass: false
+    timeout_sec: 5
+    description: "Live verify post-build — Chris invokes /chrome-devtools-verify para ratificar visualmente en sesión real autenticada (cubre dialog centering + mutex flow + visual regression contra real Clerk session). Non-blocking but recommended."
+
+# ═══════════════════════════════════════════════════════════════
+# Scenario coverage matrix — every scenario MUST have ≥1 validator
+# ═══════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: min-content-width-enforced-via-mutex-and-floor
+    validators: [scenario_1_min_width_unit, visual_min_content_width_e2e, visual_regression_pixel_perfect]
+  - scenario_id: useCopilotOffset-aligned-with-CopilotSidebar-ssot
+    validators: [scenario_2_ssot_widths_unit, visual_dialog_centered_e2e, visual_bowtie_regression_unit]
+  - scenario_id: mobile-mutex-drawers-and-fab-and-a11y
+    validators: [scenario_3_mobile_mutex_unit, visual_mobile_mutex_e2e, visual_a11y_axe]
+  - scenario_id: arch-fitness-extends-shell-zindex-tokens-and-rejects-shadowing
+    validators: [scenario_4_arch_adversarial, fe_arch_fitness_shell]
+
+# ═══════════════════════════════════════════════════════════════
+# Iteration policy
+# ═══════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 10
+  on_fail: "fix targeted file based on test output, re-run failing validator only"
+  on_all_pass: "set state=developing→developed, append iteration_log to T-{n}-impl-log.md"
+  on_cap_reached: "set state=developing→blocked, escalate to Chris with last error trace"

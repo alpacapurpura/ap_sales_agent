@@ -1,6 +1,13 @@
 ---
 id: pi-9-growth-studio-architecture
-state: validated
+state: dropped
+superseded_by: growth-copilot-layout-unification
+superseded_at: 2026-05-06
+superseded_reason: |
+  Unificado con PI-10 en outcome único `growth-copilot-layout-unification`.
+  Razón (Chris 2026-05-06): desde negocio son un solo problema — layout app
+  + Growth Studio no escalan + sidebar global se superpone a barra copilot
+  cross-app. Separar architecture vs UX era artefacto paradigma viejo PI/Sprint.
 title: Growth Studio — refactor estructural FE escalable
 why_now: |
   Cientos de clientes proyectados 1 mes → arquitectura FE escalable mandatoria.
@@ -10,7 +17,7 @@ why_now: |
 target_end: null
 priority: 2
 created: 2026-05-01
-last_modified: 2026-05-05
+last_modified: 2026-05-06
 migrated_from: docs/pm-nico/pis/active/PI-9-growth-studio-architecture/
 story_ids: []
 success_metrics:

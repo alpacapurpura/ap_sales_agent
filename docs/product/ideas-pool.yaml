@@ -76,3 +76,62 @@ ideas:
         compliance Sunat
       - Estado original: "Idea validada como realizable. Ningún componente
         bloqueante. Ningún competidor directo." Pendiente JTBD + OST formal.
+
+  - id: solo-mode-chat-first-layout
+    one_liner: "SOLO Mode — toggle UI top-bar invierte layout: copilot chat principal centro/izq, contenido secundario derecha (estilo Claude Desktop / Cowork)"
+    state: idea
+    tags: [module:copilot, module:shared, type:layout-paradigm-shift, effort:L, value:product-direction, source:chris]
+    created: 2026-05-06
+    last_touched: 2026-05-06
+    notes: |
+      Captured 2026-05-06 durante refining session sidebar-copilot overlap (PI-9+PI-10 unification).
+
+      Concepto:
+      - Toggle button parte superior de la app
+      - Layout invertido: chat copilot = elemento PRINCIPAL (centro o izq, dominante)
+      - Contenido aplicación (studios, dashboards, forms) = panel secundario derecho, más pequeño,
+        aparece on-demand según conversación
+      - Cambia paradigma "website-with-chat-on-side" → "chat-first con apoyo visual derecha"
+      - Referencias UX: Claude Desktop (chat dominante, panels contextuales), Claude Cowork
+
+      Estado: NO refinar aún. Anotado para que próxima refinación de copilot/layout-system esté
+      pre-aware. Probable predecesor: PI-9+PI-10 unified (sidebar+copilot decoupling + Growth
+      Studio architecture parity) — sin esa base SOLO Mode no es implementable limpio.
+
+      Pendiente JTBD + OST formal cuando se valide.
+
+  - id: sales-inbox-responsive-collapse
+    one_liner: "Sales Studio inbox 3-col (lista/detalle/conversación) inner layout responsive — colapsa a 2 o 1 col cuando viewport+chrome restringen ancho"
+    state: idea
+    tags: [module:sales-agent, module:crm, type:responsive-ui, effort:M, value:user-experience, source:chris-via-live-repro]
+    created: 2026-05-07
+    last_touched: 2026-05-07
+    notes: |
+      Captured 2026-05-07 durante live repro chrome-devtools-verify de
+      app-shell-sidebar-copilot-decoupling. Subagent observó:
+
+      Sales studio /sales/studio/inbox tiene inner 3-col layout (lista de leads
+      izquierda + detalle lead centro + thread conversación derecha) sobre el
+      shell global (AppSidebar + main + CopilotSidebar).
+
+      A viewport 1024 × sidebar collapsed × copilot open → main = 484px, dividido
+      en 3 cols inner → ~96px/col. Resultado:
+      - Filtros truncados ("Manua...")
+      - Lead detail truncado ("Brenda Pasto...", "creaci...")
+      - Conversation pane invisible (rendered pero 0 perceived width)
+
+      No es bug del shell (story 1 mejora a ≥720px main floor con DashboardShell).
+      Es bug del inner layout sales-inbox que NO colapsa cuando el ancho disponible
+      es estrecho (no usa `useViewport` o equivalente para decidir 3→2→1 cols).
+
+      Solution candidates:
+      - Drawer pattern: thread conversación → drawer overlay cuando main <900px
+      - Tab pattern: lista | detalle | thread tabs cuando main <700px
+      - Stack pattern: vertical stacking < ancho mínimo
+
+      Predecesor: NO depende de outcome growth-copilot-layout-unification, pero
+      su impacto SE REDUCE post-story 1 (main ≥720px elimina catastrófico 484px).
+      Aún así sales-inbox a 720-1023px sigue subóptimo con 3-col.
+
+      Pendiente: JTBD + métricas (cuántos tenants usan inbox a viewport <1280) +
+      OST formal cuando se valide.

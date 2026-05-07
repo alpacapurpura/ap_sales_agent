@@ -1,6 +1,13 @@
 ---
 id: pi-10-growth-studio-ux-homologation
-state: validated
+state: dropped
+superseded_by: growth-copilot-layout-unification
+superseded_at: 2026-05-06
+superseded_reason: |
+  Unificado con PI-9 en outcome único `growth-copilot-layout-unification`.
+  Razón (Chris 2026-05-06): desde negocio son un solo problema — sidebar
+  global se superpone con barra copilot cross-app + Growth Studio fuera
+  del refactor FSD-Lite. Bowtie + métricas dashboard intactos (invariante).
 title: Growth Studio — UX visual homologada cross-studio
 why_now: |
   Usuario nuevo navega Brand Studio + Offer Studio + Growth Studio y siente
@@ -9,7 +16,7 @@ why_now: |
 target_end: null
 priority: 3
 created: 2026-05-01
-last_modified: 2026-05-05
+last_modified: 2026-05-06
 migrated_from: docs/pm-nico/pis/active/PI-10-growth-studio-ux-homologation/
 story_ids: []
 success_metrics:

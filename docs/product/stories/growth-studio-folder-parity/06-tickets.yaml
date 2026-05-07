@@ -1,0 +1,325 @@
+# 06-tickets.yaml — Growth Studio Folder Parity
+# Story 2A of outcome growth-copilot-layout-unification
+# Surface: FE only
+
+---
+story_id: growth-studio-folder-parity
+outcome: growth-copilot-layout-unification
+generated_at: 2026-05-07T06:35:00Z
+generated_by: /architect
+total_tickets: 8
+estimated_total_hours: 18
+parallel_safe_with: ["app-shell-sidebar-copilot-decoupling"]
+blocks: ["growth-studio-actions-schemas-real"]
+
+# ── Resumen pila (alto nivel) ────────────────
+summary:
+  - id: T-1
+    title: "Phase 1 — Registries SSoT (stage/channel/dashboard)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 2
+    blocks: [T-2, T-3, T-4, T-5, T-6, T-7, T-8]
+  - id: T-2
+    title: "Phase 2 — Factory dispatchers (StageDispatcher + ChannelDispatcher + sections)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 3
+    blocked_by: [T-1]
+    blocks: [T-3, T-4]
+  - id: T-3
+    title: "Phase 3 — 4-tier rename break-and-fix atomic"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 2
+    blocked_by: [T-2]
+    blocks: [T-4]
+  - id: T-4
+    title: "Phase 4 — Legacy purge config/+context/+__mocks__/ + VR replacement (DEPENDS story 1 T-8)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 3
+    blocked_by: [T-3]
+    cross_story_dependencies: ["story-1::T-8 (VR helpers shipped)"]
+    blocks: [T-5, T-6]
+  - id: T-5
+    title: "Phase 5 — Allowlist cleanup 6 dashboards adopt useCopilotOffset (DEPENDS story 1 T-7)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 2
+    blocked_by: [T-4]
+    cross_story_dependencies: ["story-1::T-7 (rename + scope-keyed allowlists)"]
+    blocks: [T-6]
+  - id: T-6
+    title: "Phase 6 — Arch fitness extension adapter mode + 2 NEW arch tests"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 2
+    blocked_by: [T-5]
+    blocks: [T-7]
+  - id: T-7
+    title: "Phase 7 — Placeholders 2B (.gitkeep + routes thin delegate)"
+    surface: FE
+    owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
+    state: draft
+    estimate_hours: 1
+    blocked_by: [T-6]
+    blocks: [T-8]
+  - id: T-8
+    title: "Phase 8 — Verify (vitest + Playwright smoke + VR + coverage parity)"
+    surface: FE
+    owner_pool: [claude-sonnet]
+    state: draft
+    estimate_hours: 3
+    blocked_by: [T-7]
+    blocks: []
+
+# ── Detalle ──────────────────────────────────
+
+T1:
+  id: T-1
+  title: "Phase 1 — Registries SSoT (stage/channel/dashboard)"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [AD6]
+  inputs:
+    spec: "../01-spec.md"
+    arch_doc: "../03-arch.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["frontend-expert", "metrics-expert"]
+  deliverables:
+    - "NEW frontend/src/features/growth-studio/lib/registries/stage-registry.ts (5 entries — slugs canonical: atraccion-captura, nutricion-oportunidad, ventas, adopcion, expansion-evangelizacion)"
+    - "NEW frontend/src/features/growth-studio/lib/registries/channel-registry.ts (N entries — canonical slugs: meta-ads, yt-organic, email-nurture, ig-organic, website-total)"
+    - "NEW frontend/src/features/growth-studio/lib/registries/dashboard-registry.ts (per-channel lazy-loaded component map)"
+    - "Tests vitest unit por registry (shape + freeze validation)"
+  out_of_scope: ["Factory dispatchers (T-2)", "Legacy purge (T-4)"]
+  acceptance:
+    - validator_ids: [scenario_1_canonical_files_unit, fe_typecheck, fe_lint_growth, fe_arch_fitness_full]
+  depends_on: []
+  blocks: ["T-2", "T-3", "T-4", "T-5", "T-6", "T-7", "T-8"]
+
+T2:
+  id: T-2
+  title: "Phase 2 — Factory dispatchers + sections + routes thin delegate"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
+  priority: 1
+  estimate_hours: 3
+  decisions_applicable: [AD3, AD6]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/tdd-mandatory.md"]
+    tessl_skills: ["tessl__nextjs-app-router-modularization"]
+    domain_skills: ["frontend-expert"]
+  deliverables:
+    - "NEW pages/stage-slugs.ts + StageDispatcher.tsx"
+    - "NEW pages/channel-slugs.ts + ChannelDispatcher.tsx"
+    - "NEW pages/sections/{atraccion-captura,nutricion-oportunidad,ventas,adopcion,expansion-evangelizacion}-page.tsx (5 files)"
+    - "MODIFY app/(main)/[tenantId]/(dashboard)/growth-studio/page.tsx + [stage]/page.tsx — Server Component delgado import StageDispatcher"
+    - "Tests StageDispatcher.test.tsx + ChannelDispatcher.test.tsx vitest unit"
+  out_of_scope: ["4-tier rename (T-3)"]
+  acceptance:
+    - validator_ids: [scenario_1_canonical_files_unit, integration_e2e_growth_smoke, fe_typecheck, fe_lint_growth]
+  depends_on: ["T-1"]
+  blocks: ["T-3", "T-4"]
+
+T3:
+  id: T-3
+  title: "Phase 3 — 4-tier rename break-and-fix atomic"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [AD5]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["frontend-expert", "metrics-expert"]
+  deliverables:
+    - "MOVE existing tier0-*.ts file content → frontend/src/features/growth-studio/pages/tiers/0-summary.ts"
+    - "WRAPPER re-exports: pages/tiers/{1-overview,2-group-detail,3-stage}.ts re-export from existing locations (deprecation 1 ciclo). Existing files marcados @deprecated jsdoc."
+    - "Update consumers: search-replace imports tier0-* → pages/tiers/0-summary"
+    - "Atomic commit single git mv first (R9), expansion second commit"
+  out_of_scope: ["Wrapper removal (futuro 1 ciclo)"]
+  acceptance:
+    - validator_ids: [fe_typecheck, fe_lint_growth, fe_arch_fitness_full, integration_e2e_growth_smoke]
+  quality_gates: ["No consumer broken; all imports resolve"]
+  depends_on: ["T-2"]
+  blocks: ["T-4"]
+
+T4:
+  id: T-4
+  title: "Phase 4 — Legacy purge config/+context/+__mocks__/ + VR replacement"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
+  priority: 1
+  estimate_hours: 3
+  decisions_applicable: [AD1, AD2, AD4]
+  cross_story_dependencies: ["story-1::T-8 (VR helpers shipped)"]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["frontend-expert"]
+  deliverables:
+    - "Step 0 GATE: grep cross-codebase config/ consumers → list"
+    - "MIGRATE config/ content → lib/registries/ (atomic find-replace en mismo commit)"
+    - "MIGRATE context/ content → growth-studio/store/sync-store.ts (zustand local) + hooks/ si aplica"
+    - "MIGRATE __mocks__/ → __tests__/__mocks__/ (update 9 dynamic-import consumers en stage-detail-api.ts)"
+    - "DELETE growth-studio/config/, context/, __mocks__/ (entire folders)"
+    - "**IF story 1 T-8 LANDED:** DELETE __tests__/visual-regression-drawer-bowtie.test.tsx + ADD frontend/e2e/visual/growth-studio-bowtie.spec.ts (Playwright VR with masking, lift story 1 helpers)"
+    - "**IF story 1 T-8 NOT YET LANDED:** keep legacy VR test; defer replacement to follow-up commit when T-8 merges"
+  out_of_scope: ["Allowlist cleanup (T-5)"]
+  acceptance:
+    - validator_ids: [scenario_3_visual_bowtie_pixel_perfect, visual_bowtie_pixel_perfect_e2e, fe_typecheck, fe_lint_growth]
+  quality_gates: ["Zero existing test broken; bowtie pixel-perfect intact"]
+  depends_on: ["T-3"]
+  blocks: ["T-5", "T-6"]
+
+T5:
+  id: T-5
+  title: "Phase 5 — Allowlist cleanup 6 dashboards adopt useCopilotOffset"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [AD7]
+  cross_story_dependencies: ["story-1::T-7 (rename + scope-keyed allowlists)"]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/architectural-fitness.md"]
+    domain_skills: ["frontend-expert"]
+  deliverables:
+    - "MODIFY 6 dashboards (5 sidebar dashboards + ChannelConnectionModal): adopt useCopilotOffset hook + apply paddingRight or right offset to fixed/portal elements"
+    - "**IF story 1 T-7 LANDED (rename + scope-keyed):** drain `KNOWN_VIOLATIONS_GROWTH = new Set()` en test-shell-copilot-offset.test.ts"
+    - "**IF story 1 T-7 NOT YET LANDED:** drain `KNOWN_VIOLATIONS = new Set()` en test-growth-studio-copilot-offset.test.ts (single set); story 1 rename later splits"
+    - "Tests vitest unit por dashboard verify hook consumption"
+  out_of_scope: ["Other shell scope changes (story 1)"]
+  acceptance:
+    - validator_ids: [scenario_4_ratchet_fsd_arch_adversarial, fe_test_shell_copilot_offset, fe_arch_fitness_full]
+  quality_gates: ["Allowlist set EMPTY", "All 6 dashboards visually correct (no z-stacking regression)"]
+  depends_on: ["T-4"]
+  blocks: ["T-6"]
+
+T6:
+  id: T-6
+  title: "Phase 6 — Arch fitness extension adapter mode + 2 NEW arch tests"
+  type: frontend
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
+  priority: 1
+  estimate_hours: 2
+  decisions_applicable: [AD6]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    rules: [".claude/rules/architectural-fitness.md"]
+    domain_skills: ["frontend-expert"]
+  deliverables:
+    - "MODIFY frontend/src/__tests__/architecture/test-studio-structure-parity.test.ts — STUDIO_PAGE_DIRS per-studio canonical config (factory propia adapter mode). brand: section-slugs+SectionDispatcher; offer: idem; growth: stage-slugs+StageDispatcher+channel-slugs+ChannelDispatcher."
+    - "NEW frontend/src/__tests__/architecture/test-no-hardcoded-stage-list.test.ts — scan growth-studio source for array literals matching `[\"atraccion-captura\", ...]` o equivalentes; permitir SOLO en stage-registry.ts"
+    - "NEW frontend/src/__tests__/architecture/test-no-hardcoded-channel-slugs.test.ts — análogo para channel slugs canonical permitir SOLO en channel-registry.ts"
+  out_of_scope: ["Placeholders 2B (T-7)"]
+  acceptance:
+    - validator_ids: [fe_arch_fitness_growth, fe_arch_fitness_full, scenario_2_arch_test_hardcoded]
+  depends_on: ["T-5"]
+  blocks: ["T-7"]
+
+T7:
+  id: T-7
+  title: "Phase 7 — Placeholders 2B (.gitkeep + finalizar routes)"
+  type: frontend
+  surface: FE
+  production_code: false                              # tests/docs scope, plus placeholder files
+  state: draft
+  owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
+  priority: 2
+  estimate_hours: 1
+  decisions_applicable: []
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+  deliverables:
+    - "NEW frontend/src/features/growth-studio/actions/.gitkeep (placeholder 2B sequential)"
+    - "NEW frontend/src/features/growth-studio/schemas/.gitkeep (placeholder 2B sequential)"
+    - "Verify routes thin delegate Server Component intact post all phases"
+    - "Doc note en growth-studio root: 'actions/ + schemas/ pending story 2B (growth-studio-actions-schemas-real)'"
+  out_of_scope: ["Real actions/schemas (story 2B)"]
+  acceptance:
+    - validator_ids: [scenario_1_canonical_files_unit, fe_typecheck]
+  depends_on: ["T-6"]
+  blocks: ["T-8"]
+
+T8:
+  id: T-8
+  title: "Phase 8 — Verify (full suite + coverage parity + visual regression baselines)"
+  type: tests
+  surface: FE
+  production_code: false                              # verification only
+  state: draft
+  owner_eligibility: { qwen_opencode: false, claude_sonnet: true, claude_opus_required: false }
+  priority: 1
+  estimate_hours: 3
+  decisions_applicable: [AD2]
+  inputs:
+    spec: "../01-spec.md"
+    arch_fe_doc: "../03-arch-fe.md"
+    live_repro_story_1: "../app-shell-sidebar-copilot-decoupling/00-live-repro.md"
+    rules: [".claude/rules/e2e-testing.md", ".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["playwright-expert", "frontend-expert"]
+  deliverables:
+    - "Run vitest full suite — coverage NO baja vs baseline ~25%"
+    - "Run Playwright smoke 5 stages routes (growth-studio-stages.spec.ts)"
+    - "Run Playwright VR (growth-studio-bowtie.spec.ts + growth-studio-responsive.spec.ts)"
+    - "Re-baseline visual regression baselines + Chris ratify (manual review)"
+    - "**Bundle analysis:** growth-studio chunk size NO aumenta >5% vs baseline"
+  out_of_scope: ["New tests beyond verification"]
+  acceptance:
+    - validator_ids: [fe_typecheck, fe_lint_growth, fe_arch_fitness_full, scenario_3_visual_bowtie_pixel_perfect, visual_bowtie_pixel_perfect_e2e, visual_dashboard_responsive, integration_e2e_growth_smoke]
+  quality_gates:
+    - "All Playwright smoke GREEN native execution"
+    - "Visual baselines ratified by Chris before final commit"
+    - "Coverage parity"
+    - "Bundle size delta <5%"
+  depends_on: ["T-7"]
+  blocks: []
+
+# ── Tickets list ─────────────────────────────
+tickets:
+  - $ref: "#/T1"
+  - $ref: "#/T2"
+  - $ref: "#/T3"
+  - $ref: "#/T4"
+  - $ref: "#/T5"
+  - $ref: "#/T6"
+  - $ref: "#/T7"
+  - $ref: "#/T8"
