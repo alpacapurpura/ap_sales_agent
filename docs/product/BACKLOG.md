@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-07T01:05:12+00:00`
+> Generated at: `2026-05-07T01:49:19+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -31,17 +31,17 @@
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
 
-### 📦 Ready for development (1 / cap 5)
-- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation`
-
-### 🔨 Developing (0 / cap 3)
+### 📦 Ready for development (0 / cap 5)
 - _(none)_
 
-### 🧪 Developed — esperando QA (1 / cap 2)
-- **maintenance-skill-sales-agent-audit** — outcome `pi-12-sales-agent-eval-foundation`
+### 🔨 Developing (1 / cap 3)
+- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation` [BUILD_T1]
 
-### 🔍 Reviewing (0 / cap 2)
-- _(none in review)_
+### 🧪 Developed — esperando QA (0 / cap 2)
+- _(none)_
+
+### 🔍 Reviewing (1 / cap 2)
+- maintenance-skill-sales-agent-audit
 
 ### Recently shipped (last 90d, 3 items)
 - pi-11-backend-quality-guardrails — 2026-05-06
@@ -78,12 +78,12 @@ kanban
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
     overflow-🔬 Refining[+3 more]
   ✅ Refined (0 / cap 5)
-  📦 Ready (1 / cap 5)
+  📦 Ready (0 / cap 5)
+  🔨 Developing (1 / cap 3)
     eval-foundation-tenant-seed-da[eval-foundation-tenant-seed-data]
-  🔨 Developing (0 / cap 3)
-  🧪 Developed (1 / cap 2)
+  🧪 Developed (0 / cap 2)
+  🔍 Reviewing (1 / cap 2)
     maintenance-skill-sales-agent-[maintenance-skill-sales-agent-audit]
-  🔍 Reviewing (0 / cap 2)
   ✅ Done (3 / 90d rolling)
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]

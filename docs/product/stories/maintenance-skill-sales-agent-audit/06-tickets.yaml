@@ -20,12 +20,14 @@ summary:
     surface: BE
     production_code: false                          # R23 — touches tests/scripts/ + .claude/skills/ ONLY
     owner_pool: [qwen-opencode, claude-sonnet]      # Opus NO requerido (R23 production_code=false)
-    state: pushed
+    state: audit-passed
     assigned_to: claude-sonnet (builder-backend)
     assigned_at: 2026-05-06T22:00:00Z
     completed_at: 2026-05-06T23:59:00Z
     pushed_at: 2026-05-06T20:05:30Z
     push_commit_sha: 376ebbc6
+    audit_verdict: APPROVED
+    audit_at: 2026-05-06T20:15:00Z
     blocks: []
     blocked_by: []
 
@@ -36,12 +38,14 @@ T1:
   type: tests-and-docs                              # híbrido: test pytest nuevo + doc edits skill
   surface: BE
   production_code: false                            # R23 — cero src/ touches; solo tests/scripts/ + .claude/skills/
-  state: pushed
+  state: audit-passed
   assigned_to: claude-sonnet (builder-backend)
   assigned_at: 2026-05-06T22:00:00Z
   completed_at: 2026-05-06T23:59:00Z
   pushed_at: 2026-05-06T20:05:30Z
   push_commit_sha: 376ebbc6
+  audit_verdict: APPROVED
+  audit_at: 2026-05-06T20:15:00Z
   owner_eligibility:
     qwen_opencode: true                             # OK — doc-engineering + test pytest puro filesystem
     claude_sonnet: true                             # PREFERRED — capable de markdown parsing + AST scan + 4 pasadas del audit
@@ -173,6 +177,7 @@ T1:
     - { state: assigned, at: "2026-05-06T22:00:00Z", by: "/dev-team", to: "claude-sonnet (builder-backend)" }
     - { state: developed, at: "2026-05-06T23:59:00Z", by: "builder-backend", validators: "A1-A9 GREEN (10/10 pytest PASS, ruff 0 errors, arch 827/827)" }
     - { state: pushed, at: "2026-05-06T20:05:30Z", by: "/dev-team", commit: "376ebbc6", gate_output: "gate-output.json any_fail=false" }
+    - { state: audit-passed, at: "2026-05-06T20:15:00Z", by: "auditor-backend", verdict: "APPROVED", review_file: "T-1-review.md", findings: "0 FAIL / 3 non-blocking WARN / 4 PASS / 11 N/A" }
   assigned_to: "claude-sonnet (builder-backend)"
 
   notes_for_dev_team: |

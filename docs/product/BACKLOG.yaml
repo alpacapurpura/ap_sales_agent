@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T01:05:12+00:00
+# Generated at: 2026-05-07T01:49:19+00:00
 
-generated_at: '2026-05-07T01:05:12+00:00'
+generated_at: '2026-05-07T01:49:19+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -352,41 +352,40 @@ buckets:
       priority_override: null
       audit_iterations: 0
   refined: []
-  ready:
+  ready: []
+  developing:
   - id: eval-foundation-tenant-seed-data
     kind: story
-    state: ready
+    state: developing
     title: eval-foundation-tenant-seed-data
     tags:
     - legacy:exempt
-    last_touched: 2026-05-06 21:35:00+00:00
+    last_touched: 2026-05-06 22:00:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: READY_PACKAGE_CLOSED
-      next_action: /dev-team Conv 2 autonomous build → toma T-1 (state ready→developing). 4 tickets en cascada T-1→T-2→T-3→T-4.
-        Total 5-7d. Surfaces BE only, production_code=false los 4. Owner pool [qwen-opencode, claude-sonnet] para T-1+T-2;
-        claude-sonnet preferred para T-3+T-4 (content drafting + Chris assistance).
+      phase: BUILD_T1
+      next_action: '/dev-team builder-backend (sonnet) construye T-1: schema + loader + dialect catalog + tests baseline (RED
+        esperado hasta T-3). Luego T-2 (PII scanner + hook), T-3 (drafts content), T-4 (curación Chris).'
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  developing: []
-  developed:
+  developed: []
+  reviewing:
   - id: maintenance-skill-sales-agent-audit
     kind: story
-    state: developed
+    state: reviewing
     title: maintenance-skill-sales-agent-audit
     tags:
     - legacy:exempt
-    last_touched: 2026-05-06 20:05:30+00:00
+    last_touched: 2026-05-06 20:15:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: AWAIT_AUDIT
-      next_action: T-1 pushed (commit 376ebbc6). gate-output.json any_fail=false (ruff lint+format+pytest 10/10 PASS). Chris
-        triggers /auditor manualmente cuando quiera Conv 3.
+      phase: AUDIT_DONE
+      next_action: /pm aplica merge → state=reviewing→done → archive a docs/archive/2026/stories/maintenance-skill-sales-agent-audit/.
+        T-1 audit_verdict=APPROVED (0 FAIL / 3 non-blocking WARN). 9 stories downstream desbloqueadas conceptualmente.
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails
     kind: outcome
