@@ -1,0 +1,57 @@
+# communication_assets.yaml — tenant_coach_lat
+# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+
+social_media:
+  instagram: "@visionarias.coach"
+  youtube: "https://www.youtube.com/@visionarias.oficial"
+  linkedin: "https://www.linkedin.com/company/visionarias-coach"
+  tiktok: "@visionariascoach"
+  podcast: "Visionarias en Movimiento (Spotify)"
+
+website:
+  url: "https://visionarias.lat"
+  blog_url: "https://visionarias.lat/blog"
+  free_resource_url: "https://visionarias.lat/guia-gratuita"
+
+email_marketing:
+  list_name: "Lista Visionarias"
+  welcome_sequence_length: 5
+  newsletter_frequency: "semanal"
+  main_cta: "Descargar la guía gratuita"
+
+content_pillars:
+  - name: "Estrategia de marketing"
+    description: "Tips y frameworks para atraer clientes ideales"
+    formats:
+      - "carrusel Instagram"
+      - "video corto"
+      - "artículo blog"
+  - name: "Mindset emprendedora"
+    description: "Mentalidad, síndrome del impostor, precio y valor"
+    formats:
+      - "reel"
+      - "story reflexión"
+  - name: "Casos de éxito"
+    description: "Historias de transformación de clientas"
+    formats:
+      - "testimonio en carrusel"
+      - "video entrevista"
+  - name: "Sistema VISIONARIA"
+    description: "Educación sobre la metodología"
+    formats:
+      - "serie de posts"
+      - "email curso gratuito"
+
+key_messages:
+  - "Tu expertise vale más de lo que cobras"
+  - "Las ventas no tienen que sentirse incómodas"
+  - "Un negocio sostenible empieza con una oferta clara"
+  - "No necesitas una audiencia enorme para ganar bien"
+
+tone_of_voice: "Directa, cálida, inspiradora. Habla de tú a tú, sin jerga corporativa."
+
+lead_magnet:
+  title: "Guía gratuita: 5 errores que cometes en tu marketing"
+  format: "PDF 18 páginas"
+  delivery_method: "email automático post suscripción"
+  opt_in_page: "https://visionarias.lat/guia-gratuita"

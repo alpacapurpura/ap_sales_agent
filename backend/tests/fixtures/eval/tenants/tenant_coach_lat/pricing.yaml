@@ -1,0 +1,56 @@
+# pricing.yaml — tenant_coach_lat
+# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
+# Todos los precios en PEN para aislamiento de tests
+
+currency: PEN
+country: PE
+payment_methods:
+  - "transferencia_bancaria"
+  - "tarjeta_credito_debito"
+  - "yape"
+  - "plin"
+
+price_list:
+  - offer_level: "L0"
+    offer_name: "Guía gratuita: 5 errores que cometes en tu marketing"
+    price: 0
+    billing_cycle: "one_time"
+    is_free: true
+
+  - offer_level: "L1"
+    offer_name: "Workshop: Oferta Irresistible en 3 horas"
+    price: 49
+    billing_cycle: "one_time"
+    discount_policy: "10% en grupos de 3 o más"
+
+  - offer_level: "L2"
+    offer_name: "Curso: Sistema VISIONARIA Completo"
+    price: 297
+    billing_cycle: "one_time"
+    payment_plan: "3 cuotas de PEN 109"
+    discount_policy: "5% para ex-alumnas del workshop"
+
+  - offer_level: "L3"
+    offer_name: "Comunidad Visionarias VIP"
+    price: 89
+    billing_cycle: "monthly"
+    annual_price: 890
+    discount_annual: "17% descuento pago anual"
+    free_trial_days: 7
+
+  - offer_level: "L4"
+    offer_name: "Mentoría 1:1 Intensiva"
+    price: 1490
+    billing_cycle: "monthly"
+    minimum_commitment_months: 3
+    payment_plan: null
+    discount_policy: "PEN 200 descuento pago trimestral adelantado"
+
+refund_policy: >
+  Satisfacción garantizada 7 días en productos digitales. Mentoría: sesión de
+  prueba antes del primer pago mensual. Sin reembolso después del inicio del
+  programa por ser servicio personalizado.
+
+pricing_philosophy: >
+  Precios basados en el valor transformacional, no en horas de trabajo.
+  Cada inversión está diseñada para recuperarse en el primer mes de aplicación.

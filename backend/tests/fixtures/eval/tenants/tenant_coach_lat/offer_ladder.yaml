@@ -1,0 +1,75 @@
+# offer_ladder.yaml — tenant_coach_lat
+# 5 niveles L0-L4 con L0 lead magnet (A1 tiene L0 per spec)
+# Currency: PEN
+
+tenant_slug: tenant_coach_lat
+currency: PEN
+has_lead_magnet: true
+total_levels: 5
+entry_point: "L0 — PDF descargable gratuito (lead magnet)"
+upsell_path: "L0 → L1 → L2 → L3 → L4"
+
+offers:
+  - level: "L0"
+    name: "Guía gratuita: 5 errores que cometes en tu marketing"
+    description: >
+      PDF descargable de 18 páginas con los 5 errores más comunes que cometen
+      las emprendedoras al hacer marketing y cómo evitarlos. Incluye ejercicios
+      prácticos y plantillas listas para usar.
+    format: "pdf_descargable"
+    price: 0
+    is_free: true
+    lead_magnet: true
+    delivery: "inmediato via email"
+    value_proposition: "Diagnóstico rápido + primeros pasos concretos"
+
+  - level: "L1"
+    name: "Workshop: Oferta Irresistible en 3 horas"
+    description: >
+      Taller en vivo de 3 horas donde defines tu oferta principal, precio justo
+      y mensaje de ventas. Incluye grabación y materiales.
+    format: "taller_en_vivo"
+    price: 49
+    currency_display: "PEN 49"
+    duration: "3 horas"
+    delivery: "online via Zoom"
+    value_proposition: "Define tu oferta y precio en una sola sesión"
+
+  - level: "L2"
+    name: "Curso: Sistema VISIONARIA Completo"
+    description: >
+      Curso online de 8 semanas con todos los módulos del Sistema VISIONARIA:
+      claridad de nicho, estructura de oferta, creación de contenido y sistema
+      de ventas. Acceso de por vida + comunidad privada.
+    format: "curso_online"
+    price: 297
+    currency_display: "PEN 297"
+    duration: "8 semanas"
+    delivery: "plataforma online + comunidad privada"
+    value_proposition: "Metodología completa para construir tu negocio paso a paso"
+
+  - level: "L3"
+    name: "Comunidad Visionarias VIP"
+    description: >
+      Membresía mensual con acceso a sesiones grupales semanales, biblioteca de
+      recursos, comunidad activa y soporte continuo de la coach y su equipo.
+    format: "membresia_mensual"
+    price: 89
+    currency_display: "PEN 89/mes"
+    billing: "mensual"
+    delivery: "plataforma online + sesiones Zoom semanales"
+    value_proposition: "Acompañamiento continuo y comunidad de mujeres que se impulsan"
+
+  - level: "L4"
+    name: "Mentoría 1:1 Intensiva"
+    description: >
+      Programa de mentoría individual de 3 meses con sesiones semanales de 60
+      minutos, acceso directo a la coach, plan personalizado y soporte WhatsApp
+      entre sesiones. Para emprendedoras que quieren resultados acelerados.
+    format: "mentoria_individual"
+    price: 1490
+    currency_display: "PEN 1,490/mes"
+    billing: "mensual"
+    duration: "3 meses mínimo"
+    delivery: "sesiones Zoom 1:1 + WhatsApp"
+    value_proposition: "Transformación acelerada con acompañamiento personalizado"

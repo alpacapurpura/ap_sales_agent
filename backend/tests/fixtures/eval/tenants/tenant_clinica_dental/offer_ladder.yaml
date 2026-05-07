@@ -1,0 +1,84 @@
+# offer_ladder.yaml — tenant_clinica_dental
+# 5 niveles L0-L4 con L0 primera consulta gratis (A3 tiene L0 per spec)
+# Currency: PEN
+
+tenant_slug: tenant_clinica_dental
+currency: PEN
+has_lead_magnet: true
+total_levels: 5
+entry_point: "L0 — Primera consulta dental gratuita con diagnóstico digital"
+upsell_path: "L0 → L1 → L2 → L3 → L4"
+
+offers:
+  - level: "L0"
+    name: "Primera consulta dental gratuita"
+    description: >
+      Evaluación dental completa gratuita con el Dr. Marco Salinas. Incluye
+      revisión clínica, fotografías intraorales digitales y plan de tratamiento
+      priorizado. Sin compromiso de tratamiento.
+    format: "consulta_presencial"
+    price: 0
+    is_free: true
+    lead_magnet: true
+    delivery: "presencial en clínica, previa cita"
+    value_proposition: "Diagnóstico completo sin costo + plan personalizado"
+
+  - level: "L1"
+    name: "Profilaxis dental (limpieza profesional)"
+    description: >
+      Limpieza dental completa con ultrasonido, remoción de sarro y manchas,
+      pulido y aplicación de flúor. Incluye instrucciones de higiene oral
+      personalizadas. Recomendada cada 6 meses.
+    format: "tratamiento_presencial"
+    price: 80
+    currency_display: "PEN 80"
+    duration: "45 minutos"
+    delivery: "presencial en clínica"
+    sessions: 1
+    value_proposition: "Piel dental limpia, sin sarro y con protección de flúor"
+
+  - level: "L2"
+    name: "Tratamiento de ortodoncia (brackets)"
+    description: >
+      Tratamiento ortodóntico completo con brackets metálicos o de zafiro.
+      Incluye todos los controles mensuales, ajustes necesarios, retención
+      al finalizar y guarda nocturna de mantenimiento. Duración promedio
+      18-24 meses según el caso.
+    format: "tratamiento_largo_plazo"
+    price: 2000
+    currency_display: "PEN 2,000 (pago inicial) + cuotas mensuales"
+    duration: "18-24 meses"
+    delivery: "presencial, consultas mensuales"
+    sessions: "múltiples (incluidas)"
+    payment_plan: "24 cuotas sin intereses disponibles"
+    value_proposition: "Sonrisa alineada con seguimiento completo durante todo el tratamiento"
+
+  - level: "L3"
+    name: "Estética dental completa (carillas + blanqueamiento)"
+    description: >
+      Paquete de transformación estética que incluye blanqueamiento dental
+      profesional en consultorio (2 sesiones) más colocación de carillas
+      de resina en los 6 dientes anteriores superiores. Resultados inmediatos
+      y duraderos.
+    format: "paquete_estetico"
+    price: 3500
+    currency_display: "PEN 3,500"
+    sessions: 4
+    delivery: "presencial, plan en 3 semanas"
+    payment_plan: "3 pagos de PEN 1,167"
+    value_proposition: "Transformación completa de la sonrisa con resultados inmediatos"
+
+  - level: "L4"
+    name: "Control anual familiar (Plan Familia)"
+    description: >
+      Plan familiar anual para hasta 4 integrantes que incluye 2 profilaxis
+      por persona al año, radiografías de control, descuentos del 20% en
+      todos los tratamientos y prioridad en agenda. El plan más económico
+      para mantener la salud bucal de toda la familia.
+    format: "membresia_anual_familiar"
+    price: 250
+    currency_display: "PEN 250/año por persona"
+    billing: "anual"
+    discount_on_treatments: "20% en todos los tratamientos"
+    delivery: "presencial, agenda prioritaria"
+    value_proposition: "Prevención continua + ahorro significativo en tratamientos"

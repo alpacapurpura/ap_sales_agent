@@ -1,0 +1,110 @@
+# buyer_personas.yaml — tenant_agencia_automatizacion_ia
+# Exactamente 3 personas: 2 base + 1 adversarial (Q8 ratificado)
+# Dialect: es-419 — tuteo neutro pan-LatAm, sin voseo
+
+tenant_slug: tenant_agencia_automatizacion_ia
+dialect_code: es-419
+currency: PEN
+target_market: "Gerentes de operaciones y CTOs de pymes LatAm con 10-200 empleados que tienen procesos manuales costosos y quieren escalar sin contratar"
+persona_count: 3
+decision_driver: "ROI demostrable en 90 días + evidencia técnica real (no branding de IA)"
+
+personas:
+  - name: "Miguel el Gerente Operativo"
+    persona_type: "base"
+    age: 41
+    role: "Gerente de operaciones de empresa de logística"
+    location: "Lima, Perú"
+    income_range: "PEN 8,000 - 13,000/mes"
+    education: "Ingeniero industrial, MBA"
+    family_status: "Casado, dos hijos"
+    pain_points:
+      - "Su equipo de 8 personas hace el 60% de su trabajo procesando Excel manualmente"
+      - "Los errores de digitación generan reclamos de clientes semanalmente"
+      - "No puede escalar sin contratar y cada contratación tarda meses"
+      - "Tiene datos de operaciones pero no los analiza porque nadie tiene tiempo"
+    objections:
+      - "¿Se puede integrar con nuestro ERP actual (SAP B1)?"
+      - "No tenemos equipo de TI interno, ¿quién lo mantiene después?"
+      - "¿Qué pasa si falla el agente en el momento de mayor demanda?"
+    budget_range: "PEN 8,000-20,000 para implementación con ROI claro en 90 días"
+    preferred_channels:
+      - channel: "Email"
+        frequency: "formal, primera comunicación"
+        tone: "técnico y directo"
+      - channel: "Video call"
+        frequency: "para demos y propuestas"
+        tone: "orientado a datos"
+    aspirations:
+      - "Que su equipo se enfoque en decisiones estratégicas, no en digitación"
+      - "Reducir errores operativos a cero con automatización"
+    buyer_journey:
+      awareness: "Artículo LinkedIn sobre automatización en logística LatAm"
+      consideration: "Pide demo de caso similar en su industria"
+      decision: "La auditoría con ROI calculado lo convence de empezar"
+
+  - name: "Sandra la Directora de E-commerce"
+    persona_type: "base"
+    age: 35
+    role: "Directora de e-commerce de tienda de moda online"
+    location: "Ciudad de México, México (con operaciones LatAm)"
+    income_range: "PEN 10,000 - 18,000/mes equivalente"
+    education: "Licenciada en Marketing, certificaciones Google/Meta Ads"
+    family_status: "Soltera"
+    pain_points:
+      - "El proceso de atención al cliente post-venta absorbe 40% del equipo"
+      - "Las respuestas manuales son lentas y las noches y fines de semana quedan sin atender"
+      - "Los reportes de ventas se generan manualmente cada semana, tarda 3 horas"
+      - "Ha intentado chatbots básicos que frustran a los clientes por ser demasiado rígidos"
+    objections:
+      - "Los chatbots que probé antes eran una experiencia horrible para los clientes"
+      - "No quiero que los clientes sientan que hablan con un robot"
+      - "¿Cuánto tiempo tarda la implementación?"
+    budget_range: "PEN 4,000-12,000 inicial + retainer si el ROI es claro"
+    preferred_channels:
+      - channel: "LinkedIn"
+        frequency: "navega antes de contactar"
+        tone: "casos de éxito e-commerce"
+      - channel: "Video call"
+        frequency: "para demo y preguntas técnicas"
+        tone: "visual, con ejemplos concretos"
+    aspirations:
+      - "Atención al cliente 24/7 que no comprometa la experiencia del cliente"
+      - "Reportes automáticos que su equipo pueda leer sin procesar datos"
+    buyer_journey:
+      awareness: "Webinar sobre agentes conversacionales para e-commerce"
+      consideration: "Pide demo específico del agente de atención al cliente"
+      decision: "La promesa de agentes conversacionales (no chatbots) la convence"
+
+  - name: "Lorenzo el CTO Escéptico"
+    persona_type: "adversarial"
+    age: 38
+    role: "CTO de empresa de servicios financieros"
+    location: "Lima, Perú"
+    income_range: "PEN 18,000+ /mes"
+    education: "Ingeniero de sistemas, maestría en informática"
+    family_status: "Casado, un hijo"
+    pain_points:
+      - "Ha visto múltiples proyectos de IA fracasar en su empresa por falta de rigor"
+      - "Le preocupa la seguridad de datos en soluciones de terceros"
+      - "Su empresa maneja datos financieros sensibles bajo regulaciones estrictas"
+    objections:
+      - "¿Cómo garantizan la seguridad de datos financieros bajo la regulación de la SBS?"
+      - "No voy a dar acceso a datos de clientes a ninguna herramienta de terceros sin auditoría"
+      - "He visto muchas 'soluciones IA' que son solo APIs de OpenAI envueltas en branding"
+      - "¿Qué pasa cuando OpenAI cambia su API o sube precios? ¿Quedamos atrapados?"
+    budget_range: "Budget ilimitado, pero exige rigor técnico y legal antes de comprometerse"
+    preferred_channels:
+      - channel: "Email técnico"
+        frequency: "documentación detallada primero"
+        tone: "formal, con especificaciones técnicas"
+    adversarial_notes: >
+      Lorenzo desafía la solidez técnica, la seguridad y la independencia de
+      proveedores. Es un CTO que ha visto muchas consultoras de IA que no
+      tienen profundidad real. Útil para evaluar si el agent puede responder
+      preguntas técnicas con precisión sin inventar respuestas y sin perder
+      la compostura ante un prospecto técnicamente sofisticado.
+    buyer_journey:
+      awareness: "Recomendación de otro CTO de empresa no financiera"
+      consideration: "Solicita documentación técnica, política de seguridad y arquitectura propuesta"
+      decision: "Solo avanza si hay un POC en ambiente aislado con sus datos de prueba"

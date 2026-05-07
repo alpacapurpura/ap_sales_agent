@@ -1,0 +1,72 @@
+# brand.yaml — tenant_agencia_automatizacion_ia
+# Tenant: NovaByte Automatización IA — Agencia de automatización con IA para pymes LatAm
+# Inspiración: aggregate brandtech.pe + agencias IA LatAm. Datos inventados.
+# Dialect: es-419 | Currency: PEN | SIN L0
+
+identity:
+  brand_name: "NovaByte Automatización IA"
+  tagline: "Automatiza lo repetitivo, enfócate en lo estratégico"
+  description: >
+    NovaByte es una agencia especializada en automatización de procesos con
+    inteligencia artificial para pequeñas y medianas empresas en LatAm.
+    Diseñamos, construimos y operamos agentes de IA, flujos automatizados
+    y sistemas de datos que eliminan trabajo manual y escalan operaciones
+    sin contratar más personal. No vendemos tecnología; vendemos tiempo
+    y capacidad operativa recuperada.
+  industry: "automatización de procesos con IA y desarrollo de agentes inteligentes para pymes"
+  website: "https://novabyte.pe"
+  founding_year: "2023"
+  language: "es"
+  timezone: "America/Lima"
+  country_of_registration: "PE"
+  legal_entity_type: "sas"
+  tax_regime: "Régimen MYPE Tributario"
+
+strategy:
+  methodology_name: "Proceso NOVA"
+  methodology_description: >
+    Metodología de 4 etapas para identificar, automatizar y operar los procesos
+    de negocio con mayor impacto en tiempo y costo. Cada implementación incluye
+    medición de ROI desde el primer mes.
+  methodology_pillars:
+    - title: "Discovery"
+      description: "Mapeo de procesos actuales y cuantificación de costo de ineficiencias"
+    - title: "Diseño"
+      description: "Arquitectura de la solución automatizada adaptada a tu stack actual"
+    - title: "Implementación"
+      description: "Construcción y despliegue del agente o flujo automatizado"
+    - title: "Operación"
+      description: "Monitoreo continuo, ajustes y soporte post-implementación"
+
+story:
+  origin: >
+    Fundada por dos ex-ingenieros de software que trabajaron en startups de
+    automatización en Silicon Valley y decidieron traer ese conocimiento a las
+    pymes latinoamericanas que no tienen acceso a equipos de ingeniería costosos.
+  mission: >
+    Democratizar la automatización con IA para que las pymes latinoamericanas
+    puedan competir con la eficiencia operativa de empresas 10 veces más grandes.
+  vision: >
+    Un LatAm donde ninguna pyme pierde competitividad por no poder pagar un
+    equipo de ingeniería completo. La IA debe ser accesible, no un privilegio.
+
+positioning:
+  unique_value_proposition: >
+    La única agencia de automatización IA en LatAm que garantiza reducción
+    medible de tiempo operativo en los primeros 60 días o devuelve el 50%
+    del costo de implementación.
+  brand_essence: "Operaciones que escalan solas"
+  discriminator: "Automatización IA con ROI garantizado y garantía de resultados"
+
+brand_personality:
+  archetype: "magician"
+  core_values:
+    - "Resultados medibles"
+    - "Accesibilidad tecnológica"
+    - "Transparencia técnica"
+    - "Iteración rápida"
+  personality_traits:
+    - "Técnico pero claro"
+    - "Orientado a datos"
+    - "Eficiente"
+    - "Confiable"

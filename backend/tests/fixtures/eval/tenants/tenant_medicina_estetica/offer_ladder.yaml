@@ -1,0 +1,81 @@
+# offer_ladder.yaml — tenant_medicina_estetica
+# 5 niveles L0-L4 con L0 consulta de evaluación gratis (A2 tiene L0 per spec)
+# Currency: PEN
+
+tenant_slug: tenant_medicina_estetica
+currency: PEN
+has_lead_magnet: true
+total_levels: 5
+entry_point: "L0 — Consulta de evaluación estética gratuita presencial"
+upsell_path: "L0 → L1 → L2 → L3 → L4"
+
+offers:
+  - level: "L0"
+    name: "Consulta de evaluación estética gratuita"
+    description: >
+      Primera consulta presencial de 30 minutos con la Dra. Torres. Evaluación
+      completa de tu piel facial y corporal, diagnóstico personalizado y plan
+      de tratamiento recomendado sin ningún compromiso.
+    format: "consulta_presencial"
+    price: 0
+    is_free: true
+    lead_magnet: true
+    delivery: "presencial en clínica, previa cita"
+    value_proposition: "Diagnóstico médico profesional gratuito sin compromiso"
+
+  - level: "L1"
+    name: "Limpieza facial profunda"
+    description: >
+      Tratamiento completo de limpieza facial que incluye evaluación inicial,
+      limpieza profunda, extracción de comedones, hidratación intensiva y
+      mascarilla personalizada según tu tipo de piel. Duración: 60 minutos.
+    format: "tratamiento_presencial"
+    price: 150
+    currency_display: "PEN 150"
+    duration: "60 minutos"
+    delivery: "presencial en clínica"
+    sessions: 1
+    value_proposition: "Piel limpia, luminosa y lista para tratamientos más profundos"
+
+  - level: "L2"
+    name: "Paquete facial rejuvenecedor (4 sesiones)"
+    description: >
+      Programa de 4 sesiones de limpieza profunda + microdermoabrasión + aplicación
+      de vitamina C + mascarilla antiaging. Seguimiento fotográfico de resultados.
+      Ideal para tratamiento de manchas, poros abiertos y opacidad.
+    format: "paquete_tratamientos"
+    price: 800
+    currency_display: "PEN 800"
+    sessions: 4
+    duration_per_session: "75 minutos"
+    delivery: "presencial en clínica, una sesión cada 15 días"
+    value_proposition: "Resultados visibles y duraderos con protocolo médico completo"
+
+  - level: "L3"
+    name: "Tratamiento corporal reafirmante (5 sesiones)"
+    description: >
+      Programa intensivo de 5 sesiones de radiofrecuencia corporal + drenaje
+      linfático + envolvimiento reafirmante. Para tratamiento de flacidez,
+      celulitis y contorno corporal. Incluye evaluación inicial y seguimiento.
+    format: "paquete_corporal"
+    price: 2500
+    currency_display: "PEN 2,500"
+    sessions: 5
+    duration_per_session: "90 minutos"
+    delivery: "presencial en clínica, dos sesiones por semana"
+    value_proposition: "Reafirmación y modelado corporal con tecnología avanzada"
+
+  - level: "L4"
+    name: "Plan integral de cuidado anual"
+    description: >
+      Membresía anual que incluye limpiezas faciales mensuales, una sesión de
+      tratamiento facial especial por trimestre, descuentos en tratamientos
+      corporales y consulta médica prioritaria. El plan más completo para
+      mantener tu piel en óptimas condiciones todo el año.
+    format: "membresia_anual"
+    price: 250
+    currency_display: "PEN 250/mes"
+    billing: "mensual"
+    annual_price: 2800
+    delivery: "presencial en clínica, citas mensuales garantizadas"
+    value_proposition: "Cuidado médico estético integral con beneficios exclusivos"

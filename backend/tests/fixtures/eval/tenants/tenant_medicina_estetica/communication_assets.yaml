@@ -1,0 +1,63 @@
+# communication_assets.yaml — tenant_medicina_estetica
+# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+
+social_media:
+  instagram: "@dermabella.estetica"
+  facebook: "https://www.facebook.com/dermabell.estetica"
+  tiktok: "@dermabella_oficial"
+  google_business: "https://g.page/dermabella-lima"
+
+website:
+  url: "https://dermabella.com.pe"
+  blog_url: "https://dermabella.com.pe/blog"
+  booking_url: "https://dermabella.com.pe/agenda"
+  before_after_gallery: "https://dermabella.com.pe/resultados"
+
+email_marketing:
+  list_name: "Pacientes Dermabella"
+  welcome_sequence_length: 3
+  newsletter_frequency: "quincenal"
+  main_cta: "Agenda tu consulta gratuita"
+
+content_pillars:
+  - name: "Educación sobre tratamientos"
+    description: "Qué esperar de cada procedimiento, mitos y realidades"
+    formats:
+      - "reels explicativos"
+      - "carrusel informativo"
+      - "artículo blog"
+  - name: "Antes y después"
+    description: "Casos reales con consentimiento de pacientes"
+    formats:
+      - "post comparativo"
+      - "story de seguimiento"
+  - name: "Bienestar y autocuidado"
+    description: "Tips de skincare y estilo de vida saludable"
+    formats:
+      - "reel consejos"
+      - "infografía"
+  - name: "Equipo médico"
+    description: "Credenciales, formación y humanización del equipo"
+    formats:
+      - "video presentación"
+      - "Q&A con la doctora"
+
+key_messages:
+  - "Cada piel es única, tu tratamiento también lo es"
+  - "Resultados naturales con respaldo médico"
+  - "Tu seguridad primero, resultados visibles después"
+  - "Ciencia + cuidado = Dermabella"
+
+tone_of_voice: "Profesional, empático, claro. Confianza médica sin ser frío ni distante."
+
+lead_magnet:
+  title: "Consulta de evaluación estética gratuita"
+  format: "Cita presencial 30 minutos"
+  delivery_method: "Agendamiento online o por WhatsApp"
+  booking_url: "https://dermabella.com.pe/evaluacion-gratuita"
+
+physical_location:
+  address: "Av. Larco 1234, Miraflores, Lima"
+  reference: "Frente al Larcomar, edificio Torre Azul, piso 3"
+  parking: "Estacionamiento disponible en el edificio"
+  hours: "Lunes a Sábado, 9am - 7pm"

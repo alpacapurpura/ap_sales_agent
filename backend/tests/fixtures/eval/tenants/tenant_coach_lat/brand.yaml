@@ -1,0 +1,68 @@
+# brand.yaml — tenant_coach_lat
+# Tenant: Visionarias Coach — Coach de negocios y marketing para emprendedoras LatAm
+# Inspiración: visionarias.lat (sitio público de Chris). Datos inventados.
+# Dialect: es-PE | Currency: PEN
+
+identity:
+  brand_name: "Visionarias Coach"
+  tagline: "Transforma tu expertise en un negocio que funciona sin ti"
+  description: >
+    Visionarias Coach acompaña a emprendedoras latinoamericanas a construir negocios
+    rentables y sostenibles usando estrategias de marketing y ventas que respetan
+    su estilo de vida. Más de 300 clientes en 12 países han transformado su
+    expertise en ingresos predecibles.
+  industry: "coaching de negocios y marketing digital para mujeres emprendedoras"
+  website: "https://visionarias.lat"
+  founding_year: "2019"
+  language: "es"
+  timezone: "America/Lima"
+  country_of_registration: "PE"
+  legal_entity_type: "persona_natural"
+  tax_regime: "RER"
+
+strategy:
+  methodology_name: "Sistema VISIONARIA"
+  methodology_description: >
+    Marco de 4 fases que lleva a la emprendedora desde claridad de oferta
+    hasta ventas automatizadas con autenticidad.
+  methodology_pillars:
+    - title: "Claridad"
+      description: "Define tu nicho, cliente ideal y propuesta de valor única"
+    - title: "Oferta"
+      description: "Estructura una oferta irresistible con precios que reflejan tu valor"
+    - title: "Atracción"
+      description: "Crea contenido y comunidad que atrae clientes de forma orgánica"
+    - title: "Conversión"
+      description: "Sistemas de venta que convierten sin perseguir ni presionar"
+
+story:
+  origin: >
+    Fundada en 2019 por una coach que después de 10 años en marketing corporativo
+    decidió llevar su conocimiento a las emprendedoras que más lo necesitaban:
+    mujeres con gran expertise pero sin sistema para monetizarlo.
+  mission: >
+    Democratizar el acceso a estrategias de marketing y ventas de alto nivel
+    para emprendedoras latinoamericanas.
+  vision: >
+    Un ecosistema donde cada mujer experta en LatAm pueda vivir de su conocimiento
+    con dignidad y libertad financiera.
+
+positioning:
+  unique_value_proposition: >
+    La única metodología en LatAm diseñada específicamente para mujeres expertas
+    que quieren vender sin perseguir clientes ni sacrificar su vida personal.
+  brand_essence: "Libertad a través del expertise"
+  discriminator: "Coaching de negocios con enfoque en bienestar y autenticidad"
+
+brand_personality:
+  archetype: "sage"
+  core_values:
+    - "Autenticidad"
+    - "Libertad financiera"
+    - "Comunidad femenina"
+    - "Estrategia con propósito"
+  personality_traits:
+    - "Cálida"
+    - "Directa"
+    - "Inspiradora"
+    - "Estratégica"

@@ -1,0 +1,64 @@
+# communication_assets.yaml — tenant_clinica_dental
+# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+
+social_media:
+  instagram: "@sonrisaperfecta.dental"
+  facebook: "https://www.facebook.com/sonrisaperfectaperu"
+  tiktok: "@sonrisaperfecta"
+  google_business: "https://g.page/sonrisa-perfecta-lima"
+
+website:
+  url: "https://sonrisaperfecta.pe"
+  blog_url: "https://sonrisaperfecta.pe/consejos-dentales"
+  booking_url: "https://sonrisaperfecta.pe/cita-gratuita"
+  before_after_gallery: "https://sonrisaperfecta.pe/resultados"
+
+email_marketing:
+  list_name: "Pacientes Sonrisa Perfecta"
+  welcome_sequence_length: 3
+  newsletter_frequency: "mensual"
+  main_cta: "Agenda tu primera consulta gratuita"
+
+content_pillars:
+  - name: "Antes y después"
+    description: "Transformaciones reales de pacientes con consentimiento"
+    formats:
+      - "carrusel Instagram"
+      - "reel comparativo"
+  - name: "Educación bucal"
+    description: "Tips de higiene oral, qué esperar de cada tratamiento"
+    formats:
+      - "video corto"
+      - "infografía"
+      - "artículo blog"
+  - name: "Desmitificando el dentista"
+    description: "Combatir el miedo y los mitos sobre tratamientos dentales"
+    formats:
+      - "reel educativo"
+      - "Q&A con el doctor"
+  - name: "Familia y prevención"
+    description: "Cuidado dental desde niños, Plan Familia"
+    formats:
+      - "story familiar"
+      - "post educativo padres"
+
+key_messages:
+  - "La primera consulta siempre es gratis, sin sorpresas"
+  - "Un diagnóstico completo desde el primer día"
+  - "Financiamiento real hasta 24 cuotas sin intereses"
+  - "Para toda la familia, de 3 a 90 años"
+
+tone_of_voice: "Confiable, cálido, transparente. Sin tecnicismos innecesarios. Como un dentista amigo de la familia."
+
+lead_magnet:
+  title: "Primera consulta dental gratuita"
+  format: "Evaluación presencial con diagnóstico digital"
+  delivery_method: "Agendamiento por WhatsApp, web o en persona"
+  booking_url: "https://sonrisaperfecta.pe/cita-gratuita"
+
+physical_location:
+  address: "Av. Angamos Oeste 567, Miraflores, Lima"
+  reference: "A media cuadra del Óvalo Gutiérrez, segundo piso"
+  parking: "Estacionamiento en calle disponible"
+  hours: "Lunes a Viernes 8am-8pm, Sábados 9am-2pm"
+  emergency_hours: "Urgencias dentales: llamar al horario de atención"

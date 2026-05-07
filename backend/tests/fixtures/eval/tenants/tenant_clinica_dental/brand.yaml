@@ -1,0 +1,70 @@
+# brand.yaml — tenant_clinica_dental
+# Tenant: Sonrisa Perfecta Clínica Dental — Odontología integral en Lima
+# Inspiración: dentalindo.com (referencia real). Datos completamente inventados.
+# Dialect: es-CO | Currency: PEN
+
+identity:
+  brand_name: "Sonrisa Perfecta"
+  tagline: "Tu sonrisa, nuestro compromiso de por vida"
+  description: >
+    Sonrisa Perfecta es una clínica dental integral en Lima que ofrece tratamientos
+    desde profilaxis hasta ortodoncia y estética dental, con tecnología digital
+    de punta y un equipo de especialistas dedicados a la salud bucal de toda la
+    familia. Más de 2,000 pacientes confían en nosotros para su cuidado dental.
+  industry: "odontología integral y estética dental"
+  website: "https://sonrisaperfecta.pe"
+  founding_year: "2015"
+  language: "es"
+  timezone: "America/Lima"
+  country_of_registration: "PE"
+  legal_entity_type: "sac"
+  tax_regime: "Régimen General"
+  regulated_profession_body: "Colegio Odontológico del Perú"
+
+strategy:
+  methodology_name: "Diagnóstico Digital Integral"
+  methodology_description: >
+    Utilizamos radiografías panorámicas digitales y fotografías intraorales en
+    cada primera visita para crear un plan de tratamiento completo y priorizado.
+    Sin diagnóstico completo, no existe plan de tratamiento serio.
+  methodology_pillars:
+    - title: "Diagnóstico completo"
+      description: "Evaluación digital completa en la primera visita gratuita"
+    - title: "Plan personalizado"
+      description: "Priorización de tratamientos según salud, estética y presupuesto"
+    - title: "Seguimiento semestral"
+      description: "Control preventivo cada 6 meses para mantener la salud bucal"
+
+story:
+  origin: >
+    Fundada por el Dr. Marco Salinas, egresado de la UPCH con especialidad en
+    ortodoncia, con la visión de crear una clínica familiar donde todos los
+    tratamientos, desde la primera muela hasta el bracket, se realicen en un
+    solo lugar con calidad universitaria.
+  mission: >
+    Brindar atención odontológica integral de alta calidad con tecnología moderna
+    y un trato humano que haga de cada visita una experiencia cómoda y confiable.
+  vision: >
+    Ser la clínica dental de referencia en Lima para familias que buscan
+    tratamientos preventivos y estéticos con especialistas certificados.
+
+positioning:
+  unique_value_proposition: >
+    La única clínica dental en Lima que ofrece diagnóstico digital completo gratuito
+    en la primera consulta, con plan de tratamiento priorizado y financiamiento
+    sin intereses hasta en 24 cuotas.
+  brand_essence: "Salud bucal para toda la familia"
+  discriminator: "Odontología integral con diagnóstico digital en primera consulta"
+
+brand_personality:
+  archetype: "caregiver"
+  core_values:
+    - "Salud bucal preventiva"
+    - "Confianza y transparencia"
+    - "Atención familiar"
+    - "Tecnología accesible"
+  personality_traits:
+    - "Confiable"
+    - "Cálido"
+    - "Profesional"
+    - "Transparente"

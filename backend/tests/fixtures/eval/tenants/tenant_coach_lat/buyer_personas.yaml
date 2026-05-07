@@ -1,0 +1,108 @@
+# buyer_personas.yaml — tenant_coach_lat
+# Exactamente 3 personas: 2 base + 1 adversarial (Q8 ratificado)
+# Dialect: es-PE — tuteo sin voseo
+
+tenant_slug: tenant_coach_lat
+dialect_code: es-PE
+currency: PEN
+target_market: "Emprendedoras latinoamericanas con expertise que quieren monetizar su conocimiento"
+persona_count: 3
+decision_driver: "Claridad sobre ROI de la inversión en coaching + confianza en la metodología"
+
+personas:
+  - name: "Sofía la Consultora"
+    persona_type: "base"
+    age: 34
+    role: "Consultora independiente de RRHH"
+    location: "Lima, Perú"
+    income_range: "PEN 3,000 - 6,000/mes"
+    education: "Licenciada en Psicología Organizacional"
+    family_status: "Soltera, sin hijos"
+    pain_points:
+      - "Tiene clientes esporádicos pero no flujo constante de ingresos"
+      - "No sabe cómo poner precio a sus servicios sin perder clientes"
+      - "Hace todo sola y no sabe cómo escalar sin contratar"
+      - "Siente que trabaja mucho pero gana poco comparado con su expertise"
+    objections:
+      - "No tengo tiempo para un programa largo"
+      - "Ya compré otros cursos que no funcionaron"
+      - "No sé si mi nicho es suficientemente grande"
+    budget_range: "PEN 200-500 por programa, PEN 89/mes membresía"
+    preferred_channels:
+      - channel: "Instagram"
+        frequency: "diario"
+        tone: "inspiracional + educativo"
+      - channel: "WhatsApp"
+        frequency: "para seguimiento"
+        tone: "personalizado"
+    aspirations:
+      - "Tener ingresos de PEN 8,000/mes trabajando 30 horas por semana"
+      - "Tener una metodología propia reconocida en LatAm"
+    buyer_journey:
+      awareness: "Ve contenido sobre pricing y estrategia en Instagram"
+      consideration: "Descarga la guía gratuita, sigue la cuenta por semanas"
+      decision: "Asiste al workshop, le gusta la metodología, se inscribe al curso"
+
+  - name: "Valentina la Coach Novata"
+    persona_type: "base"
+    age: 29
+    role: "Ex-ejecutiva corporativa reconvertida en coach de vida"
+    location: "Bogotá, Colombia (con seguidores en toda LatAm)"
+    income_range: "PEN 1,500 - 3,000/mes (ingresos irregulares)"
+    education: "MBA, certificación ICF nivel ACC"
+    family_status: "Casada, un hijo pequeño"
+    pain_points:
+      - "Tiene el conocimiento pero no sabe cómo venderlo sin sentirse 'vendedora'"
+      - "Miedo de cobrar caro por síndrome del impostor"
+      - "Sus clientes la respetan pero no la pagan lo que vale"
+      - "No sabe cómo diferenciar su oferta de los miles de coaches que hay"
+    objections:
+      - "El mercado de coaching está saturado, no sé si puedo destacar"
+      - "Mi audiencia en redes es pequeña, no creo que pueda vender"
+      - "No tengo dinero para invertir en marketing todavía"
+    budget_range: "PEN 50-150 inicial, puede escalar a PEN 297 con resultados"
+    preferred_channels:
+      - channel: "LinkedIn"
+        frequency: "semanal"
+        tone: "profesional + auténtico"
+      - channel: "Instagram Stories"
+        frequency: "diario"
+        tone: "behind the scenes"
+    aspirations:
+      - "Crear un curso online que genere ingresos pasivos"
+      - "Ser reconocida como referente en coaching de transición profesional"
+    buyer_journey:
+      awareness: "Encuentra a Visionarias en un podcast sobre emprendimiento femenino"
+      consideration: "Revisa el workshop, compara con otras opciones"
+      decision: "El precio accesible del workshop la convence de probar"
+
+  - name: "Rebeca la Escéptica"
+    persona_type: "adversarial"
+    age: 42
+    role: "Médica con consulta privada que quiere lanzar contenido de salud"
+    location: "Ciudad de México, México"
+    income_range: "PEN 8,000+ equivalente (ingresos médicos estables)"
+    education: "Médica especialista en nutrición clínica"
+    family_status: "Divorciada, dos hijos adolescentes"
+    pain_points:
+      - "Tiene credenciales de alto valor pero no sabe monetizar su conocimiento online"
+      - "Desconfía del 'mundo del coaching' por experiencias previas negativas"
+      - "Ha gastado en programas que prometían mucho y entregaron poco"
+    objections:
+      - "Esto parece más de lo mismo. Ya pagué por programas que no funcionaron"
+      - "No creo que una coach de marketing entienda la industria médica"
+      - "El precio es alto para algo que no sé si funciona"
+      - "Prefiero resolver esto con una consultora empresarial de verdad"
+    budget_range: "Tiene presupuesto (PEN 1,490+) pero exige demostración de valor"
+    preferred_channels:
+      - channel: "LinkedIn"
+        frequency: "ocasional"
+        tone: "solo contenido técnico bien fundamentado"
+    adversarial_notes: >
+      Esta persona desafía afirmaciones de resultados, pide evidencia concreta
+      y tiende a comparar con alternativas más 'serias'. Útil para evaluar si el
+      sales agent maneja objeciones fuertes sin perder compostura ni prometer demás.
+    buyer_journey:
+      awareness: "Llega por recomendación de una colega médica que fue clienta"
+      consideration: "Pide ver testimonios reales, metodología detallada y garantías"
+      decision: "Solo cierra si hay garantía de satisfacción y puede hablar con clientas previas"

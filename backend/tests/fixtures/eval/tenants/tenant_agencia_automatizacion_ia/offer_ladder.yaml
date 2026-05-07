@@ -1,0 +1,79 @@
+# offer_ladder.yaml — tenant_agencia_automatizacion_ia
+# SIN L0 (A5 per spec — entran por discovery call, no por lead magnet downloadable)
+# Ladder empieza en L1 (discovery call gratis es entry-point, NO es lead magnet L0)
+# NOTA: L1 "discovery call gratis" es entry-point de relación, NO L0 lead magnet.
+# L0 = lead magnet downloadable/presencial gratuito (ausente en A5 per spec).
+# has_lead_magnet=False → loader emite warning offer_ladder_missing_lead_magnet.
+# Currency: PEN
+
+tenant_slug: tenant_agencia_automatizacion_ia
+currency: PEN
+has_lead_magnet: false
+total_levels: 4
+entry_point: "Discovery call gratuita (no cobrada) → L1 Auditoría de procesos IA"
+upsell_path: "L1 → L2 → L3 → L4"
+
+offers:
+  - level: "L1"
+    name: "Auditoría de procesos IA (diagnóstico de automatización)"
+    description: >
+      Análisis de 3 días laborables de los procesos clave del negocio para
+      identificar oportunidades de automatización. Incluye: entrevistas con
+      el equipo, mapeo de flujos de trabajo actuales, cuantificación del costo
+      mensual de procesos manuales y roadmap priorizado de automatizaciones
+      con ROI estimado por iniciativa. Entregable: documento PDF de 20-25
+      páginas con recomendaciones técnicas y financieras.
+    format: "auditoria_procesos"
+    price: 1000
+    currency_display: "PEN 1,000"
+    duration: "3 días laborables"
+    delivery: "entregable digital + presentación Zoom 90 minutos"
+    value_proposition: "Diagnóstico real de cuánto te cuesta la ineficiencia operativa"
+    note: "Descontable del primer paquete de implementación"
+
+  - level: "L2"
+    name: "Implementación de agente IA (paquete estándar)"
+    description: >
+      Implementación completa de un agente de IA o flujo automatizado para
+      un proceso específico. Incluye: diseño de arquitectura, desarrollo,
+      integración con sistemas existentes, pruebas de carga y despliegue
+      en producción. Soporte post-implementación por 30 días incluido.
+    format: "implementacion_agente_ia"
+    price: 8000
+    currency_display: "PEN 8,000"
+    duration: "4 semanas de implementación"
+    delivery: "agente o flujo desplegado en producción + documentación técnica"
+    payment_plan: "50% al inicio, 50% al despliegue"
+    value_proposition: "Proceso automatizado que trabaja 24/7 sin costo operativo adicional"
+
+  - level: "L3"
+    name: "Retainer mensual de operación IA"
+    description: >
+      Servicio mensual de operación, monitoreo y optimización de los agentes
+      de IA implementados. Incluye: monitoreo continuo de uptime, reporte
+      mensual de métricas operativas, ajustes de prompt y lógica según
+      performance, soporte técnico prioritario y hasta 2 mejoras menores por mes.
+    format: "retainer_operacion"
+    price: 4000
+    currency_display: "PEN 4,000/mes"
+    billing: "mensual"
+    minimum_commitment_months: 3
+    delivery: "operación remota continua + reporte mensual"
+    value_proposition: "Equipo técnico dedicado sin contratación directa"
+
+  - level: "L4"
+    name: "Programa de automatización empresarial (transformación digital)"
+    description: >
+      Programa intensivo de 6 meses para automatizar múltiples procesos
+      críticos del negocio. Incluye: auditoría completa, implementación
+      de 3-5 agentes de IA o flujos automatizados, formación del equipo
+      interno, arquitectura de datos integrada y operación acompañada.
+      Para empresas que quieren una transformación digital real.
+    format: "programa_transformacion"
+    price: 8000
+    currency_display: "PEN 8,000 - 12,000/mes"
+    billing: "mensual"
+    duration_months: 6
+    delivery: "3-5 implementaciones + formación equipo + arquitectura datos"
+    custom_quote: true
+    value_proposition: "Transformación operativa completa con equipo de IA dedicado"

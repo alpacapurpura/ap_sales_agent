@@ -1,0 +1,68 @@
+# communication_assets.yaml — tenant_agencia_growth_video
+# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+
+social_media:
+  instagram: "@brote.agency"
+  linkedin: "https://www.linkedin.com/company/brote-agency"
+  youtube: "https://www.youtube.com/@broteagency"
+  behance: "https://www.behance.net/broteagency"
+
+website:
+  url: "https://brote.agency"
+  portfolio_url: "https://brote.agency/casos"
+  audit_landing: "https://brote.agency/audit-growth"
+  blog_url: "https://brote.agency/blog"
+
+email_marketing:
+  list_name: "Clientes y Prospectos Brote"
+  welcome_sequence_length: 4
+  newsletter_frequency: "quincenal"
+  main_cta: "Agenda tu audit de growth"
+
+content_pillars:
+  - name: "Casos de éxito"
+    description: "Resultados reales de clientes con métricas visibles"
+    formats:
+      - "carrusel antes/después"
+      - "video testimonial"
+      - "post de métricas"
+  - name: "Educación growth"
+    description: "Tips de estrategia de contenido y crecimiento digital"
+    formats:
+      - "reel educativo"
+      - "newsletter"
+      - "artículo blog"
+  - name: "Behind the scenes"
+    description: "El proceso de producción y estrategia de Brote"
+    formats:
+      - "story proceso"
+      - "reel producción"
+  - name: "Datos y análisis"
+    description: "Hallazgos del sector, benchmarks, análisis de tendencias"
+    formats:
+      - "carrusel datos"
+      - "infografía"
+
+key_messages:
+  - "El contenido sin estrategia es gasto. El contenido con estrategia es inversión"
+  - "Medimos lo que importa: clientes, no seguidores"
+  - "No prometemos likes. Prometemos conversiones"
+  - "Audit primero, producción después"
+
+tone_of_voice: "Directo, sin endulzar. Creativo pero con datos. Irreverente con los clichés del marketing."
+
+social_proof:
+  client_logos:
+    - "marca_skincare_lat"
+    - "restaurante_peruano_lima"
+    - "ecommerce_moda_ar"
+  testimonials_available: true
+  case_studies_url: "https://brote.agency/casos"
+
+portfolio_highlights:
+  - client_type: "E-commerce skincare"
+    result: "De 2,000 a 18,000 seguidores en 6 meses con 4x conversión"
+  - client_type: "Restaurante gastronómico"
+    result: "60% de mesas reservadas por semana desde Instagram"
+  - client_type: "Consultora B2B"
+    result: "3 leads calificados mensuales desde LinkedIn con contenido orgánico"

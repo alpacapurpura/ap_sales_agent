@@ -2,10 +2,10 @@
 story_id: eval-foundation-tenant-seed-data
 outcome: pi-12-sales-agent-eval-foundation
 state: developing
-phase: BUILD_T3
-last_artifact: T-2-result.md
-last_modified: 2026-05-07T00:30:00Z
-next_action: "/dev-team builder-backend builds T-3: drafts iniciales 5 tenants seed YAMLs (6 YAMLs + README per tenant) + scanner GREEN. T-1+T-2 closed pushed."
+phase: BUILD_T4
+last_artifact: T-3-result.md
+last_modified: 2026-05-07T01:30:00Z
+next_action: "/dev-team T-4 last ticket — curación Chris + ratificación + capability YAML update + GREEN final. Loop iterativo Chris ↔ builder. T-1+T-2+T-3 closed pushed."
 ratified_by_chris: true
 spawned_at: 2026-05-06T17:11:00Z
 spawned_by: /pm
@@ -26,3 +26,4 @@ legacy_exempt: true
 - 2026-05-06 22:00Z — `/dev-team` pickup. State `ready → developing` (transition autorizada Chris). Pre-req `maintenance-skill-sales-agent-audit` state=`reviewing` ≥refined ✅. WIP cap developing 0→1/3. Phase=BUILD_T1.
 - 2026-05-06 23:00Z — T-1 closed pushed. Builder: claude-sonnet. Deliverables: loader.py + TenantContext + OfferLadderContext + dialect_catalog.yaml (15 entries) + 4 test files baseline. Validators: ruff GREEN, arch fitness 827/827, dialect catalog 4/4 GREEN, loader 1/22 GREEN (RED baseline confirmed). Phase=BUILD_T2.
 - 2026-05-07 00:30Z — T-2 closed pushed. Builder: claude-sonnet. Deliverables: scan_seed_pii.py (9 regex patterns, exit 0/1/2, whitelist-aware) + .eval-whitelist (4 entries) + test_seed_pii_scanner.py (7 tests) + pre-commit hook Section 8 + test_pre_commit_hook.py extension. Validators: ruff GREEN, arch fitness 827/827, 20/20 tests GREEN. Phase=BUILD_T3.
+- 2026-05-07 01:30Z — T-3 closed pushed (recovered). Builder agent terminated mid-flow tras crear 35 files (5 tenants × 7). `/dev-team` orchestrator recovery: spawn gate-runner haiku → 79/79 eval tests GREEN (loader 22/22, realism 30/30, schema 16/16, dialect 4/4, pii 7/7) + 13/13 hook tests + 827/827 arch fitness, manual stage-by-name + commit + push. Phase=BUILD_T4.

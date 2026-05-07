@@ -1,0 +1,110 @@
+# buyer_personas.yaml — tenant_clinica_dental
+# Exactamente 3 personas: 2 base + 1 adversarial (Q8 ratificado)
+# Dialect: es-CO — tuteo bogotano, sin voseo paisa
+
+tenant_slug: tenant_clinica_dental
+dialect_code: es-CO
+currency: PEN
+target_market: "Familias Lima que buscan odontólogo de confianza a largo plazo con tratamientos desde profilaxis hasta ortodoncia"
+persona_count: 3
+decision_driver: "Confianza en el especialista + transparencia de precios + posibilidad de plan de pago"
+
+personas:
+  - name: "Patricia la Mamá Preocupada"
+    persona_type: "base"
+    age: 38
+    role: "Docente de colegio + mamá de dos hijos"
+    location: "Surco, Lima"
+    income_range: "PEN 2,500 - 3,500/mes"
+    education: "Licenciada en Educación"
+    family_status: "Casada, hijos de 8 y 11 años"
+    pain_points:
+      - "Su hijo mayor necesita brackets pero no sabe si es el momento ni cuánto cuesta"
+      - "Ella misma lleva años sin ir al dentista por falta de tiempo y dinero"
+      - "Le preocupa que los tratamientos sean dolorosos para sus hijos"
+      - "Ha tenido malas experiencias con dentistas que cobran de más al final"
+    objections:
+      - "¿Cuánto cuesta exactamente? Necesito saber el total antes de empezar"
+      - "¿Duele el tratamiento? Mi hijo tiene mucho miedo"
+      - "¿No es muy pronto para brackets a los 11 años?"
+    budget_range: "PEN 80-300 mensual familiar; puede comprometerse a PEN 2,000+ si hay cuotas"
+    preferred_channels:
+      - channel: "WhatsApp"
+        frequency: "principal canal de contacto"
+        tone: "claro, sin tecnicismos"
+      - channel: "Instagram"
+        frequency: "para ver antes/después"
+        tone: "casos reales de familias"
+    aspirations:
+      - "Que toda la familia tenga la boca sana sin arruinar el presupuesto"
+      - "Encontrar un dentista de confianza para los próximos años"
+    buyer_journey:
+      awareness: "Recomendación de otra mamá del colegio"
+      consideration: "Pregunta por precios, garantías y si atienden niños"
+      decision: "La consulta gratuita para los tres (ella + dos hijos) la convence"
+
+  - name: "Carlos el Joven Profesional"
+    persona_type: "base"
+    age: 27
+    role: "Analista financiero en banca"
+    location: "Miraflores, Lima"
+    income_range: "PEN 4,000 - 6,500/mes"
+    education: "Licenciado en Economía"
+    family_status: "Soltero"
+    pain_points:
+      - "Siempre postergó los brackets por miedo y vergüenza social"
+      - "Ahora que puede pagarlo, no sabe por dónde empezar"
+      - "Quiere un tratamiento que no sea tan visible en su trabajo"
+      - "Su encía sangra cuando se lava pero nunca ha ido al dentista"
+    objections:
+      - "¿Puedo hacer los brackets con alineadores invisibles? No quiero que se noten en el trabajo"
+      - "¿Cuánto tiempo tengo que usar los brackets? Tengo una boda importante en 6 meses"
+      - "¿Y si empieza el tratamiento y me trasladan de ciudad?"
+    budget_range: "PEN 2,000-3,500 para ortodoncia; flexible si los resultados son claros"
+    preferred_channels:
+      - channel: "Instagram"
+        frequency: "navega antes de contactar"
+        tone: "casos de adultos jóvenes, antes/después"
+      - channel: "WhatsApp"
+        frequency: "para información y agendar"
+        tone: "eficiente, sin largas esperas"
+    aspirations:
+      - "Tener la sonrisa que siempre quiso antes de los 30"
+      - "Un tratamiento que pueda combinar con su vida profesional activa"
+    buyer_journey:
+      awareness: "Ve anuncios de antes/después en Instagram"
+      consideration: "Compara entre Invisalign genérico y la clínica"
+      decision: "La consulta gratuita con diagnóstico digital lo convence de la calidad"
+
+  - name: "Don Augusto el Resistente"
+    persona_type: "adversarial"
+    age: 58
+    role: "Gerente de planta industrial"
+    location: "Lima Norte, Lima"
+    income_range: "PEN 6,000 - 9,000/mes"
+    education: "Técnico mecánico, cursos de gestión"
+    family_status: "Casado, hijos adultos"
+    pain_points:
+      - "Lleva 12 años sin ir al dentista y lo sabe pero evita hablar del tema"
+      - "Le da 'vergüenza' del estado de su boca pero no lo admite"
+      - "Tiene dolor molar crónico que atribuye a 'algo que se le fue'"
+      - "Su esposa lo manda pero él viene desconfiado y a la defensiva"
+    objections:
+      - "Los dentistas siempre cobran demasiado y al final te inventan más problemas"
+      - "A mi edad, ¿para qué voy a invertir tanto en la boca?"
+      - "Mis muelas me dolían y se me pasó solo. No creo que sea nada grave"
+      - "Ya fui a otro dentista que me dijo que necesitaba 3 tratamientos y no le creí"
+    budget_range: "Tiene recursos pero máxima desconfianza; solo procede con diagnóstico transparente"
+    preferred_channels:
+      - channel: "Teléfono o en persona"
+        frequency: "no usa WhatsApp para esto"
+        tone: "directo y sin rodeos"
+    adversarial_notes: >
+      Don Augusto desafía la credibilidad del diagnóstico y tiende a minimizar
+      síntomas. Útil para evaluar si el agent maneja la resistencia masculina
+      al cuidado médico sin ser confrontacional ni paternalista. Prueba si el
+      agent puede motivar sin apelar al miedo excesivo.
+    buyer_journey:
+      awareness: "Lo trae su esposa después de semanas de negociación"
+      consideration: "Exige ver el diagnóstico digital en pantalla y que se le explique cada punto"
+      decision: "Solo acepta empezar si el doctor es claro sobre qué es urgente y qué puede esperar"

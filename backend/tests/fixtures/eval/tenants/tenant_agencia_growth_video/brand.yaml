@@ -1,0 +1,75 @@
+# brand.yaml — tenant_agencia_growth_video
+# Tenant: Brote Agencia — Growth Marketing con video y RRSS para marcas LatAm
+# Inspiración: aggregate brander.studio + toga.pe + agencias growth AR. Datos inventados.
+# Dialect: es-AR | Currency: PEN | SIN L0
+
+identity:
+  brand_name: "Brote Agencia"
+  tagline: "Tu marca crece cuando el contenido convierte"
+  description: >
+    Brote es una agencia boutique de growth marketing especializada en video
+    y redes sociales para marcas en crecimiento en LatAm. Combinamos estrategia
+    de contenido, producción de reels y gestión de comunidades para convertir
+    audiencias en clientes reales. No vendemos likes, vendemos resultados.
+  industry: "agencia de growth marketing, producción de video y gestión de RRSS"
+  website: "https://brote.agency"
+  founding_year: "2021"
+  language: "es"
+  timezone: "America/Argentina/Buenos_Aires"
+  country_of_registration: "PE"
+  legal_entity_type: "sas"
+  tax_regime: "Régimen MYPE Tributario"
+
+strategy:
+  methodology_name: "Framework CRECER"
+  methodology_description: >
+    Seis semanas de sprint donde auditamos, estrategiamos, producimos, publicamos,
+    medimos y optimizamos el contenido de video y RRSS para generar resultados
+    medibles en crecimiento de audiencia y conversión.
+  methodology_pillars:
+    - title: "Auditoría"
+      description: "Análisis profundo de la presencia digital actual y competencia"
+    - title: "Estrategia"
+      description: "Mapa de contenido alineado a objetivos de negocio medibles"
+    - title: "Producción"
+      description: "Video de calidad filmado y editado con brief de marca"
+    - title: "Distribución"
+      description: "Publicación optimizada por plataforma y horario de mayor alcance"
+    - title: "Medición"
+      description: "Reporte quincenal con métricas de negocio (no solo vanidad)"
+    - title: "Optimización"
+      description: "Ajuste de estrategia basado en datos reales del primer mes"
+
+story:
+  origin: >
+    Fundada por dos ex-directores de contenido que se cansaron de ver cómo las
+    marcas gastaban en producción de video sin estrategia de distribución. Brote
+    nació con la premisa de que el mejor video del mundo no sirve si nadie lo ve
+    ni convierte.
+  mission: >
+    Hacer crecer marcas latinoamericanas con contenido de video que combina
+    creatividad y datos para generar resultados reales de negocio.
+  vision: >
+    Ser la agencia de referencia para marcas en crecimiento en LatAm que entienden
+    que el contenido sin estrategia es solo gasto.
+
+positioning:
+  unique_value_proposition: >
+    La única agencia de growth marketing en LatAm que vincula cada pieza de
+    contenido a un objetivo de negocio medible y garantiza reporte de resultados
+    cada 15 días.
+  brand_essence: "Contenido que crece marcas"
+  discriminator: "Growth marketing con video orientado a conversión, no vanidad"
+
+brand_personality:
+  archetype: "creator"
+  core_values:
+    - "Resultados medibles"
+    - "Creatividad estratégica"
+    - "Honestidad con el cliente"
+    - "Iteración continua"
+  personality_traits:
+    - "Directo"
+    - "Creativo"
+    - "Data-driven"
+    - "Irreverente"

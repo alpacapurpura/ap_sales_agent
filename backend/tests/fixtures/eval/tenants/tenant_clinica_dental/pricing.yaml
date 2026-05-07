@@ -1,0 +1,68 @@
+# pricing.yaml — tenant_clinica_dental
+# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
+# Todos los precios en PEN para aislamiento de tests
+
+currency: PEN
+country: PE
+payment_methods:
+  - "efectivo"
+  - "tarjeta_credito_debito"
+  - "cuotas_sin_intereses_hasta_24"
+  - "transferencia_bancaria"
+  - "yape"
+
+price_list:
+  - offer_level: "L0"
+    offer_name: "Primera consulta dental gratuita"
+    price: 0
+    billing_cycle: "one_time"
+    is_free: true
+
+  - offer_level: "L1"
+    offer_name: "Profilaxis dental (limpieza profesional)"
+    price: 80
+    billing_cycle: "one_time"
+    family_discount: "10% cuando vienen 3 o más integrantes el mismo día"
+    plan_familia_price: 64
+    plan_familia_note: "Con Plan Familia PEN 64 por sesión"
+
+  - offer_level: "L2"
+    offer_name: "Tratamiento de ortodoncia (brackets)"
+    price: 2000
+    billing_cycle: "one_time"
+    notes: "Precio varía según complejidad del caso (PEN 2,000 - 3,500)"
+    payment_plan: "Hasta 24 cuotas sin intereses con Visa/Mastercard"
+    monthly_maintenance: 80
+    monthly_maintenance_note: "Cuota de mantenimiento mensual durante el tratamiento"
+
+  - offer_level: "L3"
+    offer_name: "Estética dental completa (carillas + blanqueamiento)"
+    price: 3500
+    billing_cycle: "one_time"
+    payment_plan: "3 pagos de PEN 1,167"
+    individual_prices:
+      blanqueamiento: 450
+      carilla_resina_por_unidad: 300
+
+  - offer_level: "L4"
+    offer_name: "Control anual familiar (Plan Familia)"
+    price: 250
+    billing_cycle: "annual"
+    per_person: true
+    family_4_pack: 900
+    family_4_pack_savings: "PEN 100 de ahorro vs individual"
+    includes:
+      - "2 profilaxis anuales por persona"
+      - "Radiografías de control incluidas"
+      - "20% descuento en todos los tratamientos"
+      - "Agenda prioritaria"
+
+refund_policy: >
+  Primera consulta gratuita sin compromiso. Tratamientos iniciados: no
+  reembolsables por ser procedimientos médico-odontológicos personalizados.
+  Plan Familia: reembolso proporcional si se cancela antes de primer uso.
+
+pricing_philosophy: >
+  Transparencia total en precios desde la primera consulta. Sin sorpresas
+  ni cobros ocultos. El plan de tratamiento incluye el desglose completo
+  antes de iniciar cualquier procedimiento.

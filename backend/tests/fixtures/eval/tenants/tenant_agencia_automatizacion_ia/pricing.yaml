@@ -1,0 +1,59 @@
+# pricing.yaml — tenant_agencia_automatizacion_ia
+# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
+# SIN L0 — ladder empieza en L1 (A5 per spec)
+# Todos los precios en PEN para aislamiento de tests
+
+currency: PEN
+country: PE
+payment_methods:
+  - "transferencia_bancaria"
+  - "tarjeta_credito_debito"
+  - "factura_electronica"
+  - "swift_internacional"
+
+price_list:
+  - offer_level: "L1"
+    offer_name: "Auditoría de procesos IA"
+    price: 1000
+    billing_cycle: "one_time"
+    discount_if_implementation: "Se descuenta del primer paquete de implementación"
+    payment_terms: "Pago anticipado antes de iniciar"
+
+  - offer_level: "L2"
+    offer_name: "Implementación de agente IA (paquete estándar)"
+    price: 8000
+    billing_cycle: "one_time"
+    payment_plan: "50% al firmar contrato, 50% al despliegue en producción"
+    price_range: "PEN 6,000 - 15,000 según complejidad"
+    notes: "Precio variable por alcance; auditoría define el costo exacto"
+    monthly_maintenance_after: 4000
+    monthly_maintenance_note: "Retainer de operación opcional post-implementación"
+
+  - offer_level: "L3"
+    offer_name: "Retainer mensual de operación IA"
+    price: 4000
+    billing_cycle: "monthly"
+    minimum_commitment_months: 3
+    early_exit_fee: "Un mes de retainer si cancela antes de los 3 meses"
+    payment_terms: "Factura el 1 de cada mes, pago dentro de 5 días hábiles"
+
+  - offer_level: "L4"
+    offer_name: "Programa de automatización empresarial"
+    price: 8000
+    billing_cycle: "monthly"
+    price_range: "PEN 8,000 - 12,000/mes según scope"
+    minimum_commitment_months: 6
+    custom_quote: true
+    payment_terms: "Contrato marco con facturación mensual"
+    total_investment_range: "PEN 48,000 - 72,000 por programa completo"
+
+pricing_philosophy: >
+  Modelos de precio por valor entregado. Auditoría obligatoria antes de
+  implementación para evitar proyectos mal dimensionados. ROI medible
+  desde el mes 1 de operación o garantía de ajuste sin costo.
+
+refund_policy: >
+  Auditoría: si no se entrega en el plazo comprometido, reembolso completo.
+  Implementación: si no funciona según especificaciones al despliegue,
+  corregimos sin costo adicional. Garantía de resultados en primeros 60 días
+  o reembolso del 50% del costo de implementación.

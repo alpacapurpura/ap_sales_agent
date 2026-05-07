@@ -1,0 +1,109 @@
+# buyer_personas.yaml — tenant_medicina_estetica
+# Exactamente 3 personas: 2 base + 1 adversarial (Q8 ratificado)
+# Dialect: es-MX — tuteo neutral mexicano
+
+tenant_slug: tenant_medicina_estetica
+dialect_code: es-MX
+currency: PEN
+target_market: "Mujeres y hombres Lima 25-55 años con ingresos medios-altos que buscan mejorar su apariencia de forma segura"
+persona_count: 3
+decision_driver: "Confianza en el médico tratante + evidencia de resultados naturales sin riesgo"
+
+personas:
+  - name: "Fernanda la Profesional"
+    persona_type: "base"
+    age: 36
+    role: "Directora de ventas en empresa farmacéutica"
+    location: "Lima, Perú"
+    income_range: "PEN 7,000 - 12,000/mes"
+    education: "Licenciada en Administración de Empresas"
+    family_status: "Casada, dos hijos"
+    pain_points:
+      - "La demanda laboral le tiene el rostro cansado y con manchas de estrés"
+      - "Busca resultados rápidos pero seguros, sin tiempo para 10 sesiones"
+      - "Ha tenido malas experiencias con tratamientos no médicos"
+      - "Quiere verse profesional y descansada sin que se note que 'se hizo algo'"
+    objections:
+      - "No quiero resultados que se vean artificiales o exagerados"
+      - "¿Cuánto tiempo de recuperación tiene?"
+      - "He visto casos de tratamientos que arruinaron la piel de alguien"
+    budget_range: "PEN 500-2,000 por tratamiento o paquete"
+    preferred_channels:
+      - channel: "Instagram"
+        frequency: "antes de tomar decisión"
+        tone: "casos reales y antes/después"
+      - channel: "WhatsApp"
+        frequency: "para agendar y confirmar"
+        tone: "directo y eficiente"
+    aspirations:
+      - "Mantener su aspecto profesional y fresco a pesar del ritmo de trabajo"
+      - "Invertir en su imagen como parte de su éxito profesional"
+    buyer_journey:
+      awareness: "Ve testimonios de conocidas en Instagram"
+      consideration: "Compara clínicas, busca respaldo médico"
+      decision: "La consulta gratuita con la doctora cierra la venta"
+
+  - name: "Claudia la Mamá Joven"
+    persona_type: "base"
+    age: 31
+    role: "Arquitecta freelance + mamá de tiempo completo"
+    location: "Miraflores, Lima"
+    income_range: "PEN 3,000 - 5,000/mes (variable)"
+    education: "Arquitecta titulada"
+    family_status: "Casada, un hijo de 2 años"
+    pain_points:
+      - "El embarazo y la lactancia le dejaron manchas y piel apagada"
+      - "No tiene mucho tiempo para citas largas"
+      - "Su presupuesto es limitado pero quiere recuperar su confianza"
+      - "Le da vergüenza invertir en ella misma cuando tiene gastos del bebé"
+    objections:
+      - "¿Los tratamientos son seguros si estoy en periodo de lactancia?"
+      - "¿Cuánto tiempo toma cada sesión? No puedo ausentarme mucho"
+      - "No sé si es el momento indicado para gastar en esto"
+    budget_range: "PEN 150-400 inicial"
+    preferred_channels:
+      - channel: "WhatsApp"
+        frequency: "diario"
+        tone: "amigable y claro"
+      - channel: "Instagram"
+        frequency: "semanal"
+        tone: "inspiracional"
+    aspirations:
+      - "Recuperar su autoestima y verse bien en fotos con su hijo"
+      - "Encontrar un tratamiento accesible que la haga sentir bien"
+    buyer_journey:
+      awareness: "Recomendación directa de una amiga paciente de Dermabella"
+      consideration: "Consulta si hay tratamientos seguros durante lactancia"
+      decision: "La consulta gratuita disipa sus miedos, empieza con limpieza facial"
+
+  - name: "Rodrigo el Ejecutivo"
+    persona_type: "adversarial"
+    age: 45
+    role: "Gerente general de empresa de construcción"
+    location: "San Isidro, Lima"
+    income_range: "PEN 15,000+ /mes"
+    education: "Ingeniero civil, MBA"
+    family_status: "Casado, tres hijos"
+    pain_points:
+      - "Tiene manchas solares y líneas de expresión por trabajo en campo"
+      - "Socialmente incómodo hablando de tratamientos estéticos"
+      - "Desconfía de clínicas que no parezcan profesionales y médicas"
+    objections:
+      - "Eso es para mujeres, ¿qué tienen para hombres?"
+      - "No quiero que nadie sepa que fui a una clínica estética"
+      - "¿Cuánto cuesta realmente? No me gusta que no pongan precios claros"
+      - "¿Quién garantiza que sus médicos están certificados?"
+    budget_range: "Sin restricción de presupuesto pero exige máxima discreción y rigor médico"
+    preferred_channels:
+      - channel: "WhatsApp directo"
+        frequency: "una vez, decisión rápida"
+        tone: "formal y directo"
+    adversarial_notes: >
+      Este prospecto desafía la orientación femenina del branding y cuestiona la
+      legitimidad médica. Útil para evaluar si el agent puede redirigir hacia
+      tratamientos masculinos sin hacer sentir incómodo al cliente y sin perder
+      el rigor médico en la comunicación.
+    buyer_journey:
+      awareness: "Llega por recomendación confidencial de un colega"
+      consideration: "Busca evidencia de credenciales médicas y casos masculinos"
+      decision: "Solo avanza si hay total discreción y el doctor (no la doctora) lo atiende"

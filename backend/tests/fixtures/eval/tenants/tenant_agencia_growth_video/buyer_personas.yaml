@@ -1,0 +1,110 @@
+# voseo-allowed
+# buyer_personas.yaml — tenant_agencia_growth_video
+# Exactamente 3 personas: 2 base + 1 adversarial (Q8 ratificado)
+# Dialect: es-AR — voseo (contexto agencia AR con clientes LatAm)
+
+tenant_slug: tenant_agencia_growth_video
+dialect_code: es-AR
+currency: PEN
+target_market: "Fundadores y directores de marketing de marcas LatAm en crecimiento con presencia en RRSS que no están convirtiendo su audiencia en ventas"
+persona_count: 3
+decision_driver: "Evidencia de resultados anteriores (ROI en clientes similares) + claridad de proceso de trabajo"
+
+personas:
+  - name: "Daniela la Fundadora E-commerce"
+    persona_type: "base"
+    age: 32
+    role: "Fundadora de marca de skincare natural"
+    location: "Lima, Perú"
+    income_range: "PEN 8,000 - 15,000/mes (ventas online)"
+    education: "Bióloga, autodidacta en marketing digital"
+    family_status: "Soltera"
+    pain_points:
+      - "Su contenido no convierte: muchos seguidores pero pocas ventas desde RRSS"
+      - "Publica constantemente pero sin estrategia ni método replicable"
+      - "Sus reels caseros no tienen la calidad de las marcas que admira"
+      - "No sabe cómo medir si lo que hace en redes realmente impacta las ventas"
+    objections:
+      - "Ya tengo una persona que me ayuda con redes y no sé si cambiarlo"
+      - "¿Cómo sé que con ustedes va a mejorar y no solo va a cambiar?"
+      - "Mis seguidores son fieles al estilo artesanal que tengo ahora"
+    budget_range: "PEN 1,200 - 2,500/mes con retorno esperado"
+    preferred_channels:
+      - channel: "Instagram"
+        frequency: "diario (consume y publica)"
+        tone: "visual, casos de marcas exitosas como ella"
+      - channel: "WhatsApp"
+        frequency: "para comunicación directa"
+        tone: "ágil y concreto"
+    aspirations:
+      - "Que Instagram sea un canal real de adquisición de clientes"
+      - "Tener un sistema de contenido que no dependa de que ella esté presente"
+    buyer_journey:
+      awareness: "Ve un caso de éxito de Brote en Stories"
+      consideration: "Revisa el portfolio, compara con agencias más grandes"
+      decision: "El audit de PEN 500 la convence de probar sin riesgo alto"
+
+  - name: "Pablo el Restaurantero"
+    persona_type: "base"
+    age: 45
+    role: "Dueño de cadena de 3 restaurantes de comida peruana"
+    location: "Lima, Perú"
+    income_range: "PEN 20,000 - 40,000/mes (ingresos del negocio)"
+    education: "Chef titulado, MBA parcial"
+    family_status: "Casado, tres hijos"
+    pain_points:
+      - "Sus restaurantes tienen reputación pero no presencia digital actualizada"
+      - "Su administrador de redes publica pero sin cohesión ni resultados medibles"
+      - "Quiere atraer turistas y eventos corporativos, no solo comensales de barrio"
+      - "Invertió en fotos profesionales que nunca se usaron con una estrategia real"
+    objections:
+      - "Ya gasté en una agencia y no vi resultados claros"
+      - "¿Cuánto tiempo me va a tomar a mí estar involucrado?"
+      - "¿Qué pasa si no me gusta el contenido que producen?"
+    budget_range: "PEN 2,500 - 5,000/mes si ve potencial claro de retorno"
+    preferred_channels:
+      - channel: "WhatsApp"
+        frequency: "su canal de negocio preferido"
+        tone: "directo, sin rodeos"
+      - channel: "Instagram"
+        frequency: "navega pero no produce"
+        tone: "ve lo que hacen competidores"
+    aspirations:
+      - "Llenar las reservas corporativas y de eventos de fin de semana"
+      - "Que sus restaurantes sean destino, no solo opción"
+    buyer_journey:
+      awareness: "Recomendación de otro dueño de restaurante cliente de Brote"
+      consideration: "Pide ver casos específicos de restaurantes o food brands"
+      decision: "El audit le muestra datos concretos de lo que está perdiendo actualmente"
+
+  - name: "Valentín el Desconfiado"
+    persona_type: "adversarial"
+    age: 38
+    role: "Director de marketing de empresa mediana (fintech)"
+    location: "Buenos Aires (con operaciones en Lima)"
+    income_range: "PEN 12,000+ /mes (empleado)"
+    education: "Lic. en Marketing, Google Analytics certificado"
+    family_status: "Casado, un hijo"
+    pain_points:
+      - "Ha contratado 4 agencias en 3 años con resultados mediocres"
+      - "Sus directivos no entienden por qué gastan en redes sin ver retorno en clientes"
+      - "Tiene métricas propias y evalúa todo en tablero; no acepta reportes de vanidad"
+    objections:
+      - "Cuatro agencias me prometieron lo mismo y entregaron reportes llenos de likes"
+      - "¿Pueden integrarse a mi stack de analytics (GA4, Looker)?"
+      - "No necesito otro PDF con recomendaciones genéricas"
+      - "¿Cuál fue el ROAS real de su último cliente de fintech?"
+    budget_range: "PEN 5,000+ disponible, pero solo con KPIs contractuales"
+    preferred_channels:
+      - channel: "Email formal"
+        frequency: "primer contacto"
+        tone: "técnico, con evidencia"
+    adversarial_notes: >
+      Valentín evalúa con mentalidad analítica de marketing director. Rechaza
+      promesas vagas y exige commitment de métricas en contrato. Útil para
+      evaluar si el agent puede hablar el lenguaje de marketing data sin
+      sobre-prometer ni ser defensivo ante críticas directas.
+    buyer_journey:
+      awareness: "Referencia de su ex-colega que trabaja en Brote"
+      consideration: "Pide casos detallados con métricas reales y referencias de clientes"
+      decision: "Solo cierra con SLA de métricas en contrato y acceso a dashboard en tiempo real"

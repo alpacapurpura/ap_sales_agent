@@ -1,0 +1,55 @@
+# pricing.yaml — tenant_agencia_growth_video
+# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
+# SIN L0 — ladder empieza en L1 (A4 per spec)
+# Todos los precios en PEN para aislamiento de tests
+
+currency: PEN
+country: PE
+payment_methods:
+  - "transferencia_bancaria"
+  - "tarjeta_credito_debito"
+  - "factura_electronica"
+
+price_list:
+  - offer_level: "L1"
+    offer_name: "Audit de Growth"
+    price: 500
+    billing_cycle: "one_time"
+    discount_if_retainer: "Se descuenta del primer mes de retainer"
+    notes: "Pago anticipado para iniciar el audit"
+
+  - offer_level: "L2"
+    offer_name: "Paquete producción video (4 reels/mes)"
+    price: 1200
+    billing_cycle: "monthly"
+    minimum_commitment_months: 3
+    early_exit_fee: "PEN 600 si cancela antes de los 3 meses"
+    payment_terms: "Factura el 1 de cada mes, pago dentro de 5 días hábiles"
+
+  - offer_level: "L3"
+    offer_name: "Retainer mensual gestión completa RRSS"
+    price: 2500
+    billing_cycle: "monthly"
+    minimum_commitment_months: 3
+    early_exit_fee: "PEN 1,250 si cancela antes de los 3 meses"
+    payment_terms: "Factura el 1 de cada mes, pago dentro de 5 días hábiles"
+    discount_annual: "PEN 500/mes con compromiso de 12 meses"
+
+  - offer_level: "L4"
+    offer_name: "Consultoría estratégica growth (intensivo trimestral)"
+    price: 5000
+    billing_cycle: "monthly"
+    minimum_commitment_months: 3
+    total_trimestral: 15000
+    payment_terms: "Pago mensual o total trimestral con descuento PEN 1,500"
+    custom_scope: true
+
+pricing_philosophy: >
+  Precios por valor de resultado, no por horas. Audit obligatorio antes de
+  retainer para asegurar fit cliente-agencia. No aceptamos clientes que
+  buscan solo volumen de posts sin objetivo de negocio medible.
+
+refund_policy: >
+  Audit: reembolso 100% si el entregable no llega en 5 días hábiles prometidos.
+  Retainer: sin reembolso por trabajo ya realizado. Cancelación con 30 días
+  de aviso o fee de salida anticipada.

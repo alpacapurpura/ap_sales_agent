@@ -1,0 +1,62 @@
+# communication_assets.yaml — tenant_agencia_automatizacion_ia
+# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+
+social_media:
+  linkedin: "https://www.linkedin.com/company/novabyte-ia"
+  youtube: "https://www.youtube.com/@novabyteai"
+  twitter_x: "@novabyteai"
+
+website:
+  url: "https://novabyte.pe"
+  portfolio_url: "https://novabyte.pe/casos-de-exito"
+  audit_landing: "https://novabyte.pe/auditoria-procesos"
+  blog_url: "https://novabyte.pe/blog"
+  resources_url: "https://novabyte.pe/recursos"
+
+email_marketing:
+  list_name: "Prospectos NovaByte"
+  welcome_sequence_length: 5
+  newsletter_frequency: "quincenal"
+  main_cta: "Agenda tu auditoría de procesos"
+
+content_pillars:
+  - name: "Casos de éxito y ROI"
+    description: "Resultados medibles de automatizaciones implementadas"
+    formats:
+      - "artículo detallado LinkedIn"
+      - "video case study YouTube"
+      - "infografía de ROI"
+  - name: "Educación técnica accesible"
+    description: "Qué es un agente de IA, cómo funciona, cuándo usarlo"
+    formats:
+      - "thread LinkedIn"
+      - "video explicativo YouTube"
+      - "artículo blog técnico"
+  - name: "Benchmarks de industria"
+    description: "Cuánto tiempo y dinero ahorran empresas similares"
+    formats:
+      - "reporte descargable (Gated)"
+      - "infografía LinkedIn"
+  - name: "Demos y tutoriales"
+    description: "Demos de agentes funcionando en casos reales"
+    formats:
+      - "video demo YouTube"
+      - "sesión en vivo LinkedIn"
+
+key_messages:
+  - "Un agente de IA bien implementado trabaja 24/7 por el costo de un día de trabajo"
+  - "Automatiza primero lo que más te cuesta en tiempo"
+  - "Sin auditoría no existe propuesta seria de automatización"
+  - "IA accesible para empresas sin equipo de ingeniería interno"
+
+tone_of_voice: "Técnico pero claro. Sin jerga innecesaria. Datos y resultados sobre promesas."
+
+discovery_process:
+  step_1: "Formulario de contacto con 5 preguntas sobre el negocio"
+  step_2: "Llamada de 30 min para confirmar fit cliente-agencia"
+  step_3: "Propuesta de auditoría de procesos personalizada"
+  step_4: "Auditoría de 3 días → presentación de resultados y roadmap"
+  step_5: "Decisión de implementación con ROI calculado"
+  note: >
+    No existe content descargable gratuito. El primer touchpoint de valor
+    es la llamada de discovery. La auditoría es el primer servicio pagado.

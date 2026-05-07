@@ -40,7 +40,7 @@ summary:
     surface: BE
     production_code: false
     owner_pool: [claude-sonnet]                       # PREFERRED — markdown/YAML drafting con references reales
-    state: draft
+    state: pushed
     blocks: [T-4]
     blocked_by: [T-1, T-2]
 
@@ -244,7 +244,7 @@ T3:
   type: docs-and-data
   surface: BE
   production_code: false                              # R23 — solo tests/fixtures/, no src/
-  state: draft
+  state: assigned
   owner_eligibility:
     qwen_opencode: false                              # ⛔ qwen no produce contenido marketing/branding consistente con references reales
     claude_sonnet: true                               # ✅ PREFERRED — markdown/YAML drafting + references reales contextualizadas
@@ -337,7 +337,9 @@ T3:
   blocks: ["T-4"]
   transitions:
     - { state: draft, at: "2026-05-06T21:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: assigned, at: "2026-05-07T00:30Z", by: "/dev-team", to: "claude-sonnet (builder-backend)", note: "Chris ratified spawn-all-at-once approach" }
+    - { state: pushed, at: "2026-05-07T01:30Z", by: "/dev-team", note: "Builder agent terminated mid-flow after creating 35 files; orchestrator recovery: gate-runner 79/79+13/13+827/827 GREEN, manual stage-by-name + commit + push" }
+  assigned_to: "claude-sonnet (builder-backend) + /dev-team recovery"
   notes_for_dev_team: |
     1. Drafts iniciales — content debe ser realístico pero NO scrap del sitio real. Builder cita references aggregate (visionarias.lat para A1, dentalindo para A3, brander.studio/toga.pe para A4, brandtech.pe para A5) en sección README "Inspiración" pero inventa la data específica.
     2. Personality_profile.yaml::sample_exchanges 4-7 ejemplos por tenant, en dialecto correcto. A4 (es-AR) usa voseo legítimo; A1 (es-PE) usa tuteo claro; A2 (es-MX) usa tuteo neutral mexicano; A3 (es-CO) usa tuteo bogotano; A5 (es-419) usa neutro pan-LatAm.

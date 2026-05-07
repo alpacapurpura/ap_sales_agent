@@ -1,0 +1,62 @@
+# pricing.yaml — tenant_medicina_estetica
+# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
+# Todos los precios en PEN para aislamiento de tests
+
+currency: PEN
+country: PE
+payment_methods:
+  - "efectivo"
+  - "tarjeta_credito_debito"
+  - "transferencia_bancaria"
+  - "yape"
+  - "cuotas_sin_intereses_3"
+
+price_list:
+  - offer_level: "L0"
+    offer_name: "Consulta de evaluación estética gratuita"
+    price: 0
+    billing_cycle: "one_time"
+    is_free: true
+
+  - offer_level: "L1"
+    offer_name: "Limpieza facial profunda"
+    price: 150
+    billing_cycle: "one_time"
+    package_discount: "10% comprando 3 sesiones juntas"
+
+  - offer_level: "L2"
+    offer_name: "Paquete facial rejuvenecedor (4 sesiones)"
+    price: 800
+    billing_cycle: "one_time"
+    payment_plan: "2 pagos de PEN 400"
+    unit_price: 200
+    savings_vs_individual: "PEN 0 (precio especial de paquete)"
+
+  - offer_level: "L3"
+    offer_name: "Tratamiento corporal reafirmante (5 sesiones)"
+    price: 2500
+    billing_cycle: "one_time"
+    payment_plan: "3 pagos de PEN 834"
+    unit_price: 500
+
+  - offer_level: "L4"
+    offer_name: "Plan integral de cuidado anual"
+    price: 250
+    billing_cycle: "monthly"
+    annual_price: 2800
+    discount_annual: "7% descuento pago anual adelantado"
+    includes_perks:
+      - "2 limpiezas faciales mensuales"
+      - "1 tratamiento especial por trimestre"
+      - "15% descuento en tratamientos corporales"
+      - "Agenda prioritaria"
+
+refund_policy: >
+  Consultas gratuitas: sin compromiso. Tratamientos ya realizados: no reembolsables
+  por ser procedimientos médicos personalizados. Paquetes no iniciados: reembolso
+  del 80% dentro de 7 días calendario.
+
+pricing_philosophy: >
+  Precios basados en protocolos médicos reales y tecnología certificada. No
+  competimos en precio sino en seguridad y resultados. Primera consulta siempre
+  gratuita para asegurar que el tratamiento sea adecuado para cada paciente.

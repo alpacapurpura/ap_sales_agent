@@ -1,0 +1,75 @@
+# voseo-allowed
+# offer_ladder.yaml — tenant_agencia_growth_video
+# SIN L0 (A4 per spec — entran por casos de éxito + Instagram, no por lead magnet)
+# Ladder empieza en L1
+# Currency: PEN
+
+tenant_slug: tenant_agencia_growth_video
+currency: PEN
+has_lead_magnet: false
+total_levels: 4
+entry_point: "L1 — Audit de Growth (discovery call + diagnóstico de contenido)"
+upsell_path: "L1 → L2 → L3 → L4"
+
+offers:
+  - level: "L1"
+    name: "Audit de Growth (diagnóstico de contenido y RRSS)"
+    description: >
+      Diagnóstico completo de tu presencia digital actual: análisis de métricas
+      de Instagram, TikTok y Facebook Ads (si aplica), benchmarking de competencia,
+      identificación de oportunidades y entrega de roadmap de acciones priorizadas.
+      Duración: 5 días hábiles. Entregable: documento PDF de 15-20 páginas con
+      recomendaciones accionables.
+    format: "auditoria_digital"
+    price: 500
+    currency_display: "PEN 500"
+    duration: "5 días hábiles"
+    delivery: "entregable digital PDF + sesión de presentación Zoom 60min"
+    value_proposition: "Diagnóstico honesto antes de invertir en producción"
+    note: "Monto descontable del primer mes de retainer"
+
+  - level: "L2"
+    name: "Paquete producción video (4 reels por mes)"
+    description: >
+      Producción mensual de 4 reels para Instagram/TikTok. Incluye: brief
+      creativo, filmación en locación o remota, edición con motion graphics,
+      captions optimizados y plan de publicación. No incluye gestión de
+      comunidad ni pauta publicitaria.
+    format: "paquete_produccion"
+    price: 1200
+    currency_display: "PEN 1,200/mes"
+    billing: "mensual"
+    minimum_commitment_months: 3
+    delivery: "4 reels listos para publicar por mes"
+    value_proposition: "Contenido de calidad de agencia a precio accesible"
+
+  - level: "L3"
+    name: "Retainer mensual gestión completa RRSS"
+    description: >
+      Gestión integral de redes sociales que incluye: estrategia de contenido
+      mensual, producción de 4 reels + 8 posts estáticos, community management
+      (respuesta a comentarios y DMs dentro de horario laboral), publicación
+      optimizada y reporte quincenal con métricas de negocio.
+    format: "retainer_mensual"
+    price: 2500
+    currency_display: "PEN 2,500/mes"
+    billing: "mensual"
+    minimum_commitment_months: 3
+    delivery: "gestión completa con reporte quincenal"
+    value_proposition: "Equipo de growth completo por el precio de medio salario"
+
+  - level: "L4"
+    name: "Consultoría estratégica growth (intensivo trimestral)"
+    description: >
+      Programa intensivo de 3 meses con consultoría estratégica semanal,
+      definición de brand voice, arquitectura de contenido, formación del
+      equipo interno en producción de video, y workshop mensual con el
+      fundador de Brote. Para marcas que quieren construir capacidades
+      internas de contenido.
+    format: "consultoria_estrategica"
+    price: 5000
+    currency_display: "PEN 5,000/mes"
+    billing: "mensual"
+    minimum_commitment_months: 3
+    delivery: "sesiones semanales Zoom + formación equipo + workshops mensuales"
+    value_proposition: "Build vs buy: construye tu propio equipo de contenido"

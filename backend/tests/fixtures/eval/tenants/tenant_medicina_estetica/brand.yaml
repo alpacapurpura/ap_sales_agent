@@ -1,0 +1,68 @@
+# brand.yaml — tenant_medicina_estetica
+# Tenant: Dermabella Centro Estético — Clínica de medicina estética y bienestar
+# Inspiración: aggregate clínicas estéticas LatAm (Dermastil-style, Belmedic). Datos inventados.
+# Dialect: es-MX | Currency: PEN
+
+identity:
+  brand_name: "Dermabella Centro Estético"
+  tagline: "Tu mejor versión, con ciencia y cuidado"
+  description: >
+    Dermabella es una clínica de medicina estética integral en Lima que combina
+    tecnología de vanguardia con tratamientos personalizados. Nuestro equipo de
+    médicos especialistas diseña planes únicos para cada paciente, con resultados
+    visibles y duraderos que respetan la naturaleza de cada piel.
+  industry: "medicina estética y bienestar facial y corporal"
+  website: "https://dermabella.com.pe"
+  founding_year: "2017"
+  language: "es"
+  timezone: "America/Lima"
+  country_of_registration: "PE"
+  legal_entity_type: "sac"
+  tax_regime: "Régimen General"
+  regulated_profession_body: "Colegio Médico del Perú"
+
+strategy:
+  methodology_name: "Protocolo Dermabella"
+  methodology_description: >
+    Evaluación médica personalizada antes de cada tratamiento. Combinamos
+    evidencia científica con tecnología certificada para resultados seguros
+    y naturales.
+  methodology_pillars:
+    - title: "Diagnóstico"
+      description: "Evaluación facial y corporal completa antes de recomendar tratamientos"
+    - title: "Personalización"
+      description: "Plan de tratamiento diseñado específicamente para cada paciente"
+    - title: "Seguimiento"
+      description: "Monitoreo continuo de resultados y ajuste del protocolo"
+
+story:
+  origin: >
+    Fundada por la Dra. Ana Lucía Torres, especialista en dermatología estética,
+    con la misión de llevar medicina estética de alto nivel a Lima con precios accesibles
+    para la clase media peruana.
+  mission: >
+    Brindar tratamientos estéticos médicamente respaldados que realzan la belleza
+    natural de cada paciente con seguridad y resultados reales.
+  vision: >
+    Ser la clínica de referencia en medicina estética en Lima para mujeres y hombres
+    que buscan resultados naturales con acompañamiento médico profesional.
+
+positioning:
+  unique_value_proposition: >
+    La única clínica en Lima donde cada tratamiento inicia con una evaluación médica
+    completa y termina con un seguimiento personalizado a los 30 días.
+  brand_essence: "Belleza con respaldo científico"
+  discriminator: "Medicina estética con protocolo médico riguroso"
+
+brand_personality:
+  archetype: "caregiver"
+  core_values:
+    - "Seguridad médica"
+    - "Resultados naturales"
+    - "Confianza"
+    - "Personalización"
+  personality_traits:
+    - "Profesional"
+    - "Empática"
+    - "Precisa"
+    - "Confiable"
