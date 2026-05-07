@@ -18,7 +18,7 @@ builder: claude-sonnet-4-6 (builder-backend)
 | Hook test | `backend/tests/scripts/test_pre_commit_hook.py` | MODIFIED — `test_blocks_pii_in_seed_tenants` added |
 
 ## Commit SHA
-(populated post-commit)
+fcd99459
 
 ## Gate results
 
