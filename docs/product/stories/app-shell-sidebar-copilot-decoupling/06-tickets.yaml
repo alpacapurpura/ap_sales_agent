@@ -92,7 +92,11 @@ T1:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: assigned
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-07T22:35:00Z
+  transitions:
+    - { state: assigned, at: "2026-05-07T22:35:00Z", by: "/dev-team", to: "claude-sonnet" }
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true

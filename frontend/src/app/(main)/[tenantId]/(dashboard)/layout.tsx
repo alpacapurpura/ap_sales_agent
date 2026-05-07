@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 
+import { DashboardShell } from "@/components/shared/layout/DashboardShell";
 import { fetchTenantProfileServer } from "@/features/tenant-profile/api/tenant-profile-server";
 
-import { DashboardLayoutClient } from "./DashboardLayoutClient";
+// DashboardLayoutClient.tsx remains as a file for rollback safety (Phase 8 T-7 deletes it).
+// It is intentionally not imported here.
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -17,6 +19,9 @@ interface DashboardLayoutProps {
  * not affected by this layout — no redirect loop possible by construction.
  *
  * CONTRACT §6.4
+ *
+ * Phase 1 (T-1): Migrated to DashboardShell (Server passthrough → DashboardShellClient).
+ * DashboardLayoutClient.tsx kept unused for rollback (deleted in Phase 8 T-7).
  */
 export default async function DashboardLayout({ children, params }: DashboardLayoutProps) {
   const { tenantId } = await params;
@@ -29,5 +34,5 @@ export default async function DashboardLayout({ children, params }: DashboardLay
     redirect(`/${tenantId}/onboarding/perfil-negocio?returnTo=/${tenantId}`);
   }
 
-  return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
+  return <DashboardShell tenantId={tenantId}>{children}</DashboardShell>;
 }

@@ -1,11 +1,13 @@
 ---
 story_id: app-shell-sidebar-copilot-decoupling
 outcome: growth-copilot-layout-unification
-state: ready
-phase: READY_PACKAGE_CLOSED
-last_artifact: 06-tickets.yaml
-last_modified: 2026-05-07T05:55:00Z
-next_action: "/dev-team toma T-1 (Phase 1 skeleton SSoT + DashboardShell passthrough). Sequential 9 tickets T-1 → T-9 (~22h total estimate). Conv 2 autonomous build."
+state: developing
+phase: BUILD_T1
+last_artifact: checkpoint.md
+last_modified: 2026-05-07T22:30:00Z
+next_action: "/dev-team Conv 2 autonomous build IN PROGRESS — T-1 (Phase 1 skeleton SSoT + DashboardShell passthrough). Sequential 9 tickets T-1 → T-9."
+build_started_at: 2026-05-07T22:30:00Z
+build_started_by: /dev-team
 ratified_by_chris: true
 ratified_at: 2026-05-07T04:15:00Z
 ready_at: 2026-05-07T05:55:00Z
