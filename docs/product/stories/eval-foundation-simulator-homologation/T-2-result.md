@@ -50,4 +50,4 @@ docs/product/stories/eval-foundation-simulator-homologation/06-tickets.yaml  (T-
 
 ## Commit SHA
 
-_pending_
+`e6f3ca7b`
