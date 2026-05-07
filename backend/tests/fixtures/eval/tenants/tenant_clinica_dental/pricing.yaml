@@ -1,68 +1,283 @@
 # pricing.yaml — tenant_clinica_dental
-# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
-# Todos los precios en PEN para aislamiento de tests
+# Sonrisa Plena Clínica Dental — Miraflores Lima.
+# Currency: PEN. Q3 ratificado single-currency seed.
+# Benchmarks reales Lima 2026.
 
 currency: PEN
 country: PE
-payment_methods:
-  - "efectivo"
-  - "tarjeta_credito_debito"
-  - "cuotas_sin_intereses_hasta_24"
-  - "transferencia_bancaria"
-  - "yape"
+tax_regime: "RG"
+tax_id_label: "RUC"
+issues_invoice: true
+invoice_types: ["boleta", "factura"]
 
+payment_methods:
+  - method: "yape"
+    label: "Yape"
+    fees: "0%"
+    settlement_time: "instantáneo"
+    notes: "Para pagos únicos servicios + mensualidades Plan Familiar."
+  - method: "plin"
+    label: "Plin"
+    fees: "0%"
+    settlement_time: "instantáneo"
+  - method: "transferencia_bancaria"
+    label: "Transferencia bancaria"
+    accepted_banks: ["BCP", "Interbank", "BBVA", "Scotiabank", "Banbif"]
+    fees: "0%"
+    settlement_time: "1-2 días hábiles"
+  - method: "tarjeta_credito_debito"
+    label: "Tarjeta crédito/débito (Visa, Mastercard)"
+    processor: "Niubiz POS + Culqi online"
+    fees: "incluidas en precio"
+    settlement_time: "instantáneo"
+    cuotas_sin_intereses: "Disponible 3, 6, 12, 18 cuotas en BCP, Interbank, BBVA, Scotiabank, Banbif para tarjetas peruanas"
+  - method: "plan_directo_clinica"
+    label: "Plan de pago directo Sonrisa Plena (sin tarjeta)"
+    notes: "30% inicial + 12 mensualidades sin intereses. Solo para tratamientos >PEN 2,500. Requiere DNI + comprobante ingresos."
+  - method: "tarjeta_recurrente_membresia"
+    label: "Tarjeta recurrente (Plan Familiar mensual)"
+    processor: "Culqi suscripciones"
+    notes: "Cobro automático mensual día 1 de cada mes. Email confirmación + pre-aviso 3 días antes."
+  - method: "efectivo"
+    label: "Efectivo"
+    notes: "Aceptamos en clínica. Para cuotas >PEN 1,000 preferimos transferencia o tarjeta."
+
+# ─────────────────────────────────────────────────────────────
+# Price list por offer
+# ─────────────────────────────────────────────────────────────
 price_list:
   - offer_level: "L0"
-    offer_name: "Primera consulta dental gratuita"
+    offer_name: "Primera consulta gratuita"
     price: 0
     billing_cycle: "one_time"
     is_free: true
+    notes: "Incluye radiografía panorámica + plan escrito sin costo"
+    no_show_penalty: "Tras 1 falta sin aviso, primera consulta deja de ser gratis (PEN 80)"
 
-  - offer_level: "L1"
-    offer_name: "Profilaxis dental (limpieza profesional)"
+  - offer_level: "L1_simple"
+    offer_name: "Limpieza dental simple"
     price: 80
     billing_cycle: "one_time"
-    family_discount: "10% cuando vienen 3 o más integrantes el mismo día"
-    plan_familia_price: 64
-    plan_familia_note: "Con Plan Familia PEN 64 por sesión"
+    refund_policy: "Sin reembolso post-procedimiento"
 
-  - offer_level: "L2"
-    offer_name: "Tratamiento de ortodoncia (brackets)"
-    price: 2000
+  - offer_level: "L1_completa"
+    offer_name: "Limpieza dental completa (destartraje + pulido + flúor)"
+    price: 150
     billing_cycle: "one_time"
-    notes: "Precio varía según complejidad del caso (PEN 2,000 - 3,500)"
-    payment_plan: "Hasta 24 cuotas sin intereses con Visa/Mastercard"
-    monthly_maintenance: 80
-    monthly_maintenance_note: "Cuota de mantenimiento mensual durante el tratamiento"
+    refund_policy: "Sin reembolso post-procedimiento"
+    discount_policy:
+      post_l0: "10% off primera limpieza tras consulta L0 (PEN 135)"
 
-  - offer_level: "L3"
-    offer_name: "Estética dental completa (carillas + blanqueamiento)"
-    price: 3500
+  - offer_level: "L2_metalicos"
+    offer_name: "Ortodoncia brackets metálicos"
+    price: 3200
+    billing_cycle: "one_time_or_plan"
+    payment_plans:
+      - plan_id: "L2_metalicos_unico"
+        plan_name: "Pago único"
+        total: 3040
+        discount_pct: 5
+      - plan_id: "L2_metalicos_12_cuotas_tarjeta"
+        plan_name: "12 cuotas tarjeta sin intereses"
+        cuota_amount: 266.67
+        total: 3200
+      - plan_id: "L2_metalicos_18_cuotas_tarjeta"
+        plan_name: "18 cuotas tarjeta sin intereses (BCP+Interbank)"
+        cuota_amount: 177.78
+        total: 3200
+      - plan_id: "L2_metalicos_plan_directo"
+        plan_name: "Plan directo Sonrisa Plena (sin tarjeta)"
+        inicial: 960
+        cuota_amount: 187
+        cuota_count: 12
+        total: 3204
+    refund_policy: "Si cancelas antes de iniciar, 80% reembolso. Una vez instalados brackets, sin reembolso pero pausable 1 mes."
+
+  - offer_level: "L2_esteticos"
+    offer_name: "Ortodoncia brackets estéticos cerámicos"
+    price: 4500
+    billing_cycle: "one_time_or_plan"
+    payment_plans:
+      - plan_id: "L2_esteticos_unico"
+        plan_name: "Pago único"
+        total: 4500
+      - plan_id: "L2_esteticos_12_cuotas_tarjeta"
+        cuota_amount: 375
+        total: 4500
+      - plan_id: "L2_esteticos_plan_directo"
+        inicial: 1350
+        cuota_amount: 263
+        cuota_count: 12
+        total: 4506
+
+  - offer_level: "L2_invisalign"
+    offer_name: "Ortodoncia Invisalign"
+    price: 7500
+    billing_cycle: "one_time_or_plan"
+    payment_plans:
+      - plan_id: "L2_invisalign_unico"
+        plan_name: "Pago único"
+        total: 7200
+        discount_amount: 300
+      - plan_id: "L2_invisalign_12_cuotas_tarjeta"
+        cuota_amount: 625
+        total: 7500
+      - plan_id: "L2_invisalign_18_cuotas_tarjeta"
+        cuota_amount: 416.67
+        total: 7500
+        notes: "Solo BCP + Interbank"
+      - plan_id: "L2_invisalign_plan_directo"
+        inicial: 2250
+        cuota_amount: 437.50
+        cuota_count: 12
+        total: 7500
+
+  - offer_level: "L3_express"
+    offer_name: "Estética Express — Blanqueamiento"
+    price: 600
     billing_cycle: "one_time"
-    payment_plan: "3 pagos de PEN 1,167"
-    individual_prices:
-      blanqueamiento: 450
-      carilla_resina_por_unidad: 300
+    payment_plans:
+      - plan_id: "L3_express_unico"
+        plan_name: "Pago único"
+        total: 600
+      - plan_id: "L3_express_3_cuotas"
+        plan_name: "3 cuotas tarjeta sin intereses"
+        cuota_amount: 200
+    refund_policy: "Si surge sensibilidad severa que impida continuar, ajustamos protocolo. Sin reembolso post-aplicación."
 
-  - offer_level: "L4"
-    offer_name: "Control anual familiar (Plan Familia)"
-    price: 250
-    billing_cycle: "annual"
-    per_person: true
-    family_4_pack: 900
-    family_4_pack_savings: "PEN 100 de ahorro vs individual"
-    includes:
-      - "2 profilaxis anuales por persona"
-      - "Radiografías de control incluidas"
-      - "20% descuento en todos los tratamientos"
-      - "Agenda prioritaria"
+  - offer_level: "L3_completo"
+    offer_name: "Estética Diseño Completo (4-8 carillas)"
+    price: 7200
+    billing_cycle: "one_time_or_plan"
+    most_popular: true
+    payment_plans:
+      - plan_id: "L3_completo_unico"
+        plan_name: "Pago único"
+        total: 7200
+      - plan_id: "L3_completo_6_cuotas"
+        plan_name: "6 cuotas tarjeta sin intereses"
+        cuota_amount: 1200
+      - plan_id: "L3_completo_12_cuotas"
+        plan_name: "12 cuotas tarjeta sin intereses"
+        cuota_amount: 600
 
-refund_policy: >
-  Primera consulta gratuita sin compromiso. Tratamientos iniciados: no
-  reembolsables por ser procedimientos médico-odontológicos personalizados.
-  Plan Familia: reembolso proporcional si se cancela antes de primer uso.
+  - offer_level: "L3_premium"
+    offer_name: "Estética Premium con CBCT (8-10 carillas + coronas)"
+    price: 12500
+    billing_cycle: "one_time_or_plan"
+    payment_plans:
+      - plan_id: "L3_premium_unico"
+        total: 12500
+      - plan_id: "L3_premium_12_cuotas"
+        cuota_amount: 1041.67
+      - plan_id: "L3_premium_plan_directo"
+        inicial: 3750
+        cuota_amount: 729.16
+        cuota_count: 12
 
-pricing_philosophy: >
-  Transparencia total en precios desde la primera consulta. Sin sorpresas
-  ni cobros ocultos. El plan de tratamiento incluye el desglose completo
-  antes de iniciar cualquier procedimiento.
+  - offer_level: "L4_pareja"
+    offer_name: "Plan Familiar — Pareja"
+    price: 180
+    billing_cycle: "monthly"
+    minimum_commitment_months: 12
+    refund_policy: "Cancelación antes 12 meses cobra servicios consumidos a precio regular"
+
+  - offer_level: "L4_familia_4"
+    offer_name: "Plan Familiar — Familia 4"
+    price: 280
+    billing_cycle: "monthly"
+    minimum_commitment_months: 12
+    most_popular: true
+
+  - offer_level: "L4_familia_6"
+    offer_name: "Plan Familiar — Familia 6"
+    price: 450
+    billing_cycle: "monthly"
+    minimum_commitment_months: 12
+
+# ─────────────────────────────────────────────────────────────
+# Servicios sueltos no en ladder principal (referencia para preguntas)
+# ─────────────────────────────────────────────────────────────
+servicios_complementarios:
+  - servicio: "Implante unitario Straumann (titanio + corona zirconio)"
+    price: 4200
+    notes: "Incluye corona. Otras clínicas Lima cobran PEN 2,500-6,000 según marca."
+  - servicio: "Implante completo arcada (All-on-4)"
+    price: 28000
+    notes: "Tomografía + 4 implantes + prótesis fija. Plan financiero personalizado."
+  - servicio: "Endodoncia (tratamiento de conducto)"
+    price_range: "350-650"
+    notes: "Premolar PEN 350. Molar PEN 650. Incluye radiografías de control."
+  - servicio: "Reconstrucción con resina compuesta"
+    price_range: "180-350"
+    notes: "Según extensión. Resina 3M Filtek."
+  - servicio: "Extracción simple"
+    price: 100
+  - servicio: "Extracción de muela del juicio"
+    price_range: "350-800"
+    notes: "Erupcionada PEN 350. Incluida quirúrgica con CBCT PEN 800."
+  - servicio: "Radiografía panorámica (suelta, no incluida)"
+    price: 80
+  - servicio: "Tomografía CBCT cone-beam"
+    price: 280
+
+# ─────────────────────────────────────────────────────────────
+# Refund matrix
+# ─────────────────────────────────────────────────────────────
+refund_matrix:
+  L0:
+    has_guarantee: false
+    notes: "Servicio gratuito"
+  L1:
+    has_guarantee: false
+    notes: "Sin reembolso post-procedimiento (servicio único realizado)"
+  L2:
+    has_guarantee: "pre_inicio_only"
+    period_days: 0
+    refund_pct_pre_inicio: 80
+    refund_pct_post_inicio: 0
+    conditions: "Si cancelas antes de instalar brackets, 80% reembolso. Una vez instalados, no hay reembolso pero se puede pausar 1 mes por causa justificada (mudanza, enfermedad, etc.)."
+    quality_guarantee: "Garantía 24 meses post-retiro: si recidiva ortodóntica, re-tratamiento sin costo."
+  L3:
+    has_guarantee: "quality_only"
+    notes: "Sin reembolso pero garantía 24-36 meses por escrito en restauraciones (carillas, coronas). Si falla material o procedimiento dentro de garantía, lo arreglamos sin costo."
+  L4:
+    has_guarantee: false
+    period_days: 0
+    cancellation_pre_12_months: "Si cancelas antes de 12 meses: cobramos servicios ya consumidos a precio regular (sin descuento de plan). El monto pagado en mensualidades se descuenta."
+    cancellation_post_12_months: "Cancela libre con 30 días de aviso."
+
+# ─────────────────────────────────────────────────────────────
+# Pricing philosophy
+# ─────────────────────────────────────────────────────────────
+pricing_philosophy: |
+  Precios alineados con benchmarks Lima 2026 — competitivos sin ser
+  los más bajos. Diferencial: cero cargos adicionales no informados.
+
+  Política transparencia:
+  - Plan escrito post-consulta = costo final exacto
+  - Cero cargos sorpresa (controles, retenedores, materiales — todo incluido)
+  - Cuotas sin intereses con tarjeta peruana 3-18 cuotas
+  - Plan directo Sonrisa Plena para clientes sin tarjeta crédito
+  - Garantía escrita 24-36 meses según tratamiento
+
+  NO ofrecemos:
+  - Promociones tipo Cuponidad (problema: trazabilidad de materiales)
+  - Descuentos negociados 1:1 fuera de los descuentos publicados
+  - Becas (somos servicio, no infoproducto)
+
+# ─────────────────────────────────────────────────────────────
+# Tax / facturación
+# ─────────────────────────────────────────────────────────────
+invoicing:
+  emite_boleta: true
+  emite_factura: true
+  factura_requires_ruc: true
+  empresa_legal: "Sonrisa Plena SRL (RUC 20XXXXXXXXX, Régimen General)"
+  notes: "Servicios odontológicos exonerados de IGV en algunos casos (consulte con SUNAT). Procedimientos estéticos gravados."
+
+corporate_options:
+  empresas_convenio: true
+  notes: "Convenio activo con 8 empresas Lima — empleadas reciben 10% off + Plan Familiar al 50% primer mes."
+  partners: ["Pacífico Seguros", "Mapfre", "Rímac Seguros", "Interseguro"]
+  insurance_acceptance: "Aceptamos reembolso con seguros (Pacífico, Mapfre, Rímac, Interseguro). El paciente paga upfront y nosotros emitimos factura para que solicite reembolso."

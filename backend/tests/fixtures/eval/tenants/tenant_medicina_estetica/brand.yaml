@@ -1,68 +1,209 @@
 # brand.yaml — tenant_medicina_estetica
-# Tenant: Dermabella Centro Estético — Clínica de medicina estética y bienestar
-# Inspiración: aggregate clínicas estéticas LatAm (Dermastil-style, Belmedic). Datos inventados.
-# Dialect: es-MX | Currency: PEN
+# Tenant: Lumina Estética — clínica de medicina estética facial y corporal en Lima
+# Inspiración: clínicas reales LatAm (Medi Esthetic, Piel Bella, Elyzea Miraflores, Clínica Chávarri).
+# Datos sintéticos plausibles. Dialect: es-MX (fundadora con formación México). Currency: PEN.
 
 identity:
-  brand_name: "Dermabella Centro Estético"
-  tagline: "Tu mejor versión, con ciencia y cuidado"
+  brand_name: "Lumina Estética"
+  tagline: "Medicina estética con criterio médico — resultados reales, sin promesas vacías"
   description: >
-    Dermabella es una clínica de medicina estética integral en Lima que combina
-    tecnología de vanguardia con tratamientos personalizados. Nuestro equipo de
-    médicos especialistas diseña planes únicos para cada paciente, con resultados
-    visibles y duraderos que respetan la naturaleza de cada piel.
-  industry: "medicina estética y bienestar facial y corporal"
-  website: "https://dermabella.com.pe"
-  founding_year: "2017"
+    Lumina Estética es una clínica de medicina estética facial y corporal
+    ubicada en Miraflores, Lima. Liderada por la Dra. Sofía Mendoza
+    (cirujana general con especialización en estética en México 2016-2020),
+    el equipo de 4 médicas combina tecnología de última generación con
+    enfoque ético. Sin sobreventa de tratamientos. Más de 1,200 pacientes
+    atendidas desde 2021.
+  industry: "medicina estética facial y corporal con criterio médico"
+  website: "https://lumina-estetica.pe"
+  founding_year: "2021"
   language: "es"
   timezone: "America/Lima"
   country_of_registration: "PE"
-  legal_entity_type: "sac"
-  tax_regime: "Régimen General"
-  regulated_profession_body: "Colegio Médico del Perú"
+  legal_entity_type: "sociedad_comercial_responsabilidad_limitada"
+  tax_regime: "RG"
+  ruc_label: "20XXXXXXXXX (RUC SRL)"
+  registered_address: "Av. José Pardo 502, Miraflores, Lima 18, Perú"
+  certificaciones_sanitarias:
+    - "Categorización DIRESA Lima — Centro Médico de Atención Ambulatoria nivel I-3"
+    - "Registro Sanitario equipos médicos DIGEMID"
+    - "Inscripción Colegio Médico del Perú (CMP) — todas las médicas"
 
 strategy:
-  methodology_name: "Protocolo Dermabella"
+  methodology_name: "Protocolo Lumina"
   methodology_description: >
-    Evaluación médica personalizada antes de cada tratamiento. Combinamos
-    evidencia científica con tecnología certificada para resultados seguros
-    y naturales.
+    Protocolo en 4 fases que garantiza tratamientos personalizados,
+    progresivos y con seguimiento clínico. Diferencial: cero
+    sobreventa — la consulta inicial NO empuja paquetes upfront.
   methodology_pillars:
-    - title: "Diagnóstico"
-      description: "Evaluación facial y corporal completa antes de recomendar tratamientos"
-    - title: "Personalización"
-      description: "Plan de tratamiento diseñado específicamente para cada paciente"
-    - title: "Seguimiento"
-      description: "Monitoreo continuo de resultados y ajuste del protocolo"
+    - title: "Diagnóstico clínico"
+      description: "Evaluación dermatológica completa + análisis de fotografía digital + plan a 6-12 meses"
+    - title: "Tratamiento progresivo"
+      description: "Empezamos con lo más conservador. Si no funciona, escalamos. Nunca al revés."
+    - title: "Seguimiento medible"
+      description: "Cada paciente tiene foto-control mensual y escala VAS satisfacción documentada"
+    - title: "Mantenimiento sostenible"
+      description: "Plan integral mensual para sostener resultados sin sobre-tratamiento"
 
 story:
   origin: >
-    Fundada por la Dra. Ana Lucía Torres, especialista en dermatología estética,
-    con la misión de llevar medicina estética de alto nivel a Lima con precios accesibles
-    para la clase media peruana.
+    Dra. Sofía Mendoza estudió medicina en la UPCH de Lima, hizo
+    residencia de cirugía general en el Hospital Cayetano Heredia
+    (2014-2016) y posteriormente especialización de 4 años en medicina
+    estética y dermatología cosmética en el Hospital Ángeles del Pedregal,
+    Ciudad de México (2016-2020). Regresó a Lima en 2021 con la idea de
+    abrir una clínica que combine criterio médico riguroso con tecnología
+    moderna — sin las prácticas comerciales agresivas que vio en otras
+    clínicas durante su formación.
   mission: >
-    Brindar tratamientos estéticos médicamente respaldados que realzan la belleza
-    natural de cada paciente con seguridad y resultados reales.
+    Hacer accesible la medicina estética con criterio clínico real para
+    mujeres limeñas — sin sobreventa, sin promesas inflated, con
+    seguimiento medible.
   vision: >
-    Ser la clínica de referencia en medicina estética en Lima para mujeres y hombres
-    que buscan resultados naturales con acompañamiento médico profesional.
+    Ser la referencia ética en medicina estética en Lima para mujeres
+    profesionales que valoran transparencia y resultado clínico
+    sobre marketing agresivo.
+  founder_journey: >
+    Sofía vio durante su residencia en Ciudad de México prácticas de
+    sobreventa que la incomodaban. Decidió abrir una clínica donde la
+    consulta inicial fuera gratuita y nunca obligatoria a comprar.
+    En 2021 abrió Lumina con 1 box. Hoy son 4 boxes + equipo de 4 médicas
+    + 2 técnicas en aparatología.
+  brand_evolution:
+    - year: 2021
+      milestone: "Apertura — 1 box, solo Sofía + asistente. Tratamientos faciales únicamente."
+    - year: 2022
+      milestone: "Incorporación segunda médica + ampliación a tratamientos corporales (radiofrecuencia)"
+    - year: 2023
+      milestone: "Ampliación a 3 boxes + adquisición equipo HIFU + integración criolipólisis"
+    - year: 2024
+      milestone: "Integración módulo dermatología clínica (consultas oncológicas dermatológicas referidas)"
+    - year: 2025
+      milestone: "1,200 pacientes atendidas. Net Promoter Score 78."
+    - year: 2026
+      milestone: "Expansión a 4 boxes + lanzamiento Plan Integral mensual recurrente"
 
 positioning:
   unique_value_proposition: >
-    La única clínica en Lima donde cada tratamiento inicia con una evaluación médica
-    completa y termina con un seguimiento personalizado a los 30 días.
-  brand_essence: "Belleza con respaldo científico"
-  discriminator: "Medicina estética con protocolo médico riguroso"
+    La única clínica de medicina estética en Lima con consulta inicial
+    100% gratuita, sin obligación de compra, con criterio médico
+    documentado en historia clínica electrónica y seguimiento foto-VAS
+    mensual. Sin sobreventa.
+  brand_essence: "Belleza con criterio médico"
+  discriminator: "Consulta gratuita real (30 min con médica titular, no con técnica) + cero sobreventa documentada (ofrecemos siempre la opción más conservadora primero)"
+  competitor_landscape:
+    direct_competitors:
+      - "Piel Bella (Lima — referente establecido)"
+      - "Clínica Chávarri (líder en láser)"
+      - "Elyzea Miraflores (rango premium)"
+      - "Medi Esthetic"
+    differentiation: "Único centro con política documentada anti-sobreventa + médica titular en consulta inicial gratuita"
+  ideal_customer_summary: "Mujer limeña 32-50 años, profesional con ingresos PEN 4-15k/mes, busca tratamientos médicos estéticos preventivos o correctivos con criterio clínico real (no oferta de cuponidad)."
 
 brand_personality:
   archetype: "caregiver"
+  secondary_archetype: "sage"
   core_values:
-    - "Seguridad médica"
-    - "Resultados naturales"
-    - "Confianza"
-    - "Personalización"
+    - "Criterio médico"
+    - "Transparencia"
+    - "Conservadurismo médico (menos es más)"
+    - "Seguimiento medible"
+    - "Respeto al cuerpo de la paciente"
   personality_traits:
     - "Profesional"
-    - "Empática"
-    - "Precisa"
-    - "Confiable"
+    - "Clara"
+    - "Empática sin ser empalagosa"
+    - "Educada en lo técnico"
+    - "Anti-sobreventa"
+
+team:
+  - id: "a2b3c4d5-1e2f-4a3b-9c4d-5e6f7a8b9c01"
+    name: "Dra. Sofía Mendoza"
+    role: "Fundadora + Directora Médica"
+    bio: "Médica cirujana UPCH (2014). Residencia cirugía general Cayetano Heredia. Especialización 4 años en medicina estética + dermatología cosmética Hospital Ángeles del Pedregal, Ciudad de México (2016-2020). Miembro Sociedad Mexicana de Medicina Estética. CMP 65432."
+    instagram: "@dra.sofiamendoza"
+    linkedin: "https://www.linkedin.com/in/dra-sofia-mendoza"
+  - id: "b3c4d5e6-2f3a-4b4c-8d5e-6f7a8b9c0d02"
+    name: "Dra. Patricia Rivas"
+    role: "Médica especialista en aparatología corporal"
+    bio: "Médica cirujana UNMSM. Diplomado en medicina estética Universidad Cayetano Heredia 2020. Especialista en HIFU + radiofrecuencia + criolipólisis. CMP 71234."
+  - id: "c4d5e6f7-3a4b-4c5d-9e6f-7a8b9c0d1e03"
+    name: "Dra. Camila Herrera"
+    role: "Médica facial — botox + ácido hialurónico + bioestimuladores"
+    bio: "Médica cirujana UPC (Universidad Peruana de Ciencias Aplicadas). Certificación Allergan en toxina botulínica + Galderma en ácido hialurónico. CMP 78901."
+  - id: "d5e6f7a8-4b5c-4d6e-8f7a-8b9c0d1e2f04"
+    name: "Lic. Andrea Quispe"
+    role: "Cosmetóloga senior — limpiezas + peelings"
+    bio: "Cosmetóloga titulada (CETPRO Carlos Cueto Fernandini, 8 años de experiencia). Especialista en limpieza facial profunda + peelings químicos."
+
+testimonials:
+  - persona: "Mariana, ejecutiva en banca (Lima, 38 años)"
+    quote: "Vine pidiendo botox para todas las arrugas. La doctora me dijo claramente que era prematuro y que con el plan facial preventivo bastaba. Ahorré como PEN 1,200 que iba a gastar de más."
+    program: "Plan facial preventivo"
+    result_metric: "Cero sobreventa real"
+  - persona: "Lucía, abogada (Lima, 42 años)"
+    quote: "Después de 6 sesiones de HIFU mi papada cambió notablemente. Lo mejor: foto antes-después documentada con escala VAS, no solo 'me veo mejor'."
+    program: "HIFU corporal"
+    result_metric: "VAS satisfacción 9/10"
+  - persona: "Diana, post-parto (Lima, 33 años)"
+    quote: "Vine con flacidez abdominal post-cesárea. El paquete de radiofrecuencia me devolvió tono sin pasar por cirugía. Tomó 8 sesiones."
+    program: "Paquete corporal radiofrecuencia"
+    result_metric: "Tono recuperado sin cirugía"
+  - persona: "Alessandra, profesional creativa (Lima, 45 años)"
+    quote: "Nunca había hecho ácido hialurónico. La doctora me explicó la cantidad exacta + zonas + riesgos antes. Me dejó decidir sin presionar."
+    program: "Ácido hialurónico labial + ojeras"
+    result_metric: "Decisión informada"
+  - persona: "Carolina (Plan Integral mensual)"
+    quote: "Soy cliente del Plan Integral hace 8 meses. Mantengo resultados sin sobre-tratarme. Lo mejor: solo me hacen lo que toca cada mes."
+    program: "Plan Integral Premium"
+
+authority_vault:
+  - type: "media"
+    title: "Entrevista Revista Cosas — '5 doctoras que están cambiando la medicina estética en Lima'"
+    year: 2024
+    url: "https://cosas.pe/lifestyle/doctoras-medicina-estetica-lima"
+  - type: "media"
+    title: "Podcast Hablemos de Salud — episodio 23 con Dra. Sofía Mendoza"
+    year: 2025
+    url: "https://hablemosdesalud.pe/episodios/23-medicina-estetica-criterio"
+  - type: "speaking"
+    title: "Conferencia Sociedad Peruana Medicina Estética — 'Anti-sobreventa: ética médica en estética'"
+    year: 2025
+  - type: "certification"
+    title: "Certificación Allergan en Toxina Botulínica (Botox)"
+    issued_by: "Allergan Aesthetics"
+    year: 2022
+  - type: "certification"
+    title: "Certificación Galderma en Ácido Hialurónico Restylane"
+    issued_by: "Galderma Aesthetics"
+    year: 2022
+  - type: "certification"
+    title: "Certificación Cynosure en HIFU + Radiofrecuencia"
+    issued_by: "Cynosure"
+    year: 2023
+  - type: "association"
+    title: "Miembro activo Sociedad Mexicana de Medicina Estética + Sociedad Peruana de Dermatología"
+    year: 2025
+
+contact:
+  primary_email: "hola@example.com"
+  whatsapp_business: "+99 0 555 0200"
+  whatsapp_business_label: "WhatsApp consultas (sintético per .eval-whitelist)"
+  contact_form_url: "https://lumina-estetica.pe/contacto"
+  scheduling_link_consulta_l0: "https://app.nicolify.com/schedule/lumina-estetica/consulta-evaluacion-gratis"
+  scheduling_link_l3_corporal: "https://app.nicolify.com/schedule/lumina-estetica/diagnostico-corporal"
+  scheduling_link_l4_plan_integral: "https://app.nicolify.com/schedule/lumina-estetica/plan-integral-discovery"
+  physical_address: "Av. José Pardo 502, Miraflores, Lima 18, Perú"
+  business_hours: "Lunes-Viernes 9:00-19:00 / Sábados 9:00-13:00 hora Perú"
+
+visuals:
+  primary_color: "#D4B5A0"
+  secondary_color: "#7A8B99"
+  accent_color: "#2C3E50"
+  font_primary: "Cormorant Garamond"
+  font_secondary: "Inter"
+  logo_url: "https://lumina-estetica.pe/static/logo-lumina.svg"
+  brand_voice_keywords:
+    - "profesional sin frío"
+    - "claro sin condescendiente"
+    - "educativo sin paternalista"
+    - "anti-sobreventa explícito"

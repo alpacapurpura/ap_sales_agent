@@ -1,75 +1,555 @@
 # voseo-allowed
 # offer_ladder.yaml — tenant_agencia_growth_video
-# SIN L0 (A4 per spec — entran por casos de éxito + Instagram, no por lead magnet)
-# Ladder empieza en L1
-# Currency: PEN
+# Pulso Studio — agencia growth marketing video + RRSS Lima/LatAm.
+# SIN L0 lead magnet (A4 per spec — entran por casos de éxito + portfolio + referidos).
+# Ladder empieza en L1 (audit growth tripwire).
+# Currency PEN. Dialect es-AR (voseo legítimo).
+#
+# Variants:
+#   PACK  — Producción video L2 (4 / 8 / 12 reels)
+#   TIER  — Retainer mensual L3 (Starter / Growth / Premium)
+#
+# Discovery / cierre:
+#   L1 audit = entry point pago, requiere reunión 30 min. NO es lead magnet (no es gratis).
+#   L3 retainer → discovery call obligatoria 45 min
+#   L4 consultoría → discovery call obligatoria 45 min
+#
+# has_lead_magnet: false → trigger structlog warning per AD6.
 
 tenant_slug: tenant_agencia_growth_video
 currency: PEN
 has_lead_magnet: false
 total_levels: 4
-entry_point: "L1 — Audit de Growth (discovery call + diagnóstico de contenido)"
-upsell_path: "L1 → L2 → L3 → L4"
+entry_point: "L1 — Audit growth pago (PEN 500) o referido directo a retainer"
+upsell_path: "L1 → (L2 o L3 o L4 según diagnóstico)"
+last_updated: "2026-05-07"
 
 offers:
+  # ─────────────────────────────────────────────────────────────
   - level: "L1"
-    name: "Audit de Growth (diagnóstico de contenido y RRSS)"
-    description: >
-      Diagnóstico completo de tu presencia digital actual: análisis de métricas
-      de Instagram, TikTok y Facebook Ads (si aplica), benchmarking de competencia,
-      identificación de oportunidades y entrega de roadmap de acciones priorizadas.
-      Duración: 5 días hábiles. Entregable: documento PDF de 15-20 páginas con
-      recomendaciones accionables.
-    format: "auditoria_digital"
-    price: 500
-    currency_display: "PEN 500"
-    duration: "5 días hábiles"
-    delivery: "entregable digital PDF + sesión de presentación Zoom 60min"
-    value_proposition: "Diagnóstico honesto antes de invertir en producción"
-    note: "Monto descontable del primer mes de retainer"
+    archetype: "SERVICIO"
+    value_level: "tripwire"
+    preset_label: "Audit growth puntual (entry-point pago)"
 
+    identity:
+      name: "Audit Growth Pulso"
+      slug: "audit-growth"
+      tagline: "Diagnóstico growth honesto en 7 días — incluye recomendación de si necesitás agencia o no"
+      short_description: "Auditoría completa de tu funnel + redes + paid. Te decimos honestamente qué hacer y si tiene sentido contratarnos. PEN 500 — descontable de retainer si avanzás."
+
+    promise:
+      transformation: "De confusión sobre 'qué hacer en marketing' a plan accionable de 90 días con prioridades + cuál inversión hace sentido AHORA"
+      outcome_short: "Audit + plan 90 días + recomendación honesta (incluye 'no nos contrates todavía' si aplica)"
+      timeframe: "7 días desde reunión inicial"
+
+    value_stack:
+      - "Reunión inicial 30 min (diagnóstico + brief)"
+      - "Audit redes sociales actual (orgánico + paid)"
+      - "Análisis de funnel (CAC, conversion rate, retention si data disponible)"
+      - "Análisis competidores directos (3-5)"
+      - "Plan growth 90 días con prioridades P0/P1/P2"
+      - "Recomendación de contratación: retainer / proyecto / NO agencia"
+      - "Reunión cierre 60 min para presentar audit + responder preguntas"
+      - "Documento PDF entregable (15-25 páginas)"
+      - "Si avanzás con retainer L3 dentro de 30 días, los PEN 500 se descuentan"
+
+    program_details:
+      duration_days: 7
+      modality: "remoto (Zoom + entregable digital)"
+      meeting_count: 2
+      includes_pdf: true
+      pdf_pages: "15-25"
+
+    pricing:
+      price: 500
+      currency_display: "PEN 500"
+      is_free: false
+      payment_methods: ["yape", "transferencia", "tarjeta"]
+      requires_deposit: true
+      deposit_pct: 100
+      cancelable_pre_kickoff: false
+      notes: "Si avanzás a retainer L3 dentro de 30 días post-audit, los PEN 500 se descuentan del primer mes."
+
+    instructors:
+      - name: "Florencia Aramburu"
+        role: "Strategy Lead — conduce audit personalmente"
+
+    knowledge:
+      learning_objectives:
+        - "Tener diagnóstico claro del estado actual marketing"
+        - "Saber qué priorizar en próximos 90 días"
+        - "Decidir si agencia es lo que necesitás ahora o no"
+
+    closing:
+      mechanism: "discovery_+_payment"
+      discovery_call_required: true
+      discovery_call_label: "Reunión inicial 30 min — gratis para confirmar fit"
+      scheduling_event_type_id: "scheduling_evt_a4_l1_audit_growth"
+      scheduling_url: "https://app.nicolify.com/schedule/pulso-studio/audit-growth"
+
+    testimonials:
+      - persona: "Roberto — CEO consultora B2B 30 personas"
+        quote: "El audit me dijo que mi problema era pricing, no marketing. Me ahorró 6 meses gastando en ads que no iban a funcionar. PEN 500 que valen oro."
+        result_metric: "Diagnóstico anti-gasto-mal-orientado"
+      - persona: "Pamela — founder e-commerce belleza"
+        quote: "Vine pidiendo retainer. Flor me dijo 'tu producto no está validado, no nos contrates todavía'. Me derivó a un consultor de pricing. Honestidad rara en agencias."
+        result_metric: "Honest decline + referral"
+
+    faq:
+      - q: "¿Por qué cobran el audit?"
+        a: "Porque es trabajo serio (8-12 horas de Flor) y filtra clientes que no van a ser fit. Si fuera gratis, perderíamos tiempo en clientes random."
+      - q: "¿Si no me sirve, hay reembolso?"
+        a: "No reembolsamos pero te garantizamos: si tras leer el audit decís que no aporta nada accionable, lo discutimos en reunión cierre y vemos cómo ajustar."
+      - q: "¿Cuánto demora?"
+        a: "7 días desde reunión inicial."
+      - q: "¿Qué pasa si decidís no contratarnos después?"
+        a: "Nada. Te quedás con el documento. Si en 6 meses volvés, los PEN 500 siguen siendo descontables del retainer."
+
+    location:
+      delivery_method: "remoto"
+      timezone: "America/Lima"
+
+    resources:
+      - "Audit document PDF (15-25 págs entregable)"
+      - "Plan growth 90 días Notion compartido"
+      - "Comparativa competidores"
+
+    psychology:
+      target_emotion: "Claridad antes de inversión grande"
+      objections_addressed:
+        - "PEN 500 por audit me parece caro"
+        - "¿Por qué no es gratis como en otras agencias?"
+        - "¿Y si me dicen que no necesito agencia?"
+      desire: "Diagnóstico honesto antes de comprometer presupuesto"
+
+    gallery:
+      cover_image: "https://pulso.studio/static/audit-growth-cover.jpg"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L2"
-    name: "Paquete producción video (4 reels por mes)"
-    description: >
-      Producción mensual de 4 reels para Instagram/TikTok. Incluye: brief
-      creativo, filmación en locación o remota, edición con motion graphics,
-      captions optimizados y plan de publicación. No incluye gestión de
-      comunidad ni pauta publicitaria.
-    format: "paquete_produccion"
-    price: 1200
-    currency_display: "PEN 1,200/mes"
-    billing: "mensual"
-    minimum_commitment_months: 3
-    delivery: "4 reels listos para publicar por mes"
-    value_proposition: "Contenido de calidad de agencia a precio accesible"
+    archetype: "PROGRAMA"
+    value_level: "core"
+    preset_label: "Producción video paquete (PACK variant — 4/8/12 reels)"
+    variant_structure: "PACK"
 
+    identity:
+      name: "Paquete Producción Video Pulso"
+      slug: "produccion-video-paquete"
+      tagline: "Reels y video para tu marca — concepto + producción + edición in-house"
+      short_description: "Producción audiovisual con equipo propio (Mateo + Diego + Sebastián). 3 packs según volumen. Incluye creatividad, locación, edición, iteración."
+
+    promise:
+      transformation: "De contenido random sin dirección a librería de video con concepto unificado, optimizada para tu performance específico"
+      outcome_short: "Reels + video listos para postear con concepto y data behind"
+      timeframe: "30-90 días según pack"
+
+    value_stack:
+      - "Sesión creativa 90 min — concepto + storyboard"
+      - "Producción in-house (cero subcontratación)"
+      - "Edición motion graphics avanzada"
+      - "Iteración basada en performance (3 versiones por pieza si es necesario)"
+      - "Entrega en 16:9, 9:16, 1:1 según plataforma"
+      - "Subtítulos en español + inglés (opcional)"
+      - "Color grading + sound design"
+      - "Reporting de performance 30 días post-publicación"
+
+    pricing:
+      currency_display: "PEN según pack"
+      payment_methods: ["transferencia", "tarjeta_credito"]
+
+    packs:
+      variant_structure: "PACK"
+      pack_count: 3
+      packs_list:
+        - pack_id: "L2_pack_starter"
+          name: "Starter — 4 reels"
+          reels_count: 4
+          duration_days: 30
+          price_total: 1200
+          price_per_reel: 300
+          target_persona: "Probar el equipo + necesidad audiovisual leve"
+          includes:
+            - "1 sesión creativa"
+            - "1 día rodaje (4-6h)"
+            - "Edición + entrega 16:9 + 9:16"
+            - "1 ronda iteración por pieza"
+
+        - pack_id: "L2_pack_growth"
+          name: "Growth — 8 reels"
+          reels_count: 8
+          duration_days: 60
+          price_total: 2000
+          price_per_reel: 250
+          most_popular: true
+          target_persona: "Plan editorial 2 meses + producción consistente"
+          includes:
+            - "2 sesiones creativas"
+            - "2 días rodaje (8-12h total)"
+            - "Edición + entrega multi-formato"
+            - "Subtítulos español"
+            - "2 rondas iteración por pieza"
+            - "Reporting performance 30 días"
+
+        - pack_id: "L2_pack_premium"
+          name: "Premium — 12 reels"
+          reels_count: 12
+          duration_days: 90
+          price_total: 3500
+          price_per_reel: 291.67
+          target_persona: "Plan editorial 3 meses + alta calidad sostenida"
+          includes:
+            - "3 sesiones creativas"
+            - "3 días rodaje (12-18h total)"
+            - "Edición premium + motion graphics"
+            - "Subtítulos español + inglés"
+            - "Color grading custom"
+            - "Sound design custom"
+            - "3 rondas iteración por pieza"
+            - "Reporting performance + recomendación posteo timing"
+            - "1 video largo (2-3 min) bonus"
+
+    program_details:
+      kickoff_meeting: "Sesión creativa 90 min antes de empezar"
+      shoot_locations: "Estudio Pulso Surco + locaciones cliente si aplica"
+      delivery_format: "Drive compartido + entregables MP4 multi-formato"
+
+    instructors:
+      - name: "Mateo Quispe"
+        role: "Director Video"
+      - name: "Diego Ramírez"
+        role: "Senior Editor"
+      - name: "Sebastián Morales"
+        role: "Junior Producer asistente"
+
+    closing:
+      mechanism: "post_briefing_+_payment_50"
+      requires_briefing_meeting: true
+      briefing_duration_minutes: 90
+      payment_terms: "50% inicial al firmar + 50% al entregar"
+
+    testimonials:
+      - persona: "Mariana — Founder retail premium D2C"
+        quote: "Pack Premium 12 reels. Engagement 4× vs lo que producía antes con freelancer. Concepto unificado se notó."
+        pack: "Premium"
+      - persona: "Carlos — CMO software 80 personas"
+        quote: "Pack Growth 8 reels. Tres de ellos tuvieron 80k+ views orgánicas. Mateo dirige de verdad, no es 'cualquier video'."
+        pack: "Growth"
+
+    faq:
+      - q: "¿Cuántos días entre rodaje y entrega final?"
+        a: "Pack Starter: 7-10 días. Growth: 14-21 días. Premium: 21-30 días con iteración."
+      - q: "¿Pueden ir a mi locación?"
+        a: "Sí, dentro Lima sin costo adicional. Fuera Lima cobramos viáticos."
+      - q: "¿Qué pasa si no me gustan los reels después de las iteraciones?"
+        a: "Te garantizamos que la 3ra versión queda según brief. Si tras 3 iteraciones no aplica, te devolvemos 50% (cubrimos costos producción)."
+      - q: "¿Puedo combinar Pack con retainer L3?"
+        a: "Sí. De hecho la mayoría lo combina. Pack te da volumen producción, retainer da gestión."
+
+    location:
+      delivery_method: "presencial Lima + remoto"
+      shoot_address: "Estudio Pulso Av. La Encalada 1257 + locaciones cliente"
+
+    resources:
+      - "Storyboard concept boards"
+      - "Drive compartido entregables"
+      - "Reporting performance post-publicación"
+
+    psychology:
+      target_emotion: "Calidad audiovisual + concepto unificado"
+      objections_addressed:
+        - "Mucho dinero (PEN 1,200-3,500)"
+        - "Freelancer me cobra menos por reel"
+        - "Y si no me gusta el resultado?"
+        - "Cuánto demora?"
+      desire: "Video premium con concepto + iteración"
+
+    gallery:
+      cover_image: "https://pulso.studio/static/produccion-video-cover.jpg"
+      portfolio_url: "https://pulso.studio/portfolio-video"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L3"
-    name: "Retainer mensual gestión completa RRSS"
-    description: >
-      Gestión integral de redes sociales que incluye: estrategia de contenido
-      mensual, producción de 4 reels + 8 posts estáticos, community management
-      (respuesta a comentarios y DMs dentro de horario laboral), publicación
-      optimizada y reporte quincenal con métricas de negocio.
-    format: "retainer_mensual"
-    price: 2500
-    currency_display: "PEN 2,500/mes"
-    billing: "mensual"
-    minimum_commitment_months: 3
-    delivery: "gestión completa con reporte quincenal"
-    value_proposition: "Equipo de growth completo por el precio de medio salario"
+    archetype: "MEMBRESIA"
+    value_level: "core"
+    preset_label: "Retainer mensual gestión + contenido (TIER variant — Starter/Growth/Premium)"
+    variant_structure: "TIER"
 
+    identity:
+      name: "Retainer Mensual Pulso"
+      slug: "retainer-mensual"
+      tagline: "Gestión continua de tu growth — contenido + paid + reporting semanal"
+      short_description: "Servicio recurrente mensual: producción contenido + gestión RRSS + paid media + reporting con números reales. 3 tiers según volumen y inversión."
+
+    promise:
+      transformation: "De gestión RRSS sin estructura a sistema growth con métricas reales, iteración semanal y predictibilidad de resultados"
+      outcome_short: "Sistema growth funcionando + reporting semanal + iteración basada en data"
+      timeframe: "Mensual recurrente — compromiso mínimo 6 meses para ver resultados"
+
+    tiers:
+      variant_structure: "TIER"
+      tier_count: 3
+      tiers_list:
+        - tier: 1
+          name: "Starter"
+          slug: "retainer-starter"
+          monthly_price_pen: 5500
+          minimum_commitment_months: 6
+          target_persona: "Marca chica facturando USD 30-80k/mes, quiere escalar contenido orgánico antes que paid"
+          includes:
+            - "8 piezas contenido mensual (mix reels + carruseles + stories)"
+            - "Gestión orgánica RRSS (Instagram + 1 plataforma adicional)"
+            - "Pauta hasta PEN 4,000 ad spend manejado (cliente paga ad spend aparte)"
+            - "Reporting semanal con CAC, LTV, ROAS, conversion rate"
+            - "Reunión mensual estratégica 60 min con Flor"
+            - "1 ronda iteración por pieza"
+          deliverables_monthly:
+            content_pieces: 8
+            ads_creatives: 4
+            reporting_emails: 4
+            strategy_meetings: 1
+
+        - tier: 2
+          name: "Growth"
+          slug: "retainer-growth"
+          monthly_price_pen: 7500
+          minimum_commitment_months: 6
+          target_persona: "Marca mediana facturando USD 80k-300k/mes, lista para escalar paid + orgánico balanceado"
+          most_popular: true
+          includes:
+            - "Todo lo de Starter"
+            - "+12 piezas contenido mensual (total 12 vs 8)"
+            - "Gestión 3 plataformas RRSS"
+            - "Pauta hasta PEN 8,000 ad spend manejado"
+            - "Producción video premium (2 reels custom motion al mes)"
+            - "Iteración 2 rondas por pieza"
+            - "Reunión quincenal 45 min Flor + Mateo"
+          deliverables_monthly:
+            content_pieces: 12
+            ads_creatives: 8
+            reporting_emails: 4
+            strategy_meetings: 2
+
+        - tier: 3
+          name: "Premium"
+          slug: "retainer-premium"
+          monthly_price_pen: 9500
+          minimum_commitment_months: 6
+          target_persona: "Marca establecida facturando USD 300k-2M/mes, quiere agencia única dedicada"
+          includes:
+            - "Todo lo de Growth"
+            - "+18 piezas contenido mensual (total 18 vs 12)"
+            - "Gestión todas las plataformas RRSS"
+            - "Pauta sin tope (cliente decide ad spend)"
+            - "1 video largo mensual (2-4 min)"
+            - "Iteración 3 rondas + 1 sesión de creativo dedicado"
+            - "Reunión semanal 30 min con Flor"
+            - "Acceso WhatsApp directo Flor (respuesta 24h)"
+            - "1 hot-seat trimestral con todo el equipo"
+          deliverables_monthly:
+            content_pieces: 18
+            ads_creatives: 12
+            videos_largos: 1
+            reporting_emails: 4
+            strategy_meetings: 4
+
+    pricing:
+      currency_display: "PEN 5,500 (Starter) · 7,500 (Growth) · 9,500 (Premium) por mes"
+      payment_methods: ["transferencia", "tarjeta_recurrente"]
+      billing_cycle: "monthly"
+      ad_spend_separate: true
+      ad_spend_billing: "Cliente paga directo a plataforma (Meta, Google, TikTok). Pulso gestiona pero no factura ad spend."
+      invoicing_terms: "Boleta o factura emitida día 1 mes. Pago dentro de 5 días. Tras día 6 cobramos PEN 100 mora."
+
+    program_details:
+      kickoff_period_days: 14
+      kickoff_includes: "Audit inicial gratuito + brief brand + plan editorial 90 días"
+      onboarding_owner: "Valeria (Account Manager)"
+
+    instructors:
+      - name: "Florencia Aramburu"
+        role: "Strategy + reporting reuniones"
+      - name: "Mateo Quispe"
+        role: "Producción video"
+      - name: "Camila Rojas"
+        role: "Paid media + ads"
+      - name: "Lucía Pinto"
+        role: "Community + copy"
+
+    closing:
+      mechanism: "discovery_call_required"
+      discovery_call_required: true
+      discovery_call_duration_minutes: 45
+      discovery_call_purpose: "Ver fit + revisar facturación + objetivos + cotización exacta"
+      scheduling_event_type_id: "scheduling_evt_a4_l3_retainer_discovery"
+      scheduling_url: "https://app.nicolify.com/schedule/pulso-studio/retainer-discovery"
+      next_step_after: "Si hay fit → propuesta escrita + contrato 6 meses + pago primer mes. Si no fit → recomendación honesta (otra agencia o servicio puntual L1)."
+
+    testimonials:
+      - persona: "Daniel — CEO fintech peruana B2B (Premium 18 meses)"
+        quote: "Pasamos de 100% paid a 60-40 paid-orgánico. CAC bajó 35% en 6 meses. ROI sostenido en 18 meses."
+        tier: "Premium"
+      - persona: "Lucia — Founder e-commerce moda (Growth 6 meses)"
+        quote: "Inversión PEN 7,500/mes con mejor ROI que tenía. Producción de video propia. Reportes con números, no likes."
+        tier: "Growth"
+      - persona: "Andrés — CMO software (Premium 12 meses)"
+        quote: "WhatsApp directo con Flor + reuniones semanales. Vale la diferencia vs Growth."
+        tier: "Premium"
+
+    faq:
+      - q: "¿Por qué compromiso 6 meses?"
+        a: "Orgánico toma 3-6 meses en mostrar resultados. Si firmás 3 meses, vas a juzgar antes de tiempo y dejás. 6 es el mínimo realista."
+      - q: "¿Qué pasa si quiero cancelar antes de 6 meses?"
+        a: "Cobramos los meses restantes hasta el 6to a precio regular. NO retenemos a clientes infelices, pero el contrato es 6 meses por buena razón."
+      - q: "¿Cuál tier me conviene?"
+        a: "Depende facturación + objetivos. En el discovery call cotizamos exacto. Generalmente: <USD 80k/mes Starter, USD 80-300k Growth, >USD 300k Premium."
+      - q: "¿Pueden manejar cuenta TikTok / LinkedIn / etc?"
+        a: "Starter: 2 plataformas. Growth: 3. Premium: todas. Recomendamos Instagram + 1-2 más por foco."
+      - q: "¿Y si necesito producción extra de video?"
+        a: "Contratás Pack L2 adicional. Cliente Growth puede sumar Pack Starter (4 reels extra) por PEN 1,200."
+
+    location:
+      delivery_method: "remoto + presencial Lima"
+      community_platform: "Slack compartido + Drive shared"
+
+    resources:
+      - "Plan editorial 90 días vivo (Notion)"
+      - "Reporting dashboard semanal (Looker Studio o equivalente)"
+      - "Drive entregables organizado por mes"
+      - "Slack canal compartido cliente-Pulso"
+
+    psychology:
+      target_emotion: "Compromiso + sistema sostenido"
+      objections_addressed:
+        - "Mucho dinero (PEN 5,500-9,500/mes)"
+        - "6 meses asusta"
+        - "Y si no veo resultados?"
+        - "Por qué no in-house?"
+        - "Cuál tier me conviene?"
+        - "Otras agencias cobran menos"
+      desire: "Sistema growth profesional ongoing"
+
+    gallery:
+      cover_image: "https://pulso.studio/static/retainer-cover.jpg"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L4"
-    name: "Consultoría estratégica growth (intensivo trimestral)"
-    description: >
-      Programa intensivo de 3 meses con consultoría estratégica semanal,
-      definición de brand voice, arquitectura de contenido, formación del
-      equipo interno en producción de video, y workshop mensual con el
-      fundador de Brote. Para marcas que quieren construir capacidades
-      internas de contenido.
-    format: "consultoria_estrategica"
-    price: 5000
-    currency_display: "PEN 5,000/mes"
-    billing: "mensual"
-    minimum_commitment_months: 3
-    delivery: "sesiones semanales Zoom + formación equipo + workshops mensuales"
-    value_proposition: "Build vs buy: construye tu propio equipo de contenido"
+    archetype: "SERVICIO"
+    value_level: "premium"
+    preset_label: "Consultoría estratégica proyecto custom"
+
+    identity:
+      name: "Consultoría Estratégica Pulso"
+      slug: "consultoria-estrategica"
+      tagline: "Proyecto custom 4-6 semanas — para marcas que NO quieren retainer pero necesitan rediseñar su growth"
+      short_description: "Servicio puntual de estrategia: brand audit + plan growth 6 meses + recomendaciones tácticas. Para clientes que tienen equipo in-house o agencia, pero necesitan vista externa estratégica."
+
+    promise:
+      transformation: "De equipo interno trabajando sin dirección growth clara a roadmap de 6 meses con prioridades + KPIs + plan táctico"
+      outcome_short: "Documento estratégico + 3 reuniones presentación + plan accionable"
+      timeframe: "4-6 semanas"
+
+    value_stack:
+      - "Brand audit profundo (3 reuniones inmersión equipo cliente)"
+      - "Análisis competidores top 5 + benchmarking métricas"
+      - "Plan growth 6 meses con prioridades + KPIs"
+      - "Recomendaciones tácticas (paid mix, content mix, partnerships)"
+      - "Documento estratégico final 40-60 páginas"
+      - "3 reuniones presentación (kickoff + mid + final)"
+      - "30 días post-entrega de soporte preguntas via Slack"
+      - "Si decidís contratar retainer L3 dentro de 90 días, 50% de la consultoría se descuenta del retainer primer mes"
+
+    pricing:
+      starting_price: 5000
+      pricing_model: "custom_quote_per_project"
+      typical_range_pen: "PEN 5,000 - 18,000 según scope"
+      currency_display: "Desde PEN 5,000 (cotización custom según scope)"
+      payment_terms: "50% inicial + 50% al entregar"
+      payment_methods: ["transferencia", "tarjeta_credito_3_cuotas"]
+
+    program_details:
+      duration_weeks: "4-6"
+      meetings_count: 3
+      includes_pdf_pages: "40-60"
+
+    instructors:
+      - name: "Florencia Aramburu"
+        role: "Lead estratega"
+      - name: "Camila Rojas"
+        role: "Co-estratega paid + analytics"
+
+    closing:
+      mechanism: "discovery_call_required"
+      discovery_call_required: true
+      discovery_call_duration_minutes: 45
+      scheduling_event_type_id: "scheduling_evt_a4_l4_consultoria"
+      scheduling_url: "https://app.nicolify.com/schedule/pulso-studio/consultoria-estrategica"
+      next_step_after: "Discovery → propuesta escrita + cotización custom + contrato + kickoff"
+
+    testimonials:
+      - persona: "Lorena — VP Marketing empresa software 200 personas"
+        quote: "Consultoría 6 semanas. Mi equipo de 4 personas tenía visión interna sesgada. Flor nos sacudió con plan que estamos ejecutando 8 meses después."
+        result_metric: "Plan ejecutado 8 meses"
+      - persona: "Felipe — CEO retail D2C 50 personas"
+        quote: "PEN 12,000 por brand audit + plan 6 meses. Decidimos NO contratar retainer porque nuestro equipo in-house puede ejecutar. Pulso fue honesto sobre eso."
+        result_metric: "Honesty (no upsell forzado)"
+
+    faq:
+      - q: "¿Cuál es la diferencia con el audit L1?"
+        a: "L1 es 7 días, PEN 500, vista rápida. L4 es 4-6 semanas, PEN 5k+, profundidad de brand audit + plan estratégico ejecutable."
+      - q: "¿Garantizan resultados?"
+        a: "Garantizamos calidad del documento + recomendaciones aplicables. Resultados dependen de ejecución del cliente. NO garantizamos ROI específico."
+      - q: "¿Y si no aplico nada del plan?"
+        a: "Es tu decisión. Pero si después decidís contratar retainer dentro de 90 días, 50% se descuenta."
+
+    location:
+      delivery_method: "remoto + 3 reuniones presenciales si Lima"
+
+    resources:
+      - "Brand audit document (40-60 págs PDF)"
+      - "Plan growth 6 meses (Notion compartido)"
+      - "Análisis competidores"
+      - "30 días post-entrega soporte Slack"
+
+    psychology:
+      target_emotion: "Vista estratégica externa + roadmap claro"
+      objections_addressed:
+        - "Mucho dinero (PEN 5-18k)"
+        - "Por qué consultoría si tengo equipo?"
+        - "Cuál es diferencia con audit L1?"
+        - "Garantizan resultados?"
+      desire: "Estrategia clara para ejecutar in-house"
+
+    gallery:
+      cover_image: "https://pulso.studio/static/consultoria-cover.jpg"
+
+# ─────────────────────────────────────────────────────────────
+# Cross-offer relationships
+# ─────────────────────────────────────────────────────────────
+upsell_relationships:
+  - from: "L1"
+    to: "L3"
+    discount_label: "Audit descontable de retainer si avanzás dentro de 30 días"
+    trigger: "post_audit_within_30d"
+    discount_amount: 500
+  - from: "L1"
+    to: "L4"
+    discount_label: "Audit descontable si avanzás a consultoría dentro de 60 días"
+    trigger: "post_audit_within_60d"
+    discount_amount: 500
+  - from: "L4"
+    to: "L3"
+    discount_label: "50% off primer mes retainer si contratás dentro de 90 días post-consultoría"
+    trigger: "post_consultoria_within_90d"
+  - from: "L3_starter"
+    to: "L3_growth"
+    discount_label: "Upgrade prorrateado"
+    trigger: "self_service_via_account_manager"
+  - from: "L3"
+    to: "L2"
+    discount_label: "Cliente retainer activo: Pack producción 10% off"
+    trigger: "during_retainer"
+
+includes_relationships:
+  - parent: "L3_premium"
+    includes: ["L2_production_video_2_per_month"]
+    notes: "Premium tier incluye 2 reels custom motion mensuales (equivalente a parte de Pack L2)."

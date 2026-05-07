@@ -20,7 +20,26 @@ story_ids:
   - sales-agent-eval-runner-foundation
 copilot_operable: false
 date_introduced: 2026-04
-last_modified: 2026-05-01
+last_modified: 2026-05-07
+
+eval:
+  seed_tenants_path: "backend/tests/fixtures/eval/tenants/"
+  seed_archetype_slugs:
+    - tenant_coach_lat
+    - tenant_medicina_estetica
+    - tenant_clinica_dental
+    - tenant_agencia_growth_video
+    - tenant_agencia_automatizacion_ia
+  seed_dialect_codes:
+    tenant_coach_lat: es-PE
+    tenant_medicina_estetica: es-MX
+    tenant_clinica_dental: es-CO
+    tenant_agencia_growth_video: es-AR
+    tenant_agencia_automatizacion_ia: es-419
+  seed_curated_at: 2026-05-07
+  seed_curated_by: chris
+  seed_pii_scanner_path: "backend/scripts/scan_seed_pii.py"
+  seed_whitelist_path: "backend/tests/fixtures/eval/tenants/.eval-whitelist"
 ---
 
 ## Capabilities cubiertas por este grupo

@@ -7,10 +7,16 @@ whitelisted_urls:
     justification: "Reference real público A1 Coach LatAm humano (visited 2026-05-06, public site)"
   - url: "https://www.youtube.com/@visionarias.oficial"
     justification: "Podcast YouTube público A1, citado en communication_assets.yaml"
+  - url: "https://app.nicolify.com/schedule/visionarias-coach/"
+    justification: "Nicolify scheduling (clon-Calendly built-in) discovery call links A1 — fixture tenant URL pattern, no real PII"
+  - url: "https://app.nicolify.com/schedule/"
+    justification: "Nicolify scheduling base path — covers all 5 seed tenants discovery/booking links (A1 ya, A2-A5 cuando agreguen reuniones)"
 
 whitelisted_email_domains:
   - domain: "@example.com"
     justification: "Synthetic emails per RFC 2606 — used in sample_exchanges of personality_profile.yaml"
+  - domain: "@visionarias.lat"
+    justification: "Real public domain de Visionarias Coach (A1) — sitio público + contact email legítimo, no PII real de individuos"
 
 whitelisted_phone_prefixes:
   - prefix: "+99 0"

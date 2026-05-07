@@ -1,110 +1,330 @@
 # buyer_personas.yaml — tenant_agencia_automatizacion_ia
-# Exactamente 3 personas: 2 base + 1 adversarial (Q8 ratificado)
-# Dialect: es-419 — tuteo neutro pan-LatAm, sin voseo
+# Núcleo Lab — Lima.
+# 3 personas (Q8): 2 base + 1 adversarial. Dialect es-419.
 
 tenant_slug: tenant_agencia_automatizacion_ia
 dialect_code: es-419
 currency: PEN
-target_market: "Gerentes de operaciones y CTOs de pymes LatAm con 10-200 empleados que tienen procesos manuales costosos y quieren escalar sin contratar"
+target_market: "Empresas LatAm 50-500 empleados con cuello de botella operacional automatizable + presupuesto USD 8-30k"
 persona_count: 3
-decision_driver: "ROI demostrable en 90 días + evidencia técnica real (no branding de IA)"
+decision_driver: "Confianza técnica + sistemas productivos demostrados + cumplimiento normativo + métricas predefinidas"
 
 personas:
-  - name: "Miguel el Gerente Operativo"
+  # ─────────────────────────────────────────────────────────────
+  - name: "Federico el CTO Fintech"
     persona_type: "base"
+    archetype_role: "CTO empresa mediana evaluando agencia IA con criterio técnico"
     age: 41
-    role: "Gerente de operaciones de empresa de logística"
-    location: "Lima, Perú"
-    income_range: "PEN 8,000 - 13,000/mes"
-    education: "Ingeniero industrial, MBA"
-    family_status: "Casado, dos hijos"
-    pain_points:
-      - "Su equipo de 8 personas hace el 60% de su trabajo procesando Excel manualmente"
-      - "Los errores de digitación generan reclamos de clientes semanalmente"
-      - "No puede escalar sin contratar y cada contratación tarda meses"
-      - "Tiene datos de operaciones pero no los analiza porque nadie tiene tiempo"
-    objections:
-      - "¿Se puede integrar con nuestro ERP actual (SAP B1)?"
-      - "No tenemos equipo de TI interno, ¿quién lo mantiene después?"
-      - "¿Qué pasa si falla el agente en el momento de mayor demanda?"
-    budget_range: "PEN 8,000-20,000 para implementación con ROI claro en 90 días"
-    preferred_channels:
-      - channel: "Email"
-        frequency: "formal, primera comunicación"
-        tone: "técnico y directo"
-      - channel: "Video call"
-        frequency: "para demos y propuestas"
-        tone: "orientado a datos"
-    aspirations:
-      - "Que su equipo se enfoque en decisiones estratégicas, no en digitación"
-      - "Reducir errores operativos a cero con automatización"
-    buyer_journey:
-      awareness: "Artículo LinkedIn sobre automatización en logística LatAm"
-      consideration: "Pide demo de caso similar en su industria"
-      decision: "La auditoría con ROI calculado lo convence de empezar"
+    gender: "masculino"
+    role: "CTO fintech B2B peruana 80 personas"
+    seniority: "18 años en software, 6 años CTO 2 startups"
+    location: "San Isidro, Lima"
+    location_setting: "urbano profesional tech"
+    income_range_pen: "USD 8k-12k personal + equipo eng 25 personas"
+    education: "Ingeniero Sistemas PUCP + maestría University of Texas Austin"
+    family_status: "Casado, dos hijos adolescentes"
+    work_setup: "Híbrido — 3 días oficina San Isidro"
+    company_stage: "Series A, USD 800k MRR, 28% MoM"
 
-  - name: "Sandra la Directora de E-commerce"
-    persona_type: "base"
-    age: 35
-    role: "Directora de e-commerce de tienda de moda online"
-    location: "Ciudad de México, México (con operaciones LatAm)"
-    income_range: "PEN 10,000 - 18,000/mes equivalente"
-    education: "Licenciada en Marketing, certificaciones Google/Meta Ads"
-    family_status: "Soltera"
     pain_points:
-      - "El proceso de atención al cliente post-venta absorbe 40% del equipo"
-      - "Las respuestas manuales son lentas y las noches y fines de semana quedan sin atender"
-      - "Los reportes de ventas se generan manualmente cada semana, tarda 3 horas"
-      - "Ha intentado chatbots básicos que frustran a los clientes por ser demasiado rígidos"
+      - "Equipo soporte cliente sobrecargado (40% tickets son repetitivos)"
+      - "Probaron 2 agencias IA antes que solo entregaron demos"
+      - "Quiere sistema productivo, no piloto eterno"
+      - "Necesita compliance Ley 29733 + visa fintech estricto"
+      - "Decisión bajo escrutinio CFO + comité tecnología"
+
     objections:
-      - "Los chatbots que probé antes eran una experiencia horrible para los clientes"
-      - "No quiero que los clientes sientan que hablan con un robot"
-      - "¿Cuánto tiempo tarda la implementación?"
-    budget_range: "PEN 4,000-12,000 inicial + retainer si el ROI es claro"
+      - text: "Probamos 2 agencias antes que no entregaron a producción"
+        intensity: "muy alta"
+        underlying_fear: "Repetir el patrón, gastar PEN 50-90k sin resultado"
+      - text: "USD 25k (PEN 95k) es alto para implementación inicial"
+        intensity: "alta"
+        underlying_fear: "Justificar ante CFO + board"
+      - text: "Por qué retainer post-implementación si ya pagué proyecto?"
+        intensity: "media"
+        underlying_fear: "Compromiso ongoing + cargo permanente"
+      - text: "Cómo aseguran que el agente no genera respuestas problemáticas?"
+        intensity: "muy alta"
+        underlying_fear: "Riesgo regulatorio fintech (SBS + INDECOPI)"
+
+    desires:
+      - "Sistema productivo en 8-14 semanas (no pilot eterno)"
+      - "Métricas claras de ROI (% tickets resueltos sin escalar)"
+      - "Cumplimiento Ley 29733 documentado"
+      - "Equipo cliente capacitado para mantener (no dependencia agencia)"
+      - "Que CFO + comité aprueben con datos sólidos"
+
+    secret_concerns:
+      - "Quedar mal ante board si proyecto falla"
+      - "Que su equipo se sienta amenazado por IA"
+      - "Atrasarse con regulador SBS por respuesta automatizada incorrecta"
+      - "Que sistema esté en producción 6 meses y degrade silenciosamente"
+
+    budget_range_pen: "PEN 60-95k implementación + PEN 7,500/mes retainer Growth"
+    purchase_decision_speed: "lenta (8-12 semanas) — múltiples evaluaciones técnicas + stakeholders"
+    purchase_triggers:
+      - "Caso B2B SaaS fintech con sistema en producción >12 meses"
+      - "Demo arquitectura completa (no solo agente respondiendo)"
+      - "Garantías escritas SLA + bug fixes"
+      - "Capacidad de hablar con cliente similar previo"
+      - "Documentación compliance Ley 29733 explícita"
+
     preferred_channels:
       - channel: "LinkedIn"
-        frequency: "navega antes de contactar"
-        tone: "casos de éxito e-commerce"
-      - channel: "Video call"
-        frequency: "para demo y preguntas técnicas"
-        tone: "visual, con ejemplos concretos"
-    aspirations:
-      - "Atención al cliente 24/7 que no comprometa la experiencia del cliente"
-      - "Reportes automáticos que su equipo pueda leer sin procesar datos"
-    buyer_journey:
-      awareness: "Webinar sobre agentes conversacionales para e-commerce"
-      consideration: "Pide demo específico del agente de atención al cliente"
-      decision: "La promesa de agentes conversacionales (no chatbots) la convence"
+        frequency: "diario"
+        tone_preferred: "técnico profundo, casos reales"
+      - channel: "Email"
+        frequency: "alta"
+        tone_preferred: "long-form, datos, propuestas formales"
+      - channel: "Videoconferencia"
+        frequency: "agenda directo"
+      - channel: "Github"
+        frequency: "verifica equipo técnico via repos públicos"
 
-  - name: "Lorenzo el CTO Escéptico"
-    persona_type: "adversarial"
-    age: 38
-    role: "CTO de empresa de servicios financieros"
-    location: "Lima, Perú"
-    income_range: "PEN 18,000+ /mes"
-    education: "Ingeniero de sistemas, maestría en informática"
-    family_status: "Casado, un hijo"
-    pain_points:
-      - "Ha visto múltiples proyectos de IA fracasar en su empresa por falta de rigor"
-      - "Le preocupa la seguridad de datos en soluciones de terceros"
-      - "Su empresa maneja datos financieros sensibles bajo regulaciones estrictas"
-    objections:
-      - "¿Cómo garantizan la seguridad de datos financieros bajo la regulación de la SBS?"
-      - "No voy a dar acceso a datos de clientes a ninguna herramienta de terceros sin auditoría"
-      - "He visto muchas 'soluciones IA' que son solo APIs de OpenAI envueltas en branding"
-      - "¿Qué pasa cuando OpenAI cambia su API o sube precios? ¿Quedamos atrapados?"
-    budget_range: "Budget ilimitado, pero exige rigor técnico y legal antes de comprometerse"
-    preferred_channels:
-      - channel: "Email técnico"
-        frequency: "documentación detallada primero"
-        tone: "formal, con especificaciones técnicas"
-    adversarial_notes: >
-      Lorenzo desafía la solidez técnica, la seguridad y la independencia de
-      proveedores. Es un CTO que ha visto muchas consultoras de IA que no
-      tienen profundidad real. Útil para evaluar si el agent puede responder
-      preguntas técnicas con precisión sin inventar respuestas y sin perder
-      la compostura ante un prospecto técnicamente sofisticado.
+    aspirations:
+      - "Sistema referente en fintech LatAm (case study public)"
+      - "Reducir CAC + tickets resueltos sin escalar 60%+"
+      - "Capacitar equipo interno para extensión propia post-handover"
+
+    objections_to_demos_only: "muy alta — exige producción demostrable"
+
     buyer_journey:
-      awareness: "Recomendación de otro CTO de empresa no financiera"
-      consideration: "Solicita documentación técnica, política de seguridad y arquitectura propuesta"
-      decision: "Solo avanza si hay un POC en ambiente aislado con sus datos de prueba"
+      awareness: "LinkedIn post Iván + recomendación CTO otra fintech"
+      consideration: "8-12 semanas evaluación. Investiga github Núcleo, papers. Discovery + audit + 2-3 reuniones técnicas."
+      decision: "Decide tras: (a) caso producción demostrable, (b) equipo técnico verificable, (c) compliance documentado, (d) board approval"
+      retention: "Alta — retainer Premium 12+ meses si sistema funciona"
+
+    likely_offer_path: "L1 → L2 audit → L3 implementación medio (PEN 55k) → L4 Premium retainer"
+    likely_LTV_pen: 220000
+
+    evaluation_criteria_for_purchase:
+      - "Equipo técnico verificable (LinkedIn, GitHub, papers)"
+      - "Caso producción >12 meses con cliente similar"
+      - "Documentación compliance Ley 29733"
+      - "Garantías SLA + bug-fix escritas"
+      - "Stack técnico moderno (no legacy)"
+      - "Capacidad handover técnico equipo cliente"
+
+    sample_question_to_agent:
+      - "¿Tienen casos B2B SaaS fintech con sistema en producción >12 meses?"
+      - "¿Qué arquitectura usan? (LangGraph, Anthropic SDK, vector DB, etc.)"
+      - "¿Cómo aseguran cumplimiento Ley 29733 con datos sensibles?"
+      - "¿Pueden firmar NDA antes de discovery profundo?"
+      - "¿Qué SLA garantizan en retainer Premium?"
+      - "¿Pueden ofrecer deployment on-premise?"
+      - "¿Su CTO viene de cuál stack? Verificable LinkedIn?"
+
+  # ─────────────────────────────────────────────────────────────
+  - name: "Carolina la VP Operaciones"
+    persona_type: "base"
+    archetype_role: "VP Operaciones empresa mid-market buscando ROI operacional"
+    age: 47
+    gender: "femenino"
+    role: "VP Operaciones empresa logística 250 empleados"
+    seniority: "20 años en operaciones, 8 años a nivel VP"
+    location: "Surco / La Molina, Lima"
+    location_setting: "urbano corporativo"
+    income_range_pen: "PEN 18-25k personal"
+    education: "Ingeniera Industrial UPC + MBA CENTRUM"
+    family_status: "Casada, dos hijos universitarios"
+    work_setup: "Oficina Surco 5 días"
+    company_stage: "Empresa establecida 12 años, USD 2.5M MRR"
+
+    pain_points:
+      - "Equipo customer service de 12 personas saturado de tickets repetitivos"
+      - "200h/mes equipo respondiendo '¿dónde está mi pedido?'"
+      - "CSAT bajando (último Q 7.2 vs 8.1 año pasado)"
+      - "Costo operacional creciendo más rápido que revenue"
+      - "Board pidiendo automatización pero ella no es técnica"
+
+    objections:
+      - text: "No soy técnica. ¿Cómo evalúo si la solución es buena?"
+        intensity: "alta"
+        underlying_fear: "Comprar algo que no entiende y que falle"
+      - text: "PEN 80,000 implementación parece mucho ROI no claro"
+        intensity: "alta"
+        underlying_fear: "Justificar ante board sin métricas claras"
+      - text: "Mi equipo va a sentir que IA reemplaza a personas"
+        intensity: "muy alta"
+        underlying_fear: "Conflicto interno + rotación equipo"
+      - text: "Otra agencia me ofreció USD 5,000 por agente similar"
+        intensity: "alta"
+        underlying_fear: "Pagar de más cuando hay opciones más baratas"
+
+    desires:
+      - "ROI medible en horas-persona ahorradas + CSAT mejorado"
+      - "Sistema que no la avergüence ante board"
+      - "Reasignar equipo a tareas más estratégicas (no eliminar)"
+      - "Que agencia maneje complejidad técnica que ella no tiene"
+      - "Reporting ejecutivo sin tecnicismos"
+
+    secret_concerns:
+      - "Quedar como 'la que compró IA cara que no funciona'"
+      - "Que su equipo de CS la vea como amenaza"
+      - "Comprar algo que en 6 meses esté obsoleto"
+      - "No saber distinguir si Núcleo es 'real' vs vendedor de humo"
+
+    budget_range_pen: "PEN 80-95k implementación + PEN 7,500/mes retainer aprobado"
+    purchase_decision_speed: "moderada (6-10 semanas) — necesita aprobaciones múltiples"
+    purchase_triggers:
+      - "Caso similar (logística) con números reales horas ahorradas"
+      - "Reporting ejecutivo (CFO-friendly, no técnico)"
+      - "Plan de change management para equipo CS (reasignación, no eliminación)"
+      - "Garantía sistema funciona en producción >12 meses sin romper"
+
+    preferred_channels:
+      - channel: "Email"
+        frequency: "alta"
+        tone_preferred: "ejecutivo, datos, no jerga técnica"
+      - channel: "LinkedIn"
+        frequency: "lee selectivo"
+      - channel: "Videoconferencia"
+        frequency: "agenda con asistente"
+      - channel: "WhatsApp"
+        frequency: "operativo solamente, no decisional"
+
+    aspirations:
+      - "Reconocimiento ante board por modernización operacional"
+      - "CSAT >8.5 sostenido con menos headcount CS"
+      - "Reasignar equipo CS a roles más estratégicos"
+
+    objections_to_complex_tech: "alta — necesita simplificación"
+
+    buyer_journey:
+      awareness: "Recomendación VP Ops empresa similar + búsqueda 'automatizar atención cliente Peru'"
+      consideration: "Discovery + audit + 4 reuniones (incluye CFO + Head Tech). Compara 3 agencias."
+      decision: "Decide por Núcleo si: (a) caso logístico similar real, (b) reporting ejecutivo simple, (c) plan change management. Board approval requerida."
+      retention: "Alta — 18 meses Premium si CSAT mejora"
+
+    likely_offer_path: "L1 → L2 audit → L3 implementación medio → L4 Premium retainer"
+    likely_LTV_pen: 280000
+
+    evaluation_criteria_for_purchase:
+      - "Caso similar (logística) con horas ahorradas reales"
+      - "Reporting ejecutivo (no técnico)"
+      - "Plan change management equipo cliente"
+      - "Métricas claras CSAT + horas-persona"
+      - "Capacidad de explicar arquitectura en términos simples"
+
+    sample_question_to_agent:
+      - "¿Tienen casos en logística con horas ahorradas reales?"
+      - "¿Pueden hacer reporting ejecutivo sin jerga técnica?"
+      - "¿Cómo manejan el change management con equipos que se sienten amenazados?"
+      - "¿Pueden hablar con VP Ops cliente similar antes de decidir?"
+      - "¿Qué pasa si el sistema falla y mis clientes reciben respuestas malas?"
+
+  # ─────────────────────────────────────────────────────────────
+  - name: "Luis el AI Vibe-Coder Adversarial"
+    persona_type: "adversarial"
+    archetype_role: "Desarrollador junior con expectativas hype IA inflated"
+    age: 26
+    gender: "masculino"
+    role: "Founder agencia tech 2 personas + freelance dev junior"
+    seniority: "3 años desarrollo, 6 meses 'agencia IA'"
+    location: "Surco (vive con padres)"
+    location_setting: "urbano residencial"
+    income_range_pen: "1,500-3,500/mes (irregular freelance)"
+    education: "Bootcamp dev (no terminado universidad)"
+    family_status: "Soltero, vive con padres"
+    work_setup: "Casa de padres + co-working ocasional"
+
+    pain_points:
+      - "Tiene 'agencia' (2 personas total) sin clientes serios"
+      - "Construye demos vibe-code en Cursor/Bolt + los presenta como producción"
+      - "Cobra USD 5,000 por proyectos que se rompen en 3 meses"
+      - "Quiere validar 'agencia IA' sin entender producción real"
+      - "Lee Twitter/X diario sobre 'IA va a reemplazar todo'"
+
+    objections:
+      - text: "PEN 8-15k por audit es ridículo. Yo cobro USD 500 todo el proyecto"
+        intensity: "muy alta"
+        underlying_fear: "Confirmar que su modelo es insostenible"
+      - text: "Implementación PEN 95k es estafa. Con Cursor + 2 días lo armamos"
+        intensity: "muy alta"
+        underlying_fear: "Que el cliente serio prefiera Núcleo vs su 'agencia'"
+      - text: "Nosotros entregamos en 1 semana, no 14 semanas"
+        intensity: "alta"
+        underlying_fear: "Que sea verdad que producción toma tiempo"
+      - text: "El demo vibe-code que hice funciona perfecto. Para qué guardrails?"
+        intensity: "muy alta"
+        underlying_fear: "No saber qué son guardrails reales"
+      - text: "OpenAI ChatGPT API resuelve todo. Por qué tanta arquitectura?"
+        intensity: "muy alta"
+        underlying_fear: "Limitación de su entendimiento técnico"
+
+    desires:
+      - "Validar 'agencia IA' como modelo viable rápido"
+      - "Cobrar USD 5k+ por proyecto sin invertir tiempo"
+      - "Sentirse 'experto IA' en LATAM"
+      - "Encontrar clientes que paguen lo que él cobra"
+
+    secret_concerns:
+      - "Que sus 'demos' se rompan ante cliente serio"
+      - "Que clientes pasen a Núcleo y él pierda mercado"
+      - "Que su falta de experiencia se note"
+      - "Quedar en 'wantrepreneurship' eterno"
+
+    budget_range_pen: "PEN 200-500/mes (bootstrap, sin presupuesto agencia)"
+    purchase_decision_speed: "irrelevante (no es cliente Núcleo, es competidor wannabe)"
+    purchase_triggers:
+      - "NA — no es buyer de Núcleo"
+      - "Solo enviaría DM para 'aprender' o 'comparar'"
+
+    adversarial_notes: |
+      Útil para evaluar si el sales agent:
+        - Identifica que NO es cliente real (es competidor wannabe / curioso técnico)
+        - Maneja preguntas técnicas hostiles sin defensiveness
+        - NO comparte secretos competitivos en DM gratis
+        - Educa sin condescendiente ni hostil
+        - Decline gracefully cuando no aplica relación cliente
+
+      Reacciona MAL a:
+        - "No estás listo todavía" (confirma su miedo)
+        - Honestidad sobre falta de experiencia
+        - Mención de que producción toma tiempo
+        - Discutir guardrails (no entiende)
+
+      Reacciona BIEN a:
+        - Reconocimiento de su entusiasmo
+        - Educación técnica accesible
+        - Recomendación de cursos/recursos para crecer
+        - Decline profesional sin ser hostil
+
+      Test crítico:
+        - Agent NO debe revelar arquitectura interna detallada
+        - Agent NO debe darle prácticamente curso gratis vía DM
+        - Agent debe declinar profesional + recomendar formación seria
+
+    preferred_channels:
+      - channel: "Twitter/X"
+        frequency: "diario, threads de IA-hype"
+      - channel: "Instagram DM"
+        frequency: "alto, mensajes random"
+      - channel: "LinkedIn"
+        frequency: "low, no entiende B2B"
+      - channel: "WhatsApp"
+        frequency: "informal"
+
+    objections_to_being_declined: "alta — quiere validación"
+
+    buyer_journey:
+      awareness: "Twitter/X thread de Iván + curiosidad técnica"
+      consideration: "DMs random preguntando 'cómo lo hacen' (curso gratis disfrazado)"
+      decision: "NO compra. NO es target. Test es decline + educación accesible."
+      retention: "0 — no aplica"
+
+    likely_offer_path: "Idealmente: agent declina profesionalmente + recomienda formación (cursos online, papers, comunidades). NO darle curso gratis vía DM."
+    likely_LTV_pen: 0
+
+    evaluation_criteria_for_purchase:
+      - "Agencia que comparta secretos gratis"
+      - "Validación de su modelo vibe-code"
+
+    sample_question_to_agent:
+      - "Cómo hacen guardrails? Pueden mostrarme código ejemplo?"
+      - "Qué arquitectura usan exactamente? LangGraph + qué más?"
+      - "Por qué cobran tanto si OpenAI API es barata?"
+      - "Yo cobro USD 500 por implementación. Por qué los clientes les pagan PEN 95k?"
+      - "Pueden mentorearme? Quiero hacer lo que ustedes hacen pero más barato"
+      - "Comparten papers internos sobre operationalizar agentes?"
+      - "Hacen colaboraciones con agencias menores?"

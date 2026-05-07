@@ -1,11 +1,11 @@
 ---
 story_id: eval-foundation-tenant-seed-data
 outcome: pi-12-sales-agent-eval-foundation
-state: developing
-phase: BUILD_T4
-last_artifact: T-3-result.md
-last_modified: 2026-05-07T01:30:00Z
-next_action: "/dev-team T-4 last ticket — curación Chris + ratificación + capability YAML update + GREEN final. Loop iterativo Chris ↔ builder. T-1+T-2+T-3 closed pushed."
+state: developed
+phase: AWAIT_AUDIT
+last_artifact: T-4-result.md
+last_modified: 2026-05-07T07:00:00Z
+next_action: "Story state developing → developed. Awaiting Chris triggers `/auditor` Conv 3 manualmente para review final + merge. T-1+T-2+T-3+T-4 closed pushed."
 ratified_by_chris: true
 spawned_at: 2026-05-06T17:11:00Z
 spawned_by: /pm
@@ -27,3 +27,4 @@ legacy_exempt: true
 - 2026-05-06 23:00Z — T-1 closed pushed. Builder: claude-sonnet. Deliverables: loader.py + TenantContext + OfferLadderContext + dialect_catalog.yaml (15 entries) + 4 test files baseline. Validators: ruff GREEN, arch fitness 827/827, dialect catalog 4/4 GREEN, loader 1/22 GREEN (RED baseline confirmed). Phase=BUILD_T2.
 - 2026-05-07 00:30Z — T-2 closed pushed. Builder: claude-sonnet. Deliverables: scan_seed_pii.py (9 regex patterns, exit 0/1/2, whitelist-aware) + .eval-whitelist (4 entries) + test_seed_pii_scanner.py (7 tests) + pre-commit hook Section 8 + test_pre_commit_hook.py extension. Validators: ruff GREEN, arch fitness 827/827, 20/20 tests GREEN. Phase=BUILD_T3.
 - 2026-05-07 01:30Z — T-3 closed pushed (recovered). Builder agent terminated mid-flow tras crear 35 files (5 tenants × 7). `/dev-team` orchestrator recovery: spawn gate-runner haiku → 79/79 eval tests GREEN (loader 22/22, realism 30/30, schema 16/16, dialect 4/4, pii 7/7) + 13/13 hook tests + 827/827 arch fitness, manual stage-by-name + commit + push. Phase=BUILD_T4.
+- 2026-05-07 07:00Z — T-4 closed pushed (last ticket). Loop iterativo Chris ↔ orchestrator (Round 1: A1 reescrito con programa real "De Propósito a Prosperidad" + variants PERIOD/TIER + voice humanizada + Nicolify scheduling. Round 2: A2-A5 enriquecidos al mismo nivel densidad con benchmarks Peru 2026, decline policies por tenant, 3 personas adversariales por tenant). Capability YAML `sales-conversational-engine` eval block agregado. Validators 79/79 + 13/13 + 827/827 GREEN. Story state developing → **developed**. Phase=AWAIT_AUDIT.

@@ -1,62 +1,233 @@
 # communication_assets.yaml — tenant_agencia_automatizacion_ia
-# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+# Núcleo Lab — Lima.
 
 social_media:
-  linkedin: "https://www.linkedin.com/company/novabyte-ia"
-  youtube: "https://www.youtube.com/@novabyteai"
-  twitter_x: "@novabyteai"
+  linkedin:
+    company_url: "https://www.linkedin.com/company/nucleo-lab"
+    founder_url: "https://www.linkedin.com/in/ivancastro-ai"
+    followers_approx: 4200
+    posting_frequency: "Iván 2-3 long-posts/semana, page 2 posts/semana"
+    primary_audience_country: "PE (40%) + USA Hispanic tech (35%) + LatAm (25%)"
+    primary_content: "Long-form análisis técnico operationalizar IA + casos B2B con métricas"
+    notable_followers: "CTOs + VPs Engineering + AI engineers LatAm"
+  github:
+    organization: "https://github.com/nucleo-lab"
+    repos_public: 8
+    primary_content: "Open-source helpers (LangGraph patterns, RAG eval scripts) + papers reproducibles"
+    contribution_score: "Activo — issues respondidas en 24h"
+  twitter:
+    handle: "@nucleo_lab"
+    followers_approx: 1800
+    posting_frequency: "Iván 2-3/semana threads técnicos"
+    primary_content: "Threads sobre operationalizar agentes IA + crítica vibe-code superficial"
+  youtube:
+    channel_url: "https://www.youtube.com/@nucleo-lab"
+    subscribers_approx: 800
+    posting_frequency: "1 video/mes"
+    primary_content: "Tutoriales largos (30-60 min) sobre arquitectura agentes productivos"
+  instagram:
+    handle: "@nucleo.lab"
+    followers_approx: 1100
+    posting_frequency: "1-2 posts/semana"
+    primary_content: "Behind the scenes equipo + casos de éxito (sanitizados)"
 
 website:
-  url: "https://novabyte.pe"
-  portfolio_url: "https://novabyte.pe/casos-de-exito"
-  audit_landing: "https://novabyte.pe/auditoria-procesos"
-  blog_url: "https://novabyte.pe/blog"
-  resources_url: "https://novabyte.pe/recursos"
+  url: "https://nucleo-lab.pe"
+  blog_url: "https://nucleo-lab.pe/blog"
+  case_studies_url: "https://nucleo-lab.pe/case-studies"
+  discovery_url: "https://nucleo-lab.pe/discovery-call"
+  servicios_url: "https://nucleo-lab.pe/servicios"
+  team_url: "https://nucleo-lab.pe/equipo"
+  papers_url: "https://nucleo-lab.pe/research"
+  about_url: "https://nucleo-lab.pe/sobre-nosotros"
+  contact_url: "https://nucleo-lab.pe/contacto"
 
 email_marketing:
-  list_name: "Prospectos NovaByte"
-  welcome_sequence_length: 5
-  newsletter_frequency: "quincenal"
-  main_cta: "Agenda tu auditoría de procesos"
+  list_name: "Núcleo Insights"
+  list_size_approx: 1200
+  welcome_sequence_length: 3
+  welcome_sequence_topics:
+    - "Bienvenida + por qué Núcleo (filosofía producción > demos)"
+    - "Caso real fintech: Tickets primer respuesta 4h → 30s (con arquitectura)"
+    - "Cómo decidir si IA aplica a tu caso (decision framework)"
+  newsletter_frequency: "mensual"
+  main_cta: "Agendar discovery call gratis"
+  conversion_rate_visit_to_optin: "3%"
+  conversion_rate_optin_to_discovery: "12%"
+  conversion_rate_discovery_to_audit: "55%"
+  conversion_rate_audit_to_implementation: "70%"
 
 content_pillars:
-  - name: "Casos de éxito y ROI"
-    description: "Resultados medibles de automatizaciones implementadas"
-    formats:
-      - "artículo detallado LinkedIn"
-      - "video case study YouTube"
-      - "infografía de ROI"
-  - name: "Educación técnica accesible"
-    description: "Qué es un agente de IA, cómo funciona, cuándo usarlo"
-    formats:
-      - "thread LinkedIn"
-      - "video explicativo YouTube"
-      - "artículo blog técnico"
-  - name: "Benchmarks de industria"
-    description: "Cuánto tiempo y dinero ahorran empresas similares"
-    formats:
-      - "reporte descargable (Gated)"
-      - "infografía LinkedIn"
-  - name: "Demos y tutoriales"
-    description: "Demos de agentes funcionando en casos reales"
-    formats:
-      - "video demo YouTube"
-      - "sesión en vivo LinkedIn"
+  - name: "Casos producción documentados"
+    description: "Implementaciones reales con arquitectura + métricas + lecciones aprendidas"
+    formats: ["LinkedIn long-post", "blog técnico", "case study site"]
+    posting_share: 0.35
+  - name: "Anatomía sistemas productivos"
+    description: "Cómo se operacionaliza un agente IA — guardrails, fallbacks, monitoring"
+    formats: ["video YouTube", "thread Twitter", "blog técnico"]
+    posting_share: 0.25
+  - name: "Crítica anti-hype IA"
+    description: "Desmistificación de promesas vibe-code + análisis honesto de limitaciones LLM"
+    formats: ["LinkedIn", "Twitter thread", "podcast invitado"]
+    posting_share: 0.20
+  - name: "Cumplimiento normativo"
+    description: "Ley 29733 PE + GDPR + EU AI Act aplicados a sistemas IA"
+    formats: ["blog largo", "LinkedIn"]
+    posting_share: 0.10
+  - name: "Behind the scenes técnico"
+    description: "Día a día equipo, herramientas, decisiones de arquitectura"
+    formats: ["IG stories", "Twitter casual"]
+    posting_share: 0.10
 
 key_messages:
-  - "Un agente de IA bien implementado trabaja 24/7 por el costo de un día de trabajo"
-  - "Automatiza primero lo que más te cuesta en tiempo"
-  - "Sin auditoría no existe propuesta seria de automatización"
-  - "IA accesible para empresas sin equipo de ingeniería interno"
+  - "Producción > demos"
+  - "Sistemas IA con guardrails + monitoring + fallbacks"
+  - "Métricas predefinidas, no wow-factor"
+  - "Cumplimiento Ley 29733 explícito"
+  - "Honest sobre límites: NO reemplaza humanos en todo"
+  - "Equipo verificable (LinkedIn + GitHub + papers)"
 
-tone_of_voice: "Técnico pero claro. Sin jerga innecesaria. Datos y resultados sobre promesas."
+tone_of_voice:
+  description: "Técnico accesible, neutro pan-LatAm (sin voseo, sin mexicanismos, sin peruanismos), anti-hype, honest sobre límites."
+  do:
+    - "Citar papers + research cuando aplica"
+    - "Real numbers en testimonios + proyectos"
+    - "Decline cuando no aplica"
+    - "Honestidad sobre limitaciones LLM"
+    - "Recomendar alternativas no-code para empresas chicas"
+    - "Reconocer competencia válida"
+  dont:
+    - "Hype IA va a reemplazar todo"
+    - "Promesas de viral / 6 cifras"
+    - "Voseo, mexicanismos, peruanismos"
+    - "Demos vibe-code como argumento"
+    - "Compromiso técnico que no podemos cumplir"
 
-discovery_process:
-  step_1: "Formulario de contacto con 5 preguntas sobre el negocio"
-  step_2: "Llamada de 30 min para confirmar fit cliente-agencia"
-  step_3: "Propuesta de auditoría de procesos personalizada"
-  step_4: "Auditoría de 3 días → presentación de resultados y roadmap"
-  step_5: "Decisión de implementación con ROI calculado"
-  note: >
-    No existe content descargable gratuito. El primer touchpoint de valor
-    es la llamada de discovery. La auditoría es el primer servicio pagado.
+lead_magnet:
+  none: true
+  reason: "A5 SIN L0 lead magnet per spec — entrada via discovery call gratis (L1) o casos LinkedIn"
+  alternativa_entrada:
+    - "LinkedIn post viral con caso B2B"
+    - "Recomendación CTO/VP cliente actual"
+    - "Conferencia speaking (AWS re:Invent, Día PUCP)"
+    - "Papers research compartidos (NeurIPS 2024, ACL 2025)"
+    - "Discovery call gratis L1 (entry tripwire-like sin pago)"
+
+# ─────────────────────────────────────────────────────────────
+# Nicolify scheduling integration
+# ─────────────────────────────────────────────────────────────
+scheduling:
+  provider: "Nicolify scheduling (clon-Calendly built-in)"
+  event_types:
+    - id: "scheduling_evt_a5_l1_discovery"
+      name: "Discovery call gratis 45 min"
+      duration_minutes: 45
+      offer_level: "L1"
+      facilitator: "Iván Castro o Sara Mendoza"
+      booking_url: "https://app.nicolify.com/schedule/nucleo-lab/discovery-call-gratis"
+      pre_booking_questions:
+        - "¿Nombre de tu empresa y sector?"
+        - "¿Tamaño (empleados + facturación)?"
+        - "¿Caso de uso identificado o exploración?"
+        - "¿Presupuesto disponible para proyecto?"
+      capacity_per_week: 12
+      timezone_default: "America/Lima"
+
+    - id: "scheduling_evt_a5_l2_audit"
+      name: "Discovery audit profundo (post L1)"
+      duration_minutes: 60
+      offer_level: "L2"
+      facilitator: "Iván Castro + Mariana Quispe (CS)"
+      booking_url: "https://app.nicolify.com/schedule/nucleo-lab/audit-procesos"
+      requires_l1_first: true
+
+    - id: "scheduling_evt_a5_l3_implementacion_kickoff"
+      name: "Kickoff implementación (post audit aprobado)"
+      duration_minutes: 90
+      offer_level: "L3"
+      facilitator: "Iván + Sara + Diego (tech leads)"
+      booking_url: "https://app.nicolify.com/schedule/nucleo-lab/implementacion-discovery"
+      requires_l2_first: true
+
+    - id: "scheduling_evt_a5_l4_retainer"
+      name: "Discovery retainer post-implementación"
+      duration_minutes: 45
+      offer_level: "L4"
+      facilitator: "Mariana Quispe (CS Lead) + Iván"
+      booking_url: "https://app.nicolify.com/schedule/nucleo-lab/retainer-discovery"
+      capacity_per_week: 8
+
+# ─────────────────────────────────────────────────────────────
+# Channel-specific messaging
+# ─────────────────────────────────────────────────────────────
+channel_specific_messaging:
+  linkedin_dm:
+    avg_response_time_hours: 6
+    avg_message_length: "long-form OK (B2B audience técnica)"
+    common_inbound_intents:
+      - "Discovery call request"
+      - "Pregunta técnica caso de uso específico"
+      - "Solicitud de propuesta corporativa"
+      - "Pregunta empleo (no aplica — Núcleo no contrata frecuente)"
+    initial_response_template: "Saludo + qualifying empresa/caso + bridge discovery L1 si fit"
+  email:
+    avg_response_time_hours: 24
+    long_form_ok: true
+    common_inbound_intents:
+      - "Solicitud propuesta formal corporate"
+      - "Solicitud NDA"
+      - "Pregunta compliance (Ley 29733, GDPR)"
+      - "Solicitudes prensa/medios"
+      - "Aplicaciones a research / papers"
+  whatsapp:
+    avg_response_time_hours: 4
+    avg_message_length: "1-3 frases"
+    common_inbound_intents:
+      - "Operativo cliente activo"
+      - "Cotización rápida si ya hubo discovery"
+      - "Wantrepreneurs / vibe-coders (decline esperado)"
+    initial_response_template: "Saludo + qualifying tamaño empresa + bridge a discovery si fit"
+  twitter_dm:
+    avg_response_time_hours: 12
+    common_inbound_intents:
+      - "Preguntas técnicas (responder accesible sin revelar IP)"
+      - "AI engineers preguntando carrera (decline graceful)"
+      - "Vibe-coders pidiendo arquitectura gratis (decline + educación)"
+    initial_response_template: "Acknowledge + decline si no es buyer + recomendar recursos públicos"
+
+# ─────────────────────────────────────────────────────────────
+# Política decline anti-mal-fit
+# ─────────────────────────────────────────────────────────────
+decline_policy: |
+  Núcleo DECLINA a:
+  - Empresas <50 empleados o facturando <USD 500k/mes
+  - Casos de uso con expectativas no realistas (reemplazar todo el equipo)
+  - Wantrepreneurs / startups validando idea
+  - Vibe-coders pidiendo arquitectura gratis vía DM
+  - Proyectos con presupuesto <PEN 28,000
+
+  Recomendaciones honest según caso:
+  - Empresas chicas: herramientas no-code (Make + Zapier + ChatGPT API)
+  - Startups validando: validar primero (no agencia)
+  - Vibe-coders: cursos serios online + papers públicos + comunidades técnicas
+  - Proyectos baratos: agencias más económicas (Agencia IA, Tooldata) o freelancers verificados
+
+# ─────────────────────────────────────────────────────────────
+# Compliance + security
+# ─────────────────────────────────────────────────────────────
+compliance:
+  ley_29733_peru: true
+  ley_29733_documentation: "Disponible bajo NDA. Diagrama data flow + DPA firmado por proyecto."
+  indecopi_lineamientos_ia: true
+  gdpr: "Disponible como add-on (15-25% extra al proyecto)"
+  eu_ai_act: "En roadmap Q3 2026"
+  hipaa: "No aplicable (no tenemos clientes salud regulada actualmente)"
+  iso_27001: "En proceso de certificación 2026"
+  nda_default: "Sí, firmamos NDA antes de discovery profundo"
+  dpa_disponible: true
+
+corporate_partnerships:
+  empresas_clientes_actuales: 9
+  partner_types: ["fintech", "logística", "retail premium", "software B2B", "salud privada"]
+  notable_clients: "Disponibles bajo NDA (algunos clientes públicos otros sanitizados en case studies)"
+  msa_template_disponible: true

@@ -1,72 +1,240 @@
 # brand.yaml — tenant_agencia_automatizacion_ia
-# Tenant: NovaByte Automatización IA — Agencia de automatización con IA para pymes LatAm
-# Inspiración: aggregate brandtech.pe + agencias IA LatAm. Datos inventados.
-# Dialect: es-419 | Currency: PEN | SIN L0
+# Tenant: Núcleo Lab — Agencia de automatización IA + software con IA Lima
+# Inspiración: aggregate Agencia IA (agenciaia.com.pe), Tooldata, ToGrow, Miss Yera,
+#              Vexsoluciones, AuroraInbox + brandtech.pe.
+# Datos sintéticos. Dialect es-419 neutro pan-LatAm. Currency PEN.
 
 identity:
-  brand_name: "NovaByte Automatización IA"
-  tagline: "Automatiza lo repetitivo, enfócate en lo estratégico"
+  brand_name: "Núcleo Lab"
+  tagline: "Automatización IA seria para empresas que ya facturan — sin demos vibe-code"
   description: >
-    NovaByte es una agencia especializada en automatización de procesos con
-    inteligencia artificial para pequeñas y medianas empresas en LatAm.
-    Diseñamos, construimos y operamos agentes de IA, flujos automatizados
-    y sistemas de datos que eliminan trabajo manual y escalan operaciones
-    sin contratar más personal. No vendemos tecnología; vendemos tiempo
-    y capacidad operativa recuperada.
-  industry: "automatización de procesos con IA y desarrollo de agentes inteligentes para pymes"
-  website: "https://novabyte.pe"
-  founding_year: "2023"
+    Núcleo Lab es agencia de automatización con IA + desarrollo de software
+    asistido por IA enfocada en empresas LatAm con operaciones reales (50+
+    empleados, USD 500k+/mes facturación). Liderada por Iván Castro
+    (ingeniero de software peruano, ex-AI Engineer en Y Combinator startup
+    NY 2019-2024). Equipo de 9 personas: 4 AI engineers + 3 product
+    engineers + 2 customer success. Diferencial: agentes IA productivos
+    en producción, no demos vibe-code que se rompen al primer edge case.
+  industry: "automatización con IA + desarrollo de software con IA para empresas medianas LatAm"
+  website: "https://nucleo-lab.pe"
+  founding_year: "2024"
   language: "es"
   timezone: "America/Lima"
   country_of_registration: "PE"
-  legal_entity_type: "sas"
-  tax_regime: "Régimen MYPE Tributario"
+  legal_entity_type: "sociedad_anonima_cerrada"
+  tax_regime: "RG"
+  ruc_label: "20XXXXXXXXX (RUC SAC)"
+  registered_address: "Av. José Larco 880, Miraflores, Lima 18, Perú"
+  certificaciones_oficiales:
+    - "Cumplimiento Ley 29733 Protección de Datos Personales (Perú)"
+    - "Cumplimiento INDECOPI lineamientos IA"
+    - "Anthropic Solution Partner certified"
+    - "OpenAI API Solution Provider"
+    - "AWS Partner Network — Select Tier"
 
 strategy:
-  methodology_name: "Proceso NOVA"
+  methodology_name: "Núcleo Method"
   methodology_description: >
-    Metodología de 4 etapas para identificar, automatizar y operar los procesos
-    de negocio con mayor impacto en tiempo y costo. Cada implementación incluye
-    medición de ROI desde el primer mes.
+    Marco de 4 fases que toma proceso operacional con cuello de botella
+    y lo automatiza con IA productiva (no demo). Diferencial: medimos ROI
+    en horas-persona ahorradas + costo operacional reducido, no en
+    'wow factor' del demo.
   methodology_pillars:
-    - title: "Discovery"
-      description: "Mapeo de procesos actuales y cuantificación de costo de ineficiencias"
-    - title: "Diseño"
-      description: "Arquitectura de la solución automatizada adaptada a tu stack actual"
-    - title: "Implementación"
-      description: "Construcción y despliegue del agente o flujo automatizado"
-    - title: "Operación"
-      description: "Monitoreo continuo, ajustes y soporte post-implementación"
+    - title: "Discovery profundo"
+      description: "Workshop 4 horas con stakeholders + observación operación 1 semana antes de proponer cualquier solución"
+    - title: "Diseño con guardrails"
+      description: "Cada agente IA tiene fallbacks documentados + monitoring + límites operacionales claros"
+    - title: "Implementación medible"
+      description: "Cada feature con métrica de éxito predefinida (tickets resueltos sin escalación, horas ahorradas, etc.)"
+    - title: "Mantenimiento productivo"
+      description: "Modelos no se 'instalan y olvidan' — requieren tuning continuo. Retainer mensual cubre ese mantenimiento."
 
 story:
   origin: >
-    Fundada por dos ex-ingenieros de software que trabajaron en startups de
-    automatización en Silicon Valley y decidieron traer ese conocimiento a las
-    pymes latinoamericanas que no tienen acceso a equipos de ingeniería costosos.
+    Iván Castro estudió Ingeniería de Software en la PUCP (2014-2018).
+    Fellowship investigación NLP con MIT Media Lab (2018-2019). Trabajó
+    como AI Engineer en startup B2B SaaS (Y Combinator W19, 80 empleados
+    al salir) entre 2019-2024 en NY. Volvió a Lima en 2024 con la idea
+    de aplicar lo que vio funcionar a empresas medianas LatAm. Núcleo
+    Lab abrió en julio 2024 con 3 personas (Iván + 2 ex-colegas).
   mission: >
-    Democratizar la automatización con IA para que las pymes latinoamericanas
-    puedan competir con la eficiencia operativa de empresas 10 veces más grandes.
+    Hacer accesible automatización con IA a empresas medianas LatAm
+    (50-500 empleados) con sistemas productivos, no demos.
   vision: >
-    Un LatAm donde ninguna pyme pierde competitividad por no poder pagar un
-    equipo de ingeniería completo. La IA debe ser accesible, no un privilegio.
+    Que el 80% de empresas medianas LatAm tengan al menos 1 proceso
+    crítico automatizado con IA hacia 2030 — y que ese proceso funcione
+    en producción real (no en piloto eterno).
+  founder_journey: >
+    Iván vio en SF demasiados ejemplos de "agentes IA" que funcionaban
+    en demo pero se rompían en producción al ver edge cases reales.
+    Decidió armar agencia con foco en sistemas productivos: monitoring,
+    fallbacks, guardrails, métricas de éxito predefinidas. NO 'wow demo'
+    sin sustancia operacional.
+  brand_evolution:
+    - year: 2024
+      milestone: "Apertura jul 2024. Iván + 2 ingenieros. Primer cliente: empresa logística Lima (caso automatización tracking). NPS interno cliente 9/10."
+    - year: 2024
+      milestone: "Q4 2024 — segundo cliente fintech peruano (caso atención cliente WhatsApp con agente). 4 personas equipo."
+    - year: 2025
+      milestone: "Equipo crece a 7 personas. 6 clientes activos. Caso retail con automatización inventario que ahorra 200h/mes."
+    - year: 2025
+      milestone: "Q4 — primer cliente Series B fintech con sistema atención cliente IA en producción 24/7. NPS cliente 8.5."
+    - year: 2026
+      milestone: "Equipo 9 personas (4 AI + 3 product + 2 customer success). 9 clientes activos retainer + 4 implementaciones one-shot."
 
 positioning:
   unique_value_proposition: >
-    La única agencia de automatización IA en LatAm que garantiza reducción
-    medible de tiempo operativo en los primeros 60 días o devuelve el 50%
-    del costo de implementación.
-  brand_essence: "Operaciones que escalan solas"
-  discriminator: "Automatización IA con ROI garantizado y garantía de resultados"
+    La única agencia LatAm con foco en sistemas IA productivos para
+    empresas medianas — discovery profundo + diseño con guardrails +
+    métricas de éxito predefinidas + mantenimiento ongoing. NO vibe-code
+    demos. NO consultoría sin código entregado.
+  brand_essence: "Sistemas IA que funcionan en producción"
+  discriminator: "Foco productivo (no demos) + métricas de éxito predefinidas + cumplimiento normativo Ley 29733 PE + Anthropic/OpenAI certified team + entregables incluyen documentación + monitoring + handover técnico"
+  competitor_landscape:
+    direct_competitors:
+      - "Agencia IA (agenciaia.com.pe)"
+      - "Tooldata (Lima/Arequipa/Cusco)"
+      - "ToGrow Agencia"
+      - "Miss Yera consultoría"
+      - "Vexsoluciones"
+      - "AuroraInbox"
+    differentiation: "Único equipo con AI engineers ex-YC + foco productivo > demos + cumplimiento normativo PE explícito + retainer mensual de mantenimiento (otros venden one-shot y desaparecen)"
+  ideal_customer_summary: "Empresa LatAm 50-500 empleados, facturando USD 500k-15M/mes, con cuello de botella operacional concreto que se podría automatizar (atención cliente, procesamiento documentos, generación contenido, análisis datos). NO startups validando idea. NO empresas que buscan 'IA por estar a la moda'."
 
 brand_personality:
-  archetype: "magician"
+  archetype: "sage"
+  secondary_archetype: "creator"
   core_values:
-    - "Resultados medibles"
-    - "Accesibilidad tecnológica"
-    - "Transparencia técnica"
-    - "Iteración rápida"
+    - "Producción > demos"
+    - "Métricas predefinidas > wow-factor"
+    - "Cumplimiento normativo serio"
+    - "Mantenimiento ongoing"
+    - "Honestidad sobre límites IA"
+    - "NO vibe-code"
   personality_traits:
-    - "Técnico pero claro"
-    - "Orientado a datos"
-    - "Eficiente"
-    - "Confiable"
+    - "Técnico sin ser inaccesible"
+    - "Directo + neutral pan-LatAm"
+    - "Anti-hype IA"
+    - "Honesto sobre lo que NO se puede automatizar"
+    - "Foco operacional"
+
+team:
+  - id: "0a1b2c3d-4e5f-4a6b-9c7d-8e9f0a1b2c01"
+    name: "Iván Castro"
+    role: "Founder + CEO + AI Engineering Lead"
+    bio: "Ingeniero de Software PUCP (2014-2018). Fellowship NLP MIT Media Lab 2018-2019. AI Engineer startup B2B SaaS YC W19 NY (2019-2024). Volvió a Lima 2024."
+    instagram: "@ivancastro.ai"
+    linkedin: "https://www.linkedin.com/in/ivancastro-ai"
+    github: "https://github.com/ivancastro"
+  - id: "1b2c3d4e-5f6a-4b7c-8d9e-9f0a1b2c3d02"
+    name: "Sara Mendoza"
+    role: "Senior AI Engineer + LangGraph specialist"
+    bio: "Ingeniera de Sistemas UNI. 6 años experiencia. Ex-Globant. Especialista en orquestación de agentes con LangGraph + Anthropic SDK + OpenAI."
+  - id: "2c3d4e5f-6a7b-4c8d-9e0f-0a1b2c3d4e03"
+    name: "Camilo Vargas"
+    role: "AI Engineer + RAG specialist"
+    bio: "Ingeniero PUCP. 4 años experiencia. Ex-IBM. Especialista en RAG (retrieval augmented generation) + vector databases (Qdrant, Pinecone) + embeddings."
+  - id: "3d4e5f6a-7b8c-4d9e-0f1a-1b2c3d4e5f04"
+    name: "Andrea Salazar"
+    role: "AI Engineer + LLM fine-tuning"
+    bio: "Maestría Ciencias Computación UPCH. 5 años experiencia. Especialista en fine-tuning + RLHF + custom model training."
+  - id: "4e5f6a7b-8c9d-4e0f-1a2b-2c3d4e5f6a05"
+    name: "Diego Quispe"
+    role: "Senior Product Engineer + Backend"
+    bio: "Ingeniero PUCP. 8 años experiencia. Stack: Python + FastAPI + PostgreSQL + AWS."
+  - id: "5f6a7b8c-9d0e-4f1a-2b3c-3d4e5f6a7b06"
+    name: "Patricia Rojas"
+    role: "Product Engineer + Frontend"
+    bio: "Ingeniera UPC. 5 años experiencia. Stack: React + Next.js + TypeScript."
+  - id: "6a7b8c9d-0e1f-4a2b-3c4d-4e5f6a7b8c07"
+    name: "Roberto Flores"
+    role: "DevOps + Infrastructure"
+    bio: "Ingeniero PUCP. 7 años experiencia AWS + Kubernetes + observabilidad (Datadog, Grafana)."
+  - id: "7b8c9d0e-1f2a-4b3c-4d5e-5f6a7b8c9d08"
+    name: "Mariana Quispe"
+    role: "Customer Success Lead"
+    bio: "Lic. Administración. 6 años en SaaS B2B customer success. Coordina handover técnico + retainer ongoing."
+  - id: "8c9d0e1f-2a3b-4c4d-5e6f-6a7b8c9d0e09"
+    name: "Luis Pardo"
+    role: "Customer Success + Project Manager"
+    bio: "Ingeniero Industrial. 4 años project management proyectos software."
+
+testimonials:
+  - persona: "Carolina — VP Operaciones empresa logística (cliente desde Q3 2024)"
+    quote: "Núcleo nos automatizó el tracking de pedidos cross-canal. Antes era 200h/mes de mi equipo respondiendo 'dónde está mi pedido?'. Hoy son 20h. PEN 80,000 que se pagaron en 4 meses."
+    program: "Implementación agente atención + retainer mensual"
+    duration_months: 18
+    result_metric: "200h/mes → 20h/mes ahorro operacional"
+  - persona: "Federico — CTO fintech B2B peruana"
+    quote: "Probamos 3 agencias IA antes. Las primeras 2 nos dieron demos lindos pero NADA llegó a producción. Núcleo entregó sistema en 8 semanas + monitoring + handover. Llevamos 14 meses sin romper."
+    program: "Sistema atención cliente WhatsApp 24/7"
+    duration_months: 14
+    result_metric: "Tickets primer respuesta 4h → 30 segundos"
+  - persona: "Ana — Directora Marketing retail premium"
+    quote: "Sara nos implementó agente de personalización contenido para 12,000 clientes. ROI 6x primer año. Sin marketing-speak, números reales."
+    program: "Agente IA personalización contenido"
+    result_metric: "ROI 6x primer año"
+  - persona: "Eduardo — CEO software empresa 80 personas"
+    quote: "Lo que más valoré: nos dijeron honestamente que un proceso que queríamos automatizar NO valía la pena (volumen muy bajo). Ahorraron PEN 200,000 en proyecto que iba a ser un white elephant."
+    program: "Discovery + recomendación honest"
+    result_metric: "Anti-mal-investment"
+
+authority_vault:
+  - type: "media"
+    title: "Entrevista Bloomberg LatAm — 'Automatización IA pyme: el caso peruano'"
+    year: 2025
+    url: "https://www.bloomberg.com/latin/nucleo-lab-automatizacion-ia-peru"
+  - type: "media"
+    title: "Podcast Conexión Pyme (Cámara Comercio Lima) ep 67"
+    year: 2025
+    url: "https://podcastconexionpyme.lat/67-nucleo-lab-ivan-castro"
+  - type: "speaking"
+    title: "Charla Día de la PUCP — 'Anatomía de un sistema IA productivo'"
+    year: 2025
+  - type: "speaking"
+    title: "AWS re:Invent LATAM 2025 — caso retail IA personalización"
+    year: 2025
+  - type: "certification"
+    title: "Anthropic Solution Partner certified"
+    year: 2025
+  - type: "certification"
+    title: "OpenAI API Solution Provider"
+    year: 2024
+  - type: "certification"
+    title: "AWS Partner Network — Select Tier"
+    year: 2025
+  - type: "research"
+    title: "Paper publicado en NeurIPS 2024 (co-autor Iván) — 'Operationalizing Agent Systems in B2B SaaS'"
+    year: 2024
+  - type: "research"
+    title: "Paper publicado en ACL 2025 (Andrea) — 'Domain-Specific Fine-tuning for Spanish LATAM Customer Service'"
+    year: 2025
+  - type: "case_study"
+    title: "Case study fintech peruana — Tickets primer respuesta 4h → 30s"
+    url: "https://nucleo-lab.pe/case-studies/fintech-customer-service"
+
+contact:
+  primary_email: "hola@example.com"
+  whatsapp_business: "+99 0 555 0500"
+  whatsapp_business_label: "WhatsApp comercial (sintético per .eval-whitelist)"
+  contact_form_url: "https://nucleo-lab.pe/contacto"
+  scheduling_link_l1_discovery: "https://app.nicolify.com/schedule/nucleo-lab/discovery-call-gratis"
+  scheduling_link_l2_audit: "https://app.nicolify.com/schedule/nucleo-lab/audit-procesos"
+  scheduling_link_l3_implementacion: "https://app.nicolify.com/schedule/nucleo-lab/implementacion-discovery"
+  scheduling_link_l4_retainer: "https://app.nicolify.com/schedule/nucleo-lab/retainer-discovery"
+  physical_address: "Av. José Larco 880, Miraflores, Lima 18, Perú"
+  business_hours: "Lunes-Viernes 9:00-18:00 hora Perú (GMT-5). Equipo distribuido (PE + 1 persona en NY como advisory)."
+
+visuals:
+  primary_color: "#0F172A"
+  secondary_color: "#3B82F6"
+  accent_color: "#10B981"
+  font_primary: "JetBrains Mono"
+  font_secondary: "Inter"
+  logo_url: "https://nucleo-lab.pe/static/logo-nucleo-mark.svg"
+  brand_voice_keywords:
+    - "técnico sin ser inaccesible"
+    - "neutro pan-LatAm sin regionalismos"
+    - "anti-hype IA"
+    - "honest sobre límites"
+    - "métricas predefinidas"

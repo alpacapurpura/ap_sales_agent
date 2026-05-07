@@ -1,16 +1,16 @@
 # brand.yaml — tenant_coach_lat
-# Tenant: Visionarias Coach — Coach de negocios y marketing para emprendedoras LatAm
-# Inspiración: visionarias.lat (sitio público de Chris). Datos inventados.
+# Tenant: Visionarias Coach — coaching de negocios y marketing para emprendedoras LatAm
+# Inspiración: visionarias.lat (sitio público de Chris Tapia). Datos sintéticos plausibles.
 # Dialect: es-PE | Currency: PEN
 
 identity:
   brand_name: "Visionarias Coach"
   tagline: "Transforma tu expertise en un negocio que funciona sin ti"
   description: >
-    Visionarias Coach acompaña a emprendedoras latinoamericanas a construir negocios
-    rentables y sostenibles usando estrategias de marketing y ventas que respetan
-    su estilo de vida. Más de 300 clientes en 12 países han transformado su
-    expertise en ingresos predecibles.
+    Visionarias Coach acompaña a emprendedoras latinoamericanas a construir
+    negocios rentables y sostenibles usando estrategias de marketing y ventas
+    que respetan su estilo de vida. Más de 300 clientas en 12 países han
+    transformado su expertise en ingresos predecibles desde 2019.
   industry: "coaching de negocios y marketing digital para mujeres emprendedoras"
   website: "https://visionarias.lat"
   founding_year: "2019"
@@ -24,45 +24,160 @@ strategy:
   methodology_name: "Sistema VISIONARIA"
   methodology_description: >
     Marco de 4 fases que lleva a la emprendedora desde claridad de oferta
-    hasta ventas automatizadas con autenticidad.
+    hasta ventas automatizadas con autenticidad. Integrado con el programa
+    flagship "De Propósito a Prosperidad" (que añade 3 pilares de
+    Liberar para Liderar: estrategia + neurociencia + propósito).
   methodology_pillars:
     - title: "Claridad"
       description: "Define tu nicho, cliente ideal y propuesta de valor única"
     - title: "Oferta"
       description: "Estructura una oferta irresistible con precios que reflejan tu valor"
     - title: "Atracción"
-      description: "Crea contenido y comunidad que atrae clientes de forma orgánica"
+      description: "Crea contenido y comunidad que atrae clientas de forma orgánica"
     - title: "Conversión"
       description: "Sistemas de venta que convierten sin perseguir ni presionar"
 
 story:
   origin: >
-    Fundada en 2019 por una coach que después de 10 años en marketing corporativo
-    decidió llevar su conocimiento a las emprendedoras que más lo necesitaban:
-    mujeres con gran expertise pero sin sistema para monetizarlo.
+    Fundada en 2019 por una coach que después de 10 años en marketing
+    corporativo (Backus, Alicorp) decidió llevar su conocimiento a las
+    emprendedoras que más lo necesitaban: mujeres con gran expertise pero
+    sin sistema para monetizarlo. La primera cohort fue de 8 alumnas en
+    el sótano de una cafetería de Miraflores. Hoy son 300+ alumnas en 12
+    países LatAm.
   mission: >
-    Democratizar el acceso a estrategias de marketing y ventas de alto nivel
-    para emprendedoras latinoamericanas.
+    Democratizar el acceso a estrategias de marketing y ventas de alto
+    nivel para emprendedoras latinoamericanas — sin manipulación, sin
+    presión, sin sacrificar bienestar.
   vision: >
-    Un ecosistema donde cada mujer experta en LatAm pueda vivir de su conocimiento
-    con dignidad y libertad financiera.
+    Un ecosistema donde cada mujer experta en LatAm pueda vivir de su
+    conocimiento con dignidad, libertad financiera y alineación interna.
+  founder_journey: >
+    Ileana Tapia salió del corporativo el día que su jefe le dijo
+    'no podés liderar marketing siendo madre'. Ese día decidió construir
+    el espacio que ella habría querido tener. 7 años después, Visionarias
+    Coach es referencia en coaching de negocios LatAm para mujeres.
+  brand_evolution:
+    - year: 2019
+      milestone: "Lanzamiento — primera cohort 8 alumnas presencial Miraflores"
+    - year: 2020
+      milestone: "Pivot a 100% virtual durante pandemia, escala 3× audiencia"
+    - year: 2022
+      milestone: "Lanzamiento programa Sistema VISIONARIA (deprecated 2026 → reemplazado por De Propósito a Prosperidad)"
+    - year: 2024
+      milestone: "Co-facilitación con Camila Clausen integra neurociencia"
+    - year: 2026
+      milestone: "Lanzamiento De Propósito a Prosperidad (programa flagship refinado)"
 
 positioning:
   unique_value_proposition: >
-    La única metodología en LatAm diseñada específicamente para mujeres expertas
-    que quieren vender sin perseguir clientes ni sacrificar su vida personal.
+    La única metodología en LatAm diseñada específicamente para mujeres
+    expertas que quieren vender sin perseguir clientes ni sacrificar su
+    vida personal. Combina estrategia de marketing + neurociencia
+    aplicada + liderazgo con propósito.
   brand_essence: "Libertad a través del expertise"
-  discriminator: "Coaching de negocios con enfoque en bienestar y autenticidad"
+  discriminator: "Coaching de negocios con enfoque en bienestar somático y autenticidad — no hustle, no manipulación"
+  competitor_landscape:
+    direct_competitors: ["Marie Forleo (US)", "Amy Porterfield (US)", "Vilma Núñez (LatAm)"]
+    differentiation: "Único programa LatAm que integra neurociencia clínica (Polyvagal Theory) con estrategia de marketing"
+  ideal_customer_summary: "Emprendedora LatAm 28-45 años con expertise (consultora/coach/terapeuta/profesional autónoma) facturando 3-15k PEN/mes, estancada por falta de sistema o por bloqueos somáticos."
 
 brand_personality:
   archetype: "sage"
+  secondary_archetype: "caregiver"
   core_values:
     - "Autenticidad"
     - "Libertad financiera"
     - "Comunidad femenina"
     - "Estrategia con propósito"
+    - "Bienestar como base, no premio"
   personality_traits:
     - "Cálida"
     - "Directa"
     - "Inspiradora"
     - "Estratégica"
+    - "Sin pretensiones"
+
+team:
+  - id: "7e3a5f1d-2c8b-4f02-9a44-1b6c2e8d3a01"
+    name: "Ileana Tapia"
+    role: "Fundadora + Coach principal"
+    bio: "10 años en marketing corporativo + 7 años coacheando emprendedoras. MBA UPC. StoryBrand Certified Guide. Vive en Lima, Perú."
+    instagram: "@ileana.tapia"
+    linkedin: "https://www.linkedin.com/in/ileanatapia"
+  - id: "8f4b6e2d-3d9c-4a13-8b55-2c7d3f9e4b02"
+    name: "Camila Clausen"
+    role: "Co-facilitadora — Neurociencia y trabajo somático"
+    bio: "Coach de neurohacking. Somatic Experiencing Practitioner nivel 2 + Polyvagal-informed Coaching certificada. 8 años acompañando líderes a sostener visibilidad."
+    instagram: "@camilaclausen.somatic"
+  - id: "9c5d7f3e-4ea0-4b24-9c66-3d8e4a0f5c03"
+    name: "Asistente virtual"
+    role: "Soporte operativo + onboarding alumnas"
+    bio: "Equipo de 1 asistente part-time gestiona inscripciones, comunidad VIP y onboarding."
+
+testimonials:
+  - persona: "Sandra (Perú)"
+    quote: "Empecé facturando PEN 8k/mes. Al mes 6 estaba en PEN 22k con la mitad del tiempo invertido."
+    program: "Mentoría 1:1 (L4)"
+    duration: "6 meses"
+    result_metric: "PEN 8k → PEN 22k/mes"
+  - persona: "Daniela (Chile)"
+    quote: "De 6 a 14 clientes/mes en 4 meses post-programa. Lo más impactante: dejé de cobrar desde la culpa."
+    program: "De Propósito a Prosperidad (L2 edición 1)"
+    result_metric: "+133% clientes en 4 meses"
+  - persona: "Marcela (Colombia)"
+    quote: "Pagué el programa con la primera venta que hice durante la semana 5."
+    program: "De Propósito a Prosperidad (L2 edición 1)"
+    result_metric: "ROI dentro del programa"
+  - persona: "Bianca (Argentina)"
+    quote: "Cerré contrato corporativo USD 28k que sola no habría conseguido."
+    program: "Mentoría 1:1 (L4)"
+    duration: "9 meses"
+    result_metric: "Contrato USD 28k"
+  - persona: "Patricia (Tier Basic VIP)"
+    quote: "El Q&A semanal me da ese empujón cuando me trabo. Por PEN 89 no encuentras este nivel de comunidad."
+    program: "Comunidad VIP — Basic"
+
+authority_vault:
+  - type: "media"
+    title: "Entrevista en Mercado Negro Magazine"
+    year: 2024
+    url: "https://mercadonegro.pe/articulos/visionarias-coach-emprendedoras"
+  - type: "media"
+    title: "Podcast Emprende Mujer — episodio 47"
+    year: 2025
+    url: "https://emprendemujer.lat/episodios/47-ileana-tapia"
+  - type: "speaking"
+    title: "TEDx Miraflores — La libertad empieza en el sistema nervioso"
+    year: 2025
+    url: "https://www.youtube.com/@visionarias.oficial/tedx"
+  - type: "certification"
+    title: "StoryBrand Certified Guide"
+    issued_by: "Donald Miller — StoryBrand"
+    year: 2022
+  - type: "certification"
+    title: "Hubspot Inbound Marketing"
+    issued_by: "Hubspot Academy"
+    year: 2021
+
+contact:
+  primary_email: "hola@visionarias.lat"
+  whatsapp_business: "+99 0 555 0100"
+  whatsapp_business_label: "WhatsApp soporte (sintético per .eval-whitelist)"
+  contact_form_url: "https://visionarias.lat/contacto"
+  scheduling_link_discovery_l2: "https://app.nicolify.com/schedule/visionarias-coach/de-proposito-discovery"
+  scheduling_link_discovery_l4: "https://app.nicolify.com/schedule/visionarias-coach/mentoria-1-1-discovery"
+
+visuals:
+  primary_color: "#6B4FBB"
+  secondary_color: "#F5C57B"
+  accent_color: "#3A2E66"
+  font_primary: "Playfair Display"
+  font_secondary: "Inter"
+  logo_url: "https://visionarias.lat/static/logo-visionarias.svg"
+  logo_dark_url: "https://visionarias.lat/static/logo-visionarias-dark.svg"
+  brand_voice_keywords:
+    - "directo sin agresivo"
+    - "cálido sin empalagoso"
+    - "estratégico sin frío"
+    - "vulnerable sin victimización"

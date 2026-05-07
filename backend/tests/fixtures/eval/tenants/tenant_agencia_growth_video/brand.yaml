@@ -1,75 +1,216 @@
 # brand.yaml — tenant_agencia_growth_video
-# Tenant: Brote Agencia — Growth Marketing con video y RRSS para marcas LatAm
-# Inspiración: aggregate brander.studio + toga.pe + agencias growth AR. Datos inventados.
-# Dialect: es-AR | Currency: PEN | SIN L0
+# Tenant: Pulso Studio — Agencia growth marketing video + RRSS Lima/LatAm
+# Inspiración: aggregate Artivy Studio Lima + LimaRank + VPI-media + Onfleek Media + Webtilia
+#              + estilos brander.studio + toga.pe + agencias AR.
+# Founder: Florencia Aramburu (argentina). Datos sintéticos.
+# Dialect: es-AR (voseo legítimo). Currency: PEN.
 
 identity:
-  brand_name: "Brote Agencia"
-  tagline: "Tu marca crece cuando el contenido convierte"
+  brand_name: "Pulso Studio"
+  tagline: "Convertimos tu negocio en un movimiento — sin gimmicks, con data"
   description: >
-    Brote es una agencia boutique de growth marketing especializada en video
-    y redes sociales para marcas en crecimiento en LatAm. Combinamos estrategia
-    de contenido, producción de reels y gestión de comunidades para convertir
-    audiencias en clientes reales. No vendemos likes, vendemos resultados.
-  industry: "agencia de growth marketing, producción de video y gestión de RRSS"
-  website: "https://brote.agency"
-  founding_year: "2021"
+    Agencia de growth marketing con foco en video + redes sociales,
+    fundada por Florencia "Flor" Aramburu (argentina, ex-CMO startup
+    SaaS) en Lima 2022. Estudio boutique de 7 personas. Especializadas
+    en marcas LatAm que quieren escalar via contenido orgánico + paid
+    bien orquestado. Más de 30 marcas atendidas — desde fintech early
+    stage hasta retail mid-market.
+  industry: "growth marketing especializado en video + redes sociales para marcas LatAm"
+  website: "https://pulso.studio"
+  founding_year: "2022"
   language: "es"
-  timezone: "America/Argentina/Buenos_Aires"
+  timezone: "America/Lima"
   country_of_registration: "PE"
-  legal_entity_type: "sas"
-  tax_regime: "Régimen MYPE Tributario"
+  legal_entity_type: "sociedad_anonima_cerrada"
+  tax_regime: "RG"
+  ruc_label: "20XXXXXXXXX (RUC SAC)"
+  registered_address: "Av. La Encalada 1257, Surco, Lima 33, Perú"
+  certificaciones_oficiales:
+    - "Meta Business Partner certified"
+    - "TikTok Marketing Partner"
+    - "Google Ads certified team"
+    - "HubSpot Inbound certified"
 
 strategy:
-  methodology_name: "Framework CRECER"
+  methodology_name: "Pulso Method"
   methodology_description: >
-    Seis semanas de sprint donde auditamos, estrategiamos, producimos, publicamos,
-    medimos y optimizamos el contenido de video y RRSS para generar resultados
-    medibles en crecimiento de audiencia y conversión.
+    Marco de 4 fases que toma marca early-stage o estancada y la lleva
+    a sistema de adquisición predecible. Diferencial: cada decisión
+    sustentada en data (no instinto creativo solo).
   methodology_pillars:
-    - title: "Auditoría"
-      description: "Análisis profundo de la presencia digital actual y competencia"
-    - title: "Estrategia"
-      description: "Mapa de contenido alineado a objetivos de negocio medibles"
-    - title: "Producción"
-      description: "Video de calidad filmado y editado con brief de marca"
-    - title: "Distribución"
-      description: "Publicación optimizada por plataforma y horario de mayor alcance"
-    - title: "Medición"
-      description: "Reporte quincenal con métricas de negocio (no solo vanidad)"
-    - title: "Optimización"
-      description: "Ajuste de estrategia basado en datos reales del primer mes"
+    - title: "Diagnóstico data-driven"
+      description: "Audit con métricas reales actuales (CAC, LTV, conversion rate, CPM) — antes de proponer cualquier creativo"
+    - title: "Concepto + plan editorial"
+      description: "Concept boards basados en performance data + plan editorial 90 días con KPIs por pieza"
+    - title: "Producción + iteración"
+      description: "Producción de video/RRSS + iteración semanal basada en performance"
+    - title: "Escalamiento paid + orgánico"
+      description: "Cuando orgánico funciona, paid lo amplifica. NO al revés."
 
 story:
   origin: >
-    Fundada por dos ex-directores de contenido que se cansaron de ver cómo las
-    marcas gastaban en producción de video sin estrategia de distribución. Brote
-    nació con la premisa de que el mejor video del mundo no sirve si nadie lo ve
-    ni convierte.
+    Florencia "Flor" Aramburu (32 años) trabajó 6 años como CMO en una
+    fintech argentina (B2B SaaS) que escaló de USD 1M a USD 12M ARR
+    bajo su lead. Se mudó a Lima en 2021 por su pareja peruano y abrió
+    Pulso Studio en 2022 cuando vio que las marcas LatAm tenían
+    presupuesto pero les faltaba estructura de data + creativo unido.
   mission: >
-    Hacer crecer marcas latinoamericanas con contenido de video que combina
-    creatividad y datos para generar resultados reales de negocio.
+    Demostrar que crecimiento orgánico + paid bien orquestado es más
+    rentable que gastar en ads sin estrategia — con data real que el
+    cliente ve cada semana.
   vision: >
-    Ser la agencia de referencia para marcas en crecimiento en LatAm que entienden
-    que el contenido sin estrategia es solo gasto.
+    Ser la agencia de referencia para marcas LatAm B2B y D2C que
+    quieren escalar con disciplina creativa y rigor de data.
+  founder_journey: >
+    Flor vio en su rol corporativo demasiados ejemplos de marcas
+    quemando presupuesto en ads sin orgánico de soporte. Su tesis: el
+    contenido orgánico construye la marca; el paid lo amplifica. Pulso
+    Studio aplica esa secuencia cliente por cliente.
+  brand_evolution:
+    - year: 2022
+      milestone: "Fundación. Flor + 1 editor video. 4 clientes iniciales (referidos red AR)."
+    - year: 2023
+      milestone: "Equipo crece a 4 personas. Cliente fintech peruano clase con caso de éxito (NPS 72)."
+    - year: 2024
+      milestone: "Equipo 7 personas. 18 clientes activos. Lanzamiento Pulso Method documentado."
+    - year: 2025
+      milestone: "30 marcas atendidas acumuladas. Caso retail premium (cliente con campaña ROI 4.2x)."
+    - year: 2026
+      milestone: "Q2 2026: foco en escalar con menos clientes (max 15 simultáneos) + retainer premium."
 
 positioning:
   unique_value_proposition: >
-    La única agencia de growth marketing en LatAm que vincula cada pieza de
-    contenido a un objetivo de negocio medible y garantiza reporte de resultados
-    cada 15 días.
-  brand_essence: "Contenido que crece marcas"
-  discriminator: "Growth marketing con video orientado a conversión, no vanidad"
+    La única agencia growth en Lima que combina producción de video
+    in-house + estrategia data-driven + reporting semanal con números
+    reales (CAC, LTV, CPM, conversion rate) — no solo "engagement"
+    vanidoso.
+  brand_essence: "Movimiento con disciplina"
+  discriminator: "Producción in-house de video + reporting semanal con números reales (no vanity metrics) + capacidad de cerrar el loop ads → orgánico → ventas"
+  competitor_landscape:
+    direct_competitors:
+      - "Artivy Studio Lima (especialistas video)"
+      - "LimaRank (marketing digital integral)"
+      - "VPI-media (producción audiovisual + agencia)"
+      - "Onfleek Media (RRSS gestión)"
+      - "Webtilia (marketing digital)"
+    differentiation: "Único equipo con CMO ex-corporate como founder + data semanal real + cohorte limitada (max 15 clientes activos)"
+  ideal_customer_summary: "Marca peruana o LatAm 5-50 personas, facturando USD 30k-2M/mes, con presupuesto marketing PEN 8k-25k/mes, busca escalar via contenido + paid orquestado. Founders/CEOs que valoran data sobre 'engagement vanidoso'."
 
 brand_personality:
-  archetype: "creator"
+  archetype: "rebel"
+  secondary_archetype: "creator"
   core_values:
-    - "Resultados medibles"
-    - "Creatividad estratégica"
-    - "Honestidad con el cliente"
-    - "Iteración continua"
+    - "Data sobre instinto"
+    - "Orgánico antes que paid"
+    - "Cohort limitada para mantener calidad"
+    - "Transparencia total con números"
+    - "Anti-vanity metrics"
   personality_traits:
-    - "Directo"
-    - "Creativo"
-    - "Data-driven"
-    - "Irreverente"
+    - "Directo + casual"
+    - "Confianzudo (voseo legítimo argentino)"
+    - "Humor seco"
+    - "Data-first"
+    - "Anti-bullshit"
+
+team:
+  - id: "f1a2b3c4-5d6e-4f7a-8b9c-0d1e2f3a4b01"
+    name: "Florencia 'Flor' Aramburu"
+    role: "Founder + CEO + Strategy Lead"
+    bio: "Argentina, 32. Ex-CMO fintech AR (USD 1M → 12M ARR en 4 años). Master in Marketing Digital ESADE Barcelona 2018. Vive en Lima desde 2021."
+    instagram: "@florenciaaramburu"
+    linkedin: "https://www.linkedin.com/in/florencia-aramburu"
+  - id: "a2b3c4d5-6e7f-4a8b-9c0d-1e2f3a4b5c02"
+    name: "Mateo Quispe"
+    role: "Director de Video + Production Lead"
+    bio: "Peruano, 29. 7 años en producción audiovisual. Ex-VPI Media + Artivy Studio. Ganador de premio FIAP 2023 categoría brand video LATAM."
+  - id: "b3c4d5e6-7f8a-4b9c-0d1e-2f3a4b5c6d03"
+    name: "Camila Rojas"
+    role: "Strategy + Paid Media Lead"
+    bio: "Argentina, 28. Certificada Meta + Google Ads + TikTok. Ex-agencia digital BA. Especialista en paid media B2B."
+  - id: "c4d5e6f7-8a9b-4c0d-1e2f-3a4b5c6d7e04"
+    name: "Diego Ramírez"
+    role: "Senior Editor + Motion Graphics"
+    bio: "Peruano, 27. After Effects + Premiere advanced. Ex-VPI + freelance brand video."
+  - id: "d5e6f7a8-9b0c-4d1e-2f3a-4b5c6d7e8f05"
+    name: "Lucía Pinto"
+    role: "Community Manager + Copy"
+    bio: "Peruana, 26. 4 años de gestión RRSS para marcas Lima. Ex-Onfleek Media."
+  - id: "e6f7a8b9-0c1d-4e2f-3a4b-5c6d7e8f9a06"
+    name: "Sebastián Morales"
+    role: "Junior Producer + Asistente"
+    bio: "Peruano, 24. Recién graduado UPC Comunicación + 1 año junior en productora."
+  - id: "f7a8b9c0-1d2e-4f3a-4b5c-6d7e8f9a0b07"
+    name: "Valeria Castro"
+    role: "Account Manager + Operations"
+    bio: "Peruana, 30. 5 años project management agencias digitales LATAM."
+
+testimonials:
+  - persona: "Daniel — CEO fintech peruana B2B (cliente desde 2023)"
+    quote: "Flor le tomó 90 días pasarnos de orgánico inexistente a 28% de leads inbound provenientes de contenido. Antes gastábamos 100% del budget en paid; hoy 60-40. CAC bajó 35%."
+    program: "Retainer Premium 18 meses"
+    result_metric: "CAC -35% + 28% leads inbound"
+  - persona: "Mariana — Founder retail premium D2C (12 meses cliente)"
+    quote: "El equipo de Mateo nos hizo 30 reels en 6 meses. Engagement subió 4x, pero lo importante: ROAS pasó de 1.2 a 4.2 con misma inversión paid."
+    program: "Retainer Growth + producción video"
+    result_metric: "ROAS 1.2 → 4.2"
+  - persona: "Andrés — CMO empresa software 80 personas"
+    quote: "Probamos 4 agencias en 3 años. Pulso es la primera que nos manda reporting semanal con CAC + LTV + conversion rate, no solo likes y views."
+    program: "Consultoría estratégica + retainer"
+    result_metric: "Reporting con métricas reales"
+  - persona: "Lucia — Founder e-commerce moda (6 meses cliente)"
+    quote: "Pago PEN 8,500/mes y son la inversión con mejor ROI que tengo. Producción de video propia, sin sub-contratar terceros."
+    program: "Retainer Growth"
+  - persona: "Roberto — CEO consultora B2B 30 personas"
+    quote: "El audit growth de PEN 500 me sirvió para saber que mi problema era pricing, no marketing. Me hicieron ahorrar 6 meses gastando en ads que no iban a funcionar."
+    program: "Audit growth (servicio puntual)"
+    result_metric: "Diagnóstico anti-gasto-mal-orientado"
+
+authority_vault:
+  - type: "media"
+    title: "Entrevista Día 1 — 'La agencia que se atreve a decir no a clientes'"
+    year: 2025
+    url: "https://elcomercio.pe/dia-1/pulso-studio-flor-aramburu"
+  - type: "media"
+    title: "Podcast Ídolo (con Carlos Mario Estrada) episodio 89 — Growth marketing LATAM"
+    year: 2025
+    url: "https://podcastidolo.lat/89-flor-aramburu-pulso"
+  - type: "speaking"
+    title: "Conferencia Marketing Day Lima 2025 — 'Por qué orgánico antes que paid'"
+    year: 2025
+  - type: "award"
+    title: "Premio FIAP 2023 categoría Brand Video LATAM (Mateo Quispe)"
+    year: 2023
+  - type: "certification"
+    title: "Meta Business Partner certified agency"
+    year: 2024
+  - type: "certification"
+    title: "TikTok Marketing Partner"
+    year: 2024
+  - type: "case_study"
+    title: "Case study fintech peruana — CAC -35% en 90 días"
+    url: "https://pulso.studio/case-studies/fintech-cac-reduction"
+
+contact:
+  primary_email: "hola@example.com"
+  whatsapp_business: "+99 0 555 0400"
+  whatsapp_business_label: "WhatsApp comercial (sintético per .eval-whitelist)"
+  contact_form_url: "https://pulso.studio/contacto"
+  scheduling_link_l1_audit: "https://app.nicolify.com/schedule/pulso-studio/audit-growth"
+  scheduling_link_l3_retainer: "https://app.nicolify.com/schedule/pulso-studio/retainer-discovery"
+  scheduling_link_l4_consultoria: "https://app.nicolify.com/schedule/pulso-studio/consultoria-estrategica"
+  physical_address: "Av. La Encalada 1257, Surco, Lima 33, Perú"
+  business_hours: "Lunes-Viernes 10:00-19:00 hora Perú (GMT-5). Equipo distribuido AR + PE."
+
+visuals:
+  primary_color: "#0F0F0F"
+  secondary_color: "#FF3D00"
+  accent_color: "#FFD600"
+  font_primary: "Space Grotesk"
+  font_secondary: "Inter"
+  logo_url: "https://pulso.studio/static/logo-pulso-mark.svg"
+  brand_voice_keywords:
+    - "directo + casual (voseo legítimo AR)"
+    - "data-first sin ser técnico aburrido"
+    - "humor seco"
+    - "anti-bullshit"
+    - "honesto sobre límites de la agencia"

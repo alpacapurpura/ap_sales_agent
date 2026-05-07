@@ -1,75 +1,819 @@
 # offer_ladder.yaml — tenant_coach_lat
-# 5 niveles L0-L4 con L0 lead magnet (A1 tiene L0 per spec)
-# Currency: PEN
+# 5 niveles L0-L4 con L0 lead magnet (A1 tiene L0 per spec).
+# Currency: PEN (Q3 ratificado single-currency seed).
+#
+# Cobertura para evaluación de personas (T-4 curación Chris):
+#   Cada offer expone secciones canónicas (IDENTITY/PROMISE/VALUE_STACK/
+#   PROGRAM_DETAILS/PRICING/INSTRUCTORS/KNOWLEDGE/CLOSING/TESTIMONIALS/
+#   FAQ/LOCATION/RESOURCES/PSYCHOLOGY/GALLERY) para que personas
+#   adversariales puedan preguntar por cualquier campo y el agent tenga
+#   data para responder.
+#
+# Variants en uso:
+#   PERIOD  — workshops/cursos/programas con ediciones (cohorts fechadas)
+#   TIER    — Comunidad VIP con 3 niveles (Basic/Pro/Elite)
+#
+# Cierre vía reunión (clon-Calendly Nicolify scheduling):
+#   L2 Programa "De Propósito a Prosperidad" → discovery_call_required
+#   L4 Mentoría 1:1 → discovery_call_required
+#   scheduling_event_type_id es UUID placeholder — el sistema real lo
+#   resuelve en runtime; aquí queda fijo para fixtures.
 
 tenant_slug: tenant_coach_lat
 currency: PEN
 has_lead_magnet: true
 total_levels: 5
 entry_point: "L0 — PDF descargable gratuito (lead magnet)"
-upsell_path: "L0 → L1 → L2 → L3 → L4"
+upsell_path: "L0 → L1 → L2 → L3 (lateral) → L4"
+last_updated: "2026-05-07"
 
 offers:
+  # ─────────────────────────────────────────────────────────────
   - level: "L0"
-    name: "Guía gratuita: 5 errores que cometes en tu marketing"
-    description: >
-      PDF descargable de 18 páginas con los 5 errores más comunes que cometen
-      las emprendedoras al hacer marketing y cómo evitarlos. Incluye ejercicios
-      prácticos y plantillas listas para usar.
-    format: "pdf_descargable"
-    price: 0
-    is_free: true
-    lead_magnet: true
-    delivery: "inmediato via email"
-    value_proposition: "Diagnóstico rápido + primeros pasos concretos"
+    archetype: "PRODUCTO"
+    value_level: "lead_magnet"
+    preset_label: "Recurso descargable gratuito"
 
+    identity:
+      name: "Guía gratuita: 5 errores que cometes en tu marketing"
+      slug: "guia-5-errores-marketing"
+      tagline: "Diagnóstico rápido para emprendedoras que sienten que su negocio no despega"
+      short_description: "PDF descargable de 18 páginas con diagnóstico, ejemplos y plantillas listas."
+
+    promise:
+      transformation: "Salir del bloqueo de 'no sé por qué no me compran' con 3 ajustes concretos aplicables hoy"
+      outcome_short: "Identificar errores que sangran tu negocio + plantillas para arreglarlos"
+      timeframe: "20 minutos de lectura, aplicación inmediata"
+
+    value_stack:
+      - "PDF 18 páginas con los 5 errores más comunes (claridad de oferta, mensaje, precio, canal, sistema)"
+      - "Ejercicio de diagnóstico de 5 preguntas para auto-evaluar tu negocio"
+      - "Plantilla 'Mi oferta clara en 1 párrafo' (Google Doc editable)"
+      - "Bonus: video walk-through de 12 minutos explicando cada error con ejemplo real"
+      - "Acceso a la newsletter semanal Visionarias (opt-in, opt-out cuando quieras)"
+
+    program_details: null
+
+    pricing:
+      price: 0
+      currency_display: "Gratis"
+      is_free: true
+      requires_payment: false
+
+    instructors:
+      - name: "Ileana Tapia"
+        role: "Fundadora Visionarias Coach"
+        bio_short: "10 años en marketing corporativo + 5 años coacheando emprendedoras LatAm. 300+ clientas en 12 países."
+        credentials: ["MBA UPC", "Certificación marketing digital Hubspot", "Storytelling para ventas — Donald Miller method"]
+
+    knowledge:
+      learning_objectives:
+        - "Reconocer los 5 errores más comunes en marketing emprendedor"
+        - "Aplicar 3 ajustes concretos en tu oferta"
+        - "Tener una propuesta de valor única en 1 párrafo"
+
+    closing:
+      mechanism: "direct_optin"
+      discovery_call_required: false
+      scheduling_event_type_id: null
+      next_step_after: "Email de bienvenida + invitación al Workshop L1 con descuento de bienvenida 20%"
+
+    testimonials:
+      - persona: "Mariana, consultora de salud mental"
+        quote: "Leí la guía en una tarde. El error 3 me hizo darme cuenta que mi oferta confundía. Cambié el mensaje y a la semana cerré 2 clientes."
+        result_metric: "2 clientes nuevos en 1 semana"
+      - persona: "Carla, coach de finanzas"
+        quote: "Pensé que iba a ser un PDF más. Pero el ejercicio de diagnóstico me sacudió. Me llevó a inscribirme al workshop."
+        result_metric: "Conversión a L1"
+
+    faq:
+      - q: "¿Necesito dar mi tarjeta?"
+        a: "No. Es gratis a cambio de tu email para enviarte el PDF."
+      - q: "¿Me van a llenar de spam?"
+        a: "Newsletter semanal con opt-out en cada email. Cero llamadas, cero WhatsApp."
+      - q: "¿Sirve si recién estoy empezando?"
+        a: "Sí, está pensada para emprendedoras en cualquier fase: validando, con primeros clientes, o estancadas."
+
+    location:
+      delivery_method: "email_automatico"
+      url_optin: "https://visionarias.lat/guia-gratuita"
+      timezone: "America/Lima"
+
+    resources:
+      - "PDF principal (18 págs)"
+      - "Plantilla Google Doc 'Mi oferta clara'"
+      - "Video walk-through 12 min (Vimeo unlisted)"
+
+    psychology:
+      target_emotion: "Validación + esperanza concreta"
+      objections_addressed:
+        - "No tengo tiempo de leer otro PDF más"
+        - "Ya descargué muchos lead magnets que no sirvieron"
+      desire: "Quiero diagnóstico rápido sin compromiso"
+
+    gallery:
+      cover_image: "https://visionarias.lat/static/lm-5-errores-cover.jpg"
+      preview_pdf: "https://visionarias.lat/static/lm-5-errores-preview.pdf"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L1"
-    name: "Workshop: Oferta Irresistible en 3 horas"
-    description: >
-      Taller en vivo de 3 horas donde defines tu oferta principal, precio justo
-      y mensaje de ventas. Incluye grabación y materiales.
-    format: "taller_en_vivo"
-    price: 49
-    currency_display: "PEN 49"
-    duration: "3 horas"
-    delivery: "online via Zoom"
-    value_proposition: "Define tu oferta y precio en una sola sesión"
+    archetype: "EXPERIENCIA"
+    value_level: "tripwire"
+    preset_label: "Workshop con ediciones (PERIOD variant)"
+    variant_structure: "PERIOD"
 
+    identity:
+      name: "Workshop: Oferta Irresistible en 3 horas"
+      slug: "workshop-oferta-irresistible"
+      tagline: "Construye tu oferta principal y precio justo en una sola tarde"
+      short_description: "Taller en vivo de 3 horas con ejercicios prácticos. Sales con tu oferta + precio + mensaje listos para aplicar."
+
+    promise:
+      transformation: "De 'no sé qué cobrar ni cómo presentar mi servicio' a tener una oferta clara con precio defendible y mensaje de venta"
+      outcome_short: "Oferta lista para vender al salir del workshop"
+      timeframe: "3 horas en vivo + 7 días de soporte post-taller en grupo de WhatsApp"
+
+    value_stack:
+      - "3 horas de taller en vivo (Zoom, sesión grabada incluida)"
+      - "Ejercicio guiado de definición de oferta principal"
+      - "Calculadora de precio justo (valor percibido vs. costo + margen)"
+      - "Plantilla de mensaje de venta en 5 partes (StoryBrand-inspired)"
+      - "Grupo de WhatsApp 7 días con la coach para revisar tu oferta"
+      - "Grabación con acceso de 30 días"
+      - "Bonus: checklist de objeciones más comunes y cómo responderlas"
+
+    program_details:
+      duration_hours: 3
+      modality: "online_zoom"
+      cohort_size: "máximo 25 participantes (cohort small para feedback personalizado)"
+      session_count: 1
+      includes_recording: true
+      recording_access_days: 30
+
+    pricing:
+      price: 49
+      currency_display: "PEN 49"
+      regular_price: 99
+      discount_label: "Precio de bienvenida (descuento del lead magnet)"
+      payment_methods: ["yape", "plin", "transferencia", "tarjeta"]
+      group_discount: "10% en grupos de 3 o más participantes"
+
+    editions:
+      variant_structure: "PERIOD"
+      editions_history:
+        - edition_number: 1
+          dates: "2025-08-15"
+          attendees: 18
+          status: "completed"
+          satisfaction_score: 4.8
+          conversion_to_l2: 0.39
+        - edition_number: 2
+          dates: "2025-11-20"
+          attendees: 22
+          status: "completed"
+          satisfaction_score: 4.9
+          conversion_to_l2: 0.45
+        - edition_number: 3
+          dates: "2026-02-12"
+          attendees: 25
+          status: "completed"
+          satisfaction_score: 4.7
+          conversion_to_l2: 0.40
+        - edition_number: 4
+          dates: "2026-04-09"
+          attendees: 24
+          status: "completed"
+          satisfaction_score: 4.85
+          conversion_to_l2: 0.42
+      next_edition:
+        edition_number: 5
+        date: "2026-06-18"
+        time_local: "19:00 hora Perú (GMT-5)"
+        seats_available: 25
+        seats_sold: 8
+        registration_url: "https://visionarias.lat/workshop-oferta-irresistible/edicion-5"
+        registration_deadline: "2026-06-17 23:59 hora Perú"
+
+    instructors:
+      - name: "Ileana Tapia"
+        role: "Coach principal, fundadora"
+
+    knowledge:
+      learning_objectives:
+        - "Definir tu oferta principal en 1 frase clara"
+        - "Calcular un precio defendible basado en valor"
+        - "Escribir un mensaje de venta de 5 partes"
+        - "Anticipar y responder las 3 objeciones más frecuentes"
+      prerequisites: "Tener un negocio o idea de negocio activa. Si recién estás validando, igual sirve pero ajusta los ejercicios a tu hipótesis de oferta."
+
+    closing:
+      mechanism: "direct_purchase"
+      discovery_call_required: false
+      scheduling_event_type_id: null
+      next_step_after: "Acceso inmediato al grupo de WhatsApp + link Zoom 24h antes"
+
+    testimonials:
+      - persona: "Andrea, nutricionista deportiva"
+        quote: "Llegué al workshop con 8 servicios diferentes. Salí con 1 sola oferta clara. En 2 semanas la vendí 4 veces."
+        result_metric: "4 ventas en 2 semanas"
+      - persona: "Lucía, diseñadora de interiores"
+        quote: "El precio que tenía estaba mal. Lo subí 80% siguiendo la calculadora del taller. Mis clientas siguen comprando."
+        result_metric: "+80% precio sin perder ventas"
+      - persona: "Karen, coach de productividad"
+        quote: "Hice 3 talleres de oferta antes. Este fue el primero que terminé con algo aplicable de verdad."
+        result_metric: "Aplicabilidad inmediata"
+
+    faq:
+      - q: "¿Es en vivo o grabado?"
+        a: "Es en vivo por Zoom. La grabación queda disponible 30 días después."
+      - q: "¿Puedo entrar si recién estoy validando mi negocio?"
+        a: "Sí. Los ejercicios se ajustan a tu fase. Si todavía no tienes oferta, salís con tu primera hipótesis lista."
+      - q: "¿Qué pasa si no puedo entrar el día del taller?"
+        a: "Tienes acceso a la grabación + el grupo de WhatsApp. Pero recomiendo en vivo por la dinámica grupal."
+      - q: "¿Hay reembolso?"
+        a: "Sí. Si participas activamente y aplicas los ejercicios y no ves valor en 7 días, devolvemos el 100%."
+
+    location:
+      delivery_method: "online_zoom"
+      timezone: "America/Lima"
+      session_link_pattern: "Enviado 24h antes del taller al email registrado"
+
+    resources:
+      - "Plantilla 'Mi oferta principal en 1 frase' (Notion)"
+      - "Calculadora de precio justo (Google Sheets)"
+      - "Plantilla de mensaje de venta 5-partes (Google Doc)"
+      - "Checklist 12 objeciones + scripts de respuesta"
+
+    psychology:
+      target_emotion: "Confianza + claridad"
+      objections_addressed:
+        - "Ya tomé otros workshops y nada cambió"
+        - "No tengo 3 horas seguidas"
+        - "Mi nicho es muy específico, no creo que aplique"
+      desire: "Salir con algo concreto y aplicable hoy"
+
+    gallery:
+      cover_image: "https://visionarias.lat/static/workshop-oferta-cover.jpg"
+      promo_video_30s: "https://visionarias.lat/static/workshop-oferta-promo.mp4"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L2"
-    name: "Curso: Sistema VISIONARIA Completo"
-    description: >
-      Curso online de 8 semanas con todos los módulos del Sistema VISIONARIA:
-      claridad de nicho, estructura de oferta, creación de contenido y sistema
-      de ventas. Acceso de por vida + comunidad privada.
-    format: "curso_online"
-    price: 297
-    currency_display: "PEN 297"
-    duration: "8 semanas"
-    delivery: "plataforma online + comunidad privada"
-    value_proposition: "Metodología completa para construir tu negocio paso a paso"
+    archetype: "PROGRAMA"
+    value_level: "core"
+    preset_label: "Programa cohort flagship con ediciones (PERIOD variant)"
+    variant_structure: "PERIOD"
 
+    identity:
+      name: "Programa: De Propósito a Prosperidad"
+      slug: "de-proposito-a-prosperidad"
+      tagline: "8 semanas para transformar tu expertise en una marca magnética y rentable"
+      short_description: "Programa intensivo flagship co-facilitado por Ileana Tapia (estrategia + branding) y Camila Clausen (neurociencia + regulación del sistema nervioso). 16 sesiones en vivo + bonuses."
+
+    promise:
+      transformation: "De emprendedora con expertise valioso pero ventas inconsistentes a una marca clara, magnética y con sistema de ventas predecible"
+      outcome_short: "Una oferta refinada + sistema de ventas + confianza somática para sostener el crecimiento"
+      timeframe: "8 semanas + 1 año de acceso a grabaciones + comunidad post-programa"
+
+    value_stack:
+      - "16 sesiones en vivo de 2 horas (2 sesiones/semana × 8 semanas)"
+      - "Modalidad 100% virtual via Zoom — accesible desde cualquier país LatAm"
+      - "Acceso a grabaciones por 1 año post-programa"
+      - "3 masterclasses bonus: Human Design para tu marca · Storytelling estratégico · E-commerce para servicios"
+      - "Plantillas y worksheets aplicables (12 documentos)"
+      - "Sesión 1:1 personalizada de 30 minutos con la co-instructora (Camila Clausen — neurociencia)"
+      - "Comunidad privada de alumnas (Slack + WhatsApp)"
+      - "Acceso vitalicio a la red de ex-alumnas para colaboraciones"
+      - "Cohort small (máximo 30 participantes) para feedback personalizado"
+
+    program_details:
+      duration_weeks: 8
+      total_live_hours: 32
+      modality: "online_zoom"
+      cohort_size_max: 30
+      session_frequency: "2 sesiones por semana, martes y jueves 19:00-21:00 hora Perú"
+      methodology_name: "Liberar para Liderar"
+      methodology_pillars:
+        - title: "Estrategia y posicionamiento de marca"
+          description: "Define tu nicho, propuesta de valor única y narrativa de marca"
+          weeks: [1, 2, 3]
+        - title: "Neurociencia y regulación del sistema nervioso"
+          description: "Trabajo somático para sostener visibilidad, cobrar lo que vales y manejar el síndrome del impostor"
+          weeks: [4, 5]
+        - title: "Liderazgo con propósito"
+          description: "Sistemas de venta auténticos, comunicación de marca, escalamiento sin sacrificar tus valores"
+          weeks: [6, 7, 8]
+      curriculum:
+        - week: 1
+          theme: "Claridad de propósito + nicho ideal"
+          deliverables: ["Carta de propósito personal", "Mapa de cliente ideal con 3 niveles de granularidad"]
+        - week: 2
+          theme: "Posicionamiento estratégico"
+          deliverables: ["Análisis competitivo", "Propuesta de valor única (UVP)"]
+        - week: 3
+          theme: "Narrativa de marca StoryBrand"
+          deliverables: ["Brand story en 7 partes", "Mensaje de venta master"]
+        - week: 4
+          theme: "Neurociencia del cobrar lo que vales"
+          deliverables: ["Audit de creencias limitantes", "Práctica somática de visibilidad"]
+        - week: 5
+          theme: "Regulación nerviosa para sostener ventas"
+          deliverables: ["Protocolo personal de regulación pre-cliente", "Diario de patrones autosabotaje"]
+        - week: 6
+          theme: "Sistema de ventas auténtico"
+          deliverables: ["Funnel de ventas adaptado a tu negocio", "Scripts de venta StoryBrand"]
+        - week: 7
+          theme: "Comunicación de marca + contenido magnético"
+          deliverables: ["Plan editorial 90 días", "5 piezas de contenido pilar"]
+        - week: 8
+          theme: "Escalamiento + plan post-programa"
+          deliverables: ["Roadmap de crecimiento 6 meses", "Plan de delegación / sistemas"]
+
+    pricing:
+      price: 5925
+      currency_display: "PEN 5,925"
+      regular_price: 7900
+      discount_label: "Precio promocional ediciones tempranas (vence con la 5ta edición)"
+      payment_methods: ["transferencia", "tarjeta_credito", "yape", "plin"]
+      payment_plans:
+        - plan_name: "Pago único"
+          price: 5925
+          discount: "Bonus extra: sesión 1:1 con Ileana"
+        - plan_name: "3 cuotas mensuales"
+          monthly_price: 1975
+          total: 5925
+          notes: "Sin recargo. Primera cuota antes de iniciar la cohort."
+        - plan_name: "8 cuotas semanales (durante el programa)"
+          weekly_price: 740
+          total: 5925
+          notes: "Para acomodar flujo de caja durante el programa."
+      refund_policy: "Garantía de 14 días: si participas en las primeras 4 sesiones, completas los ejercicios y no ves valor, devolvemos el 100%."
+
+    editions:
+      variant_structure: "PERIOD"
+      editions_history:
+        - edition_number: 1
+          dates: "2026-01-13 hasta 2026-03-09"
+          attendees: 22
+          status: "completed"
+          satisfaction_score: 4.9
+          completion_rate: 0.91
+          testimonial_count_collected: 18
+          notable_outcomes: "12 alumnas duplicaron facturación dentro de los 3 meses post-programa. 4 lanzaron oferta nueva durante el programa."
+      next_edition:
+        edition_number: 2
+        dates: "2026-06-09 hasta 2026-08-04"
+        registration_open: "2026-04-15"
+        registration_deadline: "2026-06-08 23:59 hora Perú"
+        seats_available: 30
+        seats_sold: 14
+        seats_reserved_waitlist: 8
+        early_bird_deadline: "2026-05-31"
+        early_bird_discount: "PEN 800 de descuento si pagas antes del 31 de mayo"
+        registration_url: "https://visionarias.lat/de-proposito-a-prosperidad/edicion-2"
+      future_editions_planned:
+        - edition_number: 3
+          tentative_dates: "Octubre 2026"
+        - edition_number: 4
+          tentative_dates: "Febrero 2027"
+
+    instructors:
+      - name: "Ileana Tapia"
+        role: "Co-facilitadora principal — Estrategia + Branding"
+        bio_long: "Fundadora de Visionarias Coach. 10 años liderando equipos de marketing en empresas LatAm (Backus, Alicorp). MBA UPC. Storytelling certificada por Donald Miller (StoryBrand). Ha acompañado a 300+ emprendedoras en 12 países."
+        credentials:
+          - "MBA Universidad Peruana de Ciencias Aplicadas"
+          - "StoryBrand Certified Guide"
+          - "Hubspot Inbound Marketing certified"
+        instagram: "@ileana.tapia"
+      - name: "Camila Clausen"
+        role: "Co-facilitadora — Neurociencia + Regulación nerviosa"
+        bio_long: "Coach de neurohacking y trabajo somático. 8 años acompañando líderes a sostener visibilidad sin colapso. Certificación en Polyvagal Theory + Somatic Experiencing nivel 2."
+        credentials:
+          - "Somatic Experiencing Practitioner (SEP) nivel 2"
+          - "Polyvagal-informed Coaching certificada"
+          - "Master en Neurohacking aplicado"
+        instagram: "@camilaclausen.somatic"
+
+    knowledge:
+      learning_objectives:
+        - "Refinar tu propuesta de valor única basada en tu propósito profundo"
+        - "Construir narrativa de marca StoryBrand aplicada a tu negocio"
+        - "Implementar protocolos somáticos para sostener visibilidad"
+        - "Diseñar funnel de ventas auténtico (no manipulativo)"
+        - "Crear plan editorial 90 días con contenido magnético"
+        - "Definir roadmap de crecimiento 6 meses"
+      prerequisites: "Negocio activo (al menos 6 meses de operación) o coach/consultora con clientela inicial. NO recomendado para validación inicial — para eso L1 Workshop."
+      target_outcomes:
+        - "Aumento de facturación 30-100% en 6 meses post-programa (basado en cohort 1)"
+        - "Reducción de ansiedad de visibilidad medida en escala subjetiva (Likert 1-10)"
+        - "Lanzamiento de oferta nueva refinada antes de finalizar el programa"
+
+    closing:
+      mechanism: "discovery_call_required"
+      discovery_call_required: true
+      discovery_call_duration_minutes: 30
+      discovery_call_purpose: "Verificar fit del programa con tu negocio + responder dudas + reservar plaza si aplica."
+      scheduling_event_type_id: "scheduling_evt_a1_l2_discovery_call"
+      scheduling_url: "https://app.nicolify.com/schedule/visionarias-coach/de-proposito-discovery"
+      next_step_after_call: "Si hay fit y plaza disponible, link de pago + acceso a grupo pre-programa. Si no hay fit, recomendación de L1 Workshop o programa externo apropiado."
+
+    testimonials:
+      - persona: "Daniela, terapeuta holística (Chile)"
+        quote: "Llevaba 4 años con consulta privada estancada en 6 clientes/mes. Después del programa pasé a 14 con un servicio refinado. Lo más impactante: dejé de cobrar desde la culpa."
+        result_metric: "De 6 a 14 clientes/mes en 4 meses post-programa"
+        edition: 1
+      - persona: "Sofía, consultora de RRHH (Perú)"
+        quote: "El módulo de neurociencia me sacudió. No sabía cuánto autosabotaje había en mi forma de cobrar. Cobro 60% más y mis clientas siguen ahí."
+        result_metric: "+60% precio sin perder clientes"
+        edition: 1
+      - persona: "Marcela, coach de carrera (Colombia)"
+        quote: "Pagué el programa con la primera venta que hice durante la semana 5. La metodología funciona si te comprometes."
+        result_metric: "ROI dentro del programa"
+        edition: 1
+      - persona: "Ana, instructora de yoga ejecutiva (México)"
+        quote: "No iba a hacerlo por el precio. La discovery call con Ileana me hizo ver que era una inversión, no un gasto. 3 meses después facturé 4× lo que pagué."
+        result_metric: "ROI 4× en 3 meses"
+        edition: 1
+      - persona: "Valeria, copywriter freelance (Argentina)"
+        quote: "Lo que más me ayudó: dejar de pelearme con mi sistema nervioso cada vez que postergaba postear. Ahora publico 3 veces por semana y vendo desde ahí."
+        result_metric: "Consistencia editorial sostenida"
+        edition: 1
+
+    faq:
+      - q: "¿Necesito hacer la discovery call sí o sí?"
+        a: "Sí. Es para asegurarnos que el programa es para ti y para responder tus dudas. Es gratis, dura 30 minutos."
+      - q: "¿Cuál es la diferencia con el curso anterior 'Sistema VISIONARIA Completo'?"
+        a: "El curso anterior fue reemplazado por este programa. 'De Propósito a Prosperidad' es la versión refinada con co-facilitación de Camila Clausen (neurociencia) y curriculum más profundo. Si compraste el curso anterior, escríbenos para upgrade con descuento."
+      - q: "¿Qué pasa si no puedo asistir a alguna sesión en vivo?"
+        a: "Tienes acceso a las grabaciones por 1 año. Recomendamos al menos 70% en vivo para aprovechar la dinámica del cohort."
+      - q: "¿Sirve si mi negocio no es coaching? Soy diseñadora/nutricionista/consultora."
+        a: "Sí. Las cohorts pasadas tuvieron terapeutas, nutricionistas, diseñadoras, abogadas, consultoras. Lo que importa: que tengas servicio basado en expertise (no e-commerce de productos físicos masivos)."
+      - q: "¿Cómo funciona el plan de cuotas?"
+        a: "3 cuotas de PEN 1,975 mensuales o 8 cuotas semanales de PEN 740. Sin recargo en ambos casos. Primera cuota antes de iniciar."
+      - q: "¿Hay garantía?"
+        a: "Sí. 14 días desde el inicio: si participas en las primeras 4 sesiones, completas los ejercicios y no ves valor, devolvemos el 100%."
+      - q: "¿Qué nivel de marketing necesito tener antes?"
+        a: "Básico. Si nunca has hecho marketing, te recomiendo primero el L1 Workshop o leer la guía gratuita L0. El programa asume que ya tienes oferta funcional aunque imperfecta."
+
+    location:
+      delivery_method: "online_zoom"
+      timezone: "America/Lima"
+      sessions_recorded: true
+      recordings_platform: "plataforma privada Visionarias (Vimeo OTT)"
+      community_platform: "Slack privado + grupo WhatsApp"
+
+    resources:
+      - "12 worksheets aplicables (1 por semana + 4 bonus)"
+      - "Plantilla brand story StoryBrand"
+      - "Plan editorial 90 días (Notion template)"
+      - "Calculadora de precios premium"
+      - "Audit de creencias limitantes (Google Sheets)"
+      - "Protocolos somáticos pre-cliente (PDF + audios guiados)"
+      - "Biblioteca de scripts de venta auténticos"
+      - "Checklist de objeciones high-ticket + respuestas"
+      - "Roadmap de crecimiento 6 meses (template editable)"
+
+    psychology:
+      target_emotion: "Empoderamiento + alineación interna"
+      objections_addressed:
+        - "Es mucho dinero"
+        - "No sé si tengo tiempo con todo lo que tengo encima"
+        - "Ya he hecho otros programas y no han funcionado"
+        - "Mi nicho es muy específico, no creo que aplique"
+        - "El componente de neurociencia me parece raro / new age"
+        - "Soy escéptica de los programas de coaching, prefiero algo más serio"
+      desire: "Negocio rentable + paz interna + sentido de propósito alineado"
+      hidden_fears:
+        - "Que sea otra inversión que no rinda"
+        - "Que sea muy 'spiritual' y poco práctico"
+        - "Que el grupo sea de gente menos avanzada que yo"
+        - "Que no tenga tiempo de aplicar nada"
+
+    gallery:
+      cover_image: "https://visionarias.lat/static/de-proposito-cover-edicion-2.jpg"
+      promo_video_60s: "https://visionarias.lat/static/de-proposito-promo-60s.mp4"
+      sales_page_url: "https://visionarias.lat/de-proposito-a-prosperidad"
+      testimonial_video_collection: "https://visionarias.lat/testimonios-de-proposito"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L3"
-    name: "Comunidad Visionarias VIP"
-    description: >
-      Membresía mensual con acceso a sesiones grupales semanales, biblioteca de
-      recursos, comunidad activa y soporte continuo de la coach y su equipo.
-    format: "membresia_mensual"
-    price: 89
-    currency_display: "PEN 89/mes"
-    billing: "mensual"
-    delivery: "plataforma online + sesiones Zoom semanales"
-    value_proposition: "Acompañamiento continuo y comunidad de mujeres que se impulsan"
+    archetype: "MEMBRESIA"
+    value_level: "core"
+    preset_label: "Membresía con tiers (TIER variant — 3 niveles)"
+    variant_structure: "TIER"
 
+    identity:
+      name: "Comunidad Visionarias VIP"
+      slug: "comunidad-vip"
+      tagline: "El círculo donde las emprendedoras LatAm se sostienen en su crecimiento"
+      short_description: "Comunidad mensual recurrente con sesiones grupales, biblioteca de recursos y acceso escalonado en 3 niveles según el nivel de soporte que necesites."
+
+    promise:
+      transformation: "De emprendedora aislada que carga sola con todo a parte de un círculo activo de mujeres que se impulsan, se referencian y se sostienen"
+      outcome_short: "Acompañamiento continuo + comunidad + soporte estratégico ongoing"
+      timeframe: "Mensual recurrente. Sin contratos largos. Cancelas cuando quieras."
+
+    tiers:
+      variant_structure: "TIER"
+      tier_count: 3
+      tiers_list:
+        - tier: 1
+          name: "Basic"
+          slug: "vip-basic"
+          monthly_price_pen: 89
+          annual_price_pen: 890
+          discount_annual: "17% descuento pago anual"
+          free_trial_days: 7
+          target_persona: "Emprendedora que quiere comunidad activa + recursos sin compromiso financiero alto"
+          includes:
+            - "Acceso a la comunidad privada (Slack + WhatsApp)"
+            - "1 sesión grupal semanal de 60 minutos (Q&A con Ileana o invitadas)"
+            - "Biblioteca básica de recursos: 30+ documentos, plantillas, audios"
+            - "Newsletter VIP con insights no publicados"
+            - "Descuentos exclusivos en programas L1 + L2 (10-15% off)"
+
+        - tier: 2
+          name: "Pro"
+          slug: "vip-pro"
+          monthly_price_pen: 159
+          annual_price_pen: 1590
+          discount_annual: "17% descuento pago anual"
+          free_trial_days: 7
+          target_persona: "Emprendedora con negocio en crecimiento que quiere más soporte personalizado sin llegar a mentoría 1:1"
+          includes:
+            - "Todo lo de Basic"
+            - "1 sesión 1:1 mensual de 45 minutos con coach asociada (no Ileana directamente)"
+            - "Biblioteca extendida: 80+ documentos, masterclasses pasadas, grabaciones de programas"
+            - "Acceso prioritario a workshops invitados (4 al año, gratis)"
+            - "Revisión de copy / oferta una vez al mes (feedback escrito asincrónico)"
+            - "Descuentos exclusivos 20% en L1 + L2"
+
+        - tier: 3
+          name: "Elite"
+          slug: "vip-elite"
+          monthly_price_pen: 289
+          annual_price_pen: 2890
+          discount_annual: "17% descuento pago anual"
+          free_trial_days: 0
+          requires_application: true
+          target_persona: "Emprendedora establecida (facturación >PEN 10k/mes) que quiere mastermind de pares + acceso directo a Ileana"
+          includes:
+            - "Todo lo de Pro"
+            - "Mastermind cerrado mensual (10 personas máximo) facilitado por Ileana"
+            - "1 hot-seat trimestral en mastermind (focus 30 min en tu negocio)"
+            - "Acceso directo a Ileana via WhatsApp para consultas estratégicas (respuesta en 48h)"
+            - "Invitaciones a retiros presenciales VIP (1 por año, costo aparte)"
+            - "Bonus: descuento 30% en L4 mentoría 1:1 si decides escalar"
+
+    pricing:
+      currency_display: "PEN 89/mes (Basic) · PEN 159/mes (Pro) · PEN 289/mes (Elite)"
+      payment_methods: ["tarjeta", "yape", "plin"]
+      billing_cycle: "monthly"
+      cancellation_policy: "Cancela cuando quieras. Acceso hasta el final del periodo facturado."
+
+    editions: null
+
+    instructors:
+      - name: "Ileana Tapia"
+        role: "Facilitadora principal sesiones grupales + mastermind Elite"
+      - name: "Coach asociada (rotación)"
+        role: "Sesiones 1:1 mensuales en Pro tier"
+        notes: "3 coaches certificadas en metodología Visionarias rotan en sesiones Pro 1:1."
+
+    knowledge:
+      learning_objectives:
+        - "Sostener crecimiento sostenido con acompañamiento continuo"
+        - "Conectar con red de pares para colaboraciones y referidos"
+        - "Acceder a biblioteca evolutiva de recursos"
+
+    closing:
+      mechanism: "direct_purchase"
+      discovery_call_required: false
+      scheduling_event_type_id: null
+      tier_3_application_required: true
+      tier_3_application_url: "https://visionarias.lat/comunidad-vip/aplicacion-elite"
+      next_step_after: "Acceso inmediato post-pago. Onboarding 30 minutos asincrónico (video + checklist)."
+
+    testimonials:
+      - persona: "Patricia, Tier Basic, mentora financiera"
+        quote: "El Q&A semanal me da ese empujón cuando me trabo. Por PEN 89 no encuentras este nivel de comunidad."
+        tier: "Basic"
+      - persona: "Mónica, Tier Pro, agencia de marketing"
+        quote: "La sesión 1:1 mensual me ayudó a desbloquear 3 lanzamientos en el último año. Vale cada sol."
+        tier: "Pro"
+      - persona: "Renata, Tier Elite, coach ejecutiva"
+        quote: "El mastermind es lo más valioso. 10 mujeres facturando entre PEN 15-50k al mes, todas dándose feedback honesto. Imposible encontrar esto en otro lado."
+        tier: "Elite"
+
+    faq:
+      - q: "¿Puedo cambiar de tier después?"
+        a: "Sí. Upgrade inmediato con prorrateo. Downgrade efectivo el siguiente periodo."
+      - q: "¿La trial de 7 días es real?"
+        a: "Sí. Acceso completo a Basic o Pro durante 7 días. Si no te convence, cancelas y no te cobramos. Elite no tiene trial porque requiere aplicación."
+      - q: "¿Por qué Elite requiere aplicación?"
+        a: "Para mantener calidad del mastermind. Buscamos emprendedoras facturando >PEN 10k/mes que aporten al grupo, no solo consuman. Aplicación dura 5 minutos."
+      - q: "¿La sesión 1:1 mensual del Pro tier es con Ileana?"
+        a: "Es con una coach asociada certificada en la metodología (3 coaches rotan). Para acceso directo a Ileana, eso es Elite o L4 Mentoría."
+      - q: "¿Qué tan activa es la comunidad?"
+        a: "Slack: 50-80 mensajes/día. WhatsApp más casual: 20-30/día. Sesiones grupales semanales con asistencia promedio del 60%."
+
+    location:
+      delivery_method: "online_slack_whatsapp_zoom"
+      timezone: "America/Lima"
+      community_platform: "Slack (asincrónico) + WhatsApp (casual) + Zoom (sesiones grupales)"
+
+    resources:
+      - "Biblioteca evolutiva 30-80+ documentos según tier"
+      - "Calendario editorial mensual con prompts"
+      - "Reuniones grabadas con búsqueda semántica"
+
+    psychology:
+      target_emotion: "Pertenencia + soporte continuo"
+      objections_addressed:
+        - "Suena bien pero no sé si lo voy a aprovechar"
+        - "No tengo tiempo para más comunidades"
+        - "Por qué pagar por una comunidad si hay grupos gratis"
+        - "El mastermind Elite es demasiado caro, ¿qué incluye exactamente?"
+      desire: "Acompañamiento sostenido + red de pares de calidad"
+
+    gallery:
+      cover_image: "https://visionarias.lat/static/comunidad-vip-cover.jpg"
+      community_screenshot: "https://visionarias.lat/static/comunidad-vip-slack-preview.jpg"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L4"
-    name: "Mentoría 1:1 Intensiva"
-    description: >
-      Programa de mentoría individual de 3 meses con sesiones semanales de 60
-      minutos, acceso directo a la coach, plan personalizado y soporte WhatsApp
-      entre sesiones. Para emprendedoras que quieren resultados acelerados.
-    format: "mentoria_individual"
-    price: 1490
-    currency_display: "PEN 1,490/mes"
-    billing: "mensual"
-    duration: "3 meses mínimo"
-    delivery: "sesiones Zoom 1:1 + WhatsApp"
-    value_proposition: "Transformación acelerada con acompañamiento personalizado"
+    archetype: "PROGRAMA"
+    value_level: "premium"
+    preset_label: "Mentoría 1:1 alta-ticket con discovery call"
+
+    identity:
+      name: "Mentoría 1:1 Intensiva Visionarias"
+      slug: "mentoria-1-1-intensiva"
+      tagline: "Acompañamiento personalizado para emprendedoras que quieren resultados acelerados"
+      short_description: "Mentoría individual mensual recurrente con Ileana Tapia directamente. Mínimo 3 meses de compromiso. Cierre vía discovery call obligatoria."
+
+    promise:
+      transformation: "De emprendedora con negocio funcionando pero estancada a alcanzar el siguiente nivel de facturación + libertad de tiempo en 3-6 meses"
+      outcome_short: "Plan personalizado + acompañamiento semanal + acceso directo a Ileana"
+      timeframe: "3 meses mínimo, recomendado 6 meses para resultados sostenidos"
+
+    value_stack:
+      - "4 sesiones 1:1 mensuales de 60 minutos con Ileana directamente (Zoom, grabadas)"
+      - "Acceso directo via WhatsApp entre sesiones (respuesta en 24h hábiles)"
+      - "Plan estratégico personalizado actualizado mes a mes"
+      - "Revisión asincrónica de copy / ofertas / lanzamientos sin límite"
+      - "Acceso a todos los recursos de la comunidad VIP Elite mientras dure la mentoría (incluido)"
+      - "1 hot-seat trimestral en mastermind Elite"
+      - "Bonus: 1 sesión estratégica de 90 minutos al inicio para diseñar el plan"
+      - "Bonus: invitación al retiro presencial anual (costo del retiro aparte, descuento 50%)"
+
+    program_details:
+      duration_months_minimum: 3
+      duration_months_recommended: 6
+      sessions_per_month: 4
+      session_duration_minutes: 60
+      modality: "online_zoom_+_whatsapp"
+      whatsapp_response_sla_hours: 24
+      includes_recordings: true
+
+    pricing:
+      price: 1490
+      currency_display: "PEN 1,490/mes"
+      billing_cycle: "monthly"
+      minimum_commitment_months: 3
+      payment_methods: ["transferencia", "tarjeta_credito"]
+      payment_plans:
+        - plan_name: "Mensual estándar"
+          monthly_price: 1490
+          notes: "Compromiso mínimo 3 meses. Cancelas con 30 días de aviso después del 3er mes."
+        - plan_name: "Trimestral adelantado"
+          quarterly_price: 4170
+          monthly_equivalent: 1390
+          discount: "PEN 100/mes de descuento (~7%)"
+        - plan_name: "Semestral adelantado"
+          semester_price: 7920
+          monthly_equivalent: 1320
+          discount: "PEN 170/mes de descuento (~11%)"
+      refund_policy: "Sesión de prueba antes del primer pago mensual durante la discovery call. Sin reembolso después del inicio del programa por ser servicio personalizado, pero permitimos pausar 1 mes en caso de fuerza mayor."
+
+    editions: null
+
+    instructors:
+      - name: "Ileana Tapia"
+        role: "Mentora 1:1 directa"
+        capacity_total: 12
+        capacity_current: 9
+        waitlist_count: 4
+        notes: "Capacity limitada para mantener calidad del acompañamiento. Si la cohort actual está llena, te ponemos en waitlist y notificamos cuando hay espacio."
+
+    knowledge:
+      learning_objectives:
+        - "Diseñar y ejecutar plan estratégico personalizado para tu negocio"
+        - "Acelerar resultados con acompañamiento semanal directo"
+        - "Resolver bloqueos específicos con feedback experto en tiempo real"
+      prerequisites: "Negocio activo facturando al menos PEN 5,000/mes consistente. Si recién estás validando, L1 o L2 son mejores para ti."
+      target_outcomes:
+        - "Aumento facturación 50-200% en 6 meses (basado en historial mentees)"
+        - "Sistema de ventas funcional automatizable"
+        - "Liberación de tiempo (delegación / sistemas)"
+
+    closing:
+      mechanism: "discovery_call_required"
+      discovery_call_required: true
+      discovery_call_duration_minutes: 30
+      discovery_call_purpose: "Verificar fit + revisar tu situación actual + responder dudas + decidir compromiso de 3 meses."
+      discovery_call_questions_pre:
+        - "¿Cuál es tu facturación promedio mensual hoy?"
+        - "¿Cuál es tu meta de facturación a 6 meses?"
+        - "¿Qué intentaste antes y por qué no funcionó?"
+      scheduling_event_type_id: "scheduling_evt_a1_l4_discovery_call"
+      scheduling_url: "https://app.nicolify.com/schedule/visionarias-coach/mentoria-1-1-discovery"
+      next_step_after_call: "Si hay fit y plaza disponible: contrato + primera factura + agendamos sesión estratégica inicial. Si no hay fit: recomendación honesta (L2 programa o waitlist)."
+
+    testimonials:
+      - persona: "Sandra, consultora de RRHH (Perú), 6 meses mentoría"
+        quote: "Empecé facturando PEN 8k/mes. Al mes 6 estaba en PEN 22k con la mitad del tiempo invertido. La diferencia: tener a Ileana mirando mis números cada semana sin filtros."
+        result_metric: "PEN 8k → PEN 22k/mes en 6 meses"
+      - persona: "Lorena, abogada laboral con consulta privada (México), 4 meses mentoría"
+        quote: "El acceso vía WhatsApp es lo que más me cambió. Tenía dudas que antes me trababa una semana, ahora se resuelven en horas."
+        result_metric: "Velocidad de decisión 5×"
+      - persona: "Bianca, coach ejecutiva con clientes corporativos (Argentina), 3 meses + extensión 6"
+        quote: "Vine con plan trimestral, terminé extendiendo a un año. Ileana me ayudó a cerrar un contrato corporativo de USD 28k que sola no habría conseguido."
+        result_metric: "Contrato USD 28k cerrado"
+
+    faq:
+      - q: "¿Cuál es la diferencia con el programa L2 'De Propósito a Prosperidad'?"
+        a: "L2 es grupal con 30 personas en cohort. L4 es 1:1 directo con Ileana. Si quieres acompañamiento grupal estructurado, L2. Si quieres acceso personalizado directo y plan ad-hoc para tu negocio, L4."
+      - q: "¿La discovery call es realmente gratis?"
+        a: "Sí, gratis y sin compromiso. 30 minutos en Zoom. Si no hay fit, te decimos honestamente y recomendamos otra opción (incluida competencia si aplica)."
+      - q: "¿Qué pasa si la cohort está llena?"
+        a: "Te ponemos en waitlist. Notificamos cuando hay espacio (típicamente 1-2 meses). En el ínterin, recomendamos comunidad VIP Elite o L2 programa."
+      - q: "¿Puedo pausar la mentoría?"
+        a: "Sí, 1 mes por año en caso de fuerza mayor (enfermedad, viaje extenso, evento personal). Más de eso requiere reentrar a la cohort cuando haya espacio."
+      - q: "¿Tienes garantía?"
+        a: "Sin reembolso post-inicio porque es servicio personalizado. Pero la discovery call funciona como filtro: si Ileana no ve fit, no te vende el programa."
+      - q: "¿Qué pasa si no veo resultados?"
+        a: "Es altamente improbable si te comprometes. Pero si pasa, después del 3er mes podemos rediseñar el approach o terminar la relación amigablemente."
+
+    location:
+      delivery_method: "online_zoom_+_whatsapp"
+      timezone: "America/Lima"
+      sessions_recorded: true
+
+    resources:
+      - "Plan estratégico personalizado actualizable (Notion compartido)"
+      - "Biblioteca completa Visionarias VIP Elite incluida"
+      - "Acceso a todas las masterclasses pasadas + futuras"
+      - "Templates personalizados para tu negocio (no genéricos)"
+
+    psychology:
+      target_emotion: "Aceleración + accountability + acceso directo"
+      objections_addressed:
+        - "Es caro"
+        - "No sé si vale 1490/mes vs el programa de 5925 todo incluido"
+        - "Tengo miedo de comprometerme 3 meses"
+        - "Y si no soy 'caso de éxito'?"
+        - "Prefiero hacer el L2 primero y después decidir"
+      desire: "Acceso premium + resultados acelerados + plan ad-hoc"
+      hidden_fears:
+        - "Que Ileana me juzgue"
+        - "Que el WhatsApp directo se sienta intrusivo"
+        - "Que no me dé el tiempo a aplicar"
+
+    gallery:
+      cover_image: "https://visionarias.lat/static/mentoria-1-1-cover.jpg"
+      ileana_intro_video_2min: "https://visionarias.lat/static/ileana-mentoria-intro.mp4"
+
+# ─────────────────────────────────────────────────────────────
+# Cross-offer relationships (lateral/upsell paths)
+# ─────────────────────────────────────────────────────────────
+upsell_relationships:
+  - from: "L0"
+    to: "L1"
+    discount_label: "Bienvenida 50% off (PEN 99 → PEN 49)"
+    trigger: "auto_email_5_dias_post_optin"
+  - from: "L1"
+    to: "L2"
+    discount_label: "Ex-alumnas L1 — descuento PEN 500"
+    trigger: "menciono_en_workshop_+_email_post_workshop"
+  - from: "L2"
+    to: "L3_basic"
+    discount_label: "Ex-alumnas L2 — primer mes gratis Basic"
+    trigger: "automatic_post_programa_completion"
+  - from: "L2"
+    to: "L4"
+    discount_label: "Graduadas L2 con potencial — 10% off mentoría primer mes"
+    trigger: "manual_invitation_ileana"
+  - from: "L3_pro"
+    to: "L3_elite"
+    discount_label: "Upgrade prorrateado"
+    trigger: "self_service_dashboard"
+  - from: "L3_elite"
+    to: "L4"
+    discount_label: "30% off L4 primer mes"
+    trigger: "automatic_eligibility_check"
+
+includes_relationships:
+  - parent: "L4"
+    includes: ["L3_elite_access_during_mentoria"]
+    notes: "Mentoría L4 incluye acceso completo a tier Elite mientras dure la mentoría."

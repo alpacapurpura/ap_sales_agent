@@ -1,70 +1,207 @@
 # brand.yaml — tenant_clinica_dental
-# Tenant: Sonrisa Perfecta Clínica Dental — Odontología integral en Lima
-# Inspiración: dentalindo.com (referencia real). Datos completamente inventados.
-# Dialect: es-CO | Currency: PEN
+# Tenant: Sonrisa Plena Clínica Dental — Odontología integral en Miraflores Lima
+# Inspiración: clínicas reales (Solución Dental, The Dental Clinic, Dental Krebs, Smile Design Perú).
+# Datos sintéticos. Dialect es-CO bogotano. Currency PEN.
 
 identity:
-  brand_name: "Sonrisa Perfecta"
-  tagline: "Tu sonrisa, nuestro compromiso de por vida"
+  brand_name: "Sonrisa Plena Clínica Dental"
+  tagline: "Odontología transparente, sin sobreventa, con planes a tu medida"
   description: >
-    Sonrisa Perfecta es una clínica dental integral en Lima que ofrece tratamientos
-    desde profilaxis hasta ortodoncia y estética dental, con tecnología digital
-    de punta y un equipo de especialistas dedicados a la salud bucal de toda la
-    familia. Más de 2,000 pacientes confían en nosotros para su cuidado dental.
-  industry: "odontología integral y estética dental"
-  website: "https://sonrisaperfecta.pe"
-  founding_year: "2015"
+    Clínica dental en Miraflores, Lima. Odontología integral: prevención,
+    ortodoncia, estética dental, implantología, endodoncia y odontopediatría.
+    Liderada por Dr. Andrés Restrepo (odontólogo colombiano, especialización
+    Universidad Cayetano Heredia 2018-2020). Más de 2,400 pacientes desde 2020.
+    Diferencial: transparencia total de precios + planes de financiamiento
+    sin intereses + primera consulta gratis con plan escrito.
+  industry: "odontología integral familiar y estética"
+  website: "https://sonrisa-plena.pe"
+  founding_year: "2020"
   language: "es"
   timezone: "America/Lima"
   country_of_registration: "PE"
-  legal_entity_type: "sac"
-  tax_regime: "Régimen General"
-  regulated_profession_body: "Colegio Odontológico del Perú"
+  legal_entity_type: "sociedad_comercial_responsabilidad_limitada"
+  tax_regime: "RG"
+  ruc_label: "20XXXXXXXXX (RUC SRL)"
+  registered_address: "Av. Larco 1200, Miraflores, Lima 18, Perú"
+  certificaciones_sanitarias:
+    - "Categorización DIRESA Lima — Centro Odontológico nivel I-2"
+    - "Inscripción Colegio Odontológico del Perú (COP) — todos los profesionales"
+    - "Registro Sanitario equipos esterilización DIGEMID"
+    - "Certificación bioseguridad protocolo COVID-post 2024"
 
 strategy:
-  methodology_name: "Diagnóstico Digital Integral"
+  methodology_name: "Plan Sonrisa Plena"
   methodology_description: >
-    Utilizamos radiografías panorámicas digitales y fotografías intraorales en
-    cada primera visita para crear un plan de tratamiento completo y priorizado.
-    Sin diagnóstico completo, no existe plan de tratamiento serio.
+    Metodología en 3 fases que prioriza prevención, claridad de costos y
+    planes financieros realistas. Cero sorpresas en factura.
   methodology_pillars:
-    - title: "Diagnóstico completo"
-      description: "Evaluación digital completa en la primera visita gratuita"
-    - title: "Plan personalizado"
-      description: "Priorización de tratamientos según salud, estética y presupuesto"
-    - title: "Seguimiento semestral"
-      description: "Control preventivo cada 6 meses para mantener la salud bucal"
+    - title: "Prevención primero"
+      description: "Detectamos antes de tratar. Primera consulta gratis con radiografía panorámica + plan escrito."
+    - title: "Transparencia total"
+      description: "Cada tratamiento con costo desglosado upfront. Sin 'cargos adicionales' sorpresa al finalizar."
+    - title: "Financiamiento realista"
+      description: "Cuotas sin intereses con tarjeta peruana + plan de pago directo si no tienes tarjeta."
 
 story:
   origin: >
-    Fundada por el Dr. Marco Salinas, egresado de la UPCH con especialidad en
-    ortodoncia, con la visión de crear una clínica familiar donde todos los
-    tratamientos, desde la primera muela hasta el bracket, se realicen en un
-    solo lugar con calidad universitaria.
+    Dr. Andrés Restrepo estudió odontología en la Universidad Nacional de
+    Colombia (Bogotá, 2010-2015). Trabajó 3 años en clínica privada en
+    Bogotá especializándose en estética dental. En 2018 viajó a Lima para
+    cursar maestría en Odontología Estética en la Universidad Peruana
+    Cayetano Heredia (2018-2020). Se quedó en Lima por trabajo y por su
+    pareja peruana. Abrió Sonrisa Plena en marzo 2020 — justo antes de
+    pandemia, lo que retrasó arranque pero fortaleció protocolos
+    bioseguridad.
   mission: >
-    Brindar atención odontológica integral de alta calidad con tecnología moderna
-    y un trato humano que haga de cada visita una experiencia cómoda y confiable.
+    Hacer accesible la odontología de calidad en Lima — sin sobreventa,
+    con financiamiento realista para profesionales y familias clase media.
   vision: >
-    Ser la clínica dental de referencia en Lima para familias que buscan
-    tratamientos preventivos y estéticos con especialistas certificados.
+    Ser referencia en odontología transparente en Lima Metropolitana,
+    con expansión a 3 sedes (Miraflores + 2 más) hacia 2028.
+  founder_journey: >
+    Andrés vio durante su práctica en Bogotá clínicas con prácticas
+    comerciales agresivas (sobreventa de carillas a pacientes que no las
+    necesitaban, cobros adicionales no informados). Decidió abrir su propia
+    clínica con política de transparencia documentada. La primera paciente
+    de Sonrisa Plena fue una vecina de la cuadra que recibió plan de
+    ortodoncia honesto que las otras 3 clínicas habían inflado.
+  brand_evolution:
+    - year: 2020
+      milestone: "Apertura Av. Larco 1200, 1 sillón, solo Andrés. Pandemia retrasa volumen pero fortalece protocolos bioseguridad."
+    - year: 2021
+      milestone: "Incorporación de Dra. Sandra Pinto (ortodoncista certificada Invisalign). 2 sillones."
+    - year: 2022
+      milestone: "Equipo radiografía panorámica + tomografía cone-beam (CBCT)."
+    - year: 2023
+      milestone: "Apertura tercer sillón + Dra. Laura Vargas (endodoncia)."
+    - year: 2024
+      milestone: "1,800 pacientes acumulados. NPS 82."
+    - year: 2025
+      milestone: "Lanzamiento Plan Familiar Sonrisa Plena (membresía mensual recurrente)."
+    - year: 2026
+      milestone: "2,400 pacientes acumulados. Inicio expansión segunda sede en San Borja (Q3 2026)."
 
 positioning:
   unique_value_proposition: >
-    La única clínica dental en Lima que ofrece diagnóstico digital completo gratuito
-    en la primera consulta, con plan de tratamiento priorizado y financiamiento
-    sin intereses hasta en 24 cuotas.
-  brand_essence: "Salud bucal para toda la familia"
-  discriminator: "Odontología integral con diagnóstico digital en primera consulta"
+    La única clínica dental en Miraflores con primera consulta gratuita
+    incluyendo radiografía panorámica + plan escrito + cuotas tarjeta sin
+    intereses + política documentada anti-cobros-adicionales-no-informados.
+  brand_essence: "Odontología honesta para tu sonrisa de toda la vida"
+  discriminator: "Plan escrito post-consulta con costos finales (sin 'depende del caso' vago) + cero sobreventa de tratamientos no necesarios"
+  competitor_landscape:
+    direct_competitors:
+      - "Solución Dental Lince (referente Lima precios accesibles)"
+      - "The Dental Clinic Miraflores+San Isidro (premium)"
+      - "Dental Krebs San Isidro (boutique)"
+      - "Smile Design Perú (especialistas estética)"
+    differentiation: "Único centro Miraflores con primera consulta + radiografía panorámica gratis + transparencia precios documentada"
+  ideal_customer_summary: "Profesional limeño 28-55 años con ingresos PEN 5-15k/mes, busca odontología sin sorpresas + planes realistas. También familias con hijos en edad pediátrica."
 
 brand_personality:
   archetype: "caregiver"
+  secondary_archetype: "everyman"
   core_values:
-    - "Salud bucal preventiva"
-    - "Confianza y transparencia"
-    - "Atención familiar"
-    - "Tecnología accesible"
+    - "Honestidad clínica"
+    - "Transparencia de precios"
+    - "Prevención antes que tratamiento"
+    - "Accesibilidad mediante financiamiento"
+    - "Calidad sin elitismo"
   personality_traits:
-    - "Confiable"
-    - "Cálido"
-    - "Profesional"
-    - "Transparente"
+    - "Cercano sin ser informal"
+    - "Claro técnicamente"
+    - "Honesto sobre limitaciones"
+    - "Educativo"
+    - "Anti-sobreventa"
+
+team:
+  - id: "e1f2a3b4-5c6d-4e7f-8a9b-0c1d2e3f4a01"
+    name: "Dr. Andrés Restrepo"
+    role: "Fundador + Director Clínico"
+    bio: "Odontólogo Universidad Nacional de Colombia (Bogotá, 2010-2015). 3 años clínica privada Bogotá. Maestría en Odontología Estética UPCH (2018-2020). Especializado en carillas + diseño de sonrisa digital. COP 12345."
+    instagram: "@dr.andres.restrepo"
+    linkedin: "https://www.linkedin.com/in/andres-restrepo-odontologo"
+  - id: "f2a3b4c5-6d7e-4f8a-9b0c-1d2e3f4a5b02"
+    name: "Dra. Sandra Pinto"
+    role: "Ortodoncista — brackets + alineadores Invisalign"
+    bio: "Odontóloga UPC (Lima). Maestría en Ortodoncia UPCH 2019. Certificación Invisalign (Align Technology) 2021. COP 23456."
+  - id: "a3b4c5d6-7e8f-4a9b-0c1d-2e3f4a5b6c03"
+    name: "Dra. Laura Vargas"
+    role: "Endodoncista — tratamientos de conducto"
+    bio: "Odontóloga UNMSM. Especialización Endodoncia UPCH 2021. Microscopio dental + reconstrucciones complejas. COP 34567."
+  - id: "b4c5d6e7-8f9a-4b0c-1d2e-3f4a5b6c7d04"
+    name: "Téc. Dental Andrea Quispe"
+    role: "Auxiliar dental + esterilización"
+    bio: "Técnica dental titulada CETPRO. 6 años de experiencia. Encargada de protocolos bioseguridad y manejo de archivo clínico digital."
+
+testimonials:
+  - persona: "Carlos, 35 años, ingeniero (paciente de ortodoncia invisible)"
+    quote: "Pedí presupuesto en 4 clínicas. Sonrisa Plena fue la única que me dio el costo final escrito en la consulta. Las otras me decían 'depende' y al final salía 30% más caro."
+    program: "Ortodoncia Invisalign 18 meses"
+    result_metric: "Costo final = costo inicial cotizado"
+  - persona: "Verónica, 42 años, profesora (Plan Familiar 4 personas)"
+    quote: "El plan familiar nos cubre a los 4 — yo, mi esposo, los dos hijos. Pago PEN 280/mes y todos vamos cada 6 meses sin sustos en la factura."
+    program: "Plan Familiar Mensual"
+    result_metric: "Predictibilidad gasto dental anual"
+  - persona: "Jorge, 28 años, abogado (implante unitario)"
+    quote: "Me cotizaron implante en S/ 5,500 en otra clínica. Aquí me lo hicieron en S/ 4,200 con misma marca de implante (Straumann). 6 meses después está perfecto."
+    program: "Implante unitario Straumann + corona zirconio"
+    result_metric: "Ahorro PEN 1,300 con misma calidad"
+  - persona: "Lucía, 38 años, marketing (blanqueamiento + 8 carillas)"
+    quote: "Andrés me explicó que NO necesitaba carillas en todas las piezas como me había dicho otra clínica. Hicimos 6 carillas + blanqueamiento. Ahorré PEN 2,800."
+    program: "Diseño de sonrisa estético"
+    result_metric: "Anti-sobreventa: PEN 2,800 ahorrados"
+  - persona: "Familia Pérez, hijos 8 y 11 años"
+    quote: "Llevamos a los niños cada 6 meses desde 2022. La doctora pediátrica los hace sentir cómodos. Nunca hemos tenido cargos no esperados."
+
+authority_vault:
+  - type: "media"
+    title: "Entrevista Semana Económica — 'Cómo elegir clínica dental sin caer en sobreventa'"
+    year: 2024
+    url: "https://semanaeconomica.com/lifestyle/sonrisa-plena-clinica-dental"
+  - type: "media"
+    title: "Podcast Radio Filarmonía — Salud y Bienestar episodio 38"
+    year: 2025
+    url: "https://radiofilarmonia.com/podcast/38-odontologia-transparente"
+  - type: "speaking"
+    title: "Charla Cámara Comercio Lima — 'Salud bucal corporativa'"
+    year: 2024
+  - type: "certification"
+    title: "Certificación Invisalign Provider (Dra. Sandra Pinto)"
+    issued_by: "Align Technology"
+    year: 2021
+  - type: "certification"
+    title: "Certificación Straumann Implantology"
+    issued_by: "Straumann Group"
+    year: 2022
+  - type: "certification"
+    title: "Maestría en Odontología Estética UPCH (Dr. Andrés Restrepo)"
+    issued_by: "Universidad Peruana Cayetano Heredia"
+    year: 2020
+  - type: "association"
+    title: "Miembro activo Sociedad Peruana de Ortodoncia + Asociación Latinoamericana de Odontología Estética"
+    year: 2024
+
+contact:
+  primary_email: "hola@example.com"
+  whatsapp_business: "+99 0 555 0300"
+  whatsapp_business_label: "WhatsApp consultas (sintético per .eval-whitelist)"
+  contact_form_url: "https://sonrisa-plena.pe/contacto"
+  scheduling_link_consulta_l0: "https://app.nicolify.com/schedule/sonrisa-plena/primera-consulta-gratis"
+  scheduling_link_l3_estetica: "https://app.nicolify.com/schedule/sonrisa-plena/diagnostico-estetico"
+  scheduling_link_l4_plan_familiar: "https://app.nicolify.com/schedule/sonrisa-plena/plan-familiar-evaluacion"
+  physical_address: "Av. Larco 1200, Miraflores, Lima 18, Perú"
+  business_hours: "Lunes-Viernes 9:00-20:00 / Sábados 9:00-14:00 hora Perú"
+  emergencies: "Línea de emergencia 24/7 (solo pacientes activos): WhatsApp +99 0 555 0301"
+
+visuals:
+  primary_color: "#2A9D8F"
+  secondary_color: "#E9C46A"
+  accent_color: "#264653"
+  font_primary: "Lato"
+  font_secondary: "Inter"
+  logo_url: "https://sonrisa-plena.pe/static/logo-sonrisa-plena.svg"
+  brand_voice_keywords:
+    - "claro y técnico cuando aplica"
+    - "honesto sobre límites"
+    - "accesible sin condescendiente"
+    - "transparente de precios"

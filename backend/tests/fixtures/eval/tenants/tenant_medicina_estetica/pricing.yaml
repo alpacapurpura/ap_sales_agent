@@ -1,62 +1,253 @@
 # pricing.yaml — tenant_medicina_estetica
-# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
-# Todos los precios en PEN para aislamiento de tests
+# Currency: PEN. Q3 ratificado single-currency seed.
+# Benchmarks reales Lima 2026 (botox 25-55 PEN/unidad, HIFU 600-900 sesión, etc.)
+#
+# Cobertura T-4: payment plans completos + refund matrix + facturación PE + cuotas tarjeta.
 
 currency: PEN
 country: PE
-payment_methods:
-  - "efectivo"
-  - "tarjeta_credito_debito"
-  - "transferencia_bancaria"
-  - "yape"
-  - "cuotas_sin_intereses_3"
+tax_regime: "RG"
+tax_id_label: "RUC"
+issues_invoice: true
+invoice_types: ["boleta", "factura", "ticket_plus"]
 
+payment_methods:
+  - method: "yape"
+    label: "Yape"
+    fees: "0%"
+    settlement_time: "instantáneo"
+    notes: "Solo Perú. Disponible para pago único de servicios."
+  - method: "plin"
+    label: "Plin"
+    fees: "0%"
+    settlement_time: "instantáneo"
+    notes: "Solo Perú."
+  - method: "transferencia_bancaria"
+    label: "Transferencia bancaria"
+    accepted_banks: ["BCP", "Interbank", "BBVA", "Scotiabank"]
+    fees: "0%"
+    settlement_time: "1-2 días hábiles"
+    notes: "Para paquetes (L2/L3) y mensualidades Plan Integral aceptamos transferencia."
+  - method: "tarjeta_credito_debito"
+    label: "Tarjeta crédito/débito (Visa, Mastercard, Amex)"
+    processor: "Niubiz POS + Culqi online"
+    fees: "incluidas en precio"
+    settlement_time: "instantáneo"
+    cuotas_sin_intereses: "Disponible 3, 6 y 12 cuotas en BCP, Interbank, BBVA, Scotiabank, Banbif para tarjetas peruanas"
+    chargeback_policy: "Sin reembolso post-aplicación de tratamiento. Reembolso solo en sesiones no consumidas de paquete activo (descontando descuento de pack)."
+  - method: "tarjeta_recurrente_membresia"
+    label: "Tarjeta recurrente (Plan Integral mensual)"
+    processor: "Culqi suscripciones"
+    notes: "Cobro automático mensual el día 1 de cada mes. Email confirmación + pre-aviso 3 días antes."
+
+# ─────────────────────────────────────────────────────────────
+# Price list por offer
+# ─────────────────────────────────────────────────────────────
 price_list:
   - offer_level: "L0"
-    offer_name: "Consulta de evaluación estética gratuita"
+    offer_name: "Consulta evaluación gratuita"
     price: 0
     billing_cycle: "one_time"
     is_free: true
+    refund_policy: "N/A — gratis"
+    requires_deposit: false
+    no_show_penalty: "Tras 1 falta sin aviso, bloqueo de re-agendamiento por 30 días"
 
   - offer_level: "L1"
-    offer_name: "Limpieza facial profunda"
+    offer_name: "Limpieza facial profunda Lumina"
     price: 150
+    regular_price: 150
     billing_cycle: "one_time"
-    package_discount: "10% comprando 3 sesiones juntas"
+    payment_plans: null
+    discount_policy:
+      post_l0_consulta: "10% off (PEN 135) si pagas durante o tras consulta L0"
+    refund_policy: "Sin reembolso post-procedimiento. Si te alergiza algún producto durante la sesión, paramos sin cobro."
+    no_show_penalty: "Cancelación >24h antes sin penalidad. Falta sin aviso = sesión perdida."
 
-  - offer_level: "L2"
-    offer_name: "Paquete facial rejuvenecedor (4 sesiones)"
+  - offer_level: "L2_pack_starter"
+    offer_name: "Paquete Facial Starter (4 sesiones)"
     price: 800
-    billing_cycle: "one_time"
-    payment_plan: "2 pagos de PEN 400"
-    unit_price: 200
-    savings_vs_individual: "PEN 0 (precio especial de paquete)"
+    price_per_session_implicit: 200
+    discount_vs_individual: "20% off"
+    billing_cycle: "one_time_or_3_cuotas"
+    payment_plans:
+      - plan_id: "L2_starter_unico"
+        plan_name: "Pago único"
+        total: 800
+      - plan_id: "L2_starter_3_cuotas"
+        plan_name: "3 cuotas sin intereses tarjeta crédito"
+        cuota_amount: 266.67
+        cuota_count: 3
+        total: 800
+    refund_policy: "Reembolso parcial por sesiones no consumidas dentro de los primeros 60 días, con penalidad del 10% administrativa."
 
-  - offer_level: "L3"
-    offer_name: "Tratamiento corporal reafirmante (5 sesiones)"
+  - offer_level: "L2_pack_completo"
+    offer_name: "Paquete Facial Completo (8 sesiones)"
+    price: 1500
+    price_per_session_implicit: 187.50
+    discount_vs_individual: "25% off"
+    most_popular: true
+    payment_plans:
+      - plan_id: "L2_completo_unico"
+        plan_name: "Pago único"
+        total: 1500
+      - plan_id: "L2_completo_3_cuotas"
+        plan_name: "3 cuotas sin intereses tarjeta"
+        cuota_amount: 500
+        cuota_count: 3
+        total: 1500
+      - plan_id: "L2_completo_6_cuotas"
+        plan_name: "6 cuotas sin intereses tarjeta"
+        cuota_amount: 250
+        cuota_count: 6
+        total: 1500
+    refund_policy: "Reembolso parcial sesiones no consumidas (60 días) con penalidad 10%. Si no hay cambios medibles tras 4 sesiones, ajustamos protocolo o cambiamos a Pack Premium con prorrateo."
+
+  - offer_level: "L2_pack_premium"
+    offer_name: "Paquete Facial Premium (12 sesiones)"
+    price: 2100
+    price_per_session_implicit: 175
+    discount_vs_individual: "30% off"
+    payment_plans:
+      - plan_id: "L2_premium_unico"
+        plan_name: "Pago único + bonus"
+        total: 2100
+        bonus: "1 sesión peeling profundo extra (valor PEN 350)"
+      - plan_id: "L2_premium_6_cuotas"
+        plan_name: "6 cuotas tarjeta"
+        cuota_amount: 350
+        cuota_count: 6
+        total: 2100
+      - plan_id: "L2_premium_12_cuotas"
+        plan_name: "12 cuotas tarjeta"
+        cuota_amount: 175
+        cuota_count: 12
+        total: 2100
+    refund_policy: "Idem L2 Completo + posibilidad de pausar 1 mes por causa justificada."
+
+  - offer_level: "L3_pack_zona_simple"
+    offer_name: "Programa Corporal Zona Simple (6 sesiones, 1 zona)"
     price: 2500
-    billing_cycle: "one_time"
-    payment_plan: "3 pagos de PEN 834"
-    unit_price: 500
+    price_per_session_implicit: 416.67
+    discount_vs_individual: "30% off"
+    payment_plans:
+      - plan_id: "L3_simple_unico"
+        plan_name: "Pago único"
+        total: 2500
+      - plan_id: "L3_simple_3_cuotas"
+        plan_name: "3 cuotas tarjeta"
+        cuota_amount: 833.33
+      - plan_id: "L3_simple_6_cuotas"
+        plan_name: "6 cuotas tarjeta"
+        cuota_amount: 416.67
+    refund_policy: "Reembolso parcial sesiones no consumidas (90 días). Si tras 60% del pack no hay cambio medible, sesiones extra sin costo."
 
-  - offer_level: "L4"
-    offer_name: "Plan integral de cuidado anual"
+  - offer_level: "L3_pack_zonas_combinadas"
+    offer_name: "Programa Corporal Zonas Combinadas (10 sesiones, 2 zonas)"
+    price: 4200
+    price_per_session_implicit: 420
+    discount_vs_individual: "33% off"
+    most_popular: true
+    payment_plans:
+      - plan_id: "L3_combinado_unico"
+        plan_name: "Pago único"
+        total: 4200
+      - plan_id: "L3_combinado_6_cuotas"
+        plan_name: "6 cuotas tarjeta"
+        cuota_amount: 700
+      - plan_id: "L3_combinado_12_cuotas"
+        plan_name: "12 cuotas tarjeta"
+        cuota_amount: 350
+
+  - offer_level: "L3_pack_full_body"
+    offer_name: "Programa Corporal Full Body (16 sesiones, 4 zonas)"
+    price: 6800
+    price_per_session_implicit: 425
+    discount_vs_individual: "37% off"
+    bonus_included: "1 HIFU facial lifting (valor PEN 800)"
+    payment_plans:
+      - plan_id: "L3_fullbody_unico"
+        plan_name: "Pago único"
+        total: 6800
+      - plan_id: "L3_fullbody_12_cuotas"
+        plan_name: "12 cuotas tarjeta"
+        cuota_amount: 566.67
+
+  - offer_level: "L4_basic"
+    offer_name: "Plan Integral Basic"
     price: 250
     billing_cycle: "monthly"
-    annual_price: 2800
-    discount_annual: "7% descuento pago anual adelantado"
-    includes_perks:
-      - "2 limpiezas faciales mensuales"
-      - "1 tratamiento especial por trimestre"
-      - "15% descuento en tratamientos corporales"
-      - "Agenda prioritaria"
+    minimum_commitment_months: 3
+    refund_policy: "Sin reembolso de mensualidades pagadas. Cancela post-3-meses con 30 días aviso."
 
-refund_policy: >
-  Consultas gratuitas: sin compromiso. Tratamientos ya realizados: no reembolsables
-  por ser procedimientos médicos personalizados. Paquetes no iniciados: reembolso
-  del 80% dentro de 7 días calendario.
+  - offer_level: "L4_premium"
+    offer_name: "Plan Integral Premium"
+    price: 400
+    billing_cycle: "monthly"
+    minimum_commitment_months: 3
+    most_popular: true
 
-pricing_philosophy: >
-  Precios basados en protocolos médicos reales y tecnología certificada. No
-  competimos en precio sino en seguridad y resultados. Primera consulta siempre
-  gratuita para asegurar que el tratamiento sea adecuado para cada paciente.
+  - offer_level: "L4_vip"
+    offer_name: "Plan Integral VIP"
+    price: 650
+    billing_cycle: "monthly"
+    minimum_commitment_months: 3
+
+# ─────────────────────────────────────────────────────────────
+# Refund matrix
+# ─────────────────────────────────────────────────────────────
+refund_matrix:
+  L0:
+    has_guarantee: false
+    notes: "Servicio gratuito"
+  L1:
+    has_guarantee: false
+    period_days: 0
+    notes: "Servicio único, sin reembolso post-procedimiento"
+  L2:
+    has_guarantee: "partial"
+    period_days: 60
+    refund_pct: 90
+    conditions: "Reembolso de sesiones no consumidas (descuento 10% administrativo). Aplica todos los packs L2."
+  L3:
+    has_guarantee: "partial"
+    period_days: 90
+    refund_pct: 90
+    conditions: "Idem L2. Si tras 60% del pack no hay cambio medible, sesiones extra incluidas sin costo (no reembolso adicional)."
+  L4:
+    has_guarantee: "trial_3_meses"
+    period_days: 90
+    refund_pct: 0
+    conditions: "Compromiso 3 meses. Después cancela libre con 30d aviso. Sin reembolso de meses pagados."
+
+# ─────────────────────────────────────────────────────────────
+# Política anti-sobreventa pricing-related
+# ─────────────────────────────────────────────────────────────
+pricing_philosophy: |
+  Precios alineados con benchmarks Lima 2026:
+    - Botox: rango 25-55 PEN/unidad (consultable por zona)
+    - Ácido hialurónico: PEN 720-950/jeringa (Restylane / Juvederm)
+    - HIFU corporal: PEN 600-900/sesión individual o PEN 416-425 con paquete L3
+    - Limpieza facial: PEN 150 (rango Lima 130-180)
+
+  Filosofía:
+  - NO hay "descuentos secretos" negociados 1:1 fuera de los descuentos publicados
+  - Cuotas sin intereses con tarjeta peruana 3/6/12 según monto
+  - Anti-sobreventa: paquetes solo si justificado por evidencia clínica, no como upsell genérico
+  - Becas: NO ofrecemos becas por ser servicio médico (precio refleja costo + criterio)
+  - Precios diferenciados nacionales: NO inflamos para extranjeras
+
+# ─────────────────────────────────────────────────────────────
+# Tax / facturación
+# ─────────────────────────────────────────────────────────────
+invoicing:
+  emite_boleta: true
+  emite_factura: true
+  factura_requires_ruc: true
+  empresa_legal: "Lumina Estética SRL (RUC 20XXXXXXXXX, Régimen General)"
+  recibo_por_honorarios_disponible: false
+  notes: "Procedimientos médicos están gravados. Solicitar comprobante en recepción al hacer pago."
+
+corporate_options:
+  empresas_convenio: true
+  notes: "Tenemos convenio con 12 empresas Lima (BCP, Interbank, Coca-Cola Andina) — empleadas reciben 15% off. Consultar con tu RRHH."

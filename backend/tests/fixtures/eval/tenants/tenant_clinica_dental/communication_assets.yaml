@@ -1,64 +1,201 @@
 # communication_assets.yaml — tenant_clinica_dental
-# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+# Sonrisa Plena — Miraflores Lima.
 
 social_media:
-  instagram: "@sonrisaperfecta.dental"
-  facebook: "https://www.facebook.com/sonrisaperfectaperu"
-  tiktok: "@sonrisaperfecta"
-  google_business: "https://g.page/sonrisa-perfecta-lima"
+  instagram:
+    handle: "@sonrisa.plena"
+    url: "https://www.instagram.com/sonrisa.plena"
+    followers_approx: 5400
+    posting_frequency: "4 posts/semana + 6-10 stories/día"
+    primary_audience_country: "PE (95%)"
+    primary_content: "Antes-después con consentimiento + DSD digital + tips higiene + planes financieros explicados"
+  tiktok:
+    handle: "@sonrisa.plena"
+    followers_approx: 2200
+    posting_frequency: "2 videos/semana"
+    primary_content: "Procedimientos no invasivos + mitos dentales"
+  facebook:
+    page_url: "https://www.facebook.com/sonrisa.plena.pe"
+    followers_approx: 3100
+    posting_frequency: "3 posts/semana (audiencia familiar mayor)"
+  google_business:
+    listing_url: "https://goo.gl/maps/sonrisa-plena-miraflores"
+    reviews_count: 287
+    rating_avg: 4.8
+    primary_review_themes: ["transparencia precios", "anti-sobreventa", "trato cálido", "instalaciones limpias"]
 
 website:
-  url: "https://sonrisaperfecta.pe"
-  blog_url: "https://sonrisaperfecta.pe/consejos-dentales"
-  booking_url: "https://sonrisaperfecta.pe/cita-gratuita"
-  before_after_gallery: "https://sonrisaperfecta.pe/resultados"
+  url: "https://sonrisa-plena.pe"
+  blog_url: "https://sonrisa-plena.pe/blog"
+  consulta_gratis_url: "https://sonrisa-plena.pe/consulta-gratis"
+  l1_limpieza_url: "https://sonrisa-plena.pe/limpieza-dental"
+  l2_ortodoncia_url: "https://sonrisa-plena.pe/ortodoncia"
+  l3_estetica_url: "https://sonrisa-plena.pe/estetica-dental"
+  l4_plan_familiar_url: "https://sonrisa-plena.pe/plan-familiar"
+  testimonials_url: "https://sonrisa-plena.pe/testimonios"
+  about_url: "https://sonrisa-plena.pe/sobre-nosotros"
+  faq_url: "https://sonrisa-plena.pe/preguntas-frecuentes"
 
 email_marketing:
-  list_name: "Pacientes Sonrisa Perfecta"
-  welcome_sequence_length: 3
+  list_name: "Comunidad Sonrisa Plena"
+  list_size_approx: 2400
+  welcome_sequence_length: 4
+  welcome_sequence_topics:
+    - "Bienvenida + invitación a primera consulta gratis"
+    - "Cómo funciona nuestra metodología Plan Sonrisa Plena (3 fases)"
+    - "Caso real: Carlos ingeniero — Invisalign sin sorpresas en cotización"
+    - "Política transparencia precios + anti-sobreventa documentada"
   newsletter_frequency: "mensual"
-  main_cta: "Agenda tu primera consulta gratuita"
+  main_cta: "Agendar primera consulta gratis"
+  conversion_rate_visit_to_optin: "8%"
+  conversion_rate_optin_to_l0_appointment: "42%"
+  conversion_rate_l0_to_paid_treatment: "55%"
 
 content_pillars:
-  - name: "Antes y después"
-    description: "Transformaciones reales de pacientes con consentimiento"
-    formats:
-      - "carrusel Instagram"
-      - "reel comparativo"
-  - name: "Educación bucal"
-    description: "Tips de higiene oral, qué esperar de cada tratamiento"
-    formats:
-      - "video corto"
-      - "infografía"
-      - "artículo blog"
-  - name: "Desmitificando el dentista"
-    description: "Combatir el miedo y los mitos sobre tratamientos dentales"
-    formats:
-      - "reel educativo"
-      - "Q&A con el doctor"
-  - name: "Familia y prevención"
-    description: "Cuidado dental desde niños, Plan Familia"
-    formats:
-      - "story familiar"
-      - "post educativo padres"
+  - name: "Educación dental preventiva"
+    description: "Mitos vs hechos sobre cuidado dental, frecuencia óptima"
+    formats: ["carrusel IG", "video corto", "blog"]
+    posting_share: 0.35
+  - name: "Tratamientos explicados"
+    description: "Cómo es Invisalign, brackets, carillas — sin tecnicismos"
+    formats: ["video YouTube", "carrusel", "reel"]
+    posting_share: 0.25
+  - name: "Antes-después con consentimiento"
+    description: "Casos reales documentados con autorización"
+    formats: ["carrusel split", "reel transformación"]
+    posting_share: 0.20
+  - name: "Transparencia financiera"
+    description: "Cómo funcionan nuestros planes, comparativas honestas"
+    formats: ["story Q&A", "carrusel financiero"]
+    posting_share: 0.10
+  - name: "Detrás de cámaras clínica"
+    description: "Equipo, tecnología, día a día"
+    formats: ["story diario", "reel personal Andrés"]
+    posting_share: 0.10
 
 key_messages:
-  - "La primera consulta siempre es gratis, sin sorpresas"
-  - "Un diagnóstico completo desde el primer día"
-  - "Financiamiento real hasta 24 cuotas sin intereses"
-  - "Para toda la familia, de 3 a 90 años"
+  - "Plan escrito = costo final"
+  - "Cero cobros sorpresa"
+  - "Anti-sobreventa documentada"
+  - "Cuotas sin intereses 12-18 meses"
+  - "Garantía escrita en restauradores"
+  - "Primera consulta gratis con panorámica"
 
-tone_of_voice: "Confiable, cálido, transparente. Sin tecnicismos innecesarios. Como un dentista amigo de la familia."
+tone_of_voice:
+  description: "Cercano sin informal, claro técnicamente, honesto sobre límites. Voz bogotana neutral (sin voseo paisa, sin regionalismos)."
+  do:
+    - "Acknowledge antes de bridge"
+    - "Real numbers PEN específicos"
+    - "Comparativa honesta con competencia"
+    - "Recomendar opción menor cuando aplica"
+    - "Ofrecer plan escrito con costo cerrado"
+  dont:
+    - "'Mejor opción de Lima' sin sustento"
+    - "Cotizaciones vagas tipo 'depende del caso'"
+    - "Lenguaje motivacional"
+    - "Presión de venta day-of consulta"
 
 lead_magnet:
-  title: "Primera consulta dental gratuita"
-  format: "Evaluación presencial con diagnóstico digital"
-  delivery_method: "Agendamiento por WhatsApp, web o en persona"
-  booking_url: "https://sonrisaperfecta.pe/cita-gratuita"
+  title: "Primera consulta gratuita con radiografía panorámica + plan escrito"
+  format: "45 min presencial Av. Larco 1200 Miraflores"
+  delivery_method: "Booking online via Nicolify scheduling"
+  opt_in_page: "https://sonrisa-plena.pe/consulta-gratis"
 
-physical_location:
-  address: "Av. Angamos Oeste 567, Miraflores, Lima"
-  reference: "A media cuadra del Óvalo Gutiérrez, segundo piso"
-  parking: "Estacionamiento en calle disponible"
-  hours: "Lunes a Viernes 8am-8pm, Sábados 9am-2pm"
-  emergency_hours: "Urgencias dentales: llamar al horario de atención"
+# ─────────────────────────────────────────────────────────────
+# Nicolify scheduling integration
+# ─────────────────────────────────────────────────────────────
+scheduling:
+  provider: "Nicolify scheduling (clon-Calendly built-in)"
+  event_types:
+    - id: "scheduling_evt_a3_l0_primera_consulta"
+      name: "Primera consulta gratuita + radiografía panorámica"
+      duration_minutes: 45
+      offer_level: "L0"
+      facilitator: "Dr. Andrés / Dra. Sandra / Dra. Laura (rotación según especialidad)"
+      booking_url: "https://app.nicolify.com/schedule/sonrisa-plena/primera-consulta-gratis"
+      pre_booking_questions:
+        - "¿Cuál es tu motivo principal de consulta?"
+        - "¿Hace cuánto tiempo no vas al dentista?"
+        - "¿Tienes algún miedo o experiencia previa relevante?"
+        - "¿Buscas para ti o para algún familiar?"
+      capacity_per_week: 30
+      timezone_default: "America/Lima"
+      modality: "presencial"
+
+    - id: "scheduling_evt_a3_l1_limpieza"
+      name: "Limpieza dental"
+      duration_minutes: 60
+      offer_level: "L1"
+      booking_url: "https://app.nicolify.com/schedule/sonrisa-plena/limpieza-dental"
+      capacity_per_week: 40
+
+    - id: "scheduling_evt_a3_l2_ortodoncia_diagnostico"
+      name: "Diagnóstico ortodóntico (post-L0 si interés)"
+      duration_minutes: 60
+      offer_level: "L2"
+      facilitator: "Dra. Sandra Pinto"
+      booking_url: "https://app.nicolify.com/schedule/sonrisa-plena/diagnostico-ortodontico"
+      includes_iTero_scan: true
+      requires_l0_first: true
+
+    - id: "scheduling_evt_a3_l3_diagnostico_estetico"
+      name: "Diagnóstico estético + DSD digital"
+      duration_minutes: 60
+      offer_level: "L3"
+      facilitator: "Dr. Andrés Restrepo"
+      booking_url: "https://app.nicolify.com/schedule/sonrisa-plena/diagnostico-estetico"
+      includes_dsd: true
+      includes_mockup_directo_boca: true
+      capacity_per_week: 8
+
+    - id: "scheduling_evt_a3_l4_plan_familiar"
+      name: "Evaluación Plan Familiar"
+      duration_minutes: 45
+      offer_level: "L4"
+      booking_url: "https://app.nicolify.com/schedule/sonrisa-plena/plan-familiar-evaluacion"
+      capacity_per_week: 10
+      notes: "Duración varía según número de personas (30-45 min)"
+
+# ─────────────────────────────────────────────────────────────
+# Channel-specific messaging
+# ─────────────────────────────────────────────────────────────
+channel_specific_messaging:
+  whatsapp:
+    avg_response_time_hours: 2
+    avg_message_length: "1-3 frases por mensaje"
+    auto_reply_after_hours: "Hola, gracias por escribir. Respondemos lunes-viernes 9-20h, sábados 9-14h. Para emergencias dentales (paciente activo), línea 24/7. Si urge consulta: agenda primera consulta gratis https://sonrisa-plena.pe/consulta-gratis"
+    business_hours: "Lunes-Viernes 9:00-20:00 / Sábados 9:00-14:00 hora Perú"
+  instagram_dm:
+    avg_response_time_hours: 4
+    common_inbound_intents:
+      - "Pregunta de precios ortodoncia/Invisalign"
+      - "Pregunta de carillas estéticas"
+      - "Comparación con otra clínica"
+      - "Pedido de cotización"
+      - "Miedo al dentista"
+      - "Pediatría niños"
+      - "Plan familiar"
+    initial_response_template: "Saludo + qualifying clínico + bridge a primera consulta gratis"
+  email:
+    avg_response_time_hours: 24
+    long_form_ok: true
+    common_inbound_intents:
+      - "Convenios corporativos"
+      - "Solicitud presupuesto detallado pre-consulta"
+      - "Reembolso seguros (Pacífico, Mapfre, Rímac)"
+
+# ─────────────────────────────────────────────────────────────
+# Convenios corporativos + seguros
+# ─────────────────────────────────────────────────────────────
+corporate_partnerships:
+  active_count: 8
+  partner_types: ["empresas medianas", "consultoras"]
+  typical_discount: "10% off para empleados con carnet vigente + Plan Familiar 50% off primer mes"
+  notable_partners: ["BCP", "Interbank", "Apurímac Software", "Belcorp", "Falabella"]
+  partnership_inquiry_email: "alianzas@example.com"
+
+insurance_acceptance:
+  accepted: true
+  insurers: ["Pacífico Seguros", "Mapfre", "Rímac Seguros", "Interseguro"]
+  process: "Paciente paga upfront → emitimos factura → paciente solicita reembolso a su seguro"
+  notes: "Algunos seguros cubren 60-80% de tratamientos restauradores. Estética NO cubierta típicamente."

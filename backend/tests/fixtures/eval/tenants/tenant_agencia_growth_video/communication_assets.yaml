@@ -1,68 +1,201 @@
 # communication_assets.yaml — tenant_agencia_growth_video
-# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+# Pulso Studio Lima.
 
 social_media:
-  instagram: "@brote.agency"
-  linkedin: "https://www.linkedin.com/company/brote-agency"
-  youtube: "https://www.youtube.com/@broteagency"
-  behance: "https://www.behance.net/broteagency"
+  instagram:
+    handle: "@pulso.studio"
+    url: "https://www.instagram.com/pulso.studio"
+    followers_approx: 6800
+    posting_frequency: "5 reels/semana + 8-10 stories/día"
+    primary_audience_country: "PE (50%) + AR (25%) + MX/CO/CL (25%)"
+    primary_content: "Casos de éxito con números reales + tips growth + behind-the-scenes producción"
+    notable_followers: "Founders LatAm + CMOs + creators"
+  tiktok:
+    handle: "@pulso.studio"
+    followers_approx: 4200
+    posting_frequency: "3 videos/semana"
+    primary_content: "Mitos vs hechos en marketing + casos rápidos"
+  linkedin:
+    company_url: "https://www.linkedin.com/company/pulso-studio"
+    founder_url: "https://www.linkedin.com/in/florencia-aramburu"
+    followers_approx: 2400
+    posting_frequency: "Flor 3-4 posts/semana, página company 2/semana"
+    primary_content: "Long-form análisis B2B growth, casos reales con CAC/ROAS reduction"
+  youtube:
+    channel_url: "https://www.youtube.com/@pulso.studio"
+    subscribers_approx: 1100
+    posting_frequency: "1-2 videos/mes"
+    primary_content: "Long-form analysis 12-25 min sobre growth en LATAM"
 
 website:
-  url: "https://brote.agency"
-  portfolio_url: "https://brote.agency/casos"
-  audit_landing: "https://brote.agency/audit-growth"
-  blog_url: "https://brote.agency/blog"
+  url: "https://pulso.studio"
+  blog_url: "https://pulso.studio/blog"
+  audit_url: "https://pulso.studio/audit-growth"
+  produccion_video_url: "https://pulso.studio/produccion-video"
+  retainer_url: "https://pulso.studio/retainer"
+  consultoria_url: "https://pulso.studio/consultoria-estrategica"
+  case_studies_url: "https://pulso.studio/case-studies"
+  about_url: "https://pulso.studio/sobre-pulso"
+  team_url: "https://pulso.studio/equipo"
 
 email_marketing:
-  list_name: "Clientes y Prospectos Brote"
-  welcome_sequence_length: 4
+  list_name: "Pulso Newsletter"
+  list_size_approx: 1800
+  welcome_sequence_length: 3
+  welcome_sequence_topics:
+    - "Bienvenida + qué es Pulso (filosofía orgánico-antes-que-paid)"
+    - "Caso real fintech: CAC -35% en 6 meses (con números)"
+    - "Cómo decidir si necesitás agencia o podés in-house"
   newsletter_frequency: "quincenal"
-  main_cta: "Agenda tu audit de growth"
+  main_cta: "Agendar audit growth (PEN 500)"
+  conversion_rate_visit_to_optin: "5%"
+  conversion_rate_optin_to_audit_paid: "8%"
+  conversion_rate_audit_to_retainer: "45%"
 
 content_pillars:
-  - name: "Casos de éxito"
-    description: "Resultados reales de clientes con métricas visibles"
-    formats:
-      - "carrusel antes/después"
-      - "video testimonial"
-      - "post de métricas"
-  - name: "Educación growth"
-    description: "Tips de estrategia de contenido y crecimiento digital"
-    formats:
-      - "reel educativo"
-      - "newsletter"
-      - "artículo blog"
-  - name: "Behind the scenes"
-    description: "El proceso de producción y estrategia de Brote"
-    formats:
-      - "story proceso"
-      - "reel producción"
-  - name: "Datos y análisis"
-    description: "Hallazgos del sector, benchmarks, análisis de tendencias"
-    formats:
-      - "carrusel datos"
-      - "infografía"
+  - name: "Casos reales con números"
+    description: "Resultados clientes desnudos: CAC, LTV, ROAS, conversion rate"
+    formats: ["carrusel IG", "long-post LinkedIn", "video YouTube"]
+    posting_share: 0.35
+  - name: "Mitos vs realidad growth"
+    description: "Desmistificación tácticas marketing populares"
+    formats: ["reel", "TikTok", "carrusel"]
+    posting_share: 0.25
+  - name: "Behind the scenes producción"
+    description: "Cómo se hacen los reels, equipo, locaciones"
+    formats: ["story diario", "reel", "TikTok"]
+    posting_share: 0.20
+  - name: "Educación growth para founders"
+    description: "Frameworks, KPIs, decisiones marketing para fundadores"
+    formats: ["LinkedIn long-post", "blog", "video YouTube"]
+    posting_share: 0.20
 
 key_messages:
-  - "El contenido sin estrategia es gasto. El contenido con estrategia es inversión"
-  - "Medimos lo que importa: clientes, no seguidores"
-  - "No prometemos likes. Prometemos conversiones"
-  - "Audit primero, producción después"
+  - "Orgánico antes que paid"
+  - "Data sobre engagement vanidoso"
+  - "Cohort limitada (max 15 clientes activos)"
+  - "Producción in-house"
+  - "Reportamos CAC/LTV/ROAS, no likes"
+  - "Decimos que no a clientes que no son fit"
 
-tone_of_voice: "Directo, sin endulzar. Creativo pero con datos. Irreverente con los clichés del marketing."
+tone_of_voice:
+  description: "Directo + casual con voseo argentino legítimo (Flor) + español neutro Lima del resto del equipo. Anti-bullshit. Humor seco."
+  do:
+    - "Voseo legítimo cuando habla Flor"
+    - "Tuteo neutral cuando habla Lucía/Mateo (peruanos)"
+    - "Real numbers en testimonios"
+    - "Decline cuando no aplica"
+    - "Decir 'no sé' cuando no sabe"
+  dont:
+    - "Lenguaje motivacional Tony Robbins"
+    - "Promesas de 'cambiar tu vida'"
+    - "Engagement vanidoso ('miles de likes')"
+    - "Voseo paisa o regionalismos extremos"
 
-social_proof:
-  client_logos:
-    - "marca_skincare_lat"
-    - "restaurante_peruano_lima"
-    - "ecommerce_moda_ar"
-  testimonials_available: true
-  case_studies_url: "https://brote.agency/casos"
+lead_magnet:
+  none: true
+  reason: "A4 SIN L0 lead magnet per spec — entrada via L1 audit pago, casos de éxito IG, referidos"
+  alternativa_entrada:
+    - "Caso de éxito viral en LinkedIn (orgánico)"
+    - "Mención en podcast (Día 1, Ídolo, etc.)"
+    - "Referido directo de cliente actual"
+    - "Audit L1 PEN 500 entry-tripwire"
 
-portfolio_highlights:
-  - client_type: "E-commerce skincare"
-    result: "De 2,000 a 18,000 seguidores en 6 meses con 4x conversión"
-  - client_type: "Restaurante gastronómico"
-    result: "60% de mesas reservadas por semana desde Instagram"
-  - client_type: "Consultora B2B"
-    result: "3 leads calificados mensuales desde LinkedIn con contenido orgánico"
+# ─────────────────────────────────────────────────────────────
+# Nicolify scheduling integration
+# ─────────────────────────────────────────────────────────────
+scheduling:
+  provider: "Nicolify scheduling (clon-Calendly built-in)"
+  event_types:
+    - id: "scheduling_evt_a4_l1_audit_growth"
+      name: "Audit growth — reunión inicial 30 min (gratis para confirmar fit)"
+      duration_minutes: 30
+      offer_level: "L1"
+      facilitator: "Florencia Aramburu"
+      booking_url: "https://app.nicolify.com/schedule/pulso-studio/audit-growth"
+      pre_booking_questions:
+        - "¿Cuál es tu negocio? (sector + tamaño)"
+        - "¿Cuánto facturás aproximadamente al mes?"
+        - "¿Qué probaste antes en marketing?"
+        - "¿Cuál es tu inversión actual mensual en marketing?"
+      capacity_per_week: 8
+      timezone_default: "America/Lima"
+
+    - id: "scheduling_evt_a4_l3_retainer_discovery"
+      name: "Discovery call retainer mensual"
+      duration_minutes: 45
+      offer_level: "L3"
+      facilitator: "Florencia Aramburu"
+      booking_url: "https://app.nicolify.com/schedule/pulso-studio/retainer-discovery"
+      pre_booking_questions:
+        - "¿Facturación mensual actual?"
+        - "¿Inversión actual marketing? (paid + agencias previas)"
+        - "¿Tenés equipo de marketing in-house?"
+        - "¿Qué objetivos de growth a 6 meses?"
+      capacity_per_week: 6
+
+    - id: "scheduling_evt_a4_l4_consultoria"
+      name: "Discovery call consultoría estratégica"
+      duration_minutes: 45
+      offer_level: "L4"
+      facilitator: "Florencia Aramburu + Camila Rojas"
+      booking_url: "https://app.nicolify.com/schedule/pulso-studio/consultoria-estrategica"
+      pre_booking_questions:
+        - "¿Por qué consultoría custom vs retainer?"
+        - "¿Tenés equipo in-house ejecutor?"
+        - "¿Scope esperado (semanas, profundidad)?"
+      capacity_per_week: 4
+
+# ─────────────────────────────────────────────────────────────
+# Channel-specific messaging
+# ─────────────────────────────────────────────────────────────
+channel_specific_messaging:
+  linkedin_dm:
+    avg_response_time_hours: 8
+    avg_message_length: "long-form OK (B2B audience)"
+    common_inbound_intents:
+      - "Solicitud audit growth"
+      - "Pregunta retainer + caso similar"
+      - "Pregunta consultoría puntual"
+      - "Pregunta colaboración / sponsor"
+    initial_response_template: "Saludo + qualifying tamaño negocio + bridge audit L1"
+  whatsapp:
+    avg_response_time_hours: 4
+    avg_message_length: "1-3 frases multi-msg"
+    common_inbound_intents:
+      - "Cotización rápida"
+      - "Pregunta producción video puntual"
+      - "Operativo (cliente activo)"
+    initial_response_template: "Saludo + qualifying + recomendación servicio"
+  instagram_dm:
+    avg_response_time_hours: 6
+    common_inbound_intents:
+      - "Pregunta sobre 'cómo crecer en Instagram'"
+      - "Pedido de colaboración"
+      - "Wantrepreneurs sin negocio validado (decline esperado)"
+    initial_response_template: "Saludo + qualifying ('¿negocio activo?') + bridge a audit L1 si fit, recomendar otra cosa si no"
+  email:
+    avg_response_time_hours: 24
+    long_form_ok: true
+    common_inbound_intents:
+      - "Aplicación a beca / sponsorship (no aplica — Pulso no da becas)"
+      - "Solicitud de propuesta corporativa B2B"
+      - "Solicitud de prensa/medios"
+      - "Aplicación a equipo (carrera)"
+
+# ─────────────────────────────────────────────────────────────
+# Política decline (anti-mal-fit)
+# ─────────────────────────────────────────────────────────────
+decline_policy: |
+  Pulso DECLINA a clientes que:
+  - No tienen ventas validadas (mínimo 5-10 ventas con mensaje claro)
+  - Facturan <USD 30k/mes (no escalable retainer)
+  - Esperan "viral en TikTok" como objetivo
+  - Quieren agencia "para sentirse emprendedor"
+  - Esperan promesa de resultado <90 días en orgánico
+
+  Recomendaciones honest:
+  - Validar primero (cursos validación negocio, mentoría 1:1)
+  - Audit L1 PEN 500 si quieren diagnóstico igual
+  - Otra agencia barata si ROI agencia premium no aplica
+  - In-house si volumen + presupuesto >USD 100k/mes

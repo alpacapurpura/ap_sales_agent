@@ -1,25 +1,27 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-07T02:57:54+00:00`
+> Generated at: `2026-05-07T20:24:28+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### 💡 Ideas (5)
+### 💡 Ideas (6)
 - calendario-comercial `[idea]`
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
 - solo-mode-chat-first-layout `[idea]`
+- sales-inbox-responsive-collapse `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (13 total · 2 cap-eligible / cap 3)
+### 🔬 Refining (14 total · 3 cap-eligible / cap 3)
 - **growth-copilot-layout-unification**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
-- **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification` [PM_DRAFT]
+- **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification` [PO_DRAFT_V2_AWAITING_RATIFICATION]
 - **eval-foundation-simulator-homologation** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
-- **growth-studio-architectural-parity** — outcome `growth-copilot-layout-unification` [PM_DRAFT]
+- **growth-studio-actions-schemas-real** — outcome `growth-copilot-layout-unification` [PO_DRAFTING]
+- **growth-studio-folder-parity** — outcome `growth-copilot-layout-unification` [PO_DRAFTING]
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
@@ -34,11 +36,11 @@
 ### 📦 Ready for development (0 / cap 5)
 - _(none)_
 
-### 🔨 Developing (1 / cap 3)
-- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation` [BUILD_T4]
-
-### 🧪 Developed — esperando QA (0 / cap 2)
+### 🔨 Developing (0 / cap 3)
 - _(none)_
+
+### 🧪 Developed — esperando QA (1 / cap 2)
+- **eval-foundation-tenant-seed-data** — outcome `pi-12-sales-agent-eval-foundation`
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -59,29 +61,30 @@
 
 ```mermaid
 kanban
-  💡 Ideas (5)
+  💡 Ideas (6)
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
     solo-mode-chat-first-layout[solo-mode-chat-first-layout]
+    sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (13 / cap 3)
+  🔬 Refining (14 / cap 3)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
     app-shell-sidebar-copilot-deco[app-shell-sidebar-copilot-decoupling]
     eval-foundation-simulator-homo[eval-foundation-simulator-homologation]
-    growth-studio-architectural-pa[growth-studio-architectural-parity]
+    growth-studio-actions-schemas-[growth-studio-actions-schemas-real]
+    growth-studio-folder-parity[growth-studio-folder-parity]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
-    sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
-    overflow-🔬 Refining[+3 more]
+    overflow-🔬 Refining[+4 more]
   ✅ Refined (0 / cap 5)
   📦 Ready (0 / cap 5)
-  🔨 Developing (1 / cap 3)
+  🔨 Developing (0 / cap 3)
+  🧪 Developed (1 / cap 2)
     eval-foundation-tenant-seed-da[eval-foundation-tenant-seed-data]
-  🧪 Developed (0 / cap 2)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (3 / 90d rolling)
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]

@@ -1,84 +1,667 @@
 # offer_ladder.yaml — tenant_clinica_dental
-# 5 niveles L0-L4 con L0 primera consulta gratis (A3 tiene L0 per spec)
-# Currency: PEN
+# Sonrisa Plena Clínica Dental — Miraflores Lima.
+# 5 niveles L0-L4 con L0 primera consulta gratis (A3 tiene L0 per spec).
+# Currency PEN. Dialect es-CO (bogotano tuteo).
+#
+# Variants en uso:
+#   TIER  — Ortodoncia L2 (3 niveles: metálicos / estéticos cerámicos / Invisalign)
+#   TIER  — Estética dental L3 (Express / Diseño completo / Diseño premium con CBCT)
+#   TIER  — Plan Familiar L4 (Pareja / Familia 4 / Familia 6)
+#
+# Discovery / cierre:
+#   L0 = primera consulta gratis incluye panorámica + plan escrito (= ¡es discovery + lead magnet!)
+#   L3 estética dental → diagnóstico estético adicional 30 min (incluye diseño digital)
+#   L4 Plan Familiar → evaluación familiar 30-45 min
+#
+# Benchmarks Lima 2026:
+#   Limpieza dental: PEN 80-200
+#   Ortodoncia metálica: PEN 2,500-5,000
+#   Ortodoncia Invisalign: PEN 4,000-8,000
+#   Implante unitario: PEN 2,500-6,000
 
 tenant_slug: tenant_clinica_dental
 currency: PEN
 has_lead_magnet: true
 total_levels: 5
-entry_point: "L0 — Primera consulta dental gratuita con diagnóstico digital"
-upsell_path: "L0 → L1 → L2 → L3 → L4"
+entry_point: "L0 — Primera consulta gratuita con radiografía panorámica + plan escrito"
+upsell_path: "L0 → L1 (limpieza) → L2 (ortodoncia) ó L3 (estética) → L4 (Plan Familiar)"
+last_updated: "2026-05-07"
 
 offers:
+  # ─────────────────────────────────────────────────────────────
   - level: "L0"
-    name: "Primera consulta dental gratuita"
-    description: >
-      Evaluación dental completa gratuita con el Dr. Marco Salinas. Incluye
-      revisión clínica, fotografías intraorales digitales y plan de tratamiento
-      priorizado. Sin compromiso de tratamiento.
-    format: "consulta_presencial"
-    price: 0
-    is_free: true
-    lead_magnet: true
-    delivery: "presencial en clínica, previa cita"
-    value_proposition: "Diagnóstico completo sin costo + plan personalizado"
+    archetype: "SERVICIO"
+    value_level: "lead_magnet"
+    preset_label: "Primera consulta gratuita (lead magnet alta-intent)"
 
+    identity:
+      name: "Primera consulta gratuita Sonrisa Plena"
+      slug: "primera-consulta-gratis"
+      tagline: "45 minutos con odontólogo titular + radiografía panorámica + plan escrito sin costo"
+      short_description: "Consulta presencial completa: evaluación clínica + radiografía panorámica + plan de tratamiento escrito con costos cerrados. Cero compromiso de compra."
+
+    promise:
+      transformation: "De confusión sobre 'qué necesito y cuánto cuesta' a un plan escrito con costos finales y opciones de financiamiento"
+      outcome_short: "Diagnóstico clínico + radiografía + plan escrito con presupuesto cerrado"
+      timeframe: "45 minutos presencial"
+
+    value_stack:
+      - "45 min de consulta con odontólogo titular (Dr. Andrés u otro especialista según caso)"
+      - "Radiografía panorámica digital (sin costo — vale aproximadamente PEN 80 en otra clínica)"
+      - "Plan de tratamiento escrito con costos finales (sin 'depende del caso' vago)"
+      - "Opciones de financiamiento detalladas (cuotas tarjeta + plan directo)"
+      - "Recomendación honesta: si no necesitas tratamiento ahora, te lo decimos"
+      - "Descuento 10% en primer tratamiento si decides avanzar dentro de 30 días"
+
+    program_details:
+      duration_minutes: 45
+      modality: "presencial"
+      address: "Av. Larco 1200, Miraflores, Lima 18"
+      includes_panorámica: true
+      includes_cbct: false
+      includes_plan_escrito: true
+
+    pricing:
+      price: 0
+      currency_display: "Gratis"
+      is_free: true
+      requires_deposit: false
+      no_show_policy: "Tras 1 falta sin aviso, primera consulta deja de ser gratis (PEN 80)."
+
+    instructors:
+      - role: "Odontólogo titular según especialidad — Dr. Andrés (general/estética), Dra. Sandra (ortodoncia), Dra. Laura (endodoncia)"
+
+    knowledge:
+      learning_objectives:
+        - "Conocer estado dental actual con evidencia clínica (radiografía)"
+        - "Recibir plan escrito con costos cerrados — sin sorpresas"
+        - "Decidir con información si avanzar y con qué financiamiento"
+
+    closing:
+      mechanism: "appointment_required"
+      requires_scheduling: true
+      scheduling_event_type_id: "scheduling_evt_a3_l0_primera_consulta"
+      scheduling_url: "https://app.nicolify.com/schedule/sonrisa-plena/primera-consulta-gratis"
+      cancellation_policy: "Cancela hasta 4h antes sin penalidad. 1 falta sin aviso = primera consulta deja de ser gratis (PEN 80)."
+      next_step_after: "Plan escrito + email follow-up + descuento 10% válido 30 días"
+
+    testimonials:
+      - persona: "Carlos, 35 años, ingeniero"
+        quote: "En 45 min me dieron presupuesto cerrado por escrito. Las otras 3 clínicas me decían 'depende' y al final me cobraban 30% más."
+        result_metric: "Cero sorpresas en factura final"
+      - persona: "Verónica, 42 años, profesora"
+        quote: "La doctora me dijo claramente que mi hijo no necesitaba ortodoncia todavía. Era la 2da clínica que me lo decía gratis."
+        result_metric: "Honestidad anti-sobreventa"
+
+    faq:
+      - q: "¿De verdad la consulta es gratis?"
+        a: "Sí. Cero costo. Cero compromiso. Política documentada."
+      - q: "¿La panorámica también es gratis?"
+        a: "Sí, incluida en la consulta. Vale aprox. PEN 80 si la pides aparte."
+      - q: "¿Atienden los sábados?"
+        a: "Sí, sábados 9:00-14:00. Plazas más limitadas."
+      - q: "¿Qué pasa si falto?"
+        a: "Tras 1 falta sin aviso, la primera consulta deja de ser gratuita (PEN 80). Es para respetar las plazas de otros pacientes."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. Larco 1200, Miraflores, Lima 18, Perú"
+      timezone: "America/Lima"
+      directions_url: "https://maps.app.goo.gl/sonrisa-plena-miraflores"
+      parking_info: "Estacionamiento Larcomar (3 cuadras) o zona azul Av. Larco. Llegamos en bus por av. Pardo o Larco."
+
+    resources:
+      - "Radiografía panorámica digital (entregada también por email)"
+      - "Plan de tratamiento escrito (PDF post-consulta)"
+      - "Cuadro comparativo opciones de financiamiento"
+
+    psychology:
+      target_emotion: "Confianza + alivio (sin ansiedad por costos)"
+      objections_addressed:
+        - "¿De verdad gratis sin gancho?"
+        - "Tengo miedo al dentista"
+        - "No quiero que me sobrevendan tratamientos"
+      desire: "Plan claro + costo conocido upfront"
+
+    gallery:
+      cover_image: "https://sonrisa-plena.pe/static/primera-consulta-cover.jpg"
+      consultorio_video_30s: "https://sonrisa-plena.pe/static/clinica-tour.mp4"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L1"
-    name: "Profilaxis dental (limpieza profesional)"
-    description: >
-      Limpieza dental completa con ultrasonido, remoción de sarro y manchas,
-      pulido y aplicación de flúor. Incluye instrucciones de higiene oral
-      personalizadas. Recomendada cada 6 meses.
-    format: "tratamiento_presencial"
-    price: 80
-    currency_display: "PEN 80"
-    duration: "45 minutos"
-    delivery: "presencial en clínica"
-    sessions: 1
-    value_proposition: "Piel dental limpia, sin sarro y con protección de flúor"
+    archetype: "SERVICIO"
+    value_level: "tripwire"
+    preset_label: "Limpieza dental + revisión"
 
+    identity:
+      name: "Limpieza Dental Profilaxis"
+      slug: "limpieza-dental"
+      tagline: "Limpieza profesional con destartraje + pulido + flúor"
+      short_description: "Sesión 60 min. Remueve placa, sarro y manchas superficiales. Recomendada cada 6 meses."
+
+    promise:
+      transformation: "De acumulación de sarro/placa/manchas a piezas limpias con encías sanas"
+      outcome_short: "Boca limpia + diagnóstico preventivo + recomendaciones"
+      timeframe: "60 minutos"
+
+    value_stack:
+      - "Destartraje supragingival con ultrasonido"
+      - "Pulido con copa de goma + pasta profilaxis"
+      - "Aplicación de flúor (gel o barniz)"
+      - "Revisión de encías con sondaje periodontal"
+      - "Recomendaciones higiene oral personalizadas"
+      - "Detección temprana caries interdentales (con explorador + transiluminación)"
+
+    pricing:
+      price_simple: 80
+      price_completa: 150
+      currency_display: "PEN 80 (simple) / PEN 150 (completa con destartraje + pulido + flúor)"
+      is_free: false
+      payment_methods: ["yape", "plin", "transferencia", "tarjeta", "efectivo"]
+      requires_deposit: false
+
+    program_details:
+      duration_minutes: 60
+      modality: "presencial"
+      practitioner: "Odontólogo general (rotación)"
+      requires_l0_first: false
+
+    instructors:
+      - name: "Odontólogo general (rotación)"
+
+    knowledge:
+      learning_objectives:
+        - "Recibir limpieza profesional"
+        - "Aprender técnica higiene oral correcta personalizada"
+        - "Detección temprana de caries / problemas periodontales"
+
+    closing:
+      mechanism: "direct_appointment"
+      scheduling_event_type_id: "scheduling_evt_a3_l1_limpieza"
+      next_step_after: "Si encontramos caries u otros problemas, te damos plan escrito con costos para tratamiento."
+
+    testimonials:
+      - persona: "Mariana, 28 años"
+        quote: "Mejor limpieza que he tenido. La hicieron sin dolor, lo cual creí imposible."
+      - persona: "Roberto, 51 años"
+        quote: "Voy cada 6 meses desde 2022. PEN 150 que se sienten cuando tu boca queda nueva."
+
+    faq:
+      - q: "¿Cada cuánto recomiendan?"
+        a: "Cada 6 meses para mantenimiento. Si tienes tendencia a sarro acumulado, cada 4 meses."
+      - q: "¿Duele?"
+        a: "No. Si tienes encías muy sensibles o sarro abundante, sí hay molestia. Anestesia tópica disponible si pides."
+      - q: "¿Cuál es la diferencia entre simple y completa?"
+        a: "Simple: pulido + flúor (PEN 80). Completa: destartraje ultrasonido + pulido + flúor + revisión periodontal (PEN 150). Si llevas tiempo sin limpieza, recomendamos completa."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. Larco 1200, Miraflores"
+      timezone: "America/Lima"
+
+    resources:
+      - "Cepillo dental + hilo dental + enjuague de regalo"
+      - "Plan higiene oral casero personalizado"
+
+    psychology:
+      target_emotion: "Mantenimiento preventivo + frescura"
+      objections_addressed:
+        - "¿Vale PEN 150 vs PEN 80?"
+        - "¿Es necesaria si me cepillo bien?"
+      desire: "Boca limpia + prevención"
+
+    gallery:
+      cover_image: "https://sonrisa-plena.pe/static/limpieza-dental-cover.jpg"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L2"
-    name: "Tratamiento de ortodoncia (brackets)"
-    description: >
-      Tratamiento ortodóntico completo con brackets metálicos o de zafiro.
-      Incluye todos los controles mensuales, ajustes necesarios, retención
-      al finalizar y guarda nocturna de mantenimiento. Duración promedio
-      18-24 meses según el caso.
-    format: "tratamiento_largo_plazo"
-    price: 2000
-    currency_display: "PEN 2,000 (pago inicial) + cuotas mensuales"
-    duration: "18-24 meses"
-    delivery: "presencial, consultas mensuales"
-    sessions: "múltiples (incluidas)"
-    payment_plan: "24 cuotas sin intereses disponibles"
-    value_proposition: "Sonrisa alineada con seguimiento completo durante todo el tratamiento"
+    archetype: "PROGRAMA"
+    value_level: "core"
+    preset_label: "Ortodoncia con tiers (TIER variant — metálicos/estéticos/Invisalign)"
+    variant_structure: "TIER"
 
+    identity:
+      name: "Ortodoncia Sonrisa Plena"
+      slug: "ortodoncia"
+      tagline: "Tratamiento ortodóntico con plan financiero claro + controles incluidos + retenedores incluidos"
+      short_description: "Ortodoncia integral 18-30 meses. 3 opciones: brackets metálicos, brackets estéticos cerámicos, alineadores Invisalign. Todos incluyen controles + retenedores post-tratamiento."
+
+    promise:
+      transformation: "De maloclusión / dientes desalineados a oclusión funcional + estética"
+      outcome_short: "Sonrisa alineada + función masticatoria correcta + mantenimiento con retenedores"
+      timeframe: "18-30 meses según complejidad y tipo"
+
+    value_stack:
+      - "Diagnóstico ortodóntico completo (panorámica + cefalométrica + escaneado intraoral)"
+      - "Plan de tratamiento personalizado con duración estimada"
+      - "Brackets/alineadores según opción elegida"
+      - "Controles mensuales o cada 6 semanas (incluidos)"
+      - "Ajustes de fuerzas + cambios de elásticos (incluidos)"
+      - "Retenedores fijos + removibles post-tratamiento (incluidos)"
+      - "Garantía de re-tratamiento si hay recidiva en primeros 24 meses post-retiro (sin costo)"
+
+    pricing:
+      currency_display: "PEN según tier"
+      payment_methods: ["yape", "plin", "transferencia", "tarjeta_credito", "plan_directo_clinica"]
+
+    tiers:
+      variant_structure: "TIER"
+      tier_count: 3
+      tiers_list:
+        - tier: 1
+          name: "Brackets metálicos"
+          slug: "brackets-metalicos"
+          price_total_pen: 3200
+          duration_months_avg: 24
+          duration_range_months: "18-30"
+          target_persona: "Adolescentes + jóvenes que no priorizan estética del aparato"
+          includes:
+            - "Brackets metálicos americanos 3M Unitek"
+            - "Diagnóstico completo + plan"
+            - "Controles mensuales por 24 meses promedio"
+            - "Retenedores fijo + removible"
+          payment_plans:
+            - plan_id: "L2_metalicos_unico"
+              total: 3200
+              discount: "5% off pago único = PEN 3,040"
+            - plan_id: "L2_metalicos_12_cuotas_tarjeta"
+              cuota_amount: 266.67
+              cuota_count: 12
+              total: 3200
+              notes: "Tarjeta crédito BCP/Interbank/BBVA/Scotia sin intereses"
+            - plan_id: "L2_metalicos_plan_directo"
+              inicial: 960
+              cuota_count: 12
+              cuota_amount: 187
+              total: 3204
+              notes: "Plan sin tarjeta — 30% inicial + 12 mensualidades. Sin intereses."
+
+        - tier: 2
+          name: "Brackets estéticos cerámicos"
+          slug: "brackets-esteticos"
+          price_total_pen: 4500
+          duration_months_avg: 24
+          duration_range_months: "20-30"
+          target_persona: "Profesionales adultos que priorizan discreción del aparato"
+          includes:
+            - "Brackets cerámicos 3M Clarity Advanced"
+            - "Mismos beneficios que tier 1"
+          payment_plans:
+            - plan_id: "L2_esteticos_unico"
+              total: 4500
+            - plan_id: "L2_esteticos_12_cuotas_tarjeta"
+              cuota_amount: 375
+              cuota_count: 12
+              total: 4500
+            - plan_id: "L2_esteticos_plan_directo"
+              inicial: 1350
+              cuota_count: 12
+              cuota_amount: 263
+              total: 4506
+
+        - tier: 3
+          name: "Alineadores Invisalign"
+          slug: "invisalign"
+          price_total_pen: 7500
+          duration_months_avg: 18
+          duration_range_months: "12-24"
+          target_persona: "Adultos que priorizan invisibilidad + comodidad + casos no muy complejos"
+          most_popular_among_adults: true
+          includes:
+            - "Alineadores Align Technology Invisalign Comprehensive"
+            - "Escaneado intraoral iTero"
+            - "Diseño digital ClinCheck con preview de resultado"
+            - "Controles cada 6-8 semanas"
+            - "Retenedores Vivera post-tratamiento"
+          payment_plans:
+            - plan_id: "L2_invisalign_unico"
+              total: 7500
+              discount: "PEN 300 off pago único = PEN 7,200"
+            - plan_id: "L2_invisalign_12_cuotas_tarjeta"
+              cuota_amount: 625
+              cuota_count: 12
+              total: 7500
+            - plan_id: "L2_invisalign_18_cuotas_tarjeta"
+              cuota_amount: 416.67
+              cuota_count: 18
+              total: 7500
+              notes: "18 cuotas sin intereses — solo BCP + Interbank"
+
+    program_details:
+      diagnostic_session_required: true
+      diagnostic_session_duration_minutes: 60
+      diagnostic_session_cost: "Incluido en primera consulta gratis L0 si decide ortodoncia"
+
+    instructors:
+      - name: "Dra. Sandra Pinto"
+        role: "Ortodoncista lead — Invisalign certificada"
+
+    knowledge:
+      learning_objectives:
+        - "Lograr alineación dental + oclusión funcional"
+        - "Mantener resultado con retenedores post-tratamiento"
+        - "Aprender mantenimiento higiene oral durante ortodoncia"
+
+    closing:
+      mechanism: "post_l0_diagnostico"
+      requires_l0_first: true
+      scheduling_event_type_id: "scheduling_evt_a3_l2_ortodoncia_diagnostico"
+      cancellation_policy: "Una vez iniciado el tratamiento, no hay reembolso pero se puede pausar 1 mes por causa justificada."
+
+    testimonials:
+      - persona: "Sofía, 28 años (Invisalign)"
+        quote: "18 meses. Resultado exacto al ClinCheck que me mostraron al inicio. Pagué en 18 cuotas BCP sin sentir el golpe."
+        tier: "Invisalign"
+      - persona: "Marcos, 19 años (brackets metálicos)"
+        quote: "PEN 3,200 todo incluido — controles, retenedores. Mi prima pagó PEN 4,500 en otra clínica por el 'mismo' tratamiento que terminó costándole PEN 5,800."
+        tier: "Brackets metálicos"
+      - persona: "Patricia, 42 años (brackets estéticos)"
+        quote: "Trabajo en banca, no podía con metálicos. Los cerámicos casi no se ven. 26 meses, dolió pero el resultado vale."
+        tier: "Brackets estéticos"
+
+    faq:
+      - q: "¿Cuál tier me conviene?"
+        a: "Depende: presupuesto, edad, complejidad caso, urgencia estética. En la primera consulta te decimos honestamente qué necesitas."
+      - q: "¿Invisalign sirve para casos complejos?"
+        a: "Para complejidad baja-media sí. Casos severos (maloclusión clase III pronunciada, mordidas cruzadas extremas) requieren brackets. Te lo decimos honestamente con el escaneado iTero."
+      - q: "¿Cuál es la diferencia entre 'cotización' y 'precio final'?"
+        a: "En Sonrisa Plena son lo mismo. El precio escrito en el plan es el precio final, sin cargos adicionales por controles o retenedores."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. Larco 1200, Miraflores"
+      timezone: "America/Lima"
+
+    resources:
+      - "ClinCheck digital (Invisalign) — preview resultado antes de empezar"
+      - "Manual de cuidado durante ortodoncia"
+      - "App seguimiento controles + recordatorios"
+
+    psychology:
+      target_emotion: "Compromiso de transformación + claridad financiera"
+      objections_addressed:
+        - "Mucho dinero (PEN 3-7k)"
+        - "Mucho tiempo (18-30 meses)"
+        - "Estética del aparato durante tratamiento"
+        - "Y si no funciona?"
+        - "Qué incluye realmente la cotización?"
+      desire: "Sonrisa alineada con plan financiero claro"
+
+    gallery:
+      cover_image: "https://sonrisa-plena.pe/static/ortodoncia-cover.jpg"
+      progress_gallery_url: "https://sonrisa-plena.pe/galeria-ortodoncia"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L3"
-    name: "Estética dental completa (carillas + blanqueamiento)"
-    description: >
-      Paquete de transformación estética que incluye blanqueamiento dental
-      profesional en consultorio (2 sesiones) más colocación de carillas
-      de resina en los 6 dientes anteriores superiores. Resultados inmediatos
-      y duraderos.
-    format: "paquete_estetico"
-    price: 3500
-    currency_display: "PEN 3,500"
-    sessions: 4
-    delivery: "presencial, plan en 3 semanas"
-    payment_plan: "3 pagos de PEN 1,167"
-    value_proposition: "Transformación completa de la sonrisa con resultados inmediatos"
+    archetype: "PROGRAMA"
+    value_level: "premium"
+    preset_label: "Estética dental con tiers (TIER — Express / Diseño completo / Premium)"
+    variant_structure: "TIER"
 
+    identity:
+      name: "Estética Dental Sonrisa Plena"
+      slug: "estetica-dental"
+      tagline: "Diseño de sonrisa con simulación digital previa — sabes el resultado antes de empezar"
+      short_description: "Servicios estéticos: blanqueamiento, carillas, coronas estéticas, diseño completo de sonrisa. Con simulación digital + diseño de sonrisa digital (DSD)."
+
+    promise:
+      transformation: "De insatisfacción estética con tu sonrisa a sonrisa diseñada digitalmente, previsualizada y aprobada antes de cualquier procedimiento"
+      outcome_short: "Sonrisa estética planificada + ejecutada con tecnología de diseño digital"
+      timeframe: "1-3 meses según tier"
+
+    value_stack:
+      - "Diagnóstico estético + diseño digital de sonrisa (DSD)"
+      - "Simulación de resultado en 3D antes de procedimiento"
+      - "Protocolo escalonado: blanqueamiento → carillas focales → carillas amplias según necesidad"
+      - "Materiales de calidad (carillas en cerámica feldespática o e-max)"
+      - "Garantía 24 meses por escrito en restauraciones"
+
+    tiers:
+      variant_structure: "TIER"
+      tier_count: 3
+      tiers_list:
+        - tier: 1
+          name: "Express — Blanqueamiento"
+          slug: "blanqueamiento-express"
+          price_total_pen: 600
+          duration_sessions: "1 sesión 90 min + kit casero 14 días"
+          target_persona: "Cliente con dientes alineados pero amarillentos. Quick win estético."
+          includes:
+            - "Blanqueamiento profesional Philips Zoom (luz LED)"
+            - "Kit blanqueamiento casero 14 días (geles + férulas personalizadas)"
+            - "Control 30 días post-tratamiento"
+
+        - tier: 2
+          name: "Diseño completo — 4-8 carillas"
+          slug: "diseno-sonrisa-completo"
+          price_total_pen: 7200
+          duration_months: 1.5
+          target_persona: "Cliente que quiere transformación estética notable sin sobre-tratamiento"
+          most_popular: true
+          includes:
+            - "Diagnóstico estético + DSD (diseño de sonrisa digital)"
+            - "Mock-up directo en boca (preview reversible)"
+            - "4-8 carillas en e-max (zona estética anterior)"
+            - "Blanqueamiento Philips Zoom incluido"
+            - "Reservas controles cada 6 meses por 2 años"
+
+        - tier: 3
+          name: "Premium — Diseño completo + CBCT"
+          slug: "diseno-premium-cbct"
+          price_total_pen: 12500
+          duration_months: 3
+          target_persona: "Caso complejo: rehabilitación estética con problemas oclusales o estructurales"
+          requires_consult_l0_+_specialty: true
+          includes:
+            - "Diagnóstico oclusal + CBCT (tomografía cone-beam)"
+            - "DSD avanzado con análisis funcional"
+            - "8-10 carillas + 2-4 coronas si necesario"
+            - "Blanqueamiento + tratamiento oclusal (férula nocturna 3 meses incluida)"
+            - "Garantía 36 meses"
+
+    pricing:
+      currency_display: "PEN 600 (Express) · PEN 7,200 (Completo) · PEN 12,500 (Premium)"
+      payment_methods: ["transferencia", "tarjeta_credito", "plan_directo_clinica"]
+      payment_plans_available_per_tier: true
+
+    instructors:
+      - name: "Dr. Andrés Restrepo"
+        role: "Estética dental + diseño digital DSD"
+      - name: "Dr. Andrés + Dra. Sandra"
+        role: "Tier Premium — equipo combinado"
+
+    knowledge:
+      learning_objectives:
+        - "Lograr resultado estético previsualizado digitalmente"
+        - "Mantener restauraciones con higiene + controles"
+
+    closing:
+      mechanism: "discovery_appointment_required"
+      discovery_call_required: true
+      discovery_call_label: "Diagnóstico estético gratis 30 min con DSD"
+      scheduling_event_type_id: "scheduling_evt_a3_l3_diagnostico_estetico"
+      scheduling_url: "https://app.nicolify.com/schedule/sonrisa-plena/diagnostico-estetico"
+
+    testimonials:
+      - persona: "Lucía, 38 años (Diseño completo 6 carillas + blanqueamiento)"
+        quote: "Otra clínica me dijo 10 carillas, otra 8. Andrés me hizo el DSD y dijo que con 6 + blanqueamiento bastaba. Salió igual de bien y ahorré PEN 2,800."
+        tier: "Completo"
+      - persona: "Camila, 45 años (Premium con CBCT)"
+        quote: "Necesitaba rehabilitación porque tenía problema oclusal + estética. CBCT detectó cosas que las panorámicas no muestran. PEN 12,500 que valieron por evitar problemas mayores."
+        tier: "Premium"
+
+    faq:
+      - q: "¿Cuántas carillas realmente necesito?"
+        a: "Depende del caso. Solo zona visible al sonreír (típicamente 6 dientes superiores) o más amplia (10 dientes). En el DSD te mostramos las opciones con simulación digital."
+      - q: "¿Las carillas son reversibles?"
+        a: "No. Requieren leve desgaste del esmalte. Por eso primero hacemos mock-up reversible para que veas el resultado antes."
+      - q: "¿Cuánto duran las carillas?"
+        a: "10-15 años con cuidado normal. Garantía escrita 24-36 meses según tier."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. Larco 1200, Miraflores"
+
+    resources:
+      - "Diseño digital de sonrisa (DSD) entregable"
+      - "Mock-up reversible para previsualización"
+      - "Kit higiene post-restaurador"
+
+    psychology:
+      target_emotion: "Confianza estética + transformación visible"
+      objections_addressed:
+        - "Mucho dinero (PEN 7-12k)"
+        - "Y si no me gusta el resultado?"
+        - "Las carillas se ven falsas?"
+        - "Cuánto duran realmente?"
+      desire: "Sonrisa transformada con confianza"
+
+    gallery:
+      cover_image: "https://sonrisa-plena.pe/static/estetica-dental-cover.jpg"
+      gallery_url: "https://sonrisa-plena.pe/galeria-estetica-dental"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L4"
-    name: "Control anual familiar (Plan Familia)"
-    description: >
-      Plan familiar anual para hasta 4 integrantes que incluye 2 profilaxis
-      por persona al año, radiografías de control, descuentos del 20% en
-      todos los tratamientos y prioridad en agenda. El plan más económico
-      para mantener la salud bucal de toda la familia.
-    format: "membresia_anual_familiar"
-    price: 250
-    currency_display: "PEN 250/año por persona"
-    billing: "anual"
-    discount_on_treatments: "20% en todos los tratamientos"
-    delivery: "presencial, agenda prioritaria"
-    value_proposition: "Prevención continua + ahorro significativo en tratamientos"
+    archetype: "MEMBRESIA"
+    value_level: "core"
+    preset_label: "Plan Familiar mensual (TIER variant — Pareja / Familia 4 / Familia 6)"
+    variant_structure: "TIER"
+
+    identity:
+      name: "Plan Familiar Sonrisa Plena"
+      slug: "plan-familiar"
+      tagline: "Cobertura dental familiar predecible — sin sustos en la factura anual"
+      short_description: "Membresía mensual recurrente que cubre limpiezas, controles, descuentos en tratamientos. 3 tiers según número de personas."
+
+    promise:
+      transformation: "De gasto dental impredecible (PEN 1,500-3,000/año familiar promedio) a mensualidad fija con cobertura preventiva + descuentos"
+      outcome_short: "Predictibilidad financiera + salud dental familiar sostenida"
+      timeframe: "Mensual recurrente — compromiso mínimo 12 meses"
+
+    tiers:
+      variant_structure: "TIER"
+      tier_count: 3
+      tiers_list:
+        - tier: 1
+          name: "Pareja"
+          slug: "plan-pareja"
+          monthly_price_pen: 180
+          minimum_commitment_months: 12
+          covered_persons: 2
+          target_persona: "Pareja sin hijos buscando control dental ongoing predecible"
+          includes:
+            - "2 limpiezas/año por persona (4 limpiezas anuales total)"
+            - "1 control trimestral por persona"
+            - "1 radiografía periapical/año por persona"
+            - "20% descuento en tratamientos restauradores (caries, endodoncia)"
+            - "10% descuento en ortodoncia + estética dental"
+            - "Línea WhatsApp prioritaria"
+
+        - tier: 2
+          name: "Familia 4"
+          slug: "plan-familia-4"
+          monthly_price_pen: 280
+          minimum_commitment_months: 12
+          covered_persons: 4
+          target_persona: "Familia con 2 padres + 2 hijos (incluye odontopediatría)"
+          most_popular: true
+          includes:
+            - "Todo lo de Pareja + 2 personas adicionales"
+            - "Odontopediatría incluida (atención con doctora especializada)"
+            - "Aplicaciones de flúor preventivas para niños 1×/año"
+            - "Sellantes de fosas y fisuras (hasta 4 por niño/año)"
+
+        - tier: 3
+          name: "Familia 6"
+          slug: "plan-familia-6"
+          monthly_price_pen: 450
+          minimum_commitment_months: 12
+          covered_persons: 6
+          target_persona: "Familia extendida (padres + 4 hijos o padres + abuelos)"
+          includes:
+            - "Todo lo de Familia 4 + 2 personas adicionales"
+            - "Acceso a urgencias 24/7 con WhatsApp prioritario"
+            - "1 radiografía panorámica anual por adulto incluida"
+
+    pricing:
+      currency_display: "PEN 180/mes (Pareja) · PEN 280/mes (Familia 4) · PEN 450/mes (Familia 6)"
+      payment_methods: ["tarjeta_recurrente", "yape_recurrente", "transferencia_mensual"]
+      billing_cycle: "monthly"
+
+    program_details:
+      modality: "presencial"
+      practitioner_rotation: "Equipo completo según servicio"
+
+    closing:
+      mechanism: "evaluation_appointment_required"
+      evaluation_call_required: true
+      evaluation_duration_minutes: "30-45 según número de personas"
+      evaluation_purpose: "Evaluación inicial de cada miembro + decisión de tier + diagnóstico inicial"
+      scheduling_event_type_id: "scheduling_evt_a3_l4_plan_familiar"
+      scheduling_url: "https://app.nicolify.com/schedule/sonrisa-plena/plan-familiar-evaluacion"
+
+    testimonials:
+      - persona: "Verónica, 42 años (Plan Familia 4 — 18 meses)"
+        quote: "PEN 280/mes para los 4. Antes gastábamos PEN 2,500 al año en limpiezas + un par de tratamientos sorpresa. Ahora es predecible y mejor cubierto."
+        tier: "Familia 4"
+      - persona: "Pareja Reyes (Plan Pareja — 8 meses)"
+        quote: "PEN 180 entre los dos. El descuento de 20% en restauradores ya nos pagó la mensualidad cuando me hicieron una endodoncia."
+        tier: "Pareja"
+
+    faq:
+      - q: "¿Y si no uso todas las limpiezas en el año?"
+        a: "Se acumulan hasta 12 meses (no más). Luego se pierden. Te recordamos cada 4 meses."
+      - q: "¿Hay penalidad por cancelar antes de 12 meses?"
+        a: "Sí — cobramos los servicios consumidos a precio regular (sin descuento de plan)."
+      - q: "¿Cubre tratamientos de ortodoncia?"
+        a: "No los cubre, pero te da 10% descuento en ortodoncia. Es membresía preventiva, no seguro dental."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. Larco 1200, Miraflores"
+
+    resources:
+      - "App Sonrisa Plena con calendario familiar + recordatorios"
+      - "Línea WhatsApp prioritaria"
+
+    psychology:
+      target_emotion: "Predictibilidad financiera + cuidado familiar"
+      objections_addressed:
+        - "Compromiso 12 meses asusta"
+        - "PEN 450/mes es mucho (Familia 6)"
+        - "Por qué no pagar suelto?"
+        - "Cubre ortodoncia?"
+      desire: "Control de gasto dental familiar"
+
+    gallery:
+      cover_image: "https://sonrisa-plena.pe/static/plan-familiar-cover.jpg"
+
+# ─────────────────────────────────────────────────────────────
+# Cross-offer relationships
+# ─────────────────────────────────────────────────────────────
+upsell_relationships:
+  - from: "L0"
+    to: "L1"
+    discount_label: "10% off primera limpieza si tomas tras consulta L0"
+    trigger: "post_consulta_24h"
+  - from: "L0"
+    to: "L2"
+    discount_label: "Cierre de plan ortodoncia con descuento 5% pago único"
+    trigger: "post_consulta_30dias"
+  - from: "L1"
+    to: "L4"
+    discount_label: "Cliente recurrente — 1er mes 50% off Plan Familiar"
+    trigger: "tras_3_limpiezas_consecutivas"
+  - from: "L2"
+    to: "L4"
+    discount_label: "Familia con paciente ortodoncia — Plan Familiar 1er mes 50% off"
+    trigger: "during_ortodoncia_treatment"
+  - from: "L0"
+    to: "L3"
+    discount_label: "Diagnóstico estético gratis post primera consulta si interés"
+    trigger: "manual_referral_consulta"
+
+includes_relationships:
+  - parent: "L4"
+    includes: ["L1_limpieza_2x_año", "L0_radiografía_anual"]
+    notes: "Plan Familiar incluye servicios L0/L1 + descuentos en L2/L3 — calculado para predecibilidad gasto familiar."

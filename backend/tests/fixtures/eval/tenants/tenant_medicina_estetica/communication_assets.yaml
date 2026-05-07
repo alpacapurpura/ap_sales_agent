@@ -1,63 +1,206 @@
 # communication_assets.yaml — tenant_medicina_estetica
-# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+# Lumina Estética — Miraflores Lima.
+# URLs sintéticas + URLs reales whitelisted (lumina-estetica.pe ficticio).
 
 social_media:
-  instagram: "@dermabella.estetica"
-  facebook: "https://www.facebook.com/dermabell.estetica"
-  tiktok: "@dermabella_oficial"
-  google_business: "https://g.page/dermabella-lima"
+  instagram:
+    handle: "@lumina.estetica"
+    url: "https://www.instagram.com/lumina.estetica"
+    followers_approx: 8500
+    posting_frequency: "5 posts/semana + 8-12 stories/día"
+    primary_audience_country: "PE (90%) + US Hispanic (10%)"
+    primary_content: "Antes-después con foto-control documentado + tips skincare + casos clínicos (con consentimiento)"
+  youtube:
+    handle: "@lumina.estetica"
+    url: "https://www.youtube.com/@lumina.estetica"
+    subscribers_approx: 1200
+    posting_frequency: "1 video/mes"
+    primary_content: "Procedimientos demostrativos + entrevistas con Dra. Sofía"
+  tiktok:
+    handle: "@lumina.estetica"
+    followers_approx: 3400
+    posting_frequency: "2-3 videos/semana"
+    primary_content: "Tips dermatológicos + desmistificación tratamientos"
+  linkedin:
+    company_url: "https://www.linkedin.com/company/lumina-estetica"
+    followers_approx: 800
+    posting_frequency: "1-2 posts/semana"
+    primary_content: "Posicionamiento profesional + B2B con empresas para convenios"
+  facebook:
+    page_url: "https://www.facebook.com/lumina.estetica.pe"
+    followers_approx: 4100
+    posting_frequency: "3 posts/semana (audiencia mayor)"
 
 website:
-  url: "https://dermabella.com.pe"
-  blog_url: "https://dermabella.com.pe/blog"
-  booking_url: "https://dermabella.com.pe/agenda"
-  before_after_gallery: "https://dermabella.com.pe/resultados"
+  url: "https://lumina-estetica.pe"
+  blog_url: "https://lumina-estetica.pe/blog"
+  consulta_gratis_url: "https://lumina-estetica.pe/consulta-gratis"
+  l1_limpieza_url: "https://lumina-estetica.pe/limpieza-facial"
+  l2_pack_facial_url: "https://lumina-estetica.pe/pack-facial-intensivo"
+  l3_corporal_url: "https://lumina-estetica.pe/programa-corporal"
+  l4_plan_integral_url: "https://lumina-estetica.pe/plan-integral"
+  testimonials_url: "https://lumina-estetica.pe/testimonios"
+  about_url: "https://lumina-estetica.pe/sobre-lumina"
+  faq_url: "https://lumina-estetica.pe/preguntas-frecuentes"
 
 email_marketing:
-  list_name: "Pacientes Dermabella"
-  welcome_sequence_length: 3
+  list_name: "Comunidad Lumina"
+  list_size_approx: 3200
+  welcome_sequence_length: 4
+  welcome_sequence_topics:
+    - "Bienvenida + invitación a consulta gratis"
+    - "Cómo funciona nuestro Protocolo Lumina (4 fases)"
+    - "Caso real: Mariana ejecutiva 38 años (con foto antes-después con consentimiento)"
+    - "Política anti-sobreventa documentada — qué nos diferencia"
   newsletter_frequency: "quincenal"
-  main_cta: "Agenda tu consulta gratuita"
+  main_cta: "Agendar consulta gratis"
+  conversion_rate_visit_to_optin: "12%"
+  conversion_rate_optin_to_l0_appointment: "35%"
+  conversion_rate_l0_to_paid_treatment: "62%"
 
 content_pillars:
-  - name: "Educación sobre tratamientos"
-    description: "Qué esperar de cada procedimiento, mitos y realidades"
-    formats:
-      - "reels explicativos"
-      - "carrusel informativo"
-      - "artículo blog"
-  - name: "Antes y después"
-    description: "Casos reales con consentimiento de pacientes"
-    formats:
-      - "post comparativo"
-      - "story de seguimiento"
-  - name: "Bienestar y autocuidado"
-    description: "Tips de skincare y estilo de vida saludable"
-    formats:
-      - "reel consejos"
-      - "infografía"
-  - name: "Equipo médico"
-    description: "Credenciales, formación y humanización del equipo"
-    formats:
-      - "video presentación"
-      - "Q&A con la doctora"
+  - name: "Educación dermatológica"
+    description: "Cómo funciona la piel, qué causa el envejecimiento, mitos comunes"
+    formats: ["carrusel IG", "video corto", "blog largo"]
+    posting_share: 0.30
+  - name: "Procedimientos explicados"
+    description: "Cómo es realmente cada tratamiento, riesgos, alternativas"
+    formats: ["video YouTube", "carrusel", "reel"]
+    posting_share: 0.25
+  - name: "Antes-después documentados"
+    description: "Casos reales con consentimiento + foto controlada"
+    formats: ["carrusel split", "reel transformación"]
+    posting_share: 0.20
+  - name: "Mitos vs realidad"
+    description: "Desmistificación medicina estética (botox no congela si bien aplicado, etc.)"
+    formats: ["reel", "story Q&A"]
+    posting_share: 0.15
+  - name: "Detrás de cámaras clínica"
+    description: "Equipo, tecnología, día a día"
+    formats: ["story diario", "reel personal Sofía"]
+    posting_share: 0.10
 
 key_messages:
-  - "Cada piel es única, tu tratamiento también lo es"
-  - "Resultados naturales con respaldo médico"
-  - "Tu seguridad primero, resultados visibles después"
-  - "Ciencia + cuidado = Dermabella"
+  - "Belleza con criterio médico"
+  - "Consulta gratis sin gancho"
+  - "Anti-sobreventa documentada"
+  - "Empezamos con lo más conservador"
+  - "Foto-control objetivo, no marketing"
+  - "Médica titulada, no técnica"
 
-tone_of_voice: "Profesional, empático, claro. Confianza médica sin ser frío ni distante."
+tone_of_voice:
+  description: "Profesional, clara, empática sin ser empalagosa. Anti-sobreventa explícito. Voz mexicana neutral."
+  do:
+    - "Acknowledge antes de bridge"
+    - "Real numbers en pricing"
+    - "Citar evidencia clínica cuando aplica"
+    - "Recomendar opción más conservadora primero"
+  dont:
+    - "Promesas dramáticas '10 años menos'"
+    - "Lenguaje motivacional vacío"
+    - "Antes-después sin contexto"
+    - "Presión de venta day-of consulta"
 
 lead_magnet:
-  title: "Consulta de evaluación estética gratuita"
-  format: "Cita presencial 30 minutos"
-  delivery_method: "Agendamiento online o por WhatsApp"
-  booking_url: "https://dermabella.com.pe/evaluacion-gratuita"
+  title: "Consulta de evaluación gratuita"
+  format: "30 min presencial con médica titulada"
+  delivery_method: "Booking online via Nicolify scheduling"
+  opt_in_page: "https://lumina-estetica.pe/consulta-gratis"
 
-physical_location:
-  address: "Av. Larco 1234, Miraflores, Lima"
-  reference: "Frente al Larcomar, edificio Torre Azul, piso 3"
-  parking: "Estacionamiento disponible en el edificio"
-  hours: "Lunes a Sábado, 9am - 7pm"
+# ─────────────────────────────────────────────────────────────
+# Nicolify scheduling integration (clon-Calendly)
+# ─────────────────────────────────────────────────────────────
+scheduling:
+  provider: "Nicolify scheduling (clon-Calendly built-in)"
+  event_types:
+    - id: "scheduling_evt_a2_l0_consulta_gratis"
+      name: "Consulta evaluación facial/corporal gratuita"
+      duration_minutes: 30
+      offer_level: "L0"
+      facilitator: "Dra. Sofía / Dra. Patricia / Dra. Camila (rotación)"
+      booking_url: "https://app.nicolify.com/schedule/lumina-estetica/consulta-evaluacion-gratis"
+      pre_booking_questions:
+        - "¿Buscas evaluación facial o corporal (o ambas)?"
+        - "¿Tratamientos previos médicos estéticos? (Sí/No)"
+        - "¿Estás embarazada o lactando?"
+        - "¿Algún medicamento o alergia relevante?"
+      capacity_per_week: 40
+      timezone_default: "America/Lima"
+      modality: "presencial"
+      address: "Av. José Pardo 502, Miraflores"
+
+    - id: "scheduling_evt_a2_l1_limpieza"
+      name: "Limpieza facial profunda Lumina"
+      duration_minutes: 75
+      offer_level: "L1"
+      facilitator: "Lic. Andrea Quispe (cosmetóloga)"
+      booking_url: "https://app.nicolify.com/schedule/lumina-estetica/limpieza-facial"
+      capacity_per_week: 25
+      timezone_default: "America/Lima"
+
+    - id: "scheduling_evt_a2_l2_pack_facial"
+      name: "Pack facial intensivo (sesión inicial)"
+      duration_minutes: 90
+      offer_level: "L2"
+      facilitator: "Cosmetóloga + médica si aplica"
+      booking_url: "https://app.nicolify.com/schedule/lumina-estetica/pack-facial"
+      requires_l0_first: true
+
+    - id: "scheduling_evt_a2_l3_diagnostico_corporal"
+      name: "Diagnóstico corporal HIFU/RF gratis"
+      duration_minutes: 30
+      offer_level: "L3"
+      facilitator: "Dra. Patricia Rivas"
+      booking_url: "https://app.nicolify.com/schedule/lumina-estetica/diagnostico-corporal"
+      pre_booking_questions:
+        - "¿Cuál es el área principal a evaluar?"
+        - "¿Estás embarazada o lactando?"
+        - "¿Cirugías recientes o cesárea? Cuándo."
+        - "¿Marcapasos o implantes metálicos?"
+      capacity_per_week: 15
+      includes_bioimpedancia: true
+
+    - id: "scheduling_evt_a2_l4_plan_integral"
+      name: "Discovery call Plan Integral"
+      duration_minutes: 20
+      offer_level: "L4"
+      facilitator: "Dra. Sofía Mendoza"
+      booking_url: "https://app.nicolify.com/schedule/lumina-estetica/plan-integral-discovery"
+      capacity_per_week: 10
+
+# ─────────────────────────────────────────────────────────────
+# Channel-specific messaging
+# ─────────────────────────────────────────────────────────────
+channel_specific_messaging:
+  whatsapp:
+    avg_response_time_hours: 2
+    avg_message_length: "1-3 frases por mensaje, multi-msg si requiere"
+    auto_reply_after_hours: "Hola, gracias por escribir. Respondemos lunes-viernes 9-19h, sábados 9-13h. Si urge, agenda consulta gratis: https://lumina-estetica.pe/consulta-gratis"
+    business_hours: "Lunes-Viernes 9:00-19:00 / Sábados 9:00-13:00 hora Perú"
+  instagram_dm:
+    avg_response_time_hours: 4
+    common_inbound_intents:
+      - "Pregunta de precios botox/hialurónico"
+      - "Pregunta sobre tratamiento corporal post-parto"
+      - "Solicitud de testimonios"
+      - "Comparación con Cuponidad/competencia"
+      - "Pedido de consulta"
+      - "Embarazo/lactancia — qué es seguro"
+    initial_response_template: "Saludo + qualifying clínico ('facial o corporal? lactando?') + bridge a consulta L0 gratis"
+  email:
+    avg_response_time_hours: 24
+    long_form_ok: true
+    common_inbound_intents:
+      - "Convenios corporativos B2B"
+      - "Consulta técnica para profesionales (médicos, dermatólogos)"
+      - "Solicitudes de prensa/medios"
+
+# ─────────────────────────────────────────────────────────────
+# Convenios corporativos
+# ─────────────────────────────────────────────────────────────
+corporate_partnerships:
+  active_count: 12
+  partner_types: ["bancos", "consumo masivo", "consultoras"]
+  typical_discount: "15% off para empleadas con carnet vigente"
+  notable_partners: ["BCP", "Interbank", "Coca-Cola Andina", "EY Perú", "PwC Perú"]
+  partnership_inquiry_email: "alianzas@example.com"

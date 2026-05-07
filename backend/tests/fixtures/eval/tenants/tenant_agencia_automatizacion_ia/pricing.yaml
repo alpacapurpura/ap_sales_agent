@@ -1,59 +1,183 @@
 # pricing.yaml — tenant_agencia_automatizacion_ia
-# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
-# SIN L0 — ladder empieza en L1 (A5 per spec)
-# Todos los precios en PEN para aislamiento de tests
+# Núcleo Lab — Lima.
+# Currency: PEN. Q3 ratificado.
+# SIN L0 lead magnet (A5 per spec).
 
 currency: PEN
 country: PE
-payment_methods:
-  - "transferencia_bancaria"
-  - "tarjeta_credito_debito"
-  - "factura_electronica"
-  - "swift_internacional"
+tax_regime: "RG"
+tax_id_label: "RUC"
+issues_invoice: true
+invoice_types: ["boleta", "factura"]
 
+payment_methods:
+  - method: "transferencia_bancaria"
+    label: "Transferencia bancaria"
+    accepted_banks: ["BCP", "Interbank", "BBVA"]
+    fees: "0%"
+    settlement_time: "1-2 días hábiles"
+    notes: "Recomendado para proyectos grandes (L3 implementación) y retainer L4 mensual."
+  - method: "tarjeta_credito"
+    label: "Tarjeta crédito (Visa, Mastercard)"
+    processor: "Culqi online"
+    cuotas_sin_intereses: "Solo aplica para audit L2 (3 cuotas hasta PEN 15k). NO aplica L3 implementación (montos altos) ni retainer mensual."
+  - method: "tarjeta_recurrente_retainer"
+    label: "Tarjeta recurrente (Retainer L4 mensual)"
+    processor: "Culqi suscripciones"
+  - method: "transferencia_internacional"
+    label: "SWIFT internacional"
+    notes: "Para clientes fuera Perú. SWIFT fees asumidas por cliente."
+  - method: "wire_transfer_us"
+    label: "Wire transfer USA (clientes con presencia US)"
+    notes: "Cuenta corporativa US disponible para clientes que prefieren."
+
+# ─────────────────────────────────────────────────────────────
+# Price list por offer
+# ─────────────────────────────────────────────────────────────
 price_list:
   - offer_level: "L1"
-    offer_name: "Auditoría de procesos IA"
-    price: 1000
+    offer_name: "Discovery call gratis"
+    price: 0
     billing_cycle: "one_time"
-    discount_if_implementation: "Se descuenta del primer paquete de implementación"
-    payment_terms: "Pago anticipado antes de iniciar"
+    is_free: true
+    no_show_policy: "Tras 1 falta, futuras requieren PEN 200 deposit refundable"
 
   - offer_level: "L2"
-    offer_name: "Implementación de agente IA (paquete estándar)"
-    price: 8000
-    billing_cycle: "one_time"
-    payment_plan: "50% al firmar contrato, 50% al despliegue en producción"
-    price_range: "PEN 6,000 - 15,000 según complejidad"
-    notes: "Precio variable por alcance; auditoría define el costo exacto"
-    monthly_maintenance_after: 4000
-    monthly_maintenance_note: "Retainer de operación opcional post-implementación"
+    offer_name: "Audit Procesos + Viabilidad IA"
+    price_range_pen: "8,000 - 15,000"
+    pricing_model: "custom_quote"
+    payment_terms: "50% inicial + 50% al entregar"
+    typical_pricing:
+      - scope: "simple"
+        price: 8000
+      - scope: "medio"
+        price: 11500
+      - scope: "complejo"
+        price: 15000
+    payment_plans:
+      - plan_id: "L2_3_cuotas_tarjeta"
+        plan_name: "3 cuotas tarjeta (solo si <PEN 15k)"
+        notes: "BCP, Interbank, BBVA, Scotia"
+    refund_policy: "Sin reembolso. Cliente se queda con documento + propuesta. Si avanza a L3 dentro 60 días, 50% audit se descuenta."
 
   - offer_level: "L3"
-    offer_name: "Retainer mensual de operación IA"
+    offer_name: "Implementación Agente IA Productivo"
+    price_range_pen: "28,000 - 95,000"
+    pricing_model: "fixed_price_post_audit"
+    payment_terms: "30% inicial + 30% milestone 1 + 30% deployment + 10% post-bake 30d"
+    typical_pricing:
+      - scope: "agente simple (1 caso, 1 canal)"
+        price: 28000
+        duration_weeks: 8
+      - scope: "agente medio (1-2 casos, integraciones)"
+        price: 55000
+        duration_weeks: 11
+      - scope: "agente complejo (multi-canal, multi-proceso)"
+        price: 95000
+        duration_weeks: 14
+    add_ons:
+      - name: "On-premise deployment + GDPR-compliant"
+        price_modifier_pct: "15-25% extra"
+      - name: "Custom fine-tuning modelo"
+        price_modifier_pct: "20-40% extra"
+      - name: "Multi-idioma soporte"
+        price_modifier_pct: "10-20% extra"
+    ad_hoc_changes_pricing: "PEN 2,500-8,000 según extensión (out-of-scope)"
+    refund_policy: |
+      Si tras milestone 1 (semana 4-6) no estás conforme con dirección, podés cancelar pagando solo el 30% inicial.
+      Después de milestone 1, sin reembolso pero ajuste de scope si problema es nuestro.
+      Garantía de bug-fixes 30 días post-handover sin costo.
+
+  - offer_level: "L4_starter"
+    offer_name: "Retainer Starter"
     price: 4000
     billing_cycle: "monthly"
-    minimum_commitment_months: 3
-    early_exit_fee: "Un mes de retainer si cancela antes de los 3 meses"
-    payment_terms: "Factura el 1 de cada mes, pago dentro de 5 días hábiles"
-
-  - offer_level: "L4"
-    offer_name: "Programa de automatización empresarial"
-    price: 8000
-    billing_cycle: "monthly"
-    price_range: "PEN 8,000 - 12,000/mes según scope"
     minimum_commitment_months: 6
-    custom_quote: true
-    payment_terms: "Contrato marco con facturación mensual"
-    total_investment_range: "PEN 48,000 - 72,000 por programa completo"
+    sla_response_hours: 48
+    hours_included: 8
+    hours_overage_rate_pen: 250
+    notes: "PEN 250/h hora-extra junior, PEN 320/h hora-extra senior"
 
-pricing_philosophy: >
-  Modelos de precio por valor entregado. Auditoría obligatoria antes de
-  implementación para evitar proyectos mal dimensionados. ROI medible
-  desde el mes 1 de operación o garantía de ajuste sin costo.
+  - offer_level: "L4_growth"
+    offer_name: "Retainer Growth"
+    price: 7500
+    billing_cycle: "monthly"
+    minimum_commitment_months: 6
+    sla_response_hours: 24
+    hours_included: 16
+    hours_overage_rate_pen: 280
+    most_popular: true
 
-refund_policy: >
-  Auditoría: si no se entrega en el plazo comprometido, reembolso completo.
-  Implementación: si no funciona según especificaciones al despliegue,
-  corregimos sin costo adicional. Garantía de resultados en primeros 60 días
-  o reembolso del 50% del costo de implementación.
+  - offer_level: "L4_premium"
+    offer_name: "Retainer Premium"
+    price: 12000
+    billing_cycle: "monthly"
+    minimum_commitment_months: 6
+    sla_response_hours: 8
+    hours_included: 32
+    hours_overage_rate_pen: 400
+
+# ─────────────────────────────────────────────────────────────
+# Refund matrix
+# ─────────────────────────────────────────────────────────────
+refund_matrix:
+  L1:
+    has_guarantee: false
+    notes: "Servicio gratuito"
+  L2:
+    has_guarantee: false
+    notes: "Sin reembolso. Cliente se queda con documento. Audit descontable 50% del L3 si avanza dentro 60 días."
+  L3:
+    has_guarantee: "milestone_based"
+    cancellation_pre_milestone_1: "Cancelable pagando 30% inicial"
+    cancellation_post_milestone_1: "Sin reembolso pero ajuste de scope si problema es nuestro"
+    quality_guarantee: "Bug-fixes 30 días post-handover sin costo"
+  L4:
+    has_guarantee: false
+    minimum_commitment_months: 6
+    early_cancellation_charge: "Meses restantes hasta el 6to a precio regular"
+    quality_guarantee: "SLA garantizado por tier (48h/24h/8h). Si SLA no se cumple 3 veces en mes, descuento 25% mes siguiente."
+
+# ─────────────────────────────────────────────────────────────
+# Pricing philosophy
+# ─────────────────────────────────────────────────────────────
+pricing_philosophy: |
+  Precios alineados con benchmarks Peru/LATAM 2026:
+    - Audit profundo: PEN 8-15k (vs gratis competencia barata)
+    - Implementación: PEN 28-95k (vs USD 5-50k+ otras agencias)
+    - Retainer: PEN 4-12k/mes (vs USD 2-10k/mes mercado)
+
+  Filosofía:
+  - Cobramos audit para alinear incentivos (filtra clientes serios)
+  - Pago por milestones reduce riesgo cliente
+  - Retainer ongoing es REQUISITO post-implementación (modelos no se 'instalan y olvidan')
+  - SLA garantizado por tier (no aspiracional)
+  - Add-ons explícitos (no charges sorpresa)
+  - NO descuentos negociados 1:1 fuera de los publicados
+
+  Filtros de cliente:
+  - NO trabajamos con startups <50 empleados validando idea
+  - NO aceptamos proyectos con expectativas no realistas (ej. "agente que reemplace al equipo")
+  - NO hacemos demos sin viabilidad técnica (cobramos audit)
+  - SÍ trabajamos con compliance estricto (Ley 29733 PE + GDPR opcional)
+
+# ─────────────────────────────────────────────────────────────
+# Tax / facturación
+# ─────────────────────────────────────────────────────────────
+invoicing:
+  emite_boleta: true
+  emite_factura: true
+  factura_requires_ruc: true
+  empresa_legal: "Núcleo Lab SAC (RUC 20XXXXXXXXX, Régimen General)"
+  for_corporate_buyers: "Sí, factura corporate. Aceptamos órdenes de compra. NDA disponible."
+  tax_residence_options:
+    pe: true
+    us_via_advisory_entity: false
+
+corporate_options:
+  empresas_clientes_actuales: 9
+  partner_types: ["fintech", "logística", "retail premium", "software B2B", "salud privada"]
+  testimonials_corporate_available: true
+  nda_available: true
+  dpa_data_processing_agreement_available: true
+  enterprise_msa_available: true

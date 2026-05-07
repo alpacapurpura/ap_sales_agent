@@ -1,55 +1,182 @@
 # pricing.yaml — tenant_agencia_growth_video
-# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
-# SIN L0 — ladder empieza en L1 (A4 per spec)
-# Todos los precios en PEN para aislamiento de tests
+# Pulso Studio — agencia growth video + RRSS Lima.
+# Currency: PEN. Q3 ratificado single-currency seed.
+# SIN L0 lead magnet (A4 per spec).
+# Benchmarks Lima 2026 — manejo redes 2-5k/mes, retainer completo 5-10k/mes.
 
 currency: PEN
 country: PE
-payment_methods:
-  - "transferencia_bancaria"
-  - "tarjeta_credito_debito"
-  - "factura_electronica"
+tax_regime: "RG"
+tax_id_label: "RUC"
+issues_invoice: true
+invoice_types: ["boleta", "factura"]
 
+payment_methods:
+  - method: "transferencia_bancaria"
+    label: "Transferencia bancaria"
+    accepted_banks: ["BCP", "Interbank", "BBVA"]
+    fees: "0%"
+    settlement_time: "1-2 días hábiles"
+    notes: "Recomendado para retainer mensual."
+  - method: "tarjeta_credito"
+    label: "Tarjeta crédito (Visa, Mastercard, Amex)"
+    processor: "Culqi online"
+    fees: "incluidas en precio"
+    settlement_time: "instantáneo"
+    cuotas_sin_intereses: "Disponible 3 cuotas sin intereses para servicios puntuales (audit, pack producción, consultoría). NO disponible para retainer mensual."
+  - method: "tarjeta_recurrente_retainer"
+    label: "Tarjeta recurrente (Retainer mensual)"
+    processor: "Culqi suscripciones"
+    notes: "Cobro automático mensual día 1 de cada mes. Email confirmación."
+  - method: "yape"
+    label: "Yape"
+    notes: "Solo para servicios <PEN 1,000 (audit L1, mes parcial). NO para retainer."
+  - method: "transferencia_internacional"
+    label: "Transferencia internacional SWIFT"
+    notes: "Para clientes fuera Perú. Costos de SWIFT asumidos por cliente."
+
+# ─────────────────────────────────────────────────────────────
+# Price list por offer
+# ─────────────────────────────────────────────────────────────
 price_list:
   - offer_level: "L1"
-    offer_name: "Audit de Growth"
+    offer_name: "Audit Growth Pulso"
     price: 500
     billing_cycle: "one_time"
-    discount_if_retainer: "Se descuenta del primer mes de retainer"
-    notes: "Pago anticipado para iniciar el audit"
+    payment_terms: "100% upfront"
+    refund_policy: "Sin reembolso. Si avanzás a retainer L3 dentro de 30 días, los PEN 500 se descuentan."
 
-  - offer_level: "L2"
-    offer_name: "Paquete producción video (4 reels/mes)"
+  - offer_level: "L2_pack_starter"
+    offer_name: "Pack Producción Video — Starter (4 reels)"
     price: 1200
-    billing_cycle: "monthly"
-    minimum_commitment_months: 3
-    early_exit_fee: "PEN 600 si cancela antes de los 3 meses"
-    payment_terms: "Factura el 1 de cada mes, pago dentro de 5 días hábiles"
+    price_per_reel: 300
+    payment_terms: "50% inicial + 50% al entregar"
+    payment_plans:
+      - plan_id: "L2_starter_3_cuotas"
+        plan_name: "3 cuotas tarjeta crédito"
+        cuota_amount: 400
+        cuota_count: 3
+    refund_policy: "Si tras 3 iteraciones por pieza no aplica, devolvemos 50% (cubrimos costos producción)."
 
-  - offer_level: "L3"
-    offer_name: "Retainer mensual gestión completa RRSS"
-    price: 2500
+  - offer_level: "L2_pack_growth"
+    offer_name: "Pack Producción Video — Growth (8 reels)"
+    price: 2000
+    price_per_reel: 250
+    most_popular: true
+    payment_terms: "50% inicial + 50% al entregar"
+    payment_plans:
+      - plan_id: "L2_growth_3_cuotas"
+        cuota_amount: 666.67
+
+  - offer_level: "L2_pack_premium"
+    offer_name: "Pack Producción Video — Premium (12 reels + 1 video largo)"
+    price: 3500
+    price_per_reel: 291.67
+    payment_terms: "50% inicial + 50% al entregar"
+    payment_plans:
+      - plan_id: "L2_premium_6_cuotas"
+        cuota_amount: 583.33
+
+  - offer_level: "L3_starter"
+    offer_name: "Retainer Starter"
+    price: 5500
     billing_cycle: "monthly"
-    minimum_commitment_months: 3
-    early_exit_fee: "PEN 1,250 si cancela antes de los 3 meses"
-    payment_terms: "Factura el 1 de cada mes, pago dentro de 5 días hábiles"
-    discount_annual: "PEN 500/mes con compromiso de 12 meses"
+    minimum_commitment_months: 6
+    setup_fee_pen: 0
+    setup_fee_notes: "Sin setup fee. Kickoff incluido."
+    cancellation_policy: |
+      Cancelación antes de 6 meses: cobramos los meses restantes hasta el 6to a precio regular.
+      Cancelación post 6 meses: 30 días de aviso, sin penalidad.
+    refund_policy: "Sin reembolso de mensualidades pagadas. Mes de salida facturable completo."
+
+  - offer_level: "L3_growth"
+    offer_name: "Retainer Growth"
+    price: 7500
+    billing_cycle: "monthly"
+    minimum_commitment_months: 6
+    most_popular: true
+
+  - offer_level: "L3_premium"
+    offer_name: "Retainer Premium"
+    price: 9500
+    billing_cycle: "monthly"
+    minimum_commitment_months: 6
 
   - offer_level: "L4"
-    offer_name: "Consultoría estratégica growth (intensivo trimestral)"
-    price: 5000
-    billing_cycle: "monthly"
-    minimum_commitment_months: 3
-    total_trimestral: 15000
-    payment_terms: "Pago mensual o total trimestral con descuento PEN 1,500"
-    custom_scope: true
+    offer_name: "Consultoría Estratégica"
+    starting_price: 5000
+    pricing_model: "custom_quote"
+    typical_range_pen: "5,000 - 18,000"
+    payment_terms: "50% inicial + 50% al entregar"
+    payment_plans_available: "Tarjeta 3 cuotas si proyecto >PEN 8,000"
 
-pricing_philosophy: >
-  Precios por valor de resultado, no por horas. Audit obligatorio antes de
-  retainer para asegurar fit cliente-agencia. No aceptamos clientes que
-  buscan solo volumen de posts sin objetivo de negocio medible.
+# ─────────────────────────────────────────────────────────────
+# Refund matrix
+# ─────────────────────────────────────────────────────────────
+refund_matrix:
+  L1:
+    has_guarantee: false
+    notes: "Sin reembolso. Garantía de calidad: si tras leer audit no es accionable, ajuste en reunión cierre."
+  L2:
+    has_guarantee: "partial"
+    period_days: 30
+    refund_pct_post_3_iterations: 50
+    conditions: "Si tras 3 iteraciones por pieza no es aplicable, devolvemos 50% (cubrimos producción ya gastada)."
+  L3:
+    has_guarantee: false
+    minimum_commitment_months: 6
+    early_cancellation_charge: "Meses restantes hasta el 6to a precio regular"
+    quality_guarantee: "Si tras 3 meses NPS interno cliente <6/10, ofrecemos plan correctivo + reducción 25% mes 4-6."
+  L4:
+    has_guarantee: "quality_only"
+    refund_pct: 0
+    notes: "Sin reembolso pero garantía calidad — si entregable no aplicable, retrabajo sin costo."
 
-refund_policy: >
-  Audit: reembolso 100% si el entregable no llega en 5 días hábiles prometidos.
-  Retainer: sin reembolso por trabajo ya realizado. Cancelación con 30 días
-  de aviso o fee de salida anticipada.
+# ─────────────────────────────────────────────────────────────
+# Ad spend separado del retainer
+# ─────────────────────────────────────────────────────────────
+ad_spend_policy:
+  separate_from_retainer: true
+  client_pays_directly: true
+  pulso_manages_only: true
+  notes: |
+    El cliente paga ad spend (Meta, Google, TikTok) directo a la plataforma.
+    Pulso gestiona pero NO factura ad spend (cero markup).
+    Esto evita conflicto de interés (no nos beneficiamos de gastar más).
+
+  ad_spend_caps_by_tier:
+    starter: "Hasta PEN 4,000/mes ad spend manejado"
+    growth: "Hasta PEN 8,000/mes ad spend manejado"
+    premium: "Sin tope (cliente decide ad spend)"
+
+# ─────────────────────────────────────────────────────────────
+# Pricing philosophy
+# ─────────────────────────────────────────────────────────────
+pricing_philosophy: |
+  Precios alineados con benchmarks Lima 2026:
+    - Manejo RRSS básico: PEN 2-5k/mes (mercado)
+    - Retainer completo (contenido + paid + reporting): PEN 5-10k/mes
+    - Producción video: PEN 250-500/reel en paquete
+    - Consultoría estratégica: PEN 5-20k proyecto custom
+
+  Filosofía:
+  - NO descuentos negociados 1:1 (precios públicos = precios reales)
+  - 6 meses compromiso mínimo retainer (orgánico toma 3-6 meses)
+  - Ad spend separado retainer (cero markup, evita conflicto interés)
+  - Audit L1 pago para filtrar clientes serios
+  - Anti-vanity metrics: reporting con CAC/LTV/ROAS, no likes/views
+
+# ─────────────────────────────────────────────────────────────
+# Tax / facturación
+# ─────────────────────────────────────────────────────────────
+invoicing:
+  emite_boleta: true
+  emite_factura: true
+  factura_requires_ruc: true
+  empresa_legal: "Pulso Studio SAC (RUC 20XXXXXXXXX, Régimen General)"
+  for_corporate_buyers: "Sí, emitimos factura. Aceptamos órdenes de compra."
+
+corporate_options:
+  empresas_clientes_actuales: 7
+  partner_types: ["fintech", "retail D2C", "software B2B", "ecommerce moda"]
+  testimonials_corporate_available: true

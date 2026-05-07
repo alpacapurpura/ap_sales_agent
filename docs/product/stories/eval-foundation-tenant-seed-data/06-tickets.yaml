@@ -48,8 +48,8 @@ summary:
     title: "Curación Chris + ratificación + capability update + GREEN final"
     surface: BE
     production_code: false
-    owner_pool: [claude-sonnet]                       # asistente de Chris durante ratificación
-    state: draft
+    owner_pool: [claude-opus, claude-sonnet]
+    state: pushed
     blocks: []
     blocked_by: [T-3]
 
@@ -361,7 +361,7 @@ T4:
   type: docs-and-ratification
   surface: BE
   production_code: false                              # R23 — solo edits a YAMLs anteriores + capability docs/
-  state: draft
+  state: pushed
   owner_eligibility:
     qwen_opencode: false                              # ⛔ requires Chris-builder back-and-forth
     claude_sonnet: true                               # PREFERRED — asistente de Chris
@@ -438,7 +438,9 @@ T4:
   blocks: []
   transitions:
     - { state: draft, at: "2026-05-06T21:30Z", by: "/architect" }
-  assigned_to: null
+    - { state: assigned, at: "2026-05-07T03:30Z", by: "/dev-team", to: "claude-opus + Chris (loop iterativo)" }
+    - { state: pushed, at: "2026-05-07T07:00Z", by: "/dev-team + Chris", note: "5 tenants curados densamente Round 1+2 (35 files), variants PERIOD/TIER/PACK aplicados, discovery call Nicolify scheduling integrado, voice humanizada, decline policies por tenant, capability YAML eval block agregado, validators 79/79+13/13+827/827 GREEN" }
+  assigned_to: "claude-opus + Chris (loop iterativo)"
   notes_for_dev_team: |
     1. Loop iterativo Chris — el builder asiste presentando drafts, Chris feedbackea, builder ajusta. Builder NO hace cambios estructurales (loader/scanner/hook cerrados); solo content tuning.
     2. Capability YAML — verificar existe (`docs/product/capabilities/sales-agent/sales-conversational-engine.yaml`); si no existe, crearla siguiendo precedente capabilities (esquema mínimo: id, module, status, eval). Agregar 2 fields nuevos sin tocar otros.

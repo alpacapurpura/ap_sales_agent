@@ -1,108 +1,321 @@
 # buyer_personas.yaml — tenant_coach_lat
-# Exactamente 3 personas: 2 base + 1 adversarial (Q8 ratificado)
-# Dialect: es-PE — tuteo sin voseo
+# Exactamente 3 personas (Q8 ratificado): 2 base + 1 adversarial.
+# Dialect: es-PE — tuteo sin voseo en sus mensajes simulados.
+#
+# Cobertura T-4 (Chris): cada persona tiene campos ricos para que tests
+# adversariales puedan generar escenarios variados (objection types, decision
+# triggers, communication style, secret_concerns, evaluation_criteria).
+# Estructura preparada para "muchos posibles escenarios" (T-4 spec).
 
 tenant_slug: tenant_coach_lat
 dialect_code: es-PE
 currency: PEN
-target_market: "Emprendedoras latinoamericanas con expertise que quieren monetizar su conocimiento"
+target_market: "Emprendedoras latinoamericanas con expertise que quieren monetizar su conocimiento sin sacrificar bienestar"
 persona_count: 3
-decision_driver: "Claridad sobre ROI de la inversión en coaching + confianza en la metodología"
+decision_driver: "Claridad sobre ROI + confianza en la metodología + alineación con valores personales"
 
 personas:
+  # ─────────────────────────────────────────────────────────────
   - name: "Sofía la Consultora"
     persona_type: "base"
+    archetype_role: "Profesional experta sin sistema de ventas"
     age: 34
+    gender: "femenino"
     role: "Consultora independiente de RRHH"
-    location: "Lima, Perú"
-    income_range: "PEN 3,000 - 6,000/mes"
-    education: "Licenciada en Psicología Organizacional"
-    family_status: "Soltera, sin hijos"
+    seniority: "8 años de experiencia"
+    location: "Lima, Perú (Miraflores)"
+    location_setting: "urbano metropolitano"
+    income_range_pen: "3,000 - 6,000/mes"
+    education: "Licenciada en Psicología Organizacional, certificación ICF nivel ACC"
+    family_status: "Soltera, sin hijos, vive con un gato"
+    work_setup: "Home office + co-working ocasional"
+    daily_schedule: "Cliente entre 9-13h y 14-18h. Marketing/ventas en bloques de 1-2h irregulares."
+
     pain_points:
-      - "Tiene clientes esporádicos pero no flujo constante de ingresos"
+      - "Tiene clientes esporádicos pero no flujo constante de ingresos (oscilaciones 30-100% mes a mes)"
       - "No sabe cómo poner precio a sus servicios sin perder clientes"
       - "Hace todo sola y no sabe cómo escalar sin contratar"
       - "Siente que trabaja mucho pero gana poco comparado con su expertise"
+      - "Postergación crónica con marketing — sabe que tiene que postear pero no lo hace"
+      - "Inseguridad para subir precios a clientes existentes"
+
     objections:
-      - "No tengo tiempo para un programa largo"
-      - "Ya compré otros cursos que no funcionaron"
-      - "No sé si mi nicho es suficientemente grande"
-    budget_range: "PEN 200-500 por programa, PEN 89/mes membresía"
+      - text: "No tengo tiempo para un programa largo"
+        intensity: "alta"
+        underlying_fear: "Comprometerse a algo y no terminarlo"
+      - text: "Ya compré otros cursos que no funcionaron"
+        intensity: "media"
+        underlying_fear: "Repetir el patrón de gastar sin resultado"
+      - text: "No sé si mi nicho es suficientemente grande"
+        intensity: "alta"
+        underlying_fear: "Que el problema sea ella, no el mercado"
+      - text: "El precio del programa es alto para mí ahora"
+        intensity: "media"
+        underlying_fear: "Endeudarse / comprometer su flujo de caja"
+
+    desires:
+      - "Tener ingresos consistentes de PEN 8,000-10,000/mes"
+      - "Trabajar 30 horas semanales sin culpa"
+      - "Tener una metodología propia que sea reconocida"
+      - "Sentirse competente vendiendo (no solo entregando)"
+
+    secret_concerns:
+      - "Que su título de psicóloga organizacional no sea suficientemente 'sexy' comercialmente"
+      - "Que sus colegas la juzguen por hacer marketing de su consultoría"
+      - "Sentir que cobra muy poco pero tener miedo de subir precios y perder clientes"
+
+    budget_range_pen: "200-500 por programa puntual; 89/mes membresía; reluctante con compromiso >3 meses"
+    purchase_decision_speed: "lenta (3-6 semanas desde primer contacto)"
+    purchase_triggers:
+      - "Caso de éxito de alguien similar a ella (psicóloga / consultora RRHH)"
+      - "Promo con fecha límite clara y descuento real (no fake urgency)"
+      - "Recomendación de una colega que ya pagó"
+
     preferred_channels:
       - channel: "Instagram"
         frequency: "diario"
-        tone: "inspiracional + educativo"
+        tone_preferred: "inspiracional + educativo"
+        time_active: "20:00-22:00 hora Perú"
       - channel: "WhatsApp"
-        frequency: "para seguimiento"
-        tone: "personalizado"
-    aspirations:
-      - "Tener ingresos de PEN 8,000/mes trabajando 30 horas por semana"
-      - "Tener una metodología propia reconocida en LatAm"
-    buyer_journey:
-      awareness: "Ve contenido sobre pricing y estrategia en Instagram"
-      consideration: "Descarga la guía gratuita, sigue la cuenta por semanas"
-      decision: "Asiste al workshop, le gusta la metodología, se inscribe al curso"
+        frequency: "respuesta en 2-4h"
+        tone_preferred: "personalizado, calidez sin ser invasivo"
+      - channel: "Email"
+        frequency: "lee pero no responde"
+        tone_preferred: "newsletters útiles, no promocionales"
 
+    aspirations:
+      - "Tener ingresos de PEN 10,000/mes trabajando 30 horas por semana"
+      - "Tener una metodología propia reconocida en LatAm"
+      - "Contratar una asistente virtual que la libere"
+      - "Hablar en una conferencia LATAM como experta"
+
+    objections_to_neuroscience_pillar: "media — curiosidad pero escepticismo de 'cosa rara'"
+
+    buyer_journey:
+      awareness: "Ve contenido sobre pricing y estrategia en Instagram (sigue 5-7 cuentas similares)"
+      consideration: "Descarga la guía gratuita L0, sigue la cuenta por 3-6 semanas, lee testimonios"
+      decision: "Asiste al workshop L1 (PEN 49 = barrera baja), si convierte sigue al programa L2"
+      retention: "Comunidad Tier Basic post-programa para mantener accountability"
+
+    likely_offer_path: "L0 → L1 (workshop) → L2 (programa con cuotas) → L3 Basic (retención)"
+    likely_LTV_pen: 7800
+
+    evaluation_criteria_for_purchase:
+      - "Testimonios verificables con números, no genéricos"
+      - "Garantía de reembolso real (no letra chica)"
+      - "Plan de cuotas accesible"
+      - "Acceso post-programa para no quedarse sola"
+
+    sample_question_to_agent:
+      - "¿Tienen testimonios de psicólogas o consultoras que hayan pasado de inestabilidad a flujo constante?"
+      - "¿Puedo pagar en cuotas el programa?"
+      - "¿Qué pasa si no logro asistir a todas las sesiones en vivo?"
+
+  # ─────────────────────────────────────────────────────────────
   - name: "Valentina la Coach Novata"
     persona_type: "base"
+    archetype_role: "Reconvertida corporativa con síndrome del impostor"
     age: 29
-    role: "Ex-ejecutiva corporativa reconvertida en coach de vida"
-    location: "Bogotá, Colombia (con seguidores en toda LatAm)"
-    income_range: "PEN 1,500 - 3,000/mes (ingresos irregulares)"
-    education: "MBA, certificación ICF nivel ACC"
-    family_status: "Casada, un hijo pequeño"
+    gender: "femenino"
+    role: "Ex-ejecutiva corporativa (banca) reconvertida en coach de transición profesional"
+    seniority: "12 meses como coach independiente, 6 años corporativo previo"
+    location: "Bogotá, Colombia (Chapinero)"
+    location_setting: "urbano metropolitano"
+    income_range_pen: "1,500 - 3,000/mes equivalente (ingresos irregulares)"
+    education: "MBA, certificación ICF nivel ACC, formación corporativa en finanzas"
+    family_status: "Casada, un hijo de 2 años"
+    work_setup: "Home office, comparte espacio con marido también remoto"
+    daily_schedule: "Cliente: 2-3 sesiones/semana. Marketing: 2-3h/día sin estructura."
+
     pain_points:
       - "Tiene el conocimiento pero no sabe cómo venderlo sin sentirse 'vendedora'"
-      - "Miedo de cobrar caro por síndrome del impostor"
+      - "Miedo de cobrar caro por síndrome del impostor agudo"
       - "Sus clientes la respetan pero no la pagan lo que vale"
-      - "No sabe cómo diferenciar su oferta de los miles de coaches que hay"
+      - "No sabe cómo diferenciar su oferta de los miles de coaches"
+      - "Audiencia en redes pequeña (1,200 seguidores IG) — siente que necesita esperar a crecer"
+      - "Cuesta postear consistentemente por miedo a 'parecer demasiado'"
+
     objections:
-      - "El mercado de coaching está saturado, no sé si puedo destacar"
-      - "Mi audiencia en redes es pequeña, no creo que pueda vender"
-      - "No tengo dinero para invertir en marketing todavía"
-    budget_range: "PEN 50-150 inicial, puede escalar a PEN 297 con resultados"
+      - text: "El mercado de coaching está saturado, no sé si puedo destacar"
+        intensity: "alta"
+        underlying_fear: "Confirmar que no es 'lo suficientemente buena'"
+      - text: "Mi audiencia en redes es pequeña, no creo que pueda vender"
+        intensity: "alta"
+        underlying_fear: "Necesitar autoridad externa antes de cobrar"
+      - text: "No tengo dinero para invertir en marketing todavía"
+        intensity: "media"
+        underlying_fear: "Comprometer presupuesto familiar"
+
+    desires:
+      - "Crear curso online que genere ingresos pasivos"
+      - "Ser reconocida como referente en coaching de transición"
+      - "Cobrar lo que vale sin culpa"
+      - "Aportar al hogar de manera estable"
+
+    secret_concerns:
+      - "Que su esposo cuestione la viabilidad del negocio"
+      - "Que vuelva a trabajo corporativo si no funciona en 6 meses más"
+      - "Que su hijo no la vea como 'mamá exitosa'"
+
+    budget_range_pen: "50-150 inicial, puede escalar a PEN 297-500 con resultados"
+    purchase_decision_speed: "muy lenta (6-10 semanas) — necesita validación múltiple"
+    purchase_triggers:
+      - "Testimonio específico de alguien que partió de audiencia chica"
+      - "Discovery call que reduzca su ansiedad sobre 'si va a funcionar'"
+      - "Promo + plan de cuotas que reduzca riesgo financiero"
+
     preferred_channels:
       - channel: "LinkedIn"
-        frequency: "semanal"
-        tone: "profesional + auténtico"
+        frequency: "lee diario, postea semanal"
+        tone_preferred: "profesional auténtico, sin gurú-style"
       - channel: "Instagram Stories"
         frequency: "diario"
-        tone: "behind the scenes"
-    aspirations:
-      - "Crear un curso online que genere ingresos pasivos"
-      - "Ser reconocida como referente en coaching de transición profesional"
-    buyer_journey:
-      awareness: "Encuentra a Visionarias en un podcast sobre emprendimiento femenino"
-      consideration: "Revisa el workshop, compara con otras opciones"
-      decision: "El precio accesible del workshop la convence de probar"
+        tone_preferred: "behind the scenes, vulnerabilidad estratégica"
+      - channel: "Podcast"
+        frequency: "audio en commute si hubiera, ahora caminatas"
 
+    aspirations:
+      - "Curso online que genere PEN 5,000/mes pasivo"
+      - "Referente en coaching de transición profesional Colombia"
+      - "Hablar en eventos corporativos como exponente"
+      - "Tiempo flexible para criar a su hijo sin culpa"
+
+    objections_to_neuroscience_pillar: "baja — abierta, lectora de Brené Brown"
+
+    buyer_journey:
+      awareness: "Encuentra a Visionarias en podcast sobre emprendimiento femenino (Marie Forleo en español)"
+      consideration: "Revisa el workshop, compara con 3-4 alternativas durante 6-8 semanas"
+      decision: "Inscribe al workshop L1 cuando ve testimonio de coach que partió igual que ella"
+      retention: "Comunidad Tier Basic + ascender a Tier Pro en 6 meses si negocio crece"
+
+    likely_offer_path: "L0 → L1 → posiblemente L2 con cuotas semanales si convierte → L3 Basic"
+    likely_LTV_pen: 4500
+
+    evaluation_criteria_for_purchase:
+      - "Testimonios de personas en su misma fase de negocio"
+      - "Validación que se puede escalar desde audiencia pequeña"
+      - "Discovery call gratuita para 'sentir si encaja'"
+      - "Garantía clara"
+
+    sample_question_to_agent:
+      - "¿Sirve si tengo solo 1,200 seguidores en Instagram?"
+      - "¿Hay testimonios de coaches que pasaron del corporativo y eran nuevas como yo?"
+      - "¿Qué tan saturado está realmente el mercado de coaching de transición?"
+
+  # ─────────────────────────────────────────────────────────────
   - name: "Rebeca la Escéptica"
     persona_type: "adversarial"
+    archetype_role: "Profesional alta-credencial desconfiada del 'mundo coach'"
     age: 42
-    role: "Médica con consulta privada que quiere lanzar contenido de salud"
-    location: "Ciudad de México, México"
-    income_range: "PEN 8,000+ equivalente (ingresos médicos estables)"
-    education: "Médica especialista en nutrición clínica"
-    family_status: "Divorciada, dos hijos adolescentes"
+    gender: "femenino"
+    role: "Médica especialista en nutrición clínica con consulta privada"
+    seniority: "15 años en práctica clínica, 2 años intentando lanzar contenido digital"
+    location: "Ciudad de México, México (Polanco)"
+    location_setting: "urbano premium"
+    income_range_pen: "8,000+ equivalente (ingresos médicos estables)"
+    education: "Médica UNAM + especialización en nutrición clínica + Master en Nutrición Funcional Estados Unidos"
+    family_status: "Divorciada, dos hijos adolescentes (14 y 16)"
+    work_setup: "Consultorio físico + telemedicina, 60h/semana"
+    daily_schedule: "7-15h consultas. Tarde: hijos. Marketing: weekends inconsistente."
+
     pain_points:
-      - "Tiene credenciales de alto valor pero no sabe monetizar su conocimiento online"
-      - "Desconfía del 'mundo del coaching' por experiencias previas negativas"
+      - "Tiene credenciales de alto valor pero no sabe monetizar conocimiento online"
+      - "Desconfía del 'mundo del coaching' por experiencias previas negativas (gastó USD 3,500 en programa que no entregó)"
       - "Ha gastado en programas que prometían mucho y entregaron poco"
+      - "Quiere posicionarse en redes pero no tiene idea de qué postear sin sentirse 'cheap'"
+      - "Su consulta tiene tope de pacientes — necesita escalar via contenido pero no sabe cómo"
+
     objections:
-      - "Esto parece más de lo mismo. Ya pagué por programas que no funcionaron"
-      - "No creo que una coach de marketing entienda la industria médica"
-      - "El precio es alto para algo que no sé si funciona"
-      - "Prefiero resolver esto con una consultora empresarial de verdad"
-    budget_range: "Tiene presupuesto (PEN 1,490+) pero exige demostración de valor"
+      - text: "Esto parece más de lo mismo. Ya pagué por programas que no funcionaron"
+        intensity: "muy alta"
+        underlying_fear: "Volver a sentirse engañada"
+      - text: "No creo que una coach de marketing entienda la industria médica"
+        intensity: "alta"
+        underlying_fear: "Que el contenido sea genérico y no aplicable a su contexto"
+      - text: "El precio es alto para algo que no sé si funciona"
+        intensity: "alta"
+        underlying_fear: "Repetir el patrón de inversión sin retorno"
+      - text: "Prefiero resolver esto con una consultora empresarial de verdad"
+        intensity: "muy alta"
+        underlying_fear: "Que el coaching sea 'cosa de mujeres' no profesional"
+      - text: "El componente de neurociencia me parece pseudocientífico"
+        intensity: "alta"
+        underlying_fear: "Que se le vendan 'cosas raras' como ciencia"
+      - text: "¿Tienen casos en healthcare? Mi industria es muy regulada"
+        intensity: "alta"
+        underlying_fear: "Que la metodología no se adapte a sus restricciones (no puede prometer resultados clínicos)"
+
+    desires:
+      - "Posicionarse como autoridad LATAM en nutrición funcional"
+      - "Ingresos digitales que complementen consulta sin saturar agenda"
+      - "Curso online o membresía que escale sin más horas frente al paciente"
+      - "Reconocimiento profesional que no sea 'cosa de redes'"
+
+    secret_concerns:
+      - "Que sus colegas médicos la vean como 'sellout'"
+      - "Que el Colegio Médico le llame la atención por contenido de salud en redes"
+      - "Que su contenido suene poco serio comparado con su trayectoria"
+      - "Quedarse atrás de colegas más jóvenes que ya están en redes"
+
+    budget_range_pen: "Tiene presupuesto (PEN 1,490+/mes) pero exige demostración de valor antes de comprometer"
+    purchase_decision_speed: "lenta + adversarial (8-16 semanas con múltiples interacciones)"
+    purchase_triggers:
+      - "Caso de éxito de profesional médico/sanitario que se posicionó manteniendo seriedad"
+      - "Discovery call donde sienta que la entienden técnicamente"
+      - "Garantía robusta + opción de salida con acceso parcial"
+      - "Evidencia de neurociencia clínica real (papers, certificaciones reales)"
+
+    adversarial_notes: |
+      Esta persona desafía afirmaciones de resultados, pide evidencia concreta,
+      tiende a comparar con alternativas más 'serias' (consultoría empresarial,
+      MBA, programas universitarios) y reacciona mal a:
+        - Lenguaje motivacional vacío ("¡tú puedes!")
+        - Promesas de resultados sin contexto ("ganarás 6 cifras")
+        - Ausencia de credenciales formales del facilitador
+        - Componentes que suenen 'new age' sin base clínica
+        - Testimonios sin números o sin verificabilidad
+
+      Es ÚTIL para evaluar si el sales agent:
+        - Maneja objeciones fuertes sin perder compostura
+        - NO promete demás
+        - Reconoce limitaciones honestamente
+        - Sabe cuándo recomendar otra opción / no vender
+        - Maneja escepticismo de neurociencia con data clínica
+
     preferred_channels:
       - channel: "LinkedIn"
-        frequency: "ocasional"
-        tone: "solo contenido técnico bien fundamentado"
-    adversarial_notes: >
-      Esta persona desafía afirmaciones de resultados, pide evidencia concreta
-      y tiende a comparar con alternativas más 'serias'. Útil para evaluar si el
-      sales agent maneja objeciones fuertes sin perder compostura ni prometer demás.
+        frequency: "ocasional, contenido técnico bien fundamentado"
+        tone_preferred: "profesional, basado en evidencia, sin emojis"
+      - channel: "Email"
+        frequency: "lee newsletter selectivamente"
+        tone_preferred: "long-form profundo, no superficial"
+      - channel: "WhatsApp"
+        frequency: "evita, prefiere email para asuntos serios"
+
+    objections_to_neuroscience_pillar: "muy alta — escepticismo activo de pseudociencia"
+
     buyer_journey:
-      awareness: "Llega por recomendación de una colega médica que fue clienta"
-      consideration: "Pide ver testimonios reales, metodología detallada y garantías"
-      decision: "Solo cierra si hay garantía de satisfacción y puede hablar con clientas previas"
+      awareness: "Llega por recomendación de colega médica que fue clienta + búsqueda activa LinkedIn"
+      consideration: "Pide ver testimonios verificables, metodología detallada, credenciales facilitadora, evidencia neurociencia. Hace 2-3 discovery calls antes de decidir."
+      decision: "Solo cierra si: (a) hay garantía, (b) puede hablar con clientas previas similares, (c) credenciales facilitadora verificables. Decision quality > price"
+      retention: "Si convierte, alta retención (LTV alto). Tier Elite candidate o L4 mentoría directa."
+
+    likely_offer_path: "Discovery call → posiblemente L4 directo (si convence) → Tier Elite si no convence el L4"
+    likely_LTV_pen: 18000
+
+    evaluation_criteria_for_purchase:
+      - "Credenciales formales facilitadora (MBA, certificaciones reconocidas)"
+      - "Testimonios de profesionales con credenciales similares (médicos, abogados, ingenieros)"
+      - "Evidencia clínica del componente neurociencia (Polyvagal Theory papers)"
+      - "Garantía clara con cláusulas escritas"
+      - "Posibilidad de hablar con ex-alumnas verificables"
+      - "Alternativas honestas si no es fit"
+      - "Lenguaje técnico sin caer en motivacional"
+
+    sample_question_to_agent:
+      - "¿Tienen casos de médicos o profesionales con consulta privada que se posicionaron sin perder seriedad?"
+      - "¿Qué credenciales tiene la facilitadora del módulo de neurociencia? ¿Es Polyvagal Theory real o adaptación?"
+      - "¿Puedo hablar con una ex-alumna del programa antes de decidir?"
+      - "¿Cuál es la garantía exacta y qué cláusulas tiene?"
+      - "¿Qué pasa si después del módulo de neurociencia no me convence?"
+      - "¿Por qué debería elegir esto sobre un programa universitario de marketing en salud?"

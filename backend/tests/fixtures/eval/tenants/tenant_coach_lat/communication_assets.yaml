@@ -1,57 +1,175 @@
 # communication_assets.yaml — tenant_coach_lat
-# URLs sintéticas plausibles — solo validación de schema, no HTTP requests (AD8)
+# URLs sintéticas plausibles + URLs reales whitelisted (visionarias.lat).
+# Solo validación de schema, no HTTP requests (Q9 ratificado).
+# Nicolify scheduling event_type_ids = placeholders sintéticos.
 
 social_media:
-  instagram: "@visionarias.coach"
-  youtube: "https://www.youtube.com/@visionarias.oficial"
-  linkedin: "https://www.linkedin.com/company/visionarias-coach"
-  tiktok: "@visionariascoach"
-  podcast: "Visionarias en Movimiento (Spotify)"
+  instagram:
+    handle: "@visionarias.coach"
+    url: "https://www.instagram.com/visionarias.coach"
+    followers_approx: 12500
+    posting_frequency: "diario (4-5 posts/semana + 7-10 stories/día)"
+    primary_audience_country: "PE, MX, CO, CL, AR"
+  youtube:
+    handle: "@visionarias.oficial"
+    url: "https://www.youtube.com/@visionarias.oficial"
+    subscribers_approx: 4800
+    posting_frequency: "2 videos/mes + clips cortos"
+    notable_content: "TEDx Miraflores 2025 (15k views)"
+  linkedin:
+    company_url: "https://www.linkedin.com/company/visionarias-coach"
+    founder_url: "https://www.linkedin.com/in/ileanatapia"
+    followers_approx: 3200
+    posting_frequency: "2-3 posts/semana, contenido B2B-leaning"
+  tiktok:
+    handle: "@visionariascoach"
+    followers_approx: 2100
+    posting_frequency: "1-2 videos/semana"
+    primary_content: "Clips educativos cortos (60-90s)"
+  podcast:
+    name: "Visionarias en Movimiento"
+    platforms: ["Spotify", "Apple Podcasts", "Google Podcasts"]
+    url_spotify: "https://open.spotify.com/show/visionariasmovimiento"
+    episodes_count: 47
+    posting_frequency: "1 episodio/quincena"
 
 website:
   url: "https://visionarias.lat"
   blog_url: "https://visionarias.lat/blog"
   free_resource_url: "https://visionarias.lat/guia-gratuita"
+  programa_l2_url: "https://visionarias.lat/de-proposito-a-prosperidad"
+  workshop_l1_url: "https://visionarias.lat/workshop-oferta-irresistible"
+  comunidad_l3_url: "https://visionarias.lat/comunidad-vip"
+  mentoria_l4_url: "https://visionarias.lat/mentoria-1-1"
+  testimonials_url: "https://visionarias.lat/testimonios"
+  about_url: "https://visionarias.lat/sobre-ileana"
 
 email_marketing:
   list_name: "Lista Visionarias"
+  list_size_approx: 8400
   welcome_sequence_length: 5
-  newsletter_frequency: "semanal"
+  welcome_sequence_topics:
+    - "Bienvenida + entrega de la guía PDF"
+    - "Historia de origen — por qué fundé Visionarias"
+    - "Caso de éxito Sandra (8k → 22k)"
+    - "Invitación al workshop L1 con 50% off bienvenida"
+    - "Cierre + invitación a comunidad gratuita"
+  newsletter_frequency: "semanal (martes 8am hora Perú)"
   main_cta: "Descargar la guía gratuita"
+  conversion_rate_lm_to_l1: "8.5% (último trimestre)"
+  conversion_rate_l1_to_l2: "42% promedio (cohort 4 ediciones)"
 
 content_pillars:
   - name: "Estrategia de marketing"
-    description: "Tips y frameworks para atraer clientes ideales"
-    formats:
-      - "carrusel Instagram"
-      - "video corto"
-      - "artículo blog"
+    description: "Tips y frameworks para atraer clientas ideales"
+    formats: ["carrusel Instagram", "video corto", "artículo blog"]
+    posting_share: 0.35
   - name: "Mindset emprendedora"
     description: "Mentalidad, síndrome del impostor, precio y valor"
-    formats:
-      - "reel"
-      - "story reflexión"
+    formats: ["reel", "story reflexión"]
+    posting_share: 0.25
   - name: "Casos de éxito"
-    description: "Historias de transformación de clientas"
-    formats:
-      - "testimonio en carrusel"
-      - "video entrevista"
-  - name: "Sistema VISIONARIA"
+    description: "Historias de transformación de alumnas con números"
+    formats: ["testimonio en carrusel", "video entrevista"]
+    posting_share: 0.20
+  - name: "Sistema VISIONARIA + De Propósito"
     description: "Educación sobre la metodología"
-    formats:
-      - "serie de posts"
-      - "email curso gratuito"
+    formats: ["serie de posts", "email curso gratuito"]
+    posting_share: 0.10
+  - name: "Detrás de cámaras"
+    description: "Behind the scenes, vulnerabilidad estratégica"
+    formats: ["story diario", "reel personal"]
+    posting_share: 0.10
 
 key_messages:
   - "Tu expertise vale más de lo que cobras"
   - "Las ventas no tienen que sentirse incómodas"
   - "Un negocio sostenible empieza con una oferta clara"
   - "No necesitas una audiencia enorme para ganar bien"
+  - "Tu sistema nervioso es el que vende, no el script"
+  - "Vender es servicio, no manipulación"
 
-tone_of_voice: "Directa, cálida, inspiradora. Habla de tú a tú, sin jerga corporativa."
+tone_of_voice:
+  description: "Directa, cálida, inspiradora. Habla de tú a tú, sin jerga corporativa. Brevity DM-style en respuestas, narrativa rica en posts largos."
+  do:
+    - "Acknowledge antes de bridge"
+    - "Real numbers en testimonios"
+    - "Preguntas qualifying específicas"
+    - "Spanish neutro LatAm"
+  dont:
+    - "'Qué emocionante!' / '¡Qué bueno que llegaste!' performance phrases"
+    - "Promesas de '6 cifras en 6 meses'"
+    - "Lenguaje motivacional vacío"
+    - "Voseo (es-PE = tuteo)"
 
 lead_magnet:
   title: "Guía gratuita: 5 errores que cometes en tu marketing"
-  format: "PDF 18 páginas"
-  delivery_method: "email automático post suscripción"
+  format: "PDF 18 páginas + bonus video walk-through 12 min + Google Doc plantilla"
+  delivery_method: "email automático post suscripción (5 min)"
   opt_in_page: "https://visionarias.lat/guia-gratuita"
+  conversion_rate_visit_to_optin: "23%"
+
+# ─────────────────────────────────────────────────────────────
+# Nicolify scheduling integration (clon-Calendly)
+# ─────────────────────────────────────────────────────────────
+scheduling:
+  provider: "Nicolify scheduling (clon-Calendly built-in)"
+  event_types:
+    - id: "scheduling_evt_a1_l2_discovery_call"
+      name: "Discovery call — Programa De Propósito a Prosperidad"
+      duration_minutes: 30
+      offer_level: "L2"
+      facilitator: "Ileana Tapia"
+      booking_url: "https://app.nicolify.com/schedule/visionarias-coach/de-proposito-discovery"
+      pre_booking_questions:
+        - "¿Cuál es tu negocio actual y qué tiempo lleva activo?"
+        - "¿Qué facturación promedio tienes mensualmente?"
+        - "¿Cuál es tu objetivo principal con el programa?"
+      capacity_per_week: 12
+      timezone_default: "America/Lima"
+
+    - id: "scheduling_evt_a1_l4_discovery_call"
+      name: "Discovery call — Mentoría 1:1 Intensiva"
+      duration_minutes: 30
+      offer_level: "L4"
+      facilitator: "Ileana Tapia"
+      booking_url: "https://app.nicolify.com/schedule/visionarias-coach/mentoria-1-1-discovery"
+      pre_booking_questions:
+        - "¿Cuál es tu facturación mensual promedio actualmente?"
+        - "¿Cuál es tu meta de facturación a 6 meses?"
+        - "¿Qué intentaste antes y por qué no funcionó?"
+        - "¿Cuántas horas a la semana podés dedicarle a aplicar el plan?"
+      capacity_per_week: 6
+      timezone_default: "America/Lima"
+
+    - id: "scheduling_evt_a1_l3_elite_application_call"
+      name: "Aplicación Tier Elite — entrevista breve"
+      duration_minutes: 20
+      offer_level: "L3_elite"
+      facilitator: "Ileana Tapia + asistente"
+      booking_url: "https://visionarias.lat/comunidad-vip/aplicacion-elite"
+      capacity_per_week: 8
+      timezone_default: "America/Lima"
+
+# ─────────────────────────────────────────────────────────────
+# Channel-specific assets para sales agent
+# ─────────────────────────────────────────────────────────────
+channel_specific_messaging:
+  whatsapp:
+    avg_response_time_hours: 4
+    avg_message_length: "1-3 frases por mensaje, multi-msg cuando aplica"
+    auto_reply_after_hours: "Hola, gracias por escribir. Respondo en horario laboral PE (9-18h GMT-5). Si urge, te puedo agendar llamada — pasa el tema por acá y te respondo apenas pueda."
+    business_hours: "Lunes-Viernes 9:00-18:00 hora Perú (GMT-5)"
+  instagram_dm:
+    avg_response_time_hours: 6
+    common_inbound_intents:
+      - "Pregunta de precio"
+      - "Pregunta sobre programa"
+      - "Solicitud de testimonios"
+      - "Comparación con competencia"
+      - "Pedido de descuento"
+    initial_response_template: "Saludo + breve qualifying ('¿negocio activo o validando?') + bridge a recurso correcto"
+  email:
+    avg_response_time_hours: 24
+    long_form_ok: true
+    common_inbound_intents: ["Aplicación a Beca L2", "Consulta corporativa B2B", "Solicitud entrevista podcast"]

@@ -1,110 +1,321 @@
 # buyer_personas.yaml — tenant_clinica_dental
-# Exactamente 3 personas: 2 base + 1 adversarial (Q8 ratificado)
-# Dialect: es-CO — tuteo bogotano, sin voseo paisa
+# Sonrisa Plena — Miraflores Lima.
+# 3 personas (Q8): 2 base + 1 adversarial. Dialect es-CO bogotano.
 
 tenant_slug: tenant_clinica_dental
 dialect_code: es-CO
 currency: PEN
-target_market: "Familias Lima que buscan odontólogo de confianza a largo plazo con tratamientos desde profilaxis hasta ortodoncia"
+target_market: "Profesionales limeños 28-55 + familias clase media buscando odontología transparente"
 persona_count: 3
-decision_driver: "Confianza en el especialista + transparencia de precios + posibilidad de plan de pago"
+decision_driver: "Transparencia precios + planes financieros realistas + ausencia de cobros sorpresa"
 
 personas:
-  - name: "Patricia la Mamá Preocupada"
+  # ─────────────────────────────────────────────────────────────
+  - name: "Carlos el Profesional Joven"
     persona_type: "base"
-    age: 38
-    role: "Docente de colegio + mamá de dos hijos"
-    location: "Surco, Lima"
-    income_range: "PEN 2,500 - 3,500/mes"
-    education: "Licenciada en Educación"
-    family_status: "Casada, hijos de 8 y 11 años"
+    archetype_role: "Profesional adulto buscando ortodoncia adulta"
+    age: 35
+    gender: "masculino"
+    role: "Ingeniero de software senior en empresa tecnológica"
+    seniority: "12 años en tech"
+    location: "Surco / La Molina, Lima"
+    location_setting: "urbano residencial profesional"
+    income_range_pen: "8,000 - 13,000/mes"
+    education: "Ingeniería de Sistemas UNI + maestría in progress"
+    family_status: "Casado, sin hijos por ahora"
+    work_setup: "Remoto 100% (empresa LatAm con HQ en Brasil)"
+    daily_schedule: "Reuniones 9-12, deep work 13-18, gym 19h. WhatsApp constante."
+
     pain_points:
-      - "Su hijo mayor necesita brackets pero no sabe si es el momento ni cuánto cuesta"
-      - "Ella misma lleva años sin ir al dentista por falta de tiempo y dinero"
-      - "Le preocupa que los tratamientos sean dolorosos para sus hijos"
-      - "Ha tenido malas experiencias con dentistas que cobran de más al final"
+      - "Maloclusión clase II leve heredada — siempre incomodó pero nunca trató"
+      - "Frustración con cotizaciones vagas en otras clínicas ('depende del caso')"
+      - "Quiere ortodoncia invisible (Invisalign) por trabajo en cámara constantemente"
+      - "Presupuesto disponible pero quiere claridad financiera total"
+
     objections:
-      - "¿Cuánto cuesta exactamente? Necesito saber el total antes de empezar"
-      - "¿Duele el tratamiento? Mi hijo tiene mucho miedo"
-      - "¿No es muy pronto para brackets a los 11 años?"
-    budget_range: "PEN 80-300 mensual familiar; puede comprometerse a PEN 2,000+ si hay cuotas"
+      - text: "Vi en otra clínica más barato (PEN 5,800 Invisalign vs PEN 7,500 acá)"
+        intensity: "alta"
+        underlying_fear: "Pagar de más por la misma calidad"
+      - text: "Y si los controles me cobran aparte después?"
+        intensity: "alta"
+        underlying_fear: "Costo final inflado vs cotización inicial"
+      - text: "¿Por qué Invisalign sí o sí, no puedo con brackets transparentes?"
+        intensity: "media"
+        underlying_fear: "Compromiso financiero alto innecesario"
+
+    desires:
+      - "Sonrisa alineada para confianza profesional + estética"
+      - "Cuotas largas sin intereses (12-18 meses)"
+      - "Tratamiento que no afecte trabajo en videollamadas"
+      - "Plan claro escrito desde el inicio"
+
+    secret_concerns:
+      - "Que se note exceso el aparato en videollamadas con clientes Brasil"
+      - "Pagar 18 meses sin ver progreso visible"
+      - "Tener problemas funcionales después por mal tratamiento"
+
+    budget_range_pen: "PEN 5,000-9,000 con cuotas. Cómodo con 12 meses sin intereses tarjeta."
+    purchase_decision_speed: "moderada (3-5 semanas comparando 4-5 clínicas)"
+    purchase_triggers:
+      - "Plan escrito con costo cerrado upfront"
+      - "Demostración con escaneado iTero del resultado esperado"
+      - "Cuotas 12-18 meses sin intereses BCP/Interbank"
+      - "Garantía escrita re-tratamiento si recidiva"
+
+    preferred_channels:
+      - channel: "Google + Reviews"
+        frequency: "investigación intensiva"
+      - channel: "WhatsApp"
+        frequency: "respuesta 1-2h horario laboral"
+        tone_preferred: "directo, técnico OK"
+      - channel: "Email"
+        frequency: "lee follow-up post-consulta"
+
+    aspirations:
+      - "Sonrisa alineada en 18 meses (Invisalign timing)"
+      - "Mantener resultado con retenedores"
+      - "Recomendar clínica a colegas"
+
+    objections_to_aggressive_marketing: "alta — descarta clínicas que no responden a su pregunta directa de costo final"
+
+    buyer_journey:
+      awareness: "Google search 'mejor ortodoncia adulto Lima' + reviews Google + IG"
+      consideration: "Cotiza en 4-5 clínicas. Dr. Dental Krebs, The Dental Clinic, Solución Dental, Sonrisa Plena, Smile Design"
+      decision: "Decide por Sonrisa Plena por: (a) cotización cerrada por escrito en consulta L0, (b) escaneado iTero gratis, (c) 18 cuotas BCP"
+      retention: "Tras Invisalign, prob Plan Pareja (con esposa) PEN 180/mes"
+
+    likely_offer_path: "L0 → L2 Invisalign (12-18 cuotas) → L4 Pareja"
+    likely_LTV_pen: 9500
+
+    evaluation_criteria_for_purchase:
+      - "Cotización cerrada por escrito post-consulta"
+      - "Escaneado iTero con preview ClinCheck"
+      - "Cuotas tarjeta 12-18 meses sin intereses"
+      - "Reviews Google verificables"
+      - "Garantía escrita"
+
+    sample_question_to_agent:
+      - "¿La cotización en consulta L0 incluye TODO o me van a cobrar controles aparte?"
+      - "¿Cuánto demora Invisalign para mi caso clase II leve?"
+      - "¿Tienen 18 cuotas sin intereses con BCP?"
+      - "¿Pueden hacer escaneado iTero para mostrarme preview antes de decidir?"
+      - "¿Cuál es la garantía si después se mueve?"
+
+  # ─────────────────────────────────────────────────────────────
+  - name: "Verónica la Madre de Familia"
+    persona_type: "base"
+    archetype_role: "Madre de familia gestionando salud dental de 4 personas"
+    age: 42
+    gender: "femenino"
+    role: "Profesora colegio privado + madre"
+    seniority: "15 años docencia secundaria"
+    location: "Surco / Chacarilla, Lima"
+    location_setting: "urbano familiar"
+    income_range_pen: "5,000 - 8,000/mes (pareja 12-15k juntos)"
+    education: "Licenciada en Educación + Maestría en Pedagogía"
+    family_status: "Casada, dos hijos (8 y 11 años)"
+    work_setup: "Presencial colegio L-V 7-15h"
+    daily_schedule: "5:30am-22h con hijos. Cita médica = sábado o tarde."
+
+    pain_points:
+      - "Gasto dental familiar impredecible — algunos años PEN 1,500, otros PEN 3,500"
+      - "Hijos necesitan controles + posiblemente ortodoncia futura"
+      - "Esposo lleva años sin ir al dentista por miedo"
+      - "Quiere predictibilidad financiera para presupuesto familiar"
+
+    objections:
+      - text: "PEN 280/mes son PEN 3,360/año. ¿No sale más caro que pagar suelto?"
+        intensity: "alta"
+        underlying_fear: "Pagar plan que no usen los 4"
+      - text: "Mi esposo se rehúsa al dentista. ¿No pierdo plata?"
+        intensity: "alta"
+        underlying_fear: "Compromiso por persona que no usará"
+      - text: "Compromiso 12 meses con hijos pequeños es mucho"
+        intensity: "media"
+        underlying_fear: "Cancelar antes con penalidad"
+      - text: "¿No es mejor un seguro dental?"
+        intensity: "media"
+        underlying_fear: "Comparar con alternativa estructurada"
+
+    desires:
+      - "Predictibilidad gasto dental anual"
+      - "Que los hijos vayan sin trauma cada 6 meses"
+      - "Convencer al esposo de ir gradualmente"
+      - "Acceso a ortodoncia futura para hijos con descuento"
+
+    secret_concerns:
+      - "Que esposo se 'pegue' por miedo al dentista años más"
+      - "Gasto inesperado en hijos por caries no detectadas"
+      - "Que los hijos hereden problemas oclusales (tendencia familia)"
+      - "Cancelar plan y perder dinero pagado"
+
+    budget_range_pen: "PEN 200-350/mes mensualidad familiar; cuotas grandes en tratamientos restauradores"
+    purchase_decision_speed: "lenta (4-8 semanas, consulta esposo, compara con seguros dentales)"
+    purchase_triggers:
+      - "Comparativa numérica plan vs gasto suelto histórico"
+      - "Política flexibility con esposo dental-fóbico"
+      - "Descuento en ortodoncia para hijos"
+      - "Reviews de otras familias"
+
     preferred_channels:
       - channel: "WhatsApp"
-        frequency: "principal canal de contacto"
-        tone: "claro, sin tecnicismos"
-      - channel: "Instagram"
-        frequency: "para ver antes/después"
-        tone: "casos reales de familias"
-    aspirations:
-      - "Que toda la familia tenga la boca sana sin arruinar el presupuesto"
-      - "Encontrar un dentista de confianza para los próximos años"
-    buyer_journey:
-      awareness: "Recomendación de otra mamá del colegio"
-      consideration: "Pregunta por precios, garantías y si atienden niños"
-      decision: "La consulta gratuita para los tres (ella + dos hijos) la convence"
+        frequency: "respuesta lenta (revisa entre clases)"
+        tone_preferred: "claro + paciente con preguntas múltiples"
+      - channel: "Facebook"
+        frequency: "consume contenido de mamás Lima"
+      - channel: "Recomendaciones boca-a-boca"
+        frequency: "alta confianza"
 
-  - name: "Carlos el Joven Profesional"
-    persona_type: "base"
-    age: 27
-    role: "Analista financiero en banca"
-    location: "Miraflores, Lima"
-    income_range: "PEN 4,000 - 6,500/mes"
-    education: "Licenciado en Economía"
-    family_status: "Soltero"
-    pain_points:
-      - "Siempre postergó los brackets por miedo y vergüenza social"
-      - "Ahora que puede pagarlo, no sabe por dónde empezar"
-      - "Quiere un tratamiento que no sea tan visible en su trabajo"
-      - "Su encía sangra cuando se lava pero nunca ha ido al dentista"
-    objections:
-      - "¿Puedo hacer los brackets con alineadores invisibles? No quiero que se noten en el trabajo"
-      - "¿Cuánto tiempo tengo que usar los brackets? Tengo una boda importante en 6 meses"
-      - "¿Y si empieza el tratamiento y me trasladan de ciudad?"
-    budget_range: "PEN 2,000-3,500 para ortodoncia; flexible si los resultados son claros"
-    preferred_channels:
-      - channel: "Instagram"
-        frequency: "navega antes de contactar"
-        tone: "casos de adultos jóvenes, antes/después"
-      - channel: "WhatsApp"
-        frequency: "para información y agendar"
-        tone: "eficiente, sin largas esperas"
     aspirations:
-      - "Tener la sonrisa que siempre quiso antes de los 30"
-      - "Un tratamiento que pueda combinar con su vida profesional activa"
-    buyer_journey:
-      awareness: "Ve anuncios de antes/después en Instagram"
-      consideration: "Compara entre Invisalign genérico y la clínica"
-      decision: "La consulta gratuita con diagnóstico digital lo convence de la calidad"
+      - "Familia con salud bucal estable + sin trauma dental"
+      - "Predictibilidad financiera mensual"
+      - "Hijos con dentadura sana adulta"
 
-  - name: "Don Augusto el Resistente"
+    buyer_journey:
+      awareness: "Recomendación de mamá del colegio + búsqueda Google 'planes dentales familiares Lima'"
+      consideration: "Compara plan Sonrisa Plena vs seguro Pacífico vs gasto suelto. Hace cálculo Excel familiar."
+      decision: "Decide Plan Familia 4 cuando: (a) confirma flexibilidad esposo, (b) descuento ortodoncia futura, (c) odontopediatría para hijos"
+      retention: "Si funciona 12 meses, alta retención por inercia + ortodoncia hijos en 2-3 años"
+
+    likely_offer_path: "L0 (familiar evaluación) → L4 Plan Familia 4 → L2 Invisalign hija en 3 años"
+    likely_LTV_pen: 18000
+
+    evaluation_criteria_for_purchase:
+      - "Política flexible esposo dental-fóbico"
+      - "Comparativa explícita plan vs gasto suelto histórico"
+      - "Odontopediatría incluida para hijos"
+      - "Descuento ortodoncia futura"
+      - "Reviews de otras familias verificables"
+
+    sample_question_to_agent:
+      - "¿Puedo pagar Plan Familia 4 si mi esposo no va? ¿Pierdo su parte?"
+      - "PEN 280 × 12 = PEN 3,360. Yo gasto PEN 2,500/año. ¿Vale la pena?"
+      - "¿Tienen pediatría con anestesia consciente para niños con miedo?"
+      - "¿El descuento de 10% ortodoncia aplica para hijo de 11 años en 3 años?"
+      - "¿Qué pasa si nos mudamos a Trujillo? ¿Hay penalidad?"
+
+  # ─────────────────────────────────────────────────────────────
+  - name: "Renata la Influencer Adversarial"
     persona_type: "adversarial"
-    age: 58
-    role: "Gerente de planta industrial"
-    location: "Lima Norte, Lima"
-    income_range: "PEN 6,000 - 9,000/mes"
-    education: "Técnico mecánico, cursos de gestión"
-    family_status: "Casado, hijos adultos"
+    archetype_role: "Influencer beauty exigente con expectativas estéticas extremas"
+    age: 28
+    gender: "femenino"
+    role: "Influencer beauty + creadora de contenido full-time"
+    seniority: "5 años en contenido digital, 380k seguidores IG"
+    location: "Miraflores, Lima"
+    location_setting: "urbano premium creator economy"
+    income_range_pen: "12,000 - 25,000/mes (irregular, marcas + UGC)"
+    education: "Comunicaciones UPC, cursos beauty influencer"
+    family_status: "Soltera, sin hijos"
+    work_setup: "Home studio + viajes constantes (3-4 destinos al año)"
+    daily_schedule: "Stories 8am, contenido 11-15, eventos noche frecuentes"
+
     pain_points:
-      - "Lleva 12 años sin ir al dentista y lo sabe pero evita hablar del tema"
-      - "Le da 'vergüenza' del estado de su boca pero no lo admite"
-      - "Tiene dolor molar crónico que atribuye a 'algo que se le fue'"
-      - "Su esposa lo manda pero él viene desconfiado y a la defensiva"
+      - "Necesita sonrisa 'perfecta' para cámara cerrada"
+      - "Otras clínicas le ofrecieron 10-12 carillas (sobreventa probable)"
+      - "Imagen profesional depende de detalles estéticos"
+      - "Quiere hacer contenido del proceso pero clínica debe ser 'instagrameable'"
+
     objections:
-      - "Los dentistas siempre cobran demasiado y al final te inventan más problemas"
-      - "A mi edad, ¿para qué voy a invertir tanto en la boca?"
-      - "Mis muelas me dolían y se me pasó solo. No creo que sea nada grave"
-      - "Ya fui a otro dentista que me dijo que necesitaba 3 tratamientos y no le creí"
-    budget_range: "Tiene recursos pero máxima desconfianza; solo procede con diagnóstico transparente"
+      - text: "Solo 6 carillas? Yo necesito 10 mínimo para que se vea bien"
+        intensity: "muy alta"
+        underlying_fear: "Resultado 'incompleto' que no satisfaga estándares"
+      - text: "PEN 7,200 me parece poco. Esperaba PEN 15,000+ por calidad premium"
+        intensity: "alta"
+        underlying_fear: "Que precio bajo = calidad baja"
+      - text: "El equipo se ve 'normal'. Necesito clínica boutique-level para mi marca"
+        intensity: "alta"
+        underlying_fear: "Que sus seguidores no vean prestigio"
+      - text: "Cuál es su Instagram? Cuántos seguidores tienen?"
+        intensity: "muy alta"
+        underlying_fear: "Asociarse con marca 'pequeña' que no eleve la suya"
+      - text: "¿Pueden hacer collab? Doy contenido + reseña a cambio de procedimiento"
+        intensity: "alta"
+        underlying_fear: "Pagar full price por algo que puede negociar"
+      - text: "Smile Design Perú me ofreció 12 carillas + blanqueamiento + bonus al mismo precio"
+        intensity: "muy alta"
+        underlying_fear: "Conseguir 'mejor deal' en otro lado"
+
+    desires:
+      - "Sonrisa instagram-perfect para cámara cerrada"
+      - "Asociarse con marca prestigio que la posicione"
+      - "Documentar proceso para contenido viral"
+      - "Resultado WOW para sus seguidores"
+
+    secret_concerns:
+      - "Que se le note 'trabajada' la sonrisa"
+      - "Que clínica no tenga estética IG-friendly para su contenido"
+      - "Que sus competidoras tengan mejor sonrisa"
+      - "Pagar precio normal cuando podría conseguir collab"
+
+    budget_range_pen: "Tiene presupuesto pero busca el 'mejor deal' agresivamente"
+    purchase_decision_speed: "rápida si encuentra el deal correcto, lenta si no"
+    purchase_triggers:
+      - "Cantidad de procedimientos que asegure 'transformación visible'"
+      - "Asociación con marca de prestigio"
+      - "Posibilidad de collab/intercambio"
+      - "Bonuses agresivos"
+
+    adversarial_notes: |
+      Esta persona es adversarial por:
+        - Espera más procedimientos de los necesarios (sobreventa-friendly)
+        - Confunde precio bajo = calidad baja (premium-only-mindset)
+        - Negocia agresivamente por collab
+        - Compara con clínicas que SÍ sobre-venden
+        - Mide prestigio por seguidores IG
+        - Reacciona MAL a "no necesitas eso, ahorras dinero"
+
+      Útil para evaluar si el sales agent:
+        - Resiste presión a sobre-vender
+        - NO denigra competencia que sí sobre-vende
+        - Maneja narcisismo profesional sin ser hostil
+        - Declina collab profesionalmente cuando no aplica
+        - Mantiene política anti-sobreventa incluso con paciente que la quiere
+
+      Reacciona BIEN a:
+        - Diseño digital (DSD) tangible y visual
+        - Garantía 24-36 meses
+        - Reconocimiento de su industria sin sumisión
+        - Honestidad respaldada con evidencia clínica
+
+      Reacciona MAL a:
+        - "Te recomendamos solo 6 carillas"
+        - Negativa a collab sin justificación
+        - Tono paternalista
+        - "El precio refleja la calidad"
+
     preferred_channels:
-      - channel: "Teléfono o en persona"
-        frequency: "no usa WhatsApp para esto"
-        tone: "directo y sin rodeos"
-    adversarial_notes: >
-      Don Augusto desafía la credibilidad del diagnóstico y tiende a minimizar
-      síntomas. Útil para evaluar si el agent maneja la resistencia masculina
-      al cuidado médico sin ser confrontacional ni paternalista. Prueba si el
-      agent puede motivar sin apelar al miedo excesivo.
+      - channel: "Instagram DM"
+        frequency: "respuesta inmediata esperada"
+        tone_preferred: "rápido + amigable + IG-fluent"
+      - channel: "WhatsApp"
+        frequency: "para detalles operativos"
+      - channel: "TikTok"
+        frequency: "consume + crea contenido"
+
+    objections_to_anti_sobreventa: "muy alta — quiere lo opuesto"
+
     buyer_journey:
-      awareness: "Lo trae su esposa después de semanas de negociación"
-      consideration: "Exige ver el diagnóstico digital en pantalla y que se le explique cada punto"
-      decision: "Solo acepta empezar si el doctor es claro sobre qué es urgente y qué puede esperar"
+      awareness: "Ve antes-después IG de otras influencers o stories de otra colega"
+      consideration: "Compara 3-4 clínicas premium. Negocia agresivamente con todas. Espera collab."
+      decision: "Decide rápido si encuentra deal/collab. Si todas mantienen política, escoge la que parece más IG-prestigio."
+      retention: "Posible si resultado es viralizable. Promueve clínica a sus 380k si está satisfecha."
+
+    likely_offer_path: "L0 → L3 Premium con CBCT (probable upsell de Premium aunque pueda con Completo) o intenta collab"
+    likely_LTV_pen: 15000
+
+    evaluation_criteria_for_purchase:
+      - "Cantidad de procedimientos = transformación visible"
+      - "Calidad materiales premium documentada"
+      - "Garantía robusta"
+      - "Estética clínica IG-friendly"
+      - "Posibilidad collab evaluada"
+
+    sample_question_to_agent:
+      - "Si necesito 12 carillas para que se vea bien, ¿pueden hacerlo?"
+      - "¿Cuál es su clínica más cercana a estética boutique?"
+      - "¿Hacen colaboraciones? Tengo 380k followers."
+      - "¿Por qué creen que 6 carillas bastan vs 12 que me dijo Smile Design?"
+      - "¿Tienen pacientes influencers o profesionales públicos?"
+      - "¿Puedo grabar contenido durante el procedimiento?"
+      - "¿Cuál es su material premium (e-max vs feldespática vs zirconio)?"

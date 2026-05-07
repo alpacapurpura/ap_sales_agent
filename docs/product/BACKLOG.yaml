@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T02:57:54+00:00
+# Generated at: 2026-05-07T20:24:28+00:00
 
-generated_at: '2026-05-07T02:57:54+00:00'
+generated_at: '2026-05-07T20:24:28+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -79,6 +79,22 @@ buckets:
     extra:
       promoted_to_outcome: null
       ost: null
+  - id: sales-inbox-responsive-collapse
+    kind: idea
+    state: idea
+    title: Sales Studio inbox 3-col (lista/detalle/conversación) inner layout responsive — colapsa a 2 o 1 col cuando viewport+chrome
+      restringen ancho
+    tags:
+    - module:sales-agent
+    - module:crm
+    - type:responsive-ui
+    - effort:M
+    - value:user-experience
+    - source:chris-via-live-repro
+    last_touched: 2026-05-07
+    extra:
+      promoted_to_outcome: null
+      ost: null
   - id: sales-agent-dialect-configuration
     kind: story
     state: idea
@@ -110,13 +126,21 @@ buckets:
     extra:
       story_ids:
       - app-shell-sidebar-copilot-decoupling
-      - growth-studio-architectural-parity
+      - growth-studio-folder-parity
+      - growth-studio-actions-schemas-real
       - growth-studio-visual-coherence-pass
-      why_now: "Dos pains convergentes hoy bloquean escalabilidad y degradan experiencia\ncross-app:\n\n1. **Sidebar global\
-        \ se superpone con la barra del copilot** (cross-app, no\n   solo Growth Studio). Bug visual visible en producción\
-        \ que afecta TODA\n   la app, no aislable a un studio. User explícito: \"afecta otras\n   funcionalidades más, es\
-        \ un tema arquitectural\" (2026-05-06).\n\n2. **Growth Studio FE quedó fuera del refactor de hace ~1 mes** que\n \
-        \  homologó Brand Studio + Offer Studio (folders `pages/` + `actions/` +\n   `schemas/`, dispatchers SSoT, arch fitness\
+      why_now: "Dos pains convergentes hoy bloquean escalabilidad y degradan experiencia\ncross-app:\n\n1. **Shell layout\
+        \ starvation + mutex absence cross-app** (diagnosis\n   corregida 2026-05-07 vía live repro chrome-devtools-verify):\
+        \ el\n   symptom user-reported \"sidebar se superpone con copilot\" NO es\n   z-index overlap (live repro confirma\
+        \ overlap=0px en TODAS las\n   combinaciones medidas). Real root cause = (a) `main` element es\n   `flex-1 min-w-0`\
+        \ sin floor → CopilotSidebar consume content space\n   hasta degradar main. Worst case: viewport 768 × sidebar expandido\
+        \ ×\n   copilot open = main 52px (catastrofico). (b) AppSidebar.isCollapsed\n   y CopilotStore.isOpen independientes\
+        \ — sin mutex policy auto-collapse.\n   (c) `useCopilotOffset` hook miente por 80-220px vs CopilotSidebar\n   grid\
+        \ widths reales — todos modals/sheets mis-centered. (d) Mobile\n   <768: AppSidebar carece left drawer (solo topbar\
+        \ 40px sin aria-label),\n   no FAB para reabrir copilot. Cross-studio (offer/brand/growth/sales/\n   settings/connections/scheduling).\
+        \ User explícito: \"afecta otras\n   funcionalidades más, es un tema arquitectural\" (2026-05-06) —\n   ratificado\
+        \ pero scope real expandido por evidence.\n\n2. **Growth Studio FE quedó fuera del refactor de hace ~1 mes** que\n\
+        \   homologó Brand Studio + Offer Studio (folders `pages/` + `actions/` +\n   `schemas/`, dispatchers SSoT, arch fitness\
         \ `test-studio-structure-parity`).\n   Growth tiene `config/` + `context/` + `__mocks__/` legacy y NO tiene\n   `pages/`\
         \ ni `actions/` ni `schemas/`. Roadmap exige agregar canales\n   sin refactor cada vez.\n\nBowtie superior + métricas\
         \ dashboard NO se tocan — visualmente están bien\ny son invariante de negocio (Chris, 2026-05-06).\n"
@@ -124,7 +148,13 @@ buckets:
       target_end: null
       priority: 1
       success_metrics:
-      - Sidebar global NO se superpone con barra del copilot en ningún viewport (≥375px) ni en ningún studio (brand/offer/growth/copilot/sales/closer/connections)
+      - main content width ≥720px en TODO studio @ viewport ≥1024px (read-comfort floor garantizado por DashboardShell + mutex
+        policy)
+      - 'Mobile <768px: AppSidebar y Copilot drawers mutuamente exclusivos; FAB copilot persistente para reabrir; aria-labels
+        descriptivos hamburger + FAB'
+      - useCopilotOffset hook y CopilotSidebar grid widths consumen mismas constantes SSoT (`copilot-shell-widths.ts`); dialogs/sheets
+        centered correctamente (drift 0px vs ±80-220px pre-fix)
+      - Z-index ladder centralizado en `lib/tokens/z-index.ts` + arch test enforza tokens en shell + copilot shell
       - Agregar canal ficticio 'test-channel-x' a Growth Studio requiere ≤3 archivos nuevos (registry + dashboard + schema)
         + ZERO modificación a StageDispatcher/ChannelDispatcher
       - Arch fitness test_studio_structure_parity verde para growth-studio (modo factory adaptado)
@@ -212,12 +242,13 @@ buckets:
     state: refining
     title: app-shell-sidebar-copilot-decoupling
     tags: []
-    last_touched: 2026-05-06 22:54:54+00:00
+    last_touched: 2026-05-07 03:55:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: PM_DRAFT
-      next_action: /po-ux audita live con chrome-devtools-verify (sidebar+copilot overlap cross-studio) → produce 01-spec.md
-        unificado con wireframes inline + Gherkin scenarios
+      phase: PO_DRAFT_V2_AWAITING_RATIFICATION
+      next_action: Chris ratifica spec v2 (10 open questions). Diagnosis correction documentada — bug NO es z-index overlap.
+        Real = content starvation + mutex absence + offset hook drift + mobile gaps. Solution = DashboardShell parent + useShellMutex
+        + SSoT widths + tokens + AppSidebar mobile drawer + FAB + arch test extension.
       blocked_by: null
       priority_override: null
       audit_iterations: 0
@@ -236,17 +267,32 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: growth-studio-architectural-parity
+  - id: growth-studio-actions-schemas-real
     kind: story
     state: refining
-    title: growth-studio-architectural-parity
+    title: growth-studio-actions-schemas-real
     tags: []
-    last_touched: 2026-05-06 22:54:54+00:00
+    last_touched: 2026-05-07 03:30:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: PM_DRAFT
-      next_action: /po redacta 01-spec.md service-like (refactor sin UI change). Architect después produce ready package con
-        plan de migración por capas.
+      phase: PO_DRAFTING
+      next_action: /po redacta 01-spec.md (4 real copilot actions + 4 real zod schemas). BLOCKED por growth-studio-folder-parity
+        (2A) — necesita pages/actions/schemas/ + factory dispatchers.
+      blocked_by:
+      - growth-studio-folder-parity
+      priority_override: null
+      audit_iterations: 0
+  - id: growth-studio-folder-parity
+    kind: story
+    state: refining
+    title: growth-studio-folder-parity
+    tags: []
+    last_touched: 2026-05-07 03:30:00+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: PO_DRAFTING
+      next_action: /po redacta 01-spec.md (folder parity + factory dispatchers + legacy purge + arch fitness extension + allowlist
+        cleanup 6 dashboards). Sequential PRECEDE de growth-studio-actions-schemas-real (2B).
       blocked_by: null
       priority_override: null
       audit_iterations: 0
@@ -352,23 +398,23 @@ buckets:
       audit_iterations: 0
   refined: []
   ready: []
-  developing:
+  developing: []
+  developed:
   - id: eval-foundation-tenant-seed-data
     kind: story
-    state: developing
+    state: developed
     title: eval-foundation-tenant-seed-data
     tags:
     - legacy:exempt
-    last_touched: 2026-05-07 01:30:00+00:00
+    last_touched: 2026-05-07 07:00:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: BUILD_T4
-      next_action: /dev-team T-4 last ticket — curación Chris + ratificación + capability YAML update + GREEN final. Loop
-        iterativo Chris ↔ builder. T-1+T-2+T-3 closed pushed.
+      phase: AWAIT_AUDIT
+      next_action: Story state developing → developed. Awaiting Chris triggers `/auditor` Conv 3 manualmente para review final
+        + merge. T-1+T-2+T-3+T-4 closed pushed.
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  developed: []
   reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails

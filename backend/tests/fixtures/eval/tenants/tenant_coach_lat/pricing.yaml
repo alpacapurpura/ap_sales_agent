@@ -1,56 +1,239 @@
 # pricing.yaml — tenant_coach_lat
-# Currency: PEN (Peruvian Sol) — Q3 ratificado single-currency seed
-# Todos los precios en PEN para aislamiento de tests
+# Currency: PEN (Q3 ratificado single-currency seed).
+#
+# Cobertura para personas adversariales (T-4 curación):
+#   - Plan plans (cuotas) explícitos
+#   - Refund policy detallada por offer
+#   - Payment methods completos (incluye Yape/Plin para LatAm Perú)
+#   - Discounts cross-offer (early bird, ex-alumna, group)
+#   - Tax info (RER persona natural Perú)
+#   - Currency conversion notes (alumnas extranjeras)
 
 currency: PEN
 country: PE
-payment_methods:
-  - "transferencia_bancaria"
-  - "tarjeta_credito_debito"
-  - "yape"
-  - "plin"
+tax_regime: "RER"
+tax_id_label: "RUC"
+issues_invoice: true
+invoice_types: ["boleta", "factura"]
 
+payment_methods:
+  - method: "yape"
+    label: "Yape"
+    fees: "0%"
+    settlement_time: "instantáneo"
+    notes: "Solo Perú. Para alumnas internacionales usar transferencia o tarjeta."
+  - method: "plin"
+    label: "Plin"
+    fees: "0%"
+    settlement_time: "instantáneo"
+    notes: "Solo Perú."
+  - method: "transferencia_bancaria"
+    label: "Transferencia bancaria"
+    accepted_banks: ["BCP", "Interbank", "BBVA", "Scotiabank", "Banbif", "Pichincha"]
+    fees: "0%"
+    settlement_time: "1-2 días hábiles"
+    international: true
+    international_notes: "SWIFT disponible. Costo de transferencia internacional asumido por la alumna."
+  - method: "tarjeta_credito_debito"
+    label: "Tarjeta crédito/débito (Visa, Mastercard, Amex)"
+    processor: "Culqi + Stripe"
+    fees: "incluidas en precio"
+    settlement_time: "instantáneo"
+    international: true
+    cuotas_sin_intereses: "Disponible para tarjetas peruanas en BCP, Interbank, BBVA, Scotia (3, 6 o 12 cuotas)"
+  - method: "paypal"
+    label: "PayPal"
+    fees: "incluidas en precio"
+    settlement_time: "instantáneo"
+    international: true
+    notes: "Recomendado para alumnas extranjeras que no pueden hacer transferencia internacional"
+
+currency_conversion_policy:
+  display_currency: "PEN"
+  conversion_for_foreign_buyers: "El precio se mantiene en PEN. Tu banco/PayPal aplica conversión a tu moneda local. Tipo de cambio referencial USD/PEN ~3.65 (varía)."
+  international_buyer_examples:
+    - country: "México"
+      programa_l2_local_currency: "~MXN 27,000"
+    - country: "Colombia"
+      programa_l2_local_currency: "~COP 6,200,000"
+    - country: "Argentina"
+      programa_l2_local_currency: "~ARS 1,900,000"
+
+# ─────────────────────────────────────────────────────────────
+# Price list por offer
+# ─────────────────────────────────────────────────────────────
 price_list:
   - offer_level: "L0"
     offer_name: "Guía gratuita: 5 errores que cometes en tu marketing"
     price: 0
     billing_cycle: "one_time"
     is_free: true
+    refund_policy: "N/A — gratis"
 
   - offer_level: "L1"
     offer_name: "Workshop: Oferta Irresistible en 3 horas"
     price: 49
+    regular_price: 99
     billing_cycle: "one_time"
-    discount_policy: "10% en grupos de 3 o más"
+    discount_label: "Precio bienvenida (descuento del lead magnet)"
+    payment_plans: null
+    discount_policy:
+      group_3_plus: "10% off"
+      ex_alumna_lm: "50% off (PEN 49 vs PEN 99 regular)"
+    refund_policy: "Garantía 7 días si participas activamente y aplicas los ejercicios. Reembolso 100%."
 
   - offer_level: "L2"
-    offer_name: "Curso: Sistema VISIONARIA Completo"
-    price: 297
-    billing_cycle: "one_time"
-    payment_plan: "3 cuotas de PEN 109"
-    discount_policy: "5% para ex-alumnas del workshop"
+    offer_name: "Programa: De Propósito a Prosperidad"
+    price: 5925
+    regular_price: 7900
+    billing_cycle: "one_time_or_plan"
+    discount_label: "Promoción ediciones tempranas (vence con 5ta edición)"
+    payment_plans:
+      - plan_id: "L2_pago_unico"
+        plan_name: "Pago único"
+        total: 5925
+        bonus: "Sesión 1:1 extra de 30 min con Ileana al cerrar el programa"
+      - plan_id: "L2_3_cuotas_mensuales"
+        plan_name: "3 cuotas mensuales"
+        cuota_amount: 1975
+        cuota_count: 3
+        total: 5925
+        notes: "Sin recargo. Primera cuota antes de iniciar. Cuotas 2 y 3 al inicio del mes 2 y 3."
+      - plan_id: "L2_8_cuotas_semanales"
+        plan_name: "8 cuotas semanales"
+        cuota_amount: 740
+        cuota_count: 8
+        total: 5920
+        notes: "PEN 5 menos por redondeo. Sin recargo. Para acomodar flujo de caja."
+      - plan_id: "L2_early_bird"
+        plan_name: "Pago único early bird (antes del 31 mayo 2026)"
+        total: 5125
+        discount_amount: 800
+        notes: "Vence el 2026-05-31 23:59 hora Perú."
+    discount_policy:
+      ex_alumna_l1: "PEN 500 off"
+      group_2_amigas: "PEN 300 off cada una si se inscriben juntas"
+      ex_alumna_curso_anterior: "Upgrade desde Curso Sistema VISIONARIA (deprecated) con 50% off"
+    refund_policy: "Garantía 14 días desde inicio. Si participas en las primeras 4 sesiones, completas los ejercicios y no ves valor, reembolso 100%."
 
-  - offer_level: "L3"
-    offer_name: "Comunidad Visionarias VIP"
+  - offer_level: "L3_basic"
+    offer_name: "Comunidad Visionarias VIP — Tier Basic"
     price: 89
     billing_cycle: "monthly"
     annual_price: 890
-    discount_annual: "17% descuento pago anual"
+    discount_annual_label: "17% descuento pago anual"
     free_trial_days: 7
+    refund_policy: "Cancelación libre. Si cancelas durante la trial de 7 días, no se te cobra. Después de la trial, los pagos no son reembolsables pero acceso continúa hasta fin de periodo facturado."
+
+  - offer_level: "L3_pro"
+    offer_name: "Comunidad Visionarias VIP — Tier Pro"
+    price: 159
+    billing_cycle: "monthly"
+    annual_price: 1590
+    discount_annual_label: "17% descuento pago anual"
+    free_trial_days: 7
+    refund_policy: "Igual que Basic — cancelación libre, sin reembolso post-trial."
+
+  - offer_level: "L3_elite"
+    offer_name: "Comunidad Visionarias VIP — Tier Elite"
+    price: 289
+    billing_cycle: "monthly"
+    annual_price: 2890
+    discount_annual_label: "17% descuento pago anual"
+    free_trial_days: 0
+    requires_application: true
+    application_processing_time: "48-72h hábiles"
+    refund_policy: "Cancelación libre con 30 días de aviso. Sin reembolso retroactivo."
 
   - offer_level: "L4"
     offer_name: "Mentoría 1:1 Intensiva"
     price: 1490
     billing_cycle: "monthly"
     minimum_commitment_months: 3
-    payment_plan: null
-    discount_policy: "PEN 200 descuento pago trimestral adelantado"
+    payment_plans:
+      - plan_id: "L4_mensual_estandar"
+        plan_name: "Mensual estándar"
+        monthly_price: 1490
+        notes: "Compromiso mínimo 3 meses. Después puedes cancelar con 30 días de aviso."
+      - plan_id: "L4_trimestral"
+        plan_name: "Trimestral adelantado"
+        quarterly_price: 4170
+        monthly_equivalent: 1390
+        discount_pct: 7
+        notes: "PEN 100/mes de descuento."
+      - plan_id: "L4_semestral"
+        plan_name: "Semestral adelantado"
+        semester_price: 7920
+        monthly_equivalent: 1320
+        discount_pct: 11
+        notes: "PEN 170/mes de descuento. Mejor valor."
+    discount_policy:
+      ex_alumna_l2: "10% off primer mes"
+      tier_elite_member: "30% off primer mes (incluido en beneficios Elite)"
+    refund_policy: |
+      Sin reembolso post-inicio (servicio personalizado). Discovery call sirve como filtro.
+      Permitimos pausar 1 mes por año en caso de fuerza mayor (enfermedad / viaje extenso / evento personal).
+      Después del 3er mes, cancelas con 30 días de aviso (último mes lo facturamos completo).
 
-refund_policy: >
-  Satisfacción garantizada 7 días en productos digitales. Mentoría: sesión de
-  prueba antes del primer pago mensual. Sin reembolso después del inicio del
-  programa por ser servicio personalizado.
+# ─────────────────────────────────────────────────────────────
+# Refund matrix consolidada
+# ─────────────────────────────────────────────────────────────
+refund_matrix:
+  L0:
+    has_guarantee: false
+    notes: "Producto gratuito, no aplica."
+  L1:
+    has_guarantee: true
+    period_days: 7
+    refund_pct: 100
+    conditions: "Participación activa + aplicación de ejercicios documentada."
+  L2:
+    has_guarantee: true
+    period_days: 14
+    refund_pct: 100
+    conditions: "Asistencia a primeras 4 sesiones + completar ejercicios primeros 14 días."
+  L3:
+    has_guarantee: "trial_only"
+    period_days: 7
+    refund_pct: 100
+    notes: "Cancelación durante trial = no cobro. Post-trial sin reembolso pero acceso continúa hasta fin de periodo."
+  L4:
+    has_guarantee: false
+    period_days: 0
+    notes: "Servicio personalizado, sin reembolso. Discovery call funciona como filtro."
 
-pricing_philosophy: >
-  Precios basados en el valor transformacional, no en horas de trabajo.
-  Cada inversión está diseñada para recuperarse en el primer mes de aplicación.
+# ─────────────────────────────────────────────────────────────
+# Pricing philosophy (para que personas adversariales puedan probar)
+# ─────────────────────────────────────────────────────────────
+pricing_philosophy: |
+  Precios basados en valor transformacional, no en horas de trabajo.
+  Cada inversión está diseñada para recuperarse en el primer 1-3 meses
+  de aplicación (basado en historial de cohorts).
+
+  Precios diferenciados LatAm vs USA: nuestros precios reflejan
+  paridad de poder adquisitivo LatAm. NO inflamos precios para
+  alumnas extranjeras.
+
+  Sí ofrecemos becas: 2 becas parciales (50% off) por cohort de L2,
+  asignadas por proceso de aplicación. NO hacemos descuentos
+  no-publicados negociados 1:1 fuera de los descuentos listados.
+
+becas:
+  l2_becas_parciales_count: 2
+  l2_beca_pct: 50
+  l2_aplicacion_url: "https://visionarias.lat/becas-de-proposito"
+  l2_aplicacion_criterios:
+    - "Comprometida con aplicar la metodología (no es regalo, es inversión a futuro)"
+    - "Negocio activo o en validación con tracción inicial"
+    - "Compromiso de testimonio post-programa si hay resultados"
+
+# ─────────────────────────────────────────────────────────────
+# Tax / facturación
+# ─────────────────────────────────────────────────────────────
+invoicing:
+  emite_boleta: true
+  emite_factura: true
+  factura_requires_ruc: true
+  empresa_legal: "Ileana Tapia (persona natural con negocio, RUC 10XXXXXXXXX, RER)"
+  recibo_por_honorarios_disponible: true
+  for_corporate_buyers: "Sí, emitimos factura a empresas. Algunas empresas LatAm permiten reembolso de programas de formación profesional — consultar con tu área de RRHH."

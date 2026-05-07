@@ -1,79 +1,515 @@
 # offer_ladder.yaml — tenant_agencia_automatizacion_ia
-# SIN L0 (A5 per spec — entran por discovery call, no por lead magnet downloadable)
-# Ladder empieza en L1 (discovery call gratis es entry-point, NO es lead magnet L0)
-# NOTA: L1 "discovery call gratis" es entry-point de relación, NO L0 lead magnet.
-# L0 = lead magnet downloadable/presencial gratuito (ausente en A5 per spec).
-# has_lead_magnet=False → loader emite warning offer_ladder_missing_lead_magnet.
-# Currency: PEN
+# Núcleo Lab — agencia automatización IA + software con IA Lima.
+# SIN L0 lead magnet (A5 per spec — entran por discovery call + casos + referidos B2B).
+# Currency PEN. Dialect es-419 neutro pan-LatAm.
+#
+# Variants:
+#   TIER  — Retainer mensual L4 (Starter/Growth/Premium)
+#   L1, L2, L3 sin variants (servicios diferenciados por scope, no por tier)
+#
+# Discovery / cierre:
+#   L1 = Discovery call gratis 45 min (entry sin pago, NO es L0 lead magnet downloadable)
+#   L2 = Audit procesos pago (post-discovery)
+#   L3 = Implementación one-shot (post-audit)
+#   L4 = Retainer mensual mantenimiento + mejora ongoing
+#
+# Benchmarks Peru 2026:
+#   Automatización básica: PEN 15-50k
+#   Automatización compleja: PEN 50-150k+
+#   Agente IA básico: USD 8k+ (~PEN 30k)
+#   Implementación área completa: USD 25k+ (~PEN 95k)
 
 tenant_slug: tenant_agencia_automatizacion_ia
 currency: PEN
 has_lead_magnet: false
 total_levels: 4
-entry_point: "Discovery call gratuita (no cobrada) → L1 Auditoría de procesos IA"
-upsell_path: "L1 → L2 → L3 → L4"
+entry_point: "L1 — Discovery call gratis 45 min (entry-point sin pago, NO lead magnet downloadable)"
+upsell_path: "L1 → L2 (audit pago) → L3 (implementación) → L4 (retainer mantenimiento)"
+last_updated: "2026-05-07"
 
 offers:
+  # ─────────────────────────────────────────────────────────────
   - level: "L1"
-    name: "Auditoría de procesos IA (diagnóstico de automatización)"
-    description: >
-      Análisis de 3 días laborables de los procesos clave del negocio para
-      identificar oportunidades de automatización. Incluye: entrevistas con
-      el equipo, mapeo de flujos de trabajo actuales, cuantificación del costo
-      mensual de procesos manuales y roadmap priorizado de automatizaciones
-      con ROI estimado por iniciativa. Entregable: documento PDF de 20-25
-      páginas con recomendaciones técnicas y financieras.
-    format: "auditoria_procesos"
-    price: 1000
-    currency_display: "PEN 1,000"
-    duration: "3 días laborables"
-    delivery: "entregable digital + presentación Zoom 90 minutos"
-    value_proposition: "Diagnóstico real de cuánto te cuesta la ineficiencia operativa"
-    note: "Descontable del primer paquete de implementación"
+    archetype: "SERVICIO"
+    value_level: "tripwire"
+    preset_label: "Discovery call gratis B2B (entry-point sin pago)"
 
+    identity:
+      name: "Discovery Call Núcleo Lab"
+      slug: "discovery-call-gratis"
+      tagline: "45 minutos para entender si la automatización IA aplica a tu caso — sin compromiso"
+      short_description: "Reunión inicial 45 min con AI engineer (Iván o Sara). Discutimos tu caso de uso, evaluamos viabilidad técnica, y decidimos juntos si avanzamos a audit o no aplica todavía."
+
+    promise:
+      transformation: "De idea vaga 'queremos IA' a evaluación técnica concreta de qué automatizar y si tiene ROI"
+      outcome_short: "Diagnóstico viabilidad + recomendación honesta + cotización aproximada"
+      timeframe: "45 minutos remoto + 24h follow-up email"
+
+    value_stack:
+      - "45 minutos con AI engineer titular (Iván o Sara)"
+      - "Discusión técnica del caso de uso planteado"
+      - "Evaluación viabilidad (qué se puede automatizar realmente vs qué no)"
+      - "Cotización aproximada si aplica (rangos por scope)"
+      - "Recomendación honesta: implementación / audit primero / no es momento"
+      - "Email follow-up 24h post-call con notas + próximos pasos"
+      - "Acceso 30 días al material educativo Núcleo (videos sobre operationalizar IA)"
+
+    program_details:
+      duration_minutes: 45
+      modality: "remoto Zoom"
+      facilitator: "Iván Castro (técnico senior) o Sara Mendoza (LangGraph specialist)"
+      includes_followup: true
+      followup_format: "Email con 5-10 puntos de acción"
+
+    pricing:
+      price: 0
+      currency_display: "Gratis"
+      is_free: true
+      requires_deposit: false
+      no_show_policy: "Tras 1 falta sin aviso, próximas reuniones requieren pago de PEN 200 deposit refundable."
+
+    instructors:
+      - name: "Iván Castro"
+        role: "AI Engineering Lead — conduce mayoría de discoveries"
+      - name: "Sara Mendoza"
+        role: "Senior AI Engineer — discoveries técnicos especializados"
+
+    knowledge:
+      learning_objectives:
+        - "Evaluar viabilidad técnica del caso de uso"
+        - "Entender qué incluye realmente un proyecto de automatización IA"
+        - "Decidir si avanzar a audit pago o esperar"
+
+    closing:
+      mechanism: "appointment_required"
+      requires_scheduling: true
+      scheduling_event_type_id: "scheduling_evt_a5_l1_discovery"
+      scheduling_url: "https://app.nicolify.com/schedule/nucleo-lab/discovery-call-gratis"
+      cancellation_policy: "Cancela hasta 4h antes sin penalidad. 1 falta sin aviso → futuras requieren PEN 200 deposit."
+      next_step_after: "Email con 5-10 puntos de acción + recomendación: avanzar a audit / no aplica / esperar volumen / herramienta no-code más sencilla"
+
+    testimonials:
+      - persona: "Eduardo — CEO software empresa 80 personas"
+        quote: "El discovery fue impresionante. Iván nos dijo en 45 min que el proyecto que queríamos NO valía la pena por volumen. Ahorramos PEN 200,000 que íbamos a invertir en un white elephant."
+        result_metric: "Anti-mal-investment"
+      - persona: "Pamela — Directora Ops fintech"
+        quote: "Vine pidiendo un caso. Sara me sugirió otro mucho mejor que ni se me había ocurrido. Cambió la prioridad del proyecto."
+        result_metric: "Re-priorización inteligente"
+
+    faq:
+      - q: "¿De verdad gratis sin gancho?"
+        a: "Sí. Cero costo. Cero compromiso. Política documentada."
+      - q: "¿Qué necesitan saber antes del call?"
+        a: "Nombre empresa + sector + tamaño + caso de uso (aunque sea vago) + presupuesto aproximado disponible si aplica."
+      - q: "¿Si ven que no es momento, qué pasa?"
+        a: "Te lo decimos honestamente y te recomendamos qué hacer (otras herramientas, esperar a más volumen, o nada)."
+
+    location:
+      delivery_method: "remoto Zoom"
+      timezone: "America/Lima"
+
+    resources:
+      - "Email follow-up con notas + próximos pasos"
+      - "Acceso 30 días biblioteca técnica Núcleo (videos + papers)"
+
+    psychology:
+      target_emotion: "Claridad técnica + alivio (sin compromiso)"
+      objections_addressed:
+        - "¿Es gratis o hay gancho?"
+        - "Voy a perder 45 min escuchando sales pitch?"
+        - "¿Y si nuestro caso es muy específico?"
+      desire: "Evaluación técnica honest sin compromiso"
+
+    gallery:
+      cover_image: "https://nucleo-lab.pe/static/discovery-call-cover.jpg"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L2"
-    name: "Implementación de agente IA (paquete estándar)"
-    description: >
-      Implementación completa de un agente de IA o flujo automatizado para
-      un proceso específico. Incluye: diseño de arquitectura, desarrollo,
-      integración con sistemas existentes, pruebas de carga y despliegue
-      en producción. Soporte post-implementación por 30 días incluido.
-    format: "implementacion_agente_ia"
-    price: 8000
-    currency_display: "PEN 8,000"
-    duration: "4 semanas de implementación"
-    delivery: "agente o flujo desplegado en producción + documentación técnica"
-    payment_plan: "50% al inicio, 50% al despliegue"
-    value_proposition: "Proceso automatizado que trabaja 24/7 sin costo operativo adicional"
+    archetype: "SERVICIO"
+    value_level: "core"
+    preset_label: "Audit profundo procesos + viabilidad IA (servicio puntual pago)"
 
+    identity:
+      name: "Audit Procesos + Viabilidad IA"
+      slug: "audit-procesos-viabilidad-ia"
+      tagline: "3-4 semanas de discovery profundo para diseñar tu sistema IA productivo"
+      short_description: "Workshop 4 horas con stakeholders + observación operación 1 semana + análisis de viabilidad técnica + propuesta detallada con scope/timeline/costo. Entregable: documento ejecutivo + propuesta para implementación L3."
+
+    promise:
+      transformation: "De 'sabemos que queremos automatizar X' a plan ejecutable con scope cerrado, timeline, costo, métricas de éxito"
+      outcome_short: "Documento auditoría + propuesta implementación + roadmap"
+      timeframe: "3-4 semanas"
+
+    value_stack:
+      - "Workshop 4 horas con stakeholders cliente"
+      - "Observación operación 1 semana (shadowing equipos involucrados)"
+      - "Análisis técnico viabilidad (qué LLM, qué arquitectura, qué guardrails)"
+      - "Mapeo de procesos actuales con bottlenecks identificados"
+      - "Diseño de solución con flowcharts + tech stack"
+      - "Cotización detallada implementación (scope cerrado)"
+      - "Métricas de éxito predefinidas + monitoring plan"
+      - "Documento ejecutivo 30-50 páginas"
+      - "2 reuniones presentación (mid-audit + final)"
+      - "Si avanzás a implementación L3 dentro de 60 días, 50% del audit se descuenta del proyecto"
+
+    pricing:
+      price_range_pen: "8,000 - 15,000"
+      currency_display: "PEN 8,000 - 15,000 según complejidad caso"
+      pricing_model: "custom_quote"
+      payment_terms: "50% inicial + 50% al entregar"
+      payment_methods: ["transferencia", "tarjeta_credito_3_cuotas"]
+      typical_pricing:
+        - scope: "Caso simple (1 proceso, sin integraciones complejas)"
+          price: 8000
+        - scope: "Caso medio (1-2 procesos, integraciones backoffice)"
+          price: 11500
+        - scope: "Caso complejo (multi-proceso, integraciones múltiples, compliance especial)"
+          price: 15000
+
+    program_details:
+      duration_weeks: "3-4"
+      meetings_count: 4
+      includes_pdf_pages: "30-50"
+      shadowing_hours: 8
+      workshop_hours: 4
+
+    instructors:
+      - name: "Iván Castro"
+        role: "Lead audit"
+      - name: "Mariana Quispe"
+        role: "Customer Success — coordina logística + reuniones"
+
+    knowledge:
+      learning_objectives:
+        - "Entender estado actual de procesos con datos objetivos"
+        - "Tener plan ejecutable con scope cerrado"
+        - "Decidir si implementar in-house o con Núcleo"
+
+    closing:
+      mechanism: "post_l1_discovery"
+      requires_l1_first: true
+      scheduling_event_type_id: "scheduling_evt_a5_l2_audit"
+
+    testimonials:
+      - persona: "Federico — CTO fintech B2B peruana"
+        quote: "El audit nos dio claridad técnica que nuestro equipo interno no tenía. Ahorramos 2 meses de discovery interno. PEN 12,000 que valieron."
+        result_metric: "Aceleración decisión + mejor scope"
+      - persona: "Carolina — VP Ops empresa logística"
+        quote: "El audit identificó 3 procesos automatizables que nosotros ni habíamos considerado. El que más ROI tuvo NO era el original que pedimos."
+        result_metric: "Re-priorización inteligente"
+
+    faq:
+      - q: "¿Por qué tan caro? Otras agencias dan audit gratis"
+        a: "Porque es 3-4 semanas de trabajo serio (40-80 horas senior). Si fuera gratis, lo subsidiamos con clientes que pagan implementación. Cobrar audit alinea incentivos."
+      - q: "¿Si no avanzo a implementación, hay reembolso?"
+        a: "No reembolsamos pero te quedás con todo el documento y propuesta. Sirve para implementar in-house o con otra agencia si decides."
+      - q: "¿Cuánto demora?"
+        a: "3-4 semanas desde firma de contrato. Workshop semana 1, shadowing semanas 2-3, propuesta semana 4."
+
+    location:
+      delivery_method: "presencial Lima + remoto"
+
+    resources:
+      - "Documento auditoría 30-50 págs PDF"
+      - "Propuesta implementación con scope cerrado"
+      - "Notion compartido con análisis vivo"
+
+    psychology:
+      target_emotion: "Claridad estratégica antes de gran inversión"
+      objections_addressed:
+        - "Mucho dinero (PEN 8-15k) por audit"
+        - "Otras agencias lo dan gratis"
+        - "Y si no avanzo después?"
+      desire: "Roadmap ejecutable antes de comprometer PEN 30-100k"
+
+    gallery:
+      cover_image: "https://nucleo-lab.pe/static/audit-procesos-cover.jpg"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L3"
-    name: "Retainer mensual de operación IA"
-    description: >
-      Servicio mensual de operación, monitoreo y optimización de los agentes
-      de IA implementados. Incluye: monitoreo continuo de uptime, reporte
-      mensual de métricas operativas, ajustes de prompt y lógica según
-      performance, soporte técnico prioritario y hasta 2 mejoras menores por mes.
-    format: "retainer_operacion"
-    price: 4000
-    currency_display: "PEN 4,000/mes"
-    billing: "mensual"
-    minimum_commitment_months: 3
-    delivery: "operación remota continua + reporte mensual"
-    value_proposition: "Equipo técnico dedicado sin contratación directa"
+    archetype: "PROGRAMA"
+    value_level: "premium"
+    preset_label: "Implementación agente IA productivo (proyecto one-shot)"
 
+    identity:
+      name: "Implementación Agente IA Productivo"
+      slug: "implementacion-agente-ia"
+      tagline: "Sistema IA productivo en 8-14 semanas — guardrails + monitoring + handover"
+      short_description: "Construcción end-to-end de agente IA: arquitectura + desarrollo + testing + deployment + monitoring + handover técnico. Foco productivo (NO demo)."
+
+    promise:
+      transformation: "De idea aprobada en audit a sistema IA productivo funcionando en producción real con métricas de éxito medibles"
+      outcome_short: "Sistema IA en producción + monitoring + documentación + handover"
+      timeframe: "8-14 semanas según complejidad"
+
+    value_stack:
+      - "Arquitectura del sistema (LLM + RAG si aplica + orquestación con LangGraph)"
+      - "Desarrollo de código backend (Python + FastAPI o equivalente)"
+      - "Frontend de gestión si aplica (React + Next.js)"
+      - "Integración con sistemas existentes cliente (CRM, ERP, WhatsApp Business API, etc.)"
+      - "Guardrails (qué NO debe hacer el agente — contenido tóxico, fuera de scope, etc.)"
+      - "Fallbacks documentados (qué hace cuando LLM falla o devuelve respuesta inválida)"
+      - "Monitoring + alertas (Datadog/Grafana o equivalente)"
+      - "Logs estructurados para audit + debugging"
+      - "Métricas de éxito predefinidas (predefinidas en audit L2)"
+      - "Testing exhaustivo (unit + integration + adversarial scenarios)"
+      - "30 días de bake post-deployment con monitoring activo"
+      - "Documentación técnica + handover sesión (4 horas con equipo cliente)"
+      - "30 días post-handover de soporte sin costo"
+
+    pricing:
+      price_range_pen: "28,000 - 95,000"
+      currency_display: "PEN 28,000 - 95,000 según scope (cotizado en audit L2)"
+      pricing_model: "fixed_price_post_audit"
+      payment_terms: "30% inicial al firmar + 30% al milestone 1 (semana 4-6) + 30% al deployment + 10% al final del bake 30d"
+      payment_methods: ["transferencia", "tarjeta_credito_no_aplica_montos_grandes"]
+      typical_pricing:
+        - scope: "Agente IA simple (un caso de uso, 1 canal)"
+          price: 28000
+          duration_weeks: 8
+        - scope: "Agente IA medio (1-2 casos, integraciones)"
+          price: 55000
+          duration_weeks: 11
+        - scope: "Agente IA complejo (multi-canal, multi-proceso, compliance especial)"
+          price: 95000
+          duration_weeks: 14
+      ad_hoc_changes_pricing: "Cambios fuera de scope post-firma se cotizan aparte (PEN 2,500-8,000 según extensión)"
+
+    program_details:
+      duration_weeks: "8-14"
+      milestones:
+        - milestone: 1
+          week: "4-6"
+          deliverable: "Arquitectura aprobada + 50% código base"
+          payment_pct: 30
+        - milestone: 2
+          week: "deployment"
+          deliverable: "Sistema en producción + handover"
+          payment_pct: 30
+        - milestone: 3
+          week: "post_bake_30d"
+          deliverable: "Bake completo sin issues críticos"
+          payment_pct: 10
+      modality: "remoto + reuniones presenciales semanales si Lima"
+
+    instructors:
+      - name: "Iván Castro"
+        role: "Tech Lead"
+      - name: "Sara Mendoza / Camilo Vargas / Andrea Salazar"
+        role: "AI Engineers según scope técnico"
+      - name: "Diego Quispe / Patricia Rojas"
+        role: "Product Engineers backend + frontend"
+      - name: "Roberto Flores"
+        role: "DevOps + Infrastructure"
+      - name: "Mariana Quispe / Luis Pardo"
+        role: "Customer Success + Project Management"
+
+    knowledge:
+      learning_objectives:
+        - "Tener sistema IA productivo en producción"
+        - "Equipo cliente capacitado para mantener o extender"
+        - "Métricas de éxito medibles + monitoring activo"
+
+    closing:
+      mechanism: "post_l2_audit"
+      requires_l2_first: true
+      scheduling_event_type_id: "scheduling_evt_a5_l3_implementacion_kickoff"
+      scheduling_url: "https://app.nicolify.com/schedule/nucleo-lab/implementacion-discovery"
+
+    testimonials:
+      - persona: "Carolina — VP Operaciones empresa logística"
+        quote: "8 semanas implementación. Sistema en producción sin romperse 18 meses. Tracking automatizado nos ahorra 200h/mes."
+        result_metric: "200h/mes ahorradas"
+        scope: "Agente atención cliente + tracking"
+      - persona: "Federico — CTO fintech B2B"
+        quote: "11 semanas. Sistema atención WhatsApp 24/7 con guardrails. Tickets primer respuesta 4h → 30s."
+        result_metric: "Latencia primera respuesta -99%"
+      - persona: "Ana — Directora Marketing retail"
+        quote: "12 semanas. Agente personalización contenido 12,000 clientes. ROI 6x primer año documentado."
+        result_metric: "ROI 6x primer año"
+
+    faq:
+      - q: "¿Qué pasa si el sistema no funciona después de deployment?"
+        a: "Retainer L4 cubre mantenimiento. Si el sistema falla por bug nuestro durante los 30 días bake, lo arreglamos sin costo extra."
+      - q: "¿Tienen garantía?"
+        a: "Garantía de bug-fixes 30 días post-handover sin costo. Después, retainer L4 o cargamos por hora."
+      - q: "¿Pueden trabajar con nuestra data on-premise sin que salga?"
+        a: "Sí. Deployment on-premise o en tu propia AWS/GCP/Azure account. Costo 15-25% extra vs cloud SaaS estándar."
+      - q: "¿Pueden firmar NDA?"
+        a: "Sí, default. Firmamos NDA antes de cualquier conversación técnica detallada."
+
+    location:
+      delivery_method: "remoto + presencial Lima si aplica"
+
+    resources:
+      - "Código fuente completo entregado (cliente owner)"
+      - "Documentación técnica + arquitectura"
+      - "Runbooks operacionales"
+      - "Handover sesión 4h con equipo cliente"
+      - "30 días bake con monitoring activo"
+
+    psychology:
+      target_emotion: "Confianza técnica + ROI medible"
+      objections_addressed:
+        - "Mucho dinero (PEN 28-95k)"
+        - "Y si no funciona en producción?"
+        - "Cuánto tiempo vamos a estar comprometidos?"
+        - "Cómo sabemos que entregan?"
+        - "Pueden mantenerlo después?"
+      desire: "Sistema productivo medible + mantenible"
+
+    gallery:
+      cover_image: "https://nucleo-lab.pe/static/implementacion-cover.jpg"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L4"
-    name: "Programa de automatización empresarial (transformación digital)"
-    description: >
-      Programa intensivo de 6 meses para automatizar múltiples procesos
-      críticos del negocio. Incluye: auditoría completa, implementación
-      de 3-5 agentes de IA o flujos automatizados, formación del equipo
-      interno, arquitectura de datos integrada y operación acompañada.
-      Para empresas que quieren una transformación digital real.
-    format: "programa_transformacion"
-    price: 8000
-    currency_display: "PEN 8,000 - 12,000/mes"
-    billing: "mensual"
-    duration_months: 6
-    delivery: "3-5 implementaciones + formación equipo + arquitectura datos"
-    custom_quote: true
-    value_proposition: "Transformación operativa completa con equipo de IA dedicado"
+    archetype: "MEMBRESIA"
+    value_level: "core"
+    preset_label: "Retainer mantenimiento + mejora ongoing (TIER variant — Starter/Growth/Premium)"
+    variant_structure: "TIER"
+
+    identity:
+      name: "Retainer Mantenimiento Núcleo"
+      slug: "retainer-mantenimiento"
+      tagline: "Modelos no se 'instalan y olvidan' — retainer mensual mantiene tu sistema IA evolucionando"
+      short_description: "Servicio mensual recurrente: mantenimiento + monitoring + tuning continuo + bug fixes + nuevas features menores. 3 tiers según volumen y SLA."
+
+    promise:
+      transformation: "De sistema IA que se degrada con tiempo (drift, edge cases nuevos, cambios proveedores LLM) a sistema mantenido activamente con SLA + reporting"
+      outcome_short: "Sistema IA evolucionando + SLA respondidos + nuevas features incrementales"
+      timeframe: "Mensual recurrente — compromiso mínimo 6 meses post-implementación"
+
+    tiers:
+      variant_structure: "TIER"
+      tier_count: 3
+      tiers_list:
+        - tier: 1
+          name: "Starter"
+          slug: "retainer-starter"
+          monthly_price_pen: 4000
+          minimum_commitment_months: 6
+          sla_response_hours: 48
+          target_persona: "Sistema simple en producción + bajo volumen + tolerancia 48h respuesta"
+          includes:
+            - "Hasta 8 horas-mes de soporte técnico"
+            - "Monitoring activo (alertas críticas)"
+            - "Bug fixes hasta 3 por mes"
+            - "Reporting mensual de métricas + uso"
+            - "1 sesión técnica mensual 60 min con AI engineer"
+
+        - tier: 2
+          name: "Growth"
+          slug: "retainer-growth"
+          monthly_price_pen: 7500
+          minimum_commitment_months: 6
+          sla_response_hours: 24
+          target_persona: "Sistema mediano + volumen moderado + SLA 24h"
+          most_popular: true
+          includes:
+            - "Todo lo de Starter"
+            - "+8 horas-mes (total 16 horas)"
+            - "+3 bug fixes (total 6/mes)"
+            - "Tuning de prompts + RAG continuo (1 ronda mensual)"
+            - "Nuevas features menores (hasta 1 por trimestre)"
+            - "2 sesiones técnicas mensuales 60 min"
+            - "Acceso Slack compartido equipo Núcleo"
+
+        - tier: 3
+          name: "Premium"
+          slug: "retainer-premium"
+          monthly_price_pen: 12000
+          minimum_commitment_months: 6
+          sla_response_hours: 8
+          target_persona: "Sistema crítico operativo + alto volumen + SLA 8h + nuevas features ongoing"
+          includes:
+            - "Todo lo de Growth"
+            - "+16 horas-mes (total 32 horas)"
+            - "Bug fixes ilimitados"
+            - "Nuevas features menores ilimitadas (scope <40h cada una)"
+            - "Tuning continuo + experimentación con nuevos modelos"
+            - "Acceso WhatsApp directo Iván + Sara (respuesta SLA 8h)"
+            - "Reuniones semanales 30 min con tech lead"
+            - "1 hot-seat trimestral con todo el equipo Núcleo"
+
+    pricing:
+      currency_display: "PEN 4,000 (Starter) · 7,500 (Growth) · 12,000 (Premium) por mes"
+      payment_methods: ["transferencia_mensual", "tarjeta_recurrente"]
+      billing_cycle: "monthly"
+      hours_overage_rate: "Horas que superan tier se facturan a PEN 250-400/h según seniority requerida"
+
+    program_details:
+      kickoff_period_days: 14
+      onboarding_owner: "Mariana o Luis (Customer Success)"
+
+    instructors:
+      - name: "Equipo Núcleo distribuido según horas"
+        role: "Senior + AI engineers + DevOps según necesidad"
+
+    closing:
+      mechanism: "discovery_call_required"
+      discovery_call_required: true
+      discovery_call_duration_minutes: 45
+      scheduling_event_type_id: "scheduling_evt_a5_l4_retainer"
+      scheduling_url: "https://app.nicolify.com/schedule/nucleo-lab/retainer-discovery"
+
+    testimonials:
+      - persona: "Carolina — VP Ops logística (Premium 18 meses)"
+        quote: "Premium con WhatsApp directo Iván. Cuando hay incident, lo resuelven en horas. PEN 12,000/mes vale por SLA solamente."
+        tier: "Premium"
+      - persona: "Federico — CTO fintech (Growth 14 meses)"
+        quote: "Growth tier suficiente para nuestro volumen. Tuning de prompts mensual mejora calidad de respuestas notablemente."
+        tier: "Growth"
+
+    faq:
+      - q: "¿Qué pasa si excedemos las horas mensuales?"
+        a: "Las horas extra se facturan a PEN 250-400/h según seniority. Te avisamos antes de excederlas."
+      - q: "¿Por qué retainer si ya pagué la implementación?"
+        a: "Modelos LLM cambian (cada 3-6 meses sale modelo nuevo + edge cases nuevos aparecen). Sin retainer, sistema se degrada en 6-12 meses."
+      - q: "¿Y si no necesitamos cambios? Solo monitoring?"
+        a: "Te recomendamos Starter (PEN 4k/mes solo monitoring + bug fixes). Si tras 6 meses ves que no usás horas, podés bajar a tier menor o pausar."
+
+    location:
+      delivery_method: "remoto + presencial Lima si urgente"
+
+    resources:
+      - "Slack compartido (Growth+)"
+      - "WhatsApp directo tech leads (Premium)"
+      - "Dashboard métricas operacionales"
+      - "Reportes mensuales"
+
+    psychology:
+      target_emotion: "Sistema bajo control + SLA garantizado"
+      objections_addressed:
+        - "Por qué pagar mes a mes?"
+        - "Y si no necesito cambios?"
+        - "PEN 12,000/mes muy caro vs in-house"
+      desire: "Sistema crítico bajo control"
+
+    gallery:
+      cover_image: "https://nucleo-lab.pe/static/retainer-cover.jpg"
+
+# ─────────────────────────────────────────────────────────────
+# Cross-offer relationships
+# ─────────────────────────────────────────────────────────────
+upsell_relationships:
+  - from: "L1"
+    to: "L2"
+    discount_label: "Discovery acceso → audit pago"
+    trigger: "post_discovery_24h"
+  - from: "L2"
+    to: "L3"
+    discount_label: "50% del audit descontable de implementación si avanzás dentro 60 días"
+    trigger: "post_audit_within_60d"
+  - from: "L3"
+    to: "L4"
+    discount_label: "Cliente implementación: primer mes retainer 50% off"
+    trigger: "post_implementation_30d"
+  - from: "L4_starter"
+    to: "L4_growth"
+    discount_label: "Upgrade prorrateado"
+    trigger: "self_service_via_account_manager"
+
+includes_relationships:
+  - parent: "L4_premium"
+    includes: ["whatsapp_directo_tech_lead", "slack_compartido", "1_hot_seat_trimestral"]
+    notes: "Premium tier incluye SLA 8h + acceso WhatsApp directo + hot-seat — diferenciadores claros vs Growth."

@@ -1,81 +1,672 @@
 # offer_ladder.yaml — tenant_medicina_estetica
-# 5 niveles L0-L4 con L0 consulta de evaluación gratis (A2 tiene L0 per spec)
-# Currency: PEN
+# Lumina Estética — clínica medicina estética facial y corporal Lima.
+# 5 niveles L0-L4 con L0 consulta evaluación gratis (A2 tiene L0 per spec).
+# Currency PEN. Dialect es-MX.
+#
+# Variants en uso:
+#   PACK   — paquetes de sesiones (faciales 4/8/12, corporales 6/10)
+#   TIER   — Plan Integral mensual con 3 niveles (Basic/Premium/VIP)
+#
+# Discovery / consulta de evaluación:
+#   L0 = lead magnet = consulta evaluación gratis presencial 30 min con médica titular
+#   L3 = paquete corporal high-ticket → requiere diagnóstico corporal (también gratis)
+#   L4 = Plan Integral → discovery call 20 min para definir tier
+#
+# Datos de pricing alineados con benchmarks reales Lima 2026:
+#   Botox: 25-55 PEN/unidad → sesión 700-1,800
+#   Ácido hialurónico: 720-950 PEN/jeringa
+#   HIFU corporal: 600-900 PEN/sesión individual
+#   Limpieza facial profunda: 130-180 PEN
+#   Peeling: 200-400 PEN
 
 tenant_slug: tenant_medicina_estetica
 currency: PEN
 has_lead_magnet: true
 total_levels: 5
-entry_point: "L0 — Consulta de evaluación estética gratuita presencial"
-upsell_path: "L0 → L1 → L2 → L3 → L4"
+entry_point: "L0 — Consulta evaluación gratuita presencial (30 min con médica titular)"
+upsell_path: "L0 → L1 → L2 (paquete) → L3 (corporal) → L4 (Plan Integral mensual)"
+last_updated: "2026-05-07"
 
 offers:
+  # ─────────────────────────────────────────────────────────────
   - level: "L0"
-    name: "Consulta de evaluación estética gratuita"
-    description: >
-      Primera consulta presencial de 30 minutos con la Dra. Torres. Evaluación
-      completa de tu piel facial y corporal, diagnóstico personalizado y plan
-      de tratamiento recomendado sin ningún compromiso.
-    format: "consulta_presencial"
-    price: 0
-    is_free: true
-    lead_magnet: true
-    delivery: "presencial en clínica, previa cita"
-    value_proposition: "Diagnóstico médico profesional gratuito sin compromiso"
+    archetype: "SERVICIO"
+    value_level: "lead_magnet"
+    preset_label: "Consulta médica gratuita (lead magnet alta-intent)"
 
+    identity:
+      name: "Consulta de evaluación gratuita"
+      slug: "consulta-evaluacion-gratis"
+      tagline: "30 minutos con médica titular para diagnosticar tu piel sin compromiso de compra"
+      short_description: "Consulta presencial gratuita en Av. José Pardo 502 Miraflores. Evaluación facial o corporal, plan a 6-12 meses, sin obligación de comprar nada."
+
+    promise:
+      transformation: "De confusión sobre 'qué tratamiento necesito' a un plan claro priorizado por criterio médico real"
+      outcome_short: "Diagnóstico clínico + plan personalizado escrito"
+      timeframe: "30 minutos presencial"
+
+    value_stack:
+      - "30 min de consulta con médica titulada (no técnica/cosmetóloga)"
+      - "Evaluación facial o corporal con luz controlada + análisis fotográfico"
+      - "Plan personalizado priorizado a 6-12 meses (escrito, te lo entregamos)"
+      - "Recomendación honesta: si no necesitas tratamiento, te lo decimos"
+      - "Cero presión de compra durante o después de la consulta"
+      - "Si decides hacer tratamiento, descuento de bienvenida 10% en primera sesión"
+
+    program_details:
+      duration_minutes: 30
+      modality: "presencial"
+      address: "Av. José Pardo 502, Miraflores, Lima 18"
+      includes_followup: false
+      requires_brand_pre_questionnaire: true
+      pre_questionnaire_url: "https://lumina-estetica.pe/cuestionario-pre-consulta"
+
+    pricing:
+      price: 0
+      currency_display: "Gratis"
+      is_free: true
+      requires_payment: false
+      requires_deposit: false
+
+    instructors:
+      - role: "Médica titulada (rotación: Dra. Sofía / Dra. Patricia / Dra. Camila según tipo de evaluación)"
+
+    knowledge:
+      learning_objectives:
+        - "Entender estado actual de tu piel/cuerpo con criterio clínico"
+        - "Conocer opciones de tratamiento priorizadas y sus costos"
+        - "Decidir con información si quieres avanzar o no"
+
+    closing:
+      mechanism: "appointment_required"
+      discovery_call_required: false
+      requires_scheduling: true
+      scheduling_event_type_id: "scheduling_evt_a2_l0_consulta_gratis"
+      scheduling_url: "https://app.nicolify.com/schedule/lumina-estetica/consulta-evaluacion-gratis"
+      cancellation_policy: "Cancela hasta 4h antes sin penalidad. Después de eso, 1 falta sin aviso = bloqueo de re-agendamiento por 30 días."
+      next_step_after: "Plan escrito + email follow-up al día siguiente con descuento 10% válido 30 días"
+
+    testimonials:
+      - persona: "Mariana, 38 años"
+        quote: "Vine pensando que necesitaba todo. La doctora me dijo que con limpiezas mensuales bastaba. Ahorré como PEN 1,200."
+        result_metric: "Diagnóstico anti-sobreventa"
+      - persona: "Cecilia, 29 años"
+        quote: "Me hicieron foto-análisis y me explicaron por qué tenía manchas. Era hormonal, no estético. Me derivaron a endocrina."
+        result_metric: "Derivación honesta a especialidad correcta"
+
+    faq:
+      - q: "¿De verdad es gratis sin trampa?"
+        a: "Sí. Cero costo. Cero obligación. Política documentada anti-sobreventa."
+      - q: "¿Es virtual o presencial?"
+        a: "Presencial. Av. José Pardo 502 Miraflores. Estacionamiento limitado en la zona."
+      - q: "¿Atienden los sábados?"
+        a: "Sí, sábados 9:00-13:00. Plazas más limitadas en sábados."
+      - q: "¿Tengo que ir sin maquillaje?"
+        a: "Idealmente sí. Si llegas maquillada, lavamos el área a evaluar. No te quites cremas o protector — los datos del día a día también informan."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. José Pardo 502, Miraflores, Lima 18, Perú"
+      timezone: "America/Lima"
+      directions_url: "https://maps.app.goo.gl/lumina-estetica-miraflores"
+      parking_info: "Estacionamiento limitado en Av. José Pardo. Recomendamos zona azul Pardo o estacionamiento Larcomar (5 cuadras)."
+
+    resources:
+      - "Cuestionario pre-consulta digital (5 min, link enviado al confirmar)"
+      - "Plan escrito post-consulta (entregado al final + email)"
+
+    psychology:
+      target_emotion: "Confianza + alivio (sin presión)"
+      objections_addressed:
+        - "¿De verdad es gratis o me van a vender algo?"
+        - "Tengo miedo que me hagan sentir mal por venir 'tarde' a cuidarme"
+        - "No quiero que me hagan upselling"
+      desire: "Diagnóstico honesto sin compromiso"
+
+    gallery:
+      cover_image: "https://lumina-estetica.pe/static/consulta-gratis-cover.jpg"
+      consultorio_video_30s: "https://lumina-estetica.pe/static/consultorio-tour.mp4"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L1"
-    name: "Limpieza facial profunda"
-    description: >
-      Tratamiento completo de limpieza facial que incluye evaluación inicial,
-      limpieza profunda, extracción de comedones, hidratación intensiva y
-      mascarilla personalizada según tu tipo de piel. Duración: 60 minutos.
-    format: "tratamiento_presencial"
-    price: 150
-    currency_display: "PEN 150"
-    duration: "60 minutos"
-    delivery: "presencial en clínica"
-    sessions: 1
-    value_proposition: "Piel limpia, luminosa y lista para tratamientos más profundos"
+    archetype: "SERVICIO"
+    value_level: "tripwire"
+    preset_label: "Tratamiento facial entry-level"
 
+    identity:
+      name: "Limpieza facial profunda Lumina"
+      slug: "limpieza-facial-profunda"
+      tagline: "Limpieza profunda con vapor + extracción + máscara enzimática + protector solar"
+      short_description: "Sesión única 60 min. Cosmetóloga senior. Apta para todo tipo de piel."
+
+    promise:
+      transformation: "De piel congestionada/opaca a piel limpia, hidratada, con poros descongestionados"
+      outcome_short: "Piel limpia + diagnóstico cosmético"
+      timeframe: "60 minutos"
+
+    value_stack:
+      - "Limpieza con leche limpiadora + tónico"
+      - "Vapor + extracción manual de comedones"
+      - "Mascarilla enzimática personalizada según tipo de piel"
+      - "Hidratación con sueros de ácido hialurónico"
+      - "Protector solar SPF 50 broad-spectrum (regalo, valor PEN 80)"
+      - "Diagnóstico cosmetológico escrito + recomendaciones de skincare casero"
+
+    pricing:
+      price: 150
+      currency_display: "PEN 150"
+      is_free: false
+      payment_methods: ["yape", "plin", "transferencia", "tarjeta", "efectivo"]
+      requires_deposit: false
+
+    program_details:
+      duration_minutes: 60
+      modality: "presencial"
+      practitioner: "Cosmetóloga senior Lic. Andrea Quispe"
+
+    instructors:
+      - name: "Lic. Andrea Quispe"
+        role: "Cosmetóloga senior"
+
+    knowledge:
+      learning_objectives:
+        - "Recibir limpieza profesional + reset de piel"
+        - "Identificar tipo de piel y rutina casera adecuada"
+
+    closing:
+      mechanism: "direct_appointment"
+      discovery_call_required: false
+      scheduling_event_type_id: "scheduling_evt_a2_l1_limpieza"
+      next_step_after: "Si quedas satisfecha, se ofrece el paquete L2 con descuento 10%"
+
+    testimonials:
+      - persona: "Romina, 26 años"
+        quote: "Mejor limpieza facial que he tenido en Lima. La cosmetóloga sabe lo que hace. PEN 150 que valen."
+      - persona: "Daniela, 31 años"
+        quote: "El detalle del protector solar de regalo me ganó. Cosa pequeña pero dice mucho de la clínica."
+
+    faq:
+      - q: "¿Cuántas sesiones necesito?"
+        a: "Para mantenimiento: 1 cada 4-6 semanas. Para piel muy congestionada: 3 sesiones consecutivas semanales y luego mensual."
+      - q: "¿Duele?"
+        a: "Las extracciones pueden ser molestas en zonas con comedones profundos. Sin dolor severo. Si tu umbral es bajo, avisanos antes."
+      - q: "¿Puedo maquillarme después?"
+        a: "Te recomendamos esperar 4-6 horas. La piel queda sensibilizada."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. José Pardo 502, Miraflores"
+      timezone: "America/Lima"
+
+    resources:
+      - "Diagnóstico cosmetológico escrito"
+      - "Recomendaciones skincare casero personalizadas"
+      - "Protector solar SPF 50 (regalo)"
+
+    psychology:
+      target_emotion: "Renovación + cuidado"
+      objections_addressed:
+        - "¿Vale PEN 150 vs limpieza casera?"
+        - "¿No me van a empujar a comprar más?"
+      desire: "Piel limpia + sentirse cuidada"
+
+    gallery:
+      cover_image: "https://lumina-estetica.pe/static/limpieza-facial-cover.jpg"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L2"
-    name: "Paquete facial rejuvenecedor (4 sesiones)"
-    description: >
-      Programa de 4 sesiones de limpieza profunda + microdermoabrasión + aplicación
-      de vitamina C + mascarilla antiaging. Seguimiento fotográfico de resultados.
-      Ideal para tratamiento de manchas, poros abiertos y opacidad.
-    format: "paquete_tratamientos"
-    price: 800
-    currency_display: "PEN 800"
-    sessions: 4
-    duration_per_session: "75 minutos"
-    delivery: "presencial en clínica, una sesión cada 15 días"
-    value_proposition: "Resultados visibles y duraderos con protocolo médico completo"
+    archetype: "PROGRAMA"
+    value_level: "core"
+    preset_label: "Paquete facial intensivo (PACK variant — 4/8/12 sesiones)"
+    variant_structure: "PACK"
 
+    identity:
+      name: "Paquete Facial Intensivo Lumina"
+      slug: "paquete-facial-intensivo"
+      tagline: "Plan facial multi-sesión con seguimiento clínico mensual"
+      short_description: "Combinación de limpiezas + peelings + hidratación profunda + manchas + protocolo skin care. 3 packs de tamaño según objetivo."
+
+    promise:
+      transformation: "De piel reactiva, opaca o con manchas a textura uniforme + luminosidad sostenida + tono regulado"
+      outcome_short: "Piel transformada con foto-evidencia mensual + plan de mantenimiento"
+      timeframe: "3-6 meses según pack"
+
+    value_stack:
+      - "Múltiples sesiones (4/8/12 según pack) intercaladas mensualmente"
+      - "Cada sesión personalizada: limpieza + peeling + hidratación + protocolo manchas según diagnóstico"
+      - "Foto-control mensual con luz controlada (BeforeAfter trazable)"
+      - "Escala VAS satisfacción firmada cada sesión"
+      - "Acceso a aparatología incluida (LED, alta frecuencia)"
+      - "Producto skincare personalizado para casa (incluido en pack 8 y 12)"
+      - "Descuento 10% en cualquier tratamiento extra durante el pack (botox, hialurónico, etc.)"
+
+    pricing:
+      currency_display: "PEN según pack"
+      payment_methods: ["yape", "plin", "transferencia", "tarjeta_credito", "tarjeta_debito"]
+      cuotas_disponibles: "Tarjeta crédito 3 cuotas sin intereses (BCP, Interbank, BBVA, Scotia)"
+
+    packs:
+      variant_structure: "PACK"
+      pack_count: 3
+      packs_list:
+        - pack_id: "L2_pack_starter"
+          name: "Pack Starter (4 sesiones)"
+          sessions: 4
+          duration_months: 2
+          price_total: 800
+          price_per_session: 200
+          includes_skincare_home: false
+          target_persona: "Probar el protocolo + necesidad facial leve-moderada"
+          discount_vs_individual: "20% off"
+        - pack_id: "L2_pack_completo"
+          name: "Pack Completo (8 sesiones)"
+          sessions: 8
+          duration_months: 4
+          price_total: 1500
+          price_per_session: 187.50
+          includes_skincare_home: true
+          target_persona: "Plan transformacional 4 meses + mantenimiento casero"
+          discount_vs_individual: "25% off"
+          most_popular: true
+        - pack_id: "L2_pack_premium"
+          name: "Pack Premium (12 sesiones)"
+          sessions: 12
+          duration_months: 6
+          price_total: 2100
+          price_per_session: 175
+          includes_skincare_home: true
+          includes_one_treatment_bonus: "1 sesión de peeling profundo o limpieza con hidrafacial bonus"
+          target_persona: "Transformación 6 meses con cambio sostenido + skincare casero premium"
+          discount_vs_individual: "30% off"
+
+    program_details:
+      session_duration_minutes: 75
+      modality: "presencial"
+      practitioners: "Cosmetóloga senior + médica si requiere intervención específica"
+      followup: "Seguimiento mensual con foto-control"
+
+    instructors:
+      - name: "Lic. Andrea Quispe"
+        role: "Cosmetóloga lead"
+      - name: "Dra. Camila Herrera"
+        role: "Médica para intervenciones específicas (peeling profundo, manchas resistentes)"
+
+    knowledge:
+      learning_objectives:
+        - "Establecer rutina facial profesional sostenida"
+        - "Tratar problemas específicos (manchas, textura, hidratación)"
+        - "Aprender skincare casero efectivo"
+
+    closing:
+      mechanism: "appointment_+_payment"
+      discovery_call_required: false
+      requires_l0_first: true
+      l0_consultation_recommended: "Recomendamos hacer L0 consulta gratis primero para definir qué pack te conviene"
+      scheduling_event_type_id: "scheduling_evt_a2_l2_pack_facial"
+      payment_after_l0_choice: true
+      cancellation_policy: "Cancelación hasta 24h antes de sesión sin penalidad. Faltas reprogramables 1 vez. Tras 2 faltas sin aviso, las sesiones se pierden."
+
+    testimonials:
+      - persona: "Lucía, abogada (Lima, 38 años, Pack Completo)"
+        quote: "Las 8 sesiones me cambiaron textura y luminosidad. Foto-control mensual te muestra el progreso real."
+        pack: "Pack Completo"
+        result_metric: "Mejora textura medible + luminosidad sostenida"
+      - persona: "Patricia, ejecutiva (40 años, Pack Premium)"
+        quote: "Las 12 sesiones + skincare casero personalizado fue lo que me devolvió la piel después de 5 años de descuido por estrés laboral."
+        pack: "Pack Premium"
+      - persona: "Andrea, post-parto (33 años, Pack Starter)"
+        quote: "Empecé con Starter para probar. Funcionó tan bien que upgradeé a Premium. Te dejan upgradear con prorrateo."
+
+    faq:
+      - q: "¿Puedo cambiar de pack si empiezo con Starter?"
+        a: "Sí. Upgradeas con prorrateo. Lo que pagaste se descuenta del nuevo pack."
+      - q: "¿Qué pasa si no veo resultados?"
+        a: "Foto-control mensual permite ver progreso objetivo. Si en sesión 3 no hay cambio medible, ajustamos protocolo. No reembolsamos pero ajustamos."
+      - q: "¿Cuál es el más popular?"
+        a: "Pack Completo (8 sesiones) — 60% de pacientes lo eligen por balance precio-resultado."
+      - q: "¿Pago todo upfront?"
+        a: "Sí, o en 3 cuotas sin intereses con tarjeta de crédito."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. José Pardo 502, Miraflores"
+      timezone: "America/Lima"
+
+    resources:
+      - "Foto-control digital con visor de progreso"
+      - "Skincare casero personalizado (Pack Completo y Premium)"
+      - "Acceso a contenidos educativos online (videos rutina nocturna, etc.)"
+
+    psychology:
+      target_emotion: "Compromiso con cambio sostenido"
+      objections_addressed:
+        - "Mucho dinero upfront"
+        - "Y si no me convence después de 2 sesiones?"
+        - "Cuál pack me conviene si no estoy segura?"
+        - "No tengo tiempo para 12 sesiones"
+      desire: "Cambio visible documentado"
+
+    gallery:
+      cover_image: "https://lumina-estetica.pe/static/paquete-facial-cover.jpg"
+      sample_progress_url: "https://lumina-estetica.pe/galeria-progreso-facial"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L3"
-    name: "Tratamiento corporal reafirmante (5 sesiones)"
-    description: >
-      Programa intensivo de 5 sesiones de radiofrecuencia corporal + drenaje
-      linfático + envolvimiento reafirmante. Para tratamiento de flacidez,
-      celulitis y contorno corporal. Incluye evaluación inicial y seguimiento.
-    format: "paquete_corporal"
-    price: 2500
-    currency_display: "PEN 2,500"
-    sessions: 5
-    duration_per_session: "90 minutos"
-    delivery: "presencial en clínica, dos sesiones por semana"
-    value_proposition: "Reafirmación y modelado corporal con tecnología avanzada"
+    archetype: "PROGRAMA"
+    value_level: "premium"
+    preset_label: "Tratamiento corporal high-ticket (PACK + TIER variants)"
+    variant_structure: "PACK"
 
+    identity:
+      name: "Programa Corporal HIFU + Radiofrecuencia"
+      slug: "programa-corporal-hifu-rf"
+      tagline: "Reafirmación corporal con tecnología no invasiva — alternativa a cirugía"
+      short_description: "Combinación de HIFU + radiofrecuencia para flacidez/celulitis/grasa localizada. Múltiples zonas. 3 packs según extensión."
+
+    promise:
+      transformation: "De flacidez post-parto / celulitis / grasa localizada a tono recuperado sin cirugía"
+      outcome_short: "Reafirmación corporal medible (cm reducción + escala flacidez)"
+      timeframe: "3-6 meses según pack"
+
+    value_stack:
+      - "Sesiones HIFU corporal (focus profundo, reafirmación dérmica)"
+      - "Sesiones radiofrecuencia bipolar (mejora circulación, tono superficial)"
+      - "Diagnóstico corporal inicial gratuito con bioimpedancia (incluido)"
+      - "Protocolo personalizado según objetivo (post-parto, celulitis, flacidez gravitacional)"
+      - "Foto-control mensual con marcaje preciso de zonas tratadas"
+      - "Medición circunferencia + escala flacidez antes/después"
+      - "Plan nutricional básico (PDF) — no es plan dietético clínico, son guías generales"
+
+    pricing:
+      currency_display: "PEN según pack/zonas"
+      payment_methods: ["yape", "plin", "transferencia", "tarjeta_credito"]
+      cuotas_disponibles: "3, 6 o 12 cuotas sin intereses con tarjeta crédito Visa/Mastercard de bancos peruanos"
+
+    packs:
+      variant_structure: "PACK"
+      pack_count: 3
+      packs_list:
+        - pack_id: "L3_pack_zona_simple"
+          name: "Zona simple — 6 sesiones (1 zona)"
+          sessions: 6
+          zones: 1
+          zone_examples: ["abdomen", "papada", "muslos internos", "brazos"]
+          duration_months: 3
+          price_total: 2500
+          price_per_session: 416.67
+          discount_vs_individual: "30% off"
+        - pack_id: "L3_pack_zonas_combinadas"
+          name: "Zonas combinadas — 10 sesiones (2 zonas)"
+          sessions: 10
+          zones: 2
+          duration_months: 4
+          price_total: 4200
+          price_per_session: 420
+          discount_vs_individual: "33% off"
+          most_popular: true
+        - pack_id: "L3_pack_full_body"
+          name: "Full Body — 16 sesiones (4 zonas)"
+          sessions: 16
+          zones: 4
+          duration_months: 6
+          price_total: 6800
+          price_per_session: 425
+          discount_vs_individual: "37% off"
+          includes_bonus_facial_lifting: "1 sesión HIFU facial lifting bonus (valor PEN 800)"
+
+    program_details:
+      session_duration_minutes: 90
+      modality: "presencial"
+      practitioner: "Dra. Patricia Rivas (especialista corporal)"
+      requires_consult_l0_first: true
+
+    instructors:
+      - name: "Dra. Patricia Rivas"
+        role: "Médica especialista en aparatología corporal"
+
+    knowledge:
+      learning_objectives:
+        - "Conseguir reafirmación corporal sin pasar por cirugía"
+        - "Entender qué resultados esperar realísticamente"
+        - "Mantener resultados con plan nutricional + skincare corporal"
+
+    closing:
+      mechanism: "discovery_appointment_required"
+      discovery_call_required: true
+      discovery_call_label: "Diagnóstico corporal — gratis 30 min con Dra. Patricia"
+      discovery_call_purpose: "Evaluar qué tecnología te conviene + cuántas zonas + bioimpedancia inicial"
+      scheduling_event_type_id: "scheduling_evt_a2_l3_diagnostico_corporal"
+      scheduling_url: "https://app.nicolify.com/schedule/lumina-estetica/diagnostico-corporal"
+      cancellation_policy: "Cancelación 48h antes sin penalidad. Sesiones perdidas no se reembolsan pero se pueden reagendar 1 vez."
+
+    testimonials:
+      - persona: "Diana, 33 años, post-cesárea"
+        quote: "Pack Zonas Combinadas (abdomen + muslos). 10 sesiones devolvieron tono que pensé que necesitaba cirugía."
+        pack: "L3_pack_zonas_combinadas"
+        result_metric: "Reducción 4cm circunferencia abdominal + tono visible"
+      - persona: "Lucía, 42 años (papada)"
+        quote: "Pack Zona Simple en papada. 6 sesiones. Foto antes-después es notable."
+        pack: "L3_pack_zona_simple"
+        result_metric: "VAS satisfacción 9/10"
+      - persona: "Renata, 50 años (Pack Full Body)"
+        quote: "16 sesiones repartidas en 4 zonas durante 6 meses. Lo más cercano a un lifting sin cirugía. Inversión grande pero medible."
+        pack: "L3_pack_full_body"
+
+    faq:
+      - q: "¿Cuántas sesiones necesito?"
+        a: "Depende objetivo. Flacidez leve: 6 sesiones. Moderada: 10. Severa o post-parto significativo: 16+ con eventual mantenimiento. El diagnóstico corporal gratis define."
+      - q: "¿Es alternativa a cirugía?"
+        a: "Para casos leve-moderados sí. Si tienes flacidez severa con piel redundante, cirugía sigue siendo más eficaz. Te lo decimos honestamente."
+      - q: "¿Duele HIFU?"
+        a: "Hay sensación de calor profundo y picadas focales puntuales. No es indoloro pero tolerable sin anestesia. Algunas pacientes prefieren pomada anestésica tópica (incluida si pides)."
+      - q: "¿Cuándo veo resultados?"
+        a: "Cambios sutiles desde sesión 3-4. Resultado pleno: 2-3 meses post última sesión (colágeno toma tiempo)."
+      - q: "¿Puedo recuperar dinero si no veo resultados?"
+        a: "No reembolsamos pero ajustamos protocolo + sesiones extra sin costo si después de 60% del pack no hay cambio medible."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. José Pardo 502, Miraflores"
+      timezone: "America/Lima"
+
+    resources:
+      - "Diagnóstico corporal con bioimpedancia (incluido en pack)"
+      - "Foto-control con software dermascopia"
+      - "Plan nutricional básico PDF"
+      - "Acceso comunidad post-tratamiento (mantenimiento + recetas + tips)"
+
+    psychology:
+      target_emotion: "Esperanza realista + recuperación corporal"
+      objections_addressed:
+        - "Mucho dinero (PEN 4-7k)"
+        - "Y si me sale mal? Hay riesgo?"
+        - "Para qué pagar si en cuponidad hay HIFU a PEN 150 sesión?"
+        - "Es cirugía-level results sin cirugía?"
+        - "Cuánto duran resultados?"
+      desire: "Reafirmación sin cirugía + resultados documentados"
+
+    gallery:
+      cover_image: "https://lumina-estetica.pe/static/programa-corporal-cover.jpg"
+      tech_demo_video: "https://lumina-estetica.pe/static/hifu-demo-procedure.mp4"
+
+  # ─────────────────────────────────────────────────────────────
   - level: "L4"
-    name: "Plan integral de cuidado anual"
-    description: >
-      Membresía anual que incluye limpiezas faciales mensuales, una sesión de
-      tratamiento facial especial por trimestre, descuentos en tratamientos
-      corporales y consulta médica prioritaria. El plan más completo para
-      mantener tu piel en óptimas condiciones todo el año.
-    format: "membresia_anual"
-    price: 250
-    currency_display: "PEN 250/mes"
-    billing: "mensual"
-    annual_price: 2800
-    delivery: "presencial en clínica, citas mensuales garantizadas"
-    value_proposition: "Cuidado médico estético integral con beneficios exclusivos"
+    archetype: "MEMBRESIA"
+    value_level: "core"
+    preset_label: "Plan Integral mensual recurrente (TIER variant — 3 niveles)"
+    variant_structure: "TIER"
+
+    identity:
+      name: "Plan Integral Lumina"
+      slug: "plan-integral-mensual"
+      tagline: "Mantenimiento facial + corporal mensual con prioridad de agenda"
+      short_description: "Membresía mensual recurrente que combina sesiones faciales + corporales + descuentos en aplicaciones (botox, hialurónico). 3 tiers según intensidad."
+
+    promise:
+      transformation: "De tratamientos esporádicos sin sostenimiento a plan mensual que mantiene resultados con criterio médico"
+      outcome_short: "Resultados sostenidos sin sobre-tratamiento"
+      timeframe: "Mensual recurrente. Compromiso mínimo 3 meses. Cancela cuando quieras después."
+
+    tiers:
+      variant_structure: "TIER"
+      tier_count: 3
+      tiers_list:
+        - tier: 1
+          name: "Basic"
+          slug: "plan-basic"
+          monthly_price_pen: 250
+          minimum_commitment_months: 3
+          target_persona: "Mantenimiento facial regular sin tratamientos intensivos"
+          includes:
+            - "1 limpieza facial profunda mensual (valor regular PEN 150)"
+            - "1 sesión radiofrecuencia facial bipolar mensual (valor regular PEN 200)"
+            - "Descuento 15% en aplicaciones puntuales (botox, hialurónico, peelings)"
+            - "Skincare casero (1 producto trimestre, alternando entre limpiador / sérum / protector solar)"
+            - "Prioridad de agenda — reservas con 1 día de anticipación"
+
+        - tier: 2
+          name: "Premium"
+          slug: "plan-premium"
+          monthly_price_pen: 400
+          minimum_commitment_months: 3
+          target_persona: "Mantenimiento facial + corporal con tratamientos médicos esporádicos incluidos"
+          most_popular: true
+          includes:
+            - "Todo lo de Basic"
+            - "+1 sesión HIFU facial trimestral (valor PEN 800/sesión, incluida)"
+            - "+1 sesión peeling químico ligero trimestral (valor PEN 350)"
+            - "Descuento 25% en aplicaciones puntuales"
+            - "Skincare casero mensual (1 producto)"
+            - "Foto-control trimestral con análisis dermatológico"
+            - "Acceso a webinars mensuales con la Dra. Sofía"
+
+        - tier: 3
+          name: "VIP"
+          slug: "plan-vip"
+          monthly_price_pen: 650
+          minimum_commitment_months: 3
+          requires_application: false
+          target_persona: "Plan completo facial + corporal con tratamientos médicos avanzados incluidos"
+          includes:
+            - "Todo lo de Premium"
+            - "+2 sesiones radiofrecuencia corporal mensual (zona elegida, alternando)"
+            - "+1 sesión HIFU corporal trimestral (zona elegida)"
+            - "Botox preventivo: 30 unidades incluidas anualmente (valor PEN 1,200-1,500)"
+            - "Descuento 35% en aplicaciones puntuales"
+            - "Skincare casero premium mensual (productos médicos)"
+            - "Foto-control mensual + análisis con Dra. Sofía"
+            - "Linea directa WhatsApp Dra. Sofía para consultas (respuesta 24h)"
+            - "Invitación 2 eventos anuales presenciales (charlas, demos tecnología nueva)"
+
+    pricing:
+      currency_display: "PEN 250/mes (Basic) · PEN 400/mes (Premium) · PEN 650/mes (VIP)"
+      payment_methods: ["tarjeta_credito_recurrente", "yape_recurrente", "transferencia_mensual"]
+      billing_cycle: "monthly"
+      minimum_commitment_months: 3
+      cancellation_policy: "Después del 3er mes cancelas con 30 días de aviso. Antes del 3er mes solo por causa justificada (médica, mudanza)."
+
+    program_details:
+      modality: "presencial mensual / quincenal según tier"
+      practitioner_rotation: "Cosmetóloga + médica según servicio"
+
+    instructors:
+      - name: "Equipo completo"
+        role: "Rotación según servicio"
+
+    knowledge:
+      learning_objectives:
+        - "Sostener resultados sin tratamiento agresivo"
+        - "Construir relación clínica de largo plazo"
+        - "Acceder a tecnología nueva como pionera"
+
+    closing:
+      mechanism: "discovery_call_required"
+      discovery_call_required: true
+      discovery_call_duration_minutes: 20
+      discovery_call_purpose: "Definir tier según objetivos a 6-12 meses + revisar agenda compatible"
+      scheduling_event_type_id: "scheduling_evt_a2_l4_plan_integral"
+      scheduling_url: "https://app.nicolify.com/schedule/lumina-estetica/plan-integral-discovery"
+
+    testimonials:
+      - persona: "Carolina (Plan Premium, 8 meses)"
+        quote: "Antes pagaba sesiones sueltas y siempre se me olvidaba volver. El plan me obliga a la disciplina sin que me sobre-traten."
+        tier: "Premium"
+      - persona: "Renata (Plan VIP, 14 meses)"
+        quote: "VIP incluye todo lo que ya estaba pagando + acceso WhatsApp con Sofía. Sumé y el VIP me ahorra como PEN 4,000 al año."
+        tier: "VIP"
+      - persona: "Andrea (Plan Basic, 5 meses)"
+        quote: "Basic es entry. PEN 250 por limpieza + radiofrecuencia mensual + descuento botox. Pago lo que pagaría suelto pero con disciplina."
+        tier: "Basic"
+
+    faq:
+      - q: "¿Puedo cambiar de tier después?"
+        a: "Sí. Upgrade inmediato con prorrateo. Downgrade efectivo el siguiente mes."
+      - q: "¿Qué pasa si no uso una sesión un mes?"
+        a: "Las sesiones acumulan hasta 1 mes (no más). Si pasas 60 días sin usar, las pierdes. Te lo recordamos."
+      - q: "¿Hay penalidad por cancelar?"
+        a: "Si cancelas antes de los 3 meses, sí — cobramos las sesiones ya consumidas a precio regular (sin descuento de plan). Después de 3 meses, sin penalidad."
+      - q: "¿Por qué requiere discovery call?"
+        a: "Para asegurarnos del tier correcto. Hemos visto pacientes en VIP que les sobraba o en Basic que les faltaba. 20 min ahorra problemas."
+
+    location:
+      delivery_method: "presencial"
+      address: "Av. José Pardo 502, Miraflores"
+      timezone: "America/Lima"
+
+    resources:
+      - "App de seguimiento (calendario sesiones + foto-progreso + skincare reminders)"
+      - "Acceso a contenidos educativos exclusivos miembros"
+      - "Línea WhatsApp directa Dra. Sofía (solo VIP)"
+
+    psychology:
+      target_emotion: "Compromiso de mantenimiento + acceso premium"
+      objections_addressed:
+        - "Compromiso 3 meses me asusta"
+        - "PEN 650/mes es mucho (VIP)"
+        - "Y si me canso o me mudo?"
+        - "Por qué no pagar suelto siempre?"
+      desire: "Disciplina de mantenimiento + ahorro a largo plazo"
+
+    gallery:
+      cover_image: "https://lumina-estetica.pe/static/plan-integral-cover.jpg"
+
+# ─────────────────────────────────────────────────────────────
+# Cross-offer relationships
+# ─────────────────────────────────────────────────────────────
+upsell_relationships:
+  - from: "L0"
+    to: "L1"
+    discount_label: "Bienvenida 10% off primera limpieza facial"
+    trigger: "post_consulta_email_24h"
+  - from: "L1"
+    to: "L2"
+    discount_label: "Cliente facial — 10% extra off pack"
+    trigger: "post_limpieza_segunda_visita"
+  - from: "L2"
+    to: "L4_premium"
+    discount_label: "Graduada de pack — primer mes 50% off Plan Premium"
+    trigger: "post_pack_completion"
+  - from: "L0"
+    to: "L3"
+    discount_label: "Diagnóstico corporal gratis post-evaluación facial si aplica"
+    trigger: "manual_referral_durante_consulta"
+  - from: "L3"
+    to: "L4_vip"
+    discount_label: "Cliente corporal — primer mes 50% off Plan VIP"
+    trigger: "post_pack_corporal_completion"
+
+includes_relationships:
+  - parent: "L4_vip"
+    includes: ["L1_limpieza_mensual", "L3_radiofrecuencia_corporal_2x_mes"]
+    notes: "Plan VIP incluye servicios de L1 y partes de L3 — calculado para ahorrar ~PEN 4,000/año vs sesiones sueltas."
+
+# ─────────────────────────────────────────────────────────────
+# Política anti-sobreventa documentada (diferencial competitivo)
+# ─────────────────────────────────────────────────────────────
+anti_sobreventa_policy: |
+  En consulta inicial L0, el médico/médica:
+  1. Presenta SIEMPRE la opción más conservadora primero
+  2. Documenta en historia clínica el tratamiento ofrecido + el alternativo conservador
+  3. Si paciente insiste en tratamiento más agresivo del recomendado, lo registra como "tratamiento solicitado por paciente fuera de recomendación clínica"
+  4. NUNCA cierra venta en consulta L0 — siempre 24-48h de espera entre evaluación y compra
+  5. Si recomienda paquete (L2/L3), justifica número de sesiones por evidencia clínica
