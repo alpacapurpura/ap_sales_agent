@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-07T01:49:19+00:00`
+> Generated at: `2026-05-07T01:53:55+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -40,8 +40,8 @@
 ### 🧪 Developed — esperando QA (0 / cap 2)
 - _(none)_
 
-### 🔍 Reviewing (1 / cap 2)
-- maintenance-skill-sales-agent-audit
+### 🔍 Reviewing (0 / cap 2)
+- _(none in review)_
 
 ### Recently shipped (last 90d, 3 items)
 - pi-11-backend-quality-guardrails — 2026-05-06
@@ -82,8 +82,7 @@ kanban
   🔨 Developing (1 / cap 3)
     eval-foundation-tenant-seed-da[eval-foundation-tenant-seed-data]
   🧪 Developed (0 / cap 2)
-  🔍 Reviewing (1 / cap 2)
-    maintenance-skill-sales-agent-[maintenance-skill-sales-agent-audit]
+  🔍 Reviewing (0 / cap 2)
   ✅ Done (3 / 90d rolling)
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]

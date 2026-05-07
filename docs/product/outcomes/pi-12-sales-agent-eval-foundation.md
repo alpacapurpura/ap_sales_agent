@@ -28,7 +28,7 @@ story_ids:
   - sales-agent-litellm-canonicalization
 
   # foundation new (NEW — sub-épica eval-foundation-*):
-  - maintenance-skill-sales-agent-audit          # 1d, prerequisite absoluto (state=ready 2026-05-06)
+  # - maintenance-skill-sales-agent-audit        # DONE 2026-05-06 (archived, skill SSoT auditado)
   - eval-foundation-tenant-seed-data             # 5-7d (5 tenants ratified Chris 2026-05-06), story A — pre-req de todo (state=refined 2026-05-06)
   - eval-foundation-simulator-homologation       # 2-3d, story B — wire client_simulator/
 
@@ -155,20 +155,15 @@ inapropiado". CI gate bloquea regressions automáticamente.
 
 ## Stories — re-decomposición synthetic-first
 
-### ✅ Done (2 — archivadas a docs/archive/2026/stories/)
+### ✅ Done (3 — archivadas a docs/archive/2026/stories/)
 
 | Story | Done date | Capability promoción |
 |---|---|---|
 | `sales-agent-eval-runner-foundation` | 2026-05-06 | sales-conversational-engine (eval suite path establecido) |
 | `sales-agent-litellm-canonicalization` | 2026-05-06 | sales-observability-cost-tracking (LiteLLM canonical path) |
+| `maintenance-skill-sales-agent-audit` | 2026-05-06 | NA (maintenance — skill `sales-agent-expert` SSoT auditado, 9 stories downstream desbloqueadas) |
 
-### 🔬 Refining — 9 stories (synthetic-first eval foundation, dependency graph below)
-
-#### Pre-requisite absoluto
-
-| Story | Role | Type | Estimate | Spec status |
-|---|---|---|---|---|
-| `maintenance-skill-sales-agent-audit` | **PRE** — audit + actualizar `sales-agent-expert` skill SSoT | maintenance | 1d | NEW (00-story pendiente) |
+### 🔬 Refining — 8 stories (synthetic-first eval foundation, dependency graph below)
 
 #### Foundation (paths críticos)
 
@@ -199,7 +194,7 @@ inapropiado". CI gate bloquea regressions automáticamente.
 ### Dependency graph
 
 ```
-maintenance-skill-sales-agent-audit  (PRE — 1d)
+maintenance-skill-sales-agent-audit  (PRE — ✅ DONE 2026-05-06)
                   │
                   ▼
    eval-foundation-tenant-seed-data  (A — 3-4d, blocker absoluto)

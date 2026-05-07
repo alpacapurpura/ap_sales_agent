@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T01:49:19+00:00
+# Generated at: 2026-05-07T01:53:55+00:00
 
-generated_at: '2026-05-07T01:49:19+00:00'
+generated_at: '2026-05-07T01:53:55+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -143,7 +143,6 @@ buckets:
       story_ids:
       - sales-agent-eval-runner-foundation
       - sales-agent-litellm-canonicalization
-      - maintenance-skill-sales-agent-audit
       - eval-foundation-tenant-seed-data
       - eval-foundation-simulator-homologation
       - sales-agent-dialect-configuration
@@ -370,22 +369,7 @@ buckets:
       priority_override: null
       audit_iterations: 0
   developed: []
-  reviewing:
-  - id: maintenance-skill-sales-agent-audit
-    kind: story
-    state: reviewing
-    title: maintenance-skill-sales-agent-audit
-    tags:
-    - legacy:exempt
-    last_touched: 2026-05-06 20:15:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: AUDIT_DONE
-      next_action: /pm aplica merge → state=reviewing→done → archive a docs/archive/2026/stories/maintenance-skill-sales-agent-audit/.
-        T-1 audit_verdict=APPROVED (0 FAIL / 3 non-blocking WARN). 9 stories downstream desbloqueadas conceptualmente.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
+  reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails
     kind: outcome
@@ -471,6 +455,21 @@ buckets:
       - Orchestrator real responde DMs Telegram con channel format MarkdownV2 + tool subset filter + memory cost-aware
       - 'Tests passing: 86 copilot telegram tests + 9 arch fitness telegram_separation tests'
       - Latencia <3s p95 turn no-streaming (objetivo S2 — verificable post-deploy con observability S5 deferred)
+  - id: maintenance-skill-sales-agent-audit
+    kind: story
+    state: done
+    title: maintenance-skill-sales-agent-audit
+    tags:
+    - legacy:exempt
+    last_touched: 2026-05-06 20:25:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: DONE
+      next_action: Story merged + archived a docs/archive/2026/stories/maintenance-skill-sales-agent-audit/. 9 stories downstream
+        eval-foundation-* desbloqueadas. Folder será movido al archive en commit final.
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   parked:
   - id: growth-studio-visual-coherence-pass
     kind: story

@@ -1,11 +1,11 @@
 ---
 story_id: maintenance-skill-sales-agent-audit
 outcome: pi-12-sales-agent-eval-foundation
-state: reviewing
-phase: AUDIT_DONE
-last_artifact: CHECKPOINTS.md
-last_modified: 2026-05-06T20:15:00Z
-next_action: "/pm aplica merge → state=reviewing→done → archive a docs/archive/2026/stories/maintenance-skill-sales-agent-audit/. T-1 audit_verdict=APPROVED (0 FAIL / 3 non-blocking WARN). 9 stories downstream desbloqueadas conceptualmente."
+state: done
+phase: DONE
+last_artifact: 07-merge.md
+last_modified: 2026-05-06T20:25:00Z
+next_action: "Story merged + archived a docs/archive/2026/stories/maintenance-skill-sales-agent-audit/. 9 stories downstream eval-foundation-* desbloqueadas. Folder será movido al archive en commit final."
 ratified_by_chris: true
 spawned_at: 2026-05-06T17:11:00Z
 spawned_by: /pm
@@ -26,3 +26,4 @@ legacy_exempt: true
 - 2026-05-06 23:59Z — builder-backend (claude-sonnet) completó T-1. Validators A1-A9: 10/10 tests PASS, ruff 0 errors, format clean, arch fitness 827/827 PASS, zero_src_changes gate PASS. State `developing → developed`. Archivos: test (new), SKILL.md (2 secciones + 2 path fixes), 3 references (UPDATE), T-1-impl-log.md (new), checkpoint.md (updated), 06-tickets.yaml (updated). Commit pending push.
 - 2026-05-06 20:05Z — `/dev-team` Step 4: spawn gate-runner Haiku → gate-output.json sealed (any_fail=false, ruff lint PASS, ruff format PASS, pytest 10/10 PASS). Push verified (commit 376ebbc6 already on origin/development). Ticket T-1 transition `developed → pushed`. Story `developed` (final state Conv 2 — awaiting Chris-triggered Conv 3 /auditor).
 - 2026-05-06 20:15Z — `/auditor` Conv 3: state `developed → reviewing`. context-builder refresh phase=auditor + auditor-backend (Opus) spawned. Verdict **APPROVED** (T-1-review.md): 0 FAIL · 3 non-blocking WARN · 4 PASS · 11 N/A. Hard gates: A7 zero_src_changes PASS, 11 must_pass validators GREEN, gate-output.json any_fail=false. Anti-duplication inventario sincronizado. R3 downstream regression NA. Ticket T-1 `pushed → audit-passed`. CHECKPOINTS.md (story-level C1-C5) sellada APPROVED. Phase `AUDIT_DONE` — handoff `/pm` merge.
+- 2026-05-06 20:25Z — `/pm` merge applied. Steps NA: capability promotion (maintenance), modules/sales_agent.md auto-list (no narrative change), learnings.md (audit rutinario sin learnings cardinales). Steps executed: 07-merge.md written, outcome pi-12 story_ids actualizado (maintenance-skill-sales-agent-audit → Done section), BACKLOG regen via hook, folder archive a `docs/archive/2026/stories/maintenance-skill-sales-agent-audit/`. State **`reviewing → done`**. Phase `DONE`. 9 stories downstream eval-foundation-* desbloqueadas conceptualmente.
