@@ -447,7 +447,7 @@ T9:
   assigned_to: claude-sonnet
   assigned_at: 2026-05-09T00:35:00Z
   pushed_at: 2026-05-09T02:30:00Z
-  push_commit_sha: "TBD"
+  push_commit_sha: "55f3de42"
   transitions:
     - { state: assigned, at: "2026-05-09T00:35:00Z", by: "/dev-team", to: "claude-sonnet" }
     - { state: pushed, at: "2026-05-09T02:30:00Z", by: "claude-sonnet", note: "6 Shadcn primitives migrated z-50 → Z_INDEX_CLASSES tokens. Arch test extended to components/ui/ scope. 3/3 z-index arch tests GREEN. 2088 vitest tests PASS." }

@@ -49,4 +49,4 @@ TDD RED→GREEN. Loop hasta validators GREEN o cap_reached.
 - `visual_min_content_width_e2e`: not re-run post-migration (scope = z-index tokens only, no layout geometry changed).
 - calendar.tsx / detail-panel.tsx / select.tsx z-index migration: deferred follow-up story (pre-existing violations, not T-9 deliverables).
 
-**Commit SHA:** (pending)
+**Commit SHA:** 55f3de42
