@@ -4,7 +4,7 @@
 > State: developing → developed
 > Surface: AGENTIC test-infra (production_code: false)
 > Estimate: 1.5h · Actual: ~1h (single iteration, no cap reached)
-> Commit SHA: (recorded post-push below)
+> Commit SHA: `ed671c99`
 
 ## Summary
 
