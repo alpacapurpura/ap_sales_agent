@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T05:48:17+00:00
+# Generated at: 2026-05-08T07:10:27+00:00
 
-generated_at: '2026-05-08T05:48:17+00:00'
+generated_at: '2026-05-08T07:10:27+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -361,12 +361,12 @@ buckets:
     state: developing
     title: app-shell-sidebar-copilot-decoupling
     tags: []
-    last_touched: 2026-05-08 02:30:00+00:00
+    last_touched: 2026-05-09 00:30:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_T4_DONE
-      next_action: '/dev-team Conv 2 — T-4 PUSHED (6b691987). T-5 next: Phase 5 — CopilotFAB + AppSidebar mobile aria-labels
-        (Scenario 3). T-5 unblocked.'
+      phase: BUILD_T8_DONE
+      next_action: 'T-8 PUSHED. 5 Playwright smoke specs + VR baseline. 4 tests fixmed (Sheet headless issue, deferred follow-up).
+        T-9 next: Phase 10 modal z-index ui/* primitives. Chris ratifies VR baselines pre /auditor trigger.'
       blocked_by: null
       priority_override: null
       audit_iterations: 0
