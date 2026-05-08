@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T07:28:55+00:00`
+> Generated at: `2026-05-08T07:41:48+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -25,12 +25,11 @@
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 
-### ✅ Refined — listo para arquitectos (2 / cap 5)
-- **growth-studio-actions-schemas-real** — outcome `growth-copilot-layout-unification`
+### ✅ Refined — listo para arquitectos (1 / cap 5)
 - **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 📦 Ready for development (0 / cap 5)
-- _(none)_
+### 📦 Ready for development (1 / cap 5)
+- **growth-studio-actions-schemas-real** — outcome `growth-copilot-layout-unification`
 
 ### 🔨 Developing (0 / cap 3)
 - _(none)_
@@ -75,10 +74,10 @@ kanban
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-  ✅ Refined (2 / cap 5)
-    growth-studio-actions-schemas-[growth-studio-actions-schemas-real]
+  ✅ Refined (1 / cap 5)
     sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
-  📦 Ready (0 / cap 5)
+  📦 Ready (1 / cap 5)
+    growth-studio-actions-schemas-[growth-studio-actions-schemas-real]
   🔨 Developing (0 / cap 3)
   🧪 Developed (2 / cap 2)
     app-shell-sidebar-copilot-deco[app-shell-sidebar-copilot-decoupling]

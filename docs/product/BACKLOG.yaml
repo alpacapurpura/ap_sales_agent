@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T07:28:55+00:00
+# Generated at: 2026-05-08T07:41:48+00:00
 
-generated_at: '2026-05-08T07:28:55+00:00'
+generated_at: '2026-05-08T07:41:48+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -322,23 +322,6 @@ buckets:
       priority_override: null
       audit_iterations: 0
   refined:
-  - id: growth-studio-actions-schemas-real
-    kind: story
-    state: refined
-    title: growth-studio-actions-schemas-real
-    tags: []
-    last_touched: 2026-05-07 04:15:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: SPEC_RATIFIED
-      next_action: '/architect orchestrator → produce ready package CON sub-architects /architect-be (3 BE tools NEW: get_stage_metrics
-        REPLACE legacy + get_channel_overview + trigger_etl_refresh con confirmation flow + metric-catalog endpoint + RateLimiter
-        reuse) + /architect-fe (3 action React components + 4 zod schemas + 2 SSoTs contract test) + /architect-agentic (copilot
-        tool registration + legacy migration eval goldens). Sequential build: BLOCKED hasta 2A done.'
-      blocked_by:
-      - growth-studio-folder-parity
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-personas-instrumented-runtime
     kind: story
     state: refined
@@ -354,7 +337,22 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  ready: []
+  ready:
+  - id: growth-studio-actions-schemas-real
+    kind: story
+    state: ready
+    title: growth-studio-actions-schemas-real
+    tags: []
+    last_touched: 2026-05-08 00:00:00+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: READY_PACKAGE_CLOSED
+      next_action: '/dev-team takes T-1 (Conv 2 autonomous build). Sequential build OK: 2A done (commit 1e517b09 + T-7 placeholders
+        828bb3dc), Story 1 done (commit b123d6da). T-1 + T-2 may run in parallel; T-3..T-7 sequential per 06-tickets.yaml
+        dependency graph.'
+      blocked_by: []
+      priority_override: null
+      audit_iterations: 0
   developing: []
   developed:
   - id: app-shell-sidebar-copilot-decoupling

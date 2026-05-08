@@ -1,0 +1,181 @@
+---
+story_id: growth-studio-actions-schemas-real
+arch_version: 1
+last_modified: 2026-05-08T00:00:00Z
+description: |
+  Executable validators for Story 2B (real actions + real schemas).
+  Every entry must_pass=true. /dev-team iterates against these until all GREEN.
+links:
+  spec: "01-spec.md"
+  arch: "03-arch.md"
+  guidelines: "05-guidelines.md"
+  tickets: "06-tickets.yaml"
+
+categories:
+  non_functional:
+    - id: be_lint
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/modules/copilot/application/tools/ src/modules/analytics/application/services/etl_refresh_guard.py tests/modules/copilot/application/tools/ tests/architecture/test_be_fe_schema_alignment_growth_studio.py --no-cache"
+      expect: "0 errors"
+
+    - id: be_format
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/ruff format --check src/modules/copilot/application/tools/ src/modules/analytics/application/services/etl_refresh_guard.py tests/modules/copilot/application/tools/"
+      expect: "0 changes"
+
+    - id: fe_typecheck
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && npx tsc --noEmit"
+      expect: "0 errors"
+
+    - id: fe_lint
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && npx eslint src/features/growth-studio/actions/ src/features/growth-studio/schemas/ --cache --cache-location .eslintcache"
+      expect: "0 errors"
+
+    - id: be_arch_fitness_full
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short"
+      expect: "all green; allowlists shrink only"
+
+    - id: fe_arch_fitness
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && npx vitest run src/__tests__/architecture/ --reporter=default"
+      expect: "all green incl. test-studio-structure-parity (growth-studio actions/+schemas/ now populated)"
+
+    - id: bundle_delta
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && npm run build 2>&1 | tail -50"
+      expect: "growth-studio chunk size delta ≤ 5% vs baseline (story 2A T-8 record)"
+
+  functional:
+    - id: be_zod_schema_alignment_test
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/test_be_fe_schema_alignment_growth_studio.py -x -q --tb=short"
+      expect: "Pydantic input schemas ↔ zod schemas equivalence (required fields, enum values, extra='forbid' ↔ .strict())"
+
+    - id: fe_zod_schema_unit_tests
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && npx vitest run src/features/growth-studio/schemas/__tests__/"
+      expect: |
+        - stage-filter-params.test.ts: valid + invalid (extra key rejected, bad enum rejected)
+        - channel-config.test.ts: valid + invalid hex color
+        - kpi-selection.test.ts: max 10 KPIs, schema parses /catalog response
+        - tier-loading.test.ts: tier0..3 valid + truncated flag
+        - stage-filter-params-security.test.ts: regex rejects path injection + XSS
+
+    - id: be_tool_unit_tests
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/copilot/application/tools/ -x -q --tb=short"
+      expect: |
+        - test_analytics_tools_stage.py: get_stage_metrics happy + tenant isolation + tier cascade
+        - test_analytics_tools_channel.py: get_channel_overview happy + invalid slug rejected
+        - test_etl_refresh_tool.py: rate limit hit + confirm flow + soft-fail Redis
+        - test_analytics_tools_tier_loading.py: truncation flag set when row_count > 10k
+        - test_analytics_tools_security.py: 4 adversarial attacks rejected (cross-tenant override, path injection, XSS, prompt injection)
+
+    - id: fe_action_component_unit_tests
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && npx vitest run src/features/growth-studio/actions/__tests__/"
+      expect: |
+        - StageMetricsAction.test.tsx: render with mock payload + currency format + truncated alert role
+        - ChannelOverviewAction.test.tsx: render with mock dashboard payload
+        - ETLRefreshAction.test.tsx: queued state render
+        - ETLRateLimitedAction.test.tsx: Spanish neutro copy + retry copy + role=alert
+        - ETLConfirmAction.test.tsx: confirm button click → second tool call payload (mocked fetchClient)
+        - StageMetricsAction-large-volume.test.tsx: lazy drilldown render + truncated badge
+
+    - id: be_etl_guard_unit_tests
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/analytics/application/services/test_etl_refresh_guard.py -x -q --tb=short"
+      expect: |
+        - rate_limit_exceeded → returns retry_after_seconds correctly
+        - confirm_threshold (1 prior in window) → requires_confirmation=true
+        - soft_fail Redis unavailable → fail-open + structlog warning
+        - DEFAULT_LIMIT=3 + WINDOW=3600s
+
+    - id: be_full_module_suite_copilot
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/copilot/ -x -q --tb=short --ignore=tests/modules/copilot/test_streaming_integration.py --timeout=120"
+      expect: "all green incl. updated route_tool_selection.json golden"
+
+    - id: be_full_module_suite_analytics
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/analytics/ -x -q --tb=short --timeout=120"
+      expect: "all green; refresh_channel_metrics endpoint + EtlRefreshGuard wired + no regression"
+
+    - id: legacy_tool_removal_verification
+      must_pass: true
+      command: "grep -rn 'get_funnel_metrics' /home/chris/AISALESHT/backend/src/ /home/chris/AISALESHT/backend/tests/ /home/chris/AISALESHT/frontend/src/ 2>/dev/null || true"
+      expect: "0 matches (atomic migration per spec Q6 + caller audit)"
+
+  visual:
+    - id: playwright_smoke_growth_studio
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke frontend/e2e/specs/smoke/growth-studio.smoke.spec.ts"
+      expect: "smoke green (re-run post 2B integration; 2A baseline preserved)"
+
+    - id: playwright_visual_regression
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && npx playwright test --project=visual frontend/e2e/visual/growth-studio-actions.spec.ts"
+      expect: "5 action components render snapshots OK at 375px + 1024px viewports; Spanish neutro copy verified"
+      note: "If E2E flakes due to dev-server startup, defer to manual verification + open follow-up — do NOT skip on must_pass."
+
+    - id: chrome_devtools_verify
+      must_pass: false   # advisory; only blocks if FE PR ≥ M
+      command: "manual: invoke chrome-devtools-verify skill on /[tenantId]/growth-studio after seeding mock copilot conversation"
+      expect: "5 actions render in chat panel; tenant currency + locale honored"
+
+  agentic_eval:
+    - id: copilot_route_tool_selection_golden
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/copilot/golden/test_route_tool_selection.py -x -q"
+      expect: "growth-studio route picks {get_stage_metrics, get_channel_overview, trigger_etl_refresh}; get_funnel_metrics absent"
+
+    - id: agentic_voice_fidelity_goldens
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/quality/golden/growth_studio_actions/ -x -q"
+      expect: |
+        - stage-query-happy.json: tool dispatch correct + Spanish neutro response
+        - etl-refresh-confirm.json: confirm flow tone polite + voseo glosario respected
+        - etl-refresh-rate-limited.json: no retry loop + clear retry copy
+        Stub default; opt-in real LLM via RUN_LLM_JUDGE=1 (NANO model).
+
+    - id: agentic_eval_real_llm_optin
+      must_pass: false   # advisory — run on PR review by Chris (cost gate)
+      command: "cd /home/chris/AISALESHT/backend && RUN_LLM_JUDGE=1 .venv/bin/pytest tests/quality/golden/growth_studio_actions/ -q"
+      expect: "grader_score >= 0.85 across 3 goldens; cost ≤ $0.05 total per run"
+
+    - id: copilot_trace_event_recorded
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/copilot/application/tools/test_analytics_tools_observability.py -x -q"
+      expect: |
+        - Each tool call writes 1 copilot_trace_event row (best-effort)
+        - copilot_llm_call cost_usd populated
+        - PII sanitized via shared.agent_observability.recording.sanitization
+
+    - id: cost_budget_per_session
+      must_pass: false   # advisory metric — recorded for trend, not gate
+      command: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/quality/test_cost_budget_growth_studio.py -q"
+      expect: "median session cost ≤ $0.50 across 4 tool calls (per spec NFR)"
+
+  cross_cutting_audits:
+    - id: tenant_isolation_audit
+      must_pass: true
+      command: "grep -rn 'tenant_id' /home/chris/AISALESHT/backend/src/modules/copilot/application/tools/_analytics_inputs.py /home/chris/AISALESHT/backend/src/modules/copilot/application/tools/analytics_tools.py /home/chris/AISALESHT/backend/src/modules/analytics/application/services/etl_refresh_guard.py | grep -v '#'"
+      expect: "every tool body reads tenant_id from get_tenant_id() context; never accepts caller-supplied tenant_id (Pydantic extra='forbid' enforces)"
+
+    - id: spanish_neutro_lint
+      must_pass: true
+      command: "cd /home/chris/AISALESHT/frontend && npx eslint src/features/growth-studio/actions/ --rule '@typescript-eslint/no-restricted-syntax: error' || true"
+      expect: "user-facing strings: tildes + ñ + ¿ + ¡ + tuteo. No voseo. Pre-commit hook (`scripts/git-hooks/pre-commit`) catches voseo regex automatically."
+
+    - id: anti_duplication_audit
+      must_pass: true
+      command: "grep -rn 'class RateLimiter\\|class.*RateLimit\\|sliding window' /home/chris/AISALESHT/backend/src/modules/analytics/application/services/etl_refresh_guard.py"
+      expect: "EtlRefreshGuard composes OutboundRateLimiter (NO new Redis abstraction); references shared.billing.application.rate_limiter pattern only"
+
+    - id: pii_sanitisation_audit
+      must_pass: true
+      command: "grep -rn 'response_model=' /home/chris/AISALESHT/backend/src/modules/copilot/application/tools/analytics_tools.py || true"
+      expect: "tools return JSON-string (not endpoint response_model); aggregated metrics only — NO email/phone/address fields in output"

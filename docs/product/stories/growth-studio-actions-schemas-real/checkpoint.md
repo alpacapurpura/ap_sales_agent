@@ -1,19 +1,21 @@
 ---
 story_id: growth-studio-actions-schemas-real
 outcome: growth-copilot-layout-unification
-state: refined
-phase: SPEC_RATIFIED
-last_artifact: 01-spec.md
-last_modified: 2026-05-07T04:15:00Z
-next_action: "/architect orchestrator → produce ready package CON sub-architects /architect-be (3 BE tools NEW: get_stage_metrics REPLACE legacy + get_channel_overview + trigger_etl_refresh con confirmation flow + metric-catalog endpoint + RateLimiter reuse) + /architect-fe (3 action React components + 4 zod schemas + 2 SSoTs contract test) + /architect-agentic (copilot tool registration + legacy migration eval goldens). Sequential build: BLOCKED hasta 2A done."
+state: ready
+phase: READY_PACKAGE_CLOSED
+last_artifact: 06-tickets.yaml
+last_modified: 2026-05-08T00:00:00Z
+next_action: "/dev-team takes T-1 (Conv 2 autonomous build). Sequential build OK: 2A done (commit 1e517b09 + T-7 placeholders 828bb3dc), Story 1 done (commit b123d6da). T-1 + T-2 may run in parallel; T-3..T-7 sequential per 06-tickets.yaml dependency graph."
 ratified_by_chris: true
 ratified_at: 2026-05-07T04:15:00Z
+ready_closed_at: 2026-05-08T00:00:00Z
+ready_closed_by: /architect (orchestrator) + /architect-be + /architect-fe + /architect-agentic (parallel sub-architects)
 spawned_at: 2026-05-07T03:30:00Z
 spawned_by: /po (sesión refining unification 2nd pass — split de growth-studio-architectural-parity)
 parallel_safe: false
 parallel_safe_with: []
-blocked_reason: "Sequential dependency on growth-studio-folder-parity (2A) — factory dispatchers + folders must exist first."
-blocked_by: ["growth-studio-folder-parity"]
+blocked_reason: null
+blocked_by: []
 audit_iterations: 0
 hotfix_metadata:
   repro_verified: false
@@ -23,102 +25,62 @@ hotfix_metadata:
 
 # Story scope — Story 2B (real actions + real schemas)
 
-**Tipo:** service-story (FE actions + zod schemas — sin UI change visible)
+**Tipo:** service-story (FE actions + zod schemas + BE copilot tools — sin UI change visible salvo cards en chat copilot)
 **Skill spec:** `/po`
 **Module primario:** `analytics` (FE: `frontend/src/features/growth-studio/`)
-**Module secundario:** `copilot` (consumer de las actions)
+**Module secundario:** `copilot` (consumer + registry de las actions)
 
-## Origin
+## State machine — refined → ready (2026-05-08)
 
-Split decision (Chris ratified 2026-05-07): scope original de
-`growth-studio-architectural-parity` excedía cap (≤10 tickets/story).
-Refactor estructural (folders + factory + cleanup) y feature work (real
-actions/schemas + ETL trigger + export) son fases distintas.
+`/architect` orchestrator spawned 3 sub-architects in parallel and consolidated outputs:
+- `/architect-be` (Opus 4.7) — 3 tools + DTOs + EtlRefreshGuard composing OutboundRateLimiter + tenant isolation + No new endpoint added (REUSE 4 existing analytics endpoints)
+- `/architect-fe` (Opus 4.7) — 5 action React components + 4 zod schemas + registry mirror brand-studio pattern + 2 SSoTs cross-stack contract test
+- `/architect-agentic` (Opus 4.7) — 3 tools registered in `ANALYTICS_TOOLS` group + golden update + 3 voice fidelity eval goldens + R23 owner eligibility marked
 
-- Story 2A (`growth-studio-folder-parity`) — refactor estructural
-- Story 2B (este file) — real actions + real schemas, sequential
+Ready package shipped (4 archivos):
+- `03-arch.md` — consolidated single source of truth
+- `04-validators.yaml` — 4 categories (non_functional / functional / visual / agentic_eval) + cross_cutting_audits sub-category
+- `05-guidelines.md` — patterns required + forbidden + skills/rules + files in scope
+- `06-tickets.yaml` — 7 atomic tickets ordered (T-1 … T-7), R23 marked for AGENTIC tickets
 
-## Scope 2B (qué SÍ entra)
+## Dependencies status
 
-### Real actions (4)
+| Dependency | Status | Confirmed by |
+|---|---|---|
+| Story 2A (`growth-studio-folder-parity`) | DONE | commit `1e517b09` (T-8 verify) + `828bb3dc` (T-7 placeholders shipped) |
+| Story 1 (`app-shell-sidebar-copilot-decoupling`) | DONE | commit `b123d6da` (shell pattern + scope-keyed allowlists) |
 
-1. **`queryStageMetrics(stage, channel?, period?)`** — copilot tool call,
-   retorna KPIs del stage (con filtro opcional canal + período).
-2. **`queryChannelOverview(channel)`** — copilot tool call, retorna
-   overview canal específico (YouTube/Mail/Meta/etc dashboard data).
-3. **`triggerETLRefresh(channel)`** — copilot tool call, dispara
-   re-extracción ETL para canal (con rate-limit + cost guard).
-4. **`exportStageReport(stage, format)`** — copilot tool call, exporta
-   reporte stage (formato PDF/CSV).
+`parallel_safe: false` historical — now obsolete because BLOCKED resolved. T-1 + T-2 within Story 2B can run in parallel (consume different surfaces). T-3..T-7 sequential per dependency graph in `06-tickets.yaml`.
 
-### Real zod schemas (4)
+## Key architectural decisions (recap)
 
-1. **`stage-filter-params.schema.ts`** — valida filtros (period, channel,
-   group) en queries cross-stage.
-2. **`channel-config.schema.ts`** — valida shape registry channel (slug,
-   dashboard, kpis, color) — driver del registry SSoT.
-3. **`kpi-selection.schema.ts`** — valida selección KPIs custom user
-   (futura feature dashboard custom).
-4. **`tier-loading.schema.ts`** — valida payload tier0/tier1/tier2/tier3
-   endpoints (API contract validation runtime).
-
-### Constraints adicionales
-
-- Cada action MUST aparecer en copilot tool registry (`copilot-expert`
-  skill territorio — coordinación)
-- Cada schema MUST consumirse por al menos 1 caller real (no orphans)
-- `triggerETLRefresh` necesita budget guard + rate limiter (riesgo cost)
-
-## Scope 2B (qué NO entra)
-
-- ❌ Folder parity / factory dispatchers — story 2A
-- ❌ Legacy purge config/context/__mocks__ — story 2A
-- ❌ Arch fitness extension — story 2A
-- ❌ Visual changes — story 3 (parked)
-- ❌ Nuevos endpoints BE — analytics module ya tiene endpoints; las
-  actions consumen los existentes
-- ❌ Custom dashboard UI per-tenant — feature futura
-
-## Constraints heredados
-
-- FSD-Lite: actions consumen `lib/api/*`, NO directamente `fetch`
-- Tenant isolation en cada action (X-Tenant-ID via fetchClient)
-- Currency handling: monetary KPIs respetan source currency (per
-  `.claude/rules/currency-handling.md`)
-- Master data: timezone tenant via `useTenantLocale` (per
-  `.claude/rules/master-data.md`)
-- Spanish neutro en messages user-facing (errors, confirmations)
-- TDD obligatorio: zod schema tests RED antes implement; action contract
-  tests RED antes implement
-- Copilot tool registration MUST seguir patrón existente (`copilot-expert`
-  skill `references/`)
-
-## Open questions (pre-spec)
-
-1. ¿`triggerETLRefresh` requiere confirmación user copilot agent o
-   auto-trigger? (Cost implication.)
-2. ¿`exportStageReport` server-side render PDF (heavy) vs client-side
-   CSV (light)? Architect decide.
-3. ¿KPI selection schema valida contra `metric_catalog` SSoT BE o FE
-   tiene mirror constants? (`metrics-expert` skill territory.)
-4. ¿Rate limit `triggerETLRefresh` per-tenant N/hour configurable o
-   hardcoded?
-5. ¿Schemas exportados como types TS (z.infer) o también como JSON
-   schema runtime (RPC)?
+1. **NO new analytics endpoints** — REUSE 4 existing (`/{stage}/overview`, `/{stage}/groups/{group_key}`, `/channel/{slug}/dashboard`, `/attraction/refresh/{channel_slug}`, `/catalog`).
+2. **NO new rate limiter** — `EtlRefreshGuard` composes `OutboundRateLimiter` Redis pipeline pattern (anti-duplication compliance).
+3. **`get_funnel_metrics` REPLACED atomically** in same commit (caller audit confirmed only 2 references).
+4. **Adversarial defense** via Pydantic `extra="forbid"` + `Literal[...]` enum + zod `.strict()` parity.
+5. **Cross-stack contract test** ensures BE Pydantic ↔ FE zod alignment via z.toJSONSchema().
+6. **Agentic tickets** (T-3, T-4) `production_code: true` → R23 hard rule: Opus 4.7 builder.
+7. **Tenant isolation** read from `get_tenant_id()` context — caller-supplied tenant blocked at Pydantic parse.
+8. **Spanish neutro** user-facing across 5 action components; voseo lint catches at pre-commit.
 
 ## Bitácora
 
-- 2026-05-07 03:30 — `/po` (sesión refining unification 2nd pass) creó
-  folder + checkpoint.md (state=refining). Split de
-  `growth-studio-architectural-parity` ratificado por Chris.
-  Sequential dependency en 2A. Phase=PO_DRAFTING.
+- 2026-05-07 03:30 — `/po` (sesión refining unification 2nd pass) creó folder + checkpoint.md (state=refining). Split de `growth-studio-architectural-parity` ratificado por Chris. Sequential dependency en 2A. Phase=PO_DRAFTING.
+- 2026-05-07 04:15 — Chris ratificó spec (8 questions answered: 3 actions in scope, exportStageReport DROPPED, rate limit hardcoded 3/hour, REPLACE legacy strategy, 2 SSoTs contract test, mirror brand registry pattern). Phase=SPEC_RATIFIED, state=refined.
+- 2026-05-08 00:00 — `/architect` orchestrator spawned `/architect-{be,fe,agentic}` in parallel; consolidated outputs into `03-arch.md` + `04-validators.yaml` + `05-guidelines.md` + `06-tickets.yaml`. state=ready.
+
+## Hand off
+
+```
+state: refined → ready  (architect closed 2026-05-08)
+next: /dev-team takes T-1 (BE — 3 tools + EtlRefreshGuard) + T-2 (FE — 4 schemas + 5 actions) in parallel
+       Then sequentially: T-3 (agentic Opus) → T-4 (agentic Opus) → T-5 → T-6 → T-7 (verify + capability promote)
+```
 
 ## Notas
 
-- `parallel_safe: false` (depende de 2A entregar factory + folders)
-- Arrancar refining 2B en paralelo a 2A es OK (spec ratification puede
-  cerrar antes que 2A entregue código). BUILD de 2B sequential después
-  de BUILD de 2A.
-- Architect Opus 4.7 OBLIGATORIO (cross-module copilot ↔ analytics)
-- Builder agentic OBLIGATORIO para copilot tool registration (Opus 4.7
-  per R23 production_code=true en agentic surface)
+- 7 tickets within ≤10 cap (story scope healthy)
+- Estimated total 14-22h
+- T-3 + T-4 require Opus 4.7 (R23 hard rule)
+- Other tickets (T-1, T-2, T-5, T-6, T-7) qualified for Sonnet/opencode
+- Capability YAML `docs/product/capabilities/analytics/growth-studio-copilot-actions.yaml` will be created at merge (status=shipped) by PM via `reconcile_capabilities.py` + `generate_backlog.py` (R32 + R33)
