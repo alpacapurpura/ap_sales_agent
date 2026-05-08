@@ -135,3 +135,46 @@ ideas:
 
       Pendiente: JTBD + métricas (cuántos tenants usan inbox a viewport <1280) +
       OST formal cuando se valide.
+
+  - id: sales-agent-qualification-toolkit
+    one_liner: "BE tools `qualify_lead` + `tag_lead_status` for sales_agent runtime — unblocks Story C T-6/T-7 SKIP transitions"
+    state: idea
+    tags: [module:sales-agent, type:agentic-runtime, effort:S, value:eval-unblock, source:story-c-escalation]
+    created: 2026-05-08
+    last_touched: 2026-05-08
+    notes: |
+      Captured 2026-05-08 post Story C audit + merge.
+
+      Scope:
+      - Implement `qualify_lead(lead_id, qualified: bool, reasoning: str)` BE tool
+        in sales_agent runtime (modules/sales_agent/application/tools/qualification.py)
+      - Implement `tag_lead_status(lead_id, status: Literal[...])` BE tool
+      - Register both in TOOL_REGISTRY for sales_agent specialists
+      - Pydantic v2 schemas + tenant isolation + observability writes
+      - Integration with CRM module (lead_id ref existing entity)
+
+      Origin:
+      Story C (sales-agent-personas-instrumented-runtime) T-6 + T-7 cement
+      synthetic eval tests for Scenarios 5+6 (qualification × 5 archetypes ×
+      3 trials + nurture multi-question 8-15 turns × 5 archetypes). Tests
+      currently SKIP at collection time via `_TOOLKIT_SUPPORTED` capability
+      probe — when these tools land in TOOL_REGISTRY, tests transition GREEN
+      automatically (no test changes needed).
+
+      Decision Chris 2026-05-08: Story C closure accepted as-is (Option B);
+      toolkit is independent future work. Story E voice-fidelity-grader-runtime
+      ratified the decision but DOES NOT naturally bundle the toolkit (E's
+      scope is GRADER + rubrics + cache, NOT sales_agent runtime tools).
+
+      Predecesor: NO blocked. Can be picked up in any session toca
+      modules/sales_agent/application/tools/.
+
+      Pendiente: JTBD framing + spec ratification + /architect ready package.
+      Recommended owner skill at refining: /po (service-story BE only).
+
+      Related:
+      - Story C archive (T-6/T-7 cement)
+      - Story C 07-merge.md "Open escalation /pm" section
+      - rubrics/qualification-accuracy.md (Story E owns runtime grading;
+        toolkit is separate concern: agent EXECUTING qualification action vs
+        grader MEASURING qualification quality)

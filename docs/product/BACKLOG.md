@@ -1,17 +1,18 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T19:49:32+00:00`
+> Generated at: `2026-05-08T20:02:28+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### 💡 Ideas (6)
+### 💡 Ideas (7)
 - calendario-comercial `[idea]`
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
 - solo-mode-chat-first-layout `[idea]`
 - sales-inbox-responsive-collapse `[idea]`
+- sales-agent-qualification-toolkit `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
 ### 🔬 Refining (2 total · 0 cap-eligible / cap 3)
@@ -54,12 +55,13 @@
 
 ```mermaid
 kanban
-  💡 Ideas (6)
+  💡 Ideas (7)
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
     solo-mode-chat-first-layout[solo-mode-chat-first-layout]
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
+    sales-agent-qualification-tool[sales-agent-qualification-toolkit]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
   🔬 Refining (2 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]

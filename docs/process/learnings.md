@@ -762,3 +762,25 @@ extraction next session).
 - Total: ~564k tokens for 9-ticket audit (vs hypothetical 9 individual auditors @ ~250k each = 2.25M tokens — saving ~75% via paralelo coherent audit)
 
 **Open escalation Chris:** T-6/T-7 toolkit dep — Option (B) recommended (Story E voice-fidelity-grader-runtime owns rubric runtime + may bundle qualify_lead/tag_lead_status tools).
+
+---
+
+## 2026-05-08 (cont.) — Decision T-6/T-7 toolkit escalation: Option B ratified Chris
+
+**Original recommendation in Story C 07-merge.md:** "Story E (voice-fidelity-grader-runtime) bundles toolkit". Recommendation drifted between commits — actual Story E scope is GRADER + rubrics + cache, NOT sales_agent runtime tools.
+
+**Real Option B (ratified Chris 2026-05-08T23:30Z):**
+- Story C closure accepted as-is — T-6/T-7 SKIP cement preserved
+- Toolkit (`qualify_lead`, `tag_lead_status`) is independent future work
+- Track in `docs/product/ideas-pool.yaml` as `sales-agent-qualification-toolkit` idea
+- When picked up + refined + built, T-6/T-7 transitions GREEN automatically (no test changes — `_TOOLKIT_SUPPORTED` capability probe lifts)
+
+**Why Story E does NOT bundle:**
+Story E builds eval grader infrastructure (3-judge MAJ-EVAL + rubric MD + cache + state machine + judge_registry + sandbox markers + Round 2 debate). It MEASURES whether sales_agent does qualification correctly via qualification-accuracy.md rubric. It does NOT implement the runtime tools (`qualify_lead`/`tag_lead_status`) that the agent CALLS to execute qualification action — that's a separate concern (agent EXECUTING vs grader MEASURING).
+
+**Process learning:** When recommending option to user, verify scope fit before commit. Reading Story E's full scope (10 tickets, 26h, BE Sonnet T-1/T-2/T-3 = persistence + rubric MD + DDL migration; AGENTIC Opus T-4..T-9 = grader internals) confirms toolkit is out-of-scope. Document drift in 07-merge.md, correct in subsequent decision ratification + learnings.
+
+**Open status post-decision:**
+- Story C: ✅ DONE (merged, archived, push 691051f9)
+- Toolkit: 💡 idea in ideas-pool — Chris pickup whenever
+- T-6/T-7: SKIP cement durable, transitions auto-GREEN when toolkit lands

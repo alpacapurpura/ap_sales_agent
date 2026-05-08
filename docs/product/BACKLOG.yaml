@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T19:49:32+00:00
+# Generated at: 2026-05-08T20:02:28+00:00
 
-generated_at: '2026-05-08T19:49:32+00:00'
+generated_at: '2026-05-08T20:02:28+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -92,6 +92,20 @@ buckets:
     - value:user-experience
     - source:chris-via-live-repro
     last_touched: 2026-05-07
+    extra:
+      promoted_to_outcome: null
+      ost: null
+  - id: sales-agent-qualification-toolkit
+    kind: idea
+    state: idea
+    title: BE tools `qualify_lead` + `tag_lead_status` for sales_agent runtime — unblocks Story C T-6/T-7 SKIP transitions
+    tags:
+    - module:sales-agent
+    - type:agentic-runtime
+    - effort:S
+    - value:eval-unblock
+    - source:story-c-escalation
+    last_touched: 2026-05-08
     extra:
       promoted_to_outcome: null
       ost: null
