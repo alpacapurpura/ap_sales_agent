@@ -31,7 +31,7 @@ import { TenantSwitcher } from "@/components/shared/layout/TenantSwitcher";
 import { ModeToggle } from "@/components/shared/ModeToggle";
 import { NavLink } from "@/components/shared/navigation";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserProfile } from "@/features/settings/hooks/use-profile";
 import { cn } from "@/lib/utils";
@@ -712,6 +712,15 @@ export function AppSidebar() {
                 <div id="mobile-nav-desc" className="sr-only">
                   Menú de navegación principal
                 </div>
+                {/* T-5: aria-live region announces drawer state changes for screen readers */}
+                <span role="status" aria-live="polite" className="sr-only">
+                  {isMobileOpen ? "Menú principal abierto" : "Menú principal cerrado"}
+                </span>
+                {/* T-5: Named close button for screen readers — AD9 Spanish neutro aria-label */}
+                <SheetClose
+                  aria-label="Cerrar menú principal"
+                  className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 sr-only focus:not-sr-only focus:opacity-100"
+                />
                 <NavContent
                   mobile
                   isCollapsed={isCollapsed}

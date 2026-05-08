@@ -50,7 +50,8 @@ summary:
     title: "Phase 5 — CopilotFAB + AppSidebar mobile aria-labels (Scenario 3)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
+    push_commit_sha: "TBD"
     estimate_hours: 2
     blocked_by: [T-4]
     blocks: [T-6]
@@ -264,7 +265,13 @@ T5:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T22:00:00Z
+  push_commit_sha: "TBD"
+  transitions:
+    - { state: assigned, at: "2026-05-08T22:00:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: pushed, at: "2026-05-08T23:30:00Z", by: "claude-sonnet" }
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true

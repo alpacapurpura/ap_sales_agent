@@ -5,6 +5,7 @@ import { memo } from "react";
 import { AppSidebar } from "@/components/shared/layout/AppSidebar";
 import { ShellMutexProvider } from "@/components/shared/layout/ShellMutexContext";
 import { SidebarProvider, useSidebar } from "@/components/shared/layout/SidebarContext";
+import { CopilotFAB } from "@/features/copilot/components/CopilotFAB";
 import { CopilotSidebar } from "@/features/copilot/components/CopilotSidebar";
 import { NotificationCenter } from "@/features/notifications/components/NotificationCenter";
 import { useShellMutex } from "@/hooks/use-shell-mutex";
@@ -69,6 +70,8 @@ function DashboardContent({ tenantId, children }: { tenantId: string; children: 
           <NotificationCenter />
         </main>
         <CopilotSidebar />
+        {/* T-5: Mobile FAB to reopen copilot. Returns null when not on mobile or copilot not collapsed. */}
+        <CopilotFAB />
       </div>
     </ShellMutexProvider>
   );
