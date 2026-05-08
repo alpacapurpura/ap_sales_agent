@@ -42,15 +42,19 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import json
 import sys
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import structlog
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 # Consumo API pública Story B (H9 7 nombres frozen)
 from tests.agentic_evals.sales_agent.simulator import (
@@ -231,6 +235,7 @@ async def _run_one_cell(
     output_dir: Path,
     run_id: str,
     seed_base: int,
+    db_session: Session | None = None,
 ) -> CellResult:
     """Ejecuta una simulación de celda con aislamiento de errores.
 
@@ -242,8 +247,12 @@ async def _run_one_cell(
         cell: Identificador de la celda a ejecutar.
         semaphore: Semáforo para limitar concurrencia.
         output_dir: Directorio de salida para artefactos.
-        run_id: Identificador del run padre.
+        run_id: Identificador del run padre (UUID válido o string arbitrario
+            — convertido a UUID5 determinístico via `_run_id_as_uuid`).
         seed_base: Seed base para reproducibilidad.
+        db_session: SQLAlchemy sync Session para inyección en run_simulation.
+            Requerido para que agent_bridge resuelva la sesión correctamente
+            (D8/Bug2: SessionUnavailable si None).
 
     Returns:
         CellResult con resultado de la simulación.
@@ -257,13 +266,18 @@ async def _run_one_cell(
         max_turns = get_max_turns_for_persona_kind(cell.persona_kind)
         seed = _compute_seed(cell, seed_base)
 
+        # D8/D-A-15: run_id determinístico via UUID5 preserva simulation_id
+        # estable entre ejecuciones con mismos parámetros.
+        effective_run_id = _run_id_as_uuid(run_id)
+
         try:
             result: SimulationResult = await run_simulation(
                 tenant_archetype_slug=cell.tenant_slug,
                 actor_profile=actor,
                 max_turns=max_turns,
                 trial_n=cell.run_n,
-                run_id=uuid.UUID(run_id) if _is_valid_uuid(run_id) else None,
+                run_id=effective_run_id,
+                db_session=db_session,
             )
         except Exception as exc:  # noqa: BLE001 — aislamiento por celda (Rule 5)
             logger.warning(
@@ -311,6 +325,25 @@ def _is_valid_uuid(value: str) -> bool:
         return True
     except (ValueError, AttributeError):
         return False
+
+
+def _run_id_as_uuid(run_id: str) -> uuid.UUID:
+    """Convierte run_id a UUID, derivando UUID5 determinístico si no es UUID válido.
+
+    D8/D-A-15: el run_id debe producir el mismo UUID5 para simulation_id
+    en cada ejecución con los mismos parámetros. Si run_id es un string
+    arbitrario (ej. "repro-test-run"), lo convierte a UUID5 estable.
+
+    Args:
+        run_id: String que puede ser UUID válido o identificador arbitrario.
+
+    Returns:
+        UUID determinístico para usar como run_id en run_simulation.
+    """
+    if _is_valid_uuid(run_id):
+        return uuid.UUID(run_id)
+    # Derivar UUID5 desde el string para preservar determinismo D8
+    return uuid.uuid5(uuid.NAMESPACE_DNS, run_id)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -444,11 +477,38 @@ async def _main_async(
         estimated_cost_usd=str(expected_cost),
     )
 
+    # Bug 2 fix: inyectar SQLAlchemy session en cada celda para que
+    # agent_bridge._resolve_session_for_simulation no retorne None.
+    # Se importa lazily para no forzar conexión DB cuando se skippe.
+    db_session: Session | None = None
+    try:
+        from src.core.database import SessionLocal  # noqa: PLC0415 — lazy import (no DB at module-level)
+
+        _s = SessionLocal()
+        # Probe de conexión — si Postgres no está disponible, log y continuar sin sesión
+        import sqlalchemy as _sa  # noqa: PLC0415
+
+        _s.execute(_sa.text("SELECT 1"))
+        db_session = _s
+        logger.info("generate_goldens.db_session_acquired")
+    except Exception as _db_exc:  # noqa: BLE001 — graceful degradation: sin DB = sin cost summary
+        logger.warning(
+            "generate_goldens.db_session_unavailable",
+            error_class=type(_db_exc).__name__,
+            error=str(_db_exc),
+            hint="Simulaciones continuarán sin DB session — agent_bridge terminará con SessionUnavailable",
+        )
+
     # Crear coroutines para todas las celdas
-    coros = [_run_one_cell(cell, semaphore, output_dir, run_id, seed_base) for cell in cells]
+    coros = [_run_one_cell(cell, semaphore, output_dir, run_id, seed_base, db_session) for cell in cells]
 
     # Ejecutar con return_exceptions=True para aislamiento por celda (Rule 5)
     gathered = await asyncio.gather(*coros, return_exceptions=True)
+
+    # Cerrar sesión DB después de que todas las celdas completaron
+    if db_session is not None:
+        with contextlib.suppress(Exception):
+            db_session.close()
 
     results: list[CellResult] = []
     failures: list[CellKey] = []

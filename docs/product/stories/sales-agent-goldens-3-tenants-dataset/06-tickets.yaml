@@ -589,3 +589,52 @@ decisions_per_ticket:
   D-A-13_no_arch_gate_for_goldens_migrations: [T-1]
   D-A-14_run_evals_flag: [T-3]
   D-A-15_yaml_safe_dump_deterministic: [T-3]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# T-3.bis — HOT-FIX: 4 bugs surfaced by run-evals smoke (R26 sub-ticket)
+# ─────────────────────────────────────────────────────────────────────────────
+
+- id: T-3.bis
+  parent: T-3
+  title: "Hot-fix 4 bugs surfaced by run-evals smoke"
+  estimate_hours: 2
+  owner: builder-backend
+  model: sonnet
+  production_code: false
+  state: done
+
+  repro_verified: true
+  repro_evidence:
+    command: "RUN_EVALS=1 .venv/bin/pytest tests/scripts/test_generate_golden_candidates.py::TestReproducibilitySmoke -v"
+    output: |
+      AssertionError: simulation_id debe ser determinístico con mismo seed
+      - 50862489-0689-5a83-9795-9085fa00a31c
+      + a183b5b5-38a9-563e-a373-9c02bd1fd0fd
+      simulator.agent_invalid_state error='Runner failed to inject SQLAlchemy session for simulation' error_class=SessionUnavailable
+      AttributeError: module 'promote_golden' has no attribute '__import__'
+      AttributeError: 'Settings' object has no attribute 'DATABASE_URL'
+    diagnosis_validates_handoff: true
+
+  bugs_fixed:
+    - bug: "Bug 1 — simulation_id non-deterministic (D8/D-A-15)"
+      file: "backend/scripts/generate_golden_candidates.py"
+      fix: "Added _run_id_as_uuid() — UUID5 from NAMESPACE_DNS when run_id is not valid UUID"
+
+    - bug: "Bug 2 — SQLA SessionUnavailable"
+      file: "backend/scripts/generate_golden_candidates.py"
+      fix: "_main_async acquires SessionLocal() + passes db_session to _run_one_cell → run_simulation"
+
+    - bug: "Bug 3 — module.__import__ AttributeError"
+      file: "backend/tests/scripts/test_promote_golden.py"
+      fix: "Line 532: importlib.import_module('generate_golden_candidates') replaces _promo.__import__"
+
+    - bug: "Bug 4 — settings.DATABASE_URL AttributeError"
+      file: "backend/tests/architecture/test_goldens_cost_bucket_invariant.py"
+      fix: "Line 52: settings.database_url (snake_case Pydantic v2 property)"
+
+  quality_gates:
+    - "ruff check: 0 errors"
+    - "ruff format --check: 0 reformats"
+    - "pytest tests/scripts/test_generate_golden_candidates.py: 34 passed, 1 skipped"
+    - "pytest tests/scripts/test_promote_golden.py: 34 passed, 1 skipped"
+    - "pytest tests/architecture/: 1016 passed, 1 skipped"

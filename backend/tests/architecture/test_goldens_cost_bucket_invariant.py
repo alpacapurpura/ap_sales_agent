@@ -49,7 +49,7 @@ def _db_session():
 
     from src.core.config import settings
 
-    engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))
+    engine = create_engine(settings.database_url.replace("+asyncpg", ""))
     with Session(engine) as session:
         yield session
 

@@ -528,8 +528,11 @@ class TestE2ESmoke:
         sys.path.insert(0, str(_BACKEND_ROOT / "scripts"))
 
         # 1. Generar 1 candidato
+        import importlib
+
+        _gen_mod = importlib.import_module("generate_golden_candidates")
         exit_code = asyncio.run(
-            _promo.__import__("generate_golden_candidates")._main_async(  # type: ignore[attr-defined]
+            _gen_mod._main_async(  # type: ignore[attr-defined]
                 runs_per_cell=1,
                 concurrency=1,
                 cost_budget_usd=Decimal("8.00"),
