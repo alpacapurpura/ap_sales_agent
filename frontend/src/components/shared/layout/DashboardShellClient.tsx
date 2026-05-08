@@ -22,15 +22,31 @@ const MemoizedChildren = memo(function MemoizedChildren({
 });
 MemoizedChildren.displayName = "MemoizedChildren";
 
+/**
+ * AD3: Min content width floor 720px @≥1024.
+ *
+ * The CSS variable is provided by the parent wrapper div so it can be
+ * overridden by tests or future theming without touching the class string.
+ * The Tailwind class `lg:min-w-[var(--shell-content-min-width,720px)]` applies
+ * the floor only at the `lg` breakpoint (≥1024px) — below 1024px there is
+ * no floor (mobile/tablet layouts handle space differently).
+ */
+const SHELL_MIN_WIDTH_VAR = "--shell-content-min-width";
+const SHELL_MIN_WIDTH_PX = "720px";
+
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{ [SHELL_MIN_WIDTH_VAR]: SHELL_MIN_WIDTH_PX } as React.CSSProperties}
+    >
       <AppSidebar />
       <main
         className={cn(
           "relative flex-1 min-w-0 overflow-y-auto",
+          "lg:min-w-[var(--shell-content-min-width,720px)]",
           "pt-16 md:pt-0 transition-[margin] duration-300 ease-in-out",
           isCollapsed ? "md:ml-20" : "md:ml-64",
         )}
