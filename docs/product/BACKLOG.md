@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T21:44:57+00:00`
+> Generated at: `2026-05-08T22:47:56+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -29,7 +29,7 @@
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
 ### 🔨 Developing (1 / cap 3)
-- **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation` [BUILD_T1_T2_PARALLEL]
+- **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation` [BUILD_T4_COMPLETE]
 
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_

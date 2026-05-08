@@ -1,0 +1,37 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples
+actor_profile_id: pregunton-tech-stack-419
+actor_profile_schema_version: 2
+dialect_code: es-419
+expected_min_distinct_objections_handled: 1
+expected_termination_reason: MAX_TURNS
+expected_tools_invoked: []
+expected_voice_attributes:
+- technical_precision
+- trust
+forbidden_tools: []
+id: agencia-automatizacion-ia-nurture-001
+metadata:
+  cost_usd_at_generation: '0.0068'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: b2d939b0-ae76-412f-942e-27404c2434f6
+  generation_run_id: 41640a65-db1c-497a-9828-39c991b0046d
+  notes: Synthetic test fixture — not a real golden
+  seed: 5002
+persona_kind: nurture
+schema_version: 1
+tenant_slug: tenant_agencia_automatizacion_ia
+transcript:
+- content: ¿Usan GPT-4 o tienen integración con modelos open source como LLaMA?
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: Trabajamos con ambos. Para casos enterprise recomendamos una arquitectura
+    híbrida con GPT-4 para razonamiento complejo y modelos open source para tareas
+    repetitivas, reduciendo costos hasta 60%.
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 1350

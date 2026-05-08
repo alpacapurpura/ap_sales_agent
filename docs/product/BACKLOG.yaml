@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T21:44:57+00:00
+# Generated at: 2026-05-08T22:47:56+00:00
 
-generated_at: '2026-05-08T21:44:57+00:00'
+generated_at: '2026-05-08T22:47:56+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -296,11 +296,11 @@ buckets:
     title: sales-agent-goldens-3-tenants-dataset
     tags:
     - legacy:pi-12
-    last_touched: 2026-05-08 21:42:00+00:00
+    last_touched: 2026-05-08 23:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: BUILD_T1_T2_PARALLEL
-      next_action: T-1 (schema) + T-2 (PII LIFT/scanner/hook) builders Sonnet paralelos. Story C done (unblocked T-3 agentic_eval).
+      phase: BUILD_T4_COMPLETE
+      next_action: T-1/T-2/T-3/T-4 all pushed. T-5 = /pm post-merge docs reconciliation. Awaiting gate-runner + auditor-backend.
       blocked_by: null
       priority_override: null
       audit_iterations: 0

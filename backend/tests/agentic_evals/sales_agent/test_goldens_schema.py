@@ -1,23 +1,36 @@
-"""Unit tests for GoldenScenarioModel v1 schema (Story D — T-1).
+"""Unit tests for GoldenScenarioModel v1 schema (Story D — T-1 + T-4).
 
-TDD RED phase: these tests fail until `goldens/_schema.py` is implemented.
-
-Scope: schema-only assertions (serialization, Literal types, ConfigDict).
-Referential integrity tests (actor_profile_id ∈ Story C YAMLs, dialect_code
-matches dialect_catalog) are deferred to T-4.
+T-1 scope: schema-only assertions (serialization, Literal types, ConfigDict).
+T-4 scope (EXTENDED here): referential integrity tests — actor_profile_id ∈ Story C
+YAMLs, tenant_slug ∈ 5 Story A seeds, dialect_code matches dialect_catalog,
+tenant isolation invariant, defense-in-depth PII gate on synthetic fixtures.
 
 # voseo-allowed: test fixtures may contain es-AR dialect samples (dialect_code=es-AR)
 """
 
 from __future__ import annotations
 
+import subprocess
+import sys
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
+import yaml
 
 pytestmark = pytest.mark.no_eval
+
+# ---------------------------------------------------------------------------
+# Path constants (T-4 additions)
+# ---------------------------------------------------------------------------
+
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+_STORY_C_PERSONAS_DIR = _REPO_ROOT / "docs" / "specs" / "personas" / "archetype-aware"
+_STORY_A_DIALECT_CATALOG = _REPO_ROOT / "backend" / "tests" / "fixtures" / "eval" / "tenants" / "dialect_catalog.yaml"
+_GOLDENS_TEST_FIXTURES_DIR = _REPO_ROOT / "backend" / "tests" / "_goldens_test_fixtures"
+_SCRIPTS_DIR = _REPO_ROOT / "backend" / "scripts"
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -413,3 +426,217 @@ def test_schema_module_exports_all() -> None:
     }
     missing = required - exported
     assert not missing, f"_schema.__all__ missing required exports: {missing}"
+
+
+# ════════════════════════════════════════════════════════════════════════
+# T-4 — Referential integrity tests
+# (uses synthetic test fixtures from `_goldens_test_fixtures/`)
+# ════════════════════════════════════════════════════════════════════════
+
+
+def _load_story_c_ids() -> set[str]:
+    """Return set of `id` values from all Story C archetype-aware persona YAMLs."""
+    ids: set[str] = set()
+    if not _STORY_C_PERSONAS_DIR.exists():
+        return ids
+    for yaml_file in _STORY_C_PERSONAS_DIR.glob("*.yaml"):
+        raw = yaml.safe_load(yaml_file.read_text(encoding="utf-8"))
+        if isinstance(raw, dict) and "id" in raw:
+            ids.add(str(raw["id"]))
+    return ids
+
+
+def _load_story_a_dialect_map() -> dict[str, str]:
+    """Return {tenant_slug: dialect_code} from Story A dialect_catalog + ARCHETYPE_DIALECT_MAP hardcode."""
+    # Hardcoded from loader.py::ARCHETYPE_DIALECT_MAP (Story A cement)
+    return {
+        "tenant_coach_lat": "es-PE",
+        "tenant_medicina_estetica": "es-MX",
+        "tenant_clinica_dental": "es-CO",
+        "tenant_agencia_growth_video": "es-AR",
+        "tenant_agencia_automatizacion_ia": "es-419",
+    }
+
+
+def _load_synthetic_fixtures() -> list[dict]:
+    """Load all 15 synthetic golden YAMLs from `_goldens_test_fixtures/`."""
+    fixtures: list[dict] = []
+    if not _GOLDENS_TEST_FIXTURES_DIR.exists():
+        return fixtures
+    for yaml_file in sorted(_GOLDENS_TEST_FIXTURES_DIR.glob("*.yaml")):
+        raw = yaml.safe_load(yaml_file.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            fixtures.append(raw)
+    return fixtures
+
+
+# ── Story A + C referential integrity ────────────────────────────────────
+
+
+def test_actor_profile_id_exists_in_story_c_yamls() -> None:
+    """Each synthetic fixture's actor_profile_id must correspond to a Story C YAML id.
+
+    T-4 deliverable: referential integrity (actor_profile_id ∈ Story C archetype-aware/*.yaml).
+    Validates 15-cell synthetic dataset built in this ticket.
+    Spec: 03-arch.md §3.8, D7 (actor_profile_schema_version frozen at curation).
+    """
+    story_c_ids = _load_story_c_ids()
+    assert story_c_ids, (
+        f"No Story C persona YAMLs found in {_STORY_C_PERSONAS_DIR}. "
+        "Ensure Story C build is done before running referential integrity tests."
+    )
+
+    fixtures = _load_synthetic_fixtures()
+    assert fixtures, (
+        f"No synthetic test fixtures found in {_GOLDENS_TEST_FIXTURES_DIR}. T-4 should have created 15 synthetic YAMLs."
+    )
+
+    violations: list[str] = []
+    for fixture in fixtures:
+        actor_id = fixture.get("actor_profile_id", "")
+        golden_id = fixture.get("id", "<unknown>")
+        if actor_id not in story_c_ids:
+            violations.append(f"golden '{golden_id}': actor_profile_id='{actor_id}' not in Story C YAMLs")
+
+    assert not violations, "Referential integrity violation — actor_profile_id not in Story C:\n" + "\n".join(
+        f"  - {v}" for v in violations
+    )
+
+
+def test_tenant_slug_in_5_story_a_seeds() -> None:
+    """Each synthetic fixture's tenant_slug must be one of the 5 Story A seeds.
+
+    T-4 deliverable: referential integrity (tenant_slug ∈ 5 Story A seeds).
+    Validates GoldenTenantSlug Literal[5] cement (D6).
+    """
+    story_a_slugs = {
+        "tenant_coach_lat",
+        "tenant_medicina_estetica",
+        "tenant_clinica_dental",
+        "tenant_agencia_growth_video",
+        "tenant_agencia_automatizacion_ia",
+    }
+
+    fixtures = _load_synthetic_fixtures()
+    assert fixtures, f"No synthetic fixtures in {_GOLDENS_TEST_FIXTURES_DIR}"
+
+    violations: list[str] = []
+    for fixture in fixtures:
+        slug = fixture.get("tenant_slug", "")
+        golden_id = fixture.get("id", "<unknown>")
+        if slug not in story_a_slugs:
+            violations.append(f"golden '{golden_id}': tenant_slug='{slug}' not in Story A seeds {story_a_slugs}")
+
+    assert not violations, "Referential integrity violation — tenant_slug not in Story A seeds:\n" + "\n".join(
+        f"  - {v}" for v in violations
+    )
+
+
+def test_dialect_code_matches_dialect_catalog_strict() -> None:
+    """Each synthetic fixture's dialect_code must match Story A ARCHETYPE_DIALECT_MAP[tenant_slug].
+
+    T-4 deliverable: referential integrity (dialect_code == dialect_catalog[tenant_slug]).
+    Strict check: no golden may use a dialect_code inconsistent with its tenant's
+    registered dialect (Story A loader.py ARCHETYPE_DIALECT_MAP SSoT).
+    Spec: 03-arch.md §3.8.
+    """
+    dialect_map = _load_story_a_dialect_map()
+    fixtures = _load_synthetic_fixtures()
+    assert fixtures, f"No synthetic fixtures in {_GOLDENS_TEST_FIXTURES_DIR}"
+
+    violations: list[str] = []
+    for fixture in fixtures:
+        slug = fixture.get("tenant_slug", "")
+        dialect = fixture.get("dialect_code", "")
+        golden_id = fixture.get("id", "<unknown>")
+
+        if slug not in dialect_map:
+            violations.append(f"golden '{golden_id}': unknown tenant_slug '{slug}'")
+            continue
+
+        expected_dialect = dialect_map[slug]
+        if dialect != expected_dialect:
+            violations.append(
+                f"golden '{golden_id}': dialect_code='{dialect}' but dialect_catalog['{slug}']='{expected_dialect}'"
+            )
+
+    assert not violations, "Dialect code mismatch vs ARCHETYPE_DIALECT_MAP:\n" + "\n".join(
+        f"  - {v}" for v in violations
+    )
+
+
+# ── Tenant isolation invariant ───────────────────────────────────────────
+
+
+def test_one_tenant_per_golden() -> None:
+    """Each synthetic fixture contains data from exactly one tenant.
+
+    T-4 deliverable: tenant isolation invariant.
+    D6 schema cement: GoldenScenarioModel has a single `tenant_slug` binding —
+    there is no multi-tenant field. This test verifies the schema enforces
+    the one-tenant-per-golden contract (no cross-tenant data leakage).
+    Spec: tenant-isolation.md + 03-arch.md §3.8.
+    """
+    from tests.agentic_evals.sales_agent.goldens._schema import GoldenScenarioModel
+
+    fixtures = _load_synthetic_fixtures()
+    assert fixtures, f"No synthetic fixtures in {_GOLDENS_TEST_FIXTURES_DIR}"
+
+    for fixture in fixtures:
+        golden_id = fixture.get("id", "<unknown>")
+        # Schema validation will reject any golden with multiple tenant references
+        # (extra='forbid' blocks unknown fields; tenant_slug is a single Literal)
+        model = GoldenScenarioModel.model_validate(fixture)
+
+        # Single tenant: model.tenant_slug is exactly one Literal value
+        assert isinstance(model.tenant_slug, str), (
+            f"golden '{golden_id}': tenant_slug is not a string: {model.tenant_slug!r}"
+        )
+        assert model.tenant_slug in {
+            "tenant_coach_lat",
+            "tenant_medicina_estetica",
+            "tenant_clinica_dental",
+            "tenant_agencia_growth_video",
+            "tenant_agencia_automatizacion_ia",
+        }, f"golden '{golden_id}': tenant_slug '{model.tenant_slug}' not in 5 known tenants"
+
+
+# ── Defense-in-depth PII gate (synthetic fixtures) ──────────────────────
+
+
+def test_no_pii_in_committed_goldens() -> None:
+    """Defense-in-depth: scan_goldens_pii.py must exit 0 on synthetic test fixtures.
+
+    T-4 deliverable: defense-in-depth PII arch gate (spec §Scenario_4).
+    Runs scan_goldens_pii.py against `_goldens_test_fixtures/` (synthetic dataset).
+    Expected exit code 0 — synthetic-first invariant guarantees zero PII.
+
+    Gate is also replicated as architecture fitness test in
+    `tests/architecture/test_goldens_no_committed_pii.py` which scans the
+    REAL `goldens/` directory. This test covers the synthetic fixtures
+    used during builder phase (before Chris curates real goldens).
+
+    Skip condition: neither synthetic fixtures dir nor real goldens dir exist.
+    Spec: D10, D-A-4, 03-arch.md §3.8.
+    """
+    if not _GOLDENS_TEST_FIXTURES_DIR.exists() or not any(_GOLDENS_TEST_FIXTURES_DIR.glob("*.yaml")):
+        pytest.skip("No synthetic fixtures to scan — builder phase fixtures not yet created")
+
+    scanner = _SCRIPTS_DIR / "scan_goldens_pii.py"
+    if not scanner.exists():
+        pytest.skip(f"scan_goldens_pii.py not found at {scanner} — T-2 not yet complete")
+
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, str(scanner), str(_GOLDENS_TEST_FIXTURES_DIR)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+
+    assert result.returncode == 0, (
+        f"PII detected in synthetic test fixtures (exit {result.returncode}).\n"
+        f"Scanner output:\n{result.stderr}\n"
+        "Synthetic fixtures must not contain real PII (spec D10 strict block).\n"
+        f"Fix: replace real PII with synthetic equivalents in {_GOLDENS_TEST_FIXTURES_DIR}"
+    )

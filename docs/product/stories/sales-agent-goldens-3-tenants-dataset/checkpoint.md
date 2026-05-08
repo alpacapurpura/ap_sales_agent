@@ -1,11 +1,11 @@
 ---
 story_id: sales-agent-goldens-3-tenants-dataset
 outcome: pi-12-sales-agent-eval-foundation
-state: developing                          # ★ TRANSITION ready → developing 2026-05-08T21Z by /dev-team ★
-phase: BUILD_T1_T2_PARALLEL
-last_artifact: CONTEXT-BRIEF.md            # Haiku context-builder + validator (PARTIAL, 1 LOW non-blocking)
-last_modified: 2026-05-08T21:42:00Z
-next_action: "T-1 (schema) + T-2 (PII LIFT/scanner/hook) builders Sonnet paralelos. Story C done (unblocked T-3 agentic_eval)."
+state: developing                          # ★ T-4 pushed 2026-05-08 by builder-backend-sonnet ★
+phase: BUILD_T4_COMPLETE
+last_artifact: T-4-result.md
+last_modified: 2026-05-08T23:30:00Z
+next_action: "T-1/T-2/T-3/T-4 all pushed. T-5 = /pm post-merge docs reconciliation. Awaiting gate-runner + auditor-backend."
 ratified_by_chris: true                  # spec v3 ratified 2026-05-08T07Z; ready package follow-on
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm

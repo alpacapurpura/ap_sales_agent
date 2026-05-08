@@ -1,0 +1,39 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples
+actor_profile_id: emergencia-dolor-no-target-co
+actor_profile_schema_version: 2
+dialect_code: es-CO
+expected_min_distinct_objections_handled: null
+expected_termination_reason: CUSTOMER_EXIT
+expected_tools_invoked: []
+expected_voice_attributes:
+- warmth
+- trust
+forbidden_tools:
+- send_payment_link
+- create_enrollment
+- grant_access
+id: clinica-dental-unqualified-001
+metadata:
+  cost_usd_at_generation: '0.0042'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: 117f9d8a-6e58-47de-b76e-8b3b4e5945bb
+  generation_run_id: 3fc09f8d-26f8-45b5-ad27-0829c25c4b46
+  notes: Synthetic test fixture — not a real golden
+  seed: 3003
+persona_kind: unqualified
+schema_version: 1
+tenant_slug: tenant_clinica_dental
+transcript:
+- content: Tengo un dolor de muela muy fuerte, ¿pueden atenderme ya?
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: Lamentamos el dolor que estás sintiendo. Para urgencias dentales, te recomendamos
+    llamar directamente al consultorio para atención inmediata.
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 850

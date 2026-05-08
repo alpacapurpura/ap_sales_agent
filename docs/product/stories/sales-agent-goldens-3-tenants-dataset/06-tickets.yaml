@@ -344,7 +344,7 @@ tickets:
     title: "Schema referential integrity + coverage gate + README + 2 remaining arch fitness gates"
     type: backend
     surface: BE
-    state: draft
+    state: pushed
     owner_eligibility:
       qwen_opencode: true
       claude_sonnet: true

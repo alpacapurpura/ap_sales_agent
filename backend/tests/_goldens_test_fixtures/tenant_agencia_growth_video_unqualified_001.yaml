@@ -1,0 +1,39 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples (es-AR dialect)
+actor_profile_id: pre-pmf-zero-revenue-ar
+actor_profile_schema_version: 2
+dialect_code: es-AR
+expected_min_distinct_objections_handled: null
+expected_termination_reason: CUSTOMER_EXIT
+expected_tools_invoked: []
+expected_voice_attributes:
+- directness
+- expertise
+forbidden_tools:
+- send_payment_link
+- create_enrollment
+- grant_access
+id: agencia-growth-video-unqualified-001
+metadata:
+  cost_usd_at_generation: '0.0044'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: 82b76604-ee31-4add-b551-d7faa915f6b7
+  generation_run_id: 10ea83ad-0de7-4cf4-a585-57a3ba0f7c62
+  notes: Synthetic test fixture — not a real golden
+  seed: 4003
+persona_kind: unqualified
+schema_version: 1
+tenant_slug: tenant_agencia_growth_video
+transcript:
+- content: Somos una startup sin ingresos todavía. ¿Pueden trabajar con nosotros?
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: Agradezco tu honestidad. Nuestros servicios están optimizados para empresas
+    con tracción existente. Te recomiendo volver cuando superen el PMF.
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 950

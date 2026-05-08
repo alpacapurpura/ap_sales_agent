@@ -1,0 +1,37 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples (es-AR dialect)
+actor_profile_id: pregunton-comparador-3-agencias-ar
+actor_profile_schema_version: 2
+dialect_code: es-AR
+expected_min_distinct_objections_handled: 2
+expected_termination_reason: MAX_TURNS
+expected_tools_invoked: []
+expected_voice_attributes:
+- directness
+- expertise
+forbidden_tools: []
+id: agencia-growth-video-nurture-001
+metadata:
+  cost_usd_at_generation: '0.0070'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: 9d89eddc-6e73-4d60-9a34-f2d78bd8aee1
+  generation_run_id: f242063e-0369-46d3-b2d9-aa72ce0cf0e6
+  notes: Synthetic test fixture — not a real golden
+  seed: 4002
+persona_kind: nurture
+schema_version: 1
+tenant_slug: tenant_agencia_growth_video
+transcript:
+- content: Estoy comparando tres agencias. ¿Por qué debería elegir la tuya sobre
+    las otras dos?
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: La diferencia clave es que nosotros nos especializamos exclusivamente en
+    video content para growth B2B, con métricas de conversión probadas.
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 1250

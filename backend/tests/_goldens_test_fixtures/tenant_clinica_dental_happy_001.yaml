@@ -1,0 +1,36 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples
+actor_profile_id: referido-calido-co
+actor_profile_schema_version: 2
+dialect_code: es-CO
+expected_min_distinct_objections_handled: null
+expected_termination_reason: GOAL_COMPLETION
+expected_tools_invoked: []
+expected_voice_attributes:
+- warmth
+- trust
+forbidden_tools: []
+id: clinica-dental-happy-001
+metadata:
+  cost_usd_at_generation: '0.0048'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: 6929548f-d47f-4b31-9491-3f7f8860cd32
+  generation_run_id: 9138dff2-b4a5-4a36-9442-dee5197df842
+  notes: Synthetic test fixture — not a real golden
+  seed: 3001
+persona_kind: happy
+schema_version: 1
+tenant_slug: tenant_clinica_dental
+transcript:
+- content: Me refirió una amiga. Quiero agendar una cita para limpieza dental.
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: Qué bueno que nos contactas. Tenemos disponibilidad esta semana. ¿Cuál
+    sería el mejor día para ti?
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 1080

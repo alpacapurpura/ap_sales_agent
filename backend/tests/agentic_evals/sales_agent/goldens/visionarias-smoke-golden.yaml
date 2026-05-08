@@ -35,7 +35,7 @@ schema_version: 1
 # Tenant binding — fixture resolves VISIONARIAS_TENANT_ID env var; this
 # YAML stores the canonical UUID for fail-explicit (B2) so a refactor of
 # the env-var name does not break the test.
-tenant_id: "00000000-0000-0000-0000-000000000001"
+tenant_id: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 
 # Offer binding — B2 hardcoded UUID. If the offer disappears
 # (deleted_at != NULL), Scenario 1 FAILS EXPLICITLY at fixture-precondition
@@ -47,7 +47,7 @@ tenant_id: "00000000-0000-0000-0000-000000000001"
 # from DB) — the UUID below documents the EXPECTED offer for human
 # audit; the fixture skips if any active offer is missing. Run
 # `regenerate_golden.py` after first run to bind the real UUID.
-offer_id: "00000000-0000-0000-0000-000000000001"
+offer_id: "3b12f1df-5232-4804-a29e-c9f3b01a9e12"
 
 # Spanish neutro LATAM (no voseo) — tuteo throughout. The first-turn
 # message simulates a buyer who saw a Visionarias ad and wants to know

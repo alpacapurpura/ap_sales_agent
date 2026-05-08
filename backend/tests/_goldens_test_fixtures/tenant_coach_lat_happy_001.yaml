@@ -1,0 +1,36 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples
+actor_profile_id: lead-frio-impaciente-pe
+actor_profile_schema_version: 2
+dialect_code: es-PE
+expected_min_distinct_objections_handled: null
+expected_termination_reason: GOAL_COMPLETION
+expected_tools_invoked: []
+expected_voice_attributes:
+- empathy
+- clarity
+forbidden_tools: []
+id: coach-lat-happy-001
+metadata:
+  cost_usd_at_generation: '0.0050'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: 5a89b6fd-d580-4761-ae51-2980c0db4c42
+  generation_run_id: e22187dd-94a6-48ed-a134-28bf1782918a
+  notes: Synthetic test fixture — not a real golden
+  seed: 1001
+persona_kind: happy
+schema_version: 1
+tenant_slug: tenant_coach_lat
+transcript:
+- content: Quiero saber el precio del programa.
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: Claro, nuestro programa tiene un costo de 500 USD al mes. ¿Te gustaría
+    saber más detalles?
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 1200

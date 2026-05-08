@@ -1,0 +1,37 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples
+actor_profile_id: cto-enterprise-419
+actor_profile_schema_version: 2
+dialect_code: es-419
+expected_min_distinct_objections_handled: null
+expected_termination_reason: GOAL_COMPLETION
+expected_tools_invoked: []
+expected_voice_attributes:
+- technical_precision
+- trust
+forbidden_tools: []
+id: agencia-automatizacion-ia-happy-001
+metadata:
+  cost_usd_at_generation: '0.0062'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: 467804a6-7e33-4907-a0ea-9fee0e0d983d
+  generation_run_id: 769c0e39-ae47-4983-a664-72597fde4c18
+  notes: Synthetic test fixture — not a real golden
+  seed: 5001
+persona_kind: happy
+schema_version: 1
+tenant_slug: tenant_agencia_automatizacion_ia
+transcript:
+- content: Necesitamos automatizar nuestro pipeline de datos. ¿Cuáles son sus capacidades
+    con LangChain y LangGraph?
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: Tenemos experiencia sólida con LangGraph para orquestación de agentes
+    y LangChain para RAG pipelines. ¿Podemos agendar una demo técnica?
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 1400

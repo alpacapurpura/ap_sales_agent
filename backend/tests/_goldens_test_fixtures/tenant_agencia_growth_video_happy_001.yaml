@@ -1,0 +1,36 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples (es-AR dialect)
+actor_profile_id: ceo-b2b-escala-ar
+actor_profile_schema_version: 2
+dialect_code: es-AR
+expected_min_distinct_objections_handled: null
+expected_termination_reason: GOAL_COMPLETION
+expected_tools_invoked: []
+expected_voice_attributes:
+- directness
+- expertise
+forbidden_tools: []
+id: agencia-growth-video-happy-001
+metadata:
+  cost_usd_at_generation: '0.0065'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: f5048b68-dd58-4252-8c0d-ee0b2225c5aa
+  generation_run_id: 2736425e-af1d-435b-ae79-b2cac8cb94f1
+  notes: Synthetic test fixture — not a real golden
+  seed: 4001
+persona_kind: happy
+schema_version: 1
+tenant_slug: tenant_agencia_growth_video
+transcript:
+- content: Quiero escalar mi empresa de 10 a 50 empleados en 12 meses. ¿Pueden ayudarme?
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: Absolutamente. Nuestro programa de growth está diseñado exactamente para
+    ese tipo de expansión acelerada. ¿Cuándo podemos tener una sesión estratégica?
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 1300

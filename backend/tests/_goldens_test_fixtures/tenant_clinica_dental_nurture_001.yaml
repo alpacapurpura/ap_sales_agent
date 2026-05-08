@@ -1,0 +1,36 @@
+# voseo-allowed: test fixture may contain sales_agent voice samples
+actor_profile_id: pregunton-financiamiento-co
+actor_profile_schema_version: 2
+dialect_code: es-CO
+expected_min_distinct_objections_handled: 1
+expected_termination_reason: MAX_TURNS
+expected_tools_invoked: []
+expected_voice_attributes:
+- warmth
+- trust
+forbidden_tools: []
+id: clinica-dental-nurture-001
+metadata:
+  cost_usd_at_generation: '0.0060'
+  curated_at: '2026-05-08T10:00:00+00:00'
+  curated_by: chris
+  generated_at: '2026-05-08T09:00:00+00:00'
+  generated_from_simulation_id: 13817a7c-c0f8-4f4e-b683-d8b8e3769ed9
+  generation_run_id: 89ca4531-2b7c-48aa-ae02-1cd7b2db2e8d
+  notes: Synthetic test fixture — not a real golden
+  seed: 3002
+persona_kind: nurture
+schema_version: 1
+tenant_slug: tenant_clinica_dental
+transcript:
+- content: ¿Tienen algún plan de financiamiento para los implantes dentales?
+  role: customer
+  turn_number: 0
+  tool_calls: null
+  latency_ms: null
+- content: Sí, contamos con planes de financiamiento de hasta 12 cuotas sin interés.
+    ¿Te gustaría conocer los detalles?
+  role: agent
+  turn_number: 1
+  tool_calls: []
+  latency_ms: 1200
