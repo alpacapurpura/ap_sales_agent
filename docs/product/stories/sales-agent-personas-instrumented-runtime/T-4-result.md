@@ -110,7 +110,7 @@ N/A — T-4 does not touch `core/config.py` or any feature flag.
 
 ## Commit
 
-`<filled at commit time>`
+`4fb355b7` — `feat(eval-simulator): T-4 Customer Prompt V2 sub-slot rotation` — 5 files, 724 insertions, 6 deletions, pushed `development`.
 
 ## Next ticket
 
