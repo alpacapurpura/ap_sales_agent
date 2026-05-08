@@ -1,7 +1,7 @@
 """Analytics tools — copilot access to Growth Studio KPIs and ETL refresh.
 
 Story 2B T-1 — growth-studio-actions-schemas-real.
-Replaces legacy ``get_funnel_metrics`` (removed in this commit per 03-arch § 2.1).
+Replaces legacy single-tool funnel aggregator (removed in this commit per 03-arch § 2.1).
 
 3 new tools:
 - ``get_stage_metrics``    — stage overview (Tier 1) with KPI serialization

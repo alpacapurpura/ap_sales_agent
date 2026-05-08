@@ -111,6 +111,9 @@ tickets:
     title: "AGENTIC — Register 3 tools in ANALYTICS_TOOLS group + update route_tool_selection golden + delete get_funnel_metrics references"
     type: feature
     surface: agentic
+    state: pushed
+    pushed_at: 2026-05-08T00:00:00Z
+    push_commit_sha: TBD
     skill: builder-agentic
     owner_eligibility:
       qwen_opencode: false
@@ -134,6 +137,7 @@ tickets:
       - "Commit message: feat(copilot): replace get_funnel_metrics with 3 stage-specific tools"
       - "Verify ANALYTICS_TOOLS already in _BASE_TOOL_GROUPS['analytics'] — NO change to registry.py"
       - "Verify 'growth-studio' route already includes 'analytics' group — NO change to ROUTE_TOOL_MAP"
+    builder_outcome: "tests-passing per R30 — 1829 copilot tests + 35 arch fitness + 73 tool/golden tests + lint/format clean. Awaiting gate-runner + auditor-agentic verdict. Result: T-3-result.md."
 
   - id: T-4
     title: "AGENTIC — 3 voice fidelity eval goldens (Spanish neutro + tool dispatch correctness + no retry loop)"
