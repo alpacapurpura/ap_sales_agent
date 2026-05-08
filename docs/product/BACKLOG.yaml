@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T14:16:22+00:00
+# Generated at: 2026-05-08T15:54:27+00:00
 
-generated_at: '2026-05-08T14:16:22+00:00'
+generated_at: '2026-05-08T15:54:27+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -243,21 +243,6 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-voice-fidelity-grader-runtime
-    kind: story
-    state: refining
-    title: sales-agent-voice-fidelity-grader-runtime
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 08:30:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: DESIGN_DRAFT_V1_AWAITING_RATIFICATION
-      next_action: Chris ratifica DQ1-DQ8 → /ux-agentico bump v2 inline si aplica → transition state=refining→refined → /architect
-        orchestrator → ready package
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   refined:
   - id: sales-agent-goldens-3-tenants-dataset
     kind: story
@@ -288,6 +273,24 @@ buckets:
       next_action: /architect orchestrator → spawna /architect-be (loader 15 personas + dialect_catalog + Literal v2 6-value)
         + /architect-agentic (customer prompt v2 sub-slots + max_turns matriz + Scenarios 5+6 graphs) → produce ready package
         (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: sales-agent-voice-fidelity-grader-runtime
+    kind: story
+    state: refined
+    title: sales-agent-voice-fidelity-grader-runtime
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 09:00:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: SPEC_AND_DESIGN_RATIFIED
+      next_action: /architect orchestrator → spawna /architect-be (DDL migrations 2 NEW tables eval_simulator_grade + eval_simulator_grade_cache
+        + Pydantic MajEvalScore + cache impl + qualification-accuracy.md rubric NEW) + /architect-agentic (judge prompt slots
+        6-slot architecture + MAJ-EVAL state machine Round 1+Round 2 debate flow + sandbox markers + observability writes)
+        → produce ready package (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready → /dev-team build
+        (espera Story C+D build done — bloqueador hard)
       blocked_by: null
       priority_override: null
       audit_iterations: 0

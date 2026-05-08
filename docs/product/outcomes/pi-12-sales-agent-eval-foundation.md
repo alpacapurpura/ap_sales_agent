@@ -38,7 +38,7 @@ story_ids:
   # foundation reframe (story IDs originales preservados — slug intact, narrative reframed):
   - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators (REFINED 2026-05-08 — spec v3 + design v2 + delta v1 ratified, awaiting /architect)
   - sales-agent-goldens-3-tenants-dataset        # → role D: goldens-generated-from-simulation (REFINED 2026-05-08 — spec v3 synthetic-first ratified, awaiting /architect)
-  - sales-agent-voice-fidelity-grader-runtime    # → role E: MAJ-EVAL voice fidelity grader (spec v2 ratified 2026-05-08, awaiting /ux-agentico → state=refined)
+  - sales-agent-voice-fidelity-grader-runtime    # → role E: MAJ-EVAL voice fidelity grader (REFINED 2026-05-08 — spec v2 + design v2 ratified, awaiting /architect)
   - sales-agent-eval-pass-k-tracking             # → role F: Bloom-style pass^k
   - sales-agent-voice-fidelity-ci-gate           # → role G: CI gate w/ dynamic threshold
   - sales-agent-eval-cost-budget-cap             # → role H: cost cap (no major change)
@@ -180,7 +180,7 @@ inapropiado". CI gate bloquea regressions automáticamente.
 
 | Story | Role | Type | Estimate | Spec status |
 |---|---|---|---|---|
-| `sales-agent-voice-fidelity-grader-runtime` | **E** — MAJ-EVAL multi-judge debate (Sonnet=0.4 + GPT-4o=0.4 + Kimi=0.2) Round 1+Round 2 sobre 4 rubrics (voice-fidelity + qualification-accuracy NEW + no-overpromise + no-hallucination). Cache hash-invalidating + async callback. NEW rubric `qualification-accuracy.md` Story E owns | agentic | 3-4d | **spec v2 ratified** 2026-05-08 (awaiting /ux-agentico design → state=refined) |
+| `sales-agent-voice-fidelity-grader-runtime` | **E** — MAJ-EVAL multi-judge debate (Sonnet=0.4 + GPT-4o=0.4 + Kimi=0.2) Round 1+Round 2 sobre 4 rubrics (voice-fidelity + qualification-accuracy NEW + no-overpromise + no-hallucination). 6-slot prompt architecture TTL=1h. Sandbox markers `<<TRANSCRIPT_BEGIN>>` anti-injection. Cache hash-invalidating + async callback. NEW rubric `qualification-accuracy.md` Story E owns | agentic | 3-4d | **refined** 2026-05-08 (spec v2 + design v2 ratified — awaiting /architect) |
 | `sales-agent-eval-pass-k-tracking` | **F** — Bloom 4-stage pass^k=3 all-trials threshold | service | 2d | refining |
 | `sales-agent-eval-cost-budget-cap` | **H** — cost cap por run (sin cambio mayor) | service | 1d | refining |
 
