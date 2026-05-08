@@ -37,12 +37,12 @@ story_ids:
 
   # foundation reframe (story IDs originales preservados — slug intact, narrative reframed):
   - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators (READY 2026-05-08 — /architect delivered ready package: 03-arch + 04-validators + 05-guidelines + 06-tickets, awaiting /dev-team)
-  - sales-agent-goldens-3-tenants-dataset        # → role D: goldens-generated-from-simulation (REFINED 2026-05-08 — spec v3 synthetic-first ratified, awaiting /architect)
+  - sales-agent-goldens-3-tenants-dataset        # → role D: goldens-generated-from-simulation (READY 2026-05-08 — /architect delivered ready package: 03-arch + 04-validators + 05-guidelines + 06-tickets, awaiting /dev-team build post-Story C)
   - sales-agent-voice-fidelity-grader-runtime    # → role E: MAJ-EVAL voice fidelity grader (REFINED 2026-05-08 — spec v2 + design v2 ratified, awaiting /architect)
   - sales-agent-eval-pass-k-tracking             # → role F: Bloom-style pass^k (REFINED 2026-05-08 — spec v2 strict all-of-K ratified, awaiting /architect)
-  - sales-agent-voice-fidelity-ci-gate           # → role G: CI gate w/ dynamic threshold
+  - sales-agent-voice-fidelity-ci-gate           # → role G: CI gate w/ dynamic threshold per cadence (REFINED 2026-05-08 — spec v2 ratified, awaiting /architect)
   - sales-agent-eval-cost-budget-cap             # → role H: cost cap multi-tier (REFINED 2026-05-08 — spec v2 ratified, awaiting /architect)
-  - sales-agent-adversarial-jailbreak-suite      # → role I: PersonaGym Toxicity Control axis
+  - sales-agent-adversarial-jailbreak-suite      # → role I: PersonaGym Toxicity Control axis (REFINED 2026-05-08 — spec v2 + design v2 ratified, awaiting /architect)
 success_metrics:
   - "3 tenants seed con data realística completa (brand+offer+personality+pricing+buyer_personas) checked-in y consumibles por sales_agent runtime sin mocks"
   - "client_simulator/ homologado a backend/tests/agentic_evals/sales_agent/simulator/ con dual-LLM pattern (1 LLM=user persona, 1 LLM=sales_agent real)"
@@ -188,8 +188,8 @@ inapropiado". CI gate bloquea regressions automáticamente.
 
 | Story | Role | Type | Estimate | Spec status |
 |---|---|---|---|---|
-| `sales-agent-voice-fidelity-ci-gate` | **G** — CI gate con threshold dinámico (daily→weekly→monthly per Q8) | service | 2d | refining |
-| `sales-agent-adversarial-jailbreak-suite` | **I** — PersonaGym Toxicity Control axis + jailbreak/injection probes | agentic | 3d | refining |
+| `sales-agent-voice-fidelity-ci-gate` | **G** — CI gate dynamic threshold per cadence (PR=0.65 / nightly=0.70 / monthly=0.75). Path filters + cron + required check branch protection. PR comment rich attribution. 5-layer bypass defense | service | 2-3d | **refined** 2026-05-08 (spec v2 ratified) |
+| `sales-agent-adversarial-jailbreak-suite` | **I** — PersonaGym Toxicity Control axis + 5 attack categories (jailbreak/injection/hostile/coercion/compliance probes). Story I owns NEW rubric `toxicity-control.md` v1. 5 archetype-aware adversarial personas + 5-10 goldens via Story D pipeline. pass_k=1.0 cero tolerance. Story G monthly cadence only | agentic | 3-4d | **refined** 2026-05-08 (spec v2 + design v2 ratified) |
 
 **Total restante:** ~25-30d (vs 18d original — alcance ampliado por reframe).
 

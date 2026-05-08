@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T16:34:56+00:00
+# Generated at: 2026-05-08T17:04:47+00:00
 
-generated_at: '2026-05-08T16:34:56+00:00'
+generated_at: '2026-05-08T17:04:47+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -187,23 +187,25 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
+  refined:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
-    state: refining
+    state: refined
     title: sales-agent-adversarial-jailbreak-suite
     tags:
     - legacy:pi-12
-    last_touched: 2026-05-08 12:30:00+00:00
+    last_touched: 2026-05-08 14:00:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: PO_DRAFT_V1_AWAITING_RATIFICATION
-      next_action: Chris ratifica Q1-Q8 → /po bump v2 inline con respuestas → /ux-agentico produce 02-design-agentic.md (5
-        attack categories turn-by-turn + persona injection + multi-vector escalation + sandbox markers integration) → ratificación
-        Chris → state=refining→refined → /architect
+      phase: SPEC_AND_DESIGN_RATIFIED
+      next_action: /architect orchestrator → spawna /architect-orchestrator full-stack (NEW rubric toxicity-control.md v1
+        + 5 adversarial personas YAML + 5-10 goldens curation pipeline reused Story D + Story E grader rubric Literal extension
+        + Story F EvalPassKSummary persona_kind extension + arch fitness gate test_adversarial_persona_metadata_axis.py +
+        capability extension) → produce ready package (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready
+        → /dev-team build LAST en sub-épica eval-foundation (espera ALL prior stories build done — bloqueador hard)
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  refined:
   - id: sales-agent-eval-cost-budget-cap
     kind: story
     state: refined

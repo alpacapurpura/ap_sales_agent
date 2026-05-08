@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T16:34:56+00:00`
+> Generated at: `2026-05-08T17:04:47+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -14,12 +14,12 @@
 - sales-inbox-responsive-collapse `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (3 total · 0 cap-eligible / cap 3)
+### 🔬 Refining (2 total · 0 cap-eligible / cap 3)
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
-- **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation` [PO_DRAFT_V1_AWAITING_RATIFICATION]
 
-### ✅ Refined — listo para arquitectos (4 / cap 5)
+### ✅ Refined — listo para arquitectos (5 / cap 5)
+- **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation`
@@ -62,11 +62,11 @@ kanban
     solo-mode-chat-first-layout[solo-mode-chat-first-layout]
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (3 / cap 3)
+  🔬 Refining (2 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
+  ✅ Refined (5 / cap 5)
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
-  ✅ Refined (4 / cap 5)
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
