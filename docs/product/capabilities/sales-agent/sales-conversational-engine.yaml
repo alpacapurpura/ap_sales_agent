@@ -76,6 +76,27 @@ eval:
     - "backend/tests/architecture/test_simulator_public_api_surface.py"
     - "backend/tests/architecture/test_termination_policy_registry_contract.py"
     - "backend/tests/architecture/test_schema_migrations_registry_complete.py"
+  # Story C (sales-agent-personas-instrumented-runtime, 2026-05-08) — personas-as-simulators (Strands ActorProfile)
+  actor_profile_schema_version_post_c: 2
+  customer_prompt_schema_version_post_c: 2
+  personas_archetype_aware_count: 15           # 5 archetypes × 3 dialects matrix per docs/specs/personas/archetype-aware/
+  personas_legacy_preserved_count: 5           # docs/specs/personas/_legacy/ — backward-compat
+  customer_prompt_v2_sub_slot_rotation: true   # round-robin over objections per current_turn (D17 + D-AG-4)
+  customer_node_v1_v2_dispatch: true           # schema_version-gated builder selection (T-5)
+  eval_metadata_extended_keys:                 # 3 NEW keys post Story C (Story B 6 invariants preserved)
+    - persona_kind
+    - schema_version
+    - archetype
+  scenario_5_qualification_test: skip-with-escalation   # qualify_lead/tag_lead_status missing in TOOL_REGISTRY — toolkit story pending
+  scenario_6_nurture_test: skip-with-escalation         # same toolkit dep as Scenario 5
+  scenario_4_adversarial_test: live                     # FORBIDDEN_LEAK_STRINGS (Story B reuse) + V2 prompt-injection-via-traits
+  story_c_introduced: sales-agent-personas-instrumented-runtime
+  story_c_merged_at: null                       # pending /auditor APPROVED + /pm merge
+  story_c_test_coverage:
+    - "backend/tests/agentic_evals/sales_agent/simulator/test_personas_loader.py"
+    - "backend/tests/agentic_evals/sales_agent/simulator/test_customer_prompt_v2_unit.py"
+    - "backend/tests/agentic_evals/sales_agent/simulator/test_customer_node_unit.py"
+    - "backend/tests/architecture/test_personas_yaml_completeness.py"
 ---
 
 ## Capabilities cubiertas por este grupo

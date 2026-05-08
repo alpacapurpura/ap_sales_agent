@@ -665,8 +665,10 @@ tickets:
       validator_ids: []
     depends_on: [T-6, T-7, T-8]
     blocks: []
+    state: developed
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developed, at: 2026-05-08T22:30Z, by: /dev-team-orchestrator-opus, note: "T-9 inline by orchestrator (docs work, no spawn). All 4 acceptance verifiers PASS." }
     assigned_to: pm
 
 # ═══════════════════════════════════════════════════════════════════════
