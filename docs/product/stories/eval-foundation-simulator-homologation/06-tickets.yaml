@@ -362,7 +362,7 @@ tickets:
     title: "Customer node LangGraph + customer_persona_prompt v1 + eval-only LLM roles + concurrency semaphore"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: tests-passing
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -410,6 +410,12 @@ tickets:
     blocks: [T-8]
     transitions:
       - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+      - { state: developing, at: 2026-05-07T23:30Z, by: builder-agentic }
+      - { state: tests-passing, at: 2026-05-08T00:15Z, by: builder-agentic, validators_pass: true, native_tests: "17/17 PASS" }
+    assigned_to: claude-opus
+    push_commit_sha: pending
+    audit_verdict: pending
+    audit_iterations: 0
 
   # ═════════════════════════════════════════════════════════════════════
   # T-7 — Agent_bridge in-process + leak_assertions
