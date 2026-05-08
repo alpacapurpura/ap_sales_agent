@@ -59,6 +59,11 @@ from tests.agentic_evals.sales_agent.simulator._internal import (
     leak_assertions as leak_module,
 )
 from tests.agentic_evals.sales_agent.simulator._internal import runner as runner_mod
+from tests.agentic_evals.sales_agent.simulator._internal.personas_loader import (
+    _VALID_TENANT_SLUGS,
+    get_max_turns_for_persona_kind,
+    load_actor_profile_for_tenant,
+)
 from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (
     seed_eval_tenant,
 )
@@ -843,5 +848,307 @@ async def test_eval_metadata_extended_persona_kind(
             assert metadata.get("archetype") == expected_archetype, (
                 f"archetype drift: expected {expected_archetype!r}, got {metadata.get('archetype')!r}"
             )
+    finally:
+        db.close()
+
+
+# ════════════════════════════════════════════════════════════════════════
+# T-6 (Story C) — Scenario 5: agent qualifies out unqualified lead
+# ════════════════════════════════════════════════════════════════════════
+#
+# Spec § Scenario 5 (production-critical) — sales_agent must filter
+# wrong-fit leads early instead of pushing the close. Per archetype x 3
+# trials = 15 simulations x max_turns=8.
+#
+# Required tools per spec:
+#   * qualify_lead              (BANT/MEDDIC heuristic, must be invoked >=1)
+#   * tag_lead_status            (status="not_qualified" + reason; soft requirement)
+#
+# Forbidden close tools per spec:
+#   * enroll_*                   (ENROLLMENT_TOOL_REGISTRY)  # noqa: ERA001
+#   * send_payment_link, create_payment_link, generate_payment_link
+#   * confirm_appointment_*       (no such tool today; future Story I)
+#   * schedule_appointment        (legacy name; today create_booking_link)
+#   * present_offer_ladder       (no such tool today; future)
+#
+# ─── Sales_agent toolkit dependency (escalation path) ───────────────────
+#
+# Per 05-guidelines.md § "Sales_agent toolkit dependency (escalation path)":
+#   "Scenarios 5+6 assume sales_agent runtime supports tools `qualify_lead`
+#    + `tag_lead_status`. If at build time these tools don't exist:
+#    - Builder T-6/T-7 SKIP test with `pytest.skip(...)` + structured warning
+#    - Builder logs blocker in T-{6,7}-impl-log.md
+#    - /pm decides: spawn separate sales-agent-qualification-toolkit story
+#      OR accept Scenario 5+6 SKIP for Story C completion."
+#
+# Module-level capability probe inspects `TOOL_REGISTRY.keys()` at collection
+# time. If `qualify_lead` is missing the test is SKIPPED via
+# `pytest.mark.skipif` with the documented reason. The test body is fully
+# implemented per spec — once the toolkit lands, the test transitions GREEN
+# automatically without builder rework.
+#
+# Cost note (D9 / Story C baseline): real-LLM mode under `--run-evals`
+# spawns 15 simulations x <=8 turns ~ $0.75 / suite. Cost guard
+# `agentic_cost_budget_story_c_baseline` enforces individual <$0.10 +
+# suite total <$3.00 (T-6 + T-7 combined).
+
+
+def _sales_agent_toolkit_supports_qualification() -> tuple[bool, str]:
+    """Capability probe for sales_agent runtime qualification tools.
+
+    Returns ``(supported, reason)``. ``supported=True`` means the production
+    ``TOOL_REGISTRY`` exposes ``qualify_lead`` (the only hard requirement);
+    ``tag_lead_status`` is a soft requirement (probed but not enforced —
+    spec graders use `tag_lead_status` for graceful-decline scoring; absence
+    only weakens grader sensitivity, not functional contract).
+
+    The probe is best-effort: if the registry import itself fails (e.g.,
+    sales_agent runtime not on PYTHONPATH), we treat it as unsupported and
+    cite the import error in the skip reason.
+    """
+    try:
+        from src.modules.sales_agent.application.agents.sales.tools import (
+            TOOL_REGISTRY,
+        )
+    except Exception as exc:  # noqa: BLE001 — defensive; surface import errors as skip reason
+        return False, f"sales_agent.TOOL_REGISTRY import failed: {type(exc).__name__}: {exc}"
+
+    has_qualify = "qualify_lead" in TOOL_REGISTRY
+    has_tag = "tag_lead_status" in TOOL_REGISTRY
+    if not has_qualify:
+        missing = ["qualify_lead"]
+        if not has_tag:
+            missing.append("tag_lead_status")
+        msg = (
+            f"requires {missing} — separate sales_agent toolkit story (per "
+            f"docs/product/stories/sales-agent-personas-instrumented-runtime/"
+            f"05-guidelines.md § 'Sales_agent toolkit dependency')"
+        )
+        return False, msg
+    return True, "qualify_lead present in TOOL_REGISTRY"
+
+
+_TOOLKIT_SUPPORTED, _TOOLKIT_SKIP_REASON = _sales_agent_toolkit_supports_qualification()
+
+# Spec § Scenario 5 — forbidden close tools (production-critical assertion).
+# These tool names match `TOOL_REGISTRY` keys + `STAGE_TOOL_SCOPE['closing']`
+# entries from `backend/src/modules/sales_agent/application/tools/registry.py`.
+# Pattern matching ("enroll_" prefix, "payment_link" suffix, etc.) catches
+# both registered tools today and any future variants per spec wildcards.
+_FORBIDDEN_CLOSE_TOOL_PATTERNS: tuple[str, ...] = (
+    "enroll_",  # enroll_immediate, create_enrollment, mark_enrollment_paid_manual
+    "payment_link",  # send_payment_link, create_payment_link, generate_payment_link
+    "confirm_appointment",  # spec wildcard (no such tool today; future Story I)
+    "schedule_appointment",  # spec legacy alias (today: create_booking_link)
+    "present_offer_ladder",  # spec wildcard (no such tool today; future)
+)
+
+
+def _extract_tool_call_signals(transcript: list[Any]) -> list[str]:
+    """Extract tool-call signals from the simulation transcript.
+
+    Story B's ``ConversationTurn`` carries text-only ``content`` + a small
+    metadata dict; tool calls are NOT first-class transcript entries today
+    (agent_bridge persists them as observability rows in
+    ``eval_simulator_trace_event``, not as ConversationTurn records).
+
+    For T-6 production-critical assertions we probe BOTH:
+
+    * Per-turn ``metadata`` (forward-compat — if a future agent_bridge
+      revision starts surfacing tool names into ConversationTurn metadata,
+      this helper picks them up automatically).
+    * Per-turn ``content`` text (defensive — early-iteration agent runs
+      sometimes inline tool names into the response text, especially when
+      the LLM emits a "I'm calling tool X..." pre-amble).
+
+    The combined signal list is a lowercase string per turn; spec
+    assertions check for substring matches against forbidden patterns +
+    required tool names.
+
+    Returns:
+        Combined list of lowercase signals. Empty list when transcript
+        carries no tool-call markers — assertion site treats empty as a
+        soft-fail with diagnostic instead of a silent pass.
+    """
+    signals: list[str] = []
+    for turn in transcript:
+        # Probe metadata first (forward-compat path).
+        meta = getattr(turn, "metadata", None) or {}
+        if isinstance(meta, dict):
+            tool_name = meta.get("tool_name")
+            if isinstance(tool_name, str):
+                signals.append(tool_name.lower())
+            tool_calls = meta.get("tool_calls")
+            if isinstance(tool_calls, list):
+                signals.extend(str(t).lower() for t in tool_calls)
+        # Probe content (defensive path).
+        content = getattr(turn, "content", None)
+        if isinstance(content, str):
+            signals.append(content.lower())
+    return signals
+
+
+@pytest.mark.skipif(
+    not _TOOLKIT_SUPPORTED,
+    reason=_TOOLKIT_SKIP_REASON,
+)
+@pytest.mark.parametrize("tenant_slug", sorted(_VALID_TENANT_SLUGS))
+@pytest.mark.parametrize("trial_n", [0, 1, 2])
+@pytest.mark.asyncio
+async def test_qualifies_out_unqualified_lead(
+    tenant_slug: str,
+    trial_n: int,
+    run_id: UUID,
+) -> None:
+    """T-6 / Story C — Scenario 5 production-critical qualification capability.
+
+    For each of the 5 archetype tenants x 3 trials (D16 trial robustness),
+    run the full dual-LLM simulation against the ``unqualified`` persona and
+    assert the sales_agent qualifies the lead out gracefully:
+
+    1. **Forbidden close tools NOT invoked** — spec wildcards
+       ``enroll_*`` / ``send_payment_link`` / ``confirm_appointment_*`` /
+       ``schedule_appointment`` / ``present_offer_ladder``. Probed via the
+       ``_extract_tool_call_signals`` helper which scans BOTH
+       ConversationTurn metadata (forward-compat) AND content text
+       (defensive — see helper docstring).
+    2. **qualify_lead invoked** — at least one signal carries
+       ``"qualify_lead"`` substring (BANT/MEDDIC heuristic).
+    3. **Termination reason ≠ AGENT_ERROR** — early-exit must be
+       intentional (GOAL_COMPLETION / CUSTOMER_EXIT / MAX_TURNS), not
+       a runtime error.
+    4. **Total turns ≤ max_turns (8)** — efficiency invariant per spec D15.
+    5. **Cost bucket separation preserved** (H6 Story B) — when DB session
+       is reachable, the eval_simulator_llm_call rows tagged with this
+       simulation_id MUST exist (rows in copilot_llm_call would violate
+       cost-bucket separation, but that probe lives in
+       `agentic_cost_bucket_zero_contamination` validator — see
+       04-validators.yaml).
+
+    Skip path: when sales_agent's TOOL_REGISTRY lacks ``qualify_lead`` (the
+    state at T-6 build time per pre-build grep cited in T-6-impl-log.md),
+    this test is SKIPPED via the module-level ``skipif`` decorator. The
+    skip reason cites the toolkit dependency for future activation per
+    05-guidelines.md § "Sales_agent toolkit dependency (escalation path)".
+
+    Args:
+        tenant_slug: One of 5 Story A seed slugs (parametrize cross-product).
+        trial_n: 0/1/2 — D16 trial robustness for production-critical kinds.
+        run_id: Fresh UUID4 per test (function-scoped).
+    """
+    db = _get_db_session()
+    if db is None:
+        pytest.skip("integration env missing — Postgres unreachable; T-6 skip per parent conftest pattern")
+
+    try:
+        # Load the unqualified persona for this archetype.
+        try:
+            actor: ActorProfile = load_actor_profile_for_tenant(
+                tenant_slug,
+                persona_kind="unqualified",
+            )
+        except (FileNotFoundError, KeyError, ValueError) as exc:
+            pytest.skip(
+                f"unqualified persona for {tenant_slug!r} not loadable "
+                f"(T-2 YAML missing or D-AG-1 dialect mismatch): "
+                f"{type(exc).__name__}: {exc}"
+            )
+            return  # pragma: no cover — pytest.skip raises
+
+        # Seed the synthetic eval tenant (idempotent T-3 pattern).
+        try:
+            seed_eval_tenant(db, tenant_slug)
+        except FileNotFoundError as exc:
+            pytest.skip(f"integration env missing — eval tenant YAML not found: {exc}")
+            return  # pragma: no cover
+
+        max_turns = get_max_turns_for_persona_kind("unqualified")  # D15 = 8
+        assert max_turns == 8, f"D15 contract drift — unqualified max_turns expected 8; got {max_turns}"
+
+        # Run the full simulation end-to-end.
+        result: SimulationResult = await run_simulation(
+            tenant_slug,
+            actor,
+            max_turns=max_turns,
+            trial_n=trial_n,
+            run_id=run_id,
+            db_session=db,
+        )
+
+        # ── 1. Termination reason ≠ AGENT_ERROR (D16 robustness) ──────
+        # Per spec § Scenario 5 + 04-validators.yaml
+        # ``scenario_5_qualifies_out_unqualified_lead``:
+        #   "termination ∈ {GOAL_COMPLETION, CUSTOMER_EXIT, MAX_TURNS} —
+        #    NO AGENT_ERROR".
+        accepted_terminations = {
+            TerminationReason.GOAL_COMPLETION,
+            TerminationReason.CUSTOMER_EXIT,
+            TerminationReason.MAX_TURNS,
+        }
+        assert result.termination_reason in accepted_terminations, (
+            f"Scenario 5 unqualified persona terminated with "
+            f"{result.termination_reason!r} (expected one of "
+            f"{accepted_terminations}) for tenant_slug={tenant_slug!r} "
+            f"trial_n={trial_n}; error_subtype={result.error_subtype!r}"
+        )
+        assert result.termination_reason != TerminationReason.AGENT_ERROR, (
+            f"Scenario 5 hit AGENT_ERROR termination — tenant_slug={tenant_slug!r} "
+            f"trial_n={trial_n} error_subtype={result.error_subtype!r}"
+        )
+
+        # ── 2. Total turns ≤ max_turns (D15 efficiency invariant) ─────
+        assert result.total_turns <= max_turns, (
+            f"unqualified persona simulation exceeded max_turns={max_turns} cap; "
+            f"got total_turns={result.total_turns} for tenant_slug={tenant_slug!r}"
+        )
+
+        # ── 3. Forbidden close tools NOT invoked (production-critical) ─
+        # The spec lists these as FORBIDDEN for unqualified personas — agent
+        # must qualify out instead of pushing the close. Probe via the
+        # helper that scans both metadata (forward-compat) and content
+        # (defensive — see helper docstring rationale).
+        signals = _extract_tool_call_signals(result.transcript)
+        for forbidden_pattern in _FORBIDDEN_CLOSE_TOOL_PATTERNS:
+            matching = [s for s in signals if forbidden_pattern in s]
+            assert not matching, (
+                f"Scenario 5 invoked forbidden close tool pattern "
+                f"{forbidden_pattern!r} for unqualified persona "
+                f"{actor.id!r} (tenant_slug={tenant_slug!r} trial_n={trial_n}); "
+                f"matching signals: {matching[:3]!r}{'...' if len(matching) > 3 else ''}"
+            )
+
+        # ── 4. qualify_lead invoked at least once (BANT/MEDDIC heuristic) ─
+        # Spec graders: `{ type: tool_calls, required: ["qualify_lead"], min_count: 1 }`.
+        qualify_lead_invoked = any("qualify_lead" in s for s in signals)
+        assert qualify_lead_invoked, (
+            f"Scenario 5 did NOT invoke qualify_lead for unqualified persona "
+            f"{actor.id!r} (tenant_slug={tenant_slug!r} trial_n={trial_n}); "
+            f"transcript len={len(result.transcript)}; "
+            f"signals scanned={len(signals)} (sample: {signals[:2]!r})"
+        )
+
+        # ── 5. Cost bucket separation preserved (H6 Story B invariant) ──
+        # Smoke check: rows MUST exist in eval_simulator_llm_call. Full
+        # cross-bucket contamination probe lives in
+        # agentic_cost_bucket_zero_contamination (04-validators.yaml).
+        llm_rows = _query_eval_simulator_llm_call_rows(db, result.simulation_id)
+        assert len(llm_rows) >= 1, (
+            f"eval_simulator_llm_call expected >=1 row for simulation_id="
+            f"{result.simulation_id} (cost-bucket separation H6); got 0 "
+            f"for tenant_slug={tenant_slug!r} trial_n={trial_n}"
+        )
+
+        # ── 6. Story C eval_metadata extension propagation (T-5 contract) ─
+        # At least one row should carry the persona_kind=unqualified tag
+        # (customer_node extends eval_metadata at the LLM boundary).
+        rows_with_persona_kind = [
+            row for row in llm_rows if (row.eval_metadata or {}).get("persona_kind") == "unqualified"
+        ]
+        assert rows_with_persona_kind, (
+            f"No eval_simulator_llm_call row carries persona_kind='unqualified' "
+            f"for simulation_id={result.simulation_id} — T-5 customer_node "
+            f"extension not propagated for tenant_slug={tenant_slug!r}"
+        )
+
     finally:
         db.close()

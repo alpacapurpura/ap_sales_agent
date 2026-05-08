@@ -2,10 +2,10 @@
 story_id: sales-agent-personas-instrumented-runtime
 outcome: pi-12-sales-agent-eval-foundation
 state: developing
-phase: BUILD_T1_T2_PARALLEL
-last_artifact: 06-tickets.yaml
-last_modified: 2026-05-08T20:55:00Z
-next_action: "/dev-team picked. CONTEXT-BRIEF refreshed (Haiku, faithfulness=clean, 16/16 sections). Spawning T-1 (AGENTIC Opus — schema migrators critical) + T-2 (BE Sonnet — 15 YAMLs) parallel build."
+phase: BUILD_T6
+last_artifact: T-6-impl-log.md
+last_modified: 2026-05-08T22:30:00Z
+next_action: "T-6 builder-agentic-opus-4.7 started Scenario 5 integration test. T-3+T-5 satisfied; qualify_lead/tag_lead_status absent in TOOL_REGISTRY → escalation per 05-guidelines.md § Sales_agent toolkit dependency."
 build_started_at: 2026-05-08T20:55:00Z
 build_started_by: /dev-team
 ratified_by_chris: true
