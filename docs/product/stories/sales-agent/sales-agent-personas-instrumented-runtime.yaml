@@ -1,0 +1,79 @@
+---
+id: sales-agent-personas-instrumented-runtime
+type: agentic-story
+module: sales-agent
+capability: sales-conversational-engine
+status: live
+slice: MVP
+last_audit: 2026-05-08
+date_introduced: 2026-05-08
+pr_introduced: null
+pi_introduced: pi-12-sales-agent-eval-foundation
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/sales-agent.md"
+  capability: "../../capabilities/sales-agent/sales-conversational-engine.yaml"
+  archive: "../../../archive/2026/stories/sales-agent-personas-instrumented-runtime/"
+  outcome: "../../outcomes/pi-12-sales-agent-eval-foundation.md"
+  related_stories:
+    - eval-foundation-simulator-homologation
+    - eval-foundation-tenant-seed-data
+    - sales-agent-goldens-3-tenants-dataset
+
+context:
+  job: "Crear test-infrastructure agentic para que synthetic personas conversen con sales_agent y validemos voz/qualification/objection-handling pre-launch"
+  why: "Sales_agent NO está en producción + 0 conversaciones reales. Synthetic-first eval pattern (Anthropic Bloom + AWS Strands + τ-Bench + PersonaGym mayo 2026) requiere personas-as-simulators con archetype-aware prompts."
+  constraints:
+    - "Story B H9 surface frozen 7 names — DO NOT add public exports"
+    - "Story B H10 frozen golden v1 byte-equal preserved"
+    - "Story B H6 cost-bucket separation (eval_simulator_llm_call vs copilot_llm_call)"
+    - "PersonalityProfile.system_instruction SSoT untouched (sales-agent-expert protected surface)"
+    - "Cache prefix safety V2: NO {tenant_name} interpolation"
+    - "Spanish neutro + voseo magic comment line 2 for AR YAMLs"
+    - "R23: 7 AGENTIC tickets production_code:false but architect-mandated Opus 4.7"
+
+outcome:
+  consumer_observable: "Eval simulator can run synthetic personas (15 archetype-aware × 5 tenants) against sales_agent with V1/V2 dispatch + extended eval_metadata + Scenarios 4/5/6 ready (5+6 cement pending toolkit dep)."
+  product_observable:
+    - "ActorProfile schema v1→v2 + 2 identity migrators in SCHEMA_MIGRATIONS registry"
+    - "personas_loader.py with lru_cache + ARCHETYPE_DIALECT_MAP cross-check (D-AG-1)"
+    - "Customer Prompt V2 sub-slot pain/objection rotation turn-by-turn (V1 byte-equal preserved)"
+    - "customer_node V1/V2 dispatch + eval_metadata 3 NEW keys (persona_kind/schema_version/archetype)"
+    - "15 archetype-aware personas YAML (5 archetypes × 3 dialects: AR/MX/CO/PE/419)"
+    - "5 _legacy personas preserved"
+    - "1 NEW arch fitness gate: test_personas_yaml_completeness.py"
+    - "Scenario 4 adversarial test PASS (1 conversation)"
+    - "Scenarios 5 + 6 cement (10 SKIP — qualify_lead/tag_lead_status toolkit dep)"
+    - "qualification-accuracy.md rubric placeholder (Story E owns runtime)"
+    - "4 NEW downstream regression rows tabla SSoT"
+
+agentic_contract:
+  type: test_infrastructure_agentic
+  pass_k_threshold: N/A (Story C is test cement; Story G/H/E own runtime pass^k)
+  cost_bucket: eval_simulator (Story B H6 separation honored)
+  trial_policy: D16 (3 trials per Scenario 5 archetype = 15 conversations when toolkit lands)
+
+merge:
+  audit_verdict: APPROVED
+  audit_date: 2026-05-08
+  checkpoints_path: "../../../archive/2026/stories/sales-agent-personas-instrumented-runtime/CHECKPOINTS.md"
+  merge_path: "../../../archive/2026/stories/sales-agent-personas-instrumented-runtime/07-merge.md"
+  sub_auditors:
+    auditor_agentic: PASS
+    auditor_backend: PASS
+  self_fixes_applied: 0
+  warns_remaining:
+    - "Cat 15 R6: T-4/T-5 commit body decisions cite missing (substance in result.md)"
+    - "Cat 1 informational: Story B `from __future__` inheritance (non-blocking)"
+    - "BE R6: T-2/T-9 commit body decisions cite missing (substance in result.md)"
+
+open_escalations:
+  - id: toolkit-dep-T6-T7
+    description: "qualify_lead + tag_lead_status missing in TOOL_REGISTRY → Scenarios 5+6 SKIP"
+    options:
+      - "(A) spawn sales-agent-qualification-toolkit story"
+      - "(B) accept Story C closure; toolkit ships in another PI-12 story (likely Story E voice-fidelity-grader-runtime bundles toolkit)"
+    recommendation: "B — Story E owns rubric runtime + may bundle toolkit"
+    pending_decision: chris
+---

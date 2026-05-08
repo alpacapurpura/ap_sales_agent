@@ -1,11 +1,17 @@
 ---
 story_id: sales-agent-personas-instrumented-runtime
 outcome: pi-12-sales-agent-eval-foundation
-state: developed
-phase: BUILD_COMPLETE
-last_artifact: T-9-result.md
-last_modified: 2026-05-08T22:35:00Z
-next_action: "Story C BUILD COMPLETE — 9/9 tickets developed. T-6/T-7 escalation pending /pm decision (qualify_lead/tag_lead_status toolkit dep). Awaiting Chris trigger /auditor for Conv 3 Review+Merge."
+state: done
+phase: MERGED
+last_artifact: CHECKPOINTS.md
+last_modified: 2026-05-08T23:15:00Z
+next_action: "Story C MERGED. Archive scheduled. Outcome PI-12 progress: Story C done (T-6/T-7 SKIP escalation pending Chris decision)."
+audit_started_at: 2026-05-08T22:50:00Z
+audit_started_by: /auditor
+audit_verdict: APPROVED
+audit_verdict_at: 2026-05-08T23:10:00Z
+merged_at: 2026-05-08T23:15:00Z
+merged_by: /pm
 build_completed_at: 2026-05-08T22:35:00Z
 build_started_at: 2026-05-08T20:55:00Z
 build_started_by: /dev-team

@@ -736,3 +736,29 @@ extraction next session).
 **Alternativa rechazada:** crear `.claude/agents/architect-{be,fe,agentic}.md` con frontmatter type — mayor mantenimiento, menor coherence cross-surface, sin ROI vs orchestrator probado.
 
 **Resultado:** próximo `/architect` invocation produce un solo spawn `architect-orchestrator` con prompt explícito que carga skills contextualmente. Cero mismatch error.
+
+---
+
+## 2026-05-08 (cont.) — Story C personas-instrumented-runtime DONE + R6 process WARN recurrent
+
+**Outcome:** PI-12 sales-agent-eval-foundation Story C merged. 9/9 tickets shipped. T-6/T-7 SKIP-with-escalation pattern (toolkit dep `qualify_lead`/`tag_lead_status` missing). PI-12 progress: 3/9 stories done (A + B + C); D ready (build-unblocked); E/F/G/H refined; adversarial-jailbreak-suite refining.
+
+**Patterns refined:**
+
+1. **R6 commit body decisions cite WARN recurrent** — 4 commits Story C (T-2 b92b5871, T-4 4fb355b7, T-5 ed671c99, T-9 415db986) lacked explicit "Decisions: D{N}, D-AG-{N}" enumeration in body. Substance was present in result.md "Decisions / cement" sections but commit body trace incomplete. Both auditors flagged as non-blocking WARN below threshold. Apply R6 strictly going forward (Story D + future PI-12 stories) — codify in /dev-team SKILL.md commit template.
+
+2. **Multi-surface coherent audit pattern validated again** — Story C 9 tickets across AGENTIC + BE + DOCS surfaces audited via 2 sub-auditors paralelos (auditor-agentic + auditor-backend). Saved ~50% Opus tokens vs spawning per-ticket. Same precedent Story 2B. **Pattern stable — recommend formalize in /auditor SKILL.md**.
+
+3. **Inline orchestrator for docs ticket** — T-9 done inline by /dev-team orchestrator (Opus, full context post T-1..T-8) instead of spawning builder-backend Sonnet. Saved ~30k tokens spawn overhead, no quality risk for pure docs reconciliation. **If pattern reused 3+ times → codify in /dev-team SKILL.md as anti-pattern-exception.**
+
+4. **SKIP-with-escalation pattern legitimate** — when production runtime has tool dependency missing (`qualify_lead`/`tag_lead_status`), test cement IS the deliverable. Tests transitionan auto-GREEN cuando dep aparece. Auditor verdict APPROVED with documented escalation path. **Pattern reusable for future eval-cement-before-runtime situations.**
+
+5. **make dev pre-flight bug fixes** (LITELLM_ENVIRONMENT=dev → development; healthcheck curl→python) — pre-existing config issues surfaced when building Story C T-6/T-7 (need Postgres + LiteLLM proxy reachable). Both fixes committed separately as `fix(infra)` (commit a66a9beb). **Process learning: Docker stack health verify ANTES de spawn dev-team for AGENTIC stories with real eval suites.**
+
+**Cost summary Story C audit cycle:**
+- 1 context-builder spawn (Haiku) ~94k tokens
+- 1 gate-runner spawn (Haiku) ~55k tokens
+- 2 sub-auditor spawns (Opus): auditor-agentic ~250k + auditor-backend ~165k = ~415k Opus
+- Total: ~564k tokens for 9-ticket audit (vs hypothetical 9 individual auditors @ ~250k each = 2.25M tokens — saving ~75% via paralelo coherent audit)
+
+**Open escalation Chris:** T-6/T-7 toolkit dep — Option (B) recommended (Story E voice-fidelity-grader-runtime owns rubric runtime + may bundle qualify_lead/tag_lead_status tools).

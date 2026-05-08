@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T19:07:49+00:00
+# Generated at: 2026-05-08T19:35:14+00:00
 
-generated_at: '2026-05-08T19:07:49+00:00'
+generated_at: '2026-05-08T19:35:14+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -292,22 +292,7 @@ buckets:
       priority_override: null
       audit_iterations: 0
   developing: []
-  developed:
-  - id: sales-agent-personas-instrumented-runtime
-    kind: story
-    state: developed
-    title: sales-agent-personas-instrumented-runtime
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 22:35:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: BUILD_COMPLETE
-      next_action: Story C BUILD COMPLETE — 9/9 tickets developed. T-6/T-7 escalation pending /pm decision (qualify_lead/tag_lead_status
-        toolkit dep). Awaiting Chris trigger /auditor for Conv 3 Review+Merge.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
+  developed: []
   reviewing: []
   done:
   - id: growth-copilot-layout-unification

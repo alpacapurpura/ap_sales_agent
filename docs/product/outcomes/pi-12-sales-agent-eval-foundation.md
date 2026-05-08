@@ -36,7 +36,7 @@ story_ids:
   - sales-agent-dialect-configuration            # TBD, feature UX tenant config dialecto BCP-47 + runtime injection
 
   # foundation reframe (story IDs originales preservados — slug intact, narrative reframed):
-  - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators (READY 2026-05-08 — /architect delivered ready package: 03-arch + 04-validators + 05-guidelines + 06-tickets, awaiting /dev-team)
+  - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators — DONE 2026-05-08 (build 9 tickets + audit APPROVED + merge; T-6/T-7 SKIP-with-escalation toolkit dep pending Chris decision)
   - sales-agent-goldens-3-tenants-dataset        # → role D: goldens-generated-from-simulation (READY 2026-05-08 — /architect delivered ready package: 03-arch + 04-validators + 05-guidelines + 06-tickets, awaiting /dev-team build post-Story C)
   - sales-agent-voice-fidelity-grader-runtime    # → role E: MAJ-EVAL voice fidelity grader (REFINED 2026-05-08 — spec v2 + design v2 ratified, awaiting /architect)
   - sales-agent-eval-pass-k-tracking             # → role F: Bloom-style pass^k (REFINED 2026-05-08 — spec v2 strict all-of-K ratified, awaiting /architect)

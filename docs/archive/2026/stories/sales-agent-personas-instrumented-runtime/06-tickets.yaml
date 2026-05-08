@@ -24,7 +24,7 @@ tickets:
     title: "ActorProfile schema v1→v2 + 2 identity migrators (ActorProfile, CustomerPrompt)"
     type: agentic
     surface: AGENTIC
-    state: developed
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -89,7 +89,7 @@ tickets:
     title: "15 archetype-aware personas YAML + 5 LEGACY moved + arch fitness gate test_personas_yaml_completeness"
     type: backend
     surface: BE
-    state: developed
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: true                 # ✅ YAML data + arch fitness — declarative test-infra
       claude_sonnet: true
@@ -167,7 +167,7 @@ tickets:
     title: "personas_loader.py — load_actor_profile_for_tenant + get_max_turns_for_persona_kind + cross-check + lru_cache"
     type: agentic
     surface: AGENTIC
-    state: developed
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -262,7 +262,7 @@ tickets:
     title: "Customer Prompt V2 — sub-slot pain/objection rotation turn-by-turn (additive)"
     type: agentic
     surface: AGENTIC
-    state: developed
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -330,7 +330,7 @@ tickets:
     title: "customer_node integration — V1/V2 dispatch + extend eval_metadata with persona_kind/schema_version/archetype"
     type: agentic
     surface: AGENTIC
-    state: developed
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -392,7 +392,7 @@ tickets:
     title: "Scenario 5 integration — agent qualifies out unqualified lead × 5 archetypes × 3 trials"
     type: agentic
     surface: AGENTIC
-    state: developed
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -467,7 +467,7 @@ tickets:
     title: "Scenario 6 integration — nurture realistic multi-question 8-15 turns × 5 archetypes"
     type: agentic
     surface: AGENTIC
-    state: developed
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -541,7 +541,7 @@ tickets:
     title: "Scenario 4 adversarial — extend Story B fixture with prompt-injection-via-traits parametrize"
     type: agentic
     surface: AGENTIC
-    state: developed
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -613,7 +613,7 @@ tickets:
     title: "Documentation reconciliation — capability YAML + sales-agent.md + auditor-downstream-regression rule + rubric placeholder"
     type: docs
     surface: DOCS
-    state: draft
+    state: audit-passed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -665,7 +665,7 @@ tickets:
       validator_ids: []
     depends_on: [T-6, T-7, T-8]
     blocks: []
-    state: developed
+    state: audit-passed
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
       - { state: developed, at: 2026-05-08T22:30Z, by: /dev-team-orchestrator-opus, note: "T-9 inline by orchestrator (docs work, no spawn). All 4 acceptance verifiers PASS." }
