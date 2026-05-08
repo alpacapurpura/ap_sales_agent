@@ -59,7 +59,7 @@ summary:
     title: "Phase 6 — Arch fitness extension adapter mode + 2 NEW arch tests"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
     estimate_hours: 2
     blocked_by: [T-5]
     blocks: [T-7]
@@ -265,7 +265,12 @@ T6:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T22:30:00Z
+  transitions:
+    - { state: assigned, at: "2026-05-08T22:30:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: pushed, at: "2026-05-08T22:00:00Z", by: "claude-sonnet", note: "GREEN — TSC 0 errors, ESLint 0 errors/warnings, 13/13 validators PASS, 61/61 full arch suite PASS. 3 deliverables shipped: test-studio-structure-parity adapter mode + 2 NEW arch tests (stage+channel slug SSoT)." }
   owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
   priority: 1
   estimate_hours: 2

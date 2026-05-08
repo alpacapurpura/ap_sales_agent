@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T02:58:05+00:00
+# Generated at: 2026-05-08T03:00:58+00:00
 
-generated_at: '2026-05-08T02:58:05+00:00'
+generated_at: '2026-05-08T03:00:58+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -374,12 +374,12 @@ buckets:
     state: developing
     title: growth-studio-folder-parity
     tags: []
-    last_touched: 2026-05-08 21:45:00+00:00
+    last_touched: 2026-05-08 22:00:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_T5
-      next_action: 'T-5 DONE (pushed). 6 dashboards adopt useCopilotOffset, allowlist drained to empty. T-6 next: arch fitness
-        extension adapter mode + 2 NEW arch tests.'
+      phase: BUILD_T6
+      next_action: 'T-6 DONE (pushed). Arch fitness adapter mode + 2 new arch tests (stage/channel slug SSoT). T-7 next: placeholders
+        2B (.gitkeep + routes verify).'
       blocked_by: null
       priority_override: null
       audit_iterations: 0
