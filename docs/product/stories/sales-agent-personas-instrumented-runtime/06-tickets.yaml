@@ -87,7 +87,7 @@ tickets:
     title: "15 archetype-aware personas YAML + 5 LEGACY moved + arch fitness gate test_personas_yaml_completeness"
     type: backend
     surface: BE
-    state: draft
+    state: developed
     owner_eligibility:
       qwen_opencode: true                 # ✅ YAML data + arch fitness — declarative test-infra
       claude_sonnet: true
@@ -154,6 +154,7 @@ tickets:
     blocks: [T-3]
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developed, at: 2026-05-08T12:00Z, by: builder-backend-sonnet }
     assigned_to: builder-backend-sonnet
 
   # ═════════════════════════════════════════════════════════════════════

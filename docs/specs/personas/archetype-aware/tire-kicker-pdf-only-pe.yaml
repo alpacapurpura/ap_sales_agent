@@ -1,0 +1,30 @@
+id: tire-kicker-pdf-only-pe
+schema_version: 2
+name: "Jorge Quispe — tire kicker solo PDF"
+actor_goal: "Obtener materiales gratuitos (PDF, guía, video) sin ninguna intención de compra; esquivar toda conversación hacia agenda o venta."
+dialect_code: es-PE
+traits:
+  - "recolector de contenido gratuito"
+  - "sin presupuesto real"
+  - "evita compromisos"
+  - "amable en superficie"
+  - "no tiene autoridad de compra"
+communication_style: "Tuteo amigable. Respuestas educadas pero evasivas. Nunca da información real de negocio."
+initial_message: "Vi que tienen recursos gratuitos. ¿Me pueden mandar el PDF del método?"
+persona_kind: unqualified
+urgency: low
+budget_hint: vacío
+pain_points:
+  - "Está en etapa de exploración sin presupuesto asignado."
+  - "Quiere aprender pero no tiene disposición de inversión en este momento."
+  - "No tiene autoridad de decisión en su organización."
+objections:
+  - "Ahora mismo no tenemos presupuesto para esto."
+  - "Solo quería ver el material para evaluar si es relevante para nosotros."
+  - "Mi jefe tendría que aprobar cualquier gasto, y él no está disponible."
+metadata:
+  archetype: coach_lat
+  tenant_slug: tenant_coach_lat
+  bloom_stages: "understanding"
+  persona_gym_axes: "action_justification,expected_action,persona_consistency"
+  story_origin: "C-T-2"

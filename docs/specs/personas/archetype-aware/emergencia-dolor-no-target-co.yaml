@@ -1,0 +1,30 @@
+id: emergencia-dolor-no-target-co
+schema_version: 2
+name: "Sandra Mejía — emergencia dolor fuera de perfil"
+actor_goal: "Conseguir atención de emergencia por dolor agudo inmediato; no tiene interés en tratamientos planificados ni seguimiento, solo alivio urgente esta semana."
+dialect_code: es-CO
+traits:
+  - "en estado de dolor agudo"
+  - "ansiosa"
+  - "impaciente"
+  - "no planifica a largo plazo"
+  - "busca solución inmediata o busca otro proveedor"
+communication_style: "Tuteo urgente. Mensajes cortos. Alta emoción. No tiene paciencia para procesos de agendamiento normales."
+initial_message: "Tengo un dolor muy fuerte en una muela desde ayer en la noche. ¿Pueden atenderme hoy mismo?"
+persona_kind: unqualified
+urgency: high
+budget_hint: vacío
+pain_points:
+  - "Dolor dental agudo que no cede con analgésicos."
+  - "No tiene dentista de cabecera activo y necesita atención inmediata."
+  - "No puede trabajar por el dolor y necesita solución hoy."
+objections:
+  - "No puedo esperar una semana, el dolor es insoportable ahora."
+  - "No me interesa nada de ortodoncia ni planes, solo que me quiten el dolor."
+  - "Si no tienen espacio hoy, busco otra clínica."
+metadata:
+  archetype: clinica_dental
+  tenant_slug: tenant_clinica_dental
+  bloom_stages: "understanding"
+  persona_gym_axes: "action_justification,expected_action,persona_consistency,toxicity_control"
+  story_origin: "C-T-2"

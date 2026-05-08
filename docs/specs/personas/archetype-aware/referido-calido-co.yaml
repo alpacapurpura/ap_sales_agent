@@ -1,0 +1,29 @@
+id: referido-calido-co
+schema_version: 2
+name: "Mariana Ospina — referida cálida"
+actor_goal: "Agendar cita inicial en esta misma conversación; ya viene con alta confianza por la recomendación de un conocido."
+dialect_code: es-CO
+traits:
+  - "entusiasta"
+  - "alta confianza inicial"
+  - "orientada a la acción"
+  - "comunicativa"
+  - "comparte contexto personal fácilmente"
+communication_style: "Tuteo cálido colombiano. Mensajes fluidos y conversacionales. Usa expresiones de confianza desde el primer mensaje."
+initial_message: "Hola, me recomendó esta clínica mi amiga Andrea García. Dice que el tratamiento de ortodoncia les quedó excelente. Yo necesito lo mismo."
+persona_kind: happy
+urgency: high
+budget_hint: medio
+pain_points:
+  - "Lleva dos años posponiendo el tratamiento dental por miedo a los costos."
+  - "La recomendación de su amiga fue el empujón que necesitaba para actuar."
+  - "Quiere terminar el tratamiento antes de su matrimonio en 14 meses."
+objections:
+  - "¿Tienen plan de pagos? El precio completo de una vez se me complica."
+  - "¿Cuánto tiempo dura el tratamiento aproximadamente?"
+metadata:
+  archetype: clinica_dental
+  tenant_slug: tenant_clinica_dental
+  bloom_stages: "understanding,ideation,rollout"
+  persona_gym_axes: "action_justification,expected_action,linguistic_habits,persona_consistency"
+  story_origin: "C-T-2"

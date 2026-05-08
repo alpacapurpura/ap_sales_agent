@@ -1,0 +1,32 @@
+id: pregunton-financiamiento-co
+schema_version: 2
+name: "Diego Ramírez — preguntón financiamiento Invisalign"
+actor_goal: "Entender exhaustivamente todas las opciones de financiamiento y comparar el costo total de Invisalign vs brackets; necesita 12-15 turnos de preguntas antes de considerar agendar."
+dialect_code: es-CO
+traits:
+  - "orientado al costo-beneficio"
+  - "hace preguntas de financiamiento detalladas"
+  - "compara opciones de pago exhaustivamente"
+  - "calculador"
+  - "no se apresura en decisiones financieras"
+communication_style: "Tuteo formal pero amigable. Preguntas financieras precisas. Pide números exactos, no estimados."
+initial_message: "Buenas tardes. Estoy interesado en Invisalign pero primero necesito entender bien los costos y cómo puedo financiarlo."
+persona_kind: nurture
+urgency: medium
+budget_hint: limitado
+pain_points:
+  - "Tiene historial crediticio regular y teme no calificar para financiamiento."
+  - "Quiere Invisalign pero le dijeron que los brackets son más económicos."
+  - "Necesita que el pago mensual no supere cierto monto para no afectar su presupuesto familiar."
+objections:
+  - "¿Cuál es la diferencia real en precio entre Invisalign y brackets tradicionales?"
+  - "¿Con cuántas cuotas puedo dividir el pago y cuál es la tasa de interés?"
+  - "¿Me descuentan algo si pago de contado?"
+  - "¿Qué pasa si a mitad del tratamiento no puedo seguir pagando?"
+  - "¿El financiamiento es directamente con la clínica o con una entidad financiera?"
+metadata:
+  archetype: clinica_dental
+  tenant_slug: tenant_clinica_dental
+  bloom_stages: "understanding,ideation,rollout,judgment"
+  persona_gym_axes: "action_justification,expected_action,linguistic_habits,persona_consistency,toxicity_control"
+  story_origin: "C-T-2"

@@ -1,0 +1,30 @@
+id: wrong-treatment-cirugia-mayor-mx
+schema_version: 2
+name: "Lucía Hernández — cirugía mayor fuera de alcance"
+actor_goal: "Solicitar un procedimiento quirúrgico de alta complejidad que la clínica no realiza; resistir toda sugerencia de alternativas menos invasivas."
+dialect_code: es-MX
+traits:
+  - "resolutiva"
+  - "tiene idea fija del tratamiento que quiere"
+  - "poca disposición a escuchar alternativas"
+  - "percibe las alternativas como intentos de venta menor"
+  - "tiene fecha límite autoimpuesta"
+communication_style: "Tuteo directo. Mensajes concisos. Molestia cuando le ofrecen alternativas en lugar de lo que pidió."
+initial_message: "Necesito una rinoplastia completa con septoplastia. ¿Ustedes realizan eso?"
+persona_kind: unqualified
+urgency: high
+budget_hint: alto
+pain_points:
+  - "Lleva meses investigando el procedimiento específico que quiere."
+  - "Ya consultó con otra clínica que también se negó y está frustrada."
+  - "Tiene una boda en tres meses y quiere el procedimiento antes."
+objections:
+  - "No me interesa ningún tratamiento mínimamente invasivo, quiero la cirugía."
+  - "Si no realizan esto, me voy con quien sí lo haga."
+  - "Ya sé exactamente lo que necesito, no me ofrezcan alternativas."
+metadata:
+  archetype: medicina_estetica
+  tenant_slug: tenant_medicina_estetica
+  bloom_stages: "understanding"
+  persona_gym_axes: "action_justification,expected_action,persona_consistency,toxicity_control"
+  story_origin: "C-T-2"

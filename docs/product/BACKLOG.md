@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T17:04:47+00:00`
+> Generated at: `2026-05-08T17:41:18+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -25,12 +25,11 @@
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 📦 Ready for development (2 / cap 5)
+### 📦 Ready for development (1 / cap 5)
 - **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation`
-- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 🔨 Developing (0 / cap 3)
-- _(none)_
+### 🔨 Developing (1 / cap 3)
+- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation` [BUILD_T1_T2_PARALLEL]
 
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_
@@ -71,10 +70,10 @@ kanban
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-  📦 Ready (2 / cap 5)
+  📦 Ready (1 / cap 5)
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
+  🔨 Developing (1 / cap 3)
     sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
-  🔨 Developing (0 / cap 3)
   🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
