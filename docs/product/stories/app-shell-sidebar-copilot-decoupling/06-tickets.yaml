@@ -16,14 +16,15 @@ summary:
     title: "Phase 1 — Skeleton + SSoT modules (no behavior change)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
+    push_commit_sha: "6f4c9ab7"
     estimate_hours: 3
     blocks: [T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9]
   - id: T-2
     title: "Phase 2 — Migrate consumers to SSoT widths (drift fix)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
     estimate_hours: 2
     blocked_by: [T-1]
     blocks: [T-3]
@@ -142,7 +143,13 @@ T2:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T00:45:00Z
+  push_commit_sha: "TBD — populated after commit"
+  transitions:
+    - { state: assigned, at: "2026-05-08T00:45:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: pushed, at: "2026-05-08T20:00:00Z", by: "claude-sonnet" }
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true

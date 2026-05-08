@@ -25,7 +25,7 @@ const useCopilotOffsetMock = vi.fn<() => number>(() => 0);
 
 vi.mock("@/hooks/use-copilot-offset", () => ({
   useCopilotOffset: () => useCopilotOffsetMock(),
-  COPILOT_OPEN_WIDTH: 380,
+  COPILOT_OPEN_WIDTH: 460,
   COPILOT_RAIL_WIDTH: 60,
 }));
 
@@ -93,7 +93,7 @@ beforeEach(() => {
 
 describe("DetailPanel — z-index ladder (mobile bumps panel above copilot drawer)", () => {
   it("panel renders with mobile z-[60] override (above copilot z-50)", () => {
-    useCopilotOffsetMock.mockReturnValue(380);
+    useCopilotOffsetMock.mockReturnValue(460);
 
     render(
       <DetailPanel open onClose={NOOP}>
@@ -111,7 +111,7 @@ describe("DetailPanel — z-index ladder (mobile bumps panel above copilot drawe
   });
 
   it("desktop z-[45] is preserved (no regression for desktop drawer ladder)", () => {
-    useCopilotOffsetMock.mockReturnValue(380);
+    useCopilotOffsetMock.mockReturnValue(460);
 
     render(
       <DetailPanel open onClose={NOOP}>
@@ -128,13 +128,13 @@ describe("DetailPanel — z-index ladder (mobile bumps panel above copilot drawe
 
 describe("StageSummaryRow — bowtie respects copilot offset (paddingRight)", () => {
   it("applies paddingRight: copilotWidth when copilot is expanded", () => {
-    useCopilotOffsetMock.mockReturnValue(380);
+    useCopilotOffsetMock.mockReturnValue(460);
 
     const { container } = render(<StageSummaryRow stages={STAGES} activeStage={null} />);
 
     const outer = container.firstElementChild as HTMLElement;
     expect(outer).not.toBeNull();
-    expect(outer.style.paddingRight).toBe("380px");
+    expect(outer.style.paddingRight).toBe("460px");
   });
 
   it("applies paddingRight: 0 on mobile (no layout shift)", () => {

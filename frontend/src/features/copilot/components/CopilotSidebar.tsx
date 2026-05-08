@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useCopilotNavigator } from "../hooks/use-copilot-navigator";
 import { useCreateConversation } from "../hooks/use-create-conversation";
 import { useRouteTracker } from "../hooks/use-route-tracker";
+import { COPILOT_WIDTHS } from "../lib/copilot-shell-widths";
 import { loadPersistedSidebarState, useCopilotStore } from "../store/copilot-store";
 
 import { CopilotChatPanel } from "./CopilotChatPanel";
@@ -83,8 +84,9 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
   // the grid expands: history (280px) + chat (400px) without a 3rd rail column when full.
   // Spec §1: collapsed=[0, 60px], rail=[400px, 60px], full=[400px, 280px]
   // In "full" state the rail is hidden (controls migrate to history panel header).
-  const chatW = sidebarState === "collapsed" ? "0px" : "400px";
-  const railOrHistoryW = sidebarState === "full" ? "280px" : "60px";
+  const chatW = sidebarState === "collapsed" ? "0px" : `${COPILOT_WIDTHS.chat}px`;
+  const railOrHistoryW =
+    sidebarState === "full" ? `${COPILOT_WIDTHS.rail}px` : `${COPILOT_WIDTHS.collapsed}px`;
 
   const isExpanded = sidebarState !== "collapsed";
 
