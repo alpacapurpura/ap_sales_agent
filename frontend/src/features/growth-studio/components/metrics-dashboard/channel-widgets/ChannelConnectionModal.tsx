@@ -4,6 +4,8 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X, Loader2 } from "lucide-react";
 import { Suspense, useRef, useEffect, useState } from "react";
 
+import { useCopilotOffset } from "@/hooks/use-copilot-offset";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +50,9 @@ export function ChannelConnectionModal({
 }: ChannelConnectionModalProps) {
   const hasInteracted = useRef(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  // PI-8 PR-1 / T-5 Phase 5: shift the centered modal left by half the copilot
+  // width so it remains visually centered in the remaining viewport area.
+  const copilotOffset = useCopilotOffset();
 
   // Reset interaction tracking when channel changes
   useEffect(() => {
@@ -74,6 +79,7 @@ export function ChannelConnectionModal({
           <DialogOverlay />
           <DialogPrimitive.Content
             className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-h-[85vh] overflow-y-auto"
+            style={copilotOffset > 0 ? { marginRight: `${copilotOffset}px` } : undefined}
             onInteractOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => {
               e.preventDefault();

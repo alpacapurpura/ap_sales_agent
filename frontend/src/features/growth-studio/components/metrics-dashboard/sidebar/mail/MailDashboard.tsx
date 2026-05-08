@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCopilotOffset } from "@/hooks/use-copilot-offset";
 import { cn } from "@/lib/utils";
 
 import { useConnectionHealth } from "../../../../hooks/use-connection-health";
@@ -62,6 +63,9 @@ export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboa
   const { data: health } = useConnectionHealth("email-nurture");
   const { sync, isSyncing, cooldownMinutes, result, error } = useSyncChannel("email-nurture");
   useHashScroll();
+  // PI-8 PR-1 / T-5 Phase 5: reserve copilot column so the full-screen overlay
+  // does NOT extend behind the copilot drawer on tablet+desktop viewports.
+  const copilotOffset = useCopilotOffset();
 
   useEffect(() => {
     if (result) toast.success("Sincronización completada");
@@ -109,6 +113,7 @@ export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboa
           ? "flex flex-col min-h-screen bg-background"
           : "fixed inset-0 z-50 flex flex-col bg-background"
       }
+      style={isRouteBased ? undefined : { paddingRight: `${copilotOffset}px` }}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b px-6 py-3">

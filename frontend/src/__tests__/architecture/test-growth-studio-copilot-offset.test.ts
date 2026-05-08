@@ -39,14 +39,13 @@ const SKIP_DIRS = new Set(["node_modules", ".next", "dist", "__mocks__", "__test
  *
  * Paths relative to SRC_ROOT, forward slashes.
  */
-const KNOWN_VIOLATIONS: ReadonlySet<string> = new Set([
-  "features/growth-studio/components/metrics-dashboard/sidebar/youtube-organic/YouTubeDashboard.tsx",
-  "features/growth-studio/components/metrics-dashboard/sidebar/mail/MailDashboard.tsx",
-  "features/growth-studio/components/metrics-dashboard/sidebar/meta-ads/MetaAdsDashboard.tsx",
-  "features/growth-studio/components/metrics-dashboard/sidebar/ig-organic/IgOrganicDashboard.tsx",
-  "features/growth-studio/components/metrics-dashboard/sidebar/website/WebsiteDashboard.tsx",
-  "features/growth-studio/components/metrics-dashboard/channel-widgets/ChannelConnectionModal.tsx",
-]);
+/**
+ * T-5 Phase 5 (growth-studio-folder-parity): all 6 dashboards adopted
+ * `useCopilotOffset`. Allowlist drained per story 2A AD7.
+ * Story 1 T-7 NOT yet landed → single set stays as KNOWN_VIOLATIONS here
+ * (rename to KNOWN_VIOLATIONS_GROWTH happens when story 1 T-7 ships).
+ */
+const KNOWN_VIOLATIONS: ReadonlySet<string> = new Set([]);
 
 function* walkSourceFiles(dir: string): Generator<string> {
   const entries = readdirSync(dir, { withFileTypes: true });

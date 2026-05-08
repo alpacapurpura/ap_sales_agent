@@ -2,10 +2,10 @@
 story_id: growth-studio-folder-parity
 outcome: growth-copilot-layout-unification
 state: developing
-phase: BUILD_T3
-last_artifact: docs/product/stories/growth-studio-folder-parity/T-2-result.md
-last_modified: 2026-05-08T20:15:00Z
-next_action: "T-2 DONE (pushed via orchestrator closure post builder cap). T-3 ready: 4-tier rename atomic (tier0-* → pages/tiers/0-summary.ts). Build T-3 next."
+phase: BUILD_T5
+last_artifact: docs/product/stories/growth-studio-folder-parity/T-5-result.md
+last_modified: 2026-05-08T21:45:00Z
+next_action: "T-5 DONE (pushed). 6 dashboards adopt useCopilotOffset, allowlist drained to empty. T-6 next: arch fitness extension adapter mode + 2 NEW arch tests."
 build_started_at: 2026-05-07T22:30:00Z
 build_started_by: /dev-team
 ratified_by_chris: true

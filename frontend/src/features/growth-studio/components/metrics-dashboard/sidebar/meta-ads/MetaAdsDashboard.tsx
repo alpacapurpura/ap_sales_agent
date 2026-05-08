@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCopilotOffset } from "@/hooks/use-copilot-offset";
 import { useMetaAdsNotices } from "@/features/growth-studio/hooks/use-meta-ads-notices";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDateTime } from "@/lib/format-date";
@@ -82,6 +83,9 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   const { data: metaHealthCheck } = useMetaHealthCheck();
   const { sync, isSyncing, cooldownMinutes } = useSyncChannel("meta-ads");
   useHashScroll();
+  // PI-8 PR-1 / T-5 Phase 5: reserve copilot column so the full-screen overlay
+  // does NOT extend behind the copilot drawer on tablet+desktop viewports.
+  const copilotOffset = useCopilotOffset();
 
   // Pending campaign count for the tab badge (cheap — no useMemo needed)
   let unassignedCount = 0;
@@ -201,6 +205,7 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
           ? "flex flex-col min-h-screen bg-background"
           : "fixed inset-0 z-50 flex flex-col bg-background"
       }
+      style={isRouteBased ? undefined : { paddingRight: `${copilotOffset}px` }}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b px-6 py-3">

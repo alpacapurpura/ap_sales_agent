@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCopilotOffset } from "@/hooks/use-copilot-offset";
 import { cn } from "@/lib/utils";
 
 import { useChannelDashboard } from "../../../../hooks/use-channel-dashboard";
@@ -56,6 +57,9 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
   const { data, isLoading } = useChannelDashboard("yt-organic", period);
   const { sync, isSyncing, cooldownMinutes } = useSyncChannel("yt-organic");
   useHashScroll();
+  // PI-8 PR-1 / T-5 Phase 5: reserve copilot column so the full-screen overlay
+  // does NOT extend behind the copilot drawer on tablet+desktop viewports.
+  const copilotOffset = useCopilotOffset();
 
   const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
     setPeriod(p);
@@ -95,6 +99,7 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
           ? "flex flex-col min-h-screen bg-background"
           : "fixed inset-0 z-50 flex flex-col bg-background"
       }
+      style={isRouteBased ? undefined : { paddingRight: `${copilotOffset}px` }}
     >
       <div className="flex items-center justify-between border-b px-6 py-3">
         <div className="flex items-center gap-3">

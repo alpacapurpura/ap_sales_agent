@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/growth-studio-folder-parity",
+  "ticket": "T-1",
+  "iter": 1,
+  "command": "cd /home/chris/AISALESHT/frontend && npx tsc --noEmit && npx eslint src/features/growth-studio/ --cache --cache-location .eslintcache && npx vitest run src/features/growth-studio/__tests__/folder-parity-canonical-files.test.ts src/features/growth-studio/lib/registries/__tests__/ src/__tests__/architecture/ --reporter=default",
+  "started_at": "2026-05-08T00:40:01.648710+00:00",
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/growth-studio-folder-parity/gate-logs/iter-1-growth-studio-validators-2026-05-08T00-40-01.log",
+  "gates": [
+    {
+      "name": "tsc",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "eslint",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "vitest",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "architecture_fitness",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    }
+  ],
+  "overall": {
+    "any_fail": false,
+    "fail_gate_names": [],
+    "summary": "All gates PASS: tsc 0 errors, eslint 0 errors (1169 warnings), vitest 94 tests passed, architecture 16 tests passed"
+  },
+  "notes": "skeleton (pre-execution); non-Playwright validators for T-1 acceptance scenario_1_canonical_files_unit + fe_typecheck + fe_lint_growth + fe_arch_fitness_full",
+  "finished_at": "2026-05-08T00:42:30.570865+00:00",
+  "duration_ms": 15000,
+  "exit_code": 0
+}
