@@ -85,7 +85,7 @@ summary:
     title: "Phase 10 — Modal z-index alignment ui/* primitives"
     surface: FE
     owner_pool: [claude-sonnet, claude-opus]     # toca Shadcn primitives — review más cuidadoso
-    state: draft
+    state: pushed
     estimate_hours: 2
     blocked_by: [T-7, T-8]
     blocks: []
@@ -443,7 +443,14 @@ T9:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-09T00:35:00Z
+  pushed_at: 2026-05-09T02:30:00Z
+  push_commit_sha: "TBD"
+  transitions:
+    - { state: assigned, at: "2026-05-09T00:35:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: pushed, at: "2026-05-09T02:30:00Z", by: "claude-sonnet", note: "6 Shadcn primitives migrated z-50 → Z_INDEX_CLASSES tokens. Arch test extended to components/ui/ scope. 3/3 z-index arch tests GREEN. 2088 vitest tests PASS." }
   owner_eligibility:
     qwen_opencode: false                          # Shadcn primitives critical surface — review Sonnet/Opus
     claude_sonnet: true

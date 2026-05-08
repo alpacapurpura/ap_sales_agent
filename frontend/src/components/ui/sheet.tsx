@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useCopilotOffset } from "@/hooks/use-copilot-offset";
+import { Z_INDEX_CLASSES } from "@/lib/tokens/z-index";
 
 const Sheet = SheetPrimitive.Root;
 
@@ -24,7 +25,7 @@ const SheetOverlay = React.forwardRef<
   return (
     <SheetPrimitive.Overlay
       className={cn(
-        "fixed top-0 bottom-0 left-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        `fixed top-0 bottom-0 left-0 ${Z_INDEX_CLASSES.MODAL} bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0`,
         className,
       )}
       style={{ right: `${copilotWidth}px` }}
@@ -36,7 +37,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+  `fixed ${Z_INDEX_CLASSES.MODAL} gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500`,
   {
     variants: {
       side: {

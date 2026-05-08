@@ -1,11 +1,11 @@
 ---
 story_id: app-shell-sidebar-copilot-decoupling
 outcome: growth-copilot-layout-unification
-state: developing
-phase: BUILD_T8_DONE
-last_artifact: T-8-result.md
-last_modified: 2026-05-09T00:30:00Z
-next_action: "T-8 PUSHED. 5 Playwright smoke specs + VR baseline. 4 tests fixmed (Sheet headless issue, deferred follow-up). T-9 next: Phase 10 modal z-index ui/* primitives. Chris ratifies VR baselines pre /auditor trigger."
+state: developed
+phase: BUILD_COMPLETE
+last_artifact: T-9-result.md
+last_modified: 2026-05-09T02:30:00Z
+next_action: "T-9 PUSHED. All 9 tickets DONE. Story 1 complete. Chris triggers /auditor to start Conv 3 review."
 build_started_at: 2026-05-07T22:30:00Z
 build_started_by: /dev-team
 ratified_by_chris: true

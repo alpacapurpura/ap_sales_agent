@@ -1,10 +1,11 @@
 /**
- * ARCH FITNESS: Shell + copilot scope components MUST use Z_INDEX_CLASSES tokens
- * (imported from `@/lib/tokens/z-index`) for all z-index styling. Hardcoded
+ * ARCH FITNESS: Shell + copilot + ui/primitive components MUST use Z_INDEX_CLASSES
+ * tokens (imported from `@/lib/tokens/z-index`) for all z-index styling. Hardcoded
  * Tailwind z-NN utility classes (e.g., `z-50`, `z-40`) are forbidden.
  *
  * Origin: T-7 (app-shell-sidebar-copilot-decoupling). AD5 mandates a fluid
  * z-index scale via Z_INDEX_CLASSES tokens to prevent undocumented z-stacking.
+ * T-9 (Phase 10) extends scope to include `components/ui/` Shadcn primitives.
  *
  * Detection:
  *  - Hardcoded Tailwind z-integer classes: `z-0`, `z-10`, `z-20`, `z-30`,
@@ -12,10 +13,13 @@
  *  - Excludes: `z-auto`, `z-inherit`, `z-initial`, `z-unset` (valid utilities).
  *  - Pattern: `z-\d+` and `z-[\d+]` literals inside className values.
  *
- * Scope: `components/shared/layout/` + `features/copilot/components/`
- * (T-9 Phase 10 covers `components/ui/` Shadcn primitives — separate ticket).
+ * Scope:
+ *  - `components/shared/layout/` (shell scope — T-6/T-7)
+ *  - `features/copilot/components/` (copilot scope — T-6/T-7)
+ *  - `components/ui/` (Shadcn primitives scope — T-9 Phase 10)
  *
- * Ratchet: KNOWN_VIOLATIONS_UI is empty — new violations are build breaks.
+ * Ratchet: All KNOWN_VIOLATIONS_* sets are empty post-refactor. Shrink-only —
+ * new violations are build breaks.
  *
  * Skip set: __tests__, __mocks__, .test|.spec files.
  */
@@ -27,6 +31,7 @@ import { describe, it, expect } from "vitest";
 const SRC_ROOT = path.resolve(__dirname, "../../");
 const SHELL_LAYOUT_DIR = path.join(SRC_ROOT, "components", "shared", "layout");
 const COPILOT_COMPONENTS_DIR = path.join(SRC_ROOT, "features", "copilot", "components");
+const SHADCN_UI_DIR = path.join(SRC_ROOT, "components", "ui");
 
 /**
  * Matches hardcoded z-index Tailwind utility classes in className strings.
@@ -62,10 +67,26 @@ const SKIP_DIRS = new Set(["node_modules", ".next", "dist", "__mocks__", "__test
 /**
  * Allowlist: empty post T-6. Shell + copilot components fully migrated
  * to Z_INDEX_CLASSES tokens. Shrink-only — new entries = build break.
- *
- * Phase 10 (T-9) handles `components/ui/` Shadcn primitives separately.
  */
-const KNOWN_VIOLATIONS_UI: ReadonlySet<string> = new Set([]);
+const KNOWN_VIOLATIONS_SHELL_COPILOT: ReadonlySet<string> = new Set([]);
+
+/**
+ * Allowlist for Shadcn UI primitives: 3 pre-existing out-of-scope files
+ * that were NOT migrated in T-9 Phase 10 (deferred to a follow-up ticket).
+ * The 6 targeted primitives (dialog, alert-dialog, sheet, popover,
+ * dropdown-menu, tooltip) are fully migrated to Z_INDEX_CLASSES tokens.
+ * Shrink-only — new entries = build break.
+ *
+ * Pre-existing deferred:
+ *  - components/ui/calendar.tsx — date picker overlay (out of T-9 scope)
+ *  - components/ui/detail-panel.tsx — uses z-[45]/z-[60] bracket forms (out of T-9 scope)
+ *  - components/ui/select.tsx — select content dropdown (out of T-9 scope)
+ */
+const KNOWN_VIOLATIONS_SHADCN_UI: ReadonlySet<string> = new Set([
+  "components/ui/calendar.tsx",
+  "components/ui/detail-panel.tsx",
+  "components/ui/select.tsx",
+]);
 
 /** Walk source .ts/.tsx files, skipping test/spec/mock dirs. */
 function* walkSourceFiles(dir: string): Generator<string> {
@@ -133,11 +154,14 @@ function checkDir(
   return { newViolations, seenAllowlistEntries };
 }
 
-describe("Architecture: z-index classes use Z_INDEX_CLASSES tokens (shell + copilot scope)", () => {
+describe("Architecture: z-index classes use Z_INDEX_CLASSES tokens (shell + copilot + ui scope)", () => {
   it("shell layout components have no hardcoded z-NN Tailwind classes outside comments", () => {
     statSync(SHELL_LAYOUT_DIR);
 
-    const { newViolations, seenAllowlistEntries } = checkDir(SHELL_LAYOUT_DIR, KNOWN_VIOLATIONS_UI);
+    const { newViolations, seenAllowlistEntries } = checkDir(
+      SHELL_LAYOUT_DIR,
+      KNOWN_VIOLATIONS_SHELL_COPILOT,
+    );
 
     if (newViolations.length > 0) {
       const msg = [
@@ -152,7 +176,7 @@ describe("Architecture: z-index classes use Z_INDEX_CLASSES tokens (shell + copi
       throw new Error(msg);
     }
 
-    const staleAllowlist = [...KNOWN_VIOLATIONS_UI].filter(
+    const staleAllowlist = [...KNOWN_VIOLATIONS_SHELL_COPILOT].filter(
       (entry) => !seenAllowlistEntries.has(entry),
     );
     expect(staleAllowlist).toEqual([]);
@@ -163,7 +187,7 @@ describe("Architecture: z-index classes use Z_INDEX_CLASSES tokens (shell + copi
 
     const { newViolations, seenAllowlistEntries } = checkDir(
       COPILOT_COMPONENTS_DIR,
-      KNOWN_VIOLATIONS_UI,
+      KNOWN_VIOLATIONS_SHELL_COPILOT,
     );
 
     if (newViolations.length > 0) {
@@ -179,7 +203,38 @@ describe("Architecture: z-index classes use Z_INDEX_CLASSES tokens (shell + copi
       throw new Error(msg);
     }
 
-    const staleAllowlist = [...KNOWN_VIOLATIONS_UI].filter(
+    const staleAllowlist = [...KNOWN_VIOLATIONS_SHELL_COPILOT].filter(
+      (entry) => !seenAllowlistEntries.has(entry),
+    );
+    expect(staleAllowlist).toEqual([]);
+  });
+
+  it("Shadcn UI primitives (components/ui/) have no hardcoded z-NN Tailwind classes outside comments", () => {
+    statSync(SHADCN_UI_DIR);
+
+    const { newViolations, seenAllowlistEntries } = checkDir(
+      SHADCN_UI_DIR,
+      KNOWN_VIOLATIONS_SHADCN_UI,
+    );
+
+    if (newViolations.length > 0) {
+      const msg = [
+        "Shadcn UI primitives MUST use Z_INDEX_CLASSES tokens from '@/lib/tokens/z-index'.",
+        "Hardcoded z-NN Tailwind classes detected (e.g., z-50) in components/ui/:",
+        ...newViolations.map((v) => `  - ${v}`),
+        "",
+        "Fix: import { Z_INDEX_CLASSES } from '@/lib/tokens/z-index' and replace:",
+        "  dialog/alert-dialog overlays + content: z-50 → Z_INDEX_CLASSES.MODAL (z-[80])",
+        "  sheet overlay + content: z-50 → Z_INDEX_CLASSES.MODAL (z-[80])",
+        "  popover content: z-50 → Z_INDEX_CLASSES.DROPDOWN (z-[85])",
+        "  dropdown-menu sub-content + content: z-50 → Z_INDEX_CLASSES.DROPDOWN (z-[85])",
+        "  tooltip content: z-50 → Z_INDEX_CLASSES.TOOLTIP (z-[90])",
+        "See AD5 in 03-arch-fe.md and Z_INDEX_CLASSES in lib/tokens/z-index.ts.",
+      ].join("\n");
+      throw new Error(msg);
+    }
+
+    const staleAllowlist = [...KNOWN_VIOLATIONS_SHADCN_UI].filter(
       (entry) => !seenAllowlistEntries.has(entry),
     );
     expect(staleAllowlist).toEqual([]);

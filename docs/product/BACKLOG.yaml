@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T07:10:27+00:00
+# Generated at: 2026-05-08T07:28:55+00:00
 
-generated_at: '2026-05-08T07:10:27+00:00'
+generated_at: '2026-05-08T07:28:55+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -355,22 +355,21 @@ buckets:
       priority_override: null
       audit_iterations: 0
   ready: []
-  developing:
+  developing: []
+  developed:
   - id: app-shell-sidebar-copilot-decoupling
     kind: story
-    state: developing
+    state: developed
     title: app-shell-sidebar-copilot-decoupling
     tags: []
-    last_touched: 2026-05-09 00:30:00+00:00
+    last_touched: 2026-05-09 02:30:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_T8_DONE
-      next_action: 'T-8 PUSHED. 5 Playwright smoke specs + VR baseline. 4 tests fixmed (Sheet headless issue, deferred follow-up).
-        T-9 next: Phase 10 modal z-index ui/* primitives. Chris ratifies VR baselines pre /auditor trigger.'
+      phase: BUILD_COMPLETE
+      next_action: T-9 PUSHED. All 9 tickets DONE. Story 1 complete. Chris triggers /auditor to start Conv 3 review.
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  developed:
   - id: growth-studio-folder-parity
     kind: story
     state: developed
