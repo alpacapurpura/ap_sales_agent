@@ -55,9 +55,22 @@ def _make_actor() -> ActorProfile:
 
 
 class TestActorProfile:
-    def test_schema_version_field_default_1(self) -> None:
+    def test_schema_version_field_default_matches_current_schema_versions(self) -> None:
+        """Story C bump (D13) — default == CURRENT_SCHEMA_VERSIONS["ActorProfile"] (= 2).
+
+        Renamed from `test_schema_version_field_default_1` post Story C T-1
+        bump 1 → 2. Keeps assertion data-driven so future bumps fail loudly
+        only at the registry source (not multiple places).
+        """
+        from tests.agentic_evals.sales_agent.simulator._internal.schema_migrations import (
+            CURRENT_SCHEMA_VERSIONS,
+        )
+
         actor = _make_actor()
-        assert actor.schema_version == 1
+        assert actor.schema_version == CURRENT_SCHEMA_VERSIONS["ActorProfile"]
+        # Cement the absolute value too — catches accidental drift between
+        # the registry and the model default during regression hunts.
+        assert actor.schema_version == 2
 
     def test_frozen_immutable(self) -> None:
         actor = _make_actor()
@@ -426,11 +439,27 @@ SCHEMA_VERSIONED_CLASSES: list[type[BaseModel]] = [
 
 @pytest.mark.parametrize("cls", SCHEMA_VERSIONED_CLASSES)
 def test_every_class_has_schema_version_field(cls: type[BaseModel]) -> None:
-    """H1 forward-compat — every Pydantic model has schema_version field."""
+    """H1 forward-compat — every Pydantic model has schema_version field.
+
+    Default value MUST equal CURRENT_SCHEMA_VERSIONS[cls.__name__] (data-driven).
+    This contract makes the registry the single source of truth for the active
+    version of every Pydantic class. Story C bumps ActorProfile 1 → 2; future
+    stories may bump others — but each model's default must always track its
+    registry entry exactly (catches accidental drift between the two SSoTs).
+    """
+    from tests.agentic_evals.sales_agent.simulator._internal.schema_migrations import (
+        CURRENT_SCHEMA_VERSIONS,
+    )
+
     fields = cls.model_fields
     assert "schema_version" in fields, f"{cls.__name__} missing schema_version field"
     field = fields["schema_version"]
-    assert field.default == 1, f"{cls.__name__}.schema_version default != 1 (got {field.default})"
+    expected_default = CURRENT_SCHEMA_VERSIONS[cls.__name__]
+    assert field.default == expected_default, (
+        f"{cls.__name__}.schema_version default ({field.default}) != "
+        f"CURRENT_SCHEMA_VERSIONS[{cls.__name__!r}] ({expected_default}). "
+        "Update the model default to match the registry entry, or vice versa."
+    )
     assert field.annotation is int, f"{cls.__name__}.schema_version type != int (got {field.annotation})"
 
 

@@ -6,9 +6,12 @@ Decisión D7 (spec): Story B entrega CLASE COMPLETA + 1 hardcoded fixture
 Public — exported via simulator/__init__.py per H9 (T-9 finaliza el surface).
 
 Schema versioning H1 (forward-compat):
-- `schema_version: int = 1` field obligatorio
+- `schema_version: int = 2` field obligatorio (Story C bump from 1 — D13).
 - bumps requieren entry en SCHEMA_MIGRATIONS registry
-  (`_internal/schema_migrations.py`)
+  (`_internal/schema_migrations.py`).
+- Story C migrator `(ActorProfile, 1, 2)` is identity transform — `persona_kind`
+  Literal extended additively from 4 → 6 values (D13/D14). v1 personas remain
+  fully valid in v2.
 
 Voice constraints:
 - `dialect_code` BCP-47 — `es-AR` permite voseo (escape rule magic comment
@@ -37,8 +40,11 @@ class ActorProfile(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: int = 1
-    """Forward-compat versioning per H1 — bumps register migrator in SCHEMA_MIGRATIONS."""
+    schema_version: int = 2
+    """Forward-compat versioning per H1 — bumps register migrator in SCHEMA_MIGRATIONS.
+
+    Story C bumped 1 → 2 (D13). Identity migrator preserves all v1 instances.
+    """
 
     id: str = Field(min_length=1)
     """Stable hash for `simulation_id` derivation (UUID5 namespace seed)."""
@@ -73,8 +79,24 @@ class ActorProfile(BaseModel):
     initial_message: str = Field(min_length=1)
     """Verbatim turn-0 customer message (NO LLM call for opening)."""
 
-    persona_kind: Literal["happy", "edge", "negative", "adversarial"] = "happy"
-    """Scenario classification per spec — drives default fixtures + scenario routing."""
+    persona_kind: Literal[
+        "happy",
+        "edge",
+        "negative",
+        "adversarial",
+        "nurture",
+        "unqualified",
+    ] = "happy"
+    """Scenario classification per spec — drives default fixtures + scenario routing.
+
+    Story C (schema v2) extends 4 → 6 values additively (D13/D14):
+      - `nurture` — multi-question realistic LATAM customer (8-15 turns, ≥4 distinct objections).
+      - `unqualified` — agent qualifies-out path (early exit, ≤8 turns).
+
+    Loader-only kinds (`edge`, `negative`) keep `get_max_turns_for_persona_kind`
+    raising KeyError per D-AG-10 — they are diagnostic schema slots, not
+    runtime persona kinds.
+    """
 
     metadata: dict[str, str] = Field(default_factory=dict)
     """Free-form key/value tags (provenance, source, version notes)."""

@@ -191,18 +191,30 @@ def test_apply_migrations_unknown_model_passthrough() -> None:
     assert result == raw
 
 
-def test_apply_migrations_missing_chain_step_raises() -> None:
+def test_apply_migrations_missing_chain_step_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """If target_version > 1 and chain step missing → KeyError documenting gap.
 
     Defensive: prevents silent-skip of versions when migrators not registered.
+
+    Uses a SYNTHETIC phantom model name registered into CURRENT_SCHEMA_VERSIONS
+    via monkeypatch (auto-restored on teardown) so the test stays valid as the
+    real registry grows entries (Story C registered ActorProfile 1→2 + CustomerPrompt
+    1→2). The phantom intentionally has NO migrator chain registered, exercising
+    the defensive KeyError path.
     """
     from tests.agentic_evals.sales_agent.simulator._internal.schema_migrations import (
+        CURRENT_SCHEMA_VERSIONS,
         apply_migrations,
     )
 
+    phantom = "_PhantomMissingMigratorChain"
+    monkeypatch.setitem(CURRENT_SCHEMA_VERSIONS, phantom, 2)
+
     raw: dict[str, object] = {"schema_version": 1, "field": "value"}
-    with pytest.raises(KeyError, match=r"ActorProfile.*1.*2"):
-        apply_migrations("ActorProfile", raw, target_version=2)
+    with pytest.raises(KeyError, match=rf"{phantom}.*1.*2"):
+        apply_migrations(phantom, raw, target_version=2)
 
 
 # ════════════════════════════════════════════════════════════════════════

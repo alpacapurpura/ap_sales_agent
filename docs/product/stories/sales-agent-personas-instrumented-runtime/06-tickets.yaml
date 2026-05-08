@@ -24,7 +24,7 @@ tickets:
     title: "ActorProfile schema v1→v2 + 2 identity migrators (ActorProfile, CustomerPrompt)"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: developed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -77,6 +77,8 @@ tickets:
     blocks: [T-3, T-4, T-5, T-8]
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developing, at: 2026-05-08T20:55Z, by: /dev-team }
+      - { state: developed, at: 2026-05-08T21:25Z, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════

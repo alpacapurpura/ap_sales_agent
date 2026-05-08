@@ -292,11 +292,22 @@ def test_golden_v1_full_simulation_result_round_trip_with_termination_check() ->
 
 
 def test_pydantic_class_count_matches_current_schema_versions() -> None:
-    """Defensive: every class in CURRENT_SCHEMA_VERSIONS MUST resolve.
+    """Defensive: every Pydantic class in CURRENT_SCHEMA_VERSIONS MUST resolve.
 
     Catches accidentally adding a phantom class name to the registry
     without a corresponding Pydantic class shipped under simulator/.
+
+    Synthetic registry entries (per `SYNTHETIC_VERSIONED_REGISTRY_NAMES`)
+    track non-Pydantic versioned artifacts (e.g., the Customer Prompt
+    template introduced by Story C T-1 D17). These are exempt from the
+    "must resolve to a Pydantic class" check by design — they live in
+    the registry to drive `apply_migrations` over template versions in
+    the same chain semantics, not to satisfy `model_validate`.
     """
+    from tests.agentic_evals.sales_agent.simulator._internal.schema_migrations import (
+        SYNTHETIC_VERSIONED_REGISTRY_NAMES,
+    )
+
     name_to_class: dict[str, Any] = {
         "SimulationState": SimulationState,
         "ActorProfile": ActorProfile,
@@ -305,7 +316,17 @@ def test_pydantic_class_count_matches_current_schema_versions() -> None:
         "CostSummary": CostSummary,
     }
     for name in CURRENT_SCHEMA_VERSIONS:
+        if name in SYNTHETIC_VERSIONED_REGISTRY_NAMES:
+            # Synthetic entries (e.g., CustomerPrompt) version a non-Pydantic
+            # artifact (prompt template / config blob). Skip the class-resolve
+            # assertion but defensively check the exemption is intentional.
+            assert name not in name_to_class, (
+                f"Registry name {name!r} is BOTH synthetic AND has a Pydantic class — "
+                "remove it from SYNTHETIC_VERSIONED_REGISTRY_NAMES or drop the class binding."
+            )
+            continue
         assert name in name_to_class, (
             f"CURRENT_SCHEMA_VERSIONS contains {name!r} but no shipped Pydantic class found. "
-            f"Either ship the class or drop the registry entry."
+            f"Either ship the class, drop the registry entry, or add it to "
+            f"SYNTHETIC_VERSIONED_REGISTRY_NAMES if it tracks a non-Pydantic artifact."
         )

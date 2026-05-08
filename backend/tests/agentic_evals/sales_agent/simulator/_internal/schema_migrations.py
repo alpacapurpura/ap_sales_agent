@@ -30,18 +30,37 @@ from collections.abc import Callable
 
 # ════════════════════════════════════════════════════════════════════════
 # Active schema versions per Pydantic class shipped by Story B
+# (+ synthetic registry entries for non-Pydantic versioned artifacts)
 # ════════════════════════════════════════════════════════════════════════
 #
-# Story B baseline: every class at v1.
+# Story B baseline: every Pydantic class at v1.
+# Story C bumps: ActorProfile 1 → 2 (D13), CustomerPrompt 1 → 2 synthetic (D17).
+#
+# `CustomerPrompt` is a SYNTHETIC registry entry — it tracks the version of
+# the customer-persona prompt template (`_internal/customer_persona_prompt.py`),
+# not a Pydantic class. The synthetic entry lets the apply_migrations chain
+# version prompt templates the same way it versions Pydantic models, so any
+# downstream code that loads a serialized "customer prompt artifact v1" can
+# walk the chain to v2 (or later) consistently.
+#
 # Future stories bump versions here AND register migrators below.
 
 CURRENT_SCHEMA_VERSIONS: dict[str, int] = {
     "SimulationState": 1,
-    "ActorProfile": 1,
+    "ActorProfile": 2,  # ← bumped Story C T-1 (D13 — Literal persona_kind 4 → 6 values)
     "SimulationResult": 1,
     "ConversationTurn": 1,
     "CostSummary": 1,
+    # Synthetic registry entry — versions the customer prompt template,
+    # not a Pydantic class. See module docstring + `name_to_class` exemption
+    # in `tests/.../test_schema_migration_regression.py::test_pydantic_class_count_matches_current_schema_versions`.
+    "CustomerPrompt": 2,  # ← NEW Story C T-1 (D17 — V2 sub-slots additive)
 }
+
+# Synthetic registry names — present in CURRENT_SCHEMA_VERSIONS but NOT
+# backed by a Pydantic class. Tests that map name → class MUST exempt
+# these entries (see test_pydantic_class_count_matches_current_schema_versions).
+SYNTHETIC_VERSIONED_REGISTRY_NAMES: frozenset[str] = frozenset({"CustomerPrompt"})
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -148,9 +167,52 @@ def apply_migrations(model_name: str, raw_data: dict[str, object], target_versio
     return data
 
 
+# ════════════════════════════════════════════════════════════════════════
+# Story C identity migrators (v1 → v2 — additive schema bumps, no transform)
+# ════════════════════════════════════════════════════════════════════════
+#
+# Both bumps are PURELY additive at the type-level — v1 instances are
+# already valid in v2 schemas:
+#
+# - ActorProfile v1 → v2: persona_kind Literal extended 4 → 6 values
+#   (`+nurture +unqualified`). Existing 4 values still valid.
+# - CustomerPrompt v1 → v2: V2 builder adds sub-slot rotation (pain/objection
+#   turn-by-turn). V1 instances have `objections: list[str]` already; V2
+#   reads positional ordering as escalation sequence. Empty list → "no
+#   escalation" backward-compat.
+#
+# Migrators are pure functions returning a NEW dict (never mutating input).
+# Each idempotently advances `schema_version` from 1 → 2.
+
+
+@register_schema_migration("ActorProfile", 1, 2)
+def _migrate_actor_profile_v1_to_v2(raw: dict[str, object]) -> dict[str, object]:
+    """Identity migrator — Literal `persona_kind` extended 4 → 6 values (D13).
+
+    No data transformation required: v1 personas (4-value persona_kind) are
+    valid in v2 (6-value). Only the schema version field changes. Returns a
+    NEW dict to satisfy idempotency contract enforced by
+    `test_each_registered_migrator_idempotent_on_probe`.
+    """
+    return {**raw, "schema_version": 2}
+
+
+@register_schema_migration("CustomerPrompt", 1, 2)
+def _migrate_customer_prompt_v1_to_v2(raw: dict[str, object]) -> dict[str, object]:
+    """Identity migrator — V2 sub-slots pain/objection rotation (D17).
+
+    No data transformation: v1 personas already carry `objections: list[str]`;
+    V2 simply treats positional ordering as escalation sequence (T-4 builder
+    consumes this contract). Empty list → "no escalation" backward-compat
+    full. Returns a NEW dict for idempotency.
+    """
+    return {**raw, "schema_version": 2}
+
+
 __all__ = [
     "CURRENT_SCHEMA_VERSIONS",
     "SCHEMA_MIGRATIONS",
+    "SYNTHETIC_VERSIONED_REGISTRY_NAMES",
     "apply_migrations",
     "register_schema_migration",
 ]
