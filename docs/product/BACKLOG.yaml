@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T23:22:37+00:00
+# Generated at: 2026-05-08T23:38:44+00:00
 
-generated_at: '2026-05-08T23:22:37+00:00'
+generated_at: '2026-05-08T23:38:44+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -201,43 +201,24 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
-  refined:
+  refined: []
+  ready:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
-    state: refined
+    state: ready
     title: sales-agent-adversarial-jailbreak-suite
     tags:
     - legacy:pi-12
-    last_touched: 2026-05-08 14:00:00+00:00
+    last_touched: 2026-05-08 17:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: SPEC_AND_DESIGN_RATIFIED
-      next_action: /architect orchestrator → spawna /architect-orchestrator full-stack (NEW rubric toxicity-control.md v1
-        + 5 adversarial personas YAML + 5-10 goldens curation pipeline reused Story D + Story E grader rubric Literal extension
-        + Story F EvalPassKSummary persona_kind extension + arch fitness gate test_adversarial_persona_metadata_axis.py +
-        capability extension) → produce ready package (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready
-        → /dev-team build LAST en sub-épica eval-foundation (espera ALL prior stories build done — bloqueador hard)
+      phase: ARCHITECT_DELIVERED
+      next_action: /dev-team build (HARD blocked by Stories C+D+E build done; SOFT blocked F/G/H mockable). T-1+T-2+T-3 parallel-safe
+        declarative; T-3+T-5 require Story E developed; T-4 requires T-2 + Story D done (✓ developed); T-6 requires T-1+T-2+T-3+T-5
+        + Stories C+D+E developed; T-7 Chris manual curation post-build; T-8 /pm post-merge.
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-voice-fidelity-ci-gate
-    kind: story
-    state: refined
-    title: sales-agent-voice-fidelity-ci-gate
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 12:00:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: SPEC_RATIFIED
-      next_action: /architect orchestrator → spawna /architect-be (orchestrator + comment generator + cadence config + workflow
-        YAML voice-fidelity-gate.yml + arch fitness gate + DDL migration eval_gate_verdict + capability extension) → produce
-        ready package (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready → /dev-team build (espera
-        B+C+D+E+F+H build done — last en sub-épica)
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
-  ready:
   - id: sales-agent-eval-cost-budget-cap
     kind: story
     state: ready
@@ -270,6 +251,26 @@ buckets:
         parallelization at build trigger. All 8 tickets owner_eligibility=builder-backend Sonnet OK per R23 + Chris autonomy
         mandate (service-story BE-only, deterministic read-only aggregator). Escalation paths declared on T-4 bloom_scorer
         + T-7 pre-commit hook if iteration cap reached → Opus override puntual.
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: sales-agent-voice-fidelity-ci-gate
+    kind: story
+    state: ready
+    title: sales-agent-voice-fidelity-ci-gate
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 13:00:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: READY_PACKAGE_DELIVERED
+      next_action: '/dev-team build (BLOCKED on Stories B+C+D+E+F+H build done — hard blocker per spec § Build order ack:
+        Story G es LAST en sub-épica eval-foundation). Critical path: T-1 → T-2 → (T-3 parallel-safe) → T-4 → T-5 → T-6. ~13h
+        sequential, ~11h with concurrency. All 6 tickets owner_eligibility=builder-backend Sonnet OK per R23 + Chris autonomy
+        mandate (service-story BE-only, deterministic CI orchestrator). Escalation paths declared on T-4 (subprocess error
+        handling) + T-5 (required check semantics + PR comment idempotent edit) if iteration cap reached → Opus override puntual.
+        Decoupled build option: T-1+T-2+T-3+T-6 can build with synthetic fixtures BEFORE Stories C/D/E/F/H land; T-4+T-5 require
+        real upstream artifacts. PM/dev-team decides parallelization at build trigger.'
       blocked_by: null
       priority_override: null
       audit_iterations: 0
