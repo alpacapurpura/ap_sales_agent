@@ -67,7 +67,7 @@ summary:
     title: "Phase 7 — Placeholders 2B (.gitkeep + routes thin delegate)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
     estimate_hours: 1
     blocked_by: [T-6]
     blocks: [T-8]
@@ -296,7 +296,14 @@ T7:
   type: frontend
   surface: FE
   production_code: false                              # tests/docs scope, plus placeholder files
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T23:00:00Z
+  pushed_at: 2026-05-08T23:15:00Z
+  push_commit_sha: "TBD"
+  transitions:
+    - { state: assigned, at: "2026-05-08T23:00:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: pushed, at: "2026-05-08T23:15:00Z", by: "claude-sonnet", note: "GREEN — scenario_1_canonical_files_unit 31/31 PASS, fe_typecheck 0 errors. actions/.gitkeep + schemas/.gitkeep created. README.md with pending Story 2B note. 11/11 routes verified thin delegate (no logic creep)." }
   owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
   priority: 2
   estimate_hours: 1
