@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T13:39:54+00:00`
+> Generated at: `2026-05-08T13:56:35+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -22,7 +22,7 @@
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
-- **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
+- **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [SPEC_RATIFIED_AWAITING_DESIGN]
 
 ### ✅ Refined — listo para arquitectos (2 / cap 5)
 - **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation`
@@ -37,8 +37,8 @@
 ### 🧪 Developed — esperando QA (1 / cap 10)
 - **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification`
 
-### 🔍 Reviewing (1 / cap 2)
-- growth-studio-actions-schemas-real
+### 🔍 Reviewing (0 / cap 2)
+- _(none in review)_
 
 ### Recently shipped (last 90d, 3 items)
 - pi-11-backend-quality-guardrails — 2026-05-06
@@ -79,8 +79,7 @@ kanban
   🔨 Developing (0 / cap 3)
   🧪 Developed (1 / cap 10)
     app-shell-sidebar-copilot-deco[app-shell-sidebar-copilot-decoupling]
-  🔍 Reviewing (1 / cap 2)
-    growth-studio-actions-schemas-[growth-studio-actions-schemas-real]
+  🔍 Reviewing (0 / cap 2)
   ✅ Done (3 / 90d rolling)
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
@@ -96,7 +95,7 @@ kanban
 | module | live | in-progress | planned | deprecated | total |
 |---|---|---|---|---|---|
 | advertising | 3 | 0 | 0 | 0 | 3 |
-| analytics | 4 | 0 | 0 | 0 | 4 |
+| analytics | 5 | 0 | 0 | 0 | 5 |
 | assets | 3 | 1 | 0 | 0 | 4 |
 | brand | 5 | 0 | 0 | 0 | 5 |
 | campaigns | 4 | 0 | 0 | 0 | 4 |
@@ -111,5 +110,5 @@ kanban
 | scheduling | 3 | 0 | 0 | 0 | 3 |
 | social-media | 2 | 0 | 0 | 0 | 2 |
 | tenant-domains | 1 | 0 | 0 | 0 | 1 |
-| **TOTAL** | **49** | **3** | **0** | **0** | **52** |
+| **TOTAL** | **50** | **3** | **0** | **0** | **53** |
 

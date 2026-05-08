@@ -643,3 +643,47 @@ extraction next session).
 **Architect-orchestrator note:** spawn `architect-orchestrator` single-shot (full-stack BE+AGENTIC) en lugar de paralelo `architect-be` + `architect-agentic` cuando subagents specs no están registrados como agent types — coherent design output + cross-cutting decisions consistent.
 
 **Next:** Stories C/D/E/F/G/H/I unblocked. Recomiendo arrancar C (`sales-agent-personas-instrumented-runtime`) — extiende `ActorProfile` schema desde STUB Story B a multi-persona YAML loader. Después D (goldens) consume simulator + curación Chris.
+
+---
+
+## 2026-05-08 — Bounded mirror tolerance + multi-surface coherent audit pattern
+
+**Contexto:** Outcome `growth-copilot-layout-unification` cerró 3 stories en single-session audit (Story 1, 2A, 2B). Identificados 2 patterns dignos de codificar.
+
+**Decisiones cardinales:**
+
+1. **Bounded mirror tolerance** (anti-duplication.md interpretation):
+   - Story 2B `EtlRefreshGuard` (analytics) implementa Redis sliding-window mechanics independientemente de `OutboundRateLimiter` (shared/billing/). NO compone — son standalone parallel implementations.
+   - Architect ratificó decisión: 1 consumer para 1 use case → no shared lift required.
+   - **Threshold para promote shared:** 3rd consumer materializa → lift ambos a `BaseSlidingWindowGuard` en `shared/billing/`.
+   - Entre 1-2 consumers, parallel implementations son OK siempre que docstrings sean honestos ("Duplicates" no "Composes") y bounded scope esté documentado.
+   - Auditor verdict: WARN informational (no FAIL). Self-fix iter-1 alineó docstring con código.
+
+2. **Coherent multi-surface audit (3 sub-auditors paralelos por surface):**
+   - Story 2B mixed BE+FE+AGENTIC (7 tickets total).
+   - Pattern aplicado: 1 sub-auditor por surface con full ticket scope (auditor-backend audit T-1+T-5+T-7, auditor-frontend audit T-2+T-6, auditor-agentic audit T-3+T-4).
+   - Cost: 3 spawns paralelos vs 7 spawns secuenciales → ~50% saving tokens auditor.
+   - Aggregation: CHECKPOINTS.md story-level consolida verdict de los 3 REVIEW-{be,fe,agentic}.md.
+   - Aplicable cuando: mismos tickets son coherent dentro de su surface (no cross-surface adversarial divergence).
+
+3. **Single-pass auditor para coherent FE refactor (Story 2A pattern):**
+   - 8 tickets all FE, all coherent FSD-Lite folder migration.
+   - 1 spawn auditor-frontend con full story scope produce CHECKPOINTS.md directamente (no intermediate REVIEW per ticket).
+   - Saving ~120k tokens vs 8 separate spawns.
+   - Aplicable cuando: zero adversarial divergence per-ticket, gate-output covers all tickets, surface uniforme.
+
+**Stories cerradas:**
+- ✅ growth-studio-folder-parity (Story 2A) — APPROVED, archived
+- ✅ growth-studio-actions-schemas-real (Story 2B) — APPROVED, capability `growth-studio-copilot-actions` promoted
+- 🧪 app-shell-sidebar-copilot-decoupling (Story 1) — pending audit
+
+**Self-fixes aplicados:**
+- 2A: prettier line 72 page.tsx (Story 2B playground file blocked 2A audit)
+- 2B: docstring `etl_refresh_guard.py` "Composes" → "Duplicates" + bounded scope rationale
+
+**Process improvements:**
+- Auditor pattern: 3 sub-auditors paralelos cuando mixed surface, 1 sub-auditor cuando coherent single surface
+- Pre-audit gate filter: `-m "not integration"` cuando native test environment no resuelve postgres hostname (env-only failures unrelated to story scope)
+- Story stub YAML at `docs/product/stories/{module}/{story-id}.yaml` requerido al merge para reconcile_capabilities.py status auto-derivation (bridge entre legacy flat YAML pattern y nueva folder-based SDD Level 3)
+
+**Aplica forward:** todos los outcomes con multi-story audit + capability promotion siguen este protocolo.

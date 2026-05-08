@@ -1,0 +1,70 @@
+---
+id: growth-studio-actions-schemas-real
+type: service-story
+module: analytics
+capability: growth-studio-copilot-actions
+status: live
+slice: MVP
+last_audit: 2026-05-08
+date_introduced: 2026-05-08
+pr_introduced: null
+pi_introduced: null
+deprecated_at: null
+
+links:
+  module_doc: "../../modules/analytics.md"
+  capability: "../../capabilities/analytics/growth-studio-copilot-actions.yaml"
+  archive: "../../../archive/2026/stories/growth-studio-actions-schemas-real/"
+  outcome: "../../outcomes/growth-copilot-layout-unification.md"
+  related_stories:
+    - growth-studio-folder-parity
+
+context:
+  job: "Copilot agent debe interactuar con Growth Studio: consultar KPIs por stage, overview de canal, disparar refresh ETL ad-hoc"
+  why: "Sin tools reales, copilot solo puede explicar Growth Studio textualmente. User espera operación conversacional sobre datos vivos."
+  constraints:
+    - "REUSE 4 endpoints analytics existentes (NO new endpoints)"
+    - "REPLACE legacy `get_funnel_metrics` atomically (2 callers migrated)"
+    - "Tenant isolation: tenant_id read from get_tenant_id() context, NEVER in tool args"
+    - "Adversarial defense: Pydantic extra='forbid' + Literal[...] enums + zod .strict() parity"
+    - "EtlRefreshGuard rate-limit 3/hour per channel (Redis sliding-window, fail-open)"
+    - "R23: T-3 + T-4 (production_code: true) requieren Opus 4.7 builder"
+    - "Cross-stack contract test (z.toJSONSchema ↔ Pydantic) GREEN"
+    - "Voice fidelity goldens 3/3 PASS"
+
+outcome:
+  consumer_observable: "Copilot puede responder: '¿cómo va mi funnel los últimos 30d?' → tool call get_stage_metrics → KPIs renderizadas en chat. Disparar 'refrescá Mailchimp' → tool call trigger_etl_refresh → confirm/rate-limited card si dentro de 1h previo."
+  product_observable:
+    - "FE: 5 action React components en growth-studio/actions/ (StageMetricsAction, ChannelOverviewAction, ETLRefreshAction, ETLRateLimitedAction, ETLConfirmAction)"
+    - "FE: 4 zod schemas en growth-studio/schemas/ con .strict() parity"
+    - "FE: actions/registry.ts side-effect import desde schemas/index.ts (mirror brand-studio pattern)"
+    - "BE: 3 tools registered in copilot ANALYTICS_TOOLS group"
+    - "BE: EtlRefreshGuard implementado (Redis sliding-window 1h, 3/hour limit)"
+    - "BE: 22 NEW arch fitness tests (939 → 961)"
+    - "Eval: 3 voice fidelity goldens for new tool calls"
+
+service_contract:
+  type: agent_tool_set
+  endpoints_reused:
+    - "GET /{stage}/overview"
+    - "GET /{stage}/groups/{group_key}"
+    - "GET /channel/{slug}/dashboard"
+    - "POST /attraction/refresh/{channel_slug}"
+  endpoints_added: []
+  legacy_replaced:
+    - "get_funnel_metrics → get_stage_metrics (atomic, 2 callers migrated)"
+
+merge:
+  audit_verdict: APPROVED
+  audit_date: 2026-05-08
+  checkpoints_path: "../../../archive/2026/stories/growth-studio-actions-schemas-real/CHECKPOINTS.md"
+  merge_path: "../../../archive/2026/stories/growth-studio-actions-schemas-real/07-merge.md"
+  sub_auditors:
+    auditor_backend: PASS
+    auditor_frontend: PASS
+    auditor_agentic: PASS
+  self_fixes_applied: 1
+  warns_remaining:
+    - "BE Cat 11 informational: arch fitness allowlist +1 entry justified (22 NEW tests)"
+    - "AGENTIC Cat 2 informational: sync→async bridge ThreadPoolExecutor pattern, deliberate, LangChain compatible"
+---

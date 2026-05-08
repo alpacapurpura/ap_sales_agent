@@ -18,7 +18,7 @@ estimate_total_hours: 14-22
 tickets:
   - id: T-1
     title: "BE — 3 copilot tools (get_stage_metrics REPLACE legacy + get_channel_overview + trigger_etl_refresh) + Pydantic input schemas + EtlRefreshGuard"
-    state: pushed
+    state: audit-passed
     type: feature
     surface: backend
     skill: builder-backend
@@ -64,7 +64,7 @@ tickets:
     title: "FE — 4 zod schemas (consume 2A registries) + 5 action components (StageMetrics, ChannelOverview, ETLRefresh, ETLRateLimited, ETLConfirm) + registry.ts + index.ts"
     type: feature
     surface: frontend
-    state: pushed
+    state: audit-passed
     pushed_at: 2026-05-09T05:30:00Z
     push_commit_sha: TBD
     skill: builder-frontend
@@ -111,7 +111,7 @@ tickets:
     title: "AGENTIC — Register 3 tools in ANALYTICS_TOOLS group + update route_tool_selection golden + delete get_funnel_metrics references"
     type: feature
     surface: agentic
-    state: pushed
+    state: audit-passed
     pushed_at: 2026-05-08T00:00:00Z
     push_commit_sha: 12962e0d
     skill: builder-agentic
@@ -143,7 +143,7 @@ tickets:
     title: "AGENTIC — 3 voice fidelity eval goldens (Spanish neutro + tool dispatch correctness + no retry loop)"
     type: test
     surface: agentic
-    state: pushed
+    state: audit-passed
     pushed_at: 2026-05-09T07:30:00Z
     push_commit_sha: e597639a
     skill: builder-agentic
@@ -176,7 +176,7 @@ tickets:
     title: "Cross-stack contract test — BE Pydantic ↔ FE zod schema alignment + npm script export-zod-schemas"
     type: test
     surface: backend             # arch fitness lives in BE tests/architecture
-    state: pushed
+    state: audit-passed
     pushed_at: 2026-05-09T08:00:00Z
     skill: builder-backend
     owner_eligibility:
@@ -213,7 +213,7 @@ tickets:
     estimate_hours: 1-2
     depends_on: [T-2, T-3]
     repro_verified: true
-    state: pushed
+    state: audit-passed
     push_commit_sha: 74d27915
     files_in_scope:
       - "frontend/e2e/specs/smoke/growth-studio.smoke.spec.ts (verify still green; NO change unless 2A baseline drifts)"
@@ -232,7 +232,7 @@ tickets:
     title: "Verify full suite + bundle delta + capability promotion + module narrative"
     type: chore
     surface: backend                  # touches docs/ but PM ratifies post-merge
-    state: pushed
+    state: audit-passed
     pushed_at: 2026-05-09T08:30:00Z
     push_commit_sha: TBD
     transitions:

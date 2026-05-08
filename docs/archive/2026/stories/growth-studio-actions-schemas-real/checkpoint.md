@@ -1,11 +1,17 @@
 ---
 story_id: growth-studio-actions-schemas-real
 outcome: growth-copilot-layout-unification
-state: developed
-phase: BUILD_COMPLETE
-last_artifact: T-7-result.md
-last_modified: 2026-05-09T08:30:00Z
-next_action: "All 7 tickets pushed. Story 2B BUILD COMPLETE. T-7 verify GREEN (FE 800/800 + BE 138/138 + tsc 0; bundle + smoke regression deferred per T-7-result.md rationale). Chris triggers /auditor for Conv 3 review. Outcome growth-copilot-layout-unification: Story 1 + 2A + 2B all developed."
+state: done
+phase: MERGED
+last_artifact: CHECKPOINTS.md
+last_modified: 2026-05-08T19:30:00Z
+next_action: "Story merged. Archive to docs/archive/2026/stories/growth-studio-actions-schemas-real/."
+audit_started_at: 2026-05-08T18:35:00Z
+audit_started_by: /auditor
+audit_verdict: APPROVED
+audit_verdict_at: 2026-05-08T19:20:00Z
+merged_at: 2026-05-08T19:30:00Z
+merged_by: /pm
 ratified_by_chris: true
 ratified_at: 2026-05-07T04:15:00Z
 ready_closed_at: 2026-05-08T00:00:00Z

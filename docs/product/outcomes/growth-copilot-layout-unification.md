@@ -42,7 +42,7 @@ supersedes:
 story_ids:
   - app-shell-sidebar-copilot-decoupling           # state=developed (awaiting QA)
   - growth-studio-folder-parity                    # 2A — DONE 2026-05-08 (split 2026-05-07; was: growth-studio-architectural-parity)
-  - growth-studio-actions-schemas-real             # 2B — state=developed (awaiting QA, UNBLOCKED by 2A merge)
+  - growth-studio-actions-schemas-real             # 2B — DONE 2026-05-08 (capability growth-studio-copilot-actions promoted)
   - growth-studio-visual-coherence-pass            # parked
 success_metrics:
   - "main content width ≥720px en TODO studio @ viewport ≥1024px (read-comfort floor garantizado por DashboardShell + mutex policy)"

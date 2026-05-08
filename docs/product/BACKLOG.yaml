@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T13:39:54+00:00
+# Generated at: 2026-05-08T13:56:35+00:00
 
-generated_at: '2026-05-08T13:39:54+00:00'
+generated_at: '2026-05-08T13:56:35+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -297,11 +297,13 @@ buckets:
     title: sales-agent-voice-fidelity-grader-runtime
     tags:
     - legacy:pi-12
-    last_touched: 2026-05-06 15:30:00+00:00
+    last_touched: 2026-05-08 08:00:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: PM_DRAFT
-      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
+      phase: SPEC_RATIFIED_AWAITING_DESIGN
+      next_action: /ux-agentico lee 01-spec.md → produce 02-design-agentic.md (judge prompt slot architecture + MAJ-EVAL state
+        machine Round 1+Round 2 debate flow + voice constraints + sandbox markers + error recovery + observability) → ratificación
+        Chris → state=refining→refined → /architect
       blocked_by: null
       priority_override: null
       audit_iterations: 0
@@ -354,21 +356,7 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  reviewing:
-  - id: growth-studio-actions-schemas-real
-    kind: story
-    state: reviewing
-    title: growth-studio-actions-schemas-real
-    tags: []
-    last_touched: 2026-05-08 18:45:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: AUDIT_PICKUP
-      next_action: Auditor picked up. Brief refreshed. Gate iter-1 had env-only FAIL (postgres native unresolvable on integration
-        test); re-spawning iter-2 with `-m 'not integration'` filter.
-      blocked_by: []
-      priority_override: null
-      audit_iterations: 0
+  reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails
     kind: outcome
@@ -528,11 +516,11 @@ capabilities:
   deprecated: 0
   total: 3
 - module: analytics
-  live: 4
+  live: 5
   in_progress: 0
   planned: 0
   deprecated: 0
-  total: 4
+  total: 5
 - module: assets
   live: 3
   in_progress: 1

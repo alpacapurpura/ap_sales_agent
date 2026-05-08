@@ -1,13 +1,16 @@
 """EtlRefreshGuard — per-tenant per-channel ETL refresh sliding window guard.
 
-Composes the Redis sliding window pattern from OutboundRateLimiter
+Duplicates the Redis sliding-window mechanics from OutboundRateLimiter
 (src.shared.billing.application.rate_limiter) with a 1-hour window
 keyed by (tenant_id, channel_slug) instead of 24h outbound messages.
 
-Anti-duplication compliance: this is a new use-case (ETL refresh gating,
-not outbound message antispam) with a different key schema, window, limit,
-and confirmation threshold. Composition over inheritance per 03-arch.md § 1.
-New Redis abstraction NOT created — pattern reused directly.
+Bounded scope per 03-arch.md § 1: standalone parallel implementation, NOT
+a wrapper or composition. Distinct key schema, window, limit, confirmation
+threshold, collaborators (`channel_config_repo` vs `PlanService`), and
+return shape (`GuardDecision` vs `bool`). Anti-duplication compliance: 1
+consumer for 1 use case — no shared lift required today. If a 3rd
+sliding-window consumer materialises (Story 3+), promote both
+implementations to a shared `BaseSlidingWindowGuard` in shared/billing/.
 
 Per tessl__graceful-degradation: Redis unavailable → fail-open (log warning).
 

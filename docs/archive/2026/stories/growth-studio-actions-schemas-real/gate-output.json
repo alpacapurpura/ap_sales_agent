@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/growth-studio-actions-schemas-real",
+  "ticket": "T-audit-2",
+  "iter": 2,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/copilot/ tests/modules/analytics/ tests/shared/ -m \"not integration\" --tb=short -q",
+  "command_alias": null,
+  "started_at": "2026-05-08T13:31:39.608378Z",
+  "finished_at": "2026-05-08T13:33:27.190493Z",
+  "duration_ms": 81400,
+  "exit_code": 0,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/growth-studio-actions-schemas-real/gate-logs/iter-2-test-backend-pytest-copilot-analytics-shared-1778247099.log",
+  "gates": [
+    {
+      "name": "pytest",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    }
+  ],
+  "overall": {
+    "any_fail": false,
+    "fail_gate_names": [],
+    "summary": "pytest 4005 passed (deselected 3)"
+  },
+  "notes": "skeleton (pre-execution); appended incrementally via Edit"
+}
