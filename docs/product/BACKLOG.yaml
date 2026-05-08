@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T13:05:42+00:00
+# Generated at: 2026-05-08T13:16:22+00:00
 
-generated_at: '2026-05-08T13:05:42+00:00'
+generated_at: '2026-05-08T13:16:22+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -293,20 +293,6 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-personas-instrumented-runtime
-    kind: story
-    state: refining
-    title: sales-agent-personas-instrumented-runtime
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-06 15:30:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: PM_DRAFT
-      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-voice-fidelity-ci-gate
     kind: story
     state: refining
@@ -335,7 +321,23 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  refined: []
+  refined:
+  - id: sales-agent-personas-instrumented-runtime
+    kind: story
+    state: refined
+    title: sales-agent-personas-instrumented-runtime
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 06:00:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: SPEC_AND_DESIGN_RATIFIED
+      next_action: /architect orchestrator → spawna /architect-be (loader 15 personas + dialect_catalog + Literal v2 6-value)
+        + /architect-agentic (customer prompt v2 sub-slots + max_turns matriz + Scenarios 5+6 graphs) → produce ready package
+        (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   ready: []
   developing: []
   developed:
