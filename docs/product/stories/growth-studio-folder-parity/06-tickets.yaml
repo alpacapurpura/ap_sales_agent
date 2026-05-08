@@ -300,7 +300,7 @@ T7:
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T23:00:00Z
   pushed_at: 2026-05-08T23:15:00Z
-  push_commit_sha: "TBD"
+  push_commit_sha: "828bb3dc"
   transitions:
     - { state: assigned, at: "2026-05-08T23:00:00Z", by: "/dev-team", to: "claude-sonnet" }
     - { state: pushed, at: "2026-05-08T23:15:00Z", by: "claude-sonnet", note: "GREEN — scenario_1_canonical_files_unit 31/31 PASS, fe_typecheck 0 errors. actions/.gitkeep + schemas/.gitkeep created. README.md with pending Story 2B note. 11/11 routes verified thin delegate (no logic creep)." }

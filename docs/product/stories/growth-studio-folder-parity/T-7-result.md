@@ -2,7 +2,7 @@
 
 **Ticket:** T-7 — Phase 7 Placeholders 2B (.gitkeep + finalizar routes)
 **State:** pushed
-**Commit SHA:** TBD (post git commit)
+**Commit SHA:** 828bb3dc
 **Validators:** scenario_1_canonical_files_unit GREEN (31/31), fe_typecheck GREEN (0 errors)
 
 ## Deliverables shipped
