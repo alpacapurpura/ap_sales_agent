@@ -713,3 +713,26 @@ extraction next session).
 - Total saving vs ticket-by-ticket: ~50% Opus tokens (6 spawns vs 24 spawns hypothetical)
 
 **Para futuros outcomes con multi-story batched QA:** este protocolo es replicable.
+
+---
+
+## 2026-05-08 (cont.) — Architect skill mismatch FIXED (R-architect-1)
+
+**Contexto:** durante Story C personas-instrumented-runtime, intento de spawnar `architect-be` + `architect-agentic` falló con "Agent type not found". Lista disponible: solo `architect-orchestrator`. Causa raíz histórica: durante pm-redesign 2026-05 se diseñó patrón "orchestrator + 3 sub-architects paralelos" en `.claude/skills/`, pero los `.claude/agents/architect-{be,fe,agentic}.md` con frontmatter de tipo nunca se crearon (o se eliminaron). Solo quedó `architect-orchestrator.md`.
+
+**Decisión cardinal:** **canonical pattern = single-shot `architect-orchestrator`** (full-stack, BE+FE+AGENTIC en una sola pasada). Las skills `architect-{be,fe,agentic}/SKILL.md` se mantienen como **instruction docs** (guidance contextual que el orchestrator carga según surface) — NO se invocan via Agent tool.
+
+**Fundamento:**
+- Story B (eval-foundation-simulator), Story C (personas-instrumented-runtime), Story D (goldens-3-tenants-dataset) — los 3 usaron orchestrator single-shot exitosamente. Coherent design output + cross-cutting decisions consistent.
+- Crear 3 nuevos agents .claude/agents/architect-{be,fe,agentic}.md con frontmatter completo (~300 líneas c/u) tendría costo alto sin ROI demostrable.
+- Single-pass orchestrator preserva contexto cross-surface naturalmente (no hay handoff between sub-architects → no telephone-game).
+
+**Cambios aplicados:**
+1. `.claude/skills/architect/SKILL.md` — Step 2 reescrito: spawn `architect-orchestrator` único con prompt template completo. Step 4 + Step 8 + Step 9 + descriptions ajustados. Anti-pattern explícito agregado: "❌ Intentar spawnar architect-be / architect-fe / architect-agentic como agent types".
+2. `.claude/skills/architect-be/SKILL.md` — description y header marcan "instruction doc, NO agent type spawnable".
+3. `.claude/skills/architect-fe/SKILL.md` — idem.
+4. `.claude/skills/architect-agentic/SKILL.md` — idem.
+
+**Alternativa rechazada:** crear `.claude/agents/architect-{be,fe,agentic}.md` con frontmatter type — mayor mantenimiento, menor coherence cross-surface, sin ROI vs orchestrator probado.
+
+**Resultado:** próximo `/architect` invocation produce un solo spawn `architect-orchestrator` con prompt explícito que carga skills contextualmente. Cero mismatch error.

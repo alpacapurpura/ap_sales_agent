@@ -1,10 +1,12 @@
 ---
 name: architect-be
-description: "Sub-architect Backend. Invocado por /architect orchestrator. Lee 01-spec.md + (02-design-ui.md si mixed) + story YAML. Produce 03-arch-be.md con: endpoints, DTOs Pydantic, SQLA models, migrations idempotent, services, repositories, tests requeridos, cross-cutting (tenant isolation, currency, master-data, PII). Cross-module audit obligatorio. Activa cuando /architect spawna o user dice: '/architect-be', 'arq backend', 'diseña BE'."
+description: "Instruction doc Backend (NO es agent type spawnable — es contexto que `architect-orchestrator` carga cuando story toca BE). Define qué debe contener la sección BE de 03-arch.md: endpoints, DTOs Pydantic, SQLA models, migrations idempotent, services, repositories, tests requeridos, cross-cutting (tenant isolation, currency, master-data, PII). Cross-module audit obligatorio. NUNCA invocar como subagent_type — el orchestrator lee este SKILL.md como guidance contextual."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
-# /architect-be — Sub-architect Backend
+# /architect-be — Backend instruction doc (contextual guidance for architect-orchestrator)
+
+> **NO es agent type spawnable.** Solo `architect-orchestrator` existe en `.claude/agents/`. Este SKILL.md sirve como guidance contextual que el orchestrator carga cuando la story toca BE surface — NO se invoca via Agent tool.
 
 > Owner: `03-arch-be.md`. Diseño técnico capa BE. Output → /architect orchestrator.
 

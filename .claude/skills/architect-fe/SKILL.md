@@ -1,10 +1,12 @@
 ---
 name: architect-fe
-description: "Sub-architect Frontend. Invocado por /architect orchestrator. Lee 01-spec.md + 02-design-ui.md + story YAML. Produce 03-arch-fe.md con: routes, components FSD-Lite, hooks React Query, Zod schemas, types TS, tests Vitest+Playwright, server-first boundaries. Activa cuando /architect spawna o user dice: '/architect-fe', 'arq frontend', 'diseña FE'."
+description: "Instruction doc Frontend (NO es agent type spawnable — es contexto que `architect-orchestrator` carga cuando story toca FE). Define qué debe contener la sección FE de 03-arch.md: routes, components FSD-Lite, hooks React Query, Zod schemas, types TS, tests Vitest+Playwright, server-first boundaries. NUNCA invocar como subagent_type — el orchestrator lee este SKILL.md como guidance contextual."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
-# /architect-fe — Sub-architect Frontend
+# /architect-fe — Frontend instruction doc (contextual guidance for architect-orchestrator)
+
+> **NO es agent type spawnable.** Solo `architect-orchestrator` existe en `.claude/agents/`. Este SKILL.md sirve como guidance contextual que el orchestrator carga cuando la story toca FE surface — NO se invoca via Agent tool.
 
 > Owner: `03-arch-fe.md`. Diseño técnico capa FE. Output → /architect orchestrator.
 

@@ -1,6 +1,6 @@
 ---
 name: architect
-description: "Architect orchestrator Nicolify v4 (post pm-redesign 2026-05 Punto 4). Lee 01-spec.md (de /po-ux o /po) + 02-design-agentic.md (si agentic) en stories state=refined. Decide qué surfaces toca (BE/FE/agentic). Spawna sub-architects en paralelo (/architect-be, /architect-fe, /architect-agentic). Reúne sus 03-arch-*.md y produce el READY PACKAGE: 03-arch.md (consolidado) + 04-validators.yaml (★CRITICAL — pytest/playwright/shell commands must_pass:true ejecutables, 4 categories: non_functional/functional/visual/agentic_eval) + 05-guidelines.md (patterns required/forbidden + files in scope) + 06-tickets.yaml (work units atómicos). Cierra story state refined → ready. Activa cuando user dice: '/architect', 'diseñemos la arq', 'tickets', 'qué tickets salen', 'arquitectura técnica', 'cómo lo construimos técnicamente', 'cerrá el ready package'."
+description: "Architect orchestrator Nicolify v4 (post pm-redesign 2026-05 Punto 4). Lee 01-spec.md (de /po-ux o /po) + 02-design-agentic.md (si agentic) en stories state=refined. Decide qué surfaces toca (BE/FE/agentic). Spawna `architect-orchestrator` (single agent type, full-stack) que internamente carga las skills `architect-be` + `architect-fe` + `architect-agentic` según surface — produce 03-arch.md consolidado + 03-arch-{be,fe,agentic}.md por surface en una sola pasada. Reúne y produce el READY PACKAGE: 03-arch.md (consolidado) + 04-validators.yaml (★CRITICAL — pytest/playwright/shell commands must_pass:true ejecutables, 4 categories: non_functional/functional/visual/agentic_eval) + 05-guidelines.md (patterns required/forbidden + files in scope) + 06-tickets.yaml (work units atómicos). Cierra story state refined → ready. Activa cuando user dice: '/architect', 'diseñemos la arq', 'tickets', 'qué tickets salen', 'arquitectura técnica', 'cómo lo construimos técnicamente', 'cerrá el ready package'."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent
 model: opus
 ---
@@ -36,48 +36,80 @@ Tabla decisión:
 | agentic-story | AGENTIC + (BE si tool nuevo) + (FE si trigger UI) |
 | service-story | BE only o AGENTIC + BE |
 
-### Step 2 — Spawn sub-architects en paralelo
+### Step 2 — Spawn architect-orchestrator (single-shot full-stack)
 
-Para cada surface identificada, spawn sub-architect via Agent tool en **paralelo** (single message, multiple Agent calls):
+> **Canonical pattern (formalized 2026-05-08 después del 2do uso exitoso):** spawn UN solo agent `architect-orchestrator` que cubre BE+FE+AGENTIC en una sola pasada. Las skills `architect-be`, `architect-fe`, `architect-agentic` son **instruction docs** (no agent types registrados) que el orchestrator carga contextualmente según las surfaces que el ticket toca. Esto produce coherent design + cross-cutting decisions consistent — valor demostrado en Story B (eval-foundation-simulator) + Story C (personas-instrumented-runtime) + Story D (goldens-3-tenants-dataset).
+>
+> **Histórico:** intentos previos de spawnar `architect-be` / `architect-fe` / `architect-agentic` como agent types separados fallaron — esos types nunca se registraron en `.claude/agents/`. Solo existe `architect-orchestrator.md`.
+
+Spawn:
 
 ```
-Agent 1: subagent_type=architect-be (if BE surface)
-   prompt: "Story {id}, surface BE. Lee docs/product/stories/{id}/01-spec.md
-            (+ 02-design-agentic.md si aplica) + checkpoint.md.
-            Produce 03-arch-be.md siguiendo template.
-            Cross-module audit obligatorio (anti-duplication).
-            Last line: done -> docs/product/stories/{id}/03-arch-be.md"
+Agent({
+  description: "Architect Story {id} {scope}",
+  subagent_type: "architect-orchestrator",
+  prompt: "<pr_folder>: docs/product/stories/{id}/
+           story_type: {ui-story|service-story|agentic-story}
+           surfaces: {BE | FE | AGENTIC | combinaciones}
+           mode: SINGLE-SHOT FULL-STACK
 
-Agent 2: subagent_type=architect-fe (if FE surface)
-   prompt: "Story {id}, surface FE. Lee docs/product/stories/{id}/01-spec.md
-            (incluye wireframes inline si /po-ux fusión).
-            Produce 03-arch-fe.md siguiendo template.
-            Last line: done -> docs/product/stories/{id}/03-arch-fe.md"
+           PRIORITY READ:
+           1. checkpoint.md (state=refined required)
+           2. 01-spec.md ratificada por Chris
+           3. 02-design-agentic.md si agentic-story
+           4. 00-story.md / delta-spec.md si existen
+           5. docs/product/outcomes/{outcome-id}.md
+           6. docs/product/modules/{m}.md
+           7. Stories archivadas relacionadas (predecesores)
 
-Agent 3: subagent_type=architect-agentic (if AGENTIC surface)
-   prompt: "Story {id}, surface AGENTIC. Lee docs/product/stories/{id}/01-spec.md
-            + 02-design-agentic.md.
-            Carga sales-agent-expert / copilot-expert + tessl__langgraph + claude-api.
-            Produce 03-arch-agentic.md siguiendo template.
-            Last line: done -> docs/product/stories/{id}/03-arch-agentic.md"
+           LOAD SKILLS contextualmente según surface:
+           - BE: backend-expert + tessl__fastapi + tessl__pytest-api-testing
+           - FE: frontend-expert + tessl__react-patterns + tessl__zod + tessl__shadcn-ui + tessl__tailwind + tessl__vitest + tessl__nextjs-app-router-modularization
+           - AGENTIC: sales-agent-expert / copilot-expert + tessl__langgraph + claude-api
+           - Cross-cutting: tessl__graceful-degradation + domain skills (brand/offer/preset/metrics)
+
+           DELIVERABLES (4-5 files):
+           1. 03-arch.md (consolidado, secciones por surface)
+           2. 03-arch-{be,fe,agentic}.md per surface tocado (opcional, si arch es complejo per-surface)
+           3. 04-validators.yaml (4 categories, scenario_coverage 100%, must_pass:true)
+           4. 05-guidelines.md (patterns + files in scope + skills/rules)
+           5. 06-tickets.yaml (atomic, R23 marked AGENTIC, owner_eligibility, DAG)
+
+           CRITICAL CONSTRAINTS:
+           - Cross-module audit anti-duplication.md (no mirror shared abstractions)
+           - R23: AGENTIC tickets production_code:true → claude_opus_required:true
+           - AGENTIC tickets SEPARADOS de BE/FE (R23 enforcement)
+           - Tickets > 10 → split story
+           - Each ticket: acceptance.validator_ids + DAG
+           - Hot-fix: repro_verified field si aplica (R26)
+
+           After writing all files, transition checkpoint.md state: refined → ready.
+
+           LAST LINE: done -> docs/product/stories/{id}/06-tickets.yaml"
+})
 ```
 
-Cada sub-architect escribe su archivo + devuelve `done -> path` (anti-telephone-game).
+El orchestrator escribe TODOS los archivos y devuelve `done -> 06-tickets.yaml` (anti-telephone-game).
 
 ### Step 3 — Cross-module audit (NO-NEW-LAYER)
 
-Antes de redactar tickets, validar que sub-architects respetaron `.claude/rules/anti-duplication.md` inventario shared. Especial atención si introducen:
+Antes de cerrar el package, validar que el orchestrator respetó `.claude/rules/anti-duplication.md` inventario shared. Especial atención si introduce:
 - Provider nuevo (LLM, FX, pricing) → debe extender shared, no mirror
 - Observability layer → use shared
 - Outbox / idempotency / billing guards → shared
 - Channel format / intent detector → shared
 - Extraction orchestrator → subclass `BaseExtractionOrchestrator`
 
-Si sub-architect propone NEW cuando shared existe ≥80% → escala `/pm`: "architect-{X} propone NEW para subsystem Y, pero shared tiene Z. Decidir EXTEND vs NEW."
+Si orchestrator propone NEW cuando shared existe ≥80% → escala `/pm`: "orchestrator propone NEW para subsystem Y, pero shared tiene Z. Decidir EXTEND vs NEW."
 
-### Step 4 — Consolidar 03-arch.md
+### Step 4 — Validar 03-arch.md producido por orchestrator
 
-Concatenar/resumir sub-arquitecturas en archivo único `03-arch.md`:
+Lee el `03-arch.md` que el orchestrator escribió. Verificar:
+- Secciones por surface presente (BE / FE / AGENTIC según tickets toca)
+- Cross-cutting decisions section (tenant isolation, currency, PII)
+- Per-surface detail puede vivir inline en 03-arch.md O en archivos separados `03-arch-{be,fe,agentic}.md` (orchestrator decide según complejidad)
+
+Template estructura mínima:
 
 ```markdown
 # 03-arch.md — Story {id}
@@ -371,7 +403,7 @@ repro_evidence:
 
 Antes de cerrar story como ready:
 
-- [ ] `03-arch.md` consolidado escrito + sub-arquitecturas (`03-arch-{be,fe,agentic}.md`) presentes según surface
+- [ ] `03-arch.md` consolidado escrito (con secciones inline por surface, O archivos separados `03-arch-{be,fe,agentic}.md` si orchestrator decidió split por complejidad)
 - [ ] `04-validators.yaml` cubre TODOS scenarios del `01-spec.md` (gate hard)
 - [ ] `04-validators.yaml` cada validator tiene cmd ejecutable native WSL (no Docker para tests)
 - [ ] `05-guidelines.md` lista patterns required + forbidden + files in scope
@@ -399,8 +431,8 @@ Output:
 Ready package cerrado para story {id}.
 
 Artifacts:
-- 03-arch.md (consolidado)
-- 03-arch-be.md / 03-arch-fe.md / 03-arch-agentic.md según surface
+- 03-arch.md (consolidado, secciones por surface inline)
+- 03-arch-{be,fe,agentic}.md OPCIONAL (orchestrator decide si arch es complejo per-surface)
 - 04-validators.yaml ({N} validators, scenario coverage 4/4)
 - 05-guidelines.md
 - 06-tickets.yaml ({N} tickets)
@@ -427,8 +459,8 @@ Próximo: Conv 2 (autonomous build). /dev-team toma T-1 (state: ready → develo
 - ❌ Tickets sin DAG (cycle dependencies)
 - ❌ Tickets >8h sin split
 - ❌ Tickets cross-stack sin `notes_for_downstream`
-- ❌ Saltarte sub-architects y redactar 03-arch-* vos mismo (rompe parallelization + expertise)
-- ❌ Aprobar tu propio ready package sin verificar coherencia entre 03-arch-*
+- ❌ **Intentar spawnar `architect-be` / `architect-fe` / `architect-agentic` como agent types** — NO existen en `.claude/agents/`. Solo `architect-orchestrator` existe. Las skills `architect-{be,fe,agentic}/SKILL.md` son instruction docs (cargadas contextualmente por orchestrator), no agent types spawnable.
+- ❌ Aprobar tu propio ready package sin verificar 03-arch.md coherencia cross-surface
 - ❌ Asignar Opus a tickets BE/FE non-agentic (cost waste)
 - ❌ Editar paths legacy `docs/archive/2026/legacy-pis/PI-N/...` (snapshot inmutable)
 - ❌ Cerrar state=ready con WIP cap=5 ya alcanzado (escalate Chris primero)

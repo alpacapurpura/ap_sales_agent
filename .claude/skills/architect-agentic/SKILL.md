@@ -1,10 +1,12 @@
 ---
 name: architect-agentic
-description: "Sub-architect Agentic. Invocado por /architect orchestrator cuando story toca copilot/sales_agent. Lee 01-spec.md + 02-design-agentic.md + story YAML. Produce 03-arch-agentic.md con: tools defs (Pydantic schema), prompt slot architecture, LangGraph state, eval suite path, personas/rubrics asignados, observabilidad (trace + cost), trial policy. Carga sales-agent-expert, copilot-expert, tessl__langgraph, claude-api. Activa cuando /architect spawna o user dice: '/architect-agentic', 'arq del agente', 'diseña agentic'."
+description: "Instruction doc Agentic (NO es agent type spawnable — es contexto que `architect-orchestrator` carga cuando story toca copilot/sales_agent). Define qué debe contener la sección AGENTIC de 03-arch.md: tools defs (Pydantic schema), prompt slot architecture, LangGraph state, eval suite path, personas/rubrics asignados, observabilidad (trace + cost), trial policy. Skills cargadas: sales-agent-expert, copilot-expert, tessl__langgraph, claude-api. NUNCA invocar como subagent_type — el orchestrator lee este SKILL.md como guidance contextual."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 
-# /architect-agentic — Sub-architect Agentic
+# /architect-agentic — Agentic instruction doc (contextual guidance for architect-orchestrator)
+
+> **NO es agent type spawnable.** Solo `architect-orchestrator` existe en `.claude/agents/`. Este SKILL.md sirve como guidance contextual que el orchestrator carga cuando la story toca AGENTIC surface — NO se invoca via Agent tool.
 
 > Owner: `03-arch-agentic.md`. Diseño técnico de la capa agentic (LangGraph state, tools, prompt slots, evals). Output → /architect orchestrator.
 
