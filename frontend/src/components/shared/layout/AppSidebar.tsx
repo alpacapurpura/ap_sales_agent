@@ -36,6 +36,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useUserProfile } from "@/features/settings/hooks/use-profile";
 import { cn } from "@/lib/utils";
 
+import { useShellMutexContext } from "./ShellMutexContext";
 import { useSidebar } from "./SidebarContext";
 
 // ---------------------------------------------------------------------------
@@ -627,13 +628,37 @@ NavContent.displayName = "NavContent";
 // ---------------------------------------------------------------------------
 
 /**
+ * App sidebar with mobile Sheet drawer wired to useShellMutex (T-4 AD8).
  *
+ * T-4 changes:
+ * - Removed local `useState(false)` for `isMobileOpen`.
+ * - Sheet open/close wired to `shellMutex.activePanel === 'app-sidebar'` via context.
+ * - `setIsMobileOpen(false)` calls replaced by `shellMutex.closePanel()`.
+ * - Fallback to local state when shell mutex context is unavailable (e.g., tests).
  */
 export function AppSidebar() {
   const pathname = usePathname() ?? "";
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { isCollapsed, toggleSidebar } = useSidebar();
   const [isMounted, setIsMounted] = useState(false);
+
+  // T-4 AD8: Consume shell mutex from context (provided by DashboardShellClient).
+  // When undefined (e.g., Storybook / isolated tests), fall back to no-op behavior.
+  const shellMutex = useShellMutexContext();
+
+  // Derived mobile drawer state from mutex (fallback: closed)
+  const isMobileOpen = shellMutex?.activePanel === "app-sidebar";
+
+  // Compatibility shim: convert boolean setter to mutex actions
+  const setIsMobileOpen = useCallback(
+    (open: boolean) => {
+      if (open) {
+        shellMutex?.openPanel("app-sidebar");
+      } else {
+        shellMutex?.closePanel();
+      }
+    },
+    [shellMutex],
+  );
 
   // Track client-side mount to avoid hydration mismatch for components
   // that depend on browser APIs (Sheet, UserButton, theme-aware images).
@@ -661,13 +686,25 @@ export function AppSidebar() {
       </aside>
 
       {/* Mobile Header & Sidebar */}
+      {/* AD8: REFACTOR existing Sheet primitive (L667-687) — rewire trigger from local useState */}
+      {/* to useShellMutex.activePanel === 'app-sidebar'. NO new Sheet created per AD8. */}
       <div className="flex h-16 items-center justify-between border-b bg-background px-4 md:hidden fixed inset-x-0 top-0 z-50">
         <div className="flex items-center gap-3">
           {isMounted ? (
-            <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+            <Sheet
+              open={isMobileOpen}
+              onOpenChange={(open) =>
+                open ? shellMutex?.openPanel("app-sidebar") : shellMutex?.closePanel()
+              }
+            >
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="-ml-2">
-                  <Menu className="h-5 w-5" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="-ml-2"
+                  aria-label="Abrir menú principal"
+                >
+                  <Menu className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-72" aria-describedby="mobile-nav-desc">
@@ -686,8 +723,8 @@ export function AppSidebar() {
               </SheetContent>
             </Sheet>
           ) : (
-            <Button variant="ghost" size="icon" className="-ml-2">
-              <Menu className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="-ml-2" aria-label="Abrir menú principal">
+              <Menu className="h-5 w-5" aria-hidden="true" />
             </Button>
           )}
           <img

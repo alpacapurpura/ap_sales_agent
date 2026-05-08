@@ -3,9 +3,11 @@
 import { memo } from "react";
 
 import { AppSidebar } from "@/components/shared/layout/AppSidebar";
+import { ShellMutexProvider } from "@/components/shared/layout/ShellMutexContext";
 import { SidebarProvider, useSidebar } from "@/components/shared/layout/SidebarContext";
 import { CopilotSidebar } from "@/features/copilot/components/CopilotSidebar";
 import { NotificationCenter } from "@/features/notifications/components/NotificationCenter";
+import { useShellMutex } from "@/hooks/use-shell-mutex";
 import { cn } from "@/lib/utils";
 
 interface DashboardShellClientProps {
@@ -34,45 +36,56 @@ MemoizedChildren.displayName = "MemoizedChildren";
 const SHELL_MIN_WIDTH_VAR = "--shell-content-min-width";
 const SHELL_MIN_WIDTH_PX = "720px";
 
-function DashboardContent({ children }: { children: React.ReactNode }) {
+/**
+ * Inner content component — must be rendered inside SidebarProvider so that
+ * useShellMutex (which calls useSidebar internally) can access sidebar state.
+ *
+ * T-4: Mounts useShellMutex with tenantId. Provides ShellMutexContext so
+ * AppSidebar and CopilotSidebar can consume mutex state without prop-drilling.
+ */
+function DashboardContent({ tenantId, children }: { tenantId: string; children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
 
+  // T-4: Mount useShellMutex — effects now fire with viewport-aware policy.
+  // Must be called inside SidebarProvider so useSidebar() is available.
+  const shellMutex = useShellMutex(tenantId);
+
   return (
-    <div
-      className="flex h-screen overflow-hidden"
-      style={{ [SHELL_MIN_WIDTH_VAR]: SHELL_MIN_WIDTH_PX } as React.CSSProperties}
-    >
-      <AppSidebar />
-      <main
-        className={cn(
-          "relative flex-1 min-w-0 overflow-y-auto",
-          "lg:min-w-[var(--shell-content-min-width,720px)]",
-          "pt-16 md:pt-0 transition-[margin] duration-300 ease-in-out",
-          isCollapsed ? "md:ml-20" : "md:ml-64",
-        )}
+    <ShellMutexProvider value={shellMutex}>
+      <div
+        className="flex h-screen overflow-hidden"
+        style={{ [SHELL_MIN_WIDTH_VAR]: SHELL_MIN_WIDTH_PX } as React.CSSProperties}
       >
-        <MemoizedChildren>{children}</MemoizedChildren>
-        <NotificationCenter />
-      </main>
-      <CopilotSidebar />
-    </div>
+        <AppSidebar />
+        <main
+          className={cn(
+            "relative flex-1 min-w-0 overflow-y-auto",
+            "lg:min-w-[var(--shell-content-min-width,720px)]",
+            "pt-16 md:pt-0 transition-[margin] duration-300 ease-in-out",
+            isCollapsed ? "md:ml-20" : "md:ml-64",
+          )}
+        >
+          <MemoizedChildren>{children}</MemoizedChildren>
+          <NotificationCenter />
+        </main>
+        <CopilotSidebar />
+      </div>
+    </ShellMutexProvider>
   );
 }
 
 /**
  * Client Component that owns all interactive shell state.
  *
- * Phase 1: Identical JSX to DashboardLayoutClient — pure passthrough.
- * `tenantId` prop received for future use by useShellMutex (T-4).
+ * T-4: `tenantId` is now actively consumed by `useShellMutex` (via DashboardContent).
+ * `useShellMutex` enforces viewport-aware mutex policy between AppSidebar and CopilotSidebar.
  *
- * AD1: Client boundary for hooks (useSidebar, useShellMutex in T-4).
+ * AD1: Client boundary for hooks (useSidebar, useShellMutex).
  */
-export function DashboardShellClient({ tenantId: _tenantId, children }: DashboardShellClientProps) {
-  // _tenantId: reserved for useShellMutex integration in T-4.
-  // Phase 1: no-op. Prefixed with _ to satisfy TypeScript unused-var rule.
+export function DashboardShellClient({ tenantId, children }: DashboardShellClientProps) {
   return (
     <SidebarProvider>
-      <DashboardContent>{children}</DashboardContent>
+      <DashboardContent tenantId={tenantId}>{children}</DashboardContent>
     </SidebarProvider>
   );
 }

@@ -10,6 +10,8 @@ import { useRouteTracker } from "../hooks/use-route-tracker";
 import { COPILOT_WIDTHS } from "../lib/copilot-shell-widths";
 import { loadPersistedSidebarState, useCopilotStore } from "../store/copilot-store";
 
+import { useShellMutexContext } from "@/components/shared/layout/ShellMutexContext";
+
 import { CopilotChatPanel } from "./CopilotChatPanel";
 import { CopilotHistoryPanel } from "./CopilotHistoryPanel";
 import { CopilotRail } from "./CopilotRail";
@@ -29,6 +31,10 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
   const sidebarState = useCopilotStore((s) => s.sidebarState);
   const setSidebarState = useCopilotStore((s) => s.setSidebarState);
   const cycleSidebarState = useCopilotStore((s) => s.cycleSidebarState);
+
+  // T-4: Consume shell mutex to dispatch closePanel on backdrop click / Esc.
+  // When undefined (e.g., isolated test renders), falls back to setSidebarState directly.
+  const shellMutex = useShellMutexContext();
 
   const { mutate: createConversation } = useCreateConversation();
 
@@ -56,6 +62,15 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
       if (inInput) return;
 
       switch (e.key) {
+        case "Escape":
+          // T-4: Esc closes copilot via mutex (mobile drawer pattern).
+          // Dispatch closePanel so mutex can enforce policy (e.g., notify other panels).
+          // Falls back to setSidebarState('collapsed') when outside shell context.
+          if (shellMutex) {
+            shellMutex.closePanel();
+          }
+          setSidebarState("collapsed");
+          break;
         case "C":
           setSidebarState("collapsed");
           break;
@@ -77,7 +92,7 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [setSidebarState, cycleSidebarState, createConversation]);
+  }, [setSidebarState, cycleSidebarState, createConversation, shellMutex]);
 
   // CSS variable values per state — 2-column grid: [chat][rail]
   // "full" state: history panel is rendered inside the chat column (overlay-like) or
@@ -107,11 +122,17 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
       />
 
       {/* Mobile backdrop */}
+      {/* T-4: Backdrop click dispatches shellMutex.closePanel() so the mutex policy */}
+      {/* can react (e.g., re-open sidebar if mutex policy allows). */}
       {isExpanded && (
         <div
           className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
           aria-hidden="true"
-          onClick={() => setSidebarState("collapsed")}
+          onClick={() => {
+            // Dispatch to mutex first (allows policy to react), then collapse copilot.
+            shellMutex?.closePanel();
+            setSidebarState("collapsed");
+          }}
         />
       )}
 

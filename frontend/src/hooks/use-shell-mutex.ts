@@ -3,6 +3,9 @@
 import { useMemo, useEffect } from "react";
 import { useStore } from "zustand";
 
+import { useSidebar } from "@/components/shared/layout/SidebarContext";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+import { useViewport } from "@/hooks/use-viewport";
 import {
   createShellMutexStore,
   type ActivePanel,
@@ -24,10 +27,16 @@ export interface UseShellMutexReturn extends ShellMutexState, ShellMutexActions 
  * React hook that provides shell mutex state and actions for the given tenant.
  *
  * Creates (or reuses) a tenant-namespaced zustand store. Mutex policy
- * effects are gated via `useEffect` so Phase 1 remains a no-op skeleton —
- * actual mutex enforcement activates in T-4.
+ * effects fire based on viewport breakpoint:
  *
+ * - Desktop ≥1280px: both panels independent — no auto-collapse.
+ * - Tablet 768-1279px: when copilot opens, sidebar auto-collapses (80px rail).
+ * - Mobile <768px: strict mutex — only one drawer at a time.
+ *
+ * AD2: Mutex breakpoint ≥1280px — both expanded no-mutex allowed.
  * AD4: tenant-namespaced store factory.
+ *
+ * Must be called inside `SidebarProvider` (needs `useSidebar()`).
  */
 export function useShellMutex(tenantId: string): UseShellMutexReturn {
   // useMemo creates a stable store instance per tenantId.
@@ -39,13 +48,51 @@ export function useShellMutex(tenantId: string): UseShellMutexReturn {
   const closePanel = useStore(store, (s) => s.closePanel);
   const togglePanel = useStore(store, (s) => s.togglePanel);
 
-  // Phase 1: Mutex enforcement effect — GATED, no-op until T-4 activates policy.
-  // This useEffect intentionally does nothing in Phase 1.
-  // T-4 will add viewport-aware conditions here.
+  // Viewport breakpoint awareness
+  const viewport = useViewport();
+
+  // Sidebar imperative actions (from SidebarContext — must be inside SidebarProvider)
+  const { collapseSidebar, expandSidebar } = useSidebar();
+
+  // Copilot store — to collapse copilot panel when mutex requires it
+  const setCopilotSidebarState = useCopilotStore((s) => s.setSidebarState);
+
+  // ── Mutex policy effect ────────────────────────────────────────────────────
+  // Runs when activePanel changes. Applies viewport-aware auto-collapse policy.
   useEffect(() => {
-    // Phase 1: no-op. Mutex policy activation in T-4.
-    // Do not remove this block — it reserves the effect slot for T-4.
-  }, [activePanel, tenantId]);
+    // Desktop ≥1280px: both panels are independent — no auto-collapse.
+    if (viewport.isDesktop) {
+      return;
+    }
+
+    // Tablet 768-1279px: when copilot opens, sidebar auto-collapses to 80px rail.
+    // Sidebar opening does NOT force copilot closed at tablet width.
+    if (viewport.isTablet) {
+      if (activePanel === "copilot") {
+        collapseSidebar();
+      }
+      return;
+    }
+
+    // Mobile <768px: strict mutex — only one drawer at a time.
+    if (viewport.isMobile) {
+      if (activePanel === "copilot") {
+        // Copilot opened → collapse sidebar
+        collapseSidebar();
+      } else if (activePanel === "app-sidebar") {
+        // Sidebar drawer opened → close copilot
+        setCopilotSidebarState("collapsed");
+      }
+    }
+  }, [
+    activePanel,
+    viewport.isDesktop,
+    viewport.isTablet,
+    viewport.isMobile,
+    collapseSidebar,
+    expandSidebar,
+    setCopilotSidebarState,
+  ]);
 
   return useMemo(
     () => ({
