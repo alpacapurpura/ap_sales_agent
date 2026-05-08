@@ -3,7 +3,7 @@
 > Owner: builder-agentic Opus 4.7 (R23 — production_code=false test infra; Opus needed for H9/H10 invariant cement permanente)
 > State: tests-passing
 > Closed: 2026-05-08
-> Commit SHA: _pending stage+commit_
+> Commit SHA: `fc587350` (pushed to `origin/development` 2026-05-08T13:30Z)
 
 ## Deliverables shipped
 
