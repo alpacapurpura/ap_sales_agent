@@ -41,7 +41,7 @@ summary:
     title: "Phase 4 — Legacy purge config/+context/+__mocks__/ + VR replacement (DEPENDS story 1 T-8)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
     estimate_hours: 3
     blocked_by: [T-3]
     cross_story_dependencies: ["story-1::T-8 (VR helpers shipped)"]
@@ -194,7 +194,13 @@ T4:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T21:00:00Z
+  pushed_at: 2026-05-08T21:45:00Z
+  transitions:
+    - { state: assigned, at: "2026-05-08T21:00:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: pushed, at: "2026-05-08T21:45:00Z", by: "claude-sonnet", note: "GREEN — TSC 0 errors, ESLint 0 errors, 73 tests PASS (7 files), 25/25 arch fitness. Deleted config/+context/+__mocks__/. VR test (scenario_3) 6/6 PASS. Story-1 T-8 not yet landed — legacy VR test kept, Playwright VR deferred." }
   owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
   priority: 1
   estimate_hours: 3
