@@ -35,15 +35,15 @@ why_now: |
 target_end: null
 priority: 1
 created: 2026-05-06
-last_modified: 2026-05-06
+last_modified: 2026-05-08
 supersedes:
   - pi-9-growth-studio-architecture
   - pi-10-growth-studio-ux-homologation
 story_ids:
-  - app-shell-sidebar-copilot-decoupling
-  - growth-studio-folder-parity                    # 2A — split 2026-05-07 (was: growth-studio-architectural-parity)
-  - growth-studio-actions-schemas-real             # 2B — split 2026-05-07 (sequential after 2A)
-  - growth-studio-visual-coherence-pass
+  - app-shell-sidebar-copilot-decoupling           # state=developed (awaiting QA)
+  - growth-studio-folder-parity                    # 2A — DONE 2026-05-08 (split 2026-05-07; was: growth-studio-architectural-parity)
+  - growth-studio-actions-schemas-real             # 2B — state=developed (awaiting QA, UNBLOCKED by 2A merge)
+  - growth-studio-visual-coherence-pass            # parked
 success_metrics:
   - "main content width ≥720px en TODO studio @ viewport ≥1024px (read-comfort floor garantizado por DashboardShell + mutex policy)"
   - "Mobile <768px: AppSidebar y Copilot drawers mutuamente exclusivos; FAB copilot persistente para reabrir; aria-labels descriptivos hamburger + FAB"

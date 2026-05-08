@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T13:16:22+00:00
+# Generated at: 2026-05-08T13:24:40+00:00
 
-generated_at: '2026-05-08T13:16:22+00:00'
+generated_at: '2026-05-08T13:24:40+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -122,7 +122,7 @@ buckets:
     - type:refactor-fe
     - type:layout-fix
     - type:cross-cutting
-    last_touched: 2026-05-06
+    last_touched: 2026-05-08
     extra:
       story_ids:
       - app-shell-sidebar-copilot-decoupling
@@ -369,21 +369,7 @@ buckets:
       blocked_by: []
       priority_override: null
       audit_iterations: 0
-  reviewing:
-  - id: growth-studio-folder-parity
-    kind: story
-    state: reviewing
-    title: growth-studio-folder-parity
-    tags: []
-    last_touched: 2026-05-08 17:55:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: AUDIT_PICKUP
-      next_action: Auditor picked up. Brief + gate refreshed (1 self-fix prettier on 2B playground file). Spawn auditor-frontend
-        per ticket.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
+  reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails
     kind: outcome
