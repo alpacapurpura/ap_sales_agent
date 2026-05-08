@@ -154,6 +154,11 @@ def test_no_internal_symbols_leaked() -> None:
             continue
         if attr in _ALLOWED_DUNDERS:
             continue
+        # Test modules + conftest bound by pytest collection on the parent
+        # package — structural, not semantic re-export. Skip before the
+        # ModuleType walk so full-suite ordering doesn't false-positive.
+        if attr.startswith("test_") or attr == "conftest":
+            continue
         # Submodule references are structural — only flag ACTUAL symbols.
         value = getattr(simulator, attr, None)
         if isinstance(value, types.ModuleType):
