@@ -211,6 +211,7 @@ tickets:
     blocks: [T-4]
     transitions:
       - { state: draft, at: 2026-05-08T08:00Z, by: /architect }
+      - { state: pushed, at: 2026-05-08T18:00Z, by: builder-backend-sonnet, commit: bc679266 }
     assigned_to: builder-backend-sonnet
 
   # ═════════════════════════════════════════════════════════════════════
