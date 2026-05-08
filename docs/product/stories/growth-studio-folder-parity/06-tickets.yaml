@@ -75,7 +75,7 @@ summary:
     title: "Phase 8 — Verify (vitest + Playwright smoke + VR + coverage parity)"
     surface: FE
     owner_pool: [claude-sonnet]
-    state: draft
+    state: pushed
     estimate_hours: 3
     blocked_by: [T-7]
     blocks: []
@@ -328,7 +328,13 @@ T8:
   type: tests
   surface: FE
   production_code: false                              # verification only
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T23:30:00Z
+  pushed_at: 2026-05-09T01:00:00Z
+  transitions:
+    - { state: assigned, at: "2026-05-08T23:30:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: pushed, at: "2026-05-09T01:00:00Z", by: "claude-sonnet", note: "GREEN — 7/7 validators PASS. 2087 vitest / 282 files. Coverage 33%+ (above 20% threshold). Smoke 7/7. VR 16 baselines captured (1 bowtie + 15 responsive). playwright.config.ts visual project added. Bundle delta 0 (no production code)." }
   owner_eligibility: { qwen_opencode: false, claude_sonnet: true, claude_opus_required: false }
   priority: 1
   estimate_hours: 3

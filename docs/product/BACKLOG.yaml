@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T03:38:19+00:00
+# Generated at: 2026-05-08T05:48:17+00:00
 
-generated_at: '2026-05-08T03:38:19+00:00'
+generated_at: '2026-05-08T05:48:17+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -293,21 +293,6 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-personas-instrumented-runtime
-    kind: story
-    state: refining
-    title: sales-agent-personas-instrumented-runtime
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 04:30:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: UX_AGENTIC_DESIGN_DRAFT_V1
-      next_action: Chris ratifica design v1 (4 design open questions DQ1-DQ4) → state=refining→refined → /architect orchestra
-        /architect-{be,agentic}
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-voice-fidelity-ci-gate
     kind: story
     state: refining
@@ -354,6 +339,21 @@ buckets:
       - growth-studio-folder-parity
       priority_override: null
       audit_iterations: 0
+  - id: sales-agent-personas-instrumented-runtime
+    kind: story
+    state: refined
+    title: sales-agent-personas-instrumented-runtime
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 05:30:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: SPEC_V3_DESIGN_V2_RATIFIED
+      next_action: /architect lee 01-spec.md v3 + 02-design-agentic.md v2 + delta-spec.md → spawn /architect-be + /architect-agentic
+        → produce ready package (state=refined→ready)
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   ready: []
   developing:
   - id: app-shell-sidebar-copilot-decoupling
@@ -370,21 +370,21 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
+  developed:
   - id: growth-studio-folder-parity
     kind: story
-    state: developing
+    state: developed
     title: growth-studio-folder-parity
     tags: []
-    last_touched: 2026-05-08 22:00:00+00:00
+    last_touched: 2026-05-09 01:00:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_T6
-      next_action: 'T-6 DONE (pushed). Arch fitness adapter mode + 2 new arch tests (stage/channel slug SSoT). T-7 next: placeholders
-        2B (.gitkeep + routes verify).'
+      phase: BUILD_T8_DONE
+      next_action: 'All 8 tickets pushed. T-8 DONE — 7/7 validators GREEN, 16 VR baselines captured. Chris ratifies baselines
+        then triggers /auditor (state: developed → reviewing).'
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  developed: []
   reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails

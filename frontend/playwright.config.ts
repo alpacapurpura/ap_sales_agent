@@ -103,6 +103,18 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
+    {
+      // Visual regression specs — pixel-perfect baselines + responsive checks.
+      // Run with: npx playwright test --project=visual --workers=1 [spec-file]
+      // Baseline capture: add --update-snapshots on first run.
+      name: 'visual',
+      testMatch: /.*\.visual\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.clerk/user.json',
+      },
+      dependencies: ['setup'],
+    },
   ],
 
   ...(process.env.E2E_BASE_URL ? {} : {

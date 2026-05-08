@@ -1,11 +1,11 @@
 ---
 story_id: growth-studio-folder-parity
 outcome: growth-copilot-layout-unification
-state: developing
-phase: BUILD_T6
-last_artifact: docs/product/stories/growth-studio-folder-parity/T-6-result.md
-last_modified: 2026-05-08T22:00:00Z
-next_action: "T-6 DONE (pushed). Arch fitness adapter mode + 2 new arch tests (stage/channel slug SSoT). T-7 next: placeholders 2B (.gitkeep + routes verify)."
+state: developed
+phase: BUILD_T8_DONE
+last_artifact: docs/product/stories/growth-studio-folder-parity/T-8-result.md
+last_modified: 2026-05-09T01:00:00Z
+next_action: "All 8 tickets pushed. T-8 DONE — 7/7 validators GREEN, 16 VR baselines captured. Chris ratifies baselines then triggers /auditor (state: developed → reviewing)."
 build_started_at: 2026-05-07T22:30:00Z
 build_started_by: /dev-team
 ratified_by_chris: true

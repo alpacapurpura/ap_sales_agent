@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T03:38:19+00:00`
+> Generated at: `2026-05-08T05:48:17+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -14,7 +14,7 @@
 - sales-inbox-responsive-collapse `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (10 total · 0 cap-eligible / cap 3)
+### 🔬 Refining (9 total · 0 cap-eligible / cap 3)
 - **growth-copilot-layout-unification**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
@@ -22,22 +22,21 @@
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT_REFRAMED]
-- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation` [UX_AGENTIC_DESIGN_DRAFT_V1]
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 
-### ✅ Refined — listo para arquitectos (1 / cap 5)
+### ✅ Refined — listo para arquitectos (2 / cap 5)
 - **growth-studio-actions-schemas-real** — outcome `growth-copilot-layout-unification`
+- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
 ### 📦 Ready for development (0 / cap 5)
 - _(none)_
 
-### 🔨 Developing (2 / cap 3)
+### 🔨 Developing (1 / cap 3)
 - **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification` [BUILD_T4_DONE]
-- **growth-studio-folder-parity** — outcome `growth-copilot-layout-unification` [BUILD_T6]
 
-### 🧪 Developed — esperando QA (0 / cap 2)
-- _(none)_
+### 🧪 Developed — esperando QA (1 / cap 2)
+- **growth-studio-folder-parity** — outcome `growth-copilot-layout-unification`
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -65,7 +64,7 @@ kanban
     solo-mode-chat-first-layout[solo-mode-chat-first-layout]
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (10 / cap 3)
+  🔬 Refining (9 / cap 3)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
@@ -73,16 +72,16 @@ kanban
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
-    sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-  ✅ Refined (1 / cap 5)
+  ✅ Refined (2 / cap 5)
     growth-studio-actions-schemas-[growth-studio-actions-schemas-real]
+    sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
   📦 Ready (0 / cap 5)
-  🔨 Developing (2 / cap 3)
+  🔨 Developing (1 / cap 3)
     app-shell-sidebar-copilot-deco[app-shell-sidebar-copilot-decoupling]
+  🧪 Developed (1 / cap 2)
     growth-studio-folder-parity[growth-studio-folder-parity]
-  🧪 Developed (0 / cap 2)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (3 / 90d rolling)
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
