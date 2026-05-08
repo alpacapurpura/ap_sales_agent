@@ -531,7 +531,7 @@ tickets:
       decision_pending: "/pm already chose option B in T-6 closure (accept SKIP for Story C); T-7 inherits same path (no new escalation)"
       test_body_complete: true            # Test transitions GREEN automatically once toolkit lands (paridad with T-6)
       capability_probe_path: "backend/tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::_sales_agent_toolkit_supports_qualification (shared with T-6)"
-    commit_sha: "pending-push"
+    commit_sha: "c705695d"
 
   # ═════════════════════════════════════════════════════════════════════
   # T-8 — Scenario 4 adversarial parametrize (prompt-injection-via-traits)

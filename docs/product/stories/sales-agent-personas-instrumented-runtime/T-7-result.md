@@ -4,7 +4,7 @@
 > State: developing → developed (with documented skip-with-escalation, paridad with T-6)
 > Surface: AGENTIC test-infra (production_code: false)
 > Estimate: 2h · Actual: ~30min (single iteration, 4 quick lint nits fixed within iter)
-> Commit SHA: pending push (commit body cited below)
+> Commit SHA: `c705695d`
 
 ## Summary
 
@@ -275,8 +275,8 @@ T-7 docs (own scope), checkpoint.md (own bitácora line), 06-tickets.yaml
   production-critical assertions cement).
 - **Skip path:** all 5 parametrize cases skip at collection via
   `_TOOLKIT_SUPPORTED` capability probe shared with T-6.
-- **Commit SHA:** pending push.
-- **Pushed to:** `origin/development` (pending).
+- **Commit SHA:** `c705695d`.
+- **Pushed to:** `origin/development` (✅ 7082ae51..c705695d).
 - **Next:** /pm ratification on T-7 closure (paridad with T-6 — same
   decision A/B path, recommended option B); T-9 unblocked (depends_on
   T-7 satisfied per developed state).
