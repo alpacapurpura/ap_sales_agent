@@ -2,6 +2,7 @@
 
 import { memo, useEffect } from "react";
 
+import { Z_INDEX_CLASSES } from "@/lib/tokens/z-index";
 import { cn } from "@/lib/utils";
 
 import { useCopilotNavigator } from "../hooks/use-copilot-navigator";
@@ -124,9 +125,13 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
       {/* Mobile backdrop */}
       {/* T-4: Backdrop click dispatches shellMutex.closePanel() so the mutex policy */}
       {/* can react (e.g., re-open sidebar if mutex policy allows). */}
+      {/* T-6: backdrop z-index via Z_INDEX_CLASSES.COPILOT_BACKDROP (z-[50]) */}
       {isExpanded && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+          className={cn(
+            "fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden",
+            Z_INDEX_CLASSES.COPILOT_BACKDROP,
+          )}
           aria-hidden="true"
           onClick={() => {
             // Dispatch to mutex first (allows policy to react), then collapse copilot.
@@ -145,7 +150,9 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
           "flex-shrink-0 h-full overflow-hidden",
           "transition-[grid-template-columns] duration-[220ms]",
           // Mobile: fixed overlay when open
-          "max-md:fixed max-md:inset-y-0 max-md:right-0 max-md:z-50",
+          // T-6: z-index via Z_INDEX_CLASSES.COPILOT_DRAWER (z-[60]) — no hardcoded z-NN
+          "max-md:fixed max-md:inset-y-0 max-md:right-0",
+          `max-md:${Z_INDEX_CLASSES.COPILOT_DRAWER}`,
           isExpanded ? "max-md:translate-x-0" : "max-md:translate-x-full",
           "max-md:transition-transform max-md:duration-300",
         )}

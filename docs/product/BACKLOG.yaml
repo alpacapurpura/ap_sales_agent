@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T02:48:12+00:00
+# Generated at: 2026-05-08T02:58:05+00:00
 
-generated_at: '2026-05-08T02:48:12+00:00'
+generated_at: '2026-05-08T02:58:05+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -173,7 +173,6 @@ buckets:
       story_ids:
       - sales-agent-eval-runner-foundation
       - sales-agent-litellm-canonicalization
-      - eval-foundation-simulator-homologation
       - sales-agent-dialect-configuration
       - sales-agent-personas-instrumented-runtime
       - sales-agent-goldens-3-tenants-dataset

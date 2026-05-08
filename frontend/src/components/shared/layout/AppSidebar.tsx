@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserProfile } from "@/features/settings/hooks/use-profile";
+import { Z_INDEX_CLASSES } from "@/lib/tokens/z-index";
 import { cn } from "@/lib/utils";
 
 import { useShellMutexContext } from "./ShellMutexContext";
@@ -672,7 +673,9 @@ export function AppSidebar() {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden border-r bg-card md:flex md:flex-col fixed inset-y-0 z-50 transition-all duration-300 ease-in-out",
+          // T-6: z-index via Z_INDEX_CLASSES.APP_SIDEBAR — no hardcoded z-NN
+          "hidden border-r bg-card md:flex md:flex-col fixed inset-y-0 transition-all duration-300 ease-in-out",
+          Z_INDEX_CLASSES.APP_SIDEBAR,
           isCollapsed ? "w-20" : "w-64",
         )}
       >
@@ -688,7 +691,13 @@ export function AppSidebar() {
       {/* Mobile Header & Sidebar */}
       {/* AD8: REFACTOR existing Sheet primitive (L667-687) — rewire trigger from local useState */}
       {/* to useShellMutex.activePanel === 'app-sidebar'. NO new Sheet created per AD8. */}
-      <div className="flex h-16 items-center justify-between border-b bg-background px-4 md:hidden fixed inset-x-0 top-0 z-50">
+      {/* T-6: z-index via Z_INDEX_CLASSES.TOPBAR (z-[50]) — no hardcoded z-NN */}
+      <div
+        className={cn(
+          "flex h-16 items-center justify-between border-b bg-background px-4 md:hidden fixed inset-x-0 top-0",
+          Z_INDEX_CLASSES.TOPBAR,
+        )}
+      >
         <div className="flex items-center gap-3">
           {isMounted ? (
             <Sheet
