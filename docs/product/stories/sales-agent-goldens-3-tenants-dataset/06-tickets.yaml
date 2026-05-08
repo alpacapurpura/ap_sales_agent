@@ -222,7 +222,7 @@ tickets:
     title: "generate_golden_candidates.py + promote_golden.py — orchestration tooling"
     type: backend
     surface: BE
-    state: draft
+    state: pushed
     owner_eligibility:
       qwen_opencode: true
       claude_sonnet: true
@@ -333,6 +333,7 @@ tickets:
     blocks: [T-4]
     transitions:
       - { state: draft, at: 2026-05-08T08:00Z, by: /architect }
+      - { state: pushed, at: 2026-05-08T22:30Z, by: builder-backend-sonnet, commit: pending }
     assigned_to: builder-backend-sonnet
 
   # ═════════════════════════════════════════════════════════════════════

@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/sales-agent-goldens-3-tenants-dataset",
+  "ticket": null,
+  "iter": "T-3-final",
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check scripts/generate_golden_candidates.py scripts/promote_golden.py tests/scripts/test_generate_golden_candidates.py tests/scripts/test_promote_golden.py tests/architecture/test_goldens_cost_bucket_invariant.py && .venv/bin/ruff format --check scripts/generate_golden_candidates.py scripts/promote_golden.py tests/scripts/test_generate_golden_candidates.py tests/scripts/test_promote_golden.py tests/architecture/test_goldens_cost_bucket_invariant.py && .venv/bin/pytest tests/scripts/test_generate_golden_candidates.py tests/scripts/test_promote_golden.py tests/architecture/test_goldens_cost_bucket_invariant.py -v --tb=short",
+  "command_alias": null,
+  "started_at": "2026-05-08T22:05:00Z",
+  "finished_at": "2026-05-08T22:05:11Z",
+  "duration_ms": 11000,
+  "exit_code": 0,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/sales-agent-goldens-3-tenants-dataset/gate-logs/iter-T-3-final-custom-20260508T220500Z.log",
+  "gates": [
+    {
+      "name": "ruff_check",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff_format",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "pytest",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    }
+  ],
+  "overall": {
+    "any_fail": false,
+    "fail_gate_names": [],
+    "summary": "ruff_check PASS · ruff_format PASS · pytest PASS (68 passed, 3 skipped)"
+  },
+  "notes": "T-3 final verification gates. 3 tests skipped (RUN_EVALS / EVAL_GOLDENS_COST_BUCKET_VERIFY env-gated, expected — deferred to Chris approval). All 68 tests PASSED. Exit 0. Linters PASS. Ready for final review."
+}

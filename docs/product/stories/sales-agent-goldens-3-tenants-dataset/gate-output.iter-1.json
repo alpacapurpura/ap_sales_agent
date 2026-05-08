@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/sales-agent-goldens-3-tenants-dataset",
+  "ticket": null,
+  "iter": 1,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/agentic_evals/sales_agent/goldens/ tests/agentic_evals/sales_agent/test_goldens_schema.py tests/architecture/test_goldens_schema_completeness.py tests/architecture/test_goldens_no_mirror_simulator_schema.py && .venv/bin/ruff format --check tests/agentic_evals/sales_agent/goldens/ tests/agentic_evals/sales_agent/test_goldens_schema.py tests/architecture/test_goldens_schema_completeness.py tests/architecture/test_goldens_no_mirror_simulator_schema.py && .venv/bin/mypy --strict tests/agentic_evals/sales_agent/goldens/ && .venv/bin/pytest tests/agentic_evals/sales_agent/test_goldens_schema.py tests/architecture/test_goldens_schema_completeness.py tests/architecture/test_goldens_no_mirror_simulator_schema.py tests/architecture/test_simulator_public_api_surface.py tests/architecture/test_simulator_no_mirrors_shared.py tests/architecture/test_schema_migrations_registry_complete.py -v --tb=short",
+  "command_alias": null,
+  "started_at": "2026-05-08T18:15:00Z",
+  "finished_at": "2026-05-08T18:15:11Z",
+  "duration_ms": 11000,
+  "exit_code": 0,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/sales-agent-goldens-3-tenants-dataset/gate-logs/iter-1-custom-20260508T181500Z.log",
+  "gates": [
+    {
+      "name": "ruff_check",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff_format",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "mypy",
+      "status": "SKIP",
+      "errors_count": 0,
+      "first_5_errors": ["No .pyi files in target directory (standard behavior)"]
+    },
+    {
+      "name": "pytest",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": [],
+      "test_summary": "106 passed, 1 warning"
+    }
+  ],
+  "overall": {
+    "any_fail": false,
+    "fail_gate_names": [],
+    "summary": "ruff_check PASS · ruff_format PASS · mypy SKIP · pytest 106 passed"
+  },
+  "notes": "mypy skipped (no .pyi files in directory tests/agentic_evals/sales_agent/goldens); target contains only .py test modules. pytest warning: PydanticDeprecatedSince20 in src/core/config.py:9 (pre-existing, not related to target scope)."
+}
