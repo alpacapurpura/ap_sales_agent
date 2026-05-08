@@ -1,11 +1,13 @@
 ---
 story_id: sales-agent-personas-instrumented-runtime
 outcome: pi-12-sales-agent-eval-foundation
-state: ready
-phase: ARCH_PACKAGE_DELIVERED
+state: developing
+phase: BUILD_T1_T2_PARALLEL
 last_artifact: 06-tickets.yaml
-last_modified: 2026-05-08T07:30:00Z
-next_action: "/dev-team picks 06-tickets.yaml T-1 (or T-2 in parallel) → autonomous build vs validators → on GREEN state=developing→developed → manual /auditor trigger Conv 3 by Chris"
+last_modified: 2026-05-08T20:55:00Z
+next_action: "/dev-team picked. CONTEXT-BRIEF refreshed (Haiku, faithfulness=clean, 16/16 sections). Spawning T-1 (AGENTIC Opus — schema migrators critical) + T-2 (BE Sonnet — 15 YAMLs) parallel build."
+build_started_at: 2026-05-08T20:55:00Z
+build_started_by: /dev-team
 ratified_by_chris: true
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
