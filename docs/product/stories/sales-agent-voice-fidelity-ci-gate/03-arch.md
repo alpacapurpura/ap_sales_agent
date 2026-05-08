@@ -1,3 +1,4 @@
+<!-- voseo-allowed: glosario reference cites prohibited voseo verbatim to teach contributors -->
 ---
 story_id: sales-agent-voice-fidelity-ci-gate
 arch_role: orchestrator-consolidated-be

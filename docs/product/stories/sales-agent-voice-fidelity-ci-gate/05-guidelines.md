@@ -1,3 +1,4 @@
+<!-- voseo-allowed: glosario reference cites prohibited voseo verbatim to teach contributors -->
 # 05-guidelines.md — Story sales-agent-voice-fidelity-ci-gate
 
 > /architect orchestrator delivered (2026-05-08T13:00Z). Patterns required + forbidden + files in/out scope. Cero ambigüedad. Builders consultan ESTO antes de cada Edit.
