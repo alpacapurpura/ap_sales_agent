@@ -1,0 +1,382 @@
+# 04-validators.yaml — Story sales-agent-eval-cost-budget-cap
+#
+# /architect orchestrator delivered (2026-05-08T12:00Z). Schema v4 — 3 categories.
+# /dev-team itera contra estos hasta GREEN o cap_reached. /auditor verifica
+# cada uno corrió + GREEN antes APPROVED.
+#
+# Story type: service-story BE-only (read-only multi-tier cost guard test-infra).
+# Surfaces: BE test-infra under backend/tests/agentic_evals/sales_agent/budget/
+#           + backend/tests/architecture/ (3 NEW gates / 1 UPDATE allowlist 8→9).
+#           AGENTIC N/A. FE N/A. NO DDL. NO new SQLA model.
+# Native-first WSL — NUNCA Docker para tests.
+
+story_id: sales-agent-eval-cost-budget-cap
+schema_version: v4
+last_modified: 2026-05-08T12:00:00Z
+arch_link: 03-arch.md
+
+validators:
+  # ═══════════════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality + architecture invariants
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: be_lint
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff check tests/agentic_evals/sales_agent/budget/ tests/architecture/test_eval_llm_calls_use_budget_guard.py tests/architecture/test_budget_state_schema_complete.py --no-cache"
+    must_pass: true
+    timeout_sec: 30
+    description: "Ruff full ruleset on Story H NEW files only."
+
+  - id: be_format
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff format --check tests/agentic_evals/sales_agent/budget/ tests/architecture/test_eval_llm_calls_use_budget_guard.py tests/architecture/test_budget_state_schema_complete.py"
+    must_pass: true
+    timeout_sec: 30
+
+  - id: be_mypy_strict
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/mypy --strict tests/agentic_evals/sales_agent/budget/ --ignore-missing-imports"
+    must_pass: true
+    timeout_sec: 90
+    description: "Pydantic v2 BaseModel + Literal + ConfigDict frozen + AsyncSession + asyncio.Task fully annotated."
+
+  - id: be_arch_fitness_full
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 240
+    description: "Full BE arch fitness — 2 NEW gates pass (test_eval_llm_calls_use_budget_guard + test_budget_state_schema_complete) + 1 UPDATE (test_simulator_public_api_surface allowlist 8→9 cement) + Story B/C/E/F gates STILL GREEN. Allowlists empty / shrink-only."
+
+  - id: be_coverage_budget_module
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/ --cov=tests/agentic_evals/sales_agent/budget --cov-report=term-missing --cov-fail-under=85"
+    must_pass: true
+    timeout_sec: 60
+    description: "Coverage 85% budget module (simple guard high coverage doable — read-only deterministic guard + Pydantic + asyncio Task simple lifecycle)."
+
+  - id: jscpd_no_duplication
+    category: non_functional
+    type: shell
+    cmd: "cd backend && jscpd tests/agentic_evals/sales_agent/budget/ tests/architecture/test_eval_llm_calls_use_budget_guard.py --min-tokens 50 --threshold 5 --reporters consoleFull"
+    must_pass: true
+    timeout_sec: 60
+    description: "Anti-duplication §0: guard code zero copy from production BudgetGuard shared/billing/ (paradigmas distintos cement)."
+
+  - id: legacy_simulator_invariants_intact
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_simulator_public_api_surface.py tests/architecture/test_simulator_no_mirrors_shared.py tests/architecture/test_simulator_writes_eval_kind_tag.py tests/architecture/test_eval_simulator_observability_invariants.py tests/architecture/test_termination_policy_registry_contract.py tests/architecture/test_schema_migrations_registry_complete.py tests/architecture/test_personas_yaml_completeness.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 90
+    description: "Story B 6 arch fitness gates + Story C personas gate STILL GREEN post Story H. Story H expands H9 surface puntual 8→9 (single addition `check_budget_before_call` cement); test_simulator_public_api_surface.py allowlist updated as part of T-6."
+
+  - id: public_api_surface_h9_expand_9
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_simulator_public_api_surface.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Verify 9 names exported (Story B 7 + Story E 1 + Story H 1). Re-frozen post Story H ship. _EXPECTED_PUBLIC_NAMES allowlist exact 9 cement."
+
+  - id: arch_eval_llm_calls_use_budget_guard
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_eval_llm_calls_use_budget_guard.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Static analysis: AST scan over backend/tests/agentic_evals/sales_agent/ — direct litellm/anthropic/openai imports MUST be paired with `from tests.agentic_evals.sales_agent.budget.guard import check_budget_before_call`. Allowlist empty (shrink-only). Empty Story F precedent."
+
+  - id: read_only_invariant_zero_llm_calls
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_guard.py::test_guard_runs_produce_zero_llm_call_writes -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Integration test: guard runs MUST produce zero NEW rows in eval_simulator_llm_call AND copilot_llm_call AND sales_agent_llm_call AND eval_simulator_grade. Pre/post DB query counts equal across all 4 tables."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios from 01-spec.md (4 scenarios)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # --- Scenario 1 happy ---
+
+  - id: scenario_1_within_budget_no_abort
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_within_cap_no_abort -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: happy
+    description: "Run completa sin abort — 75 sims warm cache ~$115 < $150 cap. BudgetState records final per-bucket sums + warnings emitidos cuando 80% threshold cruzado. JSON persisted at _artifacts/eval_runs/{run_id}/budget_summary.json."
+
+  - id: scenario_1_per_bucket_aggregation
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_state.py::test_per_bucket_aggregation -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "BucketState aggregation cement — generation bucket reads eval_simulator_llm_call.cost_usd; grader bucket reads eval_simulator_grade.cost_usd_total. NO copilot_* reads. SQL sum queries per Story B H7 invariant."
+
+  - id: scenario_1_state_check_filesystem
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_state.py::test_budget_summary_json_persisted -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "_artifacts/eval_runs/{run_id}/budget_summary.json exists post-run. JSON validates against BudgetState Pydantic v1 schema."
+
+  - id: scenario_1_state_check_structlog_warnings
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_tier_warning_event_at_80pct -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "structlog `eval.budget.tier_warning` event emitted with run_id + tier + bucket + current_usd + cap_usd + pct fields when bucket >= 80% threshold (D10 cement)."
+
+  # --- Scenario 2 edge — mid-run abort grader bucket cap ---
+
+  - id: scenario_2_grader_bucket_cap_aborts
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_per_bucket_grader_cap_aborts -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "Mid-run grader bucket exceeded → BudgetCapExceededError raised con cita: bucket=grader, current, estimated_next, projected, cap. Partial report `aborted=true` + abort_bucket=grader + abort_tier=per_bucket + aborted_at AbortContext (sim_id, turn, rubric)."
+
+  - id: scenario_2_partial_report_persisted
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_state.py::test_aborted_partial_report_persisted -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "JSON `_artifacts/eval_runs/{run_id}/budget_summary.json` `aborted: true`, `abort_reason: budget_cap_exceeded`, `abort_bucket: grader`, `aborted_at: AbortContext`, `completed_sims: <n>`, `pending_sims: <n>` populated."
+
+  - id: scenario_2_exit_code_2_distinct
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_exit_code_2_on_budget_abort -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "Process exit code = 2 (D13 cement) — distinct from generic test failure exit 1. Story G CI gate `if [ $exit_code -eq 2 ]` branch."
+
+  # --- Scenario 3 edge — disable flag debug mode ---
+
+  - id: scenario_3_disable_flag_short_circuits
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_disable_flag_short_circuits -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "SALES_AGENT_EVAL_BUDGET_CAP_DISABLE=1 → all check_budget_before_call invocations short-circuit return None (no abort). BudgetState.disabled = true. Warnings still logged informational. Use case: dev iterating prompts."
+
+  - id: scenario_3_warnings_still_logged_when_disabled
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_warnings_still_logged_when_disabled -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "Even with _DISABLE=1, structlog tier_warning events still emitted at 80% per-bucket. Caps tracked informational, abort suppressed only."
+
+  # --- Scenario 4 adversarial — direct LLM call bypass detection ---
+
+  - id: scenario_4_post_facto_bypass_detection
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_sweep.py::test_periodic_sweep_detects_bypass -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: adversarial
+    description: "Direct LLM call bypassed pre-flight (cost row inserted by callback handler regardless) → periodic sweep detects bucket sum exceeded cap → raises BudgetCapExceededError(post_facto=True). Test fixture MockBypasser simulates direct call; sweep runs at 30s interval (test override interval=1s)."
+
+  - id: scenario_4_arch_fitness_pre_merge_gate
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_eval_llm_calls_use_budget_guard.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "NEW arch fitness gate: AST scan detects eval files importing litellm/anthropic/openai without paired guard import → arch test FAIL blocks PR pre-merge. Layer 1 enforcement (vs Layer 2 runtime sweep)."
+
+  - id: scenario_4_structlog_bypass_event
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_sweep.py::test_bypass_detected_structlog_event -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "structlog WARNING `eval.budget.bypass_detected` emitted with run_id + bucket + current_usd + cap_usd + hint='LLM call likely bypassed check_budget_before_call wrapper'."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # AGENTIC EVAL — read-only invariant + cost-bucket cement + determinism
+  # (Story H = guard, NOT agentic — gates verify NO LLM contamination + bucket invariants)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: agentic_cost_bucket_invariant_preserved
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_state.py::test_only_eval_simulator_tables_read -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Story B H7 cost-bucket separation invariant preserved. Story H guard reads ONLY `eval_simulator_llm_call.cost_usd` (generation bucket) + `eval_simulator_grade.cost_usd_total` (grader bucket). Zero `copilot_llm_call`, `sales_agent_llm_call`, `campaign_llm_call` reads. Verified via static import scan + integration test SQL query log."
+
+  - id: agentic_pre_flight_over_estimate_strict
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_cost_estimator.py::test_input_x_price_plus_max_output_x_price -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Pre-flight formula cement (D4 + D-BE-13): `input_tokens × input_price + max_output_tokens × output_price`. NO 1.10x safety multiplier (cap caller responsibility — eval expects exact spec input_tokens). Test parametrize over 10 (input, max_output, expected_cost) cases."
+
+  - id: agentic_periodic_sweep_30s_interval
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_sweep.py::test_sweep_runs_at_configured_interval -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "Sweep Task runs at expected interval (D5 + D-BE-10 cement 30s default; configurable via SALES_AGENT_EVAL_BUDGET_SWEEP_INTERVAL_S). Test override to 1s for fast assertion. Verifies asyncio.create_task lifecycle clean (cancel propagates without leak)."
+
+  - id: agentic_partial_report_persisted_on_abort
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_state.py::test_partial_report_cited_abort_bucket -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "On abort, `budget_summary.json` `aborted=true` + `abort_bucket` + `abort_tier` + `aborted_at AbortContext(simulation_id, turn_n, rubric_id, estimated_next_usd, projected_total_usd, cap_usd)` populated. Story G CI gate consumes verbatim."
+
+  - id: agentic_unconverged_cascade_to_story_f
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_abort_cascades_unconverged_signal -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "On abort, orchestrator detects partial run → marks affected goldens (in pending_sims set) as `unconverged: true` (Story F D9 cement). Test fixture verifies signal cascade via Story F aggregator integration."
+
+  - id: agentic_exit_code_2_distinct_from_test_fail
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_exit_code_2_distinct_from_generic_test_fail -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "D13 cement: process exit code 2 = budget abort; exit code 1 = generic test failure; exit code 0 = success. Story G CI gate distinguishes via exit_code branch."
+
+  - id: agentic_compute_remaining_budget_idempotent
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_compute_remaining_budget_idempotent -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Idempotency: re-query compute_remaining_budget(run_id) with same DB state → same BudgetState row deterministic (modulo timestamps). Property-based test 100x calls."
+
+  - id: agentic_pii_sanitization_message
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/budget/test_budget_state.py::test_warning_message_sanitize_payload_applied -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "BudgetWarning.message strings (Spanish neutro user-facing) run through sanitize_payload shared pre-persist (defense-in-depth, even synthetic eval data). Test injects synthetic PII into warning context, asserts sanitized in persisted message."
+
+# ═══════════════════════════════════════════════════════════════════════
+# Scenario coverage matrix — every spec scenario MUST appear here (4/4)
+# ═══════════════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: happy
+    spec_section: "Scenario 1 — cost-cap-happy-path-within-budget"
+    validators:
+      - scenario_1_within_budget_no_abort
+      - scenario_1_per_bucket_aggregation
+      - scenario_1_state_check_filesystem
+      - scenario_1_state_check_structlog_warnings
+      - agentic_cost_bucket_invariant_preserved
+      - agentic_pre_flight_over_estimate_strict
+      - agentic_compute_remaining_budget_idempotent
+      - agentic_pii_sanitization_message
+
+  - scenario_id: edge
+    spec_section: "Scenario 2 — cost-cap-mid-run-abort + Scenario 3 — cap-disabled-debug-mode"
+    validators:
+      - scenario_2_grader_bucket_cap_aborts
+      - scenario_2_partial_report_persisted
+      - scenario_2_exit_code_2_distinct
+      - scenario_3_disable_flag_short_circuits
+      - scenario_3_warnings_still_logged_when_disabled
+      - agentic_partial_report_persisted_on_abort
+      - agentic_unconverged_cascade_to_story_f
+      - agentic_exit_code_2_distinct_from_test_fail
+
+  - scenario_id: adversarial
+    spec_section: "Scenario 4 — cap-bypass-via-direct-llm-call"
+    validators:
+      - scenario_4_post_facto_bypass_detection
+      - scenario_4_arch_fitness_pre_merge_gate
+      - scenario_4_structlog_bypass_event
+      - arch_eval_llm_calls_use_budget_guard
+      - agentic_periodic_sweep_30s_interval
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening coverage matrix — Story B H1-H10 preserved + Story H additions
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_coverage:
+  - id: H1
+    spec_section: "Schema versioning forward-compat (Story B base + Story H BudgetState v1 anchor)"
+    validators: [be_arch_fitness_full, legacy_simulator_invariants_intact]
+  - id: H6
+    spec_section: "Cost bucket separation (Story B invariant preserved — Story H guard zero LLM writes)"
+    validators: [arch_eval_llm_calls_use_budget_guard, agentic_cost_bucket_invariant_preserved, read_only_invariant_zero_llm_calls]
+  - id: H7
+    spec_section: "Cost bucket invariant cement — eval_simulator_llm_call + eval_simulator_grade read-only consumed"
+    validators: [agentic_cost_bucket_invariant_preserved, read_only_invariant_zero_llm_calls]
+  - id: H9
+    spec_section: "Public API surface — Story H expand puntual 8→9 (single addition `check_budget_before_call`); re-freeze post ship"
+    validators: [public_api_surface_h9_expand_9, legacy_simulator_invariants_intact]
+
+# ═══════════════════════════════════════════════════════════════════════
+# Iteration policy — autonomous build behavior
+# ═══════════════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 3                   # service-story 2-3d, 3 cycles bastan
+  on_fail: |
+    1) Read failing validator output
+    2) Identify exact file/line target (no shotgun edits)
+    3) Apply minimal fix preserving spec intent + arch decisions D-BE-1..D-BE-13
+    4) Re-run failing validator only (not full suite)
+    5) If pass → continue to next pending validator
+    6) If iteration cap reached on T-4 sweep asyncio Task lifecycle or T-5 arch fitness AST scan → escalate to Chris (do NOT shortcut)
+  on_all_pass: |
+    set state=developing→developed
+    append iteration_log to T-{n}-impl-log.md
+    transition checkpoint phase=BUILD_GREEN
+    commit + push (parallel-safety: stage by name, no force, no pull, no revert)
+  on_cap_reached: |
+    set state=developing→blocked
+    write blocker analysis to checkpoint.md (root cause + last error trace + diagnosis hypothesis)
+    escalate to Chris
+
+# ═══════════════════════════════════════════════════════════════════════
+# Validator schema notes
+# ═══════════════════════════════════════════════════════════════════════
+
+notes:
+  - "All validators must_pass: true (no soft-fail in this story's scope)."
+  - "scenario_coverage 4/4 — happy/edge×2/adversarial spec scenarios fully covered."
+  - "Cost cap Story H — guard $0 (read-only — zero LLM cost). Cost integration via Story B + Story E rows summed in BudgetState.total_cost_usd field."
+  - "Story H does NOT modify Story B/C/E/F arch fitness gates pre-existing logic — adds 2 NEW gates (test_eval_llm_calls_use_budget_guard + test_budget_state_schema_complete) all empty allowlists shrink-only + 1 UPDATE (test_simulator_public_api_surface allowlist 8→9)."
+  - "Read-only invariant verified via 3 layers: static import scan (arch_eval_llm_calls_use_budget_guard) + integration DB query (read_only_invariant_zero_llm_calls) + bucket invariant assertion (agentic_cost_bucket_invariant_preserved)."
+  - "Story H build BLOCKED on Story E build done (hard blocker — `eval_simulator_grade.cost_usd_total` column required). Story B already done; Story E refined awaiting build trigger."
+  - "Story H = service-story BE-only — owner_eligibility=Sonnet OK per R23 + Chris autonomy mandate. PM confirms final routing antes Conv 2 starts."
+  - "If sweep asyncio Task lifecycle proves fragile in T-4 (cancellation leak / shutdown race) → escalate /pm para Opus override puntual."

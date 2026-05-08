@@ -1,0 +1,644 @@
+# 06-tickets.yaml — Story sales-agent-eval-cost-budget-cap
+#
+# /architect orchestrator delivered (2026-05-08T12:00Z).
+# 6 tickets atomic, DAG dependencies, owner_eligibility per R23 + Chris mandate.
+# Story type: service-story BE-only (read-only multi-tier cost guard test-infra).
+
+---
+story_id: sales-agent-eval-cost-budget-cap
+outcome: pi-12-sales-agent-eval-foundation
+generated_at: 2026-05-08T12:00:00Z
+generated_by: /architect
+total_estimate_hours: 11                # 2-3d total — read-only guard simple
+ticket_count: 6
+arch_link: 03-arch.md
+guidelines_link: 05-guidelines.md
+validators_link: 04-validators.yaml
+
+tickets:
+  # ═════════════════════════════════════════════════════════════════════
+  # T-1 — Pydantic v2 schemas + SCHEMA_MIGRATIONS anchor entry
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-1
+    title: "Pydantic v2 schemas (BudgetState + BucketState + TierState + AbortContext + BudgetWarning + BudgetCapExceededError) + SCHEMA_MIGRATIONS anchor"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # Pydantic declarative — straightforward
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-1, D-BE-2, D-BE-3, D-BE-4, D-BE-5]
+    inputs:
+      spec: 01-spec.md§Schema_cement
+      arch_doc: 03-arch.md§3.1
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md, master-data.md"
+      tessl_skills: [tessl__fastapi]
+      required_skills: [backend-expert]
+      story_f_arch_precedent: ../sales-agent-eval-pass-k-tracking/03-arch.md§3.3
+      story_e_arch_precedent: ../sales-agent-voice-fidelity-grader-runtime/03-arch.md§3.3
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/budget/__init__.py` (minimal __all__ — re-exports from guard.py once T-3 ships)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/budget/_internal/__init__.py` (empty)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/budget/_schema.py` per 03-arch.md§3.1 reference impl:
+          - `BucketState` Pydantic v2 frozen=True (bucket_id Literal[generation, grader], current_cost_usd Decimal, cap_usd Decimal, pct_of_cap float, threshold_warning_pct Literal[80]=80, warning_emitted bool)
+          - `TierState` Pydantic v2 frozen (tier_id Literal[per_trial, per_grade, per_run, per_bucket], cap_usd Decimal, cap_disabled bool)
+          - `AbortContext` Pydantic v2 frozen (simulation_id str|None, turn_n int|None, rubric_id str|None, estimated_next_usd Decimal, projected_total_usd Decimal, cap_usd Decimal)
+          - `BudgetWarning` Pydantic v2 frozen (timestamp datetime, tier str, bucket str|None, current_usd Decimal, cap_usd Decimal, pct float, message str — Spanish neutro user-facing)
+          - `BudgetState` Pydantic v2 frozen (schema_version Literal[1]=1, run_id str, buckets list[BucketState], tiers list[TierState], total_cost_usd Decimal, total_cap_usd Decimal, aborted bool, abort_reason Literal[budget_cap_exceeded, manual]|None, abort_bucket Literal[generation, grader]|None, abort_tier Literal[per_trial, per_grade, per_run, per_bucket]|None, aborted_at AbortContext|None, disabled bool, completed_sims int ≥0, pending_sims int ≥0, warnings list[BudgetWarning], started_at datetime, aborted_at_timestamp datetime|None, final_at datetime|None)
+          - `BudgetCapExceededError(Exception)` with __init__(bucket, tier, current_usd, estimated_next_usd, cap_usd, abort_context, post_facto=False)"
+      - "EDIT `backend/tests/agentic_evals/sales_agent/simulator/_internal/schema_migrations.py` — append `BudgetState v1` anchor entry to `CURRENT_SCHEMA_VERSIONS` dict (`'BudgetState': 1`); no migrator function for v1 (sentinel only — future v2 register migrator)"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/budget/test_schema.py`:
+          - test_budget_state_construction_valid
+          - test_budget_state_extra_forbid (extra field raises ValidationError)
+          - test_budget_state_frozen (mutation raises TypeError)
+          - test_bucket_state_literal_values_cement (Literal[generation, grader] enforced)
+          - test_tier_state_literal_4_values_cement
+          - test_abort_context_optional_fields
+          - test_budget_warning_pii_hint
+          - test_budget_cap_exceeded_error_post_facto_field
+          - test_decimal_precision_6dp"
+    out_of_scope:
+      - "Guard logic (T-3)"
+      - "cost_estimator (T-2)"
+      - "Sweep (T-4)"
+      - "Full migrator implementation v1→v2 (post-ship when v2 needed)"
+    acceptance:
+      - id: A1
+        description: "Pydantic schemas import + instantiate + frozen + extra forbid + Decimal precision"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_schema.py"
+        validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_budget_module]
+      - id: A2
+        description: "SCHEMA_MIGRATIONS registry includes BudgetState v1 anchor"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_schema_migrations_registry_complete.py"
+        validator_ids: [legacy_simulator_invariants_intact]
+      - id: A3
+        description: "Schema completeness gate green (Pydantic ⊆ JSON schema fields match)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_budget_state_schema_complete.py"
+        validator_ids: [be_arch_fitness_full]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_arch_fitness_full, legacy_simulator_invariants_intact]
+    depends_on: []
+    blocks: [T-2, T-3, T-4, T-5, T-6]
+    transitions:
+      - { state: draft, at: 2026-05-08T12:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-2 — cost_estimator (over-estimate strict + LiteLLM pricing fallback)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-2
+    title: "_internal/cost_estimator.py — over-estimate strict (input × price + max_output × price) + LiteLLM pricing snapshot integration + fallback rates"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # Decimal arithmetic + sqlalchemy accessor — straightforward
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-9, D-BE-13, D4]
+    inputs:
+      spec: 01-spec.md§Scenario_2_pre_flight, §Non_functional_requirements
+      arch_doc: 03-arch.md§3.3
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md, master-data.md, currency-handling.md"
+      tessl_skills: [tessl__pytest-api-testing, tessl__graceful-degradation]
+      required_skills: [backend-expert]
+      shared_pricing_accessor: src/shared/agent_observability/persistence/pricing_snapshot_repository.py
+      production_cost_estimator_precedent: src/shared/billing/application/cost_estimator.py (DIFFERENT scope — paradigm distinto cement §2 audit)
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/budget/_internal/cost_estimator.py` per 03-arch.md§3.3 reference impl:
+          - `async def estimate_cost_for_call(session: AsyncSession, *, model: str, input_tokens: int, max_output_tokens: int) → Decimal`
+          - Composition: cost = (Decimal(input_tokens) × input_rate) + (Decimal(max_output_tokens) × output_rate)
+          - NO 1.10x safety multiplier (D-BE-13 cement — production has multiplier; eval expects exact spec input_tokens)
+          - Pricing source: `PricingSnapshotRepository(session).get_latest_for_model(model)` (read-only consumer shared)
+          - Fallback rates when snapshot missing: input=0.000005, output=0.000015 + structlog `eval.budget.cost_estimate_fallback` warning
+          - Quantize to 6dp precision: `cost.quantize(Decimal('0.000001'))`"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/budget/test_cost_estimator.py`:
+          - test_input_x_price_plus_max_output_x_price (parametrize 10 cases)
+          - test_no_safety_multiplier_applied (assert exact formula no 1.10x)
+          - test_pricing_snapshot_integration (mock PricingSnapshotRepository return value)
+          - test_pricing_fallback_rates_when_snapshot_missing (None return → fallback + structlog warning)
+          - test_decimal_precision_6dp_quantize
+          - test_zero_tokens_returns_zero_cost
+          - test_decimal_purity (no float, no int — Decimal in / Decimal out)"
+    out_of_scope:
+      - "Guard logic (T-3)"
+      - "Sweep (T-4)"
+      - "Mirror production estimate_llm_cost (different formula cement)"
+    acceptance:
+      - id: A1
+        description: "Over-estimate strict formula byte-equal D4 cement"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_cost_estimator.py::test_input_x_price_plus_max_output_x_price"
+        validator_ids: [agentic_pre_flight_over_estimate_strict]
+      - id: A2
+        description: "NO 1.10x multiplier applied (eval-only paradigm distinct from production)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_cost_estimator.py::test_no_safety_multiplier_applied"
+        validator_ids: [agentic_pre_flight_over_estimate_strict]
+      - id: A3
+        description: "Fallback rates path emit structlog warning"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_cost_estimator.py::test_pricing_fallback_rates_when_snapshot_missing"
+        validator_ids: [be_coverage_budget_module]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_budget_module, agentic_pre_flight_over_estimate_strict, jscpd_no_duplication]
+    depends_on: [T-1]
+    blocks: [T-3, T-4]
+    transitions:
+      - { state: draft, at: 2026-05-08T12:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-3 — guard (check_budget_before_call + compute_remaining_budget + env var loader)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-3
+    title: "guard.py — check_budget_before_call + compute_remaining_budget + _load_caps env var loader + structlog events"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # SQL sum queries + dict aggregation + Pydantic — straightforward
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2.5                   # Most queries + structlog wiring + env var loader + 3 public APIs
+    production_code: false
+    decisions_applicable: [D-BE-6, D-BE-7, D-BE-8, D1, D2, D7, D10]
+    inputs:
+      spec: 01-spec.md§Scenario_1, §Scenario_2, §Scenario_3, §caps
+      arch_doc: 03-arch.md§3.2, §3.5
+      conventions: ".claude/rules/anti-duplication.md, tenant-isolation.md, tdd-mandatory.md, spanish-text.md"
+      tessl_skills: [tessl__pytest-api-testing, tessl__graceful-degradation]
+      required_skills: [backend-expert]
+      story_b_llm_call_table: backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_llm_call.py
+      story_e_grade_table: ../sales-agent-voice-fidelity-grader-runtime/03-arch.md§3.1-§3.2
+      story_f_aggregator_precedent: ../sales-agent-eval-pass-k-tracking/03-arch.md§3.4
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/budget/guard.py` per 03-arch.md§3.2 reference impl:
+          - `_load_caps() → dict[str, Decimal]` — env var loader (5 caps cement)
+          - `_is_disabled() → bool` — SALES_AGENT_EVAL_BUDGET_CAP_DISABLE check
+          - `_warning_pct() → int` — SALES_AGENT_EVAL_BUDGET_WARNING_PCT (default 80)
+          - `_utc_now() → datetime` — timezone-aware UTC helper
+          - `async def compute_remaining_budget(session, *, run_id) → BudgetState`:
+            - SQL sum query eval_simulator_llm_call.cost_usd WHERE eval_metadata->>'run_id' = run_id (generation bucket)
+            - SQL sum query eval_simulator_grade.cost_usd_total WHERE run_id = run_id (grader bucket — Story E table)
+            - Build BucketState[generation, grader] with pct_of_cap + warning_emitted
+            - Build TierState[per_trial, per_grade, per_run, per_bucket]
+            - Build BudgetWarning list when bucket >= 80% threshold
+            - Emit structlog `eval.budget.tier_warning` event per warning
+            - Return BudgetState immutable snapshot
+          - `async def check_budget_before_call(session, *, run_id, estimated_cost_usd, bucket, simulation_id=None, turn_n=None, rubric_id=None) → None`:
+            - Short-circuit if _is_disabled()
+            - Per-bucket projection: target_bucket.current + estimated_next > target_bucket.cap → raise
+            - Per-run projection: state.total_cost + estimated_next > state.total_cap → raise
+            - structlog `eval.budget.cap_exceeded` ERROR event on raise
+            - Construct AbortContext + raise BudgetCapExceededError(post_facto=False)
+          - `__all__` export list: 10 names (3 public APIs + 5 schema types + 2 helper)"
+      - "NEW integration tests `backend/tests/agentic_evals/sales_agent/budget/test_budget_guard.py`:
+          - test_within_cap_no_abort (Scenario 1)
+          - test_per_bucket_grader_cap_aborts (Scenario 2)
+          - test_per_run_total_cap_aborts (Scenario 2 alt path)
+          - test_disable_flag_short_circuits (Scenario 3)
+          - test_warnings_still_logged_when_disabled (Scenario 3)
+          - test_tier_warning_event_at_80pct (D10 cement)
+          - test_exit_code_2_on_budget_abort (D13 cement — assertion via subprocess)
+          - test_compute_remaining_budget_idempotent (property-based 100x calls)
+          - test_abort_cascades_unconverged_signal (Story F D9 integration)
+          - test_unknown_bucket_fail_closed_defensive"
+      - "NEW state aggregation tests `backend/tests/agentic_evals/sales_agent/budget/test_budget_state.py`:
+          - test_per_bucket_aggregation
+          - test_only_eval_simulator_tables_read (Story B H7 invariant)
+          - test_budget_summary_json_persisted (filesystem write)
+          - test_aborted_partial_report_persisted (Scenario 2)
+          - test_partial_report_cited_abort_bucket
+          - test_warning_message_sanitize_payload_applied (D-BE-15 PII)
+          - test_no_copilot_llm_call_reads (cement bucket separation)"
+      - "NEW read-only invariant test `backend/tests/agentic_evals/sales_agent/budget/test_guard.py`:
+          - test_guard_runs_produce_zero_llm_call_writes (integration: pre/post DB query counts equal across eval_simulator_llm_call + copilot_llm_call + sales_agent_llm_call + eval_simulator_grade)"
+      - "NEW conftest `backend/tests/agentic_evals/sales_agent/budget/conftest.py`:
+          - eval_budget_test_session (AsyncSession + tear-down rollback)
+          - synthetic_llm_call_rows (Story B fixture data with realistic cost_usd values)
+          - synthetic_grade_rows (Story E fixture data with realistic cost_usd_total values; lazy import EvalSimulatorGradeModel)
+          - synthetic_pricing_snapshot (model_pricing_snapshot fixture for cost_estimator)"
+    out_of_scope:
+      - "Sweep periodic Task (T-4)"
+      - "Arch fitness gates (T-5)"
+      - "simulator __init__ H9 expand (T-6)"
+      - "Modify eval_simulator_llm_call or eval_simulator_grade models (read-only)"
+    acceptance:
+      - id: A1
+        description: "3 public APIs work per 4 scenarios"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_budget_guard.py"
+          extra: "-k 'within_cap or grader_cap or disable_flag'"
+        validator_ids: [scenario_1_within_budget_no_abort, scenario_2_grader_bucket_cap_aborts, scenario_3_disable_flag_short_circuits]
+      - id: A2
+        description: "Cost-bucket invariant preserved (Story B H7 cement)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_budget_state.py::test_only_eval_simulator_tables_read"
+        validator_ids: [agentic_cost_bucket_invariant_preserved]
+      - id: A3
+        description: "Read-only invariant — zero NEW llm_call rows during guard runs"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_guard.py::test_guard_runs_produce_zero_llm_call_writes"
+        validator_ids: [read_only_invariant_zero_llm_calls, agentic_cost_bucket_invariant_preserved]
+      - id: A4
+        description: "Idempotency — re-query same DB state → same BudgetState"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_budget_guard.py::test_compute_remaining_budget_idempotent"
+        validator_ids: [agentic_compute_remaining_budget_idempotent]
+      - id: A5
+        description: "PII sanitization on warning messages (D-BE-15)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_budget_state.py::test_warning_message_sanitize_payload_applied"
+        validator_ids: [agentic_pii_sanitization_message]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_budget_module, scenario_1_within_budget_no_abort, scenario_1_per_bucket_aggregation, scenario_1_state_check_filesystem, scenario_1_state_check_structlog_warnings, scenario_2_grader_bucket_cap_aborts, scenario_2_partial_report_persisted, scenario_2_exit_code_2_distinct, scenario_3_disable_flag_short_circuits, scenario_3_warnings_still_logged_when_disabled, agentic_cost_bucket_invariant_preserved, agentic_partial_report_persisted_on_abort, agentic_unconverged_cascade_to_story_f, agentic_exit_code_2_distinct_from_test_fail, agentic_compute_remaining_budget_idempotent, agentic_pii_sanitization_message, read_only_invariant_zero_llm_calls, jscpd_no_duplication]
+    depends_on: [T-1, T-2]
+    blocks: [T-4, T-6]
+    transitions:
+      - { state: draft, at: 2026-05-08T12:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-4 — sweep (periodic asyncio Task + post-facto detection)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-4
+    title: "_internal/sweep.py — periodic asyncio Task + post-facto direct LLM call bypass detection (Scenario 4 adversarial)"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                # asyncio Task lifecycle + cancellation handling — escalate Opus if iteration cap reached
+      claude_sonnet: true                 # R23 allows; complexity manageable for Sonnet
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2
+    production_code: false
+    decisions_applicable: [D-BE-10, D-BE-11, D5]
+    inputs:
+      spec: 01-spec.md§Scenario_4
+      arch_doc: 03-arch.md§3.4
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md"
+      tessl_skills: [tessl__pytest-api-testing, tessl__graceful-degradation]
+      required_skills: [backend-expert]
+      asyncio_periodic_pattern_reference: "https://superfastpython.com/asyncio-periodic-task/ (accessed 2026-05-08)"
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/budget/_internal/sweep.py` per 03-arch.md§3.4 reference impl:
+          - `_interval_seconds() → int` — SALES_AGENT_EVAL_BUDGET_SWEEP_INTERVAL_S (default 30)
+          - `async def _sweep_once(session, *, run_id) → None`:
+            - Lazy import compute_remaining_budget (avoid circular dep)
+            - Skip if state.disabled
+            - Per-bucket post-facto check: if current_cost > cap → emit `eval.budget.bypass_detected` warn + raise BudgetCapExceededError(post_facto=True)
+          - `async def _sweep_loop(session, run_id) → None`:
+            - Loop forever
+            - try: await _sweep_once
+            - except BudgetCapExceededError: raise (propagate to caller)
+            - except CancelledError: return (clean shutdown)
+            - except Exception: log soft-fail + continue
+            - asyncio.sleep(interval)
+          - `def start_periodic_sweep(session, *, run_id, interval_s=None) → asyncio.Task[None]`:
+            - asyncio.create_task(_sweep_loop(session, run_id))
+            - Caller responsibility for cancel at run end (try/finally pattern documented in docstring)"
+      - "NEW integration tests `backend/tests/agentic_evals/sales_agent/budget/test_sweep.py`:
+          - test_periodic_sweep_detects_bypass (Scenario 4 — MockBypasser fixture simulates direct LLM call; sweep at 1s interval detects)
+          - test_bypass_detected_structlog_event (assert event fields run_id + bucket + current_usd + cap_usd + hint)
+          - test_sweep_runs_at_configured_interval (override SALES_AGENT_EVAL_BUDGET_SWEEP_INTERVAL_S=1; assert calls per second)
+          - test_sweep_clean_cancel (caller cancel; await Task; assert CancelledError no resource leak)
+          - test_sweep_soft_fail_iteration_continues (mock DB transient error; assert next iteration succeeds; structlog soft_fail event emitted)
+          - test_sweep_disabled_short_circuits (SALES_AGENT_EVAL_BUDGET_CAP_DISABLE=1; sweep loop runs but no abort raised)"
+      - "Update `backend/tests/agentic_evals/sales_agent/budget/conftest.py` — add `mock_bypasser` fixture (simulates direct litellm call bypassing guard; inserts row directly into eval_simulator_llm_call)"
+    out_of_scope:
+      - "Arch fitness gates (T-5)"
+      - "simulator __init__ H9 expand (T-6)"
+      - "Modify eval_simulator_* DB schema (read-only)"
+    acceptance:
+      - id: A1
+        description: "Periodic sweep detects post-facto bypass (Scenario 4 adversarial)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_sweep.py::test_periodic_sweep_detects_bypass"
+        validator_ids: [scenario_4_post_facto_bypass_detection]
+      - id: A2
+        description: "structlog bypass_detected event emitted with full context"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_sweep.py::test_bypass_detected_structlog_event"
+        validator_ids: [scenario_4_structlog_bypass_event]
+      - id: A3
+        description: "Sweep runs at configured interval (D5 + D-BE-10 cement)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_sweep.py::test_sweep_runs_at_configured_interval"
+        validator_ids: [agentic_periodic_sweep_30s_interval]
+      - id: A4
+        description: "Clean cancel — no resource leak on Task cancellation"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_sweep.py::test_sweep_clean_cancel"
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_budget_module, scenario_4_post_facto_bypass_detection, scenario_4_structlog_bypass_event, agentic_periodic_sweep_30s_interval, jscpd_no_duplication]
+    depends_on: [T-1, T-2, T-3]
+    blocks: [T-6]
+    escalation_path: |
+      If iteration cap reached (3 attempts) on asyncio Task lifecycle (cancellation leak / shutdown race / event loop interaction) → escalate /pm para Opus override puntual.
+      Likely culprits: asyncio.create_task pattern correct shutdown propagation, sweep loop exception handling matrix (CancelledError vs BudgetCapExceededError vs generic Exception), lazy import circular dep with guard.py, test fixture mock_bypasser timing (race condition between insert + sweep query).
+    transitions:
+      - { state: draft, at: 2026-05-08T12:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-5 — arch fitness gates (2 NEW empty allowlist shrink-only)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-5
+    title: "Architecture fitness gates 2 NEW (test_eval_llm_calls_use_budget_guard.py + test_budget_state_schema_complete.py) — empty allowlists shrink-only"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                # AST static analysis + Pydantic introspection — escalate Opus if regex precision blocks
+      claude_sonnet: true                 # R23 allows; declarative pattern Story F precedent (test_aggregator_no_llm_calls.py)
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-12, D6, D8]
+    inputs:
+      spec: 01-spec.md§Scenario_4, §Non_functional_requirements
+      arch_doc: 03-arch.md§3.6, §3.10
+      conventions: ".claude/rules/architectural-fitness.md, anti-duplication.md, tdd-mandatory.md"
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert]
+      story_f_arch_fitness_precedent: "backend/tests/architecture/test_aggregator_no_llm_calls.py (Story F)"
+    deliverables:
+      - "NEW `backend/tests/architecture/test_eval_llm_calls_use_budget_guard.py` per 03-arch.md§3.6 reference impl (empty allowlist shrink-only):
+          - `_FORBIDDEN_LLM_MODULES = frozenset({'litellm', 'anthropic', 'openai'})`
+          - `_GUARD_MODULE = 'tests.agentic_evals.sales_agent.budget.guard'`
+          - `_GUARD_FUNCTION = 'check_budget_before_call'`
+          - `_ALLOWLIST: frozenset[str] = frozenset()` (empty shrink-only)
+          - `_file_imports(path) → tuple[set[str], set[str]]` — AST walk return (modules, names from)
+          - `_scan_eval_files() → list[Path]` — walk backend/tests/agentic_evals/sales_agent/ (exclude __pycache__ + conftest.py)
+          - `test_eval_llm_imports_pair_with_budget_guard()` — Mode A: each eval file importing forbidden module MUST also import guard.check_budget_before_call (or be in allowlist)
+          - `test_budget_guard_module_no_llm_imports()` — Mode B: guard module itself MUST NOT import LLM modules (forbidden list scan)"
+      - "NEW `backend/tests/architecture/test_budget_state_schema_complete.py` per 03-arch.md§3.10 reference impl (empty allowlist):
+          - `test_budget_state_pydantic_fields_subset_json_schema()` — assert BudgetState Pydantic fields ⊆ JSON schema fields (Pydantic introspection via model_json_schema)
+          - `test_budget_state_literal_values_cement()` — assert BucketState.bucket_id Literal == frozenset({'generation', 'grader'}); TierState.tier_id Literal == frozenset({'per_trial', 'per_grade', 'per_run', 'per_bucket'})
+          - `test_budget_state_schema_version_literal_1()` — assert BudgetState.schema_version Literal default == 1
+          - `test_budget_warning_required_fields()` — assert BudgetWarning has timestamp + tier + current_usd + cap_usd + pct + message (NOT all optional)
+          - `test_abort_context_optional_fields()` — assert AbortContext simulation_id + turn_n + rubric_id optional (None default)"
+    out_of_scope:
+      - "Sweep implementation (T-4)"
+      - "simulator __init__ H9 expand (T-6)"
+      - "test_simulator_public_api_surface allowlist update (T-6)"
+    acceptance:
+      - id: A1
+        description: "AST scan gate detects unguarded LLM imports (empty allowlist baseline)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_eval_llm_calls_use_budget_guard.py"
+        validator_ids: [arch_eval_llm_calls_use_budget_guard, scenario_4_arch_fitness_pre_merge_gate]
+      - id: A2
+        description: "Schema completeness gate green (Pydantic ⊆ JSON schema fields match)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_budget_state_schema_complete.py"
+        validator_ids: [be_arch_fitness_full]
+      - id: A3
+        description: "Guard module itself has zero LLM imports (read-only invariant cement)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_eval_llm_calls_use_budget_guard.py::test_budget_guard_module_no_llm_imports"
+        validator_ids: [arch_eval_llm_calls_use_budget_guard]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_arch_fitness_full, arch_eval_llm_calls_use_budget_guard, jscpd_no_duplication]
+    depends_on: [T-1]                     # Schemas needed for schema_complete test
+    blocks: [T-6]
+    escalation_path: |
+      If iteration cap reached (3 attempts) on AST regex precision (false positives or negatives in eval file walk) → escalate /pm para Opus override puntual.
+      Likely culprits: ast.NodeVisitor walk incomplete on edge import syntax (relative imports, star imports), Pydantic introspection edge cases (Literal type extraction from generic alias), allowlist precision (path normalization across OS).
+    transitions:
+      - { state: draft, at: 2026-05-08T12:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-6 — simulator __init__ H9 expand 8→9 + integration tests + JSON output + capability YAML + module narrative + downstream regression rule (post-merge by /pm)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-6
+    title: "simulator/__init__.py H9 expand 8→9 (`check_budget_before_call`) + arch fitness allowlist update + JSON output budget_summary.json + capability YAML + module narrative + downstream regression rule SSoT update"
+    type: backend
+    surface: BE+DOCS
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # H9 expand single name + arch fitness allowlist update + docs reconciliation — straightforward
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2
+    production_code: false
+    decisions_applicable: [D-BE-6, D-BE-12, D11]
+    inputs:
+      spec: 01-spec.md§Non_functional_requirements
+      arch_doc: 03-arch.md§3.7, §3.8, §3.9, §11
+      conventions: ".claude/rules/auditor-downstream-regression.md, architectural-fitness.md, anti-duplication.md"
+      required_skills: [backend-expert, pm]
+      story_e_h9_expansion_precedent: ../sales-agent-voice-fidelity-grader-runtime/03-arch.md§public_API_expand_7_to_8
+    deliverables:
+      - "EDIT `backend/tests/agentic_evals/sales_agent/simulator/__init__.py` (single addition `check_budget_before_call`):
+          - Import: `from tests.agentic_evals.sales_agent.budget.guard import check_budget_before_call`
+          - Add to `__all__` list (alphabetically sorted maintained — Story B 7 + Story E 1 + Story H 1 = 9 names)
+          - Story E `grade_transcript_maj_eval` MUST be present pre-Story H build (hard blocker — Story E ships first)"
+      - "EDIT `backend/tests/architecture/test_simulator_public_api_surface.py`:
+          - Update `_EXPECTED_PUBLIC_NAMES` frozenset 8→9 (add `check_budget_before_call`)
+          - Update cardinality test: `assert len(__all__) == 9` (was 8 post Story E)"
+      - "NEW JSON output integration test `backend/tests/agentic_evals/sales_agent/budget/test_json_output.py`:
+          - test_budget_summary_json_persisted_at_run_end
+          - test_json_validates_against_pydantic_schema (BudgetState.model_validate)
+          - test_json_aborted_true_on_cap_exceeded
+          - test_json_aborted_false_on_within_cap_run
+          - test_json_schema_version_literal_1_pinned"
+      - "NEW orchestrator integration test `backend/tests/agentic_evals/sales_agent/budget/test_orchestrator_integration.py`:
+          - test_orchestrator_starts_periodic_sweep_at_run_start
+          - test_orchestrator_cancels_sweep_at_run_end_clean (try/finally pattern verified)
+          - test_orchestrator_persists_budget_summary_on_normal_completion
+          - test_orchestrator_persists_partial_report_on_abort"
+      - "EDIT `docs/product/capabilities/sales-agent/sales-conversational-engine.yaml` — append eval block per 03-arch.md§3.9 (post-merge by /pm only — NO builder action; documented here as story dependency):
+          - story_h_introduced: sales-agent-eval-cost-budget-cap
+          - story_h_merged_at: null (pending /auditor APPROVED + /pm merge)
+          - budget_caps_per_tier: per_trial_usd 0.10 / per_grade_usd 0.20 / per_run_cold_usd 500 / per_run_warm_usd 150 / per_bucket_generation_usd 20 / per_bucket_grader_cold_usd 400 / per_bucket_grader_warm_usd 130
+          - budget_summary_path: '_artifacts/eval_runs/{run_id}/budget_summary.json'
+          - budget_disable_flag: 'SALES_AGENT_EVAL_BUDGET_CAP_DISABLE'
+          - cost_baseline_per_run_usd: cold_cache 340 / warm_cache 115
+          - story_h_test_coverage list (5 paths)"
+      - "EDIT `docs/product/modules/sales-agent.md` — narrative addition 1-2 sentences per 03-arch.md§11 (post-merge by /pm)"
+      - "EDIT `.claude/rules/auditor-downstream-regression.md` — append SSoT entries per 03-arch.md§11:
+          - `backend/tests/agentic_evals/sales_agent/budget/guard.py` → downstream_test_targets [test_budget_guard.py, test_budget_state.py, test_sweep.py, test_eval_llm_calls_use_budget_guard.py, test_budget_state_schema_complete.py]
+          - `backend/tests/agentic_evals/sales_agent/budget/_internal/cost_estimator.py` → idem
+          - `backend/tests/agentic_evals/sales_agent/budget/_internal/sweep.py` → idem
+          - `backend/tests/agentic_evals/sales_agent/budget/_schema.py` → idem + test_budget_state_schema_complete.py"
+    out_of_scope:
+      - "Implement guard pipeline (T-3)"
+      - "Implement sweep (T-4)"
+      - "Implement arch fitness gates 2 NEW (T-5)"
+      - "Modify Story B/C/E/F arch fitness pre-existing logic (extend ratchet OK puntual)"
+    acceptance:
+      - id: A1
+        description: "simulator __init__ exports 9 names (Story B 7 + Story E 1 + Story H 1)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_public_api_surface.py"
+        validator_ids: [public_api_surface_h9_expand_9, legacy_simulator_invariants_intact]
+      - id: A2
+        description: "JSON output budget_summary.json persisted + Pydantic v1 schema valid"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_json_output.py"
+        validator_ids: [scenario_1_state_check_filesystem, agentic_partial_report_persisted_on_abort]
+      - id: A3
+        description: "Orchestrator integration — sweep lifecycle clean (start/cancel)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/budget/test_orchestrator_integration.py"
+        validator_ids: [agentic_periodic_sweep_30s_interval]
+      - id: A4
+        description: "Capability YAML eval block added"
+        verifier:
+          type: shell
+          cmd: "grep -q 'story_h_introduced.*sales-agent-eval-cost-budget-cap' docs/product/capabilities/sales-agent/sales-conversational-engine.yaml"
+      - id: A5
+        description: "Module narrative updated"
+        verifier:
+          type: shell
+          cmd: "grep -q 'cost-budget cap' docs/product/modules/sales-agent.md"
+      - id: A6
+        description: "Downstream regression rule SSoT updated"
+        verifier:
+          type: shell
+          cmd: "grep -q 'budget/guard.py' .claude/rules/auditor-downstream-regression.md"
+      - id: A7
+        description: "Story B/C/E/F arch fitness gates STILL GREEN post Story H"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/"
+          extra: "-x -q --override-ini='addopts='"
+        validator_ids: [be_arch_fitness_full, legacy_simulator_invariants_intact]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_arch_fitness_full, public_api_surface_h9_expand_9, legacy_simulator_invariants_intact, scenario_1_within_budget_no_abort, scenario_1_state_check_filesystem, agentic_periodic_sweep_30s_interval]
+    depends_on: [T-3, T-4, T-5]
+    blocks: []
+    transitions:
+      - { state: draft, at: 2026-05-08T12:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet     # arch tests + integration tests + simulator expand by builder; capability YAML + narrative + rule update by /pm post-merge
+
+# ═══════════════════════════════════════════════════════════════════════
+# Dependency graph (DAG)
+# ═══════════════════════════════════════════════════════════════════════
+#
+#   T-1 (Pydantic schemas + SCHEMA_MIGRATIONS anchor)
+#   ├─→ T-2 (cost_estimator)
+#   ├─→ T-3 (guard uses BudgetState construction)
+#   ├─→ T-5 (arch fitness schema_complete needs Pydantic types)
+#   └─→ T-6 (integration tests reference BudgetState)
+#
+#   T-2 (cost_estimator)
+#   ├─→ T-3 (guard uses estimate_cost_for_call indirectly via caller pattern docs)
+#   └─→ T-4 (sweep does NOT use cost_estimator — reads current cost from DB; estimator only pre-flight)
+#
+#   T-3 (guard)
+#   ├─→ T-4 (sweep imports compute_remaining_budget lazy via guard module)
+#   └─→ T-6 (integration tests + simulator __init__ exports check_budget_before_call from guard.py)
+#
+#   T-4 (sweep)
+#   └─→ T-6 (integration tests verify sweep lifecycle in orchestrator pattern)
+#
+#   T-5 (arch fitness gates 2 NEW)
+#   └─→ T-6 (test_simulator_public_api_surface allowlist 8→9 update part of T-6 scope)
+#
+#   T-6 (simulator __init__ H9 expand + integration + JSON + docs reconciliation + arch fitness allowlist update)
+#   └─→ DONE
+#
+# Critical path: T-1 → T-3 → T-4 → T-6   (4 sequential)
+# T-2 parallel with T-3 (after T-1).
+# T-5 parallel with T-3+T-4 (after T-1).
+# Estimated: ~9-11h sequential (11h with buffer). Parallel possible: T-2+T-3 after T-1; T-5 after T-1.
+#
+# All 6 tickets ≤ cap (no story split needed).
+
+# ═══════════════════════════════════════════════════════════════════════
+# Owner routing summary
+# ═══════════════════════════════════════════════════════════════════════
+#
+# - 6 tickets BE service-story `production_code: false` test-infra → builder-backend Sonnet RECOMMENDED
+#   (R23 explicit allow Sonnet for service-story BE; deterministic Python guard simple enough)
+# - 0 tickets AGENTIC (Story H = read-only guard, NO LLM/LangGraph)
+# - 0 tickets FE (BE-only)
+# - PM confirms final routing antes Conv 2 starts.
+# - Escalation paths declared on T-4 (sweep asyncio Task lifecycle) + T-5 (arch fitness AST regex) if iteration cap reached.
+
+# ═══════════════════════════════════════════════════════════════════════
+# Decisions per ticket coverage (D-BE-1..D-BE-13 + spec D1-D13)
+# ═══════════════════════════════════════════════════════════════════════
+
+decisions_per_ticket:
+  D-BE-1_budget_state_frozen: [T-1]
+  D-BE-2_bucket_state_literal_2_baseline: [T-1, T-5]
+  D-BE-3_tier_state_literal_4_cement: [T-1, T-5]
+  D-BE-4_schema_version_literal_1: [T-1]
+  D-BE-5_post_facto_field_audit_trail: [T-1, T-4]
+  D-BE-6_3_public_apis_minimal_surface: [T-3, T-6]
+  D-BE-7_env_var_loader_disable_flag: [T-3]
+  D-BE-8_read_only_invariant_zero_llm_imports: [T-3, T-4, T-5]
+  D-BE-9_pricing_source_shared_table: [T-2]
+  D-BE-10_periodic_sweep_30s_default: [T-4]
+  D-BE-11_asyncio_create_task_lifecycle: [T-4]
+  D-BE-12_convention_enforcement_import_pair: [T-5]
+  D-BE-13_no_safety_multiplier: [T-2]
+  spec_D1_multi_tier_4_caps: [T-1, T-3]
+  spec_D2_bucket_separation_generation_grader: [T-1, T-3]
+  spec_D3_default_caps_500_cold_150_warm: [T-3]
+  spec_D4_pre_flight_over_estimate_strict: [T-2, T-3]
+  spec_D5_periodic_sweep_30s: [T-4]
+  spec_D6_arch_fitness_test_eval_llm_calls_use_budget_guard: [T-5]
+  spec_D7_post_facto_field_distinguishes_pre_flight_sweep: [T-1, T-4]
+  spec_D8_partial_report_cascades_unconverged: [T-3, T-6]
+  spec_D9_per_tier_env_vars_disable_flag: [T-3]
+  spec_D10_warning_threshold_80pct_per_bucket: [T-3]
+  spec_D11_h9_expand_8_to_9: [T-6]
+  spec_D12_schema_versioning_forward_compat: [T-1]
+  spec_D13_exit_code_2_distinct: [T-3]
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening invariants per ticket coverage (Stories B/C/E/F preserved + Story H additions)
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_per_ticket:
+  H1_schema_versioning: [T-1]                            # BudgetState v1 anchor entry to SCHEMA_MIGRATIONS
+  H6_cost_bucket_separation: [T-3, T-5]                  # zero contamination invariant + arch fitness gate
+  H7_cost_bucket_invariant_eval_simulator_grade: [T-3]   # read-only consume Story B + Story E rows
+  H9_public_api_minimal: [T-6]                           # H9 expand 8→9 puntual (single addition cement)
