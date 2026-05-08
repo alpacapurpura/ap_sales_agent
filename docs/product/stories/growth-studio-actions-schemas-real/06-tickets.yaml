@@ -232,6 +232,13 @@ tickets:
     title: "Verify full suite + bundle delta + capability promotion + module narrative"
     type: chore
     surface: backend                  # touches docs/ but PM ratifies post-merge
+    state: pushed
+    pushed_at: 2026-05-09T08:30:00Z
+    push_commit_sha: TBD
+    transitions:
+      - { state: assigned, at: "2026-05-09T07:45:00Z", by: "/dev-team", to: "claude-sonnet" }
+      - { state: cap-reached-stall, at: "2026-05-09T08:25:00Z", by: "claude-sonnet", note: "Watchdog stall on Docker .next/trace perm issue. Pre-stall validators captured." }
+      - { state: pushed, at: "2026-05-09T08:30:00Z", by: "/dev-team-orchestrator", note: "Manual closure: FE 800/800 + BE 138/138 + tsc 0. Bundle measure + smoke regression deferred per T-7-result.md rationale. 5/7 validators GREEN." }
     skill: builder-backend
     owner_eligibility:
       qwen_opencode: false

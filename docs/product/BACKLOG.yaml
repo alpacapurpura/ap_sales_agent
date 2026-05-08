@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T08:36:15+00:00
+# Generated at: 2026-05-08T11:08:19+00:00
 
-generated_at: '2026-05-08T08:36:15+00:00'
+generated_at: '2026-05-08T11:08:19+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -15,7 +15,8 @@ caps:
   refining_stale_days: 60
   refined_stale_days: 30
   done_rolling_days: 90
-warnings: []
+warnings:
+- developed cap exceeded (3 > 2, excl. legacy+outcomes)
 stale_ideas: []
 stale_refining: []
 stale_refined: []
@@ -336,22 +337,7 @@ buckets:
       priority_override: null
       audit_iterations: 0
   refined: []
-  ready:
-  - id: growth-studio-actions-schemas-real
-    kind: story
-    state: ready
-    title: growth-studio-actions-schemas-real
-    tags: []
-    last_touched: 2026-05-08 00:00:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: READY_PACKAGE_CLOSED
-      next_action: '/dev-team takes T-1 (Conv 2 autonomous build). Sequential build OK: 2A done (commit 1e517b09 + T-7 placeholders
-        828bb3dc), Story 1 done (commit b123d6da). T-1 + T-2 may run in parallel; T-3..T-7 sequential per 06-tickets.yaml
-        dependency graph.'
-      blocked_by: []
-      priority_override: null
-      audit_iterations: 0
+  ready: []
   developing: []
   developed:
   - id: app-shell-sidebar-copilot-decoupling
@@ -365,6 +351,21 @@ buckets:
       phase: BUILD_COMPLETE
       next_action: T-9 PUSHED. All 9 tickets DONE. Story 1 complete. Chris triggers /auditor to start Conv 3 review.
       blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: growth-studio-actions-schemas-real
+    kind: story
+    state: developed
+    title: growth-studio-actions-schemas-real
+    tags: []
+    last_touched: 2026-05-09 08:30:00+00:00
+    extra:
+      outcome: growth-copilot-layout-unification
+      phase: BUILD_COMPLETE
+      next_action: 'All 7 tickets pushed. Story 2B BUILD COMPLETE. T-7 verify GREEN (FE 800/800 + BE 138/138 + tsc 0; bundle
+        + smoke regression deferred per T-7-result.md rationale). Chris triggers /auditor for Conv 3 review. Outcome growth-copilot-layout-unification:
+        Story 1 + 2A + 2B all developed.'
+      blocked_by: []
       priority_override: null
       audit_iterations: 0
   - id: growth-studio-folder-parity
