@@ -69,8 +69,7 @@ const ETL_RATE_LIMITED_MOCK = {
 
 const ETL_CONFIRM_MOCK = {
   channel: "meta-ads",
-  confirm_message:
-    "Ya iniciaste una actualización en la última hora. ¿Confirmas otro refresco?",
+  confirm_message: "Ya iniciaste una actualización en la última hora. ¿Confirmas otro refresco?",
 };
 
 // ─── Noop onChange ────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T12:21:01+00:00`
+> Generated at: `2026-05-08T13:05:42+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -35,13 +35,12 @@
 ### 🔨 Developing (0 / cap 3)
 - _(none)_
 
-### 🧪 Developed — esperando QA (3 / cap 10)
+### 🧪 Developed — esperando QA (2 / cap 10)
 - **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification`
 - **growth-studio-actions-schemas-real** — outcome `growth-copilot-layout-unification`
-- **growth-studio-folder-parity** — outcome `growth-copilot-layout-unification`
 
-### 🔍 Reviewing (0 / cap 2)
-- _(none in review)_
+### 🔍 Reviewing (1 / cap 2)
+- growth-studio-folder-parity
 
 ### Recently shipped (last 90d, 3 items)
 - pi-11-backend-quality-guardrails — 2026-05-06
@@ -80,11 +79,11 @@ kanban
   ✅ Refined (0 / cap 5)
   📦 Ready (0 / cap 5)
   🔨 Developing (0 / cap 3)
-  🧪 Developed (3 / cap 10)
+  🧪 Developed (2 / cap 10)
     app-shell-sidebar-copilot-deco[app-shell-sidebar-copilot-decoupling]
     growth-studio-actions-schemas-[growth-studio-actions-schemas-real]
+  🔍 Reviewing (1 / cap 2)
     growth-studio-folder-parity[growth-studio-folder-parity]
-  🔍 Reviewing (0 / cap 2)
   ✅ Done (3 / 90d rolling)
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]

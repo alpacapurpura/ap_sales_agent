@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T12:21:01+00:00
+# Generated at: 2026-05-08T13:05:42+00:00
 
-generated_at: '2026-05-08T12:21:01+00:00'
+generated_at: '2026-05-08T13:05:42+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -367,21 +367,21 @@ buckets:
       blocked_by: []
       priority_override: null
       audit_iterations: 0
+  reviewing:
   - id: growth-studio-folder-parity
     kind: story
-    state: developed
+    state: reviewing
     title: growth-studio-folder-parity
     tags: []
-    last_touched: 2026-05-09 01:00:00+00:00
+    last_touched: 2026-05-08 17:55:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_T8_DONE
-      next_action: 'All 8 tickets pushed. T-8 DONE — 7/7 validators GREEN, 16 VR baselines captured. Chris ratifies baselines
-        then triggers /auditor (state: developed → reviewing).'
+      phase: AUDIT_PICKUP
+      next_action: Auditor picked up. Brief + gate refreshed (1 self-fix prettier on 2B playground file). Spawn auditor-frontend
+        per ticket.
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails
     kind: outcome

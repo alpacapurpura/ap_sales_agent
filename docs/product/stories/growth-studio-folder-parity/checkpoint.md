@@ -1,11 +1,13 @@
 ---
 story_id: growth-studio-folder-parity
 outcome: growth-copilot-layout-unification
-state: developed
-phase: BUILD_T8_DONE
+state: reviewing
+phase: AUDIT_PICKUP
 last_artifact: docs/product/stories/growth-studio-folder-parity/T-8-result.md
-last_modified: 2026-05-09T01:00:00Z
-next_action: "All 8 tickets pushed. T-8 DONE — 7/7 validators GREEN, 16 VR baselines captured. Chris ratifies baselines then triggers /auditor (state: developed → reviewing)."
+last_modified: 2026-05-08T17:55:00Z
+next_action: "Auditor picked up. Brief + gate refreshed (1 self-fix prettier on 2B playground file). Spawn auditor-frontend per ticket."
+audit_started_at: 2026-05-08T17:50:00Z
+audit_started_by: /auditor
 build_started_at: 2026-05-07T22:30:00Z
 build_started_by: /dev-team
 ratified_by_chris: true
