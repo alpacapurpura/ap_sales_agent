@@ -214,7 +214,7 @@ tickets:
     depends_on: [T-2, T-3]
     repro_verified: true
     state: pushed
-    push_commit_sha: TBD
+    push_commit_sha: 74d27915
     files_in_scope:
       - "frontend/e2e/specs/smoke/growth-studio.smoke.spec.ts (verify still green; NO change unless 2A baseline drifts)"
       - "frontend/e2e/visual/growth-studio-actions.spec.ts (NEW — 5 actions @ 375px + 1024px viewports)"

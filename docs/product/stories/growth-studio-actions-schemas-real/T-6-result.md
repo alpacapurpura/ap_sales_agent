@@ -2,7 +2,7 @@
 
 **Ticket:** T-6 — Playwright smoke regression growth-studio + visual regression for 5 new actions
 **State:** pushed
-**Push commit:** TBD (see 06-tickets.yaml after commit)
+**Push commit:** `74d27915`
 
 ## Deliverables
 
