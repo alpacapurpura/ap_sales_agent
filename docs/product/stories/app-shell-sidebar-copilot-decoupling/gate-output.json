@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/app-shell-sidebar-copilot-decoupling",
+  "ticket": "T-1",
+  "iter": 1,
+  "command": "cd /home/chris/AISALESHT/frontend && npx tsc --noEmit && npx eslint src/components/shared/layout/ src/features/copilot/components/ src/hooks/use-shell-mutex.ts src/hooks/use-viewport.ts src/hooks/use-copilot-offset.ts src/stores/shell-mutex-store.ts src/lib/tokens/z-index.ts src/features/copilot/lib/copilot-shell-widths.ts --cache --cache-location .eslintcache && npx vitest run src/__tests__/architecture/ --reporter=default",
+  "command_alias": null,
+  "started_at": "2026-05-07T19:38:00Z",
+  "finished_at": "2026-05-08T00:39:38.567022+00:00",
+  "duration_ms": 35000,
+  "exit_code": 0,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/app-shell-sidebar-copilot-decoupling/gate-logs/iter-1-fe-validators-2026-05-07.log",
+  "gates": [
+    {
+      "name": "tsc",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "eslint",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": [],
+      "note": "251 warnings (non-blocking style/perf hints)"
+    },
+    {
+      "name": "vitest (architecture)",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": [],
+      "tests_passed": 51,
+      "test_files_passed": 25
+    }
+  ],
+  "overall": {
+    "any_fail": false,
+    "fail_gate_names": [],
+    "summary": "tsc PASS (0 errors), eslint PASS (0 errors, 251 warnings), vitest architecture PASS (51/51 tests)"
+  },
+  "notes": "T-1 non-Playwright validators. Scoped to shell/copilot FE components + hooks + stores + tokens + lib. Architecture fitness full suite (25 tests). Visual E2E deferred to T-8 batch."
+}

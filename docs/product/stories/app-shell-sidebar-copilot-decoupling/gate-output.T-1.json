@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/app-shell-sidebar-copilot-decoupling/",
+  "ticket": "T-1",
+  "iter": 1,
+  "command": "cd /home/chris/AISALESHT/frontend && npx tsc --noEmit && npx eslint . && npx vitest run",
+  "command_alias": "test-frontend",
+  "started_at": "2026-05-07T00:00:00Z",
+  "finished_at": null,
+  "duration_ms": null,
+  "exit_code": null,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/app-shell-sidebar-copilot-decoupling/gate-logs/iter-1-test-frontend-pending.log",
+  "gates": [],
+  "overall": {
+    "any_fail": null,
+    "fail_gate_names": [],
+    "summary": "PENDING — gate-runner in progress"
+  },
+  "notes": "skeleton (pre-execution); appended incrementally via Edit"
+}

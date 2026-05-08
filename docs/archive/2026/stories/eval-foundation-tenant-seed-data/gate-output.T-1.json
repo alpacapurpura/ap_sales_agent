@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/eval-foundation-tenant-seed-data",
+  "ticket": "T-1",
+  "iter": 1,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check tests/fixtures/eval/tenants/ --no-cache && .venv/bin/ruff format --check tests/fixtures/eval/tenants/ && .venv/bin/pytest tests/fixtures/eval/tenants/test_dialect_catalog.py -v --tb=short && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='",
+  "command_alias": null,
+  "started_at": "2026-05-06T00:00:00Z",
+  "finished_at": "2026-05-06T00:00:55Z",
+  "duration_ms": 54950,
+  "exit_code": 0,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/eval-foundation-tenant-seed-data/gate-logs/iter-1-eval-foundation-gates-20260506T000000Z.log",
+  "gates": [
+    {
+      "name": "ruff-check",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff-format",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "pytest-dialect-catalog",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": [],
+      "tests_passed": 4
+    },
+    {
+      "name": "pytest-architecture",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": [],
+      "tests_passed": 827
+    }
+  ],
+  "overall": {
+    "any_fail": false,
+    "fail_gate_names": [],
+    "summary": "All 4 gates passed. ruff 0 errors, ruff format OK (7 files), dialect_catalog 4/4 PASS, architecture 827/827 PASS"
+  },
+  "notes": "T-1 closure verification complete. All gates green. Context notes: test_loader / test_schema_alignment / test_realism_smoke omitted per acceptance A3 (baseline RED expected—T-3 unblocks). Builder report confirmed."
+}
