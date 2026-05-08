@@ -392,7 +392,7 @@ tickets:
     title: "Scenario 5 integration — agent qualifies out unqualified lead × 5 archetypes × 3 trials"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: developed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -449,7 +449,15 @@ tickets:
     blocks: [T-9]
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developing, at: 2026-05-08T22:30Z, by: builder-agentic-opus-4.7 }
+      - { state: developed, at: 2026-05-08T22:50Z, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
+    skip_with_escalation:
+      reason: "sales_agent runtime TOOL_REGISTRY lacks qualify_lead + tag_lead_status — escalation per 05-guidelines.md § 'Sales_agent toolkit dependency'"
+      decision_pending: "/pm to ratify (A) spawn separate sales-agent-qualification-toolkit story OR (B) accept SKIP for Story C closure (recommended)"
+      test_body_complete: true            # Test transitions GREEN automatically once toolkit lands
+      capability_probe_path: "backend/tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::_sales_agent_toolkit_supports_qualification"
+    commit_sha: "0fbe5121"
 
   # ═════════════════════════════════════════════════════════════════════
   # T-7 — Scenario 6 integration test (nurture multi-question) ★ realistic LATAM

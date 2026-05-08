@@ -114,3 +114,48 @@ production-grade graceful-degradation. @pm ratifies in checkpoint.md.
 - Append: `test_qualifies_out_unqualified_lead` function with parametrize + skipif decorator.
 - Run targeted tests + validators.
 
+**Outcome (2026-05-08T22:50Z):**
+
+- Targeted test run: 15 cases SKIPPED with documented escalation reason.
+  ✅ Capability probe wired correctly; gates the parametrize cross-product
+  cleanly without impacting other tests in the same module.
+- `be_lint`: PASS (cleanup of 5 RUF002/RUF003/ERA001 — replaced `×` with
+  `x`, replaced bullet `- ` with `* ` to dodge ERA001 false-positive on
+  enroll_* line).
+- `be_format`: PASS (1 file already formatted).
+- `be_mypy_strict` on T-6 file: PASS (1 source file, no issues).
+- `legacy_simulator_invariants_intact`: PASS (Story B 6 arch fitness gates
+  112/112).
+- `customer_prompt_v2_unit`: PASS (26/26 — T-4 surface untouched).
+- `be_arch_fitness_full`: PASS (980/980).
+- `jscpd_no_duplication`: PASS (14 clones, under 5% threshold; helper
+  `_extract_tool_call_signals` extracted to prevent clone density).
+- Full simulator suite: 209 passed + 29 skipped (zero failures).
+
+**Iteration cap reached: 1 (out of 3 allowed).** No re-iteration needed.
+
+### Commit log
+
+- **First commit attempt** `c7873887` (2026-05-08T22:44Z): captured
+  T-8 parallel session work under T-6 message via R33 BACKLOG hook race
+  condition. Files committed: `test_personas_loader.py` (T-8 owned),
+  `BACKLOG.{yaml,md}`, `06-tickets.yaml`, `T-8-impl-log.md`,
+  `T-8-result.md`. **My T-6 files were NOT in the commit** — staging
+  area got overwritten by parallel session somehow.
+
+- **Corrective commit** `0fbe5121` (2026-05-08T22:50Z): re-staged the
+  actual T-6 files (`test_simulator_smoke.py`, `T-6-impl-log.md`,
+  `checkpoint.md`) and committed cleanly. Pushed to
+  `origin/development`. Both commits exist in history; this corrective
+  commit is the canonical T-6 attribution.
+
+### Final state
+
+- 06-tickets.yaml T-6: `state: developed` + transitions appended +
+  `skip_with_escalation` block.
+- checkpoint.md: phase BUILD_T1_T2_PARALLEL → BUILD_T6 (will be bumped
+  to BUILD_T7 by T-7 builder when they pick up).
+- T-9 unblocked (depends_on T-6 satisfied per `developed` state).
+- @pm decision pending (A)/(B) per result file § "Sales_agent toolkit
+  dependency — escalation @pm".
+
