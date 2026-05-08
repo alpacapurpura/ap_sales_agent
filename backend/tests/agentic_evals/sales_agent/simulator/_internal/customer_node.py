@@ -60,6 +60,7 @@ from tests.agentic_evals.sales_agent.simulator._internal.concurrency import (
 )
 from tests.agentic_evals.sales_agent.simulator._internal.customer_persona_prompt import (
     build_customer_prompt,
+    build_customer_prompt_v2,
 )
 from tests.agentic_evals.sales_agent.simulator._internal.llm_roles import (
     EVAL_DEFAULT_MODELS,
@@ -112,13 +113,61 @@ async def customer_node(state: SimulationState) -> dict[str, Any]:
         return {"transcript": [new_turn]}
 
     # Build prompt + messages outside the semaphore (cheap CPU ops).
-    system_prompt = build_customer_prompt(actor)
+    # T-5 dispatch — V1/V2 routed by ``actor_profile.schema_version``:
+    #   ≥ 2 → V2 builder (sub-slot pain/objection rotation per turn)
+    #   == 1 → V1 builder (frozen template, byte-equal back-compat for legacy
+    #          fixtures + frozen golden v1 — H10 cement Story B preserved)
+    if actor.schema_version >= 2:
+        system_prompt = build_customer_prompt_v2(actor, current_turn=state.current_turn)
+        # Cache TTL informational hint (Anthropic prompt caching slot architecture
+        # per 02-design-agentic.md §5). The actual cache wiring rides through the
+        # LiteLLM Proxy headers Story B path; this log is purely diagnostic so
+        # operators can confirm the V2 dispatch path was taken without scanning
+        # the rendered prompt body.
+        logger.info(
+            "simulator.customer_node_prompt_v2_dispatched",
+            simulation_id=str(state.simulation_id),
+            turn=state.current_turn,
+            schema_version=actor.schema_version,
+            persona_kind=actor.persona_kind,
+            cache_ttl_slots_1_2="1h",
+            cache_ttl_slots_3a_3b="5min",
+        )
+    else:
+        system_prompt = build_customer_prompt(actor)
+        logger.info(
+            "simulator.customer_node_prompt_v1_dispatched",
+            simulation_id=str(state.simulation_id),
+            turn=state.current_turn,
+            schema_version=actor.schema_version,
+            persona_kind=actor.persona_kind,
+        )
+
     history_messages = _build_conversation_messages(state.transcript)
     messages: list[Any] = [
         SystemMessage(content=system_prompt),
         *history_messages,
         HumanMessage(content=_LLM_INSTRUCTION_HUMAN_TURN),
     ]
+
+    # T-5 — extend ``eval_metadata`` with 3 NEW keys for the LLM call only.
+    # The state field itself remains the H5 6-key dict (LangGraph node
+    # contract — never mutate state; the dict() copy below is the boundary).
+    # The 3 NEW keys are forwarded to the EvalSimulatorCallbackHandler via
+    # ``config["metadata"]["eval_metadata"]`` and persisted onto every
+    # ``eval_simulator_llm_call.eval_metadata`` jsonb row, where they enable
+    # downstream cost-by-persona-kind aggregation queries (Story F+ scope).
+    extended_eval_metadata: dict[str, Any] = dict(state.eval_metadata)
+    extended_eval_metadata["persona_kind"] = actor.persona_kind
+    # str() for jsonb compatibility — eval_metadata is dict[str, str|int] in
+    # state.py but the Postgres jsonb column is open shape; downstream filters
+    # ``WHERE eval_metadata->>'schema_version' = '2'`` expect string values.
+    extended_eval_metadata["schema_version"] = str(actor.schema_version)
+    # ``metadata.archetype`` is the persona's tenant_archetype tag (set by
+    # the YAML loader / fixture). Defaults to '' to keep the column shape
+    # uniform across legacy fixtures whose ``metadata`` dict may not declare
+    # the key.
+    extended_eval_metadata["archetype"] = actor.metadata.get("archetype", "")
 
     # H4 — wrap ONLY the rate-limited resource (LLM ainvoke).
     async with EVAL_SIMULATOR_SEMAPHORE:
@@ -129,12 +178,13 @@ async def customer_node(state: SimulationState) -> dict[str, Any]:
             )
             # ``model_override`` propagates to the LiteLLM Proxy via metadata.
             # ``eval_metadata`` propagates to the EvalSimulatorCallbackHandler
-            # so every persisted row carries the H5 invariant 6-key dict.
+            # so every persisted row carries the H5 invariant 6-key dict +
+            # the 3 NEW Story C keys (persona_kind, schema_version, archetype).
             response = await llm.ainvoke(
                 messages,
                 config={
                     "metadata": {
-                        "eval_metadata": dict(state.eval_metadata),
+                        "eval_metadata": extended_eval_metadata,
                         "model_override": EVAL_DEFAULT_MODELS["EVAL_USER_SIMULATOR"],
                     },
                 },

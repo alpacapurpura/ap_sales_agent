@@ -758,3 +758,90 @@ async def test_no_system_prompt_leak_subcase_b(
             )
     finally:
         db.close()
+
+
+# ════════════════════════════════════════════════════════════════════════
+# T-5 (Story C) — Extended eval_metadata (persona_kind/schema_version/archetype)
+# ════════════════════════════════════════════════════════════════════════
+
+
+@pytest.mark.asyncio
+async def test_eval_metadata_extended_persona_kind(
+    actor_profile_lead_frio_impaciente: ActorProfile,
+    run_id: UUID,
+) -> None:
+    """T-5 / Story C — ``eval_simulator_llm_call`` rows carry the 3 NEW
+    Story C metadata keys (persona_kind, schema_version, archetype)
+    alongside the Story B 6-key H5 invariants.
+
+    The customer LLM call site in ``customer_node`` extends the
+    ``eval_metadata`` dict at the LLM boundary (without mutating
+    ``state.eval_metadata``); the ``EvalSimulatorCallbackHandler`` forwards
+    the dict verbatim onto every persisted row. This test verifies the
+    end-to-end propagation against the persisted DB rows.
+
+    Asserts (per spec § Scenario H5 extension + 04-validators.yaml
+    ``agentic_observability_extended_metadata``):
+
+    * Story B 6-key H5 invariants present (regression guard).
+    * 3 NEW keys present on EVERY row tagged with this simulation_id:
+      - ``persona_kind`` — matches ``actor_profile.persona_kind``
+      - ``schema_version`` — ``str(actor_profile.schema_version)``
+      - ``archetype`` — ``actor_profile.metadata.get('archetype', '')``
+    """
+    db = _get_db_session()
+    if db is None:
+        pytest.skip("integration env missing — Postgres unreachable")
+
+    try:
+        try:
+            seed_eval_tenant(db, "tenant_coach_lat")
+        except FileNotFoundError as exc:
+            pytest.skip(f"integration env missing — eval tenant YAML not found: {exc}")
+
+        actor = actor_profile_lead_frio_impaciente
+        result: SimulationResult = await run_simulation(
+            "tenant_coach_lat",
+            actor,
+            max_turns=2,
+            trial_n=0,
+            run_id=run_id,
+            db_session=db,
+        )
+
+        llm_rows = _query_eval_simulator_llm_call_rows(db, result.simulation_id)
+        assert len(llm_rows) >= 1, (
+            f"eval_simulator_llm_call expected >=1 row for simulation_id={result.simulation_id}; got {len(llm_rows)}"
+        )
+
+        # The customer LLM call site is the row that should carry the 3 NEW
+        # keys (extended at the LLM boundary in customer_node). Other call
+        # sites (e.g. agent runtime through agent_bridge) propagate the
+        # state.eval_metadata 6-key dict only — Story B baseline. We probe
+        # for AT LEAST ONE row carrying the 3 NEW keys, and verify shape on
+        # every row that does carry them.
+        rows_with_new_keys = [row for row in llm_rows if "persona_kind" in (row.eval_metadata or {})]
+        assert rows_with_new_keys, (
+            "No eval_simulator_llm_call row carries 'persona_kind' Story C key — "
+            "customer_node extension not propagated to persisted rows"
+        )
+
+        for row in rows_with_new_keys:
+            metadata = dict(row.eval_metadata or {})
+            # Story B H5 invariants preserved
+            assert _has_h5_mandatory_keys(metadata), (
+                f"Story B H5 6-key invariants violated on extended row; got keys={sorted(metadata.keys())}"
+            )
+            # 3 NEW Story C keys
+            assert metadata.get("persona_kind") == actor.persona_kind, (
+                f"persona_kind drift: expected {actor.persona_kind!r}, got {metadata.get('persona_kind')!r}"
+            )
+            assert metadata.get("schema_version") == str(actor.schema_version), (
+                f"schema_version drift: expected {str(actor.schema_version)!r}, got {metadata.get('schema_version')!r}"
+            )
+            expected_archetype = actor.metadata.get("archetype", "")
+            assert metadata.get("archetype") == expected_archetype, (
+                f"archetype drift: expected {expected_archetype!r}, got {metadata.get('archetype')!r}"
+            )
+    finally:
+        db.close()

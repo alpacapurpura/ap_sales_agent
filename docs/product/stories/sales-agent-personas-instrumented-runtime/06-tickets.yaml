@@ -330,7 +330,7 @@ tickets:
     title: "customer_node integration — V1/V2 dispatch + extend eval_metadata with persona_kind/schema_version/archetype"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: developed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -380,6 +380,8 @@ tickets:
     blocks: [T-6, T-7, T-8]
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developing, at: 2026-05-08T21:30Z, by: builder-agentic-opus-4.7 }
+      - { state: developed, at: 2026-05-08T22:00Z, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════

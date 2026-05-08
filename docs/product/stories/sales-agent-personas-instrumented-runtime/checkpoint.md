@@ -47,6 +47,7 @@ artifacts:
     - `05-guidelines.md` (patterns required + forbidden + 27 files in scope + 22 files NEVER touched + skills/rules to load)
     - `06-tickets.yaml` (9 tickets DAG, 22h estimate, 7 AGENTIC Opus + 1 BE Sonnet + 1 DOCS /pm)
   Cross-module audit ejecutado (NO NEW LAYER rule): personas_loader genuinamente NEW, ActorProfile EXTEND, SCHEMA_MIGRATIONS EXTEND, CUSTOMER_PERSONA_PROMPT V2 ADDITIVE. Story B 7-name __init__ surface frozen. R23 mandatory Opus 4.7 para 7 agentic tickets per Chris autonomy mandate cero deuda. Transition `state: refined → ready`. `next_action: /dev-team` Conv 2 autonomous build.
+- 2026-05-08 22:00Z — `builder-agentic-opus-4.7` cierra T-5 (customer_node V1/V2 dispatch + eval_metadata 3 NEW keys). Single iteration, zero cap. Validators: be_lint ✅, be_format ✅, be_mypy_strict ✅ (zero new errors on 3 T-5 files; pre-existing 21 errors in fixtures/tenant_seeded.py from Story A/B baseline preserved), legacy_simulator_invariants_intact ✅ 112/112, customer_prompt_v2_unit ✅ 26/26, jscpd ✅ 20 clones (+1 vs baseline tras extract `_stub_llm_factory` helper), be_arch_fitness_full ✅ 980/980. Full simulator suite 184 passed + 8 skipped (eval-marked). T-5 transition `state: developed`. T-6/T-7/T-8 ya unblocked (depends_on T-5 satisfied).
 
 ## Próximo paso
 

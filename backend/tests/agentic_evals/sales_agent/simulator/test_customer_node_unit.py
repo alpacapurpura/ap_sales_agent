@@ -476,3 +476,282 @@ class TestEvalRolesIsolation:
         from src.core.enums import ModelRole
 
         assert EVAL_LLM_ROLES["EVAL_USER_SIMULATOR"] == ModelRole.NANO
+
+
+# ───────────────────────────────────────────────────────────────────────
+# T-5 (Story C) — V1/V2 dispatch + extended eval_metadata (3 NEW keys)
+# ───────────────────────────────────────────────────────────────────────
+
+
+def _stub_llm_factory(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    captured_messages: list[Any] | None = None,
+    captured_kwargs: dict[str, Any] | None = None,
+    response_content: str = "Respuesta.",
+) -> None:
+    """Helper — patch ``LLMFactory.get_service`` to return a mock with an
+    ``ainvoke`` coroutine that captures messages + kwargs into the supplied
+    accumulators (T-5 reusable boilerplate to keep jscpd duplicate count
+    flat across the 4 dispatch + metadata tests).
+    """
+
+    async def fake_ainvoke(messages: list[Any], **kwargs: Any) -> MagicMock:
+        if captured_messages is not None:
+            captured_messages.extend(messages)
+        if captured_kwargs is not None:
+            captured_kwargs.update(kwargs)
+        mock_response = MagicMock()
+        mock_response.content = response_content
+        return mock_response
+
+    mock_client = MagicMock()
+    mock_client.ainvoke = AsyncMock(side_effect=fake_ainvoke)
+    mock_service = MagicMock()
+    mock_service.get_client = MagicMock(return_value=mock_client)
+
+    from src.shared.infrastructure.llm import factory as factory_mod
+
+    monkeypatch.setattr(
+        factory_mod.LLMFactory,
+        "get_service",
+        classmethod(lambda cls: mock_service),
+    )
+
+
+class TestV1V2Dispatch:
+    """T-5 — ``customer_node`` dispatches the persona prompt builder by
+    ``actor_profile.schema_version``: ``>= 2`` → ``build_customer_prompt_v2``
+    (sub-slot rotation, current_turn-aware); ``== 1`` → ``build_customer_prompt``
+    (V1 byte-equal back-compat, frozen template).
+
+    The V1 template does NOT carry the V2 sub-slot annotations
+    ("slot cacheable" / "Cómo escalar objeciones"); the V2 template does.
+    Tests probe the rendered ``SystemMessage.content`` captured at the LLM
+    boundary to discriminate.
+    """
+
+    @pytest.mark.asyncio
+    async def test_v2_dispatch_when_schema_version_is_2(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """schema_version=2 → V2 builder produces sub-slot system prompt."""
+        captured_messages: list[Any] = []
+        _stub_llm_factory(
+            monkeypatch,
+            captured_messages=captured_messages,
+            response_content="Decime cuánto sale por favor.",
+        )
+
+        # Default ActorProfile.schema_version == 2 per T-1 bump (Story C D13).
+        # Explicit cement here so the test does not depend on default drift.
+        actor = ActorProfile(
+            id="test-v2-actor",
+            name="V2 Actor",
+            actor_goal="Probar dispatch V2",
+            dialect_code="es-AR",
+            traits=["impaciente"],
+            pain_points=["lead frío"],
+            objections=["precio", "tiempo", "casos previos"],
+            budget_hint="medio",
+            urgency="medium",
+            communication_style="canchera",
+            initial_message="Hola, ¿cuánto sale?",
+            persona_kind="happy",
+            schema_version=2,
+            metadata={"archetype": "tenant_coach_lat"},
+        )
+        state = _make_state(
+            actor=actor,
+            current_turn=3,
+            transcript=[
+                _customer_turn("Hola", 0),
+                _agent_turn("¡Hola! ¿Qué necesitás?", 1),
+                _customer_turn("Cuánto sale", 2),
+            ],
+        )
+        await customer_node(state)
+        system_message = next(
+            (m for m in captured_messages if getattr(m, "type", None) == "system"),
+            None,
+        )
+        assert system_message is not None, "system message expected at index 0"
+        # V2-only marker — sub-slot annotation absent in V1 template
+        assert "slot cacheable" in system_message.content, (
+            "V2 dispatch expected: prompt must include 'slot cacheable' sub-slot annotation"
+        )
+        # V2-only structural section
+        assert "Cómo escalar objeciones" in system_message.content, (
+            "V2 dispatch expected: prompt must include the rotation rule section"
+        )
+        # current_turn rendered into V2 volatile suffix
+        assert "Turno actual: 3" in system_message.content
+
+    @pytest.mark.asyncio
+    async def test_v1_dispatch_when_schema_version_is_1(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """schema_version=1 → V1 builder (legacy fixtures byte-equal)."""
+        captured_messages: list[Any] = []
+        _stub_llm_factory(
+            monkeypatch,
+            captured_messages=captured_messages,
+            response_content="Ok, contáme más.",
+        )
+
+        # Explicit schema_version=1 — legacy v1 persona path. Story C migrator
+        # could promote at load time; this fixture simulates a runtime v1
+        # instance (e.g. legacy frozen golden) reaching customer_node.
+        actor = ActorProfile(
+            id="test-v1-actor",
+            name="V1 Actor",
+            actor_goal="Probar dispatch V1",
+            dialect_code="es-419",
+            traits=["analítica"],
+            pain_points=["resultados lentos"],
+            objections=["precio"],
+            budget_hint="medio",
+            urgency="medium",
+            communication_style="formal",
+            initial_message="Hola, vi tu anuncio.",
+            persona_kind="happy",
+            schema_version=1,
+        )
+        state = _make_state(
+            actor=actor,
+            current_turn=2,
+            transcript=[
+                _customer_turn("Hola", 0),
+                _agent_turn("Hola, ¿en qué ayudo?", 1),
+            ],
+        )
+        await customer_node(state)
+        system_message = next(
+            (m for m in captured_messages if getattr(m, "type", None) == "system"),
+            None,
+        )
+        assert system_message is not None
+        # V1 must NOT carry V2-only sub-slot annotations (anti-drift probe)
+        assert "slot cacheable" not in system_message.content, (
+            "V1 dispatch expected: prompt must NOT carry V2 sub-slot annotations"
+        )
+        assert "Cómo escalar objeciones" not in system_message.content, (
+            "V1 dispatch expected: prompt must NOT carry V2 rotation rule section"
+        )
+        # V1 7-rule structure markers still present (positive probe)
+        assert "[EXIT]" in system_message.content
+        assert "## Tus dolores" in system_message.content
+
+
+class TestExtendedEvalMetadata:
+    """T-5 — ``customer_node`` extends ``eval_metadata`` with 3 NEW keys at the
+    LLM call site:
+
+    * ``persona_kind``      — from ``actor_profile.persona_kind``
+    * ``schema_version``    — ``str(actor_profile.schema_version)`` (jsonb-safe)
+    * ``archetype``         — ``actor_profile.metadata.get('archetype', '')``
+
+    The Story B 6-key invariants (eval_run_kind, archetype_slug,
+    actor_profile_id, trial_n, simulation_id, run_id) MUST be preserved in
+    the dict propagated to ``config["metadata"]["eval_metadata"]``. The
+    callback handler subclass forwards the dict verbatim onto every
+    ``eval_simulator_llm_call`` row (verified at Layer 2 in
+    ``test_simulator_smoke.py::test_eval_metadata_extended_persona_kind``).
+    """
+
+    @pytest.mark.asyncio
+    async def test_eval_metadata_passed_to_llm_extends_with_3_new_keys(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Captured ``config["metadata"]["eval_metadata"]`` carries 3 NEW keys."""
+        captured_kwargs: dict[str, Any] = {}
+        _stub_llm_factory(monkeypatch, captured_kwargs=captured_kwargs)
+
+        actor = ActorProfile(
+            id="test-extended-actor",
+            name="Persona Extendida",
+            actor_goal="Verify metadata extension",
+            dialect_code="es-419",
+            traits=["calma"],
+            pain_points=["X"],
+            objections=["A"],
+            budget_hint="alto",
+            urgency="medium",
+            communication_style="neutro",
+            initial_message="Hola.",
+            persona_kind="nurture",
+            schema_version=2,
+            metadata={"archetype": "tenant_medicina_estetica"},
+        )
+        state = _make_state(
+            actor=actor,
+            current_turn=1,
+            transcript=[_customer_turn("Hola", 0)],
+        )
+        await customer_node(state)
+
+        config = captured_kwargs.get("config") or {}
+        metadata = config.get("metadata") or {}
+        eval_md = metadata.get("eval_metadata") or {}
+
+        # Story B 6-key invariants preserved (defense-in-depth — fail-fast
+        # on any future regression that drops a mandatory key).
+        for h5_key in (
+            "eval_run_kind",
+            "archetype_slug",
+            "actor_profile_id",
+            "trial_n",
+            "simulation_id",
+            "run_id",
+        ):
+            assert h5_key in eval_md, f"Story B H5 mandatory key dropped: {h5_key!r}"
+
+        # 3 NEW keys per T-5
+        assert eval_md["persona_kind"] == "nurture"
+        # schema_version stored as str for jsonb compatibility
+        assert eval_md["schema_version"] == "2"
+        assert eval_md["archetype"] == "tenant_medicina_estetica"
+
+    @pytest.mark.asyncio
+    async def test_eval_metadata_archetype_defaults_empty_when_metadata_missing(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """``actor_profile.metadata`` without ``archetype`` key → ``''`` default."""
+        captured_kwargs: dict[str, Any] = {}
+        _stub_llm_factory(monkeypatch, captured_kwargs=captured_kwargs, response_content="Ok.")
+
+        actor = _make_actor()  # no metadata.archetype set
+        state = _make_state(
+            actor=actor,
+            current_turn=1,
+            transcript=[_customer_turn("Hola", 0)],
+        )
+        await customer_node(state)
+        eval_md = ((captured_kwargs.get("config") or {}).get("metadata") or {}).get("eval_metadata") or {}
+        assert eval_md["archetype"] == ""
+
+    @pytest.mark.asyncio
+    async def test_eval_metadata_does_not_mutate_state_field(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The 3 NEW keys are added to a COPY of ``state.eval_metadata``, not
+        to the underlying state dict. Mutation would violate the LangGraph
+        node contract (nodes return partial dicts; never mutate state).
+        """
+        _stub_llm_factory(monkeypatch, response_content="Ok.")
+
+        state = _make_state(
+            current_turn=1,
+            transcript=[_customer_turn("Hola", 0)],
+        )
+        original_keys_snapshot = set(state.eval_metadata.keys())
+        await customer_node(state)
+        # state.eval_metadata MUST remain the H5 6-key dict — Story B invariant
+        assert set(state.eval_metadata.keys()) == original_keys_snapshot, (
+            "customer_node must NOT mutate state.eval_metadata; Story B 6-key invariant violated."
+        )
