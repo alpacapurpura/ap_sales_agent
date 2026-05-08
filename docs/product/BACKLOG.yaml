@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T17:41:18+00:00
+# Generated at: 2026-05-08T18:44:13+00:00
 
-generated_at: '2026-05-08T17:41:18+00:00'
+generated_at: '2026-05-08T18:44:13+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -298,12 +298,12 @@ buckets:
     title: sales-agent-personas-instrumented-runtime
     tags:
     - legacy:pi-12
-    last_touched: 2026-05-08 20:55:00+00:00
+    last_touched: 2026-05-08 22:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: BUILD_T1_T2_PARALLEL
-      next_action: /dev-team picked. CONTEXT-BRIEF refreshed (Haiku, faithfulness=clean, 16/16 sections). Spawning T-1 (AGENTIC
-        Opus — schema migrators critical) + T-2 (BE Sonnet — 15 YAMLs) parallel build.
+      phase: BUILD_T6
+      next_action: T-6 builder-agentic-opus-4.7 started Scenario 5 integration test. T-3+T-5 satisfied; qualify_lead/tag_lead_status
+        absent in TOOL_REGISTRY → escalation per 05-guidelines.md § Sales_agent toolkit dependency.
       blocked_by: null
       priority_override: null
       audit_iterations: 0

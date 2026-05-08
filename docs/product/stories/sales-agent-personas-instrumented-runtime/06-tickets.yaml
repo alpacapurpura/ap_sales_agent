@@ -525,7 +525,7 @@ tickets:
     title: "Scenario 4 adversarial — extend Story B fixture with prompt-injection-via-traits parametrize"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: developed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -585,6 +585,8 @@ tickets:
     blocks: [T-9]
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developing, at: 2026-05-08T13:30Z, by: builder-agentic-opus-4.7 }
+      - { state: developed, at: 2026-05-08T13:50Z, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════
