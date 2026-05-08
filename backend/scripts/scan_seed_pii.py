@@ -53,22 +53,13 @@ from typing import Any
 import yaml
 
 # ---------------------------------------------------------------------------
-# PII pattern catalog (canonical set from 05-guidelines.md)
+# PII pattern catalog (lifted to _pii_patterns.py — DRY per anti-duplication.md)
 # ---------------------------------------------------------------------------
-
-PATTERNS: dict[str, str] = {
-    "email": r"(?<![a-zA-Z0-9._%+-])([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?![a-zA-Z0-9.])",
-    "phone_intl": r"(?<![\d])(\+\d{1,3}[\s\-]?\(?\d{1,4}\)?[\s\-]?\d{1,4}[\s\-]?\d{1,4}[\s\-]?\d{0,4})(?![\d])",
-    "dni_ar": r"(?<![\d.])(\d{1,2}\.\d{3}\.\d{3})(?![\d.])",
-    "cuit_ar": r"(?<![\d-])(\d{2}-\d{8}-\d)(?![\d])",
-    "rut_cl": r"(?<![\d.])(\d{1,2}\.?\d{3}\.?\d{3}-[\dkK])(?![\d.])",
-    # DNI-PE: 8 digits NOT preceded by context indicating a non-PII identifier
-    # (e.g., database id, hash, URL path segment, version number).
-    "dni_pe": r"(?<![=:#/\d])(?<!\bid=)(?<!\brev=)(?<!\bver=)\b(\d{8})\b(?![\d])",
-    "curp_mx": r"(?<![A-Z])([A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z\d]\d)(?![A-Z\d])",
-    "rfc_mx": r"(?<![A-Z])([A-ZÑ&]{3,4}\d{6}[A-Z\d]{3})(?![A-Z\d])",
-    "url_internal_nicolify": r"https?://(?:[a-zA-Z0-9-]+\.)*nicolify\.com(?:/[^\s]*)?",
-}
+# LIFT 2026-05-08 (T-2 Story D): PATTERNS dict extracted to _pii_patterns.py
+# (shared between scan_seed_pii.py + scan_goldens_pii.py). Re-import here for
+# backward-compat — zero behavior change. Tests in test_seed_pii_scanner.py
+# still pass.
+from _pii_patterns import PATTERNS  # noqa: E402
 
 _COMPILED: dict[str, re.Pattern[str]] = {name: re.compile(pat) for name, pat in PATTERNS.items()}
 

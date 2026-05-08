@@ -285,6 +285,12 @@ def test_blocks_pii_in_seed_tenants(fixture_repo: Path) -> None:
     scanner_dst_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(scanner_src, scanner_dst_dir / "scan_seed_pii.py")
 
+    # T-2 LIFT: scan_seed_pii.py now imports from _pii_patterns.py.
+    # Copy _pii_patterns.py alongside so the scanner resolves its import.
+    pii_patterns_src = REPO_ROOT / "backend" / "scripts" / "_pii_patterns.py"
+    if pii_patterns_src.is_file():
+        shutil.copy(pii_patterns_src, scanner_dst_dir / "_pii_patterns.py")
+
     # Wire backend venv symlink for python interpreter (reuse existing fixture_repo pattern)
     venv_bin = fixture_repo / "backend" / ".venv" / "bin"
     venv_bin.mkdir(parents=True, exist_ok=True)
@@ -342,4 +348,168 @@ def test_blocks_pii_in_seed_tenants(fixture_repo: Path) -> None:
         "Hook should allow commit with only synthetic (whitelisted) PII. "
         f"Got returncode={result_clean.returncode}. "
         f"stdout={result_clean.stdout!r} stderr={result_clean.stderr!r}"
+    )
+
+
+def test_blocks_pii_in_goldens(fixture_repo: Path) -> None:
+    """Section 9 — PII scan blocks commit when staged golden YAML contains real PII.
+
+    Story D T-2: hook Section 9 mirrors Section 8 but for goldens/ path.
+    NO whitelist — strict block (spec D10).
+    """
+    # Wire scan_goldens_pii.py scanner
+    scanner_src = REPO_ROOT / "backend" / "scripts" / "scan_goldens_pii.py"
+    pii_patterns_src = REPO_ROOT / "backend" / "scripts" / "_pii_patterns.py"
+
+    if not scanner_src.is_file():
+        pytest.skip(f"scan_goldens_pii.py not found at {scanner_src} — T-2 scanner not yet created")
+    if not pii_patterns_src.is_file():
+        pytest.skip(f"_pii_patterns.py not found at {pii_patterns_src} — T-2 LIFT not yet done")
+
+    scripts_dir = fixture_repo / "backend" / "scripts"
+    scripts_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy(scanner_src, scripts_dir / "scan_goldens_pii.py")
+    shutil.copy(pii_patterns_src, scripts_dir / "_pii_patterns.py")
+
+    # Wire backend venv python
+    venv_bin = fixture_repo / "backend" / ".venv" / "bin"
+    venv_bin.mkdir(parents=True, exist_ok=True)
+    real_venv_py = REPO_ROOT / "backend" / ".venv" / "bin" / "python"
+    if real_venv_py.exists() and not (venv_bin / "python").exists():
+        (venv_bin / "python").symlink_to(real_venv_py)
+
+    # Create goldens directory path matching hook trigger pattern
+    goldens_dir = (
+        fixture_repo / "backend" / "tests" / "agentic_evals" / "sales_agent" / "goldens" / "tenant_coach_lat" / "happy"
+    )
+    goldens_dir.mkdir(parents=True, exist_ok=True)
+
+    # Stage a YAML with real PII (email)
+    pii_golden = goldens_dir / "pii_golden.yaml"
+    pii_golden.write_text(
+        "id: golden-001\ntenant_slug: tenant_coach_lat\n"
+        "transcript:\n  - role: customer\n    content: Mi email es juan@empresa.com.ar\n",
+        encoding="utf-8",
+    )
+    _git("add", str(pii_golden.relative_to(fixture_repo)), cwd=fixture_repo)
+
+    result = _commit(fixture_repo, "test: add golden with PII")
+    assert result.returncode != 0, (
+        "Section 9 must block commit when goldens YAML contains PII. "
+        f"Got returncode={result.returncode}. "
+        f"stdout={result.stdout!r} stderr={result.stderr!r}"
+    )
+    out = result.stdout + result.stderr
+    assert "PII detected in goldens/" in out or "strict block" in out.lower(), (
+        f"Hook error should mention PII in goldens/. Got: {out!r}"
+    )
+
+
+def test_section_8_seed_pii_still_works_post_lift(fixture_repo: Path) -> None:
+    """Backward-compat: Section 8 (seed PII scan) must still block post LIFT.
+
+    After T-2 LIFT (scan_seed_pii.py re-imports PATTERNS from _pii_patterns.py),
+    Section 8 must still work correctly: PII in staged seed YAML → exit 1.
+    """
+    scanner_src = REPO_ROOT / "backend" / "scripts" / "scan_seed_pii.py"
+    pii_patterns_src = REPO_ROOT / "backend" / "scripts" / "_pii_patterns.py"
+
+    if not scanner_src.is_file():
+        pytest.skip(f"scan_seed_pii.py not found at {scanner_src}")
+
+    scripts_dir = fixture_repo / "backend" / "scripts"
+    scripts_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy(scanner_src, scripts_dir / "scan_seed_pii.py")
+    # Copy _pii_patterns.py if LIFT is done; if not done yet test may fail
+    # at scanner import time — acceptable (RED state pre-LIFT)
+    if pii_patterns_src.is_file():
+        shutil.copy(pii_patterns_src, scripts_dir / "_pii_patterns.py")
+
+    # Wire python
+    venv_bin = fixture_repo / "backend" / ".venv" / "bin"
+    venv_bin.mkdir(parents=True, exist_ok=True)
+    real_venv_py = REPO_ROOT / "backend" / ".venv" / "bin" / "python"
+    if real_venv_py.exists() and not (venv_bin / "python").exists():
+        (venv_bin / "python").symlink_to(real_venv_py)
+
+    tenants_dir = fixture_repo / "backend" / "tests" / "fixtures" / "eval" / "tenants"
+    tenants_dir.mkdir(parents=True, exist_ok=True)
+
+    pii_dir = tenants_dir / "tenant_post_lift"
+    pii_dir.mkdir(parents=True, exist_ok=True)
+    pii_yaml = pii_dir / "seed.yaml"
+    pii_yaml.write_text(
+        "contact:\n  email: real.person@empresa.com\n  phone: '+54 11 9876 5432'\n",
+        encoding="utf-8",
+    )
+    _git("add", str(pii_yaml.relative_to(fixture_repo)), cwd=fixture_repo)
+
+    result = _commit(fixture_repo, "test: seed PII post-lift")
+    assert result.returncode != 0, (
+        "Section 8 seed PII scan must still block after T-2 LIFT refactor. "
+        f"Got returncode={result.returncode}. "
+        f"stdout={result.stdout!r} stderr={result.stderr!r}"
+    )
+    out = result.stdout + result.stderr
+    assert "PII detected in seed/" in out, f"Section 8 must still report 'PII detected in seed/'. Got: {out!r}"
+
+
+def test_voseo_excludes_goldens_path(fixture_repo: Path) -> None:
+    """Section 1 (voseo) must exclude goldens/ path.
+
+    Goldens transcripts may contain voseo when dialect_code=es-AR
+    (sales_agent voice exception). The pre-commit hook Section 1 must
+    skip files under goldens/ path to avoid false positives.
+    """
+    # Create a golden YAML with voseo content in an es-AR transcript
+    goldens_dir = (
+        fixture_repo / "backend" / "tests" / "agentic_evals" / "sales_agent" / "goldens" / "tenant_coach_lat" / "happy"
+    )
+    goldens_dir.mkdir(parents=True, exist_ok=True)
+
+    # Wire scan_goldens_pii.py if available so Section 9 doesn't block
+    scanner_src = REPO_ROOT / "backend" / "scripts" / "scan_goldens_pii.py"
+    pii_patterns_src = REPO_ROOT / "backend" / "scripts" / "_pii_patterns.py"
+    scripts_dir = fixture_repo / "backend" / "scripts"
+    scripts_dir.mkdir(parents=True, exist_ok=True)
+    if scanner_src.is_file():
+        shutil.copy(scanner_src, scripts_dir / "scan_goldens_pii.py")
+    if pii_patterns_src.is_file():
+        shutil.copy(pii_patterns_src, scripts_dir / "_pii_patterns.py")
+
+    venv_bin = fixture_repo / "backend" / ".venv" / "bin"
+    venv_bin.mkdir(parents=True, exist_ok=True)
+    real_venv_py = REPO_ROOT / "backend" / ".venv" / "bin" / "python"
+    if real_venv_py.exists() and not (venv_bin / "python").exists():
+        (venv_bin / "python").symlink_to(real_venv_py)
+
+    # YAML with voseo in es-AR transcript (should NOT be blocked by Section 1)
+    voseo_golden = goldens_dir / "ar_voseo_golden.yaml"
+    voseo_golden.write_text(
+        "id: golden-ar-001\n"
+        "schema_version: 1\n"
+        "tenant_slug: tenant_coach_lat\n"
+        "persona_kind: happy\n"
+        "dialect_code: es-AR\n"
+        "transcript:\n"
+        "  - role: customer\n"
+        "    content: Tenés todo lo que necesito!\n"
+        "    turn_number: 1\n"
+        "expected_termination_reason: GOAL_COMPLETION\n"
+        "expected_voice_attributes: []\n"
+        "expected_tools_invoked: []\n"
+        "forbidden_tools: []\n",
+        encoding="utf-8",
+    )
+    _git("add", str(voseo_golden.relative_to(fixture_repo)), cwd=fixture_repo)
+
+    result = _commit(fixture_repo, "test: golden with voseo dialect es-AR")
+    # Section 1 (voseo) must NOT block goldens/ files
+    # Section 9 (PII) should pass since no PII in this YAML
+    # If scan_goldens_pii.py is not yet deployed, Section 9 is skipped → passes
+    assert result.returncode == 0, (
+        "Hook Section 1 (voseo) must exclude goldens/ path. "
+        "Goldens with es-AR dialect may contain voseo (sales_agent voice exception). "
+        f"Got returncode={result.returncode}. "
+        f"stdout={result.stdout!r} stderr={result.stderr!r}"
     )

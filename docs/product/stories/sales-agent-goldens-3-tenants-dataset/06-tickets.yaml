@@ -124,7 +124,7 @@ tickets:
     title: "_pii_patterns.py LIFT (DRY) + scan_goldens_pii.py NEW + pre-commit hook Section 9"
     type: backend
     surface: BE
-    state: draft
+    state: pushed
     owner_eligibility:
       qwen_opencode: true
       claude_sonnet: true

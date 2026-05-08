@@ -82,13 +82,17 @@ if [ -n "${ALL_TEXT_STAGED}" ]; then
     # Per spanish-text.md exception: sales_agent voice output respects tenant
     # voice (puede ser voseo si AR). Skip personality compiler / specialist
     # prompt templates that LLM consumes as voice instructions.
+    # Also skip goldens/ directory: golden transcripts may contain voseo when
+    # dialect_code=es-AR (Story D D10 + sales_agent voice exception). Path-based
+    # exclusion avoids per-file magic comment proliferation (05-guidelines.md).
     case "${FILE}" in
       */modules/sales_agent/*personality*|\
       */modules/sales_agent/*specialist*|\
       */modules/sales_agent/*.j2|\
       */modules/sales_agent/*system_instruction*|\
       */modules/sales_agent/agent_identity*|\
-      */tests/modules/sales_agent/*goldens*)
+      */tests/modules/sales_agent/*goldens*|\
+      */agentic_evals/sales_agent/goldens/*)
         continue
         ;;
     esac
@@ -550,6 +554,60 @@ Resolution:
      user@example.com for emails, fake ID numbers).
   2. If the flagged value is a legitimate public reference, add it to
      backend/tests/fixtures/eval/tenants/.eval-whitelist with justification.
+
+NEVER use --no-verify (.claude/rules/git-safety.md prohibits).
+─────────────────────────────────────────────────────────────
+EOF
+      printf "\033[0m"
+      exit 1
+    fi
+  fi
+fi
+
+# ─────────────────────────────────────────────────────────────────
+# 9. PII scan on staged goldens YAMLs (Story D — synthetic-first ground truth)
+# ─────────────────────────────────────────────────────────────────
+# Activates ONLY if YAMLs are staged under
+# backend/tests/agentic_evals/sales_agent/goldens/. Runs scan_goldens_pii.py
+# against the full goldens directory to catch drift in unchanged files.
+#
+# Strict block — NO whitelist (spec D10). Synthetic-first invariant:
+# all PII in goldens is a bug, no legitimate exceptions.
+#
+# Scanner exit codes: 0=clean, 1=PII detected, 2=error.
+# Bypass: NEVER use --no-verify. Replace real PII with synthetic equivalents
+# OR delete the offending golden + regenerate via generate_golden_candidates.py.
+
+STAGED_GOLDEN_YAMLS=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null \
+  | grep -E '^backend/tests/agentic_evals/sales_agent/goldens/.*\.yaml$' || true)
+GOLDEN_SCANNER_PY="${REPO_ROOT}/backend/scripts/scan_goldens_pii.py"
+GOLDENS_DIR="${REPO_ROOT}/backend/tests/agentic_evals/sales_agent/goldens"
+
+if [ -n "${STAGED_GOLDEN_YAMLS}" ] && [ -f "${GOLDEN_SCANNER_PY}" ]; then
+  VENV_PY="${REPO_ROOT}/backend/.venv/bin/python"
+  if [ ! -x "${VENV_PY}" ]; then
+    printf "\033[33m"
+    echo "WARNING: backend venv not found — skipping PII goldens scan (Section 9)."
+    printf "\033[0m"
+  else
+    if ! "${VENV_PY}" "${GOLDEN_SCANNER_PY}" "${GOLDENS_DIR}" 2>/tmp/pii-goldens-err.txt; then
+      printf "\033[31m"
+      cat <<EOF
+─────────────────────────────────────────────────────────────
+PRE-COMMIT BLOCKED: PII detected in goldens/ — strict block.
+─────────────────────────────────────────────────────────────
+Synthetic-first invariant: zero PII en golden YAMLs (spec D10).
+NO whitelist disponible para goldens.
+
+$(cat /tmp/pii-goldens-err.txt 2>/dev/null || true)
+
+Resolución:
+  1. Reemplaza PII real con equivalentes sintéticos (nombres como
+     "Cliente Ejemplo", teléfono "+99 0 1234 5678", email "usuario@example.com").
+  2. O elimina el golden y regénéralo con:
+     python backend/scripts/generate_golden_candidates.py \\
+       --tenant <slug> --persona-kind <kind> \\
+       --output-dir _artifacts/goldens_generation/<run_id>/
 
 NEVER use --no-verify (.claude/rules/git-safety.md prohibits).
 ─────────────────────────────────────────────────────────────
