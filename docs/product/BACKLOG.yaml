@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T22:50:43+00:00
+# Generated at: 2026-05-08T23:22:37+00:00
 
-generated_at: '2026-05-08T22:50:43+00:00'
+generated_at: '2026-05-08T23:22:37+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -290,22 +290,7 @@ buckets:
       priority_override: null
       audit_iterations: 0
   developing: []
-  developed:
-  - id: sales-agent-goldens-3-tenants-dataset
-    kind: story
-    state: developed
-    title: sales-agent-goldens-3-tenants-dataset
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 23:50:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: AWAIT_AUDIT
-      next_action: T-1/T-2/T-3/T-4 all pushed + GREEN. Build phase done. T-5 (docs reconciliation) = /pm post-merge AFTER
-        auditor APPROVED. Chris triggers /auditor manual (Conv 3) para Opus auditor cost control.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
+  developed: []
   reviewing: []
   done:
   - id: growth-copilot-layout-unification

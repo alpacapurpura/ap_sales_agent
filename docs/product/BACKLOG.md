@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T22:50:43+00:00`
+> Generated at: `2026-05-08T23:22:37+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -31,8 +31,8 @@
 ### 🔨 Developing (0 / cap 3)
 - _(none)_
 
-### 🧪 Developed — esperando QA (1 / cap 10)
-- **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation`
+### 🧪 Developed — esperando QA (0 / cap 10)
+- _(none)_
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -73,8 +73,7 @@ kanban
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
   🔨 Developing (0 / cap 3)
-  🧪 Developed (1 / cap 10)
-    sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
+  🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
