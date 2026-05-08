@@ -1,11 +1,11 @@
 ---
 story_id: sales-agent-goldens-3-tenants-dataset
 outcome: pi-12-sales-agent-eval-foundation
-state: developing                          # ★ T-4 pushed 2026-05-08 by builder-backend-sonnet ★
-phase: BUILD_T4_COMPLETE
+state: developed                           # ★ TRANSITION developing → developed 2026-05-08T23:50Z by /dev-team ★
+phase: AWAIT_AUDIT
 last_artifact: T-4-result.md
-last_modified: 2026-05-08T23:30:00Z
-next_action: "T-1/T-2/T-3/T-4 all pushed. T-5 = /pm post-merge docs reconciliation. Awaiting gate-runner + auditor-backend."
+last_modified: 2026-05-08T23:50:00Z
+next_action: "T-1/T-2/T-3/T-4 all pushed + GREEN. Build phase done. T-5 (docs reconciliation) = /pm post-merge AFTER auditor APPROVED. Chris triggers /auditor manual (Conv 3) para Opus auditor cost control."
 ratified_by_chris: true                  # spec v3 ratified 2026-05-08T07Z; ready package follow-on
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
@@ -73,3 +73,23 @@ reframe_history:
 4. T-5 /pm post-merge documentation
 
 Build-time validators GREEN → state=developed → `/auditor` triggered manual by Chris → state=reviewing → APPROVED → state=done → /pm merge → capability promotion + archive `docs/archive/2026/stories/sales-agent-goldens-3-tenants-dataset/`.
+
+## Build summary (2026-05-08)
+
+| Ticket | Commit | Tests | Status |
+|---|---|---|---|
+| T-1 schema + parallel migrations | a6c058b2 | 106/106 PASS (37 schema + 22 arch + 47 Story B regression) | pushed |
+| T-2 PII LIFT + scanner + hook §9 | bc679266 | 47/47 PASS (8 single-source + 23 scanner + 16 hook) | pushed |
+| T-3 generate + promote scripts | f1cdaa76 | 68/68 unit PASS, 3 SKIP env-gated (RUN_EVALS / EVAL_GOLDENS_COST_BUCKET_VERIFY — deferred Chris cost approval ~$0.60) | pushed |
+| T-4 referential + coverage + README + arch PII gate | 72360c36 | 41/41 PASS (37 schema + 3 coverage + 1 arch PII), 1016/1016 arch fitness | pushed |
+
+Total: 262 unit/integration tests + 1016 arch fitness PASS. 0 mypy errors (scripts/ excluded per project policy). Ruff clean.
+
+## Pending Chris approval
+
+- Run agentic_eval validators (--run-evals + EVAL_GOLDENS_COST_BUCKET_VERIFY=1) ~$0.60 real LLM cost. Smoke + e2e + cost-bucket invariant. Optional pre-/auditor or auditor decision.
+- Real 20-30 golden curation (manual Chris post-merge — synthetic-first paradigm).
+
+## Hand-off to Chris (Conv 3)
+
+Story state developed. Trigger `/auditor sales-agent-goldens-3-tenants-dataset` cuando listo (controla gasto Opus auditor manualmente).

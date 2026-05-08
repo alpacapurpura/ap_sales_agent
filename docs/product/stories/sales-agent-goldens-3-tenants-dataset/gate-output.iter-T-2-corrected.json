@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/sales-agent-goldens-3-tenants-dataset",
+  "ticket": null,
+  "iter": "T-2-corrected",
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check scripts/_pii_patterns.py scripts/scan_seed_pii.py scripts/scan_goldens_pii.py tests/agentic_evals/sales_agent/test_goldens_pii_scanner.py tests/architecture/test_pii_patterns_single_source.py tests/scripts/test_pre_commit_hook.py && .venv/bin/ruff format --check scripts/_pii_patterns.py scripts/scan_seed_pii.py scripts/scan_goldens_pii.py tests/agentic_evals/sales_agent/test_goldens_pii_scanner.py tests/architecture/test_pii_patterns_single_source.py tests/scripts/test_pre_commit_hook.py && .venv/bin/pytest tests/architecture/test_pii_patterns_single_source.py tests/agentic_evals/sales_agent/test_goldens_pii_scanner.py tests/scripts/test_pre_commit_hook.py tests/fixtures/eval/tenants/test_seed_pii_scanner.py -v --tb=short",
+  "command_alias": null,
+  "started_at": "2026-05-08T22:03:00Z",
+  "finished_at": "2026-05-08T22:03:14Z",
+  "duration_ms": 14000,
+  "exit_code": 0,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/sales-agent-goldens-3-tenants-dataset/gate-logs/iter-T-2-corrected-custom-20260508T220300Z.log",
+  "gates": [
+    {
+      "name": "ruff_check",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff_format",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "pytest",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    }
+  ],
+  "overall": {
+    "any_fail": false,
+    "fail_gate_names": [],
+    "summary": "ruff_check PASS · ruff_format PASS · pytest PASS (47 passed, 7 skipped)"
+  },
+  "notes": "Corrected iter: dropped mypy step (scripts/ excluded in pyproject.toml [tool.mypy]). Corrected pytest path: tests/fixtures/eval/tenants/test_seed_pii_scanner.py instead of tests/scripts/test_seed_pii_scanner.py (correct location). All 47 tests passed; 7 tests skipped (eval markers require --run-evals flag, expected)."
+}
