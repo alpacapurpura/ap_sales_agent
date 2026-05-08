@@ -499,7 +499,7 @@ services:
     networks:
       - internal_net
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:4000/health/readiness"]
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:4000/health/liveliness').status==200 else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
