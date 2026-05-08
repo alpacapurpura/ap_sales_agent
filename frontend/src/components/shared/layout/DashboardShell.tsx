@@ -14,8 +14,8 @@ interface DashboardShellProps {
  *
  * AD1: Hybrid Server+Client split per `tessl__nextjs-app-router-modularization`.
  *
- * Phase 1: Passthrough skeleton — no behavior change vs DashboardLayoutClient.
- * Behavioral activation in T-3 (min-width floor) and T-4 (mutex policy).
+ * Active behavior: T-3 min-width floor + T-4 mutex policy + T-5 CopilotFAB
+ * + T-6 z-index tokens. Owns full shell chrome computation.
  */
 export function DashboardShell({ tenantId, children }: DashboardShellProps) {
   return <DashboardShellClient tenantId={tenantId}>{children}</DashboardShellClient>;

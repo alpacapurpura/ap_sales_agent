@@ -68,7 +68,8 @@ summary:
     title: "Phase 7+8 — Arch test rename/extension + 3 NEW arch tests + ESLint rules + DashboardLayoutClient deletion (Scenario 4)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
+    push_commit_sha_1: "a49bfbd9"
     estimate_hours: 3
     blocked_by: [T-6]
     blocks: [T-8, T-9]
@@ -346,7 +347,16 @@ T7:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T23:00:00Z
+  pushed_at: 2026-05-08T22:38:00Z
+  push_commit_sha_1: "a49bfbd9"
+  push_commit_sha_2: "TBD"
+  transitions:
+    - { state: assigned, at: "2026-05-08T23:00:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: cap-reached-mid-iteration, at: "2026-05-08T22:25:00Z", by: "claude-sonnet", note: "Builder stream watchdog killed at ~600s on test-copilot-widths-ssot regex design (false positives on Tailwind w-[60px]). 80% complete; orchestrator closure required." }
+    - { state: pushed, at: "2026-05-08T22:38:00Z", by: "/dev-team-orchestrator", note: "Manual closure: 1 NEW arch test + 2 ESLint rules + eslint.config wire + DELETE legacy + drain stale allowlists + lint fix pass. 5/5 acceptance validators GREEN." }
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true

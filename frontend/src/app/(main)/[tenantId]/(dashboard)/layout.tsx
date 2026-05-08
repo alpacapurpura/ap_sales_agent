@@ -3,9 +3,6 @@ import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/shared/layout/DashboardShell";
 import { fetchTenantProfileServer } from "@/features/tenant-profile/api/tenant-profile-server";
 
-// DashboardLayoutClient.tsx remains as a file for rollback safety (Phase 8 T-7 deletes it).
-// It is intentionally not imported here.
-
 interface DashboardLayoutProps {
   children: React.ReactNode;
   params: Promise<{ tenantId: string }>;
@@ -20,8 +17,7 @@ interface DashboardLayoutProps {
  *
  * CONTRACT §6.4
  *
- * Phase 1 (T-1): Migrated to DashboardShell (Server passthrough → DashboardShellClient).
- * DashboardLayoutClient.tsx kept unused for rollback (deleted in Phase 8 T-7).
+ * Migrated to DashboardShell (Server passthrough → DashboardShellClient).
  */
 export default async function DashboardLayout({ children, params }: DashboardLayoutProps) {
   const { tenantId } = await params;

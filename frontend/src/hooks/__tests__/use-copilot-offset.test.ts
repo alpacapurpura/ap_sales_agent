@@ -11,11 +11,16 @@
 import { renderHook } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+// boundaries/dependencies: SSoT consumer test must import COPILOT_WIDTHS to assert
+// hook return values match the canonical constants. Hook itself imports the same
+// path (consumer relationship), so test mirrors that contract.
+// eslint-disable-next-line boundaries/dependencies
 import { COPILOT_WIDTHS } from "@/features/copilot/lib/copilot-shell-widths";
 
 // ── Mocks ────────────────────────────────────────────────────────────
 
-// Mock useCopilotStore to expose sidebarState
+// boundaries/dependencies: mock target matches hook's own import — test parity.
+// eslint-disable-next-line boundaries/dependencies
 vi.mock("@/features/copilot/store/copilot-store", () => ({
   useCopilotStore: vi.fn(),
 }));
@@ -25,9 +30,14 @@ vi.mock("@/hooks/use-viewport", () => ({
   useViewport: vi.fn(),
 }));
 
+// eslint-disable-next-line boundaries/dependencies
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+import {
+  useCopilotOffset,
+  COPILOT_OPEN_WIDTH,
+  COPILOT_RAIL_WIDTH,
+} from "@/hooks/use-copilot-offset";
 import { useViewport } from "@/hooks/use-viewport";
-import { useCopilotOffset, COPILOT_OPEN_WIDTH, COPILOT_RAIL_WIDTH } from "@/hooks/use-copilot-offset";
 
 const mockUseCopilotStore = vi.mocked(useCopilotStore);
 const mockUseViewport = vi.mocked(useViewport);

@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Z_INDEX_CLASSES } from "@/lib/tokens/z-index";
 import { cn } from "@/lib/utils";
 
 import { useConversationDetail } from "../hooks/use-conversation-detail";
@@ -402,7 +403,7 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
 
       {/* Scroll-to-bottom badge */}
       {!autoScroll && (
-        <div className="absolute bottom-24 right-6 z-10">
+        <div className={cn("absolute bottom-24 right-6", Z_INDEX_CLASSES.STICKY)}>
           <Button
             type="button"
             variant="secondary"

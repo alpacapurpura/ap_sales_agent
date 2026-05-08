@@ -11,6 +11,16 @@ import prettier from "eslint-plugin-prettier/recommended";
 import checkFile from "eslint-plugin-check-file";
 import jsdoc from "eslint-plugin-jsdoc";
 import globals from "globals";
+import { noShadowingCopilotOffset } from "./eslint-rules/no-shadowing-copilot-offset.mjs";
+import { useShellMutexForDrawerToggles } from "./eslint-rules/use-shell-mutex-for-drawer-toggles.mjs";
+
+// Local plugin: nicolify custom rules (T-7 app-shell-sidebar-copilot-decoupling)
+const nicolifyPlugin = {
+  rules: {
+    "no-shadowing-copilot-offset": noShadowingCopilotOffset,
+    "use-shell-mutex-for-drawer-toggles": useShellMutexForDrawerToggles,
+  },
+};
 
 /** @type {import("eslint").Linter.Config[]} */
 export default [
@@ -498,5 +508,14 @@ export default [
       "*.config.mjs",
       "prettier.config.*",
     ],
+  },
+
+  // ─── Nicolify custom rules (T-7 app-shell-sidebar-copilot-decoupling) ───
+  {
+    plugins: { nicolify: nicolifyPlugin },
+    rules: {
+      "nicolify/no-shadowing-copilot-offset": "error",
+      "nicolify/use-shell-mutex-for-drawer-toggles": "warn",
+    },
   },
 ];

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Z_INDEX_CLASSES } from "@/lib/tokens/z-index";
 import { cn } from "@/lib/utils";
 
 import { useConversationGroups } from "../hooks/use-conversation-groups";
@@ -337,7 +338,12 @@ export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPane
               groups.map((group) => (
                 <div key={group.label}>
                   {/* Sticky group header — opaque bg, no border-b → keeps left panel border continuous */}
-                  <div className="sticky top-0 z-10 bg-background px-3 pb-1 pt-3">
+                  <div
+                    className={cn(
+                      "sticky top-0 bg-background px-3 pb-1 pt-3",
+                      Z_INDEX_CLASSES.STICKY,
+                    )}
+                  >
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       {group.label}
                     </span>

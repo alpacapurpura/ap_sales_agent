@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T03:00:58+00:00`
+> Generated at: `2026-05-08T03:38:19+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -22,7 +22,7 @@
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT_REFRAMED]
-- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
+- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation` [UX_AGENTIC_DESIGN_DRAFT_V1]
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 
