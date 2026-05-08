@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { getChannelConfig } from "../../../config/channel-display-registry";
+import { getChannelConfig } from "../../../lib/channel-display-registry";
 import { METRIC_LABELS } from "../../../lib/metric-labels";
 import { formatNum, formatCurrency } from "../utils/format";
 

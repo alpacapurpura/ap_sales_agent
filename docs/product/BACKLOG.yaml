@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T01:09:57+00:00
+# Generated at: 2026-05-08T02:24:06+00:00
 
-generated_at: '2026-05-08T01:09:57+00:00'
+generated_at: '2026-05-08T02:24:06+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -361,12 +361,12 @@ buckets:
     state: developing
     title: app-shell-sidebar-copilot-decoupling
     tags: []
-    last_touched: 2026-05-07 22:30:00+00:00
+    last_touched: 2026-05-08 02:30:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_T1
-      next_action: /dev-team Conv 2 autonomous build IN PROGRESS — T-1 (Phase 1 skeleton SSoT + DashboardShell passthrough).
-        Sequential 9 tickets T-1 → T-9.
+      phase: BUILD_T4_DONE
+      next_action: '/dev-team Conv 2 — T-4 PUSHED (6b691987). T-5 next: Phase 5 — CopilotFAB + AppSidebar mobile aria-labels
+        (Scenario 3). T-5 unblocked.'
       blocked_by: null
       priority_override: null
       audit_iterations: 0

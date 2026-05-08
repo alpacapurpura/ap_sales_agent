@@ -5,7 +5,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-import { getSummaryMetrics } from "../../../config/channel-display-registry";
+import { getSummaryMetrics } from "../../../lib/channel-display-registry";
 import { useMetricCatalog } from "../../../hooks/use-metric-catalog";
 import { useSyncChannel } from "../../../hooks/use-sync-channel";
 import { getChannelIcon, getChannelColor } from "../../../lib/channel-icons";

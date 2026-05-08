@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 
-import { useGrowthSync } from "../context/growth-sync-context";
+import { useGrowthSync } from "../store/growth-sync-store";
 
 /**
  *

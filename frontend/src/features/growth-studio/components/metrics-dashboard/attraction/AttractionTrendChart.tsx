@@ -14,7 +14,7 @@ import {
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDate } from "@/lib/format-date";
 
-import { getChannelColor } from "../../../config/channel-chart-config";
+import { getChannelColor } from "@/lib/constants/channel-colors";
 
 import type { StageTimeSeries } from "../../../types/metrics";
 

@@ -41,7 +41,8 @@ summary:
     title: "Phase 4 — Activate mutex policy (Scenarios 1, 3)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
+    push_commit_sha: "6b691987"
     estimate_hours: 3
     blocked_by: [T-3]
     blocks: [T-5]
@@ -222,7 +223,11 @@ T4:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: assigned
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T21:00:00Z
+  transitions:
+    - { state: assigned, at: "2026-05-08T21:00:00Z", by: "/dev-team", to: "claude-sonnet" }
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true

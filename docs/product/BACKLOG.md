@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T01:09:57+00:00`
+> Generated at: `2026-05-08T02:24:06+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -33,7 +33,7 @@
 - _(none)_
 
 ### 🔨 Developing (2 / cap 3)
-- **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification` [BUILD_T1]
+- **app-shell-sidebar-copilot-decoupling** — outcome `growth-copilot-layout-unification` [BUILD_T4_DONE]
 - **growth-studio-folder-parity** — outcome `growth-copilot-layout-unification` [BUILD_T3]
 
 ### 🧪 Developed — esperando QA (0 / cap 2)

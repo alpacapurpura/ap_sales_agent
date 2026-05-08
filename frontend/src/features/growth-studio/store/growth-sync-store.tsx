@@ -1,0 +1,58 @@
+"use client";
+
+import { createContext, useContext, useCallback, type ReactNode } from "react";
+
+import { useSyncAllSources } from "../hooks/use-sync-all-sources";
+
+import type { SyncAllResponse } from "../api/metrics-api";
+
+interface GrowthSyncContextValue {
+  startSync: (days?: number) => void;
+  isSyncing: boolean;
+  syncResult: SyncAllResponse | undefined;
+  syncError: Error | null;
+  resetSync: () => void;
+}
+
+const GrowthSyncContext = createContext<GrowthSyncContextValue | null>(null);
+
+/**
+ * Hook to access the growth sync state.
+ * Must be used inside GrowthSyncProvider.
+ */
+export function useGrowthSync() {
+  const ctx = useContext(GrowthSyncContext);
+  if (!ctx) throw new Error("useGrowthSync must be used inside GrowthSyncProvider");
+  return ctx;
+}
+
+/**
+ * Provider that exposes sync state for all growth-studio components.
+ * Wraps useSyncAllSources mutation into a shared context.
+ */
+export function GrowthSyncProvider({ children }: { children: ReactNode }) {
+  const { trigger, isLoading, result, error, reset } = useSyncAllSources();
+
+  const startSync = useCallback(
+    (days = 30) => {
+      trigger(days);
+    },
+    [trigger],
+  );
+
+  const syncError = error instanceof Error ? error : error ? new Error(String(error)) : null;
+
+  return (
+    <GrowthSyncContext.Provider
+      value={{
+        startSync,
+        isSyncing: isLoading,
+        syncResult: result,
+        syncError,
+        resetSync: reset,
+      }}
+    >
+      {children}
+    </GrowthSyncContext.Provider>
+  );
+}

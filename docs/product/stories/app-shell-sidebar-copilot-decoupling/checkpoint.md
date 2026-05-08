@@ -2,10 +2,10 @@
 story_id: app-shell-sidebar-copilot-decoupling
 outcome: growth-copilot-layout-unification
 state: developing
-phase: BUILD_T1
-last_artifact: checkpoint.md
-last_modified: 2026-05-07T22:30:00Z
-next_action: "/dev-team Conv 2 autonomous build IN PROGRESS — T-1 (Phase 1 skeleton SSoT + DashboardShell passthrough). Sequential 9 tickets T-1 → T-9."
+phase: BUILD_T4_DONE
+last_artifact: T-4-result.md
+last_modified: 2026-05-08T02:30:00Z
+next_action: "/dev-team Conv 2 — T-4 PUSHED (6b691987). T-5 next: Phase 5 — CopilotFAB + AppSidebar mobile aria-labels (Scenario 3). T-5 unblocked."
 build_started_at: 2026-05-07T22:30:00Z
 build_started_by: /dev-team
 ratified_by_chris: true

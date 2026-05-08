@@ -16,7 +16,7 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { useGrowthSync } from "../../../context/growth-sync-context";
+import { useGrowthSync } from "../../../store/growth-sync-store";
 import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
 import { useStageTimeSeries } from "../../../hooks/use-stage-detail";
 import { useStageOverview } from "../../../hooks/use-stage-overview";
