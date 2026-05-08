@@ -260,7 +260,7 @@ tickets:
     title: "Customer Prompt V2 — sub-slot pain/objection rotation turn-by-turn (additive)"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: developed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -316,6 +316,8 @@ tickets:
     blocks: [T-5]
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developing, at: 2026-05-08T21:00Z, by: builder-agentic-opus-4.7 }
+      - { state: developed, at: 2026-05-08T21:15Z, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════
