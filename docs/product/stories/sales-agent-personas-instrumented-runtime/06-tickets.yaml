@@ -467,7 +467,7 @@ tickets:
     title: "Scenario 6 integration — nurture realistic multi-question 8-15 turns × 5 archetypes"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: developed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -523,7 +523,15 @@ tickets:
     blocks: [T-9]
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developing, at: 2026-05-08T18:51Z, by: builder-agentic-opus-4.7 }
+      - { state: developed, at: 2026-05-08T19:00Z, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
+    skip_with_escalation:
+      reason: "sales_agent runtime TOOL_REGISTRY lacks qualify_lead + tag_lead_status — paridad with T-6 escalation per 05-guidelines.md § 'Sales_agent toolkit dependency'. T-7 inherits T-6 capability probe at collection."
+      decision_pending: "/pm already chose option B in T-6 closure (accept SKIP for Story C); T-7 inherits same path (no new escalation)"
+      test_body_complete: true            # Test transitions GREEN automatically once toolkit lands (paridad with T-6)
+      capability_probe_path: "backend/tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::_sales_agent_toolkit_supports_qualification (shared with T-6)"
+    commit_sha: "pending-push"
 
   # ═════════════════════════════════════════════════════════════════════
   # T-8 — Scenario 4 adversarial parametrize (prompt-injection-via-traits)

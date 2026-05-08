@@ -2,10 +2,10 @@
 story_id: sales-agent-personas-instrumented-runtime
 outcome: pi-12-sales-agent-eval-foundation
 state: developing
-phase: BUILD_T6
-last_artifact: T-6-impl-log.md
-last_modified: 2026-05-08T22:30:00Z
-next_action: "T-6 builder-agentic-opus-4.7 started Scenario 5 integration test. T-3+T-5 satisfied; qualify_lead/tag_lead_status absent in TOOL_REGISTRY → escalation per 05-guidelines.md § Sales_agent toolkit dependency."
+phase: BUILD_T7
+last_artifact: T-7-result.md
+last_modified: 2026-05-08T19:00:00Z
+next_action: "T-7 closed (state developed). Test fn body fully implemented per spec § Scenario 6 (7 production-critical assertions); 5/5 SKIP at collection via _TOOLKIT_SUPPORTED capability probe shared with T-6 (paridad escalation per 05-guidelines.md § Sales_agent toolkit dependency). T-9 unblocked per T-6 + T-7 + T-8 all developed."
 build_started_at: 2026-05-08T20:55:00Z
 build_started_by: /dev-team
 ratified_by_chris: true
@@ -48,6 +48,7 @@ artifacts:
     - `06-tickets.yaml` (9 tickets DAG, 22h estimate, 7 AGENTIC Opus + 1 BE Sonnet + 1 DOCS /pm)
   Cross-module audit ejecutado (NO NEW LAYER rule): personas_loader genuinamente NEW, ActorProfile EXTEND, SCHEMA_MIGRATIONS EXTEND, CUSTOMER_PERSONA_PROMPT V2 ADDITIVE. Story B 7-name __init__ surface frozen. R23 mandatory Opus 4.7 para 7 agentic tickets per Chris autonomy mandate cero deuda. Transition `state: refined → ready`. `next_action: /dev-team` Conv 2 autonomous build.
 - 2026-05-08 22:00Z — `builder-agentic-opus-4.7` cierra T-5 (customer_node V1/V2 dispatch + eval_metadata 3 NEW keys). Single iteration, zero cap. Validators: be_lint ✅, be_format ✅, be_mypy_strict ✅ (zero new errors on 3 T-5 files; pre-existing 21 errors in fixtures/tenant_seeded.py from Story A/B baseline preserved), legacy_simulator_invariants_intact ✅ 112/112, customer_prompt_v2_unit ✅ 26/26, jscpd ✅ 20 clones (+1 vs baseline tras extract `_stub_llm_factory` helper), be_arch_fitness_full ✅ 980/980. Full simulator suite 184 passed + 8 skipped (eval-marked). T-5 transition `state: developed`. T-6/T-7/T-8 ya unblocked (depends_on T-5 satisfied).
+- 2026-05-08 19:00Z — `builder-agentic-opus-4.7` cierra T-7 (Scenario 6 nurture multi-question realistic — 5 archetypes × 1 trial × max_turns=15). Single iteration, zero cap (4 quick RUF002/RUF003 ambiguous Unicode `×` lint nits fixed within iter — paridad with T-6 docstring style usando `x`). Test fn `test_nurture_multi_question_realistic` 7-step assertion cement (8≤turns≤15 + qualify_lead invoked + NO premature close turn-aware before turn 8 + ≥5 distinct objections via substring prefix match for V2 sub-slot rotation T-4 binding + cost-bucket H6 + persona_kind=nurture tag T-5 + termination ≠ AGENT_ERROR). Reuses T-6 scaffold verbatim (`_TOOLKIT_SUPPORTED`/`_TOOLKIT_SKIP_REASON`/`_FORBIDDEN_CLOSE_TOOL_PATTERNS`/`_extract_tool_call_signals`) — zero new helpers, +254 lines. SKIP path inherited T-6 (sales_agent toolkit dependency missing — paridad escalation, /pm option B already accepted T-6 closure). Validators: be_lint ✅, be_format ✅ (35 files already formatted), be_mypy_strict ✅ T-7 surface clean, scenario_6 ✅ 5/5 SKIP-with-escalation, legacy_simulator_invariants_intact ✅ 112/112, jscpd ✅ 14 clones / 1.37% (T-7 added zero new clones), be_arch_fitness_full ✅ 980/980. Full simulator suite 209 passed + 34 skipped (15 T-6 + 5 T-7 SKIP). T-7 transition `state: developed`. T-9 unblocked (T-6 + T-7 + T-8 all developed).
 
 ## Próximo paso
 

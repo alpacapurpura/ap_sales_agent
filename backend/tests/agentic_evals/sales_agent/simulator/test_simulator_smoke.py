@@ -1152,3 +1152,250 @@ async def test_qualifies_out_unqualified_lead(
 
     finally:
         db.close()
+
+
+# ════════════════════════════════════════════════════════════════════════
+# T-7 / Story C — Scenario 6: nurture multi-question realistic (NEW v3)
+# ════════════════════════════════════════════════════════════════════════
+#
+# * Realistic LATAM coverage. 5 tenants x 1 trial x max_turns=15 (per spec
+# §Scenario 6 + D16 trial policy nurture=1 — info-deep paths less critical
+# pass^k vs close + qualification accuracy).
+#
+# Spec § Scenario 6 cement (4 new assertions on top of T-6 scaffold):
+#   1. Total turns 8-15 (realistic preguntón — no early close, no loop)
+#   2. qualify_lead invoked (BANT/MEDDIC heuristic — paridad with T-6)
+#   3. NO premature close: forbidden tools (enroll_/schedule_appointment/
+#      payment_link) NOT invoked BEFORE turn 8 (turn-aware window)
+#   4. ≥5 distinct objections raised by customer — Customer Prompt V2
+#      sub-slot rotation works (T-4 capability binding)
+#
+# Reuses T-6's mature scaffold:
+#   - `_TOOLKIT_SUPPORTED` / `_TOOLKIT_SKIP_REASON` (module-level capability
+#     probe — single resolve at collection time)
+#   - `_FORBIDDEN_CLOSE_TOOL_PATTERNS` (forbidden close tool patterns)
+#   - `_extract_tool_call_signals` (tool-name signal scanning helper —
+#     metadata + content text dual-probe)
+#
+# Skip path: when sales_agent's TOOL_REGISTRY lacks `qualify_lead`,
+# `_TOOLKIT_SUPPORTED` evaluates False (probed once when T-6 scaffold
+# initialised) and the `pytest.mark.skipif` decorator skips this test
+# alongside T-6 with the same documented reason. Per /pm decision T-6 §
+# "Sales_agent toolkit dependency", T-7 inherits SKIP-with-escalation
+# (option B accepted — Story C closure preferred over scope creep).
+#
+# Cost note (D9 / Story C baseline): real-LLM mode under `--run-evals`
+# spawns 5 simulations x <=15 turns ~ $0.50 / suite (nurture max_turns=15
+# is longest of all kinds). Cost guard `agentic_cost_budget_story_c_baseline`
+# enforces individual <$0.10 + suite total <$3.00 (T-6 + T-7 combined).
+
+
+@pytest.mark.skipif(
+    not _TOOLKIT_SUPPORTED,
+    reason=_TOOLKIT_SKIP_REASON,
+)
+@pytest.mark.parametrize("tenant_slug", sorted(_VALID_TENANT_SLUGS))
+@pytest.mark.asyncio
+async def test_nurture_multi_question_realistic(
+    tenant_slug: str,
+    run_id: UUID,
+) -> None:
+    """T-7 / Story C — Scenario 6 realistic LATAM nurture multi-question.
+
+    For each of the 5 archetype tenants x 1 trial (D16 nurture trial
+    policy — info path less critical pass^k), run the full dual-LLM
+    simulation against the ``nurture`` persona and assert the realistic
+    preguntón behavior cement:
+
+    1. **Total turns 8-15** — realistic LATAM info-deep range (no early
+       close, no infinite loop). Spec § Scenario 6: "preguntones
+       comparison-shopper multi-objection" typical 8-15 turns; max_turns
+       D15 = 15.
+    2. **qualify_lead invoked** — BANT/MEDDIC heuristic. Paridad with T-6
+       Scenario 5 (sales_agent qualifies, even on info path).
+    3. **NO premature close** — `enroll_*` / `schedule_appointment` /
+       `payment_link` / `confirm_appointment` / `present_offer_ladder`
+       patterns FORBIDDEN before turn 8 (per spec § Scenario 6 grader
+       `no_premature_close: { tool_pattern: "enroll_*|schedule_appointment",
+       before_turn: 8 }` + 03-arch.md §4.6 sample). Turn-aware window —
+       agent MAY invoke close tools after turn 8 if customer pivots to
+       intent-to-close (e.g., turn 11 of 02-design-agentic.md transcript
+       Kind 2 invokes scheduling appropriately).
+    4. **≥5 distinct objections raised by customer** — Customer Prompt
+       V2 sub-slot rotation capability validation (T-4 binding). Per
+       spec § Scenario 6 grader `transcript_constraint:
+       min_distinct_objections_handled: 5`. Detection via substring
+       prefix match (first 20 chars of each declared
+       `actor.objections`) against concatenated customer turn content.
+       The threshold uses ``min(5, len(actor.objections))`` so personas
+       with fewer declared objections do not false-fail (graceful-
+       degradation per Step 0 GATE §4).
+    5. **Termination reason** — typically `CUSTOMER_EXIT` (info-deep
+       closure per 02-design-agentic.md transcript Kind 2 turn 12) or
+       `MAX_TURNS` (15-turn cap reached). `GOAL_COMPLETION` allowed
+       (≤30% per spec voice fidelity). `AGENT_ERROR` allowed BUT flagged
+       via diagnostic (info-deep paths sometimes hit LLM transients per
+       H7 graceful-degradation).
+    6. **Cost bucket separation H6 + persona_kind tag** — paridad with
+       T-6: rows in `eval_simulator_llm_call`, ≥1 row carries
+       `eval_metadata.persona_kind == "nurture"` (T-5 customer_node
+       extension propagation).
+
+    Skip path: when sales_agent's TOOL_REGISTRY lacks `qualify_lead`,
+    this test is SKIPPED via the module-level `skipif` decorator
+    (paridad with T-6 — single capability probe at collection). The
+    skip reason cites the toolkit dependency for future activation per
+    05-guidelines.md § "Sales_agent toolkit dependency (escalation
+    path)".
+
+    Args:
+        tenant_slug: One of 5 Story A seed slugs (parametrize).
+        run_id: Fresh UUID4 per test (function-scoped).
+    """
+    db = _get_db_session()
+    if db is None:
+        pytest.skip("integration env missing — Postgres unreachable; T-7 skip per parent conftest pattern")
+
+    try:
+        # Load the nurture persona for this archetype.
+        try:
+            actor: ActorProfile = load_actor_profile_for_tenant(
+                tenant_slug,
+                persona_kind="nurture",
+            )
+        except (FileNotFoundError, KeyError, ValueError) as exc:
+            pytest.skip(
+                f"nurture persona for {tenant_slug!r} not loadable "
+                f"(T-2 YAML missing or D-AG-1 dialect mismatch): "
+                f"{type(exc).__name__}: {exc}"
+            )
+            return  # pragma: no cover — pytest.skip raises
+
+        # Seed the synthetic eval tenant (idempotent T-3 pattern).
+        try:
+            seed_eval_tenant(db, tenant_slug)
+        except FileNotFoundError as exc:
+            pytest.skip(f"integration env missing — eval tenant YAML not found: {exc}")
+            return  # pragma: no cover
+
+        max_turns = get_max_turns_for_persona_kind("nurture")  # D15 = 15
+        assert max_turns == 15, f"D15 contract drift — nurture max_turns expected 15; got {max_turns}"
+
+        # Run the full simulation end-to-end. D16 nurture trial policy =
+        # 1 trial (info path less critical pass^k); we hardcode trial_n=0
+        # rather than parametrize to honor the trial policy at the test
+        # level (vs T-6 unqualified parametrizes 0/1/2 trials).
+        result: SimulationResult = await run_simulation(
+            tenant_slug,
+            actor,
+            max_turns=max_turns,
+            trial_n=0,
+            run_id=run_id,
+            db_session=db,
+        )
+
+        # ── 1. Total turns 8-15 (realistic preguntón range) ─────────────
+        # Spec § Scenario 6: "Total turns 8-15 (realistic preguntón — no
+        # early close, no infinite loop)". 03-arch.md §4.6 sample:
+        # `assert 8 <= result.total_turns <= 15`. Lower bound 8 catches
+        # premature termination; upper bound 15 = max_turns cap.
+        assert 8 <= result.total_turns <= 15, (
+            f"Scenario 6 nurture turns {result.total_turns} outside realistic "
+            f"8-15 range for tenant_slug={tenant_slug!r}; expected preguntón "
+            f"info-deep path; termination={result.termination_reason!r} "
+            f"error_subtype={result.error_subtype!r}"
+        )
+
+        # ── 2. Termination reason graceful (Step 0 GATE §4) ────────────
+        # Allow {GOAL_COMPLETION, CUSTOMER_EXIT, MAX_TURNS, AGENT_ERROR}
+        # — info-deep paths sometimes hit LLM transients per H7 taxonomy.
+        # On AGENT_ERROR, fail with diagnostic (does NOT silently pass).
+        accepted_terminations = {
+            TerminationReason.GOAL_COMPLETION,
+            TerminationReason.CUSTOMER_EXIT,
+            TerminationReason.MAX_TURNS,
+        }
+        assert result.termination_reason in accepted_terminations, (
+            f"Scenario 6 nurture terminated with {result.termination_reason!r} "
+            f"(expected one of {accepted_terminations}; AGENT_ERROR signals "
+            f"runtime issue, not info-deep info path closure) for "
+            f"tenant_slug={tenant_slug!r}; error_subtype={result.error_subtype!r}"
+        )
+
+        # ── 3. NO premature close — forbidden patterns BEFORE turn 8 ───
+        # Per spec § Scenario 6 grader: `no_premature_close: { tool_pattern:
+        # "enroll_*|schedule_appointment", before_turn: 8 }`. Turn-aware
+        # window — agent MAY invoke close after turn 8 (e.g., turn 11 of
+        # design Kind 2 transcript invokes scheduling appropriately).
+        agent_turns_before_8 = [turn for turn in result.transcript if turn.role == "agent" and turn.turn_number < 8]
+        early_signals = _extract_tool_call_signals(agent_turns_before_8)
+        for forbidden_pattern in _FORBIDDEN_CLOSE_TOOL_PATTERNS:
+            matching = [s for s in early_signals if forbidden_pattern in s]
+            assert not matching, (
+                f"Scenario 6 invoked forbidden close tool pattern "
+                f"{forbidden_pattern!r} BEFORE turn 8 for nurture persona "
+                f"{actor.id!r} (tenant_slug={tenant_slug!r}); "
+                f"matching early signals: {matching[:3]!r}"
+                f"{'...' if len(matching) > 3 else ''}"
+            )
+
+        # ── 4. qualify_lead invoked (BANT/MEDDIC heuristic) ────────────
+        # Paridad with T-6 — sales_agent qualifies even on info path.
+        # Probe across ENTIRE transcript (not just early turns); spec
+        # grader `tool_calls: { required: ["qualify_lead"], min_count: 1 }`.
+        all_signals = _extract_tool_call_signals(result.transcript)
+        qualify_lead_invoked = any("qualify_lead" in s for s in all_signals)
+        assert qualify_lead_invoked, (
+            f"Scenario 6 did NOT invoke qualify_lead for nurture persona "
+            f"{actor.id!r} (tenant_slug={tenant_slug!r}); "
+            f"transcript len={len(result.transcript)}; "
+            f"signals scanned={len(all_signals)} (sample: {all_signals[:2]!r})"
+        )
+
+        # ── 5. ≥5 distinct objections — sub-slot rotation works ────────
+        # Per spec § Scenario 6 grader: `transcript_constraint:
+        # min_distinct_objections_handled: 5`. Customer Prompt V2 capability
+        # validation (T-4 binding — sub-slot rotation turn-by-turn).
+        # Detection: substring prefix match (first 20 chars of each
+        # declared objection) against concatenated customer turn content
+        # (ignoring case). Threshold uses ``min(5, len(actor.objections))``
+        # so personas with fewer declared objections do not false-fail.
+        customer_turns = [t for t in result.transcript if t.role == "customer"]
+        customer_content = " ".join(t.content for t in customer_turns).lower()
+        distinct_objections_seen = sum(
+            1 for objection in actor.objections if objection and objection[:20].lower() in customer_content
+        )
+        expected_min = min(5, len(actor.objections))
+        assert distinct_objections_seen >= expected_min, (
+            f"Scenario 6 customer raised {distinct_objections_seen} distinct "
+            f"objections (expected ≥{expected_min}; "
+            f"len(actor.objections)={len(actor.objections)}) — Customer "
+            f"Prompt V2 sub-slot rotation may not be working for "
+            f"tenant_slug={tenant_slug!r}; "
+            f"actor.objections sample: {actor.objections[:3]!r}"
+            f"{'...' if len(actor.objections) > 3 else ''}"
+        )
+
+        # ── 6. Cost bucket separation preserved (H6 Story B invariant) ──
+        # Smoke check: rows MUST exist in eval_simulator_llm_call. Full
+        # cross-bucket contamination probe lives in
+        # agentic_cost_bucket_zero_contamination (04-validators.yaml).
+        llm_rows = _query_eval_simulator_llm_call_rows(db, result.simulation_id)
+        assert len(llm_rows) >= 1, (
+            f"eval_simulator_llm_call expected >=1 row for simulation_id="
+            f"{result.simulation_id} (cost-bucket separation H6); got 0 "
+            f"for tenant_slug={tenant_slug!r}"
+        )
+
+        # ── 7. Story C eval_metadata extension propagation (T-5 contract) ─
+        # At least one row should carry the persona_kind=nurture tag
+        # (customer_node extends eval_metadata at the LLM boundary).
+        rows_with_persona_kind = [row for row in llm_rows if (row.eval_metadata or {}).get("persona_kind") == "nurture"]
+        assert rows_with_persona_kind, (
+            f"No eval_simulator_llm_call row carries persona_kind='nurture' "
+            f"for simulation_id={result.simulation_id} — T-5 customer_node "
+            f"extension not propagated for tenant_slug={tenant_slug!r}"
+        )
+
+    finally:
+        db.close()
