@@ -684,7 +684,7 @@ tickets:
       - { state: developing, at: 2026-05-08T19:30Z, by: builder-agentic }
       - { state: tests-passing, at: 2026-05-08T20:00Z, by: builder-agentic }
     assigned_to: claude-opus
-    push_commit_sha: _pending_
+    push_commit_sha: "029cbb49"
 
 # ═══════════════════════════════════════════════════════════════════════
 # Dependency graph (DAG)
