@@ -2,11 +2,11 @@
 ---
 story_id: eval-foundation-simulator-homologation
 outcome: pi-12-sales-agent-eval-foundation
-state: developing
-phase: BUILD_GREEN_T-10
+state: developed
+phase: AWAIT_AUDIT
 last_artifact: T-10-result.md
-last_modified: 2026-05-08T20:00:00Z
-next_action: "T-10 done (state: tests-passing; 33 ticket-tests across 4 new test files + 5 EXTEND tests on test_termination_registry.py GREEN + 160/160 simulator suite + 33/33 sales_agent obs downstream + 939/939 full arch fitness GREEN — no regression). 4 spec scenarios fully covered (5-archetype happy parametrize + negative + edge x2 + adversarial x2). H1+H3+H4+H6+H7+H8+H10 hardening invariants tested. R3 SSoT updated. Capability YAML bumped. Story B BUILD COMPLETE — awaiting orchestrator to spawn gate-runner + auditor-agentic for independent verdict on entire Story B (T-1..T-10)."
+last_modified: 2026-05-08T20:30:00Z
+next_action: "Story B BUILD COMPLETE — 10/10 tickets cerrados (T-1..T-10), todos pushed origin/development. State developing→developed (per /dev-team Step 5). Awaiting Chris manual trigger /auditor para Conv 3 review+merge. /auditor spawnea auditor-{backend,agentic} → CHECKPOINTS.md C1-C5 → APPROVED|CHANGES_REQUESTED|ESCALATED → /pm merge. Unblocks Stories C/D/E/F/G/H/I downstream."
 ratified_by_chris: true                  # mandato 2026-05-07: "vos decidís cero deuda 1000+ tenants"
 spawned_at: 2026-05-06T17:11:00Z
 spawned_by: /pm
