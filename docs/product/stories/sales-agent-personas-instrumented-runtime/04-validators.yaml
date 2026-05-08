@@ -1,0 +1,415 @@
+# 04-validators.yaml — Story sales-agent-personas-instrumented-runtime
+#
+# /architect orchestrator delivered (2026-05-08). Schema v4 — 4 categories.
+# /dev-team itera contra estos hasta GREEN o cap_reached. /auditor verifica
+# cada uno corrió + GREEN antes APPROVED.
+#
+# Story type: agentic-story (mixed BE test-infra YAMLs + AGENTIC test-infra loader/prompt v2/scenarios).
+# Surfaces: AGENTIC test-infra (7 tickets) + BE test-infra (3 tickets). FE N/A.
+# Native-first WSL — NUNCA Docker para tests.
+
+story_id: sales-agent-personas-instrumented-runtime
+schema_version: v4
+last_modified: 2026-05-08T07:00:00Z
+arch_link: 03-arch.md
+
+validators:
+  # ═══════════════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: be_arch_fitness_full
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 240
+    description: "Full BE arch fitness — DDD + API contracts + naming + SQLA 2.0 + simulator gates + NEW gate test_personas_yaml_completeness.py. Allowlists empty / shrink-only."
+
+  - id: be_lint
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff check tests/agentic_evals/sales_agent/simulator/ tests/architecture/test_personas_yaml_completeness.py --no-cache"
+    must_pass: true
+    timeout_sec: 30
+
+  - id: be_format
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff format --check tests/agentic_evals/sales_agent/simulator/ tests/architecture/test_personas_yaml_completeness.py"
+    must_pass: true
+    timeout_sec: 30
+
+  - id: be_mypy_strict
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/mypy --strict tests/agentic_evals/sales_agent/simulator/ --ignore-missing-imports"
+    must_pass: true
+    timeout_sec: 90
+    description: "Pydantic v2 BaseModel + Literal + lru_cache fully annotated."
+
+  - id: be_coverage_loader_module
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py tests/agentic_evals/sales_agent/simulator/test_customer_prompt_v2_unit.py --cov=tests/agentic_evals/sales_agent/simulator/_internal/personas_loader --cov=tests/agentic_evals/sales_agent/simulator/_internal/customer_persona_prompt --cov-report=term-missing --cov-fail-under=85"
+    must_pass: true
+    timeout_sec: 120
+    description: "Coverage 85% loader + customer_prompt_v2 (loader simple — high coverage doable)."
+
+  - id: jscpd_no_duplication
+    category: non_functional
+    type: shell
+    cmd: "cd backend && jscpd tests/agentic_evals/sales_agent/simulator/ docs/specs/personas/archetype-aware/ --min-tokens 50 --threshold 5 --reporters consoleFull"
+    must_pass: true
+    timeout_sec: 60
+    description: "Anti-duplication: 15 personas YAML naturally similar — 5% threshold acceptable; loader code zero copy."
+
+  - id: legacy_simulator_invariants_intact
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_simulator_public_api_surface.py tests/architecture/test_simulator_no_mirrors_shared.py tests/architecture/test_simulator_writes_eval_kind_tag.py tests/architecture/test_eval_simulator_observability_invariants.py tests/architecture/test_termination_policy_registry_contract.py tests/architecture/test_schema_migrations_registry_complete.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 90
+    description: "Story B 6 arch fitness gates STILL GREEN post Story C. H9 surface frozen 7 names. SCHEMA_MIGRATIONS registry adds 2 entries (ActorProfile 1→2, CustomerPrompt 1→2)."
+
+  - id: frozen_golden_v1_intact
+    category: non_functional
+    type: shell
+    cmd: |
+      \
+      git diff HEAD --name-only -- backend/tests/agentic_evals/sales_agent/simulator/_fixtures/golden_v1_simulation_result.yaml | grep -q . && \
+      echo "FAIL: frozen golden v1 fixture modified — H10 violation Story B" && exit 1 || \
+      echo "OK: frozen golden v1 byte-equal preserved"
+    must_pass: true
+    timeout_sec: 5
+    description: "H10 Story B cement — frozen golden v1 fixture NEVER edited. Story C v2 migrator handles forward-compat."
+
+  - id: legacy_client_simulator_intact
+    category: non_functional
+    type: shell
+    cmd: |
+      cd /home/chris/AISALESHT && \
+      git diff HEAD --name-only -- client_simulator/src/simulator/ | grep -q . && \
+      echo "FAIL: legacy client_simulator/src/simulator/ modified — D6 Story B violation" && exit 1 || \
+      echo "OK: legacy client_simulator/src/simulator/ intact"
+    must_pass: true
+    timeout_sec: 10
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios from 01-spec.md (4 original + 2 NEW v3)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # --- Scenario 1 happy (parametrize × 5 tenants) ---
+
+  - id: scenario_1_load_archetype_aware_5_tenants
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_load_5_archetype_aware -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "Loader resuelve 5 happy personas para tenants seed. ActorProfile.dialect_code matches dialect_catalog strict. metadata.tenant_slug + archetype + bloom_stages + persona_gym_axes valid. lru_cache idempotency `is` identity check."
+
+  - id: scenario_1_loader_idempotency
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_loader_lru_cache_returns_same_instance -v --tb=short"
+    must_pass: true
+    timeout_sec: 10
+    scenario_id: happy
+    description: "lru_cache process-scoped — `load_actor_profile_for_tenant(slug) is load_actor_profile_for_tenant(slug)` True (identity)."
+
+  - id: scenario_1_helper_max_turns_matrix
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_get_max_turns_matrix -v --tb=short"
+    must_pass: true
+    timeout_sec: 10
+    scenario_id: happy
+    description: "Helper `get_max_turns_for_persona_kind` returns 10/15/8/5 per happy/nurture/unqualified/adversarial. Raises KeyError for edge/negative (loader-only)."
+
+  # --- Scenario 2 negative ---
+
+  - id: scenario_2_yaml_malformed
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_yaml_malformed_raises_validation_error tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_invalid_dialect_code_raises tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_unknown_tenant_slug_raises_keyerror -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: negative
+    description: "Pydantic ValidationError on missing actor_goal / non-BCP-47 dialect_code. KeyError on unknown tenant_slug listing valid 5. ZERO partial ActorProfile."
+
+  # --- Scenario 3 edge ---
+
+  - id: scenario_3_schema_version_bump
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_schema_migration_regression.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "Frozen golden v1 fixture deserializable to current v2 (identity migrator applies auto). 2 NEW migrators registered: (ActorProfile,1,2) + (CustomerPrompt,1,2). Migration chain 1→2→3 future-ready."
+
+  # --- Scenario 4 adversarial ---
+
+  - id: scenario_4_adversarial_no_system_leak
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_adversarial_persona_no_system_leak --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 90
+    scenario_id: adversarial
+    description: "Reuse Story B `actor_profile_jailbreak_attempt` parametrized with prompt-injection-via-traits. Customer Prompt V2 treats traits as plain text. Sales_agent NO leak system prompt (FORBIDDEN_LEAK_STRINGS Story B). adversarial_attempt=true tagged in eval_metadata. Termination ∈ {max_turns, agent_error}. Cost bucket eval_simulator_llm_call only."
+
+  # --- Scenario 5 NEW v3 — qualifies out unqualified ---
+
+  - id: scenario_5_qualifies_out_unqualified_lead
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifies_out_unqualified_lead --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 600
+    scenario_id: happy_v3_unqualified
+    description: "★ production-critical. 5 tenants × 3 trials = 15 simulations × max_turns=8. Sales_agent NO ejecuta close tools (enroll_*/send_payment_link/confirm_appointment_*). SI ejecuta qualify_lead. termination ∈ {GOAL_COMPLETION, CUSTOMER_EXIT, MAX_TURNS} — NO AGENT_ERROR. Total turns ≤ 8. eval_metadata persona_kind=unqualified rows present."
+
+  # --- Scenario 6 NEW v3 — nurture multi-question ---
+
+  - id: scenario_6_nurture_multi_question_realistic
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_nurture_multi_question_realistic --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 900
+    scenario_id: happy_v3_nurture
+    description: "★ realistic LATAM coverage. 5 tenants × 1 trial × max_turns=15. Customer V2 sub-slot rotation works (≥5 distinct objections raised). Sales_agent qualify_lead invoked (BANT). NO close tools before turn 8 (agent_turns_before_8). 8-15 turns total."
+
+  # --- Scenarios v3 — Customer Prompt V2 unit ---
+
+  - id: customer_prompt_v2_unit
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_customer_prompt_v2_unit.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "V2 sub-slot pain/objection rotation: parametrize current_turn 1..15, assert each objection in `actor_profile.objections` raised at least once within 15 turns. V1 personas fall through to V1 builder (backward-compat). Cache-prefix safe (no `{tenant_name}` interpolation)."
+
+  # --- Persona YAML completeness arch fitness ---
+
+  - id: arch_personas_yaml_completeness
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_personas_yaml_completeness.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "15 archetype-aware YAML present (3 kinds × 5 tenants). 5 _legacy preserved. Each schema_version=2, persona_kind ∈ 6-value, dialect_code matches dialect_catalog strict, metadata.tenant_slug ∈ 5 valid, archetype ∈ 5 valid, bloom_stages subset canonical 4, persona_gym_axes subset canonical 5. es-AR YAMLs include línea 2 magic comment."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # AGENTIC EVAL — cost + observability + voice fidelity (Story C extends)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: agentic_observability_extended_metadata
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_eval_metadata_extended_persona_kind --run-evals -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "Story C eval_metadata extends Story B 6-key invariants with 3 NEW: persona_kind, schema_version, archetype. Verified via row inspection eval_simulator_llm_call post-simulation."
+
+  - id: agentic_cost_budget_story_c_baseline
+    category: agentic_eval
+    type: shell
+    cmd: |
+      cd backend && .venv/bin/python -c "
+      from sqlalchemy import create_engine, select, func
+      from sqlalchemy.orm import Session
+      from src.core.config import settings
+      from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_simulator_llm_call import EvalSimulatorLlmCallModel
+      engine = create_engine(settings.database_url)
+      with Session(engine) as db:
+          per_sim = db.execute(
+              select(EvalSimulatorLlmCallModel.eval_metadata['simulation_id'].astext.label('sim_id'),
+                     func.sum(EvalSimulatorLlmCallModel.cost_usd).label('total'))
+              .group_by(EvalSimulatorLlmCallModel.eval_metadata['simulation_id'].astext)
+          ).all()
+          assert all(row.total < 0.10 for row in per_sim), f'Individual cost cap violated (Story C nurture allowance up to \$0.10): {per_sim}'
+          suite_total = sum(row.total for row in per_sim)
+          assert suite_total < 3.00, f'Suite total cost cap violated Story C: \${suite_total} (baseline \$2.20, ceiling \$3.00)'
+          print(f'PASS — {len(per_sim)} simulations, max indiv \${max(r.total for r in per_sim):.4f}, suite total \${suite_total:.4f}')
+      "
+    must_pass: true
+    timeout_sec: 60
+    description: "D9 cost cap Story C — individual <\$0.10 (nurture max_turns=15 allowance), suite total <\$3.00. Baseline ~\$2.20 from delta-spec.md."
+
+  - id: agentic_cost_bucket_zero_contamination
+    category: agentic_eval
+    type: shell
+    cmd: |
+      cd backend && .venv/bin/python -c "
+      from sqlalchemy import create_engine, select, func
+      from sqlalchemy.orm import Session
+      from src.core.config import settings
+      # Verify Story C runs created NO rows in copilot_llm_call
+      from src.modules.copilot.observability.persistence.models.copilot_llm_call import CopilotLlmCallModel
+      engine = create_engine(settings.database_url)
+      with Session(engine) as db:
+          # filter sales_agent eval_kind tagged rows in copilot table
+          contamination_count = db.scalar(
+              select(func.count()).select_from(CopilotLlmCallModel)
+              .where(CopilotLlmCallModel.created_at >= 'now()::timestamp - interval \\'1 hour\\'')
+          )
+          assert contamination_count == 0 or contamination_count is None, f'Cost bucket contamination: {contamination_count} rows in copilot_llm_call from Story C run'
+          print('PASS — zero contamination prod copilot bucket')
+      "
+    must_pass: true
+    timeout_sec: 30
+    description: "H6 Story B cost-bucket separation invariant preserved. Story C runs MUST write to eval_simulator_llm_call ONLY. Zero rows in copilot_llm_call."
+
+  - id: agentic_voseo_pre_commit_personas
+    category: agentic_eval
+    type: shell
+    cmd: |
+      cd /home/chris/AISALESHT && \
+      bash scripts/git-hooks/pre-commit \
+        --files docs/specs/personas/archetype-aware/ceo-b2b-escala-ar.yaml \
+                docs/specs/personas/archetype-aware/pregunton-comparador-3-agencias-ar.yaml \
+                docs/specs/personas/archetype-aware/pre-pmf-zero-revenue-ar.yaml \
+        || (echo "FAIL: pre-commit blocks es-AR personas (magic comment línea 2 missing)" && exit 1)
+    must_pass: true
+    timeout_sec: 15
+    description: "es-AR personas (3 of 15) MUST include línea 2 magic comment <!-- voseo-allowed: archetype-aware AR persona Story C --> per .claude/rules/spanish-text.md § R25. Pre-commit hook verifies."
+
+  - id: agentic_persona_gym_5_axis_declared
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_metadata_persona_gym_axes_valid -v --tb=short"
+    must_pass: true
+    timeout_sec: 10
+    description: "Each persona declares persona_gym_axes subset of canonical 5 (action_justification/expected_action/linguistic_habits/persona_consistency/toxicity_control). Story C declarative only — Story E owns runtime grader."
+
+  - id: agentic_bloom_4_stage_declared
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_metadata_bloom_stages_valid -v --tb=short"
+    must_pass: true
+    timeout_sec: 10
+    description: "Each persona declares bloom_stages subset canonical 4 (understanding/ideation/rollout/judgment) per Anthropic Bloom 4-stage. Literal Pydantic enforce. Future variants → schema_version bump + migrator."
+
+  - id: agentic_dialect_strict_cross_check
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_dialect_matches_archetype_dialect_map_strict -v --tb=short"
+    must_pass: true
+    timeout_sec: 10
+    description: "D-AG-1 cross-check: actor_profile.dialect_code == ARCHETYPE_DIALECT_MAP[tenant_slug] strict. ValueError raised on mismatch (fail-fast prevents silent dialect drift)."
+
+  - id: agentic_loader_yaml_parse_error_resilience
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_malformed_yaml_logs_warning_no_crash -v --tb=short"
+    must_pass: true
+    timeout_sec: 10
+    description: "tessl__graceful-degradation Rule 2 — single malformed YAML during _scan_personas_directory emits structlog warning + skips file. Loader continues. Other personas still loadable."
+
+# ═══════════════════════════════════════════════════════════════════════
+# Scenario coverage matrix — every spec scenario MUST appear here (4/6)
+# ═══════════════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: happy
+    spec_section: "Scenario 1 — personas-load-archetype-aware (5 tenants)"
+    validators:
+      - scenario_1_load_archetype_aware_5_tenants
+      - scenario_1_loader_idempotency
+      - scenario_1_helper_max_turns_matrix
+      - agentic_dialect_strict_cross_check
+      - agentic_persona_gym_5_axis_declared
+      - agentic_bloom_4_stage_declared
+
+  - scenario_id: negative
+    spec_section: "Scenario 2 — persona-yaml-malformed"
+    validators:
+      - scenario_2_yaml_malformed
+      - agentic_loader_yaml_parse_error_resilience
+
+  - scenario_id: edge
+    spec_section: "Scenario 3 — persona-schema-version-bump"
+    validators:
+      - scenario_3_schema_version_bump
+      - frozen_golden_v1_intact
+
+  - scenario_id: adversarial
+    spec_section: "Scenario 4 — persona-prompt-injection-via-traits"
+    validators:
+      - scenario_4_adversarial_no_system_leak
+
+  - scenario_id: happy_v3_unqualified
+    spec_section: "Scenario 5 — agent-qualifies-out-unqualified-lead (NEW v3) ★ production-critical"
+    validators:
+      - scenario_5_qualifies_out_unqualified_lead
+      - agentic_cost_bucket_zero_contamination
+
+  - scenario_id: happy_v3_nurture
+    spec_section: "Scenario 6 — nurture-realistic-multi-question (NEW v3) ★ realistic LATAM coverage"
+    validators:
+      - scenario_6_nurture_multi_question_realistic
+      - customer_prompt_v2_unit
+      - agentic_cost_budget_story_c_baseline
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening coverage matrix — H1-H10 Story B preserved + Story C additions
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_coverage:
+  - id: H1
+    spec_section: "Schema versioning forward-compat (Story B base + Story C v1→v2)"
+    validators: [scenario_3_schema_version_bump, legacy_simulator_invariants_intact]
+  - id: H2
+    spec_section: "Deterministic simulation_id idempotency (Story B preserved)"
+    validators: [scenario_5_qualifies_out_unqualified_lead, scenario_6_nurture_multi_question_realistic]
+  - id: H5
+    spec_section: "Observability tags eval-vs-prod separation (Story C extends with persona_kind+schema_version+archetype)"
+    validators: [agentic_observability_extended_metadata]
+  - id: H6
+    spec_section: "Cost bucket separation (Story B invariant preserved)"
+    validators: [agentic_cost_bucket_zero_contamination]
+  - id: H9
+    spec_section: "Public API surface minimal (Story B frozen 7 names — Story C adds NADA)"
+    validators: [legacy_simulator_invariants_intact]
+  - id: H10
+    spec_section: "Frozen golden v1 fixture (Story B byte-equal preserved)"
+    validators: [frozen_golden_v1_intact, scenario_3_schema_version_bump]
+
+# ═══════════════════════════════════════════════════════════════════════
+# Iteration policy — autonomous build behavior
+# ═══════════════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 3                   # agentic story 3-4d, 3 cycles bastan
+  on_fail: |
+    1) Read failing validator output
+    2) Identify exact file/line target (no shotgun edits)
+    3) Apply minimal fix preserving spec intent + arch decisions D1-D17 + D-AG-* + D-BE-*
+    4) Re-run failing validator only (not full suite)
+    5) If pass → continue to next pending validator
+    6) If iteration cap reached on agentic complexity ticket → escalate to Chris (do NOT shortcut)
+  on_all_pass: |
+    set state=developing→developed
+    append iteration_log to T-{n}-impl-log.md
+    transition checkpoint phase=BUILD_GREEN
+    commit + push (parallel-safety: stage by name, no force, no pull, no revert)
+  on_cap_reached: |
+    set state=developing→blocked
+    write blocker analysis to checkpoint.md (root cause + last error trace + diagnosis hypothesis)
+    escalate to Chris
+
+# ═══════════════════════════════════════════════════════════════════════
+# Validator schema notes (per .claude/skills/architect/SKILL.md v4)
+# ═══════════════════════════════════════════════════════════════════════
+
+notes:
+  - "All validators must_pass: true (no soft-fail in this story's scope)."
+  - "scenario_coverage 6/6 — 4 original spec v2 scenarios + 2 NEW v3 (5+6 from delta-spec.md)."
+  - "Cost cap Story C \$3.00 (vs \$0.30 Story B) reflects 10x scope expansion (15 personas vs 1) + nurture max_turns=15."
+  - "Story C does NOT modify Story B 5 arch fitness gates — adds 1 NEW (test_personas_yaml_completeness.py allowlist empty)."
+  - "Frozen golden v1 byte-equal protected by frozen_golden_v1_intact. Future schema bumps NEVER touch v1."
+  - "Pre-commit hook bash invocation pattern matches scripts/git-hooks/pre-commit signature (--files arg). If hook signature differs at build time, builder must adjust validator cmd accordingly + cite in T-impl-log."

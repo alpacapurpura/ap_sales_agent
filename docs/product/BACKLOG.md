@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T15:54:27+00:00`
+> Generated at: `2026-05-08T16:16:07+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -14,21 +14,20 @@
 - sales-inbox-responsive-collapse `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (6 total · 0 cap-eligible / cap 3)
+### 🔬 Refining (5 total · 0 cap-eligible / cap 3)
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
-- **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
-- **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
+- **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PO_DRAFT_V1_AWAITING_RATIFICATION]
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 
 ### ✅ Refined — listo para arquitectos (3 / cap 5)
+- **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation`
-- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 📦 Ready for development (0 / cap 5)
-- _(none)_
+### 📦 Ready for development (1 / cap 5)
+- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
 ### 🔨 Developing (0 / cap 3)
 - _(none)_
@@ -63,18 +62,18 @@ kanban
     solo-mode-chat-first-layout[solo-mode-chat-first-layout]
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (6 / cap 3)
+  🔬 Refining (5 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
-    sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
   ✅ Refined (3 / cap 5)
+    sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
-    sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-  📦 Ready (0 / cap 5)
+  📦 Ready (1 / cap 5)
+    sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
   🔨 Developing (0 / cap 3)
   🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
