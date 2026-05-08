@@ -9,7 +9,7 @@ import {
   GrowthStudioProvider,
   useGrowthStudioContext,
 } from "@/features/growth-studio/components/metrics-dashboard/context/GrowthStudioContext";
-import { useStageSummaries } from "@/features/growth-studio/components/metrics-dashboard/hooks/use-stage-summaries";
+import { useTier0Summary } from "@/features/growth-studio/pages/tiers/tier0-summary";
 import { ChannelDetailSidebar } from "@/features/growth-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar";
 import { MetricSidebar } from "@/features/growth-studio/components/metrics-dashboard/sidebar/MetricSidebar";
 import { SidebarContent } from "@/features/growth-studio/components/metrics-dashboard/sidebar/SidebarContent";
@@ -37,7 +37,7 @@ const GrowthStudioShell = memo(function GrowthStudioShell({
     handleCloseNoData,
   } = useGrowthStudioContext();
 
-  const { enrichedSummaries, loadingMap, mockMap } = useStageSummaries();
+  const { enrichedSummaries, loadingMap, mockMap } = useTier0Summary();
 
   return (
     <PageContainer>

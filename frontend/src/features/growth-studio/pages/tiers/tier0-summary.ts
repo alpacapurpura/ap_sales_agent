@@ -1,20 +1,25 @@
 "use client";
 
-import { STAGE_SUMMARIES } from "../../../api/stage-summaries-fallback";
-import { useBowtiesSummary } from "../../../hooks/use-bowties-summary";
+import { STAGE_SUMMARIES } from "../../api/stage-summaries-fallback";
+import { useBowtiesSummary } from "../../hooks/use-bowties-summary";
 
-import type { StageId, StageSummary } from "../../../types/metrics";
-import type { StageSummaryKpi } from "../../../types/summary";
+import type { StageId, StageSummary } from "../../types/metrics";
+import type { StageSummaryKpi } from "../../types/summary";
 
 /**
- * Fetches the lightweight Bowtie summary (1 request) and composes the 5
+ * Tier 0 — Bowtie summary (1 request, lightest data tier).
+ *
+ * Fetches the lightweight Bowtie summary and composes the 5
  * composite StageSummary entries shown in the Bowtie row.
+ *
+ * Canonical location: features/growth-studio/pages/tiers/tier0-summary.ts
+ * Moved from: components/metrics-dashboard/hooks/use-stage-summaries.ts (T-3)
  *
  * Replaces the previous approach of calling all 8 detail hooks eagerly.
  * Detail data is now fetched on-demand only when the user navigates
  * into a specific stage.
  */
-export function useStageSummaries() {
+export function useTier0Summary() {
   const { data: summary, isLoading, isError } = useBowtiesSummary();
 
   // Build a lookup: stage name -> StageSummaryKpi

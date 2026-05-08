@@ -47,6 +47,8 @@ describe("Architecture: Hook location", () => {
       if (parentDir === "api") continue;
       // Exempt: in store/ (Zustand stores follow use* naming convention)
       if (parentDir === "store") continue;
+      // Exempt: in tiers/ (4-tier loading hooks under pages/tiers/ per AD5)
+      if (parentDir === "tiers") continue;
       // Exempt: context files (*Context.ts or *Context.tsx)
       if (CONTEXT_FILE_RE.test(filename)) continue;
       // Exempt: context provider files in context/ dir with "context" in filename
