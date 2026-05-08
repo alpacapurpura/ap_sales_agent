@@ -64,6 +64,9 @@ tickets:
     title: "FE — 4 zod schemas (consume 2A registries) + 5 action components (StageMetrics, ChannelOverview, ETLRefresh, ETLRateLimited, ETLConfirm) + registry.ts + index.ts"
     type: feature
     surface: frontend
+    state: pushed
+    pushed_at: 2026-05-09T05:30:00Z
+    push_commit_sha: TBD
     skill: builder-frontend
     owner_eligibility:
       qwen_opencode: false

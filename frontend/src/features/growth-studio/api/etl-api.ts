@@ -60,6 +60,26 @@ export async function getInitialLoadStatus(
   }>;
 }
 
+// ─── Channel-scoped ETL trigger (used by ETLConfirmAction) ───────────────────
+
+/**
+ * Triggers an ETL refresh for a specific channel.
+ * Called from the copilot action component after user confirmation.
+ */
+export async function triggerEtlChannel(
+  token: string,
+  channel: string,
+  endpoint?: string,
+): Promise<{ ok: boolean }> {
+  const url =
+    endpoint ?? `${API_URL}/api/v1/analytics/etl/trigger?channel=${encodeURIComponent(channel)}`;
+  const res = await fetchClient(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return { ok: res.ok };
+}
+
 // ─── Sync All Sources ─────────────────────────────────────────────────────────
 
 export interface SyncProviderResult {
