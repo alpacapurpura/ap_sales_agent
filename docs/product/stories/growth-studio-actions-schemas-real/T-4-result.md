@@ -82,4 +82,4 @@ done -> docs/product/stories/growth-studio-actions-schemas-real/T-4-result.md
 test(copilot): 3 voice fidelity eval goldens (Spanish neutro + dispatch + no-retry) (T-4 Story 2B)
 ```
 
-Push commit SHA: TBD (post-build hook).
+Push commit SHA: `e597639a`.
