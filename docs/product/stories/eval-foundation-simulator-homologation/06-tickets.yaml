@@ -425,7 +425,8 @@ tickets:
     title: "Agent bridge in-process agent_app.ainvoke + leak_assertions defense-in-depth"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: tests-passing
+    assigned_to: claude-opus
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -471,6 +472,7 @@ tickets:
     blocks: [T-8]
     transitions:
       - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+      - { state: tests-passing, at: 2026-05-08T00:55Z, by: claude-opus }
 
   # ═════════════════════════════════════════════════════════════════════
   # T-8 — Graph compose + run_simulation orchestrator
