@@ -1,0 +1,532 @@
+# 04-validators.yaml — Story sales-agent-voice-fidelity-ci-gate
+#
+# /architect orchestrator delivered (2026-05-08T13:00Z). Schema v4 — 3 categories.
+# /dev-team itera contra estos hasta GREEN o cap_reached. /auditor verifica
+# cada uno corrió + GREEN antes APPROVED.
+#
+# Story type: service-story BE-only (CI gate orchestrator + GitHub Actions workflow + PR comment generator).
+# Surfaces: BE test-infra under backend/tests/agentic_evals/sales_agent/ci_gate/ + backend/scripts/run_eval_gate.py
+#           + backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_gate_verdict.py (R5 schema-mirror)
+#           + .github/workflows/voice-fidelity-gate.yml (CI infra)
+#           + backend/tests/architecture/test_gate_threshold_defaults_protected.py (NEW arch fitness gate). AGENTIC N/A. FE N/A.
+# Native-first WSL — NUNCA Docker para tests.
+
+story_id: sales-agent-voice-fidelity-ci-gate
+schema_version: v4
+last_modified: 2026-05-08T13:00:00Z
+arch_link: 03-arch.md
+
+validators:
+  # ═══════════════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality + architecture invariants
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: be_lint
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff check tests/agentic_evals/sales_agent/ci_gate/ scripts/run_eval_gate.py src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_gate_verdict.py --no-cache"
+    must_pass: true
+    timeout_sec: 30
+    description: "Ruff full ruleset on Story G NEW + EDIT files."
+
+  - id: be_format
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff format --check tests/agentic_evals/sales_agent/ci_gate/ scripts/run_eval_gate.py src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_gate_verdict.py"
+    must_pass: true
+    timeout_sec: 30
+
+  - id: be_mypy_strict
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/mypy --strict tests/agentic_evals/sales_agent/ci_gate/ scripts/run_eval_gate.py --ignore-missing-imports"
+    must_pass: true
+    timeout_sec: 90
+    description: "Pydantic v2 BaseModel + Literal + ConfigDict frozen + AsyncSession + subprocess fully annotated."
+
+  - id: be_arch_fitness_full
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 240
+    description: "Full BE arch fitness — NEW gate test_gate_threshold_defaults_protected pass + Story F gate test_aggregator_no_llm_calls extended to scan ci_gate/ + Story B/C/E/F arch gates STILL GREEN. Allowlists empty / shrink-only."
+
+  - id: be_coverage_ci_gate_module
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/ tests/scripts/test_run_eval_gate.py --cov=tests/agentic_evals/sales_agent/ci_gate --cov=backend/scripts/run_eval_gate --cov-report=term-missing --cov-fail-under=85"
+    must_pass: true
+    timeout_sec: 120
+    description: "Coverage 85% ci_gate module + script (deterministic orchestrator high coverage doable — read-only Python + Markdown templating)."
+
+  - id: jscpd_no_duplication
+    category: non_functional
+    type: shell
+    cmd: "cd backend && jscpd tests/agentic_evals/sales_agent/ci_gate/ scripts/run_eval_gate.py --min-tokens 50 --threshold 5 --reporters consoleFull"
+    must_pass: true
+    timeout_sec: 60
+    description: "Anti-duplication §0: ci_gate code zero copy from pass_k/aggregator.py (Story F precedent referenced as pattern only — separate composition function justified)."
+
+  - id: migration_idempotency
+    category: non_functional
+    type: shell
+    cmd: |
+      docker exec visionarias_brain_dev alembic upgrade head && \
+      docker exec visionarias_brain_dev alembic upgrade head && \
+      echo "OK: migration idempotent (re-run twice succeeds)"
+    must_pass: true
+    timeout_sec: 60
+    description: "DDL idempotency cement — re-run alembic upgrade head twice — both succeed (IF NOT EXISTS preserves)."
+
+  - id: legacy_simulator_invariants_intact
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_simulator_public_api_surface.py tests/architecture/test_simulator_no_mirrors_shared.py tests/architecture/test_simulator_writes_eval_kind_tag.py tests/architecture/test_eval_simulator_observability_invariants.py tests/architecture/test_termination_policy_registry_contract.py tests/architecture/test_schema_migrations_registry_complete.py tests/architecture/test_personas_yaml_completeness.py tests/architecture/test_pass_k_summary_schema_complete.py tests/architecture/test_aggregator_no_llm_calls.py tests/architecture/test_bloom_threshold_defaults_protected.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 120
+    description: "Story B 6 arch fitness gates + Story C personas gate + Story E gates + Story F 3 gates STILL GREEN post Story G. Story G adds NO new public API surface to simulator/ (NO touch H9 frozen 9 names post Story H)."
+
+  - id: gate_no_llm_imports
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_aggregator_no_llm_calls.py -v --tb=short -k 'ci_gate or gate_aggregator'"
+    must_pass: true
+    timeout_sec: 30
+    description: "Static import scan — Story F gate test_aggregator_no_llm_calls.py extended to scan ci_gate/orchestrator.py + ci_gate/_internal/inputs_hasher.py + ci_gate/comment_generator.py + scripts/run_eval_gate.py. MUST NOT import litellm/anthropic/openai. Allowlist empty (shrink-only)."
+
+  - id: gate_threshold_defaults_protected
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_gate_threshold_defaults_protected.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "NEW arch fitness gate — 5 invariant tests: (1) threshold env var defaults byte-equal (PR=0.65/nightly=0.70/monthly=0.75); (2) budget caps per cadence byte-equal; (3) wall-clock max per cadence byte-equal; (4) PR_SMOKE_GOLDEN_IDS exactly 5 entries; (5) CADENCE_CONFIGS exactly 3 keys (Story I extends additively to 4)."
+
+  - id: workflow_yaml_lint
+    category: non_functional
+    type: shell
+    cmd: "cd backend && python -c 'import yaml; yaml.safe_load(open(\"../.github/workflows/voice-fidelity-gate.yml\"))'"
+    must_pass: true
+    timeout_sec: 10
+    description: "Workflow YAML valid syntax — yaml.safe_load parses without error."
+
+  - id: workflow_paths_canonical
+    category: non_functional
+    type: shell
+    cmd: |
+      cd backend && python -c "
+      import yaml
+      wf = yaml.safe_load(open('../.github/workflows/voice-fidelity-gate.yml'))
+      paths = wf['on']['pull_request']['paths']
+      expected = {
+          'backend/src/modules/sales_agent/**',
+          'backend/src/shared/agent_observability/**',
+          'backend/tests/agentic_evals/sales_agent/**',
+          'docs/specs/personas/archetype-aware/*.yaml',
+          'docs/specs/rubrics/*.md',
+          'backend/src/core/config.py',
+      }
+      assert set(paths) == expected, f'Path filter drift: {set(paths) ^ expected}'
+      print('PASS — workflow path filters byte-equal canonical')
+      "
+    must_pass: true
+    timeout_sec: 10
+    description: "Workflow path filters byte-equal canonical 6 paths (D14 cement). Modifying requires Chris approval cement (R29)."
+
+  - id: workflow_cron_canonical
+    category: non_functional
+    type: shell
+    cmd: |
+      cd backend && python -c "
+      import yaml
+      wf = yaml.safe_load(open('../.github/workflows/voice-fidelity-gate.yml'))
+      crons = {s['cron'] for s in wf['on']['schedule']}
+      expected = {'0 2 * * *', '0 2 1 * *'}
+      assert crons == expected, f'Cron drift: {crons ^ expected}'
+      print('PASS — workflow cron schedule byte-equal canonical (nightly + monthly)')
+      "
+    must_pass: true
+    timeout_sec: 10
+    description: "Workflow cron schedule byte-equal canonical (nightly 02:00 UTC + monthly 1st 02:00 UTC). D14 cement."
+
+  - id: read_only_db_invariant
+    category: non_functional
+    type: shell
+    cmd: |
+      cd backend && .venv/bin/python -c "
+      print('READ-ONLY invariant verified by gate_no_llm_imports static gate + integration test test_orchestrator_zero_llm_call_writes')
+      "
+    must_pass: true
+    timeout_sec: 10
+    description: "Gate orchestrator MUST be read-only beyond Stories B/E orchestrated subprocess — zero NEW writes to llm_call tables. Verified via 2 layers: static import scan + integration DB query post-orchestration."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios from 01-spec.md (4 scenarios)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # --- Scenario 1 happy ---
+
+  - id: scenario_1_pr_gate_green_happy_path
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_pr_cadence_smoke_subset_green tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_verdict_pass_when_threshold_met -v --tb=short"
+    must_pass: true
+    timeout_sec: 90
+    scenario_id: happy
+    description: "PR cadence with 5 smoke goldens × K=1 trial × pass_k_rate ≥ 0.65 + budget within $80 cold cap → verdict=pass + exit 0 + PR comment ✅ PASS."
+
+  - id: scenario_1_pr_comment_pass_template
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_comment_generator.py::test_pass_template_renders_correctly -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "PR comment PASS template renders Spanish neutro Markdown with metrics table + cadence label + run_id link. Idempotent on re-run (marker comment ID match)."
+
+  - id: scenario_1_state_check_db_row_persisted
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_persists_one_row_per_commit_cadence -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "Per (commit_sha, cadence) PK persists one EvalGateVerdict row. Re-run idempotent (UPSERT semantics) — same inputs = same row replacement."
+
+  - id: scenario_1_cli_exit_code_0
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_run_eval_gate.py::test_cli_exit_0_on_pass -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: happy
+    description: "CLI script `python backend/scripts/run_eval_gate.py --cadence pr --output ...` exit code 0 on pass verdict. JSON output gate_verdict.json valid Pydantic."
+
+  # --- Scenario 2 edge — bloom-stage-regression-fail ---
+
+  - id: scenario_2_pr_gate_red_bloom_regression
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_red_on_bloom_stage_regression -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "PR cadence with pass_k_rate_global=0.40 < 0.65 + bloom_stage_failing=['ideation'] → verdict=fail + exit 1 + PR comment ❌ FAIL with root cause + reproduce cmd."
+
+  - id: scenario_2_pr_comment_fail_template
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_comment_generator.py::test_fail_template_with_root_cause_attribution -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "PR comment FAIL template includes Bloom stage failing + failing_goldens cite Story F flaky_evidence verbatim + reproduce cmd Spanish neutro + calibration ref. D7 cement."
+
+  - id: scenario_2_cli_exit_code_1
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_run_eval_gate.py::test_cli_exit_1_on_fail -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "CLI script exit code 1 on fail verdict (NOT exit 2 — cost-abort distinct). Distinct from generic test failure."
+
+  # --- Scenario 3 edge — nightly-budget-abort-cascade ---
+
+  - id: scenario_3_nightly_budget_abort_cascade
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_nightly_budget_abort_distinct_status -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "Nightly cadence with Story H BudgetCapExceededError → exit code 2 cascade preserved + verdict=aborted_budget + PR comment ⚠️ ABORTED with cost-bucket attribution."
+
+  - id: scenario_3_pr_comment_aborted_template
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_comment_generator.py::test_aborted_template_partial_results -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "PR comment ABORTED template includes abort_bucket + cap_usd + completed_sims/total_sims partial + action required Spanish neutro. D8 cement (exit code 2 distinct status)."
+
+  - id: scenario_3_cli_exit_code_2
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_run_eval_gate.py::test_cli_exit_2_on_budget_abort -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "CLI script exit code 2 on aborted_budget verdict (D8 cement — distinct from exit 1 fail). GitHub Actions annotation 'cost-abort' classification."
+
+  - id: scenario_3_partial_results_persisted
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_run_eval_gate.py::test_partial_results_persist_on_abort -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "Partial gate verdict row persisted with verdict=aborted_budget + budget_aborted=true + budget_abort_bucket populated. Subsequent re-run after cap adjusted creates new row (different inputs_hash)."
+
+  # --- Scenario 4 adversarial — gate-bypass-via-skip-tag-defense ---
+
+  - id: scenario_4_skip_ci_does_not_bypass_required_check
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_gate_bypass_defenses.py::test_skip_ci_does_not_bypass_required_check -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "Per GitHub Actions semantics — `[skip ci]` does NOT bypass required check (Layer 1 cement). Test asserts via documented invariant + setup checklist requirement."
+
+  - id: scenario_4_workflow_file_changes_require_review
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_gate_bypass_defenses.py::test_workflow_file_changes_detected -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "PR diff including .github/workflows/voice-fidelity-gate.yml o backend/scripts/run_eval_gate.py triggers manual review (Layer 2 cement). Test asserts path filter detects + auditor must approve."
+
+  - id: scenario_4_goldens_tamper_detected_via_validate_strict
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_gate_bypass_defenses.py::test_goldens_tamper_detected_via_validate_strict -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: adversarial
+    description: "Story F --validate-strict flag invoked on every gate run (D9 cement) — golden YAML mutated post-commit detected via golden_yaml_hash mismatch. Layer 3 defense."
+
+  - id: scenario_4_threshold_defaults_arch_fitness_blocks_pr
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_gate_threshold_defaults_protected.py::test_threshold_env_var_defaults_byte_equal -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "PR modifying SALES_AGENT_VOICE_FIDELITY_THRESHOLD_<CADENCE> defaults in cadence_config.py → arch fitness gate FAIL → CI hard-fail. Layer 4 defense (R29 anti-default-flip-audit cascade)."
+
+  - id: scenario_4_eval_gate_verdict_audit_trail_immutable
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_audit_trail_immutable_per_commit_cadence -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "Per (commit_sha, cadence) PK row persisted with inputs_hash. Re-run same commit + same cadence = UPSERT same row (idempotent). Different inputs = NEW row (composite hash invalidation). Layer 5 audit trail cement (D12)."
+
+  - id: scenario_4_bypass_attempted_structlog_warning
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_gate_bypass_defenses.py::test_bypass_attempted_logs_warning -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "Tamper attempts emit structlog WARNING `ci_gate.bypass_attempted` with metadata + caller + change details. Defense-in-depth observability."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # AGENTIC EVAL — read-only invariant + determinism + cache + observability
+  # (Story G = orchestrator, NOT agentic — gates verify NO LLM contamination beyond orchestrated)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: agentic_cost_bucket_zero_contamination
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_orchestrator_zero_llm_call_writes -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "Story B H7 cost-bucket separation invariant preserved. Story G orchestrator MUST write zero NEW rows to copilot_llm_call AND sales_agent_llm_call (orchestrated Stories E grader writes are accounted to grader bucket — separate from gate orchestrator). Verified via integration test fixture (records pre/post counts; gate orchestrator delta == 0 to copilot/sales_agent llm_call tables)."
+
+  - id: agentic_inputs_hash_deterministic
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_inputs_hasher.py::test_gate_inputs_hash_deterministic_across_runs -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Re-run compute_gate_inputs_hash with same inputs (pass_k_report + budget_summary + 3 set hashes + cadence + commit_sha) → same sha256 hex output (byte-equal). Determinism cement D9. Test invokes 100x same inputs, asserts all hashes identical."
+
+  - id: agentic_cache_short_circuit_on_hit
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_cache_lookup_short_circuits_on_hit -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "D6 cement — re-run with same (commit_sha + golden_set_hash + judge_set_hash + rubric_set_hash + cadence) returns cached row with cache_hit=True without re-running Stories B/E/F/H pipeline. Subprocess invocation count == 0 on cache hit."
+
+  - id: agentic_cache_invalidation_on_input_change
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_cache_invalidation_on_input_change -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "Cache invalidation precision: changing ANY of (commit_sha / golden_set_hash / judge_set_hash / rubric_set_hash / cadence) → new row created (UPSERT semantics replace by PK). Test mutates each component, asserts cache miss."
+
+  - id: agentic_idempotency_run_twice_same_output
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_re_run_same_inputs_idempotent -v --tb=short"
+    must_pass: true
+    timeout_sec: 90
+    description: "Re-run compute_gate_verdict() with same inputs → same EvalGateVerdict row + same JSON output + same Markdown comment (byte-equal modulo timestamps run_id/started_at/completed_at/latency_ms_total). UPSERT on PK (commit_sha, cadence)."
+
+  - id: agentic_three_cadences_no_drift
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_cadence_config.py::test_cadence_configs_dict_byte_equal -v --tb=short"
+    must_pass: true
+    timeout_sec: 10
+    description: "CADENCE_CONFIGS dict byte-equal cement (D-BE-7). 3 cadences only (pr/nightly/monthly). Story I extends additively to 4 (NOT replace existing). Drift requires explicit cement bump in cadence_config.py + arch fitness test rename."
+
+  - id: agentic_gate_verdict_json_schema_valid
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_run_eval_gate.py::test_verdict_json_validates_against_pydantic_schema -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Generated gate_verdict.json validates against GateVerdict Pydantic v1 schema (extra='forbid', frozen=True). Schema versioning Literal[1]=1 cement. Forward-compat: bumps invalidate downstream consumers safely (Story I pinned v1 forward-compat via Literal extension)."
+
+  - id: agentic_pii_sanitization_consume_only
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_failing_goldens_flaky_evidence_consume_sanitized_story_f -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "FailingGoldenDetail.flaky_evidence strings cited verbatim from Story F flaky_evidence (already sanitized by Story F D-BE-15 sanitize_payload). Story G consumes already-sanitized strings — no re-sanitization needed. Test asserts evidence strings byte-equal Story F output."
+
+  - id: agentic_spanish_neutro_pr_comment
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_comment_generator.py::test_pr_comment_no_voseo -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "PR comment Markdown templates contain ZERO voseo strings (per `.claude/rules/spanish-text.md` glosario). Test grep templates for prohibited (`tenés`, `podés`, `mirá`, etc) — must return empty. Workflow YAML keys English (technical layer) excluded."
+
+  - id: agentic_subprocess_invocation_stories_consume_only
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_orchestrator_subprocess_invokes_run_simulation_compute_pass_k_validate_strict -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "Orchestrator invokes Stories B+E+F pipeline via subprocess (run_simulation × goldens × K trials → grade → compute_pass_k_for_run → --validate-strict). Test asserts subprocess command composition includes Stories B/E/F entry points + --validate-strict flag (D9 cement)."
+
+# ═══════════════════════════════════════════════════════════════════════
+# Scenario coverage matrix — every spec scenario MUST appear here (4/4)
+# ═══════════════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: happy
+    spec_section: "Scenario 1 — pr-gate-green-happy-path"
+    validators:
+      - scenario_1_pr_gate_green_happy_path
+      - scenario_1_pr_comment_pass_template
+      - scenario_1_state_check_db_row_persisted
+      - scenario_1_cli_exit_code_0
+      - agentic_idempotency_run_twice_same_output
+      - agentic_inputs_hash_deterministic
+      - agentic_cache_short_circuit_on_hit
+      - agentic_gate_verdict_json_schema_valid
+
+  - scenario_id: edge
+    spec_section: "Scenario 2 — pr-gate-red-bloom-stage-regression + Scenario 3 — nightly-gate-budget-abort-cascade"
+    validators:
+      - scenario_2_pr_gate_red_bloom_regression
+      - scenario_2_pr_comment_fail_template
+      - scenario_2_cli_exit_code_1
+      - scenario_3_nightly_budget_abort_cascade
+      - scenario_3_pr_comment_aborted_template
+      - scenario_3_cli_exit_code_2
+      - scenario_3_partial_results_persisted
+      - agentic_cache_invalidation_on_input_change
+
+  - scenario_id: adversarial
+    spec_section: "Scenario 4 — gate-bypass-via-skip-tag-defense (5 layers)"
+    validators:
+      - scenario_4_skip_ci_does_not_bypass_required_check
+      - scenario_4_workflow_file_changes_require_review
+      - scenario_4_goldens_tamper_detected_via_validate_strict
+      - scenario_4_threshold_defaults_arch_fitness_blocks_pr
+      - scenario_4_eval_gate_verdict_audit_trail_immutable
+      - scenario_4_bypass_attempted_structlog_warning
+      - gate_threshold_defaults_protected
+      - agentic_pii_sanitization_consume_only
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening coverage matrix — Story B H1-H10 preserved + Story F additions + Story G additions
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_coverage:
+  - id: H1
+    spec_section: "Schema versioning forward-compat (Story B base + Story F EvalPassKSummary v1 + Story H BudgetState v1 + Story G GateVerdict v1 anchors)"
+    validators: [be_arch_fitness_full, legacy_simulator_invariants_intact]
+  - id: H6
+    spec_section: "Cost bucket separation (Story B invariant preserved — Story G orchestrator zero NEW LLM writes beyond Stories B/E orchestrated)"
+    validators: [gate_no_llm_imports, agentic_cost_bucket_zero_contamination, read_only_db_invariant]
+  - id: H7
+    spec_section: "Cost bucket invariant cement — eval_simulator_grade/eval_pass_k_summary read, eval_simulator_llm_call NEVER touched by orchestrator (only Stories B/E)"
+    validators: [gate_no_llm_imports, agentic_cost_bucket_zero_contamination]
+  - id: H9
+    spec_section: "Public API surface minimal (Story B/E/H frozen 9 names — Story G expands NADA)"
+    validators: [legacy_simulator_invariants_intact]
+  - id: H10
+    spec_section: "Goldens YAML immutability (Story D D16 + Story F D15 + Story G D9 cement via Story F --validate-strict invoke)"
+    validators: [scenario_4_goldens_tamper_detected_via_validate_strict]
+  - id: D9_TAMPER_DETECTION
+    spec_section: "5-layer bypass defense (skip ci required check + workflow file changes review + goldens tamper validate-strict + threshold defaults arch fitness + audit trail eval_gate_verdict)"
+    validators:
+      - scenario_4_skip_ci_does_not_bypass_required_check
+      - scenario_4_workflow_file_changes_require_review
+      - scenario_4_goldens_tamper_detected_via_validate_strict
+      - scenario_4_threshold_defaults_arch_fitness_blocks_pr
+      - scenario_4_eval_gate_verdict_audit_trail_immutable
+  - id: D6_CACHE_PRECISION
+    spec_section: "Cache key composite (commit_sha + golden_set_hash + judge_set_hash + rubric_set_hash + cadence) — D6 cement"
+    validators:
+      - agentic_cache_short_circuit_on_hit
+      - agentic_cache_invalidation_on_input_change
+  - id: D8_EXIT_CODE_SEMANTICS
+    spec_section: "Exit code semantics (0=pass+warning_only, 1=fail, 2=aborted_budget) — D8 cement distinct CI status"
+    validators:
+      - scenario_1_cli_exit_code_0
+      - scenario_2_cli_exit_code_1
+      - scenario_3_cli_exit_code_2
+
+# ═══════════════════════════════════════════════════════════════════════
+# Iteration policy — autonomous build behavior
+# ═══════════════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 3                   # service-story 2-3d, 3 cycles bastan
+  on_fail: |
+    1) Read failing validator output
+    2) Identify exact file/line target (no shotgun edits)
+    3) Apply minimal fix preserving spec intent + arch decisions D-BE-1..D-BE-12
+    4) Re-run failing validator only (not full suite)
+    5) If pass → continue to next pending validator
+    6) If iteration cap reached on T-4 orchestrator (subprocess error handling) o T-5 GitHub Actions YAML (required check semantics) → escalate to Chris (do NOT shortcut)
+  on_all_pass: |
+    set state=developing→developed
+    append iteration_log to T-{n}-impl-log.md
+    transition checkpoint phase=BUILD_GREEN
+    commit + push (parallel-safety: stage by name, no force, no pull, no revert)
+  on_cap_reached: |
+    set state=developing→blocked
+    write blocker analysis to checkpoint.md (root cause + last error trace + diagnosis hypothesis)
+    escalate to Chris
+
+# ═══════════════════════════════════════════════════════════════════════
+# Validator schema notes
+# ═══════════════════════════════════════════════════════════════════════
+
+notes:
+  - "All validators must_pass: true (no soft-fail in this story's scope)."
+  - "scenario_coverage 4/4 — happy/edge×2/adversarial spec scenarios fully covered with multi-layer defense."
+  - "Cost cap Story G — orchestrator $0 (read-only — zero NEW LLM cost beyond Stories B/E orchestrated). Cost integration via Stories E+F+H aggregate summed in EvalGateVerdict.cost_usd_total field."
+  - "Story G does NOT modify Story B/C/E/F arch fitness gates — adds 1 NEW (test_gate_threshold_defaults_protected) + extends Story F gate test_aggregator_no_llm_calls.py to scan ci_gate/ paths."
+  - "Read-only invariant verified via 2 layers: static import scan (gate_no_llm_imports) + integration DB query (agentic_cost_bucket_zero_contamination)."
+  - "Workflow YAML validation via 3 layers: syntax (workflow_yaml_lint) + path filters byte-equal (workflow_paths_canonical) + cron schedule byte-equal (workflow_cron_canonical)."
+  - "Branch protection setup checklist documented in module narrative (post-merge by /pm) — manual repo admin one-time task. NOT validator scope (manual setup gate)."
+  - "Story G NO agentic_eval LLM cost validators (orchestrator zero NEW LLM calls — Stories E grader cost accounted to Story F+H grader bucket separate)."
+  - "If Stories B+C+D+E+F+H build delays past Story G build trigger (hard blocker), T-1+T-2+T-3+T-6 can build with synthetic fixtures BEFORE upstream landed (decouple data dependency); T-4+T-5 (orchestrator + workflow YAML integration) require real artifacts → BLOCKED on upstream builds. PM/dev-team decides parallelization at build trigger."
+  - "Story G = service-story BE-only — owner_eligibility=Sonnet OK per R23 + Chris autonomy mandate. PM confirms final routing antes Conv 2 starts."

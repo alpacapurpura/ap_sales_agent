@@ -1,0 +1,594 @@
+# 06-tickets.yaml — Story sales-agent-voice-fidelity-ci-gate
+#
+# /architect orchestrator delivered (2026-05-08T13:00Z).
+# 6 tickets atomic, DAG dependencies, owner_eligibility per R23 + Chris mandate.
+# Story type: service-story BE-only (CI gate orchestrator + GitHub Actions workflow + PR comment generator).
+
+---
+story_id: sales-agent-voice-fidelity-ci-gate
+outcome: pi-12-sales-agent-eval-foundation
+generated_at: 2026-05-08T13:00:00Z
+generated_by: /architect
+total_estimate_hours: 13                # 2-3d total — read-only orchestrator + CI infra + arch fitness
+ticket_count: 6
+arch_link: 03-arch.md
+guidelines_link: 05-guidelines.md
+validators_link: 04-validators.yaml
+
+tickets:
+  # ═════════════════════════════════════════════════════════════════════
+  # T-1 — DDL idempotent migration + SQLA model R5 schema-mirror
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-1
+    title: "DDL Alembic 129_add_eval_gate_verdict_table + EvalGateVerdictModel SQLA 2.0 async (R5 schema-mirror)"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # Declarative SQL + SQLA model — declarative
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false                # test-infrastructure under backend/tests/ + R5 schema-mirror exception applies to model
+    decisions_applicable: [D-BE-1, D-BE-2, D-BE-3, D-BE-4, D-BE-5]
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§3.1-§3.2
+      conventions: ".claude/rules/backend-migrations.md, backend-ddd.md (R5 schema-mirror exception), tdd-mandatory.md"
+      tessl_skills: [tessl__fastapi]
+      required_skills: [backend-expert]
+      story_f_arch_precedent: ../sales-agent-eval-pass-k-tracking/03-arch.md§3.1-§3.2
+      story_e_arch_precedent: ../sales-agent-voice-fidelity-grader-runtime/03-arch.md§3.1-§3.2
+      precedent_files:
+        - "backend/alembic/versions/125_add_eval_simulator_observability_tables.py"
+        - "backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_llm_call.py"
+    deliverables:
+      - "NEW `backend/alembic/versions/129_add_eval_gate_verdict_table.py` per 03-arch.md§3.1 reference impl:
+          - revision='129_add_eval_gate_verdict_table'
+          - down_revision='128_add_eval_pass_k_summary_table' (Story F migration)
+          - upgrade(): CREATE TABLE IF NOT EXISTS eval_gate_verdict (PK composite commit_sha+cadence) + 4 indexes (run_id, pr_number partial WHERE NOT NULL, cadence+verdict, created_at DESC)
+          - downgrade(): DROP TABLE IF EXISTS eval_gate_verdict CASCADE"
+      - "NEW `backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_gate_verdict.py` (R5 schema-mirror):
+          - class EvalGateVerdictModel(Base) per 03-arch.md§3.2
+          - __tablename__='eval_gate_verdict'
+          - 23 columns mirroring DDL (schema_version, run_id, commit_sha, pr_number, cadence, verdict, pass_k_rate_global, threshold_applied, bloom_stage_min_score, bloom_stage_failing JSONB, budget_aborted, budget_abort_bucket, judge_unconverged_rate, failing_goldens JSONB, inputs_hash, golden_set_hash, judge_set_hash, rubric_set_hash, cache_hit, pr_comment_md TEXT, started_at, completed_at, cost_usd_total, latency_ms_total, created_at)
+          - PrimaryKeyConstraint composite (commit_sha, cadence)"
+      - "Verify migration idempotent — re-run alembic upgrade head twice — both succeed (validator migration_idempotency)"
+    out_of_scope:
+      - "Pydantic schemas (T-2)"
+      - "Cadence config (T-2)"
+      - "Orchestrator implementation (T-4)"
+      - "CLI script (T-5)"
+      - "Modify existing eval_simulator_*/eval_pass_k_summary models (R5 cement preserves)"
+    acceptance:
+      - id: A1
+        description: "Migration applies idempotently"
+        verifier:
+          type: shell
+          cmd: "see validator migration_idempotency in 04-validators.yaml"
+        validator_ids: [migration_idempotency]
+      - id: A2
+        description: "EvalGateVerdictModel imports + instantiates correctly"
+        verifier:
+          type: pytest
+          path: "backend/tests/modules/sales_agent/observability/eval_simulator/persistence/test_eval_gate_verdict_model.py"
+        validator_ids: [be_lint, be_format, be_mypy_strict]
+      - id: A3
+        description: "Story B/C/E/F arch fitness gates STILL GREEN (R5 schema-mirror exception preserved)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_no_mirrors_shared.py"
+        validator_ids: [legacy_simulator_invariants_intact]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, migration_idempotency, legacy_simulator_invariants_intact]
+    depends_on: []
+    blocks: [T-2, T-4]
+    transitions:
+      - { state: draft, at: 2026-05-08T13:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-2 — Pydantic schemas + cadence config + SCHEMA_MIGRATIONS anchor
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-2
+    title: "Pydantic v2 schemas (GateVerdict + FailingGoldenDetail + CadenceConfig + GateValidationError) + cadence_config.py declarative + SCHEMA_MIGRATIONS anchor"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # Pydantic declarative — straightforward
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2
+    production_code: false
+    decisions_applicable: [D-BE-6, D-BE-7, D-BE-10, D1, D2, D3, D4, D14, D15]
+    inputs:
+      spec: 01-spec.md§Schema_cement
+      arch_doc: 03-arch.md§3.3-§3.4
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md"
+      tessl_skills: [tessl__fastapi]
+      required_skills: [backend-expert]
+      story_f_arch_precedent: ../sales-agent-eval-pass-k-tracking/03-arch.md§3.3
+      story_h_arch_precedent: ../sales-agent-eval-cost-budget-cap/03-arch.md§3.1
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/ci_gate/__init__.py` (empty or minimal __all__ — re-exports compute_gate_verdict + GateValidationError once T-4 ships)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/ci_gate/_internal/__init__.py` (empty)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/ci_gate/_schema.py` per 03-arch.md§3.3 reference impl:
+          - `FailingGoldenDetail` Pydantic v2 frozen=True (golden_id str, tenant_slug Literal 5 values Story A, persona_kind Literal 4 values Story C+I, bloom_stage_failed Literal 4 stages, bloom_stage_score float 0-1, flaky_evidence list[str], reproduce_cmd str)
+          - `CadenceConfig` Pydantic v2 frozen (cadence Literal[pr/nightly/monthly], threshold_pass_k_rate float 0-1, threshold_bloom_stage float 0-1, goldens_scope Literal[smoke_5/full_20_30/full_plus_adversarial], k_trials_uniform int|None 1-10, budget_warm_usd Decimal, budget_cold_usd Decimal, mode Literal[block/warning], wall_clock_max_seconds int 60-7200)
+          - `GateVerdict` Pydantic v2 frozen (schema_version Literal[1]=1, run_id str, commit_sha str 7-40, pr_number int|None ≥1, cadence Literal 3 values, verdict Literal[pass/fail/aborted_budget/warning_only], pass_k_rate_global float|None 0-1, threshold_applied float 0-1, bloom_stage_min_score float|None 0-1, bloom_stage_failing list[Literal 4 stages], budget_aborted bool, budget_abort_bucket Literal[generation/grader]|None, judge_unconverged_rate float|None 0-1, failing_goldens list[FailingGoldenDetail], inputs_hash str 64-char, golden_set_hash str 64-char, judge_set_hash str 64-char, rubric_set_hash str 64-char, cache_hit bool, pr_comment_md str, started_at datetime, completed_at datetime, cost_usd_total Decimal, latency_ms_total int)
+          - `GateValidationError(Exception)` — raised by --validate-strict tamper detection"
+      - "NEW `backend/tests/agentic_evals/sales_agent/ci_gate/_internal/cadence_config.py` per 03-arch.md§3.4 reference impl:
+          - CADENCE_CONFIGS Final[dict[str, CadenceConfig]] = {pr/nightly/monthly} byte-equal cement
+          - PR_SMOKE_GOLDEN_IDS Final[tuple[str, ...]] = 5 entries (1 per tenant × happy)
+          - get_cadence_config(cadence) helper raises KeyError on unknown
+          - 3 env var override pattern: SALES_AGENT_VOICE_FIDELITY_THRESHOLD_<CADENCE>"
+      - "EDIT `backend/tests/agentic_evals/sales_agent/simulator/_internal/schema_migrations.py` — append `GateVerdict v1` anchor entry to `CURRENT_SCHEMA_VERSIONS` dict (`'GateVerdict': 1`); no migrator function for v1 (sentinel only — future v2 register migrator)"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/ci_gate/test_cadence_config.py`:
+          - test_cadence_configs_dict_byte_equal (3 cadences exact)
+          - test_pr_smoke_golden_ids_5_count_cement
+          - test_get_cadence_config_unknown_raises_keyerror
+          - test_threshold_env_var_override (set env var, reload module, assert override applied)
+          - test_budget_caps_per_cadence_byte_equal
+          - test_wall_clock_max_per_cadence_byte_equal"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/ci_gate/test_schema.py`:
+          - test_gate_verdict_construction_valid
+          - test_gate_verdict_extra_forbid (extra field raises ValidationError)
+          - test_gate_verdict_frozen (mutation raises TypeError)
+          - test_gate_verdict_inputs_hash_64char_validation
+          - test_failing_golden_detail_construction
+          - test_cadence_config_construction
+          - test_cadence_literal_3_values_only
+          - test_verdict_literal_4_values"
+    out_of_scope:
+      - "Orchestrator logic (T-4)"
+      - "Comment generator (T-4)"
+      - "inputs_hasher (T-3)"
+      - "Full migrator implementation v1→v2 (post-ship when v2 needed)"
+    acceptance:
+      - id: A1
+        description: "Pydantic schemas import + instantiate + frozen + extra forbid"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_schema.py"
+        validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_ci_gate_module]
+      - id: A2
+        description: "Cadence config dict byte-equal cement"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_cadence_config.py"
+        validator_ids: [agentic_three_cadences_no_drift]
+      - id: A3
+        description: "SCHEMA_MIGRATIONS registry includes GateVerdict v1 anchor"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_schema_migrations_registry_complete.py"
+        validator_ids: [legacy_simulator_invariants_intact]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_arch_fitness_full, legacy_simulator_invariants_intact, agentic_three_cadences_no_drift]
+    depends_on: [T-1]
+    blocks: [T-3, T-4, T-5, T-6]
+    transitions:
+      - { state: draft, at: 2026-05-08T13:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-3 — inputs_hasher (sha256 deterministic + cache key composition)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-3
+    title: "inputs_hasher.py — sha256 deterministic gate inputs + golden_set_hash + judge_set_hash + rubric_set_hash composition"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # Simple deterministic Python — sha256 + json.dumps
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-8, D6, D9]
+    inputs:
+      spec: 01-spec.md§Scenario_4
+      arch_doc: 03-arch.md§3.5
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md"
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert]
+      story_f_inputs_hasher_precedent: ../sales-agent-eval-pass-k-tracking/03-arch.md§3.6
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/ci_gate/_internal/inputs_hasher.py` per 03-arch.md§3.5 reference impl:
+          - `compute_gate_inputs_hash(pass_k_report, budget_summary, golden_set_hash, judge_set_hash, rubric_set_hash, cadence, commit_sha) → str` (64-char sha256 hex)
+          - `compute_golden_set_hash(goldens_dir, scope_filter=None) → str` (64-char sha256 hex; scope_filter=PR_SMOKE_GOLDEN_IDS for PR cadence, None=full scope)
+          - `compute_judge_set_hash(judge_config) → str` (64-char sha256 hex of judge models + weights + temperatures from Story E judge_registry)
+          - `compute_rubric_set_hash(rubrics_dir) → str` (64-char sha256 hex of all rubric MDs from docs/specs/rubrics/)
+          - Composition order frozen — sort_keys=True, ensure_ascii=False, default=str canonical JSON"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/ci_gate/test_inputs_hasher.py`:
+          - test_gate_inputs_hash_deterministic_across_runs (100x identity)
+          - test_gate_inputs_hash_64char_lowercase_hex
+          - test_gate_inputs_hash_changes_on_pass_k_report_modification (sentinel)
+          - test_gate_inputs_hash_changes_on_budget_summary_modification (sentinel)
+          - test_gate_inputs_hash_changes_on_golden_set_hash_modification (sentinel)
+          - test_gate_inputs_hash_changes_on_judge_set_hash_modification (sentinel)
+          - test_gate_inputs_hash_changes_on_rubric_set_hash_modification (sentinel)
+          - test_gate_inputs_hash_changes_on_cadence_modification (sentinel)
+          - test_gate_inputs_hash_changes_on_commit_sha_modification (sentinel)
+          - test_compute_golden_set_hash_scope_filter_PR_5_goldens_only
+          - test_compute_golden_set_hash_scope_filter_None_full_scope
+          - test_compute_judge_set_hash_stable
+          - test_compute_rubric_set_hash_stable
+          - test_pattern_separate_from_story_f_aggregator (anti-duplication §0 — different inputs justified)"
+    out_of_scope:
+      - "Aggregator logic (T-4)"
+      - "Cache lookup SQL query (T-4)"
+      - "Story F inputs_hasher modify (Story F territory)"
+    acceptance:
+      - id: A1
+        description: "Hash deterministic across runs (100x identity)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_inputs_hasher.py::test_gate_inputs_hash_deterministic_across_runs"
+        validator_ids: [agentic_inputs_hash_deterministic]
+      - id: A2
+        description: "Hash format 64-char lowercase hex"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_inputs_hasher.py::test_gate_inputs_hash_64char_lowercase_hex"
+        validator_ids: [be_mypy_strict]
+      - id: A3
+        description: "Hash changes on each component modification (7 components × 1 sentinel each)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_inputs_hasher.py"
+        validator_ids: [agentic_cache_invalidation_on_input_change]
+      - id: A4
+        description: "Pattern separate from Story F aggregator (anti-duplication §0 audit)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_inputs_hasher.py::test_pattern_separate_from_story_f_aggregator"
+        validator_ids: [jscpd_no_duplication]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, agentic_inputs_hash_deterministic, jscpd_no_duplication]
+    depends_on: [T-2]
+    blocks: [T-4]
+    transitions:
+      - { state: draft, at: 2026-05-08T13:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-4 — Orchestrator + comment_generator (Stories B+E+F+H integration + 4 verdict templates)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-4
+    title: "orchestrator.py + comment_generator.py — compute_gate_verdict (Stories B+E+F+H subprocess) + 4 verdict templates Spanish neutro + cache lookup + UPSERT"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                # Subprocess error handling + AsyncSession UPSERT — beyond opencode declarative
+      claude_sonnet: true
+      claude_opus_required: false         # Sonnet OK; escalate /pm if iteration cap reached on subprocess error handling
+    priority: 1
+    estimate_hours: 4
+    production_code: false
+    decisions_applicable: [D-BE-9, D-BE-12, D6, D7, D8, D9, D17]
+    inputs:
+      spec: 01-spec.md§Scenario_1-§Scenario_3 + §Defense_Layer_3
+      arch_doc: 03-arch.md§3.6-§3.7
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md, spanish-text.md, sales-agent-brand-voice.md (consume only)"
+      tessl_skills: [tessl__fastapi, tessl__graceful-degradation]
+      required_skills: [backend-expert, sales-agent-expert]
+      story_f_arch_precedent: ../sales-agent-eval-pass-k-tracking/03-arch.md§3.4
+      story_h_arch_precedent: ../sales-agent-eval-cost-budget-cap/03-arch.md§3.6
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/ci_gate/orchestrator.py` per 03-arch.md§3.6 reference impl:
+          - `compute_gate_verdict(session, *, cadence, commit_sha, pr_number, output_dir) → GateVerdict` async fn
+          - 13-step pipeline: resolve config → compute set hashes → cache lookup → run_id+dir → invoke Stories B+E+F → read pass_k_report.json + budget_summary.json → determine verdict → compute inputs_hash → build failing_goldens → generate PR comment → UPSERT row → write artifact → emit structlog
+          - GateValidationError raised on --validate-strict re-compute mismatch (D9)
+          - Helpers: _load_judge_config, _cache_lookup, _invoke_pass_k_pipeline (subprocess), _read_budget_summary, _build_failing_goldens, _upsert_verdict, _write_artifact"
+      - "NEW `backend/tests/agentic_evals/sales_agent/ci_gate/comment_generator.py` per 03-arch.md§3.7 reference impl:
+          - 4 templates Spanish neutro Markdown (PASS / FAIL / ABORTED / WARNING)
+          - `generate_pr_comment(*, verdict, cadence, pass_k_rate_global, threshold_applied, ..., budget_summary, run_id) → str`
+          - Helpers: _render_pass, _render_fail_or_warning, _render_aborted, _min_stage_name, _format_failing_goldens_section
+          - _CADENCE_LABELS dict {pr: PR-trigger, nightly: Nightly, monthly: Monthly}
+          - _SCOPE_LABELS dict per cadence"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py`:
+          - test_pr_cadence_smoke_subset_green
+          - test_verdict_pass_when_threshold_met
+          - test_red_on_bloom_stage_regression
+          - test_nightly_budget_abort_distinct_status
+          - test_persists_one_row_per_commit_cadence
+          - test_re_run_same_inputs_idempotent (UPSERT semantics)
+          - test_cache_lookup_short_circuits_on_hit (subprocess invocation count == 0)
+          - test_cache_invalidation_on_input_change (mutate each component)
+          - test_audit_trail_immutable_per_commit_cadence
+          - test_orchestrator_zero_llm_call_writes (DB query post-orchestration)
+          - test_orchestrator_subprocess_invokes_run_simulation_compute_pass_k_validate_strict
+          - test_failing_goldens_flaky_evidence_consume_sanitized_story_f"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/ci_gate/test_comment_generator.py`:
+          - test_pass_template_renders_correctly
+          - test_fail_template_with_root_cause_attribution
+          - test_aborted_template_partial_results
+          - test_warning_template_chris_review_note
+          - test_pr_comment_no_voseo (grep templates for prohibited voseo strings)
+          - test_idempotent_marker_comment_id_match"
+      - "NEW integration test fixtures `backend/tests/agentic_evals/sales_agent/ci_gate/conftest.py`:
+          - eval_gate_test_session (AsyncSession + tear-down rollback)
+          - synthetic_pass_k_report (Story F output fixture — pass + fail variants)
+          - synthetic_budget_summary (Story H output fixture — within + aborted variants)
+          - synthetic_goldens_dir (Story D fixture — 5 smoke goldens for PR cadence + 25 full goldens for nightly)
+          - synthetic_judge_config (Story E judge_registry snapshot fixture)"
+    out_of_scope:
+      - "CLI script (T-5)"
+      - "GitHub Actions workflow YAML (T-5)"
+      - "Arch fitness gate (T-6)"
+      - "Capability YAML (T-6, post-merge by /pm)"
+    acceptance:
+      - id: A1
+        description: "Scenario 1 happy + Scenario 2 fail + Scenario 3 budget abort all GREEN"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py"
+        validator_ids: [scenario_1_pr_gate_green_happy_path, scenario_2_pr_gate_red_bloom_regression, scenario_3_nightly_budget_abort_cascade]
+      - id: A2
+        description: "4 PR comment templates Spanish neutro + idempotent edit"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_comment_generator.py"
+        validator_ids: [scenario_1_pr_comment_pass_template, scenario_2_pr_comment_fail_template, scenario_3_pr_comment_aborted_template, agentic_spanish_neutro_pr_comment]
+      - id: A3
+        description: "Cache lookup short-circuits + cache invalidation on component change"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_cache_lookup_short_circuits_on_hit"
+        validator_ids: [agentic_cache_short_circuit_on_hit, agentic_cache_invalidation_on_input_change]
+      - id: A4
+        description: "Read-only invariant: zero LLM call writes by orchestrator"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_orchestrator_zero_llm_call_writes"
+        validator_ids: [agentic_cost_bucket_zero_contamination, gate_no_llm_imports]
+      - id: A5
+        description: "Idempotency: re-run same inputs UPSERT same row + same JSON output + same Markdown comment"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_orchestrator.py::test_re_run_same_inputs_idempotent"
+        validator_ids: [agentic_idempotency_run_twice_same_output]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_ci_gate_module, jscpd_no_duplication, scenario_1_pr_gate_green_happy_path, scenario_2_pr_gate_red_bloom_regression, scenario_3_nightly_budget_abort_cascade, agentic_cost_bucket_zero_contamination, agentic_idempotency_run_twice_same_output, agentic_cache_short_circuit_on_hit, agentic_cache_invalidation_on_input_change, agentic_spanish_neutro_pr_comment]
+    depends_on: [T-1, T-2, T-3]
+    blocks: [T-5]
+    transitions:
+      - { state: draft, at: 2026-05-08T13:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+    escalation_path: "Sonnet OK; if iteration cap reached on subprocess error handling complexity (Stories B+E+F+H integration) o AsyncSession UPSERT pattern → escalate /pm para Opus override puntual."
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-5 — CLI script + GitHub Actions workflow + bypass defense tests
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-5
+    title: "CLI script run_eval_gate.py + GitHub Actions workflow voice-fidelity-gate.yml + bypass defense tests"
+    type: backend
+    surface: BE + CI
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # Declarative argparse + YAML — straightforward
+      claude_sonnet: true
+      claude_opus_required: false         # Sonnet OK; escalate /pm if iteration cap reached on required check semantics or PR comment idempotent edit
+    priority: 1
+    estimate_hours: 2.5
+    production_code: false
+    decisions_applicable: [D-BE-11, D-BE-12, D8, D11, D14]
+    inputs:
+      spec: 01-spec.md§GitHub_Actions_workflow_contract + §Scenario_4
+      arch_doc: 03-arch.md§3.8-§3.9
+      conventions: ".claude/rules/spanish-text.md, .claude/rules/parallel-safety.md"
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert, playwright-expert (read-only CI patterns reference)]
+      research_urls:
+        - "https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions (accessed 2026-05-08)"
+        - "https://github.com/orgs/community/discussions/13836 (accessed 2026-05-08 — skip ci required check semantics)"
+    deliverables:
+      - "NEW `backend/scripts/run_eval_gate.py` per 03-arch.md§3.8 reference impl:
+          - argparse: --cadence (required choices pr/nightly/monthly), --output (required path), --commit-sha (default GITHUB_SHA env), --pr-number int|None, --validate-strict flag
+          - structlog setup JSON renderer
+          - asyncio.run(_async_main(args)) → exit code 0/1/2 per D8 cement
+          - Spanish neutro stderr error messages (`ERROR validación strict:`, `ERROR cadencia desconocida:`, `ERROR inesperado en gate:`)
+          - English structlog event names"
+      - "NEW `.github/workflows/voice-fidelity-gate.yml` per 03-arch.md§3.9 reference impl:
+          - on: pull_request paths (6 canonical paths D14 cement) + schedule cron (nightly + monthly D14 cement)
+          - permissions minimal (contents: read, pull-requests: write)
+          - 2 jobs: determine-cadence (output cadence) + voice-fidelity-gate-required (timeout 75min)
+          - Steps: actions/checkout@v4 + actions/setup-python@v5 + install backend deps + run gate (5 secrets ANTHROPIC/OPENAI/KIMI/DEEPSEEK/EVAL_DATABASE_URL) + actions/upload-artifact@v4 + actions/github-script@v7 idempotent PR comment edit (marker comment ID match D7 cement)"
+      - "NEW unit tests `backend/tests/scripts/test_run_eval_gate.py`:
+          - test_cli_exit_0_on_pass
+          - test_cli_exit_1_on_fail
+          - test_cli_exit_2_on_budget_abort
+          - test_partial_results_persist_on_abort
+          - test_validate_strict_invoked_on_every_gate_run (D9 cement)
+          - test_verdict_json_validates_against_pydantic_schema
+          - test_cli_args_required_cadence_output (argparse validation)
+          - test_cli_spanish_neutro_stderr_messages"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/ci_gate/test_gate_bypass_defenses.py`:
+          - test_skip_ci_does_not_bypass_required_check (Layer 1 — assertion via documented invariant + setup checklist requirement)
+          - test_workflow_file_changes_detected (Layer 2 — path filter detects `.github/workflows/voice-fidelity-gate.yml` modification + auditor manual review required)
+          - test_goldens_tamper_detected_via_validate_strict (Layer 3 — Story F --validate-strict invoked on every gate run; mutation detected via golden_yaml_hash mismatch)
+          - test_threshold_defaults_arch_fitness_blocks_pr (Layer 4 — see T-6 arch fitness gate; this test invokes T-6 gate as integration assertion)
+          - test_audit_trail_immutable_per_commit_cadence (Layer 5 — already in T-4 test_orchestrator.py; cite cross-reference)
+          - test_bypass_attempted_logs_warning (structlog WARNING `ci_gate.bypass_attempted` + caller + change details)"
+      - "Workflow YAML lint + path filters byte-equal + cron schedule byte-equal validators (workflow_yaml_lint, workflow_paths_canonical, workflow_cron_canonical)"
+    out_of_scope:
+      - "Branch protection rule setup (manual repo admin one-time post-merge — see T-6 module narrative checklist)"
+      - "Repo admin secrets setup (manual one-time post-merge — see T-6 module narrative checklist)"
+      - "Arch fitness gate test_gate_threshold_defaults_protected (T-6)"
+      - "Capability YAML extension (T-6, post-merge by /pm)"
+    acceptance:
+      - id: A1
+        description: "CLI exit codes 0/1/2 per D8 cement"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_run_eval_gate.py"
+        validator_ids: [scenario_1_cli_exit_code_0, scenario_2_cli_exit_code_1, scenario_3_cli_exit_code_2]
+      - id: A2
+        description: "Workflow YAML valid + path filters + cron canonical"
+        verifier:
+          type: shell
+          cmd: "see validators workflow_yaml_lint + workflow_paths_canonical + workflow_cron_canonical"
+        validator_ids: [workflow_yaml_lint, workflow_paths_canonical, workflow_cron_canonical]
+      - id: A3
+        description: "Scenario 4 adversarial 5-layer bypass defense tests GREEN"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/ci_gate/test_gate_bypass_defenses.py"
+        validator_ids: [scenario_4_skip_ci_does_not_bypass_required_check, scenario_4_workflow_file_changes_require_review, scenario_4_goldens_tamper_detected_via_validate_strict, scenario_4_eval_gate_verdict_audit_trail_immutable, scenario_4_bypass_attempted_structlog_warning]
+      - id: A4
+        description: "--validate-strict flag invoked on every gate run (D9 cement)"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_run_eval_gate.py::test_validate_strict_invoked_on_every_gate_run"
+        validator_ids: [agentic_subprocess_invocation_stories_consume_only]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, workflow_yaml_lint, workflow_paths_canonical, workflow_cron_canonical, scenario_1_cli_exit_code_0, scenario_2_cli_exit_code_1, scenario_3_cli_exit_code_2, scenario_4_skip_ci_does_not_bypass_required_check, scenario_4_workflow_file_changes_require_review, scenario_4_goldens_tamper_detected_via_validate_strict, scenario_4_bypass_attempted_structlog_warning]
+    depends_on: [T-4]
+    blocks: [T-6]
+    transitions:
+      - { state: draft, at: 2026-05-08T13:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+    escalation_path: "Sonnet OK; if iteration cap reached on required check semantics o actions/github-script@v7 PR comment idempotent edit (marker comment ID match) → escalate /pm para Opus override puntual."
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-6 — Arch fitness gate + capability YAML + module narrative + downstream regression rule
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-6
+    title: "Arch fitness gate test_gate_threshold_defaults_protected + Story F gate extension + capability YAML eval block + module narrative branch protection checklist + downstream regression rule entry"
+    type: docs
+    surface: BE arch fitness + DOCS
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # Declarative arch test + YAML edit + Markdown narrative — declarative
+      claude_sonnet: true                  # Builder builds arch test + extends Story F gate
+      claude_opus_required: false          # /pm post-merge for capability YAML + module narrative + rule update
+    priority: 2
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-7, D10, D11]
+    inputs:
+      spec: 01-spec.md§Defense_Layer_4 + §Defense_Layer_5
+      arch_doc: 03-arch.md§3.10 + §11
+      conventions: ".claude/rules/architectural-fitness.md, .claude/rules/anti-default-flip-audit.md (R29 cascade)"
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert]
+      story_f_arch_precedent: ../sales-agent-eval-pass-k-tracking/03-arch.md§3.10
+    deliverables:
+      - "NEW `backend/tests/architecture/test_gate_threshold_defaults_protected.py` per 03-arch.md§3.10 reference impl:
+          - test_threshold_env_var_defaults_byte_equal (3 env vars cement: PR=0.65/nightly=0.70/monthly=0.75)
+          - test_budget_caps_per_cadence_byte_equal (3 cadences × warm + cold caps)
+          - test_wall_clock_max_per_cadence_byte_equal (3 cadences × max seconds)
+          - test_pr_smoke_golden_ids_5_count_cement (D15 cement)
+          - test_three_cadences_only_no_drift (D-BE-7 cement; Story I extends additively to 4)"
+      - "EDIT `backend/tests/architecture/test_aggregator_no_llm_calls.py` (Story F NEW gate from T-8 in Story F) — extend AST static scan to include:
+          - `tests/agentic_evals/sales_agent/ci_gate/orchestrator.py`
+          - `tests/agentic_evals/sales_agent/ci_gate/_internal/inputs_hasher.py`
+          - `tests/agentic_evals/sales_agent/ci_gate/comment_generator.py`
+          - `backend/scripts/run_eval_gate.py`
+          Allowlist empty shrink-only — MUST NOT import litellm/anthropic/openai."
+      - "EDIT (post-merge by /pm) `docs/product/capabilities/sales-agent/sales-conversational-engine.yaml` per 03-arch.md§11:
+          - Append eval block fields: ci_gate_workflow_path, ci_gate_table, ci_gate_cadences (list of 3 cadence dicts), ci_gate_branch_protection_required_check, ci_gate_required_check_setup_required, ci_gate_audit_table_immutable, ci_gate_story_g_introduced, ci_gate_story_g_merged_at (null pending), ci_gate_test_coverage (6 paths)"
+      - "EDIT (post-merge by /pm) `docs/product/modules/sales-agent.md` per 03-arch.md§11:
+          - Add 1-2 sentences in eval narrative section
+          - Add branch protection setup checklist (5 manual steps for repo admin one-time post-deploy)"
+      - "EDIT (post-merge by /pm) `.claude/rules/auditor-downstream-regression.md` per 03-arch.md§11:
+          - Append 3 rows to tabla SSoT:
+            * orchestrator.py path → test paths
+            * cadence_config.py path → arch fitness test
+            * voice-fidelity-gate.yml path → integration tests + manual smoke verification post-deploy"
+    out_of_scope:
+      - "Branch protection rule actual setup in GitHub UI (manual repo admin one-time task post-merge — checklist in module narrative for Chris execution)"
+      - "Repo admin secrets actual setup (manual one-time task post-merge — secrets list in module narrative)"
+      - "Story F gate `test_aggregator_no_llm_calls.py` initial implementation (Story F territory — Story G only EXTENDS)"
+    acceptance:
+      - id: A1
+        description: "5 invariant tests in test_gate_threshold_defaults_protected.py all GREEN"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_gate_threshold_defaults_protected.py"
+        validator_ids: [gate_threshold_defaults_protected]
+      - id: A2
+        description: "Story F gate extended to scan ci_gate/ paths — gate_no_llm_imports validator GREEN"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_aggregator_no_llm_calls.py"
+        validator_ids: [gate_no_llm_imports]
+      - id: A3
+        description: "Capability YAML eval block extended with ci_gate_* fields (post-merge by /pm)"
+        verifier:
+          type: shell
+          cmd: "grep -A3 'ci_gate_workflow_path' docs/product/capabilities/sales-agent/sales-conversational-engine.yaml"
+        validator_ids: []                 # post-merge manual verification
+      - id: A4
+        description: "Module narrative + branch protection checklist + downstream regression rule entries (post-merge by /pm)"
+        verifier:
+          type: shell
+          cmd: "grep -l 'voice-fidelity-gate-required' docs/product/modules/sales-agent.md .claude/rules/auditor-downstream-regression.md"
+        validator_ids: []                 # post-merge manual verification
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_arch_fitness_full, gate_threshold_defaults_protected, gate_no_llm_imports]
+    depends_on: [T-1, T-2, T-3, T-4, T-5]
+    blocks: []                           # last ticket — no downstream
+    transitions:
+      - { state: draft, at: 2026-05-08T13:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet  # arch fitness gate + Story F gate extend
+    post_merge_owner: /pm                # capability YAML + module narrative + downstream regression rule update
+
+# ═══════════════════════════════════════════════════════════════════════
+# DAG visualization
+# ═══════════════════════════════════════════════════════════════════════
+
+dag:
+  critical_path: "T-1 → T-2 → (T-3 parallel-safe) → T-4 → T-5 → T-6"
+  parallelizable: "T-3 can build parallel to T-4 prep work after T-2; T-6 arch fitness gate can build parallel to T-5 after T-4"
+  total_estimate_sequential_hours: 13
+  total_estimate_with_concurrency_hours: 11
+
+# ═══════════════════════════════════════════════════════════════════════
+# Build dependency on Stories B+C+D+E+F+H (HARD blocker)
+# ═══════════════════════════════════════════════════════════════════════
+
+build_blockers:
+  hard:
+    - "Story B (DONE 2026-05-08) — provides run_simulation API + eval_simulator_trace_event table + cost-bucket invariants + H1 SCHEMA_MIGRATIONS"
+    - "Story C (REFINED) — provides _TRIAL_POLICY_BY_PERSONA_KIND + 15 archetype-aware personas — required for nightly+monthly cadence heterogeneous K"
+    - "Story D (REFINED) — provides 20-30 goldens YAML + 5 smoke goldens curated for PR cadence — required for golden_set_hash compute"
+    - "Story E (REFINED) — provides eval_simulator_grade table + MajEvalScore rows + judge_registry config — required for orchestrator subprocess invocation"
+    - "Story F (REFINED) — provides eval_pass_k_summary table + pass_k_report.json + compute_pass_k_report.py --validate-strict — required for orchestrator subprocess + cache invalidation precision"
+    - "Story H (REFINED) — provides BudgetState schema + budget_summary.json + exit code 2 cascade + budget caps per cadence — required for orchestrator verdict logic + abort handling"
+  decoupled:
+    - "T-1 (DDL + SQLA model) — can build BEFORE Stories C/D/E/F/H if migration test isolated"
+    - "T-2 (Pydantic schemas + cadence config) — can build BEFORE Stories C/D/E/F/H if synthetic Pydantic test data used"
+    - "T-3 (inputs_hasher) — can build BEFORE Stories E/F/H if synthetic JSON fixtures + synthetic goldens dir used"
+    - "T-6 (arch fitness gate + Story F gate extension) — can build BEFORE Stories E/F/H if Story F gate `test_aggregator_no_llm_calls.py` already shipped (Story F T-8)"
+  blocked_on_upstream:
+    - "T-4 (orchestrator integration) — requires Stories B+E+F+H real artifacts → BLOCKED on upstream builds"
+    - "T-5 (CLI + workflow YAML integration) — requires T-4 + Stories B+E+F+H → BLOCKED on upstream builds"
+
+# ═══════════════════════════════════════════════════════════════════════
+# Notes
+# ═══════════════════════════════════════════════════════════════════════
+
+notes:
+  - "Story G = LAST en sub-épica eval-foundation. Cierra el loop del Objetivo 2 del PI-12."
+  - "Story G `production_code: false` per Story G being CI infrastructure + tests + docs (no runtime production code). Sonnet OK all 6 tickets per R23 + Chris autonomy mandate."
+  - "Build serialization order: B(done) → C → D → E → (F+H parallel) → G → I."
+  - "Decoupled build option: T-1+T-2+T-3+T-6 can build with synthetic fixtures BEFORE Stories C/D/E/F/H land. T-4+T-5 require real upstream artifacts. PM/dev-team decides parallelization at build trigger."
+  - "Branch protection rule `voice-fidelity-gate-required` — manual repo admin one-time setup post-merge (checklist in module narrative T-6 deliverable). Documented as prerequisite post-deploy. Without setup, [skip ci] could bypass merge per spec Defense Layer 1."
+  - "Repo admin secrets ANTHROPIC_API_KEY + OPENAI_API_KEY + KIMI_API_KEY + DEEPSEEK_API_KEY + EVAL_DATABASE_URL — manual one-time setup post-merge."
+  - "Story I extends Story G `monthly` cadence row additively (4th cadence row) — Literal forward-compat allows superset; NO bump v1→v2 needed."
+  - "Capability YAML + module narrative + downstream regression rule updates = post-merge by /pm (T-6 ticket flagged). Builder builds arch fitness gate + Story F gate extension only."
+  - "Native-first WSL — NUNCA Docker para tests/lint/type-check. Migration only via docker exec."
+  - "Anti-telephone-game: each builder/auditor returns ONE final line `<verdict> -> <path-to-artifact>`. NO inline body >500 tokens."
