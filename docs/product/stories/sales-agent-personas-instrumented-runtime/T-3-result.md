@@ -7,7 +7,7 @@
 **State:** developed (tests-passing)
 **Estimate:** 3h · **Actual:** ~1h (single-iteration implementation post-CONTEXT-BRIEF)
 **Date:** 2026-05-08
-**Commit SHA:** _to be appended after push_
+**Commit SHA:** `cbd98b76` (pushed to origin/development 2026-05-08)
 
 ## Files delivered
 
