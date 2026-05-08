@@ -167,7 +167,7 @@ tickets:
     title: "personas_loader.py — load_actor_profile_for_tenant + get_max_turns_for_persona_kind + cross-check + lru_cache"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: developed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -250,6 +250,8 @@ tickets:
     blocks: [T-5, T-6, T-7, T-8]
     transitions:
       - { state: draft, at: 2026-05-08T07:00Z, by: /architect }
+      - { state: developing, at: 2026-05-08T21:00Z, by: /dev-team }
+      - { state: developed, at: 2026-05-08T22:00Z, by: builder-agentic-opus-4.7, evidence: "T-3-result.md — 18/18 tests GREEN, 13/13 validators GREEN, coverage 90.53%, Story B 6 gates + Story C T-2 gate STILL GREEN, jscpd zero clones, mypy strict file-scoped clean" }
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════
