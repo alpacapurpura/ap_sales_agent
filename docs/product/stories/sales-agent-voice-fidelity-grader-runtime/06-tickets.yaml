@@ -1,0 +1,906 @@
+# 06-tickets.yaml — Story sales-agent-voice-fidelity-grader-runtime
+#
+# /architect orchestrator delivered (2026-05-08).
+# 10 tickets atomic, DAG dependencies, owner_eligibility per R23 + Chris mandate.
+# Story type: agentic-story (mixed BE test-infra DDL+models+rubric MD + AGENTIC test-infra MAJ-EVAL state machine + sandbox markers + cache + integration scenarios)
+
+---
+story_id: sales-agent-voice-fidelity-grader-runtime
+outcome: pi-12-sales-agent-eval-foundation
+generated_at: 2026-05-08T10:00:00Z
+generated_by: /architect
+total_estimate_hours: 26                # 4-5d total per spec v2 + design v2 complexity
+ticket_count: 10
+arch_link: 03-arch.md
+guidelines_link: 05-guidelines.md
+validators_link: 04-validators.yaml
+
+tickets:
+  # ═════════════════════════════════════════════════════════════════════
+  # T-1 — Alembic migration 127 raw SQL idempotent (2 NEW tables)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-1
+    title: "Alembic migration 127 — eval_simulator_grade + eval_simulator_grade_cache (raw SQL idempotent)"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true
+      claude_sonnet: true                 # ✅ YAML+SQL declarative — pure test-infra, idempotent raw SQL pattern
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-1, D-BE-2, D-BE-6]
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§3.1
+      conventions: ".claude/rules/backend-migrations.md, anti-duplication.md"
+      required_skills: [backend-expert]
+      precedent_file: backend/alembic/versions/125_add_eval_simulator_observability_tables.py
+    deliverables:
+      - "NEW `backend/alembic/versions/127_add_eval_simulator_grade_tables.py` per 03-arch.md§3.1 reference impl:
+          - revision='127_add_eval_simulator_grade_tables', down_revision='125_add_eval_simulator_observability_tables'
+          - 2 NEW tables raw SQL IF NOT EXISTS:
+            - eval_simulator_grade (PK composite (simulation_id, turn_n, rubric_id), schema_version SMALLINT default 1, judges JSONB, debate_triggered/unconverged/r2_partial/suspicious BOOLEAN, cost_usd_total NUMERIC(10,6), latency_ms_total INTEGER, cache_hit_count SMALLINT, metadata JSONB default {}, created_at TIMESTAMPTZ default NOW())
+            - eval_simulator_grade_cache (PK cache_key VARCHAR(64), schema_version SMALLINT default 1, transcript/rubric/voice/judge_set hashes, payload JSONB, created_at, last_hit_at)
+          - 6 indexes raw SQL IF NOT EXISTS (tenant_persona, rubric, unconverged WHERE TRUE, actor_profile, cache rubric, cache transcript)
+          - downgrade() drops 2 tables CASCADE"
+    out_of_scope:
+      - "SQLAlchemy models (T-2)"
+      - "Pydantic types (T-2)"
+      - "Rubric MD (T-3)"
+    acceptance:
+      - id: A1
+        description: "Migration applies cleanly + idempotent (re-run twice succeeds)"
+        verifier:
+          type: shell
+          cmd: "see validator migration_idempotency cmd in 04-validators.yaml"
+        validator_ids: [migration_idempotency]
+      - id: A2
+        description: "2 tables + 6 indexes present in DB post-upgrade"
+        verifier:
+          type: shell
+          cmd: "docker exec visionarias_brain_dev psql -U postgres -d nicolify -c '\\d eval_simulator_grade' && docker exec visionarias_brain_dev psql -U postgres -d nicolify -c '\\d eval_simulator_grade_cache'"
+    quality_gates:
+      validator_ids: [be_lint, be_format, migration_idempotency]
+    depends_on: []
+    blocks: [T-2, T-9]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-2 — SQLAlchemy 2.0 models + Pydantic v2 types
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-2
+    title: "SQLAlchemy 2.0 models (R5 schema-mirror) + Pydantic v2 types (MajEvalScore + JudgeOpinion + RubricGradeRequest)"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true
+      claude_sonnet: true                 # ✅ Schema-mirror R5 + Pydantic v2 frozen=True — declarative paridad Story B
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2.5
+    production_code: false
+    decisions_applicable: [D-BE-3, D-BE-4, D-BE-5]
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§3.2,§3.3
+      conventions: ".claude/rules/backend-ddd.md (R5 schema-mirror exception), backend-quality.md"
+      required_skills: [backend-expert, tessl__fastapi]
+      precedent_file: backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_llm_call.py
+    deliverables:
+      - "NEW `backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_grade.py` per 03-arch.md§3.2 reference impl:
+          - SQLAlchemy 2.0 declarative model `EvalSimulatorGradeModel`
+          - Mirror Alembic 127 schema verbatim
+          - PrimaryKeyConstraint composite (simulation_id, turn_n, rubric_id)
+          - JSONB columns: judges, metadata_ (Python alias for SQL `metadata`)"
+      - "NEW `backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_grade_cache.py`:
+          - SQLAlchemy 2.0 declarative model `EvalSimulatorGradeCacheModel`
+          - PK cache_key VARCHAR(64)
+          - JSONB column: payload"
+      - "EDIT `backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/__init__.py` (additive — register 2 NEW models)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/result.py` per 03-arch.md§3.3 reference impl:
+          - JudgeOpinion (Pydantic v2 ConfigDict frozen=True extra='forbid')
+          - MajEvalScore (schema_version: Literal[1] = 1 cement; rubric_id Literal 4-value; persona_kind Literal 4-value; judges list[JudgeOpinion]; round_1/2_score/variance + final_score Decimal-equiv float; debate_triggered/unconverged/r2_partial/suspicious/injection_attempt_detected booleans; cost_usd_total Decimal; latency_ms_total int; cache_hit_count int 0-6)
+          - RubricGradeRequest (transcript list, tenant_voice_profile, rubrics list Literal, judge_set Literal['full_3'] default, cache_policy Literal['use','bypass'] default 'use', simulation_id, tenant_slug, persona_kind, actor_profile_id)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_pydantic_types_unit.py`:
+          - test_majeval_score_frozen_extra_forbid (mutation raises ValidationError; extra fields raise)
+          - test_judge_opinion_score_optional_for_failed_judge (score=None when judge fails)
+          - test_judge_opinion_weight_range_validates (0.0 ≤ weight ≤ 1.0)
+          - test_rubric_request_default_cache_policy_use"
+    out_of_scope:
+      - "Migration (T-1)"
+      - "Cache impl (T-6)"
+      - "Judge registry (T-4)"
+    acceptance:
+      - id: A1
+        description: "Pydantic v2 frozen=True + extra='forbid' invariants verified"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_pydantic_types_unit.py"
+        validator_ids: [be_lint, be_format, be_mypy_strict]
+      - id: A2
+        description: "SQLAlchemy 2.0 models register + ORM round-trip works (insert + select)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_pydantic_types_unit.py::test_orm_round_trip_minimal"
+        validator_ids: [be_lint, be_format]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_arch_fitness_full, jscpd_no_duplication]
+    depends_on: [T-1]
+    blocks: [T-4, T-5, T-6, T-7, T-9]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-3 — NEW rubric qualification-accuracy.md v1 (REPLACE Story C placeholder)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-3
+    title: "Rubric qualification-accuracy.md v1 (REPLACE Story C placeholder) — Story E owns full content"
+    type: docs
+    surface: DOCS
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true
+      claude_sonnet: true                 # ✅ Markdown content + frontmatter — declarative; spec verbatim per 03-arch.md§3.4
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1
+    production_code: false
+    decisions_applicable: [D-BE-7, D6]
+    inputs:
+      spec: 01-spec.md§NEW_rubric_qualification_accuracy
+      arch_doc: 03-arch.md§3.4
+      conventions: ".claude/rules/spanish-text.md"
+      required_skills: [sales-agent-expert]
+      precedent_file: docs/specs/rubrics/voice-fidelity.md
+    deliverables:
+      - "REPLACE `docs/specs/rubrics/qualification-accuracy.md` (overwrite Story C placeholder per 03-arch.md§3.4 verbatim):
+          - Frontmatter: id=qualification-accuracy, version=1, applies_to=[agentic-story], modules=[sales_agent], threshold_default=0.75, ssot citations, last_modified=2026-05-08, owner_story=sales-agent-voice-fidelity-grader-runtime
+          - Sections: Propósito, Inputs al juez (slot 5 transcript), Assertions A1-A4 (Qualifies-out / BANT order / Graceful decline / No-overpromise cross-rubric), Scoring methodology, Out of scope, Calibration, Cache invalidation, Story chain
+          - Spanish neutro tuteo per .claude/rules/spanish-text.md
+          - 4 axes weighted scoring formula: 0.4 × A1 + 0.3 × A2 + 0.2 × A3 + 0.1 × A4"
+    out_of_scope:
+      - "Migration (T-1)"
+      - "Models / Pydantic types (T-2)"
+      - "Runtime grader implementation (T-5)"
+    acceptance:
+      - id: A1
+        description: "Rubric MD v1 cement (placeholder replaced)"
+        verifier:
+          type: shell
+          cmd: "see validator qualification_accuracy_rubric_v1_replaced cmd in 04-validators.yaml"
+        validator_ids: [qualification_accuracy_rubric_v1_replaced]
+      - id: A2
+        description: "Frontmatter + 4 assertions + scoring methodology present"
+        verifier:
+          type: shell
+          cmd: "grep -q 'A1 — Qualifies-out' docs/specs/rubrics/qualification-accuracy.md && grep -q 'A2 — BANT order' docs/specs/rubrics/qualification-accuracy.md && grep -q 'threshold_default: 0.75' docs/specs/rubrics/qualification-accuracy.md"
+    quality_gates:
+      validator_ids: [qualification_accuracy_rubric_v1_replaced, agentic_voseo_compliance_grader_code]
+    depends_on: []
+    blocks: [T-7, T-9]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-4 — judge_registry.py (3 judges + weights + LiteLLM Proxy adapter)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-4
+    title: "judge_registry.py — 3 judges (sonnet/gpt4o/kimi) + weights 0.4/0.4/0.2 + LiteLLM Proxy adapter"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ✅ LiteLLM Proxy adapter + cost recording bridge — agentic plumbing critical path
+    priority: 1
+    estimate_hours: 2
+    production_code: false
+    decisions_applicable: [D2, D15, D-AG-2, D-AG-17]
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§4.4
+      conventions: ".claude/rules/anti-duplication.md, copilot-observability.md, sales-agent-brand-voice.md"
+      tessl_skills: [tessl__graceful-degradation]
+      required_skills: [sales-agent-expert, copilot-expert]
+      story_b_litellm_canonical: backend/src/shared/infrastructure/llm/providers/litellm.py
+      story_b_cost_recorder: backend/src/shared/agent_observability/cost/cost_recorder.py
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/_internal/judge_registry.py` per 03-arch.md§4.4 reference impl:
+          - JUDGE_WEIGHTS Final[dict[str, float]] = {sonnet: 0.4, gpt4o: 0.4, kimi: 0.2}
+          - JUDGE_MODELS Final[dict[str, str]] = {sonnet: 'claude-sonnet-4-6', gpt4o: 'gpt-4o-2024-11-20', kimi: 'kimi-k2.6'}
+          - _JudgeAdapter class (NOT hierarchy — registry pattern):
+            - .grade(prompt, *, weight, round_n, obs_context) → JudgeOpinion
+            - Dispatches via LiteLLM Proxy `LiteLLMService.acompletion(model=self.model, messages=prompt, ...)` ONLY
+            - Cost recording via `cost_recorder.pop_cost(litellm_call_id)` shared bridge
+            - JSON parse response → score/confidence/reasoning/injection_attempt_detected
+            - Emit `eval_simulator_llm_call` row via `obs_context` con metadata.grader='maj_eval'+judge_id+round_n+cache_hit
+          - get_judge(judge_id) → _JudgeAdapter; KeyError on unknown judge_id"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_judge_registry.py`:
+          - test_3_judges_loaded_with_weights (assert keys + weights sum 1.0)
+          - test_judge_models_pinned_per_d15 (claude-sonnet-4-6, gpt-4o-2024-11-20, kimi-k2.6)
+          - test_get_judge_keyerror_on_unknown
+          - test_judge_dispatches_via_litellm_proxy (mock LiteLLMService.acompletion called once per grade)
+          - test_judge_emits_eval_simulator_llm_call_row (post-grade DB row present con grader=maj_eval)"
+    out_of_scope:
+      - "MAJ-EVAL state machine (T-5)"
+      - "Cache (T-6)"
+      - "Judge prompts builder (T-7)"
+    acceptance:
+      - id: A1
+        description: "3 judges loaded + weights + JUDGE_MODELS pinned"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_judge_registry.py"
+        validator_ids: [judge_registry_3_judges_loaded]
+      - id: A2
+        description: "LiteLLM Proxy dispatch ONLY (no direct openai/anthropic SDK in grader/)"
+        verifier:
+          type: shell
+          cmd: "see validator agentic_litellm_proxy_dispatch_only cmd in 04-validators.yaml"
+        validator_ids: [agentic_litellm_proxy_dispatch_only]
+      - id: A3
+        description: "Cost-bucket invariant — judge calls write eval_simulator_llm_call ONLY"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_grader_writes_eval_only_bucket.py"
+        validator_ids: [agentic_cost_bucket_zero_contamination_grader]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, judge_registry_3_judges_loaded, agentic_litellm_proxy_dispatch_only, agentic_no_grader_in_modules_imports]
+    depends_on: [T-2]
+    blocks: [T-5, T-9]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-agentic-opus-4.7
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-5 — maj_eval.py state machine (Round 1 + variance + Round 2 + persist)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-5
+    title: "maj_eval.py — MAJ-EVAL state machine Round 1 parallel + variance check + Round 2 debate + unconverged/r2_partial fallbacks"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ★ Critical complexity — variance calc + debate trigger + unconverged/r2_partial + suspicious + asyncio.gather Semaphore. Chris cero deuda mandate
+    priority: 1
+    estimate_hours: 5
+    production_code: false
+    decisions_applicable: [D1, D2, D3, D4, D17, D18, D-AG-1, D-AG-3, D-AG-4, D-AG-5, D-AG-6, D-AG-9, D-AG-10, D-AG-12]
+    inputs:
+      spec: 01-spec.md§Scenarios_1-4 + Schema_cement
+      design: 02-design-agentic.md§1,§5
+      arch_doc: 03-arch.md§4.3,§4.4,§4.5
+      conventions: ".claude/rules/anti-duplication.md, sales-agent-brand-voice.md, copilot-observability.md, tdd-mandatory.md"
+      tessl_skills: [tessl__langgraph, tessl__graceful-degradation, tessl__pytest-api-testing]
+      required_skills: [sales-agent-expert, copilot-expert]
+      story_b_obs_context: backend/tests/agentic_evals/sales_agent/simulator/_internal/observability.py
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/_internal/maj_eval.py` per 03-arch.md§4.3 reference impl:
+          - VARIANCE_R1_THRESHOLD: Final[float] = 0.15 (D3 cement)
+          - VARIANCE_R2_TARGET: Final[float] = 0.10 (D4 cement)
+          - JUDGE_CONCURRENCY: Final[int] = 20 (D17 Semaphore)
+          - async grade_transcript_maj_eval(request: RubricGradeRequest, *, session, obs_context) → list[MajEvalScore]
+          - PII sanitize defense-in-depth: sanitize_payload(transcript) BEFORE any judge call
+          - Pre-compute hashes (transcript_hash, tenant_voice_hash, judge_set_hash) — process-scoped lru_cache rubric_version
+          - Cache lookup → on hit return cached; on miss → Round 1 parallel (asyncio.gather + Semaphore(20))
+          - Variance check max-min simple range (NOT statistical variance per D3)
+          - if variance ≤ 0.15 → debate_triggered=False; AGGREGATE_R1 weighted
+          - if variance > 0.15 → debate_triggered=True; Round 2 parallel — each judge sees ONLY OTHER 2 R1 reasoning (NEVER own)
+          - R2 partial fallback (DQ6): judge fail R2 → use R1 score for that judge + flag r2_partial=true
+          - Unconverged fallback (D4/DQ4): R2 variance ≥ 0.10 → final_score=round_1_weighted_avg + flag unconverged=true + structlog.warn (NOT block — DQ8)
+          - Suspicious flag (DQ8): all 3 judges score 1.0 + injection_attempt_detected=true → flag suspicious=true + structlog.warn
+          - <2 valid judges: structlog.error + return MajEvalScore(unconverged=True, final_score=fallback per spec)
+          - Best-effort try/except on persist + cache (graceful degradation Rule 2)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_unit.py`:
+          - test_variance_max_minus_min (NOT statistical)
+          - test_weighted_average_excludes_none_scores
+          - test_rubric_dispatch_per_persona_kind (D7 — happy 3/nurture 4/unqualified 4)
+          - test_unconverged_fallback_to_r1_weighted_avg
+          - test_r2_partial_fallback_uses_r1_for_failed_judges
+          - test_suspicious_flag_when_all_score_1_with_injection
+          - test_lt_2_valid_judges_unconverged_score_null
+          - test_pii_sanitize_called_pre_judge"
+    out_of_scope:
+      - "Cache impl (T-6)"
+      - "Judge prompts builder (T-7)"
+      - "Integration scenarios (T-9)"
+      - "judge_registry (T-4)"
+    acceptance:
+      - id: A1
+        description: "Variance + weighted aggregate logic correct"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_unit.py"
+        validator_ids: [be_lint, be_format, be_mypy_strict]
+      - id: A2
+        description: "PII sanitize pre-judge call (defense-in-depth even synthetic)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_grader_pii_sanitize_pre_judge.py"
+        validator_ids: [pii_sanitize_pre_judge_call, agentic_pii_sanitize_pre_judge_call]
+      - id: A3
+        description: "Round 2 peer-only (anti-anchoring DQ3 cement) — static AST"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_grader_round_2_no_self_reasoning.py"
+        validator_ids: [round_2_no_self_reasoning]
+      - id: A4
+        description: "Unconverged fallback semantics (R2 variance ≥ 0.10 → R1 fallback + flag)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_debate.py::test_round_2_convergence_or_unconverged_flag"
+        validator_ids: [round_2_convergence_or_unconverged_flag, agentic_round_2_convergence_or_unconverged_flag]
+      - id: A5
+        description: "R2 partial fallback semantics (judge fail R2 → R1 score for that judge)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_debate.py::test_r2_partial_fallback_judge_fail"
+        validator_ids: [r2_partial_fallback_judge_fail]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_grader_module, jscpd_no_duplication, pii_sanitize_pre_judge_call, round_2_no_self_reasoning, round_2_convergence_or_unconverged_flag, r2_partial_fallback_judge_fail]
+    depends_on: [T-2, T-4, T-6, T-7]
+    blocks: [T-8, T-9]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-agentic-opus-4.7
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-6 — cache.py hash-based key composition + lookup/persist + graceful degradation
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-6
+    title: "cache.py — hash composition (5 fields canonical) + lookup/persist + graceful degradation Rule 2"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ★ Cache key composition precision (D8/D16) + idempotency cement — agentic critical path
+    priority: 1
+    estimate_hours: 2.5
+    production_code: false
+    decisions_applicable: [D8, D9, D16, D-BE-2, D-BE-6]
+    inputs:
+      spec: 01-spec.md§Scenarios_3
+      arch_doc: 03-arch.md§3.5
+      conventions: ".claude/rules/tdd-mandatory.md"
+      tessl_skills: [tessl__graceful-degradation]
+      required_skills: [backend-expert, copilot-expert]
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/_internal/cache.py` per 03-arch.md§3.5 reference impl:
+          - _CACHE_KEY_FIELDS Final tuple (5 fields sorted alphabetically)
+          - compute_cache_key(*, transcript_hash, rubric_id, rubric_version, tenant_voice_hash, judge_set_hash) → str (sha256 64-char hex)
+          - compute_transcript_hash(transcript: list[GoldenTurnModel]) → str
+          - compute_tenant_voice_hash(voice_profile: PersonalityProfile) → str
+          - compute_judge_set_hash(weights: dict[str, float]) → str
+          - async cache_lookup(session, cache_key) → MajEvalScore | None (graceful: DB unavailable → return None + structlog.warn)
+          - async cache_persist(session, cache_key, score, ...) → None (graceful: DB unavailable → skip + structlog.warn; ON CONFLICT DO NOTHING idempotent)
+          - JSON canonical: json.dumps(payload, sort_keys=True, separators=(',',':'))"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_grader_cache.py`:
+          - test_compute_cache_key_deterministic (same inputs → same hex)
+          - test_cache_hit_deterministic (insert + retrieve roundtrip + byte-equal MajEvalScore)
+          - test_cache_invalidates_on_judge_weight_change (D16 — bump weight → key changes → miss)
+          - test_cache_invalidates_on_rubric_version_bump (bump version → key changes)
+          - test_cache_invalidates_on_voice_change (edit personality_profile.system_instruction → tenant_voice_hash changes → key changes)
+          - test_cache_invalidates_on_transcript_change (transcript byte change → transcript_hash changes)
+          - test_cache_db_unavailable_graceful (mock DB raise → bypass cache, log warn, no exception)
+          - test_judge_set_hash_invalidation
+          - test_cache_persist_idempotent_on_conflict_do_nothing"
+    out_of_scope:
+      - "MAJ-EVAL state machine (T-5)"
+      - "Judge prompts (T-7)"
+      - "Models / tables (T-1, T-2)"
+    acceptance:
+      - id: A1
+        description: "Hash composition deterministic + canonical JSON ordering"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_grader_cache.py::test_compute_cache_key_deterministic"
+        validator_ids: [be_lint, be_format, be_mypy_strict]
+      - id: A2
+        description: "Cache hit deterministic (Scenario 3) — 100% hit on idempotent re-run"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_grader_cache.py::test_cache_hit_deterministic"
+        validator_ids: [scenario_3_cache_hit_deterministic]
+      - id: A3
+        description: "Cache invalidation precision on all 4 change vectors"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_grader_cache.py"
+          extra: "-k 'invalidates'"
+        validator_ids: [cache_invalidation_precision, agentic_judge_set_hash_invalidation]
+      - id: A4
+        description: "Graceful degradation Rule 2 — DB unavailable bypass + structlog warn (no exception)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_grader_cache.py::test_cache_db_unavailable_graceful"
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_grader_module, scenario_3_cache_hit_deterministic, cache_invalidation_precision, agentic_judge_set_hash_invalidation, jscpd_no_duplication]
+    depends_on: [T-2]
+    blocks: [T-5, T-9]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-agentic-opus-4.7
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-7 — judge_prompts.py 6-slot template + sandbox markers + Round 2 peer-only
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-7
+    title: "judge_prompts.py — 6-slot template (3 cacheable TTL=1h + 3 fresh) + sandbox markers + Round 2 peer-only"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ★ Sandbox markers DQ2 cement (production-critical anti-injection) + Round 2 anti-anchoring DQ3 — security-critical
+    priority: 1
+    estimate_hours: 3
+    production_code: false
+    decisions_applicable: [D14, DQ1, DQ2, DQ3, DQ4, D-AG-7, D-AG-8, D-AG-18]
+    inputs:
+      spec: 01-spec.md§Scenario_4 + Schema_cement
+      design: 02-design-agentic.md§2,§4,§11
+      arch_doc: 03-arch.md§4.1,§4.2
+      conventions: ".claude/rules/sales-agent-brand-voice.md (NEVER {tenant_name} mid-block; NEVER voice mirror), spanish-text.md"
+      tessl_skills: [claude-api]
+      required_skills: [sales-agent-expert, copilot-expert]
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/_internal/judge_prompts.py` per 03-arch.md§4.1 reference impl:
+          - SLOT_1_TEMPLATE: judge identity + sandbox security directive (cacheable TTL=1h)
+          - SLOT_2_TEMPLATE: rubric MD verbatim + scoring ladder (cacheable TTL=1h)
+          - SLOT_3_TEMPLATE: tenant voice profile (cacheable TTL=1h) — verbatim personality_profile.system_instruction; NEVER {tenant_name} interpolation mid-block
+          - SLOT_4_TEMPLATE: round context (NOT cached) — Round 2 includes peer reasoning from OTHER 2 judges only (DQ3)
+          - SLOT_5_TEMPLATE: transcript subject (NOT cached) — wrapped with `<<TRANSCRIPT_BEGIN>>...<<TRANSCRIPT_END>>` literal markers (DQ2)
+          - SLOT_6_TEMPLATE: task directive + simulation metadata (NOT cached)
+          - build_judge_prompt(*, request, turn_n, rubric_id, rubric_version, round_n, peer_reasoning, judge_id) → list[dict] (Anthropic SDK format with cache_control={type: ephemeral, ttl: '1h'} markers on slots 1+2+3)
+          - Round 2 build: filter peer_reasoning to exclude judge_id (NEVER own R1 reasoning)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_judge_prompts.py`:
+          - test_slot_1_sandbox_directive_present
+          - test_slot_5_transcript_wrapped_with_markers (literal `<<TRANSCRIPT_BEGIN>>` and `<<TRANSCRIPT_END>>`)
+          - test_slot_3_tenant_voice_no_tenant_name_interpolation
+          - test_round_1_no_peer_reasoning
+          - test_round_2_peer_reasoning_excludes_self (DQ3 — judge X's R2 prompt has reasoning from judges A,B but NOT X)
+          - test_cache_control_ttl_1h_explicit (slots 1+2+3 markers; per Anthropic post 2026-03-06 default change)
+          - test_no_voseo_in_judge_prompt_english (DQ4 — judge prompts English; voseo only in transcript subject)"
+      - "NEW arch fitness gates static AST (4 NEW gates):
+          - `backend/tests/architecture/test_grader_sandbox_markers_enforced.py` (literal markers in builder)
+          - `backend/tests/architecture/test_grader_round_2_no_self_reasoning.py` (Round 2 peer-only)
+          - `backend/tests/architecture/test_grader_pii_sanitize_pre_judge.py` (sanitize_payload called pre-judge)
+          - `backend/tests/architecture/test_grader_no_mirrors_shared.py` (basename collision check)"
+    out_of_scope:
+      - "MAJ-EVAL state machine (T-5)"
+      - "Cache (T-6)"
+      - "judge_registry (T-4)"
+    acceptance:
+      - id: A1
+        description: "Sandbox markers literal in Slot 5 builder + Slot 1 directive"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_grader_sandbox_markers_enforced.py"
+        validator_ids: [sandbox_markers_static_enforced]
+      - id: A2
+        description: "Round 2 peer-only (no self R1 reasoning) — static AST"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_grader_round_2_no_self_reasoning.py"
+        validator_ids: [round_2_no_self_reasoning]
+      - id: A3
+        description: "Slot 3 tenant voice no {tenant_name} mid-block (sales-agent-expert §3 cache prefix)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_judge_prompts.py::test_slot_3_tenant_voice_no_tenant_name_interpolation"
+      - id: A4
+        description: "cache_control ttl=1h explicit on slots 1+2+3 (post 2026-03-06 Anthropic default change)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_judge_prompts.py::test_cache_control_ttl_1h_explicit"
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_grader_module, sandbox_markers_static_enforced, round_2_no_self_reasoning, jscpd_no_duplication]
+    depends_on: [T-2, T-3]
+    blocks: [T-5, T-9]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-agentic-opus-4.7
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-8 — simulator/__init__.py H9 expand 7→8 + arch fitness re-freeze + 4 NEW gates
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-8
+    title: "simulator/__init__.py H9 expand 7→8 names (grade_transcript_maj_eval) + arch fitness re-freeze + 4 NEW grader gates"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ✅ Public API surface cement + arch fitness static AST gates — agentic invariant management
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D10, D-AG-15, D-AG-16]
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§3.6,§4.10
+      conventions: ".claude/rules/architectural-fitness.md, anti-duplication.md"
+      required_skills: [sales-agent-expert]
+      story_b_h9_test: backend/tests/architecture/test_simulator_public_api_surface.py
+    deliverables:
+      - "EDIT `backend/tests/agentic_evals/sales_agent/simulator/__init__.py`:
+          - Add import: `from tests.agentic_evals.sales_agent.grader._internal.maj_eval import grade_transcript_maj_eval`
+          - Add to `__all__` (alphabetical sort): `grade_transcript_maj_eval`
+          - Total `__all__` 8 names: [ActorProfile, AgentErrorSubtype, SimulationResult, SimulationState, TerminationReason, grade_transcript_maj_eval, register_termination_policy, run_simulation]
+          - Add docstring comment cement: `# Public surface frozen 8 names post Story E (H9 expand 7→8 — single addition grade_transcript_maj_eval)`"
+      - "EDIT `backend/tests/architecture/test_simulator_public_api_surface.py`:
+          - Update `_EXPECTED_PUBLIC_NAMES` frozenset 7→8 names
+          - Add `grade_transcript_maj_eval` literal
+          - Update docstring: `Story B (T-9) cement + Story E (T-8) cement: __init__.py exports EXACTLY 8 names. Stories F/G/H/I downstream consume ONLY these 8 names.`"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/__init__.py` minimal:
+          - Empty `__all__` cero re-exports (D-AG-16 cement — surface controlled vía simulator/__init__.py expand only)
+          - Optional docstring noting grader module structure"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/_internal/__init__.py` minimal placeholder"
+      - "NEW arch fitness gate `backend/tests/architecture/test_grader_public_api_surface.py`:
+          - Assert `grader/__init__.py.__all__` is empty (cero re-exports)
+          - Assert `grade_transcript_maj_eval` accessible only via `from tests.agentic_evals.sales_agent.simulator import grade_transcript_maj_eval` (H9 expand path)"
+      - "NEW arch fitness gate `backend/tests/architecture/test_grader_writes_eval_only_bucket.py`:
+          - Empty allowlist shrink-only
+          - Post-test scan: assert `count(*) FROM copilot_llm_call WHERE created_at > test_start = 0` AND `... FROM sales_agent_llm_call ... = 0` AND `... FROM campaign_llm_call ... = 0`
+          - Cost-bucket invariant H7 enforce"
+    out_of_scope:
+      - "Other arch fitness gates (T-7 covers sandbox/round2/pii/no_mirrors)"
+      - "Integration scenarios (T-9)"
+    acceptance:
+      - id: A1
+        description: "H9 expand 7→8 — `__all__` exact 8 names alphabetical"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_public_api_surface.py"
+        validator_ids: [public_api_surface_h9_expand_8]
+      - id: A2
+        description: "grader/__init__.py cero re-exports (D-AG-16)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_grader_public_api_surface.py"
+        validator_ids: [grader_public_api_surface_zero_exports]
+      - id: A3
+        description: "Cost-bucket invariant H7 — grader writes eval_simulator_llm_call ONLY"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_grader_writes_eval_only_bucket.py"
+        validator_ids: [agentic_cost_bucket_zero_contamination_grader]
+      - id: A4
+        description: "Story B 5 + Story C 1 arch fitness gates STILL GREEN (no regression)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture"
+          extra: "-k 'simulator or schema_migrations or termination_policy or eval_simulator'"
+        validator_ids: [legacy_simulator_invariants_intact]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_arch_fitness_full, public_api_surface_h9_expand_8, grader_public_api_surface_zero_exports, agentic_cost_bucket_zero_contamination_grader, legacy_simulator_invariants_intact]
+    depends_on: [T-5]
+    blocks: [T-9]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-agentic-opus-4.7
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-9 — Integration grader hook in run_simulation + 4 scenario tests + calibration MD
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-9
+    title: "Integration — run_simulation grader_callback hook (asyncio.create_task) + 4 scenario tests (happy/edge/cache/adversarial) + calibration MD seed"
+    type: agentic
+    surface: AGENTIC
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: true          # ★ Integration complexity + 4 production-critical scenarios + asyncio.create_task fire-and-forget
+    priority: 1
+    estimate_hours: 5
+    production_code: false
+    decisions_applicable: [D17, D-AG-10, D-AG-11, D-AG-14, D-BE-7, D-BE-8]
+    inputs:
+      spec: 01-spec.md§Scenarios_1-4 + Trial_policy + NFR
+      design: 02-design-agentic.md§5,§7,§8,§11
+      arch_doc: 03-arch.md§4.7,§4.8,§4.11
+      conventions: ".claude/rules/anti-duplication.md, sales-agent-brand-voice.md, copilot-observability.md, tdd-mandatory.md, parallel-safety.md"
+      tessl_skills: [tessl__pytest-api-testing, tessl__graceful-degradation]
+      required_skills: [sales-agent-expert, copilot-expert]
+      story_b_runner: backend/tests/agentic_evals/sales_agent/simulator/_internal/runner.py
+      story_d_goldens: backend/tests/agentic_evals/sales_agent/goldens/   # post Story D build
+    deliverables:
+      - "EDIT `backend/tests/agentic_evals/sales_agent/simulator/_internal/runner.py` (additive minimal):
+          - run_simulation accepts OPTIONAL `grader_callback: Callable | None = None` parameter
+          - Per-turn hook: `if grader_callback is not None: asyncio.create_task(grader_callback(turn, ...))`
+          - Story B existing tests pass `None` → zero ripple — verify via `legacy_simulator_invariants_intact` validator
+          - Backward-compat: signature change additive only"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_run_simulation_grader_hook.py`:
+          - test_grader_callback_optional_none_zero_ripple (Story B tests pass)
+          - test_grader_callback_invoked_per_turn (asyncio.create_task fired post-turn)
+          - test_grader_callback_failure_does_not_block_simulation (try/except + structlog warn)
+          - test_eval_metadata_extended_grader_keys (5 NEW keys: grader, rubric_id, rubric_version, judge_id, round_n, cache_hit, injection_attempt_detected)
+          - test_simulation_id_consistent_across_grader_rows (deterministic)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_happy.py`:
+          - test_3_rubrics_per_turn (Scenario 1 — happy persona × 3 rubrics × 8 turns × 3 judges = 72 calls cold)
+          - 24 MajEvalScore rows persisted (8 turns × 3 rubrics)
+          - round_1_variance < 0.20 → debate_triggered=False
+          - Cost-bucket: zero copilot_llm_call rows
+          - test_extended_eval_metadata_persona_kind_and_grader (Story C + Story E keys)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_debate.py`:
+          - test_variance_triggers_round_2 (Scenario 2 — synthetic R1 variance > 0.15)
+          - test_round_2_convergence_or_unconverged_flag
+          - test_r2_partial_fallback_judge_fail (DQ6)
+          - test_round_2_peer_reasoning_excludes_self (DQ3)"
+      - "EXTEND `backend/tests/agentic_evals/sales_agent/grader/test_grader_cache.py` (T-6 — append integration tests):
+          - test_cache_hit_deterministic_full_run (Scenario 3 — 100% cache hit on idempotent re-run, zero NEW judge calls, cost_usd_total=0)
+          - test_cache_invalidates_on_judge_weight_change (D16)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_adversarial.py`:
+          - test_prompt_injection_in_transcript_no_score_1 (Scenario 4 — hostile content; 3 judges return < 0.5)
+          - test_sandbox_markers_protect_judge_prompt
+          - test_injection_attempt_detected_flag_propagated"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_judge_no_system_leak.py`:
+          - Reuse Story B FORBIDDEN_LEAK_STRINGS pattern (leak_assertions.py)
+          - 3 judges never reveal system prompt verbatim regardless of injection"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/test_unconverged_fallback.py`:
+          - test_unconverged_R2_falls_back_to_R1_weighted_avg
+          - test_unconverged_logs_structlog_warning"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/conftest.py`:
+          - grader_session_factory async fixture (per-test AsyncSession)
+          - mock_judge_factory fixture (LiteLLM stub for unit tests sin LLM real)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/calibration/voice_fidelity_calibration.md` (seed):
+          - Frontmatter calibration_version=1, last_modified=2026-05-08
+          - Empty Chris seed labels table (10 turn-segments × 4 rubrics = 40 manual labels — to be filled by Chris during build)
+          - Auto-calibration baseline section (mean variance + p95 + final_score per rubric × persona — frozen at v1 commit post-build)
+          - Re-calibration triggers section (D11 cement)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/grader/calibration/__init__.py` minimal placeholder"
+    out_of_scope:
+      - "Story F pass^k aggregator (Story F owns)"
+      - "Story G CI gate enforcement (Story G owns)"
+      - "Adversarial jailbreak suite full (Story I)"
+      - "qualify_lead tool implementation in sales_agent (out of scope per anti-creep — paridad Story C)"
+    acceptance:
+      - id: A1
+        description: "Scenario 1 (happy) — 24 MajEvalScore rows persisted + cost-bucket invariant"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_happy.py"
+          extra: "--run-evals -v"
+        validator_ids: [scenario_1_maj_eval_multi_judge_happy, agentic_cost_bucket_zero_contamination_grader, agentic_observability_extended_metadata_grader]
+      - id: A2
+        description: "Scenario 2 (edge) — variance triggers Round 2 + convergence/unconverged"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_debate.py"
+          extra: "--run-evals -v"
+        validator_ids: [scenario_2_judge_disagreement_triggers_debate, round_2_convergence_or_unconverged_flag, agentic_round_2_convergence_or_unconverged_flag]
+      - id: A3
+        description: "Scenario 3 (happy idempotency) — 100% cache hit on re-run + zero new judge calls"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_grader_cache.py::test_cache_hit_deterministic"
+          extra: "--run-evals -v"
+        validator_ids: [scenario_3_cache_hit_deterministic, agentic_cache_hit_ratio_70pct]
+      - id: A4
+        description: "Scenario 4 (adversarial) — sandbox markers resist injection (judges return < 0.5)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_adversarial.py"
+          extra: "--run-evals -v"
+        validator_ids: [scenario_4_prompt_injection_via_transcript, sandbox_markers_resist_injection, judge_no_system_leak]
+      - id: A5
+        description: "Async grader callback works (fire-and-forget, no block sim loop)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/grader/test_run_simulation_grader_hook.py"
+          extra: "--run-evals -v"
+        validator_ids: [agentic_observability_extended_metadata_grader, legacy_simulator_invariants_intact]
+      - id: A6
+        description: "Cost budget Story E baseline ~$330 cold / ~$108 warm cache (hard ceiling $400)"
+        verifier:
+          type: shell
+          cmd: "see validator agentic_cost_budget_full_eval_cold_warm cmd in 04-validators.yaml"
+        validator_ids: [agentic_cost_budget_full_eval_cold_warm]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_grader_module, scenario_1_maj_eval_multi_judge_happy, scenario_2_judge_disagreement_triggers_debate, scenario_3_cache_hit_deterministic, scenario_4_prompt_injection_via_transcript, agentic_cost_bucket_zero_contamination_grader, agentic_observability_extended_metadata_grader, agentic_cost_budget_full_eval_cold_warm, agentic_cache_hit_ratio_70pct, agentic_pii_sanitize_pre_judge_call, agentic_voseo_compliance_grader_code, legacy_simulator_invariants_intact]
+    depends_on: [T-5, T-6, T-7, T-8]
+    blocks: [T-10]
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: builder-agentic-opus-4.7
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-10 — capability YAML + module narrative + auditor-downstream-regression rule + calibration MD seed
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-10
+    title: "Documentation reconciliation — capability YAML + sales-agent.md narrative + auditor-downstream-regression rule + calibration MD seed Chris labels"
+    type: docs
+    surface: DOCS
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: false         # /pm post-merge — documentation reconciliation
+    priority: 2
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: []
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§11
+      conventions: ".claude/rules/auditor-downstream-regression.md"
+      required_skills: [pm]
+    deliverables:
+      - "Update `docs/product/capabilities/sales-agent/sales-conversational-engine.yaml` — append `grader` block to `eval` section per 03-arch.md§11 (12+ fields: paradigm=maj_eval, judges_count=3, judges_pinned, weights, rubrics_in_scope, threshold_default + per_rubric_overrides, debate_variance_thresholds, cache_table, grade_table, cost_baseline, cache_hit_target, public_api_surface_h9_expand=8, schema_version=1)"
+      - "Update `docs/product/modules/sales-agent.md` — narrative addition (1-2 sentences per 03-arch.md§11):
+          'Eval suite incluye runtime grader MAJ-EVAL multi-judge debate (3 judges heterogéneos Sonnet/GPT-4o/Kimi con weighted aggregation 0.4/0.4/0.2 + Round 2 peer critique on variance >0.15). 4 rubrics in scope (voice-fidelity + qualification-accuracy NEW Story E owns + no-overpromise + no-hallucination). Cost-bucket separation cement: judge LLM calls escriben eval_simulator_llm_call ÚNICAMENTE — cero contamination producción.'"
+      - "Update `.claude/rules/auditor-downstream-regression.md` § tabla SSoT — append 3 entries per 03-arch.md§11:
+          - `grader/_internal/maj_eval.py` → `grader/test_maj_eval_*.py`, `grader/test_judge_registry.py`, `grader/test_grader_cache.py`, `tests/architecture/test_grader_*.py`
+          - `grader/_internal/judge_prompts.py` → `grader/test_maj_eval_adversarial.py`, `tests/architecture/test_grader_sandbox_markers_enforced.py`
+          - `docs/specs/rubrics/qualification-accuracy.md` → `grader/test_maj_eval_*.py` (rubric_version bump → cache invalidation cascade)"
+      - "Chris fills 10 turn-segment labels × 4 rubrics = 40 ground-truth scores in `backend/tests/agentic_evals/sales_agent/grader/calibration/voice_fidelity_calibration.md` table (~30min Chris time per D11 cement)"
+      - "Auto-calibration baseline computation runs once post Story E build done — captures mean variance + p95 + final_score per rubric × persona — frozen v1 commit"
+    out_of_scope:
+      - "Implement qualification-accuracy rubric runtime (T-3, T-5, T-9)"
+      - "Update Streamlit dashboards (separate story)"
+    acceptance:
+      - id: A1
+        description: "Capability YAML grader block appended"
+        verifier:
+          type: shell
+          cmd: "grep -q 'paradigm: maj_eval' docs/product/capabilities/sales-agent/sales-conversational-engine.yaml"
+      - id: A2
+        description: "Module narrative updated"
+        verifier:
+          type: shell
+          cmd: "grep -q 'MAJ-EVAL multi-judge debate' docs/product/modules/sales-agent.md"
+      - id: A3
+        description: "Downstream regression rule SSoT updated (3 NEW entries)"
+        verifier:
+          type: shell
+          cmd: "grep -q 'grader/_internal/maj_eval.py' .claude/rules/auditor-downstream-regression.md && grep -q 'grader/_internal/judge_prompts.py' .claude/rules/auditor-downstream-regression.md"
+      - id: A4
+        description: "Calibration MD Chris labels filled (40 scores) + baseline frozen"
+        verifier:
+          type: shell
+          cmd: "test -f backend/tests/agentic_evals/sales_agent/grader/calibration/voice_fidelity_calibration.md"
+    quality_gates:
+      validator_ids: []
+    depends_on: [T-9]
+    blocks: []
+    transitions:
+      - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+    assigned_to: pm
+
+# ═══════════════════════════════════════════════════════════════════════
+# Dependency graph (DAG)
+# ═══════════════════════════════════════════════════════════════════════
+#
+#   T-1 (DDL migration 127)
+#   └─→ T-2 (SQLA models + Pydantic types)
+#        ├─→ T-4 (judge_registry)
+#        ├─→ T-6 (cache.py)
+#        ├─→ T-7 (judge_prompts.py)
+#        └─→ T-9 (integration)
+#
+#   T-3 (rubric MD v1 — REPLACE Story C placeholder)
+#   └─→ T-7 (judge_prompts loads rubric MD)
+#   └─→ T-9 (integration scenarios use rubric)
+#
+#   T-4 + T-6 + T-7
+#   └─→ T-5 (maj_eval state machine — needs all 3)
+#         └─→ T-8 (H9 expand)
+#               └─→ T-9 (integration scenarios)
+#                     └─→ T-10 (docs reconciliation /pm post-merge)
+#
+# Critical path: T-1 → T-2 + T-3 (parallel) → T-4 + T-6 + T-7 (parallel) → T-5 → T-8 → T-9 → T-10
+# Estimated: 26h sequential. Parallel possible: T-2+T-3 + (T-4+T-6+T-7 after T-2) → ~18h wall-clock with concurrency.
+#
+# All 10 tickets ≤ cap (no story split needed).
+
+# ═══════════════════════════════════════════════════════════════════════
+# Owner routing summary
+# ═══════════════════════════════════════════════════════════════════════
+#
+# - 6 tickets AGENTIC test-infra → builder-agentic Opus 4.7 RECOMMENDED
+#   (R23 permite Sonnet en agentic test-infra `production_code: false` BUT Chris autonomy mandate cero deuda
+#    + 4 production-critical scenarios (sandbox markers DQ2 / Round 2 anti-anchoring DQ3 / cache invalidation
+#    precision D8/D16 / cost-bucket invariant H7) + state machine MAJ-EVAL complexity → Opus mandatory)
+# - 3 tickets BE test-infra (T-1 DDL, T-2 models, T-3 rubric MD) → builder-backend Sonnet (declarative)
+# - 1 ticket DOCS (T-10) → /pm post-merge
+# - PM confirms final routing antes Conv 2 starts.
+
+# ═══════════════════════════════════════════════════════════════════════
+# Decisions per ticket coverage (D1-D20 + DQ1-DQ8 + D-AG-* + D-BE-*)
+# ═══════════════════════════════════════════════════════════════════════
+
+decisions_per_ticket:
+  D1_maj_eval_paradigm: [T-5]
+  D2_judge_weights_0_4_0_4_0_2: [T-4]
+  D3_variance_r1_threshold_0_15: [T-5]
+  D4_variance_r2_target_0_10_unconverged_fallback: [T-5]
+  D5_4_rubrics_in_scope: [T-3, T-9]
+  D6_qualification_accuracy_story_e_owns: [T-3, T-7]
+  D7_persona_kind_rubric_dispatch: [T-5, T-9]
+  D8_cache_key_composition_5_fields: [T-6]
+  D9_cache_table_separate_ttl_null: [T-1, T-6]
+  D10_h9_expand_7_to_8: [T-8]
+  D11_calibration_hybrid: [T-9, T-10]
+  D12_cost_bucket_eval_only: [T-4, T-8, T-9]
+  D13_per_rubric_threshold_env_override: [T-3, T-9]
+  D14_sandbox_markers: [T-7, T-9]
+  D15_judge_models_pinned: [T-4]
+  D16_rubric_version_cache_invalidation: [T-3, T-6]
+  D17_async_callback_create_task: [T-9]
+  D18_no_round_3: [T-5]
+  D19_no_per_tenant_fine_tuning: [T-7]
+  D20_calibration_md_checkin: [T-9, T-10]
+  DQ1_slot_arch_3_cacheable_3_fresh: [T-7]
+  DQ2_sandbox_markers_3_layers: [T-7]
+  DQ3_round_2_peer_critique_only: [T-5, T-7]
+  DQ4_judge_reasoning_english: [T-7]
+  DQ5_async_callback: [T-9]   # ya cement spec Q8/D17
+  DQ6_r2_partial_fallback: [T-5]
+  DQ7_cache_table_separate: [T-1, T-6]
+  DQ8_suspicious_flag_structlog_warn: [T-5]
+  D-AG-1_maj_eval: [T-5]
+  D-AG-2_weights: [T-4]
+  D-AG-3_variance_threshold: [T-5]
+  D-AG-4_unconverged_fallback: [T-5]
+  D-AG-5_round_2_peer_only: [T-5, T-7]
+  D-AG-6_failure_semantics: [T-5]
+  D-AG-7_judge_reasoning_english: [T-7]
+  D-AG-8_sandbox_markers: [T-7]
+  D-AG-9_suspicious_flag: [T-5]
+  D-AG-10_async_callback: [T-9]
+  D-AG-11_rubric_dispatch: [T-5, T-9]
+  D-AG-12_no_round_3: [T-5]
+  D-AG-13_no_fine_tuning: [T-7]
+  D-AG-14_calibration_hybrid: [T-9, T-10]
+  D-AG-15_h9_expand: [T-8]
+  D-AG-16_grader_init_zero_exports: [T-8]
+  D-AG-17_litellm_proxy_only: [T-4]
+  D-AG-18_ttl_1h_explicit: [T-7]
+  D-BE-1_migration_idempotent: [T-1]
+  D-BE-2_cache_table_separate: [T-1]
+  D-BE-3_schema_mirror_R5: [T-2]
+  D-BE-4_majeval_score_v1_cement: [T-2]
+  D-BE-5_pydantic_frozen_extra_forbid: [T-2]
+  D-BE-6_cache_key_sha256_64char: [T-1, T-6]
+  D-BE-7_qualification_rubric_v1: [T-3]
+  D-BE-8_per_rubric_env_override: [T-9]
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening invariants per ticket coverage (Story B H1-H10 preserved + Story E additions)
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_per_ticket:
+  H1_schema_versioning_majeval_v1_cement: [T-2]
+  H7_cost_bucket_separation_eval_only: [T-4, T-8, T-9]
+  H9_public_api_surface_h9_expand_7_to_8: [T-8]
+  H10_frozen_golden_v1_byte_equal: []           # affirmative — Story E NO toca golden v1 fixture
+  SANDBOX_3_layer_defense_in_depth: [T-7, T-9]
+  PII_sanitize_pre_judge_call: [T-5, T-7]
+  ANTI_ANCHORING_round_2_peer_only: [T-5, T-7]
+  CACHE_invalidation_precision_d8_d16: [T-6, T-9]

@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T19:35:14+00:00`
+> Generated at: `2026-05-08T19:49:32+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -18,15 +18,15 @@
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
 
-### ✅ Refined — listo para arquitectos (5 / cap 5)
+### ✅ Refined — listo para arquitectos (4 / cap 5)
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation`
-- **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 📦 Ready for development (1 / cap 5)
+### 📦 Ready for development (2 / cap 5)
 - **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation`
+- **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
 ### 🔨 Developing (0 / cap 3)
 - _(none)_
@@ -64,14 +64,14 @@ kanban
   🔬 Refining (2 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
-  ✅ Refined (5 / cap 5)
+  ✅ Refined (4 / cap 5)
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
-    sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-  📦 Ready (1 / cap 5)
+  📦 Ready (2 / cap 5)
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
+    sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
   🔨 Developing (0 / cap 3)
   🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)

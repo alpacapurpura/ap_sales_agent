@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T19:35:14+00:00
+# Generated at: 2026-05-08T19:49:32+00:00
 
-generated_at: '2026-05-08T19:35:14+00:00'
+generated_at: '2026-05-08T19:49:32+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -257,24 +257,6 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-voice-fidelity-grader-runtime
-    kind: story
-    state: refined
-    title: sales-agent-voice-fidelity-grader-runtime
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 09:00:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: SPEC_AND_DESIGN_RATIFIED
-      next_action: /architect orchestrator → spawna /architect-be (DDL migrations 2 NEW tables eval_simulator_grade + eval_simulator_grade_cache
-        + Pydantic MajEvalScore + cache impl + qualification-accuracy.md rubric NEW) + /architect-agentic (judge prompt slots
-        6-slot architecture + MAJ-EVAL state machine Round 1+Round 2 debate flow + sandbox markers + observability writes)
-        → produce ready package (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready → /dev-team build
-        (espera Story C+D build done — bloqueador hard)
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   ready:
   - id: sales-agent-goldens-3-tenants-dataset
     kind: story
@@ -288,6 +270,22 @@ buckets:
       phase: ARCHITECT_DELIVERED
       next_action: /dev-team build cuando Story C build done (HARD blocker). Architect phase complete; package autocontenido.
         T-1 + T-2 paralelos (Story C-independent); T-3 + T-4 agentic_eval validators gated on Story C build done.
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: sales-agent-voice-fidelity-grader-runtime
+    kind: story
+    state: ready
+    title: sales-agent-voice-fidelity-grader-runtime
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 10:00:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: READY_PACKAGE_DELIVERED
+      next_action: '/dev-team build (BLOCKED on Story C+D build done — bloqueador hard). Critical path: T-1 → T-2+T-3 (parallel)
+        → T-4+T-6+T-7 (parallel) → T-5 → T-8 → T-9 → T-10. ~26h sequential, ~18h wall-clock with concurrency. Owner routing:
+        6 agentic tickets Opus 4.7, 3 BE tickets Sonnet, 1 docs ticket /pm post-merge.'
       blocked_by: null
       priority_override: null
       audit_iterations: 0
