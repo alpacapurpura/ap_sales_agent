@@ -1,0 +1,588 @@
+# 06-tickets.yaml — Story sales-agent-goldens-3-tenants-dataset
+#
+# /architect orchestrator delivered (2026-05-08T08:00Z).
+# 5 tickets atomic, DAG dependencies, owner_eligibility per R23 (production_code: false → Sonnet OK).
+# Story type: service-story BE-only (tooling + tests + docs).
+# Build BLOCKED by Story C build done (HARD blocker — checkpoint asserts pre-spawn).
+
+---
+story_id: sales-agent-goldens-3-tenants-dataset
+outcome: pi-12-sales-agent-eval-foundation
+generated_at: 2026-05-08T08:00:00Z
+generated_by: /architect
+total_estimate_hours: 16                 # 4-5d total per spec v3
+ticket_count: 5
+arch_link: 03-arch.md
+guidelines_link: 05-guidelines.md
+validators_link: 04-validators.yaml
+
+build_depends_on:
+  - story: sales-agent-personas-instrumented-runtime
+    blocker_type: hard
+    reason: "Tickets that integrate with run_simulation runtime (T-3 generation script integration test, T-4 e2e arch fitness gate) require Story C `load_actor_profile_for_tenant` + `get_max_turns_for_persona_kind` runtime present. Tickets T-1 (schema) + T-2 (PII scanner + hook) + T-4 (most tests) + T-5 (docs) are Story C-independent unit work."
+
+tickets:
+  # ═════════════════════════════════════════════════════════════════════
+  # T-1 — Schema GoldenScenarioModel + parallel migrations registry
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-1
+    title: "GoldenScenarioModel v1 schema + GOLDEN_SCHEMA_MIGRATIONS parallel registry"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                  # ✅ declarative Pydantic v2 + Literal types — R23 OK
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2
+    production_code: false                  # test-infrastructure under backend/tests/
+    decisions_applicable: [D6, D7, D14, D17, D-A-1, D-A-2, D-A-13]
+    blocked_by_external_story: false        # Story C build NOT required for schema definition
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§3.1, §3.2, §3.9
+      guidelines: 05-guidelines.md
+      validators: 04-validators.yaml
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md, backend-quality.md"
+      tessl_skills: [tessl__fastapi]
+      required_skills: [backend-expert]
+      precedent_files:
+        - "backend/tests/agentic_evals/sales_agent/simulator/actor_profile.py"  # Pydantic ConfigDict pattern reference
+        - "backend/tests/agentic_evals/sales_agent/simulator/_internal/schema_migrations.py"  # parallel registry NOT mirror
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/goldens/__init__.py` (empty placeholder)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/goldens/_schema.py` per 03-arch.md§3.1 reference impl:
+          - `GoldenScenarioModel` Pydantic v2 frozen, `schema_version: Literal[1] = 1`, ConfigDict(extra='forbid', frozen=True)
+          - Fields: id (slug pattern), tenant_slug (Literal 5), persona_kind (Literal 3 — happy/nurture/unqualified — adversarial NOT in scope D3), actor_profile_id (str), actor_profile_schema_version Literal[2], dialect_code (str BCP-47), transcript (list[GoldenTurnModel] min_length=2), expected_termination_reason (Literal 3), expected_voice_attributes (list[str] min_length=1), expected_tools_invoked, forbidden_tools, expected_min_distinct_objections_handled (nurture only), metadata (GoldenMetadataModel)
+          - `GoldenTurnModel` Pydantic frozen: role/content/turn_number/tool_calls/latency_ms
+          - `GoldenMetadataModel` Pydantic frozen: generated_from_simulation_id (UUID) / generated_at / curated_by / curated_at / generation_run_id (UUID) / seed / cost_usd_at_generation (Decimal) / notes (str default '')
+          - `__all__` exports for downstream consumption (Story E/F/G/H/I)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/goldens/_schema_migrations.py` per 03-arch.md§3.2:
+          - `GOLDEN_SCHEMA_MIGRATIONS: dict[tuple[str,int,int], GoldenMigrator]` empty initial
+          - `CURRENT_GOLDEN_SCHEMA_VERSIONS: dict[str, int]` = {'GoldenScenarioModel': 1}
+          - `register_golden_migration(class_name, from_v, to_v)` decorator
+          - `apply_golden_migrations(class_name, raw, target_version)` chain applier
+          - PARALLEL to Story B `simulator/_internal/schema_migrations.py` — NOT mirror"
+      - "NEW arch fitness gate `backend/tests/architecture/test_goldens_schema_completeness.py`:
+          - Asserts `GoldenScenarioModel.schema_version == 1` cement
+          - Asserts ConfigDict(extra='forbid', frozen=True)
+          - Asserts Literal types: GoldenTenantSlug 5 values, GoldenPersonaKind 3 values, GoldenTerminationReason 3 values
+          - If `CURRENT_GOLDEN_SCHEMA_VERSIONS[X] > 1`: assert migrators registered for chain (1→2, 2→3, ...)"
+      - "NEW arch fitness gate `backend/tests/architecture/test_goldens_no_mirror_simulator_schema.py`:
+          - Asserts `goldens/_schema.py` does NOT import from `simulator/_internal/schema_migrations.py` (parallel registries cement)
+          - Allowlist empty shrink-only"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/test_goldens_schema.py` (PARTIAL — schema only, referential integrity tests in T-4):
+          - test_golden_scenario_model_round_trip
+          - test_extra_forbid_rejects_unknown_field
+          - test_frozen_blocks_mutation
+          - test_persona_kind_literal_3_values_only
+          - test_tenant_slug_literal_5_values_only
+          - test_termination_reason_literal_3_values_only
+          - test_actor_profile_schema_version_literal_2"
+    out_of_scope:
+      - "Generation script (T-3)"
+      - "Promotion CLI (T-3)"
+      - "PII scanner + hook (T-2)"
+      - "Coverage gate test_all_cells_covered (T-4)"
+      - "Capability YAML extension (T-5 /pm post-merge)"
+    acceptance:
+      - id: A1
+        description: "GoldenScenarioModel + GoldenTurnModel + GoldenMetadataModel deserialize valid YAML round-trip"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_goldens_schema.py"
+          extra: "-k 'round_trip or extra_forbid or frozen'"
+        validator_ids: [scenario_1_goldens_schema_validation]
+      - id: A2
+        description: "Arch fitness gates green — schema completeness + no mirror simulator"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_goldens_schema_completeness.py backend/tests/architecture/test_goldens_no_mirror_simulator_schema.py"
+        validator_ids: [arch_ratchet_5_new_gates]
+      - id: A3
+        description: "Story B simulator invariants intact (no regression — schema parallel registry NOT mirror)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_public_api_surface.py backend/tests/architecture/test_simulator_no_mirrors_shared.py backend/tests/architecture/test_schema_migrations_registry_complete.py"
+        validator_ids: [legacy_simulator_invariants_intact]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, scenario_1_goldens_schema_validation, arch_ratchet_5_new_gates, legacy_simulator_invariants_intact]
+    depends_on: []
+    blocks: [T-3, T-4]
+    transitions:
+      - { state: draft, at: 2026-05-08T08:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-2 — PII patterns LIFT + scan_goldens_pii.py + pre-commit hook Section 9
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-2
+    title: "_pii_patterns.py LIFT (DRY) + scan_goldens_pii.py NEW + pre-commit hook Section 9"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 3
+    production_code: false                  # backend/scripts/ + scripts/git-hooks/
+    decisions_applicable: [D10, D-A-3, D-A-4, D-A-5]
+    blocked_by_external_story: false        # PII scanner is Story C-independent
+    inputs:
+      spec: 01-spec.md§Scenario_4
+      arch_doc: 03-arch.md§3.5, §3.6, §3.7
+      guidelines: 05-guidelines.md
+      validators: 04-validators.yaml
+      conventions: ".claude/rules/anti-duplication.md (DRY threshold 2 consumers), spanish-text.md"
+      required_skills: [backend-expert]
+      precedent_files:
+        - "backend/scripts/scan_seed_pii.py"  # LIFT source — existing 560 LOC scanner Story A
+        - "scripts/git-hooks/pre-commit"      # Section 8 pattern reference (lines 510-562)
+    deliverables:
+      - "NEW `backend/scripts/_pii_patterns.py` per 03-arch.md§3.5 — LIFT from `scan_seed_pii.py::PATTERNS` + `DNI_PE_GUARD_PREFIXES`. 8 regex categories: email / phone_intl / dni_ar / cuit_ar / rut_cl / dni_pe (with context guards) / curp_mx / rfc_mx / url_internal_nicolify"
+      - "EDIT `backend/scripts/scan_seed_pii.py` 1-2 line REFACTOR — replace PATTERNS dict literal with `from _pii_patterns import PATTERNS, DNI_PE_GUARD_PREFIXES` (relative import — both files in `backend/scripts/`). Remove duplicate PATTERNS dict + DNI_PE_GUARD_PREFIXES tuple. Backward-compat preserved (Story A `test_seed_pii_scanner.py` PASS)"
+      - "NEW `backend/scripts/scan_goldens_pii.py` per 03-arch.md§3.6:
+          - Standalone CLI scanner
+          - Imports PATTERNS + DNI_PE_GUARD_PREFIXES from `_pii_patterns.py`
+          - Default scan path: `backend/tests/agentic_evals/sales_agent/goldens/`
+          - Recursive yaml.safe_load + _yaml_strings (path collection)
+          - _check_string with context guards (DNI_PE)
+          - NO whitelist (D10 strict block)
+          - Exit codes: 0/1/2"
+      - "EDIT `scripts/git-hooks/pre-commit` per 03-arch.md§3.7 — append Section 9 after current line 563 `exit 0`:
+          - Triggers on staged YAMLs under `backend/tests/agentic_evals/sales_agent/goldens/.+\\.yaml$`
+          - Runs `scan_goldens_pii.py` against full goldens dir
+          - Mirror Section 8 structure (VENV_PY guard, color codes, cat <<EOF error block, NEVER use --no-verify message)
+          - Final `exit 0` moved to end-of-file"
+      - "EDIT `scripts/git-hooks/pre-commit` Section 1 (voseo check) — add path exclusion for `goldens/` (sales_agent voice exception preserved cuando dialect_code=es-AR — recommend path-based exclusion over per-file magic comment)"
+      - "NEW arch fitness gate `backend/tests/architecture/test_pii_patterns_single_source.py`:
+          - Asserts both `scan_seed_pii.py` AND `scan_goldens_pii.py` import PATTERNS from `_pii_patterns` module
+          - Asserts no duplicate PATTERNS dict literal in either consumer
+          - Allowlist empty shrink-only"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/test_goldens_pii_scanner.py` per spec Scenario 4:
+          - 4 PII categories × 3 LatAm dialects (AR/MX/PE) adversarial fixtures in `backend/tests/_pii_fixtures/` (NOT goldens/)
+          - test_detects_email / test_detects_phone_intl_ar_mx_pe / test_detects_dni_cuit_rut_rfc / test_detects_url_internal_nicolify
+          - test_no_whitelist_strict_block
+          - test_clean_synthetic_yaml_passes"
+      - "EXTEND `backend/tests/scripts/test_pre_commit_hook.py`:
+          - test_blocks_pii_in_goldens (Section 9)
+          - test_section_8_seed_pii_still_works_post_lift (backward-compat regression)
+          - test_voseo_excludes_goldens_path (Section 1 path exclusion)"
+    out_of_scope:
+      - "Generation script (T-3)"
+      - "Promotion CLI (T-3)"
+      - "Schema (T-1)"
+      - "Coverage gate (T-4)"
+    acceptance:
+      - id: A1
+        description: "_pii_patterns.py LIFT + scan_seed_pii.py backward-compat preserved"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_seed_pii_scanner.py"
+        validator_ids: [backward_compat_seed_scanner]
+      - id: A2
+        description: "scan_goldens_pii.py detects 4 categories × 3 dialects on fixtures"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_goldens_pii_scanner.py"
+        validator_ids: [scenario_4_pii_leak_4_categories_3_dialects]
+      - id: A3
+        description: "Pre-commit hook Section 9 blocks staged PII golden"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_pre_commit_hook.py"
+          extra: "-k 'blocks_pii_in_goldens or section_8_seed_pii or voseo_excludes_goldens'"
+        validator_ids: [scenario_4_pre_commit_hook_blocks_pii]
+      - id: A4
+        description: "Arch fitness gate PII patterns single source enforced"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_pii_patterns_single_source.py"
+        validator_ids: [arch_ratchet_5_new_gates]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, jscpd_no_duplication, backward_compat_seed_scanner, scenario_4_pii_leak_4_categories_3_dialects, scenario_4_pre_commit_hook_blocks_pii, arch_ratchet_5_new_gates]
+    depends_on: []
+    blocks: [T-4]
+    transitions:
+      - { state: draft, at: 2026-05-08T08:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-3 — Generation script + Promotion CLI (consume Story B + C runtime)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-3
+    title: "generate_golden_candidates.py + promote_golden.py — orchestration tooling"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true
+      claude_sonnet: true
+      claude_opus_required: false           # R23 — production_code: false (tooling)
+    priority: 1
+    estimate_hours: 5
+    production_code: false                  # backend/scripts/
+    decisions_applicable: [D2, D4, D8, D11, D12, D13, D14, D17, D-A-6, D-A-7, D-A-8, D-A-9, D-A-10, D-A-12, D-A-14, D-A-15]
+    blocked_by_external_story: true         # depends on Story C `load_actor_profile_for_tenant` + helper
+    blocker_until: "Story C build done (state=done)"
+    inputs:
+      spec: 01-spec.md§Scenario_1
+      arch_doc: 03-arch.md§3.3, §3.4
+      guidelines: 05-guidelines.md
+      validators: 04-validators.yaml
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md, parallel-safety.md"
+      tessl_skills: [tessl__graceful-degradation, tessl__pytest-api-testing]
+      required_skills: [backend-expert, sales-agent-expert]
+      story_b_public_api: backend/tests/agentic_evals/sales_agent/simulator/__init__.py  # 7 names frozen
+      story_c_loader: backend/tests/agentic_evals/sales_agent/simulator/_internal/personas_loader.py  # built post-Story-C
+      story_a_loader: backend/tests/fixtures/eval/tenants/loader.py
+    deliverables:
+      - "NEW `backend/scripts/generate_golden_candidates.py` per 03-arch.md§3.3 reference impl:
+          - argparse: --runs-per-cell (default 5) / --concurrency (default 10) / --cost-budget-usd (Decimal default 8) / --output-dir (Path required) / --run-id (default uuid4) / --seed-base (int default 42) / --tenant (optional filter) / --persona-kind (optional filter)
+          - Matrix builder: 5 tenants × 3 persona_kinds × runs_per_cell (default 75 cells)
+          - Pre-flight cost check: estimated_cost = cells * 0.072. If > cap → exit 2 + structlog error
+          - Per-cell async fn `_run_one_cell` with Semaphore + try/except per-cell isolation (tessl__graceful-degradation Rule 5)
+          - Persist artifact JSON: `{output_dir}/sim_{simulation_id}.json` (model.model_dump(mode='json'))
+          - Markdown preview generator `_emit_preview_markdown` per D-A-7 (Q3 ratified Markdown not HTML)
+          - Final summary stdout"
+      - "NEW `backend/scripts/promote_golden.py` per 03-arch.md§3.4 reference impl:
+          - argparse: --simulation-id (str required) / --golden-id (str required) / --artifact-dir (Path required) / --actor-profile-id (str required, Story C YAML id) / --notes (str default '')
+          - `_extract_voice_attributes(tenant_slug)` reads `personality_profile.dimensions.keys()` from Story A loader read-only
+          - `_derive_expected_tools_invoked(transcript)` union of agent tool_calls
+          - `_FORBIDDEN_TOOLS_BY_KIND` map per D17: unqualified → 3 close tools; happy/nurture → []
+          - `_build_golden(artifact, golden_id, notes, actor_profile_id) → GoldenScenarioModel` w/ Pydantic validation (raises on invalid)
+          - `_write_yaml(model, path)` deterministic safe_dump (sort_keys, default_flow_style=False, allow_unicode)
+          - Idempotent overwrite — same args produce same YAML (modulo curated_at timestamp)
+          - Output path: `goldens/{tenant_slug}/{persona_kind}/{golden_id}.yaml`"
+      - "NEW unit tests `backend/tests/scripts/test_generate_golden_candidates.py`:
+          - test_argparse_defaults_validate
+          - test_matrix_shape_5x3x5_default
+          - test_matrix_filter_by_tenant_and_persona_kind
+          - test_cost_budget_preflight_strict_abort (mock load_actor_profile_for_tenant + run_simulation)
+          - test_emit_preview_markdown_deterministic_output
+          - test_per_cell_isolation_one_failure_continues_suite (mocked exception in 1 cell)
+          - test_single_cell_regen_supported
+          - (CI nightly only --run-evals) test_reproducibility_smoke (real run_simulation 1 tenant × 1 kind × 2 runs, asserts deterministic simulation_id)"
+      - "NEW unit tests `backend/tests/scripts/test_promote_golden.py`:
+          - test_auto_derive_expected_termination_reason
+          - test_auto_derive_expected_tools_invoked_union
+          - test_forbidden_tools_per_persona_kind (D17 — unqualified vs happy vs nurture)
+          - test_extract_voice_attributes_reads_personality_profile (mocked load_eval_tenant)
+          - test_idempotent_overwrite_same_args
+          - test_yaml_safe_dump_deterministic
+          - test_validation_error_exit_code_2
+          - test_persona_kind_out_of_scope_raises (adversarial → ValueError per spec)
+          - (CI nightly only --run-evals) test_e2e_smoke (generate 1 → promote → load YAML → assert deserialization)"
+      - "NEW arch fitness gate `backend/tests/architecture/test_goldens_cost_bucket_invariant.py`:
+          - Env-gated `EVAL_GOLDENS_COST_BUCKET_VERIFY=1` (CI nightly opt-in)
+          - Runs generate_golden_candidates --runs-per-cell 1 --tenant tenant_coach_lat (smoke 3 sims)
+          - Queries DB: ≥3 rows in eval_simulator_llm_call + zero new copilot_llm_call rows
+          - Per Story B H6/H7 cost bucket separation cement"
+    out_of_scope:
+      - "Schema (T-1)"
+      - "PII scanner (T-2)"
+      - "Coverage gate (T-4)"
+      - "README + capability extension (T-4 + T-5)"
+      - "Curating actual 20-30 goldens (Chris post-build manual step)"
+    acceptance:
+      - id: A1
+        description: "Generation script unit tests PASS (run_simulation mocked)"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_generate_golden_candidates.py"
+          extra: "-k 'not run_evals'"
+        validator_ids: [scenario_1_generate_script_unit, scenario_3_single_cell_regen_supported]
+      - id: A2
+        description: "Promotion CLI unit tests PASS"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_promote_golden.py"
+          extra: "-k 'not run_evals'"
+        validator_ids: [scenario_1_promote_golden_unit]
+      - id: A3
+        description: "Generation reproducibility smoke (--run-evals, requires Story C build done)"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_generate_golden_candidates.py"
+          extra: "--run-evals -k 'reproducibility'"
+        validator_ids: [agentic_eval_generation_reproducibility_smoke]
+      - id: A4
+        description: "Cost bucket invariant arch test (env-gated CI nightly)"
+        verifier:
+          type: shell
+          cmd: "see validator agentic_eval_cost_bucket_zero_contamination cmd in 04-validators.yaml"
+        validator_ids: [agentic_eval_cost_bucket_zero_contamination]
+      - id: A5
+        description: "End-to-end promote smoke (--run-evals, requires Story C)"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_promote_golden.py"
+          extra: "--run-evals -k 'e2e_smoke'"
+        validator_ids: [agentic_eval_promote_e2e_smoke]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_goldens_module, scenario_1_generate_script_unit, scenario_1_promote_golden_unit, scenario_3_single_cell_regen_supported, agentic_eval_generation_reproducibility_smoke, agentic_eval_cost_bucket_zero_contamination, agentic_eval_promote_e2e_smoke]
+    depends_on: [T-1]                       # schema needed for promote_golden's _build_golden
+    blocks: [T-4]
+    transitions:
+      - { state: draft, at: 2026-05-08T08:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-4 — Schema referential integrity tests + coverage gate + README + remaining arch gates
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-4
+    title: "Schema referential integrity + coverage gate + README + 2 remaining arch fitness gates"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 4
+    production_code: false
+    decisions_applicable: [D5, D11, D15, D16, D-A-11]
+    blocked_by_external_story: true         # referential integrity tests need Story C 15 personas YAML present
+    blocker_until: "Story C T-2 done (15 archetype-aware YAMLs present)"
+    inputs:
+      spec: 01-spec.md§Scenario_2, §Scenario_3
+      arch_doc: 03-arch.md§3.8, §3.9, §3.10
+      guidelines: 05-guidelines.md
+      validators: 04-validators.yaml
+      conventions: ".claude/rules/spanish-text.md, tenant-isolation.md, tdd-mandatory.md"
+      required_skills: [backend-expert]
+      story_a_dialect_catalog: backend/tests/fixtures/eval/tenants/dialect_catalog.yaml
+      story_a_archetype_dialect_map: backend/tests/fixtures/eval/tenants/loader.py::ARCHETYPE_DIALECT_MAP
+      story_c_personas_dir: docs/specs/personas/archetype-aware/
+    deliverables:
+      - "EXTEND `backend/tests/agentic_evals/sales_agent/test_goldens_schema.py` (added in T-1):
+          - test_actor_profile_id_exists_in_story_c_yamls (referential integrity — globs `docs/specs/personas/archetype-aware/*.yaml`)
+          - test_tenant_slug_in_5_story_a_seeds (referential integrity)
+          - test_dialect_code_matches_dialect_catalog_strict (Story A dialect_catalog cross-check)
+          - test_one_tenant_per_golden (tenant isolation invariant)
+          - test_no_pii_in_committed_goldens (defense-in-depth — re-runs scan_goldens_pii.py over real committed dataset; expected zero matches; gate skipped if no goldens committed yet)
+          - Tests use synthetic test fixtures `backend/tests/_goldens_test_fixtures/` (15-cell synthetic dataset for builder phase) + REAL goldens once Chris curates post-build"
+      - "NEW `backend/tests/agentic_evals/sales_agent/test_goldens_coverage.py` per spec Scenario 3:
+          - test_all_cells_covered: globs `goldens/{tenant_slug}/{persona_kind}/*.yaml` → assert ≥1 per 15-cell matrix
+          - test_reports_all_cells_with_gaps: when ≥2 cells empty, FAIL message lists ALL violators (no early-exit) + suggests recovery command
+          - test_max_30_per_dataset: assert total goldens ≤ 30 (saturation cap D2)"
+      - "NEW `backend/tests/_goldens_test_fixtures/` (NEW dir w/ 15 synthetic golden YAMLs for builder phase tests — 1 per cell, minimal but valid). NOT shipped as real goldens — used only by tests when no curated goldens present yet"
+      - "NEW `backend/tests/_pii_fixtures/` (NEW dir — adversarial fixtures for PII scanner tests, NOT under goldens/ to avoid recursive scan)"
+      - "NEW arch fitness gate `backend/tests/architecture/test_goldens_no_committed_pii.py`:
+          - Re-runs scan_goldens_pii.py against entire `goldens/` dir
+          - Expected exit code 0 — defense-in-depth on top of pre-commit hook Section 9
+          - Allowlist empty"
+      - "NEW `backend/tests/agentic_evals/sales_agent/goldens/README.md` per 03-arch.md§3.10:
+          - Section 1: Overview (synthetic-first paradigm, who curates, why this exists)
+          - Section 2: Pipeline generación (2-phase: script → Chris curation → promote)
+          - Section 3: Cómo agregar/refrescar golden (step-by-step + example commands)
+          - Section 4: Política de actualización (manual trigger only, refresh signals: Story C schema bump / grader saturate >0.95 / 6-month review)
+          - Section 5: Schema reference (link to `_schema.py` + field semantics)
+          - Section 6: Cost budget (~$5.40 expected / $8 cap)
+          - Section 7: Coverage gate (≥1 per 15 cells)
+          - Section 8: PII defense-in-depth (pre-commit Section 9 + arch gate, NO whitelist policy)
+          - Spanish neutro (sales_agent voice exception N/A — README es scaffolding, no transcripts)"
+    out_of_scope:
+      - "Generation/promotion scripts (T-3)"
+      - "Schema model definition (T-1)"
+      - "PII scanner (T-2)"
+      - "Capability YAML + module narrative + downstream regression rule update (T-5 /pm post-merge)"
+      - "Real 20-30 curated goldens (Chris post-build)"
+    acceptance:
+      - id: A1
+        description: "Schema referential integrity green on synthetic test fixtures"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_goldens_schema.py"
+          extra: "-v --tb=short"
+        validator_ids: [scenario_1_goldens_schema_validation, scenario_2_golden_yaml_schema_invalid]
+      - id: A2
+        description: "Coverage gate detects gaps (no early-exit, reports all violators)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/test_goldens_coverage.py"
+        validator_ids: [scenario_3_cell_coverage_gap, scenario_3_reports_all_gaps_no_early_exit]
+      - id: A3
+        description: "Defense-in-depth PII arch gate (test_no_committed_pii) green"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_goldens_no_committed_pii.py"
+        validator_ids: [scenario_4_no_pii_in_committed_goldens]
+      - id: A4
+        description: "README created with required sections"
+        verifier:
+          type: shell
+          cmd: |
+            \
+            grep -q '^## .*Pipeline' backend/tests/agentic_evals/sales_agent/goldens/README.md && \
+            grep -q '^## .*Cómo agregar' backend/tests/agentic_evals/sales_agent/goldens/README.md && \
+            grep -q '^## .*PII' backend/tests/agentic_evals/sales_agent/goldens/README.md && \
+            grep -q '^## .*Schema' backend/tests/agentic_evals/sales_agent/goldens/README.md
+      - id: A5
+        description: "Scenario coverage 4/4 (happy/negative/edge/adversarial all referenced in validators.yaml)"
+        verifier:
+          type: shell
+          cmd: "see validator scenario_coverage_complete cmd in 04-validators.yaml"
+        validator_ids: [scenario_coverage_complete]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_goldens_module, scenario_1_goldens_schema_validation, scenario_2_golden_yaml_schema_invalid, scenario_3_cell_coverage_gap, scenario_3_reports_all_gaps_no_early_exit, scenario_4_no_pii_in_committed_goldens, scenario_coverage_complete, arch_ratchet_5_new_gates]
+    depends_on: [T-1, T-2, T-3]
+    blocks: [T-5]
+    transitions:
+      - { state: draft, at: 2026-05-08T08:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-5 — Documentation reconciliation (capability YAML + module narrative + downstream rule)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-5
+    title: "Documentation reconciliation — capability YAML + sales-agent.md + auditor-downstream-regression rule"
+    type: docs
+    surface: DOCS
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false
+      claude_sonnet: false
+      claude_opus_required: false           # /pm post-merge — documentation reconciliation
+    priority: 2
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-A-12]
+    blocked_by_external_story: false
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§3.11, §10
+      guidelines: 05-guidelines.md
+      conventions: ".claude/rules/auditor-downstream-regression.md"
+      required_skills: [pm]
+    deliverables:
+      - "EDIT `docs/product/capabilities/sales-agent/sales-conversational-engine.yaml` — append `eval.goldens_*` block per 03-arch.md§3.11 (10+ fields):
+          goldens_dataset_path / goldens_count_target {min:20,max:30} / goldens_schema_version 1 / goldens_schema_path / goldens_generation_script / goldens_promotion_script / goldens_pii_scanner_path / goldens_persona_kinds_in_scope [happy,nurture,unqualified] / goldens_coverage_gate_test / goldens_story_introduced / goldens_test_coverage list"
+      - "EDIT `docs/product/modules/sales-agent.md` — narrative addition (1-2 sentences per 03-arch.md§3.11):
+          'Eval suite ground truth = 20-30 goldens curados manualmente por Chris desde simulación dual-LLM (Story C personas + Story B simulator). Generación via `generate_golden_candidates.py` → curación Markdown preview → `promote_golden.py` deterministic write. PII defense-in-depth via pre-commit hook + arch fitness gate.'"
+      - "EDIT `.claude/rules/auditor-downstream-regression.md` § tabla SSoT — append 4 entries per 03-arch.md§10:
+          - `backend/tests/agentic_evals/sales_agent/goldens/**` → downstream tests [test_goldens_schema.py, test_goldens_coverage.py, test_goldens_pii_scanner.py, all 5 arch gates, test_generate_golden_candidates.py, test_promote_golden.py]
+          - `backend/scripts/_pii_patterns.py` → downstream tests [test_seed_pii_scanner.py, test_pre_commit_hook.py Sections 8+9]
+          - `backend/scripts/generate_golden_candidates.py` → downstream tests [test_generate_golden_candidates.py + test_goldens_cost_bucket_invariant.py env-gated]
+          - `backend/scripts/promote_golden.py` → downstream tests [test_promote_golden.py]"
+    out_of_scope:
+      - "Modify capability or module narrative beyond goldens block (other stories own their parts)"
+      - "Update Streamlit dashboards (separate story)"
+      - "Backfill BACKLOG.md (auto-gen via R33 pre-commit hook Section 6)"
+    acceptance:
+      - id: A1
+        description: "Capability YAML eval block appended"
+        verifier:
+          type: shell
+          cmd: "grep -q 'goldens_dataset_path' docs/product/capabilities/sales-agent/sales-conversational-engine.yaml"
+      - id: A2
+        description: "Module narrative updated"
+        verifier:
+          type: shell
+          cmd: "grep -q '20-30 goldens' docs/product/modules/sales-agent.md"
+      - id: A3
+        description: "Downstream regression rule SSoT updated (4 entries)"
+        verifier:
+          type: shell
+          cmd: |
+            cd /home/chris/AISALESHT && \
+            grep -q 'tests/agentic_evals/sales_agent/goldens' .claude/rules/auditor-downstream-regression.md && \
+            grep -q '_pii_patterns.py' .claude/rules/auditor-downstream-regression.md && \
+            grep -q 'generate_golden_candidates.py' .claude/rules/auditor-downstream-regression.md && \
+            grep -q 'promote_golden.py' .claude/rules/auditor-downstream-regression.md
+      - id: A4
+        description: "BACKLOG auto-regenerated via R33 pre-commit hook Section 6 on /pm commit"
+        verifier:
+          type: shell
+          cmd: "test -f docs/product/BACKLOG.md && grep -q 'sales-agent-goldens-3-tenants-dataset' docs/product/BACKLOG.yaml"
+    quality_gates:
+      validator_ids: []
+    depends_on: [T-4]
+    blocks: []
+    transitions:
+      - { state: draft, at: 2026-05-08T08:00Z, by: /architect }
+    assigned_to: pm
+
+# ═══════════════════════════════════════════════════════════════════════
+# Dependency graph (DAG)
+# ═══════════════════════════════════════════════════════════════════════
+#
+#   T-1 (schema GoldenScenarioModel + parallel migrations registry)
+#   ├─→ T-3 (promote_golden uses GoldenScenarioModel)
+#   └─→ T-4 (referential integrity tests use schema)
+#
+#   T-2 (PII patterns LIFT + scan_goldens_pii.py + hook Section 9)
+#   └─→ T-4 (test_no_committed_pii arch gate uses scanner)
+#
+#   T-3 (generate + promote scripts)
+#   └─→ T-4 (cost bucket invariant arch gate uses generation)
+#
+#   T-4 (referential integrity + coverage + README + remaining arch gates)
+#   └─→ T-5 (docs reconciliation)
+#
+# Critical path: T-1 + T-2 (parallel) → T-3 → T-4 → T-5
+# T-1 + T-2 parallel (independent — schema vs scanner). T-3 depends on T-1 (schema for promote_golden).
+#
+# Build order (Story C build done → unblock T-3 + T-4 agentic_eval validators):
+# 1. T-1 + T-2 parallel (Story C-independent)
+# 2. T-3 unit tests run regardless (mocked) — agentic_eval validators gated on Story C
+# 3. T-4 referential integrity tests gated on Story C 15 personas YAMLs present
+# 4. T-5 /pm post-merge
+#
+# 5 tickets ≤ cap 10 (no story split needed).
+
+# ═══════════════════════════════════════════════════════════════════════
+# Owner routing summary
+# ═══════════════════════════════════════════════════════════════════════
+#
+# - 4 tickets BE tooling/test-infra → builder-backend Sonnet RECOMMENDED
+#   (R23 — production_code: false; declarative scripts + tests + docs; no agentic complexity)
+# - 1 ticket DOCS (T-5) → /pm post-merge
+# - PM confirms final routing antes Conv 2 starts.
+
+# ═══════════════════════════════════════════════════════════════════════
+# Decisions per ticket coverage (D1-D17 + D-A-1..15)
+# ═══════════════════════════════════════════════════════════════════════
+
+decisions_per_ticket:
+  D1_synthetic_first_paradigm: [T-3, T-4]   # Generation pipeline + tests cement paradigm
+  D2_coverage_matrix_20_30: [T-3, T-4]      # Generation runs_per_cell=5 + coverage gate
+  D3_persona_kinds_in_scope: [T-1, T-3]     # Literal 3 in schema + promote validation
+  D4_pipeline_2_phases: [T-3]                # Generate + promote scripts
+  D5_goldens_path_tree: [T-1, T-3, T-4]     # Schema + write path + coverage gate paths
+  D6_schema_v1_cement: [T-1]
+  D7_actor_profile_v2_snapshot: [T-1]
+  D8_deterministic_seed: [T-3]
+  D9_cost_bucket_invariant: [T-3]            # Cost bucket arch gate
+  D10_pii_strict_block: [T-2]
+  D11_coverage_gate_per_cell: [T-4]
+  D12_markdown_preview: [T-3]
+  D13_simulation_id_uuid5: [T-3]
+  D14_auto_derive_expected: [T-3]
+  D15_manual_refresh_only: [T-4]            # README documents
+  D16_immutable_post_commit: [T-4]          # README documents + arch gate enforces
+  D17_forbidden_tools_per_kind: [T-1, T-3]  # Schema + promote auto-derive
+  D-A-1_pydantic_frozen: [T-1]
+  D-A-2_parallel_registry: [T-1]
+  D-A-3_pii_patterns_lift: [T-2]
+  D-A-4_no_whitelist_goldens: [T-2]
+  D-A-5_pre_commit_section_9: [T-2]
+  D-A-6_cost_budget_preflight: [T-3]
+  D-A-7_markdown_not_html: [T-3]
+  D-A-8_promote_auto_derive: [T-3]
+  D-A-9_voice_attr_extraction: [T-3]
+  D-A-10_forbidden_tools_declarative: [T-1, T-3]
+  D-A-11_coverage_no_early_exit: [T-4]
+  D-A-12_consume_story_b_c_apis: [T-3]
+  D-A-13_no_arch_gate_for_goldens_migrations: [T-1]
+  D-A-14_run_evals_flag: [T-3]
+  D-A-15_yaml_safe_dump_deterministic: [T-3]
