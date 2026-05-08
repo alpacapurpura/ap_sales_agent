@@ -7,7 +7,13 @@ gate-runner + auditor-agentic independent verdict)
 **Production code:** false
 **Effort:** ~1.0h (vs 1.5h estimate)
 **Iterations:** 2 (RED → GREEN; +1 quality-gates pass)
-**Commit SHA:** _(pending — will be appended post-push)_
+**Commit SHA:** `c7873887` (T-8 changes batched into parallel T-6 session
+commit per parallel-safety M8 — T-6 builder picked up T-8 staged content
+and committed atomically alongside T-6 work; T-8 files
+[`test_personas_loader.py` test_adversarial_persona_no_system_leak
+function, `T-8-impl-log.md`, `T-8-result.md`, `06-tickets.yaml` T-8
+transitions] are intact in the commit's diff and tests pass GREEN from
+the committed state — verified post-push).
 
 ## Summary
 
