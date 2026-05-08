@@ -146,7 +146,7 @@ T2:
   state: pushed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T00:45:00Z
-  push_commit_sha: "TBD — populated after commit"
+  push_commit_sha: "0d8701c2"
   transitions:
     - { state: assigned, at: "2026-05-08T00:45:00Z", by: "/dev-team", to: "claude-sonnet" }
     - { state: pushed, at: "2026-05-08T20:00:00Z", by: "claude-sonnet" }
