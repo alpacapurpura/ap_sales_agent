@@ -18,6 +18,7 @@ estimate_total_hours: 14-22
 tickets:
   - id: T-1
     title: "BE — 3 copilot tools (get_stage_metrics REPLACE legacy + get_channel_overview + trigger_etl_refresh) + Pydantic input schemas + EtlRefreshGuard"
+    state: pushed
     type: feature
     surface: backend
     skill: builder-backend

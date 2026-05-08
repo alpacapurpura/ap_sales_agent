@@ -29,6 +29,11 @@ KNOWN_PRIVATE_FILE_EXCEPTIONS: frozenset[str] = frozenset(
         # copilot/api/_dependencies.py — async session DI factory for telegram routes
         # + worker. Mirrors campaigns/api/_dependencies.py pattern (PI-5 PR-1).
         "copilot/api/_dependencies.py",
+        # copilot/application/tools/_analytics_inputs.py — private Pydantic schema module
+        # for analytics tool input validation (StageFilterParams, ChannelOverviewParams,
+        # TriggerEtlRefreshParams). Internal to tools package, not a public service.
+        # Story 2B T-1 (growth-studio-actions-schemas-real).
+        "copilot/application/tools/_analytics_inputs.py",
     }
 )
 

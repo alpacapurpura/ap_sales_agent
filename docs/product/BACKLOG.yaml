@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T07:41:48+00:00
+# Generated at: 2026-05-08T08:36:15+00:00
 
-generated_at: '2026-05-08T07:41:48+00:00'
+generated_at: '2026-05-08T08:36:15+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -293,6 +293,20 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
+  - id: sales-agent-personas-instrumented-runtime
+    kind: story
+    state: refining
+    title: sales-agent-personas-instrumented-runtime
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-06 15:30:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: PM_DRAFT
+      next_action: /po redacta 01-spec.md → ratificación Chris → state=refining→refined → /architect
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   - id: sales-agent-voice-fidelity-ci-gate
     kind: story
     state: refining
@@ -321,22 +335,7 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  refined:
-  - id: sales-agent-personas-instrumented-runtime
-    kind: story
-    state: refined
-    title: sales-agent-personas-instrumented-runtime
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 05:30:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: SPEC_V3_DESIGN_V2_RATIFIED
-      next_action: /architect lee 01-spec.md v3 + 02-design-agentic.md v2 + delta-spec.md → spawn /architect-be + /architect-agentic
-        → produce ready package (state=refined→ready)
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
+  refined: []
   ready:
   - id: growth-studio-actions-schemas-real
     kind: story

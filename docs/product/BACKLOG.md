@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-08T07:41:48+00:00`
+> Generated at: `2026-05-08T08:36:15+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -14,7 +14,7 @@
 - sales-inbox-responsive-collapse `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (9 total · 0 cap-eligible / cap 3)
+### 🔬 Refining (10 total · 0 cap-eligible / cap 3)
 - **growth-copilot-layout-unification**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
@@ -22,11 +22,12 @@
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-goldens-3-tenants-dataset** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT_REFRAMED]
+- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 - **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [PM_DRAFT]
 
-### ✅ Refined — listo para arquitectos (1 / cap 5)
-- **sales-agent-personas-instrumented-runtime** — outcome `pi-12-sales-agent-eval-foundation`
+### ✅ Refined — listo para arquitectos (0 / cap 5)
+- _(none)_
 
 ### 📦 Ready for development (1 / cap 5)
 - **growth-studio-actions-schemas-real** — outcome `growth-copilot-layout-unification`
@@ -64,7 +65,7 @@ kanban
     solo-mode-chat-first-layout[solo-mode-chat-first-layout]
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (9 / cap 3)
+  🔬 Refining (10 / cap 3)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
@@ -72,10 +73,10 @@ kanban
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-goldens-3-tenants-[sales-agent-goldens-3-tenants-dataset]
+    sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-  ✅ Refined (1 / cap 5)
-    sales-agent-personas-instrumen[sales-agent-personas-instrumented-runtim]
+  ✅ Refined (0 / cap 5)
   📦 Ready (1 / cap 5)
     growth-studio-actions-schemas-[growth-studio-actions-schemas-real]
   🔨 Developing (0 / cap 3)
