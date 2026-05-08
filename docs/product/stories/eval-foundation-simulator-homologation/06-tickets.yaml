@@ -545,7 +545,7 @@ tickets:
     title: "Public API surface + ActorProfile fixtures + frozen golden v1 + 4 arch fitness gates"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: tests-passing
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -598,6 +598,8 @@ tickets:
     blocks: [T-10]
     transitions:
       - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+      - { state: developing, at: 2026-05-08T13:00Z, by: builder-agentic }
+      - { state: tests-passing, at: 2026-05-08T13:30Z, by: builder-agentic }
 
   # ═════════════════════════════════════════════════════════════════════
   # T-10 — Smoke tests + property-based concurrency + schema regression + downstream rule update

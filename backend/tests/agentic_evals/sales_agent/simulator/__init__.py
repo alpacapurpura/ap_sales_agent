@@ -1,37 +1,50 @@
-"""Eval simulator — public API surface.
+"""Eval simulator — public API surface (Story B / T-9 cement).
 
-T-4 STUB: T-9 finalizes the public ``__all__`` per H9 (exact 7 names).
-Story B intermediate deliverable — currently exposes only the foundational
-Pydantic classes + termination registry needed by T-5..T-8 builders.
+Story B exports EXACTLY 7 names per H9 (``03-arch-agentic.md §6``).
+Anything more = leakage; anything less = missing deliverable. Downstream
+stories C/D/E/F/G/H/I consume ONLY these 7 names. Arch fitness gate
+``test_simulator_public_api_surface.py`` enforces.
 
-T-9 will bind ``run_simulation`` (from ``_internal/runner.py``) to complete
-the surface:
+Public surface (frozen)
+=======================
 
-    __all__ = [
-        "run_simulation",       # T-9 binds — runner orchestrator
-        "SimulationResult",
-        "SimulationState",
-        "ActorProfile",
-        "TerminationReason",
-        "AgentErrorSubtype",
-        "register_termination_policy",
-    ]
+Functions
+---------
 
-Arch fitness gate ``test_simulator_public_api_surface.py`` (T-9 deliverable)
-enforces the final exact 7-name surface.
+* :func:`run_simulation` — async orchestrator (D1, T-8). Drives one
+  full eval simulation end-to-end.
+* :func:`register_termination_policy` — H8 Strategy-pattern entry point
+  for stories I/H/E to append predicates without touching core.
 
-# voseo-allowed: docstring nota dialect rule arch fitness gate
+Types
+-----
+
+* :class:`SimulationResult` — Pydantic v2 frozen result returned by
+  ``run_simulation``. Also serialized to ``_artifacts/...`` JSON.
+* :class:`SimulationState` — LangGraph Pydantic state machine (D4).
+* :class:`ActorProfile` — Strands ActorProfile pattern (D7).
+* :class:`TerminationReason` — StrEnum 6 values (D5).
+* :class:`AgentErrorSubtype` — StrEnum 4 values (H7 taxonomy).
+
+Internal namespace
+==================
+
+Anything else lives under ``simulator/_internal/`` (graph compose,
+nodes, observability subclasses, schema migrations registry, customer
+prompt v1, semaphore, llm roles registry). The arch fitness gate
+``test_simulator_no_mirrors_shared.py`` polices the ``_internal/`` tree
+for accidental mirror duplication of shared abstractions.
+
+# voseo-allowed: docstring quotes downstream story names + dialect rule
 """
 
-# T-4 partial public surface — used by T-5..T-8 internal builders.
-# T-9 will replace this stub with run_simulation + frozen __all__ list.
+# NO ``from __future__ import annotations`` — story-wide cement (T-4).
 
-from tests.agentic_evals.sales_agent.simulator.actor_profile import ActorProfile
-from tests.agentic_evals.sales_agent.simulator.result import (
-    ConversationTurn,
-    CostSummary,
-    SimulationResult,
+from tests.agentic_evals.sales_agent.simulator._internal.runner import (
+    run_simulation,
 )
+from tests.agentic_evals.sales_agent.simulator.actor_profile import ActorProfile
+from tests.agentic_evals.sales_agent.simulator.result import SimulationResult
 from tests.agentic_evals.sales_agent.simulator.state import SimulationState
 from tests.agentic_evals.sales_agent.simulator.termination import (
     AgentErrorSubtype,
@@ -40,14 +53,16 @@ from tests.agentic_evals.sales_agent.simulator.termination import (
 )
 
 
-# T-4 stub surface — T-9 will bind run_simulation and freeze to exactly 7 names.
+# Frozen public surface — H9 cement enforced by arch fitness gate
+# ``test_simulator_public_api_surface.py``. EXACTLY 7 names; sorted
+# alphabetically for audit trail. NEVER add or remove without bumping
+# H9 invariant in ``03-arch-agentic.md §6``.
 __all__ = [
     "ActorProfile",
     "AgentErrorSubtype",
-    "ConversationTurn",
-    "CostSummary",
     "SimulationResult",
     "SimulationState",
     "TerminationReason",
     "register_termination_policy",
+    "run_simulation",
 ]
