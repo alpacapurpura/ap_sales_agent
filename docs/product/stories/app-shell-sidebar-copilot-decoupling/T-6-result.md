@@ -3,7 +3,7 @@
 **Story:** app-shell-sidebar-copilot-decoupling
 **Ticket:** T-6 — Phase 6 Z-index migration to tokens (shell scope, Scenario 4)
 **State:** pushed
-**Commit SHA:** TBD (populated after push)
+**Commit SHA:** 41f1abd1
 
 ## Summary
 

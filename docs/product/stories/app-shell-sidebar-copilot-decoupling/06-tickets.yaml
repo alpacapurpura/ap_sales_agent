@@ -60,7 +60,7 @@ summary:
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
     state: pushed
-    push_commit_sha: "TBD"
+    push_commit_sha: "41f1abd1"
     estimate_hours: 2
     blocked_by: [T-5]
     blocks: [T-7, T-10]
@@ -311,7 +311,7 @@ T6:
   assigned_at: 2026-05-08T22:30:00Z
   transitions:
     - { state: assigned, at: "2026-05-08T22:30:00Z", by: "/dev-team", to: "claude-sonnet" }
-    - { state: pushed, at: "2026-05-07T22:00:00Z", by: "claude-sonnet", commit_sha: "TBD" }
+    - { state: pushed, at: "2026-05-07T22:00:00Z", by: "claude-sonnet", commit_sha: "41f1abd1" }
   owner_eligibility:
     qwen_opencode: true
     claude_sonnet: true
