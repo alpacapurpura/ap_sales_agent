@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T13:24:40+00:00
+# Generated at: 2026-05-08T13:39:54+00:00
 
-generated_at: '2026-05-08T13:24:40+00:00'
+generated_at: '2026-05-08T13:39:54+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -277,22 +277,6 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-goldens-3-tenants-dataset
-    kind: story
-    state: refining
-    title: sales-agent-goldens-3-tenants-dataset
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-06 17:11:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: PM_DRAFT_REFRAMED
-      next_action: Esperar A/B/C (tenant-seed + simulator-homologation + personas-as-simulators) refined. Después /po redacta
-        01-spec.md v2 (reframe synthetic-first). Ya NO es 'extraer 12 goldens de prod' — es 'generar 20-30 goldens desde simulator
-        + curar manualmente'.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-voice-fidelity-ci-gate
     kind: story
     state: refining
@@ -322,6 +306,22 @@ buckets:
       priority_override: null
       audit_iterations: 0
   refined:
+  - id: sales-agent-goldens-3-tenants-dataset
+    kind: story
+    state: refined
+    title: sales-agent-goldens-3-tenants-dataset
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 07:00:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: SPEC_RATIFIED
+      next_action: /architect orchestrator → spawna /architect-be (script + schema + scanner + pre-commit hook + capability
+        extension) → produce ready package (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready →
+        /dev-team build (espera Story C build done — bloqueador hard)
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   - id: sales-agent-personas-instrumented-runtime
     kind: story
     state: refined
@@ -354,22 +354,21 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
+  reviewing:
   - id: growth-studio-actions-schemas-real
     kind: story
-    state: developed
+    state: reviewing
     title: growth-studio-actions-schemas-real
     tags: []
-    last_touched: 2026-05-09 08:30:00+00:00
+    last_touched: 2026-05-08 18:45:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_COMPLETE
-      next_action: 'All 7 tickets pushed. Story 2B BUILD COMPLETE. T-7 verify GREEN (FE 800/800 + BE 138/138 + tsc 0; bundle
-        + smoke regression deferred per T-7-result.md rationale). Chris triggers /auditor for Conv 3 review. Outcome growth-copilot-layout-unification:
-        Story 1 + 2A + 2B all developed.'
+      phase: AUDIT_PICKUP
+      next_action: Auditor picked up. Brief refreshed. Gate iter-1 had env-only FAIL (postgres native unresolvable on integration
+        test); re-spawning iter-2 with `-m 'not integration'` filter.
       blocked_by: []
       priority_override: null
       audit_iterations: 0
-  reviewing: []
   done:
   - id: pi-11-backend-quality-guardrails
     kind: outcome

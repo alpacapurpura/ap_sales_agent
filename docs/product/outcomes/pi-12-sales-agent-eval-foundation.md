@@ -37,7 +37,7 @@ story_ids:
 
   # foundation reframe (story IDs originales preservados — slug intact, narrative reframed):
   - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators (REFINED 2026-05-08 — spec v3 + design v2 + delta v1 ratified, awaiting /architect)
-  - sales-agent-goldens-3-tenants-dataset        # → role D: goldens-generated-from-simulation
+  - sales-agent-goldens-3-tenants-dataset        # → role D: goldens-generated-from-simulation (REFINED 2026-05-08 — spec v3 synthetic-first ratified, awaiting /architect)
   - sales-agent-voice-fidelity-grader-runtime    # → role E: MAJ-EVAL voice fidelity grader
   - sales-agent-eval-pass-k-tracking             # → role F: Bloom-style pass^k
   - sales-agent-voice-fidelity-ci-gate           # → role G: CI gate w/ dynamic threshold
@@ -174,7 +174,7 @@ inapropiado". CI gate bloquea regressions automáticamente.
 | ~~`eval-foundation-tenant-seed-data`~~ | **A** — DONE 2026-05-07 (archived) | service | 3-4d | done |
 | ~~`eval-foundation-simulator-homologation`~~ | **B** — DONE 2026-05-08 (archived) | service | 2-3d | done |
 | `sales-agent-personas-instrumented-runtime` | **C** — 15 archetype-aware personas (3 kinds × 5 tenants) + ActorProfile schema v2 + customer prompt v2 sub-slots + Scenarios 5+6 (qualification accuracy + nurture multi-question) | agentic | 3-4d (post v3 expansion) | **refined** 2026-05-08 (spec v3 + design v2 + delta v1 ratified) |
-| `sales-agent-goldens-3-tenants-dataset` | **D** — generar 20-30 goldens desde simulación + curación Chris (reframe v1→v2) | service | 4-5d | refining (01-spec.md v1 archivado, v2 awaiting reframe) |
+| `sales-agent-goldens-3-tenants-dataset` | **D** — generar 20-30 goldens desde simulación dual-LLM (Story B+C) + curación Chris via Markdown preview + `promote_golden` CLI. Schema `GoldenScenarioModel` v1 + PII defense-in-depth scanner | service | 4-5d | **refined** 2026-05-08 (spec v3 synthetic-first ratified Q1-Q8) |
 
 #### Eval layer
 
