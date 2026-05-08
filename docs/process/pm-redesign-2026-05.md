@@ -240,7 +240,7 @@ idea ─→ refining ─→ refined ─→ ready ─→ developing ─→ develo
 | 3 | `refined` | Chris ratifica spec + diseño UX/conversacional | `/pm` cierra | mismos archivos pero `ratified_by_chris: true` | ≤ 5 |
 | 4 | `ready` | `/architect` orchestrator cierra package | `/architect` (Opus) | `03-arch.md` + `04-validators.yaml` + `05-guidelines.md` + `06-tickets.yaml` | ≤ 5 |
 | 5 | `developing` | `/dev-team` picks ticket | opencode/Sonnet (Opus si agentic prod) | `T-N-impl-log.md` + iteration logs | ≤ 3 |
-| 6 | `developed` | Todos validators GREEN | `/dev-team` cierra | `T-N-result.md` por ticket | ≤ 2 |
+| 6 | `developed` | Todos validators GREEN | `/dev-team` cierra | `T-N-result.md` por ticket | ≤ 10 |
 | 7 | `reviewing` | Chris triggers `/auditor` | `/auditor` (Opus + Sonnet split) | `T-N-review.md` + `CHECKPOINTS.md` (C1-C5) | ≤ 2 |
 | 8 | `done` | Auditor APPROVED + `/pm` merge | `/pm` | `07-merge.md` + capabilities promoted + archive | rolling 90d |
 | 9 | `parked` | Manual Chris | Chris | reason field | ∞ |
@@ -258,7 +258,7 @@ idea ─→ refining ─→ refined ─→ ready ─→ developing ─→ develo
 | `done` | `done` | sin cambio |
 | `parked` / `dropped` | `parked` / `dropped` | sin cambio |
 
-**Caps cambian:** sumando 3 estados nuevos, total WIP discovery+refinement+development capabilities sigue limitado pero distribuido más finamente. `idea` sin cap (capturar libre); `refining` ≤ 3 (focus deep work); `refined` ≤ 5 (queue para architects); `ready` ≤ 5 (queue para devs); `developing` ≤ 3 (concurrent builds); `developed` ≤ 2 (queue para auditor); `reviewing` ≤ 2 (concurrent audits).
+**Caps cambian:** sumando 3 estados nuevos, total WIP discovery+refinement+development capabilities sigue limitado pero distribuido más finamente. `idea` sin cap (capturar libre); `refining` ≤ 3 (focus deep work); `refined` ≤ 5 (queue para architects); `ready` ≤ 5 (queue para devs); `developing` ≤ 3 (concurrent builds); `developed` ≤ 10 (queue para auditor — outcome multi-story batched); `reviewing` ≤ 2 (concurrent audits).
 
 #### Gates de transición
 

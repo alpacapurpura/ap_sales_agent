@@ -1,22 +1,21 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T11:08:19+00:00
+# Generated at: 2026-05-08T12:21:01+00:00
 
-generated_at: '2026-05-08T11:08:19+00:00'
+generated_at: '2026-05-08T12:21:01+00:00'
 caps:
   refining_max: 3
   refined_max: 5
   ready_max: 5
   developing_max: 3
-  developed_max: 2
+  developed_max: 10
   reviewing_max: 2
   idea_stale_days: 90
   refining_stale_days: 60
   refined_stale_days: 30
   done_rolling_days: 90
-warnings:
-- developed cap exceeded (3 > 2, excl. legacy+outcomes)
+warnings: []
 stale_ideas: []
 stale_refining: []
 stale_refined: []

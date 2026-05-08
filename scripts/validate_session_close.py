@@ -75,7 +75,7 @@ CAPS = {
     "refined_max": 5,
     "ready_max": 5,
     "developing_max": 3,
-    "developed_max": 2,
+    "developed_max": 10,
     "reviewing_max": 2,
 }
 CHECKPOINT_STALE_DAYS = 7

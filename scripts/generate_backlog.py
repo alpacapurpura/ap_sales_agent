@@ -77,7 +77,7 @@ CAPS = {
     "refined_max": 5,
     "ready_max": 5,
     "developing_max": 3,
-    "developed_max": 2,
+    "developed_max": 10,
     "reviewing_max": 2,
     "idea_stale_days": 90,
     "refining_stale_days": 60,  # active refinement should not stagnate

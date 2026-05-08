@@ -31,7 +31,7 @@ SSoT funcional vive en `docs/{product,process,specs}/`. Migración Mayo 2026 com
 | 3 | `refined` | Spec + UX/diseño ratificados Chris. Listo para architects | Chris ratifica | `/pm` cierra | ≤ 5 |
 | 4 | `ready` | Paquete autocontenido completo (`03-arch` + `04-validators` + `05-guidelines` + `06-tickets`) | `/architect` cierra | `/architect` Opus | ≤ 5 |
 | 5 | `developing` | Autonomous build activo iterando vs validators | `/dev-team` picks | opencode/Sonnet (Opus si agentic prod) | ≤ 3 |
-| 6 | `developed` | Validators GREEN. Build cerrado, awaiting QA | `/dev-team` cierra | `/dev-team` | ≤ 2 |
+| 6 | `developed` | Validators GREEN. Build cerrado, awaiting QA | `/dev-team` cierra | `/dev-team` | ≤ 10 |
 | 7 | `reviewing` | Auditor QA en curso (Opus C1-C3 + Sonnet tests) | Chris triggers manual | `/auditor` | ≤ 2 |
 | 8 | `done` | Auditor APPROVED + merge + capability promovida + docs | auditor APPROVED → `/pm` merge | `/pm` | rolling 90d |
 | 9 | `parked` | De-prioritized, NO abandonado | manual | Chris | ∞ |
