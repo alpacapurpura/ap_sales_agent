@@ -1,0 +1,766 @@
+# 06-tickets.yaml — Story sales-agent-eval-pass-k-tracking
+#
+# /architect orchestrator delivered (2026-05-08).
+# 8 tickets atomic, DAG dependencies, owner_eligibility per R23 + Chris mandate.
+# Story type: service-story BE-only (read-only aggregator test-infra).
+
+---
+story_id: sales-agent-eval-pass-k-tracking
+outcome: pi-12-sales-agent-eval-foundation
+generated_at: 2026-05-08T11:00:00Z
+generated_by: /architect
+total_estimate_hours: 16                # 2-3d total — read-only aggregator simple
+ticket_count: 8
+arch_link: 03-arch.md
+guidelines_link: 05-guidelines.md
+validators_link: 04-validators.yaml
+
+tickets:
+  # ═════════════════════════════════════════════════════════════════════
+  # T-1 — DDL idempotent migration + SQLA model R5 schema-mirror
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-1
+    title: "DDL Alembic 128_add_eval_pass_k_summary_table + EvalPassKSummaryModel SQLA 2.0 async (R5 schema-mirror)"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # ✅ Declarative SQL + SQLA model — declarative
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false                # test-infrastructure under backend/tests/ + R5 schema-mirror exception applies to model
+    decisions_applicable: [D-BE-1, D-BE-2, D-BE-3, D-BE-4, D-BE-6]
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§3.1-§3.2
+      conventions: ".claude/rules/backend-migrations.md, backend-ddd.md (R5 schema-mirror exception), tdd-mandatory.md"
+      tessl_skills: [tessl__fastapi]
+      required_skills: [backend-expert]
+      story_e_arch_precedent: ../sales-agent-voice-fidelity-grader-runtime/03-arch.md§3.1-§3.2
+      story_b_archive_precedent: docs/archive/2026/stories/eval-foundation-simulator-homologation/03-arch-be.md
+      precedent_files:
+        - "backend/alembic/versions/125_add_eval_simulator_observability_tables.py"
+        - "backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_llm_call.py"
+    deliverables:
+      - "NEW `backend/alembic/versions/128_add_eval_pass_k_summary_table.py` per 03-arch.md§3.1 reference impl:
+          - revision='128_add_eval_pass_k_summary_table'
+          - down_revision='127_add_eval_simulator_grade_tables' (Story E migration)
+          - upgrade(): CREATE TABLE IF NOT EXISTS eval_pass_k_summary (PK composite run_id+tenant_slug+persona_kind+golden_id) + 4 indexes (run_id, tenant_slug+persona_kind, golden_id, pass_k_strict partial)
+          - downgrade(): DROP TABLE IF EXISTS eval_pass_k_summary CASCADE"
+      - "NEW `backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_pass_k_summary.py` (R5 schema-mirror):
+          - class EvalPassKSummaryModel(Base) per 03-arch.md§3.2
+          - __tablename__='eval_pass_k_summary'
+          - 16 columns mirroring DDL (schema_version, run_id, tenant_slug, persona_kind, golden_id, actor_profile_id, k_trials_required, k_trials_executed, bloom_stages_per_trial JSONB, trial_passed_overall JSONB, pass_k_strict, unconverged, inputs_hash, golden_yaml_hash, cost_usd_total, latency_ms_total, created_at)
+          - PrimaryKeyConstraint composite"
+      - "Verify migration idempotent — re-run alembic upgrade head twice — both succeed (validator migration_idempotency)"
+    out_of_scope:
+      - "Pydantic schemas (T-2)"
+      - "Aggregator implementation (T-5)"
+      - "CLI script (T-6)"
+      - "Modify existing eval_simulator_* models (R5 cement preserves)"
+    acceptance:
+      - id: A1
+        description: "Migration applies idempotently"
+        verifier:
+          type: shell
+          cmd: "see validator migration_idempotency in 04-validators.yaml"
+        validator_ids: [migration_idempotency]
+      - id: A2
+        description: "EvalPassKSummaryModel imports + instantiates correctly"
+        verifier:
+          type: pytest
+          path: "backend/tests/modules/sales_agent/observability/eval_simulator/persistence/test_eval_pass_k_summary_model.py"
+        validator_ids: [be_lint, be_format, be_mypy_strict]
+      - id: A3
+        description: "Story B/C/E arch fitness gates STILL GREEN (R5 schema-mirror exception preserved)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_simulator_no_mirrors_shared.py"
+        validator_ids: [legacy_simulator_invariants_intact]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, migration_idempotency, legacy_simulator_invariants_intact]
+    depends_on: []
+    blocks: [T-2, T-5]
+    transitions:
+      - { state: draft, at: 2026-05-08T11:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-2 — Pydantic schemas + SCHEMA_MIGRATIONS anchor entry
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-2
+    title: "Pydantic v2 schemas (EvalPassKSummary + BloomStageResult + TrialResult + PassKAggregateReport + FlakyGoldenDetail) + SCHEMA_MIGRATIONS anchor"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # ✅ Pydantic declarative — straightforward
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-10, D-BE-11, D-BE-15, D-BE-16, D-BE-17]
+    inputs:
+      spec: 01-spec.md§Schema_cement
+      arch_doc: 03-arch.md§3.3
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md"
+      tessl_skills: [tessl__fastapi]
+      required_skills: [backend-expert]
+      story_e_arch_precedent: ../sales-agent-voice-fidelity-grader-runtime/03-arch.md§3.3
+      story_b_archive_precedent: docs/archive/2026/stories/eval-foundation-simulator-homologation/03-arch-agentic.md
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/pass_k/__init__.py` (empty or minimal __all__)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/pass_k/_schema.py` per 03-arch.md§3.3 reference impl:
+          - `BloomStageResult` Pydantic v2 frozen=True (stage Literal 4 values, passed bool, score float 0-1, threshold float 0-1, evidence str, contributing_rubrics list[str], contributing_state_checks list[str])
+          - `TrialResult` Pydantic v2 frozen (trial_n int ≥1, simulation_id str, bloom_stages list[BloomStageResult] length 4, trial_passed_overall bool, cost_usd Decimal, latency_ms int)
+          - `EvalPassKSummary` Pydantic v2 frozen (schema_version Literal[1]=1, run_id str, tenant_slug Literal 5 values Story A, persona_kind Literal 4 values Story C+I, golden_id str, actor_profile_id str, k_trials_required int 1-10, k_trials_executed int 0-10, trials list[TrialResult], pass_k_strict bool|None, unconverged bool, inputs_hash str 64-char, golden_yaml_hash str 64-char, cost_usd_total Decimal, latency_ms_total int, created_at datetime)
+          - `FlakyGoldenDetail` Pydantic v2 frozen (golden_id str, tenant_slug str, persona_kind Literal, pass_k_rate_per_stage dict[Literal stage] float, root_cause_stage Literal, flaky_evidence list[str])
+          - `PassKAggregateReport` Pydantic v2 frozen (schema_version Literal[1]=1, run_id, total_goldens_tested, pass_k_rate_global, pass_k_rate_per_persona_kind dict, pass_k_rate_per_tenant dict, pass_k_rate_per_stage dict, flaky_goldens list, summary_count_passed/failed/unconverged, cost_usd_total Decimal, latency_ms_total, generated_at)"
+      - "EDIT `backend/tests/agentic_evals/sales_agent/simulator/_internal/schema_migrations.py` — append `EvalPassKSummary v1` anchor entry to `CURRENT_SCHEMA_VERSIONS` dict (`'EvalPassKSummary': 1`); no migrator function for v1 (sentinel only — future v2 register migrator)"
+      - "NEW unit tests `backend/tests/agentic_evals/sales_agent/pass_k/test_schema.py` (NEW under T-2 scope or part of test_aggregator.py — ratify):
+          - test_eval_pass_k_summary_construction_valid
+          - test_eval_pass_k_summary_extra_forbid (extra field raises ValidationError)
+          - test_eval_pass_k_summary_frozen (mutation raises TypeError)
+          - test_pass_k_summary_inputs_hash_64char_validation (length validation)
+          - test_pass_k_aggregate_report_construction_valid
+          - test_bloom_stage_result_4_stages_literal"
+    out_of_scope:
+      - "Aggregator logic (T-5)"
+      - "Bloom scorer (T-4)"
+      - "inputs_hasher (T-3)"
+      - "Full migrator implementation v1→v2 (post-ship when v2 needed)"
+    acceptance:
+      - id: A1
+        description: "Pydantic schemas import + instantiate + frozen + extra forbid"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_schema.py"
+        validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_pass_k_module]
+      - id: A2
+        description: "SCHEMA_MIGRATIONS registry includes EvalPassKSummary v1 anchor"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_schema_migrations_registry_complete.py"
+        validator_ids: [legacy_simulator_invariants_intact]
+      - id: A3
+        description: "Schema completeness gate green (Pydantic ⊆ DDL + Literal values match)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_pass_k_summary_schema_complete.py"
+        validator_ids: [be_arch_fitness_full]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_arch_fitness_full, legacy_simulator_invariants_intact]
+    depends_on: [T-1]
+    blocks: [T-3, T-4, T-5, T-8]
+    transitions:
+      - { state: draft, at: 2026-05-08T11:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-3 — inputs_hasher (sha256 deterministic + tamper detection)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-3
+    title: "inputs_hasher.py — sha256 deterministic + golden_yaml_hash + tamper detection helpers"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # ✅ Simple deterministic Python — sha256 + json.dumps
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1
+    production_code: false
+    decisions_applicable: [D-BE-14, D7, D15]
+    inputs:
+      spec: 01-spec.md§Scenario_4
+      arch_doc: 03-arch.md§3.6
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md"
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert]
+      story_e_cache_precedent: ../sales-agent-voice-fidelity-grader-runtime/03-arch.md§3.5
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/pass_k/_internal/__init__.py` (empty)"
+      - "NEW `backend/tests/agentic_evals/sales_agent/pass_k/_internal/inputs_hasher.py` per 03-arch.md§3.6 reference impl:
+          - `compute_inputs_hash(grade_rows, trace_events, golden_yaml) → str` (64-char sha256 hex)
+          - `compute_golden_yaml_hash(golden_yaml) → str` (64-char sha256 hex)
+          - Composition order frozen — sort_keys=True, ensure_ascii=False, default=str canonical JSON"
+      - "Append unit tests to `backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py`:
+          - `test_inputs_hash_deterministic_across_runs` — invoke 100x same inputs, assert all hashes identical
+          - `test_inputs_hash_64char_lowercase_hex` — assert format
+          - `test_inputs_hash_changes_on_grade_rows_modification` — sentinel modification → different hash
+          - `test_inputs_hash_changes_on_trace_events_modification` — sentinel
+          - `test_inputs_hash_changes_on_golden_yaml_modification` — sentinel
+          - `test_compute_golden_yaml_hash_stable` — same YAML dict → same hash"
+    out_of_scope:
+      - "Bloom scorer (T-4)"
+      - "Aggregator integration (T-5)"
+      - "validate-strict CLI mode (T-6)"
+    acceptance:
+      - id: A1
+        description: "inputs_hash deterministic across 100 invocations"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_inputs_hash_deterministic_across_runs"
+        validator_ids: [agentic_inputs_hash_deterministic]
+      - id: A2
+        description: "Hash changes detected on input modification (tamper sentinels)"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py"
+          extra: "-k 'inputs_hash_changes'"
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_pass_k_module, agentic_inputs_hash_deterministic, jscpd_no_duplication]
+    depends_on: [T-2]
+    blocks: [T-5, T-6]
+    transitions:
+      - { state: draft, at: 2026-05-08T11:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-4 — bloom_scorer 4-stage scoring (Bloom contract table + threshold env vars)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-4
+    title: "bloom_scorer.py — 4-stage scoring (Understanding/Ideation/Rollout/Judgment) + threshold env vars + per-stage evidence"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                # ⚠️ 4-stage logic + per-stage evidence + persona_kind branching — escalate to Opus if iteration cap reached
+      claude_sonnet: true                 # ✅ R23 allows; complexity manageable for Sonnet
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2.5                   # Most complex ticket — 4 stages × per-persona_kind branching
+    production_code: false
+    decisions_applicable: [D-BE-13, D2, D5]
+    inputs:
+      spec: 01-spec.md§Bloom_4_stage_scoring_contract
+      arch_doc: 03-arch.md§3.5
+      conventions: ".claude/rules/anti-duplication.md, tdd-mandatory.md"
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert]
+      bloom_paper_reference: "https://www.anthropic.com/research/bloom (accessed 2026-05-08)"
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/pass_k/_internal/bloom_scorer.py` per 03-arch.md§3.5 reference impl:
+          - `_BLOOM_THRESHOLD_DEFAULTS` dict cement byte-equal {understanding: 0.7, ideation: 0.7, rollout: 0.7, judgment: 0.7}
+          - `_NO_HALLUCINATION_THRESHOLD = float(os.getenv('SALES_AGENT_RUBRIC_NO_HALLUCINATION_THRESHOLD', '0.85'))` — Story E D13 reuse
+          - `_get_threshold(stage) → float` — env var override `SALES_AGENT_BLOOM_<STAGE>_THRESHOLD`
+          - `score_4_stages_per_trial(*, trial_grade_rows, trial_trace_events, golden) → list[BloomStageResult]` length 4 always
+          - 4 stage scoring functions per spec § Bloom contract table:
+            - Understanding: voice-fidelity turns 1-3 avg ≥ threshold
+            - Ideation: expected_tools ⊆ actual + forbidden_tools ∩ actual = ∅ + qualification-accuracy (nurture/unqualified)
+            - Rollout: no-overpromise (happy/nurture) + no-hallucination (all, stricter override) + qualification-accuracy execution (nurture/unqualified)
+            - Judgment: termination_reason match + min_distinct_objections_handled (nurture only)
+          - Helpers: `_extract_tools_invoked(trace_events)`, `_extract_termination_reason(trace_events)`, `_extract_distinct_objections(trace_events)`, `_avg_rubric_score(grade_rows, rubric_id, turns_filter=None) → float`"
+      - "Append unit tests to `backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py`:
+          - `test_score_4_stages_understanding_pass` — voice-fidelity ≥ 0.7 → understanding.passed=true
+          - `test_score_4_stages_ideation_forbidden_tool_fail` — forbidden_tool invoked → ideation.passed=false + evidence cites tool
+          - `test_score_4_stages_ideation_missing_expected_tool_fail` — expected_tool not invoked → ideation.passed=false + evidence cites missing
+          - `test_score_4_stages_rollout_no_hallucination_stricter_override` — no-hallucination=0.80 < 0.85 stricter → rollout.passed=false (vs Rollout threshold 0.7 alone)
+          - `test_score_4_stages_judgment_termination_match` — termination match + objections OK → judgment.passed=true
+          - `test_score_4_stages_judgment_min_objections_nurture_only` — min_distinct_objections check applied only to persona_kind=nurture
+          - `test_score_4_stages_per_persona_kind_branching` — happy NO checks qualification-accuracy in Ideation; nurture+unqualified DO
+          - `test_score_4_stages_evidence_strings_human_readable` — evidence cites threshold + actual value"
+      - "NEW `backend/tests/architecture/test_bloom_threshold_defaults_protected.py` (empty allowlist shrink-only):
+          - assert `_BLOOM_THRESHOLD_DEFAULTS == {'understanding': 0.7, 'ideation': 0.7, 'rollout': 0.7, 'judgment': 0.7}` byte-equal
+          - assert 4 env var names match canonical `SALES_AGENT_BLOOM_<STAGE>_THRESHOLD` pattern (regex check on bloom_scorer.py source)"
+    out_of_scope:
+      - "Aggregator integration (T-5)"
+      - "CLI script (T-6)"
+      - "Per-persona_kind YAML schema validation (Story C+D own)"
+    acceptance:
+      - id: A1
+        description: "4-stage scoring per Bloom contract table — all 4 stages always populated per trial"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py"
+          extra: "-k 'score_4_stages'"
+        validator_ids: [scenario_1_pass_k_aggregation_happy, scenario_2_bloom_stage_failure_attribution]
+      - id: A2
+        description: "Threshold env vars override defaults correctly"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_threshold_env_var_override"
+        validator_ids: [agentic_bloom_thresholds_protected]
+      - id: A3
+        description: "Bloom threshold defaults dict byte-equal cement"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_bloom_threshold_defaults_protected.py"
+        validator_ids: [agentic_bloom_thresholds_protected, be_arch_fitness_full]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_pass_k_module, scenario_1_pass_k_aggregation_happy, scenario_2_bloom_stage_failure_attribution, agentic_bloom_thresholds_protected, jscpd_no_duplication]
+    depends_on: [T-2]
+    blocks: [T-5]
+    escalation_path: |
+      If iteration cap reached (3 attempts) on 4-stage logic complexity → escalate /pm para Opus override puntual.
+      Likely culprits: persona_kind branching matrix (4 persona kinds × 4 stages × Story C cement),
+      stage-level evidence string composition (human-readable cita threshold + actual + violation reason),
+      no-hallucination stricter override threading correctly through Rollout stage scoring.
+    transitions:
+      - { state: draft, at: 2026-05-08T11:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-5 — aggregator (compute_pass_k_for_run + heterogeneous K + integration)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-5
+    title: "aggregator.py — compute_pass_k_for_run + heterogeneous K + unconverged + integration with Stories B/C/D/E + read-only DB invariant"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # ✅ SQL queries + dict aggregation + Pydantic — straightforward
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 3
+    production_code: false
+    decisions_applicable: [D-BE-7, D-BE-12, D-BE-15, D-BE-16, D-BE-17, D-BE-18, D6, D9, D14]
+    inputs:
+      spec: 01-spec.md§Scenario_1, §Scenario_3
+      arch_doc: 03-arch.md§3.4
+      conventions: ".claude/rules/anti-duplication.md, tenant-isolation.md, tdd-mandatory.md"
+      tessl_skills: [tessl__pytest-api-testing, tessl__graceful-degradation]
+      required_skills: [backend-expert]
+      story_b_trace_events: backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_trace_event.py
+      story_c_trial_policy: ../../archive/2026/stories/sales-agent-personas-instrumented-runtime/03-arch.md
+      story_d_goldens_dir: backend/tests/agentic_evals/sales_agent/goldens/
+      story_e_grade_table: ../sales-agent-voice-fidelity-grader-runtime/03-arch.md§3.1-§3.2
+    deliverables:
+      - "NEW `backend/tests/agentic_evals/sales_agent/pass_k/aggregator.py` per 03-arch.md§3.4 reference impl:
+          - `_TRIAL_POLICY_BY_PERSONA_KIND: Final[dict[str, int]] = {'happy': 3, 'nurture': 1, 'unqualified': 3, 'adversarial': 3}` cement byte-equal Story C
+          - `class EvalPassKValidationError(Exception)` for tamper detection
+          - `async def compute_pass_k_for_run(session: AsyncSession, run_id: str, *, validate_strict: bool = False) → list[EvalPassKSummary]`:
+            - Step 1: query Story E grade rows via `select(EvalSimulatorGradeModel).where(run_id matches via simulation_id FK)` (read-only)
+            - Step 2: query Story B trace events via `select(EvalSimulatorTraceEventModel).where(run_id)` (read-only)
+            - Step 3: load Story D goldens YAML via yaml.safe_load (read-only)
+            - Step 4: group by (tenant_slug, persona_kind, golden_id) cell
+            - Step 5: invoke `score_4_stages_per_trial` per trial → list[BloomStageResult]
+            - Step 6: compute strict all-of-K (binary AND across K trials)
+            - Step 7: compute inputs_hash + golden_yaml_hash
+            - Step 8 (validate_strict only): compare cached vs recomputed, raise on mismatch
+            - Step 9: persist via UPSERT on PK (run_id, tenant_slug, persona_kind, golden_id)
+          - Helpers: `_query_grade_rows`, `_query_trace_events`, `_load_goldens_yaml`, `_group_by_cell`, `_validate_strict_against_cached`, `_persist_summaries`"
+      - "NEW test fixtures `backend/tests/agentic_evals/sales_agent/pass_k/conftest.py`:
+          - `eval_pass_k_test_session` (AsyncSession + tear-down rollback)
+          - `synthetic_grade_rows` (Story E MajEvalScore fixture data with realistic scores)
+          - `synthetic_trace_events` (Story B trace events fixture data)
+          - `synthetic_golden_yaml` (Story D golden fixture data)"
+      - "NEW integration tests in `backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py`:
+          - `test_bloom_4_stage_compute` (Scenario 1)
+          - `test_strict_all_of_k_binary` (Scenario 1)
+          - `test_persists_one_row_per_golden_cell` (Scenario 1 state_check)
+          - `test_re_run_same_run_id_idempotent` (UPSERT semantics)
+          - `test_per_stage_pass_rate_attribution` (Scenario 2 — flaky with mixed trial outcomes)
+          - `test_heterogeneous_K_per_persona_kind` (Scenario 3 — happy K=3, nurture K=1, unqualified K=3)
+          - `test_unconverged_when_K_trials_missing` (Scenario 3 — K_executed < K_required)
+          - `test_unconverged_logs_structured_warning` (D9 — structlog 'pass_k.unconverged')
+          - `test_aggregator_zero_llm_call_writes` (read-only invariant — pre/post DB query counts equal across eval_simulator_llm_call + copilot_llm_call)
+          - `test_evidence_strings_sanitize_payload_applied` (D-BE-15)"
+      - "NEW arch fitness gate `backend/tests/architecture/test_aggregator_no_llm_calls.py` (empty allowlist):
+          - AST static scan walk pass_k/ + scripts/compute_pass_k_report.py
+          - Forbidden imports: `litellm`, `anthropic`, `openai` (any form: `import X`, `from X import ...`)
+          - Allowlist empty (shrink-only)
+          - Test `test_aggregator_module_no_llm_imports` parametrize over forbidden module names"
+    out_of_scope:
+      - "CLI script (T-6)"
+      - "validate-strict mode CLI flag (T-6 wires aggregator validate_strict=True)"
+      - "Pre-commit hook Section 9 (T-7)"
+      - "Modify eval_simulator_grade or eval_simulator_trace_event models (read-only)"
+    acceptance:
+      - id: A1
+        description: "Bloom 4-stage compute + strict all-of-K binary aggregation"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py"
+          extra: "-k 'bloom_4_stage or strict_all_of_k'"
+        validator_ids: [scenario_1_pass_k_aggregation_happy]
+      - id: A2
+        description: "Heterogeneous K respects Story C cement"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py"
+          extra: "-k 'heterogeneous_K'"
+        validator_ids: [scenario_3_heterogeneous_K_per_persona_kind, agentic_heterogeneous_k_respects_story_c]
+      - id: A3
+        description: "Unconverged handling — pass_k_strict=null + structlog warn"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_unconverged_logs_structured_warning"
+        validator_ids: [scenario_3_unconverged_when_K_trials_missing, agentic_unconverged_handling]
+      - id: A4
+        description: "Read-only DB invariant — zero NEW llm_call rows during aggregation"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_aggregator_zero_llm_call_writes"
+        validator_ids: [agentic_cost_bucket_zero_contamination, read_only_db_invariant]
+      - id: A5
+        description: "Static import scan — no LLM imports in aggregator"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_aggregator_no_llm_calls.py"
+        validator_ids: [aggregator_no_llm_imports]
+      - id: A6
+        description: "Idempotency — re-run produces same rows + same hash"
+        verifier:
+          type: pytest
+          path: "backend/tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_re_run_same_run_id_idempotent"
+        validator_ids: [agentic_idempotency_run_twice_same_output]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, be_coverage_pass_k_module, scenario_1_pass_k_aggregation_happy, scenario_1_state_check_db_rows, scenario_2_bloom_stage_failure_attribution, scenario_3_heterogeneous_K_per_persona_kind, scenario_3_unconverged_when_K_trials_missing, agentic_cost_bucket_zero_contamination, agentic_unconverged_handling, agentic_idempotency_run_twice_same_output, agentic_heterogeneous_k_respects_story_c, agentic_pii_sanitization_evidence, aggregator_no_llm_imports, read_only_db_invariant, jscpd_no_duplication]
+    depends_on: [T-1, T-2, T-3, T-4]
+    blocks: [T-6]
+    transitions:
+      - { state: draft, at: 2026-05-08T11:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-6 — CLI script compute_pass_k_report.py + --validate-strict flag
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-6
+    title: "CLI script backend/scripts/compute_pass_k_report.py — argparse + JSON output + --validate-strict flag"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # ✅ argparse + JSON + asyncio — declarative
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 2
+    production_code: false
+    decisions_applicable: [D-BE-8, D7, D10, D13]
+    inputs:
+      spec: 01-spec.md§Scenario_1, §Scenario_4
+      arch_doc: 03-arch.md§3.7
+      conventions: ".claude/rules/spanish-text.md, tdd-mandatory.md"
+      tessl_skills: [tessl__pytest-api-testing]
+      required_skills: [backend-expert]
+    deliverables:
+      - "NEW `backend/scripts/compute_pass_k_report.py` per 03-arch.md§3.7 reference impl:
+          - argparse with --run-id, --output, --validate-strict
+          - `async def main()` invokes `compute_pass_k_for_run(session, run_id, validate_strict=args.validate_strict)`
+          - `_build_aggregate_report(summaries, run_id) → PassKAggregateReport` aggregates per persona_kind / tenant / stage + detects flaky goldens (mixed pass_per_trial NOT all-pass)
+          - `_decimal_serializer(obj)` JSON serializer for Decimal
+          - Write JSON output to `--output` path (mkdir parents)
+          - Print summary stats (Spanish neutro LATAM): pass_k_rate_global, total_goldens, passed/failed/unconverged counts, flaky_goldens count
+          - Return exit code 0 on success, 1 on aggregator error"
+      - "NEW integration test `backend/tests/scripts/test_compute_pass_k_report.py`:
+          - `test_cli_produces_json_report` — invoke CLI via subprocess, assert JSON exists + valid Pydantic
+          - `test_report_json_validates_against_pydantic_schema` — load JSON + validate via PassKAggregateReport.model_validate
+          - `test_root_cause_stage_attribution` — Scenario 2 — flaky_goldens[i].root_cause_stage = min(pass_k_rate_per_stage)
+          - `test_validate_strict_mode` — Scenario 4 — manual UPDATE post-aggregate + re-run with --validate-strict → exit 1 + structlog 'pass_k.tamper_detected'"
+    out_of_scope:
+      - "Pre-commit hook Section 9 (T-7)"
+      - "Aggregator pipeline implementation (T-5 owns)"
+      - "Capability YAML + module narrative (T-8 post-merge by /pm)"
+    acceptance:
+      - id: A1
+        description: "CLI produces valid JSON report"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_compute_pass_k_report.py::test_cli_produces_json_report"
+        validator_ids: [scenario_1_compute_pass_k_report_cli, agentic_pass_k_report_json_schema_valid]
+      - id: A2
+        description: "--validate-strict mode detects tamper"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_compute_pass_k_report.py::test_validate_strict_mode"
+        validator_ids: [scenario_4_validate_strict_mode]
+      - id: A3
+        description: "Root cause stage attribution in report"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_compute_pass_k_report.py::test_root_cause_stage_attribution"
+        validator_ids: [scenario_2_root_cause_stage_in_report]
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_mypy_strict, scenario_1_compute_pass_k_report_cli, scenario_2_root_cause_stage_in_report, scenario_4_validate_strict_mode, agentic_pass_k_report_json_schema_valid]
+    depends_on: [T-3, T-5]
+    blocks: [T-8]
+    transitions:
+      - { state: draft, at: 2026-05-08T11:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-7 — Pre-commit hook Section 9 (golden YAML mutation detection)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-7
+    title: "Pre-commit hook Section 9 NEW — golden YAML mutation detection + magic comment escape"
+    type: backend
+    surface: BE
+    state: draft
+    owner_eligibility:
+      qwen_opencode: false                # ⚠️ Hook integration with sections 1-8 byte-equal preservation — escalate to Opus if iteration cap reached
+      claude_sonnet: true                 # ✅ Bash + git diff + regex — Sonnet OK; complexity manageable
+      claude_opus_required: false
+    priority: 1
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-9, D15]
+    inputs:
+      spec: 01-spec.md§Scenario_4
+      arch_doc: 03-arch.md§3.8
+      conventions: ".claude/rules/spanish-text.md (CLI strings), parallel-safety.md, tdd-mandatory.md"
+      tessl_skills: []
+      required_skills: [backend-expert]
+      precedent_file: scripts/git-hooks/pre-commit (sections 1-8 byte-equal preservation cement)
+    deliverables:
+      - "EDIT `scripts/git-hooks/pre-commit` (additive only — sections 1-8 untouched):
+          - Append Section 9 NEW per 03-arch.md§3.8 reference impl:
+            - `GOLDENS_DIR='backend/tests/agentic_evals/sales_agent/goldens'`
+            - Detect staged goldens YAML files via `git diff --cached --name-only --diff-filter=ACM | grep -E '^${GOLDENS_DIR}/.*\\.yaml$'`
+            - Check commit message for magic comment `# golden-refresh: <reason>` regex
+            - Check env var `NO_VERIFY_GOLDEN_REFRESH` for explicit override
+            - Block commit (exit 1) with hint message if mutation detected without escape
+            - Section 1-8 ANY existing logic byte-equal preservation"
+      - "EDIT `backend/tests/scripts/test_pre_commit_hook.py` — append Section 9 tests:
+          - `test_section_9_blocks_unmagic_golden_mutation` — stage golden YAML modification + no magic comment → hook exit 1
+          - `test_section_9_allows_with_magic_comment` — stage + commit msg `# golden-refresh: <reason>` → hook pass
+          - `test_section_9_allows_with_env_override` — stage + `NO_VERIFY_GOLDEN_REFRESH=1` → hook pass
+          - `test_section_9_no_op_when_no_staged_goldens` — no goldens staged → hook continues to other sections
+          - All tests use temp git repo + `git config commit.gpgsign false` to avoid signing prompts"
+    out_of_scope:
+      - "Capability YAML + module narrative + downstream regression rule (T-8)"
+      - "Modify sections 1-8 of pre-commit hook (additive only)"
+      - "Story D goldens YAML content (read-only — hook detects mutation)"
+    acceptance:
+      - id: A1
+        description: "Hook Section 9 blocks unmagic golden mutation"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_pre_commit_hook.py::test_section_9_blocks_unmagic_golden_mutation"
+        validator_ids: [pre_commit_hook_section_9_works]
+      - id: A2
+        description: "Hook Section 9 allows magic comment escape"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_pre_commit_hook.py::test_section_9_allows_with_magic_comment"
+        validator_ids: [pre_commit_hook_section_9_works]
+      - id: A3
+        description: "Hook Section 9 allows env override"
+        verifier:
+          type: pytest
+          path: "backend/tests/scripts/test_pre_commit_hook.py::test_section_9_allows_with_env_override"
+        validator_ids: [pre_commit_hook_section_9_works]
+      - id: A4
+        description: "Sections 1-8 byte-equal preservation"
+        verifier:
+          type: shell
+          cmd: |
+            \
+            git diff HEAD scripts/git-hooks/pre-commit | grep -cE "^\\-(?!#|$)" || true
+        description_extra: "Manual diff review — only ADDITIONS to file, no DELETIONS in sections 1-8 logic"
+    quality_gates:
+      validator_ids: [be_lint, be_format, pre_commit_hook_section_9_works, scenario_4_golden_yaml_mutation_detected]
+    depends_on: []                        # Independent of T-1..T-6 — can build in parallel
+    blocks: [T-8]
+    escalation_path: |
+      If iteration cap reached (3 attempts) on hook integration → escalate /pm para Opus override.
+      Likely culprits: bash regex compatibility across git versions, COMMIT_EDITMSG file path resolution
+      across pre-commit invocation contexts, magic comment regex precision (multi-line commit msgs).
+    transitions:
+      - { state: draft, at: 2026-05-08T11:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet
+
+  # ═════════════════════════════════════════════════════════════════════
+  # T-8 — Arch fitness gates (3 NEW) + capability YAML + module narrative + downstream regression rule (post-merge by /pm)
+  # ═════════════════════════════════════════════════════════════════════
+
+  - id: T-8
+    title: "Architecture fitness gates 3 NEW + capability YAML extension + module narrative + downstream regression rule SSoT update"
+    type: docs
+    surface: BE+DOCS
+    state: draft
+    owner_eligibility:
+      qwen_opencode: true                 # ✅ Arch tests declarative + docs reconciliation — straightforward
+      claude_sonnet: true
+      claude_opus_required: false
+    priority: 2
+    estimate_hours: 1.5
+    production_code: false
+    decisions_applicable: [D-BE-12, D-BE-13]
+    inputs:
+      spec: 01-spec.md
+      arch_doc: 03-arch.md§3.10, §11
+      conventions: ".claude/rules/auditor-downstream-regression.md, architectural-fitness.md"
+      required_skills: [backend-expert, pm]
+    deliverables:
+      - "NEW `backend/tests/architecture/test_pass_k_summary_schema_complete.py` (empty allowlist shrink-only):
+          - assert EvalPassKSummary Pydantic fields ⊆ DDL columns (column-by-column verification via SQLA inspection)
+          - assert BloomStageResult.stage Literal matches DDL JSONB stage values (4 canonical: understanding/ideation/rollout/judgment)
+          - assert EvalPassKSummary.persona_kind Literal matches Story C 4 valid + Story I forward-compat (additive)
+          - assert EvalPassKSummary.tenant_slug Literal matches Story A 5 valid (frozen + Story I additive)"
+      - "Verify NEW gate `test_aggregator_no_llm_calls.py` from T-5 in place"
+      - "Verify NEW gate `test_bloom_threshold_defaults_protected.py` from T-4 in place"
+      - "EDIT `docs/product/capabilities/sales-agent/sales-conversational-engine.yaml` — append eval block per 03-arch.md§3.9 (post-merge by /pm only — NO builder action; documented here as story dependency):
+          - story_f_introduced: sales-agent-eval-pass-k-tracking
+          - story_f_merged_at: null (pending /auditor APPROVED + /pm merge)
+          - pass_k_paradigm: bloom_4_stage_strict_all_of_k
+          - pass_k_report_path: '_artifacts/eval_runs/{run_id}/pass_k_report.json'
+          - bloom_thresholds: {understanding: 0.7, ideation: 0.7, rollout: 0.7, judgment: 0.7}
+          - k_trials_per_persona_kind: {happy: 3, nurture: 1, unqualified: 3, adversarial: 3}
+          - cost_baseline_per_run_usd: 0
+          - story_f_test_coverage list (6 paths)"
+      - "EDIT `docs/product/modules/sales-agent.md` — narrative addition 1-2 sentences per 03-arch.md§11 (post-merge by /pm)"
+      - "EDIT `.claude/rules/auditor-downstream-regression.md` — append SSoT entries per 03-arch.md§11:
+          - `backend/tests/agentic_evals/sales_agent/pass_k/aggregator.py` → downstream_test_targets [test_aggregator.py, test_aggregator_validation.py, test_compute_pass_k_report.py]
+          - `backend/tests/agentic_evals/sales_agent/pass_k/_internal/bloom_scorer.py` → idem
+          - `backend/tests/agentic_evals/sales_agent/pass_k/_internal/inputs_hasher.py` → idem + test_pass_k_summary_schema_complete.py"
+    out_of_scope:
+      - "Implement aggregator pipeline (T-5)"
+      - "Implement CLI script (T-6)"
+      - "Modify pre-commit hook (T-7)"
+      - "Update Streamlit dashboards (separate observability story)"
+    acceptance:
+      - id: A1
+        description: "Schema completeness gate green"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_pass_k_summary_schema_complete.py"
+        validator_ids: [be_arch_fitness_full]
+      - id: A2
+        description: "Aggregator no-LLM-imports gate green (already from T-5)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_aggregator_no_llm_calls.py"
+        validator_ids: [aggregator_no_llm_imports]
+      - id: A3
+        description: "Bloom threshold defaults protected gate green (already from T-4)"
+        verifier:
+          type: pytest
+          path: "backend/tests/architecture/test_bloom_threshold_defaults_protected.py"
+        validator_ids: [agentic_bloom_thresholds_protected]
+      - id: A4
+        description: "Capability YAML eval block added"
+        verifier:
+          type: shell
+          cmd: "grep -q 'pass_k_paradigm' docs/product/capabilities/sales-agent/sales-conversational-engine.yaml"
+      - id: A5
+        description: "Module narrative updated"
+        verifier:
+          type: shell
+          cmd: "grep -q 'pass^K aggregator' docs/product/modules/sales-agent.md"
+      - id: A6
+        description: "Downstream regression rule SSoT updated"
+        verifier:
+          type: shell
+          cmd: "grep -q 'pass_k/aggregator.py' .claude/rules/auditor-downstream-regression.md"
+    quality_gates:
+      validator_ids: [be_lint, be_format, be_arch_fitness_full]
+    depends_on: [T-4, T-5, T-6, T-7]
+    blocks: []
+    transitions:
+      - { state: draft, at: 2026-05-08T11:00Z, by: /architect }
+    assigned_to: builder-backend-sonnet     # arch tests by builder; capability YAML + narrative + rule update by /pm post-merge
+
+# ═══════════════════════════════════════════════════════════════════════
+# Dependency graph (DAG)
+# ═══════════════════════════════════════════════════════════════════════
+#
+#   T-1 (DDL migration + SQLA model R5)
+#   ├─→ T-2 (Pydantic schemas)
+#   └─→ T-5 (aggregator integration)
+#
+#   T-2 (Pydantic schemas + SCHEMA_MIGRATIONS anchor)
+#   ├─→ T-3 (inputs_hasher)
+#   ├─→ T-4 (bloom_scorer)
+#   ├─→ T-5 (aggregator)
+#   └─→ T-8 (schema completeness arch test)
+#
+#   T-3 (inputs_hasher)
+#   ├─→ T-5 (aggregator uses compute_inputs_hash)
+#   └─→ T-6 (CLI uses validate-strict mode)
+#
+#   T-4 (bloom_scorer)
+#   └─→ T-5 (aggregator invokes score_4_stages_per_trial)
+#
+#   T-5 (aggregator + integration tests + arch fitness no-LLM-imports)
+#   └─→ T-6 (CLI invokes compute_pass_k_for_run)
+#
+#   T-6 (CLI script + --validate-strict mode)
+#   └─→ T-8 (arch tests verify CLI in static scan if applicable)
+#
+#   T-7 (Pre-commit hook Section 9)
+#   └─→ T-8 (arch fitness + capability YAML reconciliation)
+#
+#   T-1 + T-2 + T-3 + T-4 + T-5 + T-6 + T-7
+#   └─→ T-8 (docs reconciliation + 3 arch fitness gates verify)
+#
+# Critical path: T-1 → T-2 → (T-3 + T-4 parallel) → T-5 → T-6 → T-8
+# T-7 parallel-independent from T-1..T-6 (can start anytime).
+# Estimated: ~14h sequential (16h with buffer). Parallel possible: T-3+T-4 after T-2; T-7 anytime.
+#
+# All 8 tickets ≤ cap (no story split needed).
+
+# ═══════════════════════════════════════════════════════════════════════
+# Owner routing summary
+# ═══════════════════════════════════════════════════════════════════════
+#
+# - 8 tickets BE service-story `production_code: false` test-infra → builder-backend Sonnet RECOMMENDED
+#   (R23 explicit allow Sonnet for service-story BE; deterministic Python pipeline simple enough)
+# - 0 tickets AGENTIC (Story F = read-only aggregator, NO LLM/LangGraph)
+# - 0 tickets FE (BE-only)
+# - PM confirms final routing antes Conv 2 starts.
+# - Escalation paths declared on T-4 (bloom_scorer) + T-7 (pre-commit hook) if iteration cap reached.
+
+# ═══════════════════════════════════════════════════════════════════════
+# Decisions per ticket coverage (D-BE-1..D-BE-18 + spec D1-D16)
+# ═══════════════════════════════════════════════════════════════════════
+
+decisions_per_ticket:
+  D-BE-1_ddl_idempotent: [T-1]
+  D-BE-2_pk_composite: [T-1]
+  D-BE-3_jsonb_audit_trail: [T-1, T-5]
+  D-BE-4_hash_columns: [T-1, T-3]
+  D-BE-5_pass_k_strict_nullable: [T-1, T-5]
+  D-BE-6_r5_schema_mirror: [T-1]
+  D-BE-7_test_infra_path: [T-1, T-2, T-3, T-4, T-5, T-6, T-7, T-8]
+  D-BE-8_cli_scripts_path: [T-6]
+  D-BE-9_hook_section_9_additive: [T-7]
+  D-BE-10_eval_pass_k_summary_v1_cement: [T-2]
+  D-BE-11_pass_k_aggregate_report_v1_cement: [T-2, T-6]
+  D-BE-12_read_only_invariant: [T-5, T-8]
+  D-BE-13_bloom_thresholds_cement: [T-4]
+  D-BE-14_inputs_hash_deterministic: [T-3]
+  D-BE-15_evidence_pii_sanitize: [T-5]
+  D-BE-16_heterogeneous_k_story_c_inheritance: [T-5]
+  D-BE-17_unconverged_handling: [T-5]
+  D-BE-18_flaky_goldens_root_cause: [T-6]
+  spec_D1_bloom_strict_all_of_k: [T-4, T-5]
+  spec_D2_4_stages_canonical: [T-4]
+  spec_D3_strict_binary_all_of_k: [T-5]
+  spec_D4_heterogeneous_k_story_c: [T-5]
+  spec_D5_per_stage_threshold_env_var: [T-4]
+  spec_D6_read_only_aggregator: [T-5]
+  spec_D7_inputs_hash_tamper: [T-3, T-5, T-6]
+  spec_D8_eval_pass_k_summary_v1_cement: [T-2]
+  spec_D9_unconverged_flag: [T-5]
+  spec_D10_pass_k_report_versioned: [T-2, T-6]
+  spec_D11_ddl_idempotent: [T-1]
+  spec_D12_aggregator_path_test_infra: [T-1, T-5]
+  spec_D13_flaky_goldens_root_cause: [T-6]
+  spec_D14_no_retry_transient_error: []  # affirmative — Story B owns retries; Story F counts trials as-is
+  spec_D15_golden_yaml_mutation_hook: [T-7]
+  spec_D16_cost_bucket_invariant: [T-5]
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening invariants per ticket coverage (H1-H10 Stories A/B/C/E preserved + Story F additions)
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_per_ticket:
+  H1_schema_versioning: [T-2]                            # EvalPassKSummary v1 anchor entry to SCHEMA_MIGRATIONS
+  H6_cost_bucket_separation: [T-5, T-8]                  # zero contamination invariant + arch fitness gate
+  H7_cost_bucket_invariant_eval_simulator_grade: [T-5]   # read-only consume Story E grade rows
+  H9_public_api_minimal: [T-1, T-5]                      # NO touch simulator/__init__.py — Story F surface separate
+  H10_goldens_yaml_immutability: [T-7]                   # Pre-commit hook Section 9 + golden_yaml_hash snapshot

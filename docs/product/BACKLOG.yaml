@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T20:02:28+00:00
+# Generated at: 2026-05-08T20:21:57+00:00
 
-generated_at: '2026-05-08T20:02:28+00:00'
+generated_at: '2026-05-08T20:21:57+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -237,23 +237,6 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-eval-pass-k-tracking
-    kind: story
-    state: refined
-    title: sales-agent-eval-pass-k-tracking
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 10:00:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: SPEC_RATIFIED
-      next_action: /architect orchestrator → spawna /architect-be (DDL migration eval_pass_k_summary + Pydantic EvalPassKSummary/BloomStageResult/TrialResult/PassKAggregateReport
-        + aggregator + bloom_scorer + inputs_hasher + script + pre-commit hook Section 9 + capability extension) → produce
-        ready package (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready → /dev-team build (espera
-        Stories C+D+E build done — bloqueador hard)
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-voice-fidelity-ci-gate
     kind: story
     state: refined
@@ -272,6 +255,25 @@ buckets:
       priority_override: null
       audit_iterations: 0
   ready:
+  - id: sales-agent-eval-pass-k-tracking
+    kind: story
+    state: ready
+    title: sales-agent-eval-pass-k-tracking
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 11:00:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: READY_PACKAGE_DELIVERED
+      next_action: /dev-team build (BLOCKED on Stories C+D+E build done — hard blocker per spec § Build order ack). T-1 through
+        T-4 + T-7 + T-8 can build BEFORE Stories C+D+E if synthetic test fixtures used (decouple data dependency); T-5 (aggregator
+        integration) + T-6 (CLI) require Stories E+B real data → BLOCKED on Stories C+D+E build done. PM/dev-team decides
+        parallelization at build trigger. All 8 tickets owner_eligibility=builder-backend Sonnet OK per R23 + Chris autonomy
+        mandate (service-story BE-only, deterministic read-only aggregator). Escalation paths declared on T-4 bloom_scorer
+        + T-7 pre-commit hook if iteration cap reached → Opus override puntual.
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   - id: sales-agent-goldens-3-tenants-dataset
     kind: story
     state: ready

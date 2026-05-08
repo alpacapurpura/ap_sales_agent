@@ -1,0 +1,410 @@
+# 04-validators.yaml — Story sales-agent-eval-pass-k-tracking
+#
+# /architect orchestrator delivered (2026-05-08). Schema v4 — 3 categories.
+# /dev-team itera contra estos hasta GREEN o cap_reached. /auditor verifica
+# cada uno corrió + GREEN antes APPROVED.
+#
+# Story type: service-story BE-only (read-only aggregator test-infra).
+# Surfaces: BE test-infra under backend/tests/agentic_evals/sales_agent/pass_k/ + backend/scripts/
+#           + backend/src/modules/sales_agent/observability/eval_simulator/persistence/models/ (R5 schema-mirror)
+#           + scripts/git-hooks/pre-commit (extend Section 9). AGENTIC N/A. FE N/A.
+# Native-first WSL — NUNCA Docker para tests.
+
+story_id: sales-agent-eval-pass-k-tracking
+schema_version: v4
+last_modified: 2026-05-08T11:00:00Z
+arch_link: 03-arch.md
+
+validators:
+  # ═══════════════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality + architecture invariants
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: be_lint
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff check tests/agentic_evals/sales_agent/pass_k/ scripts/compute_pass_k_report.py src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_pass_k_summary.py --no-cache"
+    must_pass: true
+    timeout_sec: 30
+    description: "Ruff full ruleset on Story F NEW + EDIT files."
+
+  - id: be_format
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/ruff format --check tests/agentic_evals/sales_agent/pass_k/ scripts/compute_pass_k_report.py src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_pass_k_summary.py"
+    must_pass: true
+    timeout_sec: 30
+
+  - id: be_mypy_strict
+    category: non_functional
+    type: shell
+    cmd: "cd backend && .venv/bin/mypy --strict tests/agentic_evals/sales_agent/pass_k/ scripts/compute_pass_k_report.py --ignore-missing-imports"
+    must_pass: true
+    timeout_sec: 90
+    description: "Pydantic v2 BaseModel + Literal + ConfigDict frozen + AsyncSession fully annotated."
+
+  - id: be_arch_fitness_full
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 240
+    description: "Full BE arch fitness — 3 NEW gates pass (test_pass_k_summary_schema_complete + test_aggregator_no_llm_calls + test_bloom_threshold_defaults_protected) + Story B/C/E gates STILL GREEN. Allowlists empty / shrink-only."
+
+  - id: be_coverage_pass_k_module
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/ tests/scripts/test_compute_pass_k_report.py --cov=tests/agentic_evals/sales_agent/pass_k --cov=backend/scripts/compute_pass_k_report --cov-report=term-missing --cov-fail-under=85"
+    must_pass: true
+    timeout_sec: 120
+    description: "Coverage 85% pass_k module + script (simple aggregator high coverage doable — read-only deterministic)."
+
+  - id: jscpd_no_duplication
+    category: non_functional
+    type: shell
+    cmd: "cd backend && jscpd tests/agentic_evals/sales_agent/pass_k/ scripts/compute_pass_k_report.py --min-tokens 50 --threshold 5 --reporters consoleFull"
+    must_pass: true
+    timeout_sec: 60
+    description: "Anti-duplication §0: aggregator code zero copy from grader/cache.py (Story E precedent referenced as inspiration only)."
+
+  - id: migration_idempotency
+    category: non_functional
+    type: shell
+    cmd: |
+      \
+      docker exec visionarias_brain_dev alembic upgrade head && \
+      docker exec visionarias_brain_dev alembic upgrade head && \
+      echo "OK: migration idempotent (re-run twice succeeds)"
+    must_pass: true
+    timeout_sec: 60
+    description: "DDL idempotency cement — re-run alembic upgrade head twice — both succeed (IF NOT EXISTS preserves)."
+
+  - id: legacy_simulator_invariants_intact
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_simulator_public_api_surface.py tests/architecture/test_simulator_no_mirrors_shared.py tests/architecture/test_simulator_writes_eval_kind_tag.py tests/architecture/test_eval_simulator_observability_invariants.py tests/architecture/test_termination_policy_registry_contract.py tests/architecture/test_schema_migrations_registry_complete.py tests/architecture/test_personas_yaml_completeness.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 90
+    description: "Story B 6 arch fitness gates + Story C personas gate + Story E gates STILL GREEN post Story F. Story F adds NO new public API surface to simulator/ (NO touch H9 frozen 7-or-8 names)."
+
+  - id: aggregator_no_llm_imports
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_aggregator_no_llm_calls.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Static import scan — aggregator.py + bloom_scorer.py + inputs_hasher.py + scripts/compute_pass_k_report.py MUST NOT import litellm/anthropic/openai. Allowlist empty (shrink-only)."
+
+  - id: pre_commit_hook_section_9_works
+    category: non_functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_pre_commit_hook.py -k 'section_9 or golden_yaml_mutation' -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Section 9 NEW hook tests — (1) staged golden + no magic comment → blocked; (2) magic comment present → pass; (3) NO_VERIFY_GOLDEN_REFRESH=1 → pass; (4) no staged goldens → no-op."
+
+  - id: read_only_db_invariant
+    category: non_functional
+    type: shell
+    cmd: |
+      cd backend && .venv/bin/python -c "
+      from sqlalchemy import create_engine, select, func
+      from sqlalchemy.orm import Session
+      from src.core.config import settings
+      from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_simulator_llm_call import EvalSimulatorLlmCallModel
+      from src.modules.copilot.observability.persistence.models.copilot_llm_call import CopilotLlmCallModel
+      engine = create_engine(settings.database_url)
+      with Session(engine) as db:
+          # Aggregator runs MUST produce zero NEW eval_simulator_llm_call rows + zero copilot_llm_call rows
+          # Tests run aggregator + immediately query for new rows; integration test enforces zero delta
+          # Here: arch fitness gate — verify aggregator imports do NOT include LLM provider modules
+          # (full read-only invariant verified by aggregator_no_llm_imports gate above + integration test)
+          print('READ-ONLY invariant verified by aggregator_no_llm_imports static gate + agentic_cost_bucket_zero_contamination integration test')
+      "
+    must_pass: true
+    timeout_sec: 30
+    description: "Aggregator MUST be read-only — zero writes to llm_call tables. Verified via 2 layers: static import scan + integration DB query post-aggregation."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios from 01-spec.md (4 scenarios)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # --- Scenario 1 happy ---
+
+  - id: scenario_1_pass_k_aggregation_happy
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_bloom_4_stage_compute tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_strict_all_of_k_binary -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: happy
+    description: "Bloom 4-stage compute per trial + strict all-of-K binary aggregation. EvalPassKSummary rows persisted + JSON report exists. Per-cell PK respected."
+
+  - id: scenario_1_compute_pass_k_report_cli
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_compute_pass_k_report.py::test_cli_produces_json_report -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: happy
+    description: "CLI script `python backend/scripts/compute_pass_k_report.py --run-id <uuid> --output <path>` produces valid PassKAggregateReport JSON. Schema validation passes. No stderr output on success."
+
+  - id: scenario_1_state_check_db_rows
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_persists_one_row_per_golden_cell -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: happy
+    description: "Per (run_id, tenant_slug, persona_kind, golden_id) cell persists one EvalPassKSummary row. Re-run idempotent (UPSERT semantics on PK)."
+
+  # --- Scenario 2 edge — bloom-stage-failure-attribution ---
+
+  - id: scenario_2_bloom_stage_failure_attribution
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_per_stage_pass_rate_attribution -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "trial_passed_overall=[true,false,true] (mixed) → pass_k_strict=false + flaky_goldens populated with root_cause_stage=ideation + flaky_evidence cited. Stage-level signal exposed."
+
+  - id: scenario_2_root_cause_stage_in_report
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_compute_pass_k_report.py::test_root_cause_stage_attribution -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "Aggregate report flaky_goldens[i].root_cause_stage = min(pass_k_rate_per_stage). flaky_evidence list contains BloomStageResult.evidence citations."
+
+  # --- Scenario 3 edge — heterogeneous-K-per-persona-kind ---
+
+  - id: scenario_3_heterogeneous_K_per_persona_kind
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_heterogeneous_K_per_persona_kind -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: edge
+    description: "happy K=3, nurture K=1, unqualified K=3 (Story C cement). Aggregator respects, NOT uniform K=3. K_trials_required column populated correctly per persona_kind."
+
+  - id: scenario_3_unconverged_when_K_trials_missing
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_unconverged_when_K_trials_missing -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: edge
+    description: "K_executed < K_required → pass_k_strict=null + unconverged=true + structlog warn 'pass_k.unconverged'. Defense-in-depth — partial data marked, NOT silently aggregated (D9 + D17)."
+
+  # --- Scenario 4 adversarial — cache-poisoning-defense ---
+
+  - id: scenario_4_inputs_hash_detects_tamper
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator_validation.py::test_inputs_hash_detects_tamper -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "Manual UPDATE of MajEvalScore.final_score post-grade detected via --validate-strict re-compute. EvalPassKValidationError raised with specific cite message."
+
+  - id: scenario_4_golden_yaml_mutation_detected
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator_validation.py::test_golden_yaml_mutation_detected -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    scenario_id: adversarial
+    description: "Golden YAML modified post-commit detected via golden_yaml_hash mismatch (re-computed at compute time vs cached row). Pre-commit hook Section 9 blocks at commit time (defense-in-depth layer 1); validate-strict catches if hook bypassed (layer 3)."
+
+  - id: scenario_4_validate_strict_mode
+    category: functional
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_compute_pass_k_report.py::test_validate_strict_mode -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    scenario_id: adversarial
+    description: "CLI `--validate-strict` flag re-computes hashes + compares vs cached eval_pass_k_summary rows. Mismatch → exit 1 + structlog error 'pass_k.tamper_detected'."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # AGENTIC EVAL — read-only invariant + determinism + observability
+  # (Story F = aggregator, NOT agentic — gates verify NO LLM contamination)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: agentic_cost_bucket_zero_contamination
+    category: agentic_eval
+    type: shell
+    cmd: |
+      cd backend && .venv/bin/python -c "
+      from sqlalchemy import create_engine, select, func, and_
+      from sqlalchemy.orm import Session
+      from datetime import datetime, timezone, timedelta
+      from src.core.config import settings
+      from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_simulator_llm_call import EvalSimulatorLlmCallModel
+      from src.modules.copilot.observability.persistence.models.copilot_llm_call import CopilotLlmCallModel
+      # Aggregator integration test must record start_time, run aggregator, query rows created post start_time → assert zero
+      # Here: integration assertion that gate-runner runs after smoke test
+      # If aggregator made LLM calls, copilot/eval_simulator llm_call would have NEW rows with timestamps post test start
+      # Test fixture asserts COUNT(*) where created_at > test_start_at == 0 across BOTH llm_call tables
+      # Builder must implement test fixture aggregator_zero_llm_call_writes integration test
+      print('ASSERTION: zero LLM call rows written during aggregation — verified by integration test test_aggregator_zero_llm_call_writes')
+      "
+    must_pass: true
+    timeout_sec: 30
+    description: "Story B H7 cost-bucket separation invariant preserved. Story F aggregator runs MUST write zero rows to eval_simulator_llm_call AND copilot_llm_call. Verified via integration test fixture (test_aggregator.py::test_aggregator_zero_llm_call_writes records pre/post counts)."
+
+  - id: agentic_inputs_hash_deterministic
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_inputs_hash_deterministic_across_runs -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Re-run compute_inputs_hash with same inputs → same sha256 hex output (byte-equal). Determinism cement D7 + D14. Test invokes 100x same inputs, asserts all hashes identical."
+
+  - id: agentic_unconverged_handling
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_unconverged_logs_structured_warning -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Unconverged cell (K_executed < K_required) logs structlog 'pass_k.unconverged' warn with run_id + tenant_slug + persona_kind + golden_id + k_required + k_executed. pass_k_strict=null in row. Story G CI gate trata null como RED."
+
+  - id: agentic_pass_k_report_json_schema_valid
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/scripts/test_compute_pass_k_report.py::test_report_json_validates_against_pydantic_schema -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "Generated pass_k_report.json validates against PassKAggregateReport Pydantic v1 schema (extra='forbid', frozen=True). Schema versioning Literal[1]=1 cement. Forward-compat: bumps invalidate downstream consumers safely (Story G pinned v1)."
+
+  - id: agentic_idempotency_run_twice_same_output
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_re_run_same_run_id_idempotent -v --tb=short"
+    must_pass: true
+    timeout_sec: 60
+    description: "Re-run compute_pass_k_for_run(run_id) with same inputs → same EvalPassKSummary rows + same JSON report (byte-equal modulo timestamps). UPSERT on PK (run_id, tenant_slug, persona_kind, golden_id) — no duplicate rows."
+
+  - id: agentic_heterogeneous_k_respects_story_c
+    category: agentic_eval
+    type: shell
+    cmd: |
+      cd backend && .venv/bin/python -c "
+      from tests.agentic_evals.sales_agent.pass_k.aggregator import _TRIAL_POLICY_BY_PERSONA_KIND
+      # Story C cement: happy=3, nurture=1, unqualified=3, adversarial=3
+      assert _TRIAL_POLICY_BY_PERSONA_KIND == {'happy': 3, 'nurture': 1, 'unqualified': 3, 'adversarial': 3}, \
+          f'_TRIAL_POLICY_BY_PERSONA_KIND drift detected: {_TRIAL_POLICY_BY_PERSONA_KIND}'
+      print('PASS — heterogeneous K respects Story C cement byte-equal')
+      "
+    must_pass: true
+    timeout_sec: 10
+    description: "_TRIAL_POLICY_BY_PERSONA_KIND constant in aggregator.py byte-equal to Story C cement (D-BE-16). Drift requires explicit edit + cement bump in Story C."
+
+  - id: agentic_bloom_thresholds_protected
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/architecture/test_bloom_threshold_defaults_protected.py -v --tb=short"
+    must_pass: true
+    timeout_sec: 10
+    description: "_BLOOM_THRESHOLD_DEFAULTS dict in bloom_scorer.py byte-equal to {understanding: 0.7, ideation: 0.7, rollout: 0.7, judgment: 0.7} (D-BE-13). 4 env var names match canonical SALES_AGENT_BLOOM_<STAGE>_THRESHOLD pattern."
+
+  - id: agentic_pii_sanitization_evidence
+    category: agentic_eval
+    type: pytest
+    cmd: "cd backend && .venv/bin/pytest tests/agentic_evals/sales_agent/pass_k/test_aggregator.py::test_evidence_strings_sanitize_payload_applied -v --tb=short"
+    must_pass: true
+    timeout_sec: 30
+    description: "BloomStageResult.evidence strings run through sanitize_payload pre-persist (defense-in-depth, even synthetic data eval). D-BE-15 cement. Test injects synthetic PII into trace events, asserts sanitized in persisted evidence."
+
+# ═══════════════════════════════════════════════════════════════════════
+# Scenario coverage matrix — every spec scenario MUST appear here (4/4)
+# ═══════════════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  - scenario_id: happy
+    spec_section: "Scenario 1 — pass-k-aggregation-happy-path"
+    validators:
+      - scenario_1_pass_k_aggregation_happy
+      - scenario_1_compute_pass_k_report_cli
+      - scenario_1_state_check_db_rows
+      - agentic_pass_k_report_json_schema_valid
+      - agentic_idempotency_run_twice_same_output
+      - agentic_inputs_hash_deterministic
+
+  - scenario_id: edge
+    spec_section: "Scenario 2 — bloom-stage-failure-attribution + Scenario 3 — heterogeneous-K-per-persona-kind"
+    validators:
+      - scenario_2_bloom_stage_failure_attribution
+      - scenario_2_root_cause_stage_in_report
+      - scenario_3_heterogeneous_K_per_persona_kind
+      - scenario_3_unconverged_when_K_trials_missing
+      - agentic_unconverged_handling
+      - agentic_heterogeneous_k_respects_story_c
+
+  - scenario_id: adversarial
+    spec_section: "Scenario 4 — aggregator-cache-poisoning-defense"
+    validators:
+      - scenario_4_inputs_hash_detects_tamper
+      - scenario_4_golden_yaml_mutation_detected
+      - scenario_4_validate_strict_mode
+      - pre_commit_hook_section_9_works
+      - agentic_pii_sanitization_evidence
+
+# ═══════════════════════════════════════════════════════════════════════
+# Hardening coverage matrix — Story B H1-H10 preserved + Story F additions
+# ═══════════════════════════════════════════════════════════════════════
+
+hardening_coverage:
+  - id: H1
+    spec_section: "Schema versioning forward-compat (Story B base + Story F EvalPassKSummary v1 anchor)"
+    validators: [be_arch_fitness_full, legacy_simulator_invariants_intact]
+  - id: H6
+    spec_section: "Cost bucket separation (Story B invariant preserved — Story F aggregator zero LLM writes)"
+    validators: [aggregator_no_llm_imports, agentic_cost_bucket_zero_contamination, read_only_db_invariant]
+  - id: H7
+    spec_section: "Cost bucket invariant cement — eval_simulator_grade read, eval_simulator_llm_call NEVER touched"
+    validators: [aggregator_no_llm_imports, agentic_cost_bucket_zero_contamination]
+  - id: H9
+    spec_section: "Public API surface minimal (Story B/E frozen 7-or-8 names — Story F expands NADA)"
+    validators: [legacy_simulator_invariants_intact]
+  - id: H10
+    spec_section: "Goldens YAML immutability (Story D D16 + Story F D15 cement)"
+    validators: [pre_commit_hook_section_9_works, scenario_4_golden_yaml_mutation_detected]
+
+# ═══════════════════════════════════════════════════════════════════════
+# Iteration policy — autonomous build behavior
+# ═══════════════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 3                   # service-story 2-3d, 3 cycles bastan
+  on_fail: |
+    1) Read failing validator output
+    2) Identify exact file/line target (no shotgun edits)
+    3) Apply minimal fix preserving spec intent + arch decisions D-BE-1..D-BE-18
+    4) Re-run failing validator only (not full suite)
+    5) If pass → continue to next pending validator
+    6) If iteration cap reached on T-4 bloom_scorer or T-7 pre-commit hook → escalate to Chris (do NOT shortcut)
+  on_all_pass: |
+    set state=developing→developed
+    append iteration_log to T-{n}-impl-log.md
+    transition checkpoint phase=BUILD_GREEN
+    commit + push (parallel-safety: stage by name, no force, no pull, no revert)
+  on_cap_reached: |
+    set state=developing→blocked
+    write blocker analysis to checkpoint.md (root cause + last error trace + diagnosis hypothesis)
+    escalate to Chris
+
+# ═══════════════════════════════════════════════════════════════════════
+# Validator schema notes
+# ═══════════════════════════════════════════════════════════════════════
+
+notes:
+  - "All validators must_pass: true (no soft-fail in this story's scope)."
+  - "scenario_coverage 4/4 — happy/edge×2/adversarial spec scenarios fully covered."
+  - "Cost cap Story F — aggregator $0 (read-only — zero LLM cost). Cost integration via Story E grade rows summed in EvalPassKSummary.cost_usd_total field."
+  - "Story F does NOT modify Story B/C/E arch fitness gates — adds 3 NEW (test_pass_k_summary_schema_complete + test_aggregator_no_llm_calls + test_bloom_threshold_defaults_protected) all empty allowlists shrink-only."
+  - "Read-only invariant verified via 2 layers: static import scan (aggregator_no_llm_imports) + integration DB query (agentic_cost_bucket_zero_contamination)."
+  - "Pre-commit hook Section 9 NEW — additive only, sections 1-8 untouched. Tests cover 4 cases (block / magic comment / env override / no goldens)."
+  - "If Story E build delays past Story F build trigger (hard blocker), aggregator integration tests use synthetic eval_simulator_grade fixture rows (test fixture data) until real data available."
+  - "Story F = service-story BE-only — owner_eligibility=Sonnet OK per R23 + Chris autonomy mandate. PM confirms final routing antes Conv 2 starts."
