@@ -687,3 +687,29 @@ extraction next session).
 - Story stub YAML at `docs/product/stories/{module}/{story-id}.yaml` requerido al merge para reconcile_capabilities.py status auto-derivation (bridge entre legacy flat YAML pattern y nueva folder-based SDD Level 3)
 
 **Aplica forward:** todos los outcomes con multi-story audit + capability promotion siguen este protocolo.
+
+---
+
+## 2026-05-08 (cont.) — Outcome `growth-copilot-layout-unification` CLOSED
+
+**Outcome:** 3/3 active stories DONE in single batched audit session (Story 1, 2A, 2B). 4th story (`growth-studio-visual-coherence-pass`) parked. Outcome state=done.
+
+**Stories merged:**
+- Story 1 `app-shell-sidebar-copilot-decoupling` — shell SSoT + mutex + FAB + arch fitness (9 tickets, 0 self-fix, APPROVED clean)
+- Story 2A `growth-studio-folder-parity` — FSD-Lite refactor (8 tickets, 1 self-fix prettier, APPROVED with 3 minor WARN)
+- Story 2B `growth-studio-actions-schemas-real` — copilot tools + zod schemas (7 tickets, 1 self-fix docstring, APPROVED 3 sub-auditors)
+
+**Outcome success metrics: 7/7 DELIVERED.**
+
+**Pattern emergente — batched outcome closure:**
+- Single auditor session cierra TODAS las stories developed de un outcome → cost-efficient, learnings agregados, capability promotion sincronizada
+- Pre-requisito: outcome stories no tienen cross-dependencies destructivas (Story 2B depended on 2A merged, but audit can proceed in parallel since gate-output verifies post-build state)
+- Output: 1 learnings.md entry por outcome (no por story) cuando outcome cierra completo
+
+**Cost summary (esta sesión):**
+- 3 context-builder spawns (Haiku) × ~80k tokens = ~240k Haiku
+- 3 gate-runner spawns (Haiku) × ~50k = ~150k Haiku
+- 5 sub-auditor spawns (Opus): auditor-frontend × 3 (Story 1 + 2A + 2B FE) + auditor-backend × 1 (2B BE) + auditor-agentic × 1 (2B AGENTIC) = ~1.0M Opus
+- Total saving vs ticket-by-ticket: ~50% Opus tokens (6 spawns vs 24 spawns hypothetical)
+
+**Para futuros outcomes con multi-story batched QA:** este protocolo es replicable.

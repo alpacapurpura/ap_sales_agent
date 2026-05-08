@@ -1,11 +1,17 @@
 ---
 story_id: app-shell-sidebar-copilot-decoupling
 outcome: growth-copilot-layout-unification
-state: developed
-phase: BUILD_COMPLETE
-last_artifact: T-9-result.md
-last_modified: 2026-05-09T02:30:00Z
-next_action: "T-9 PUSHED. All 9 tickets DONE. Story 1 complete. Chris triggers /auditor to start Conv 3 review."
+state: done
+phase: MERGED
+last_artifact: CHECKPOINTS.md
+last_modified: 2026-05-08T20:30:00Z
+next_action: "Story merged. Archive scheduled. Outcome growth-copilot-layout-unification 3/3 active stories DONE (4th parked)."
+audit_started_at: 2026-05-08T19:45:00Z
+audit_started_by: /auditor
+audit_verdict: APPROVED
+audit_verdict_at: 2026-05-08T20:15:00Z
+merged_at: 2026-05-08T20:30:00Z
+merged_by: /pm
 build_started_at: 2026-05-07T22:30:00Z
 build_started_by: /dev-team
 ratified_by_chris: true

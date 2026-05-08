@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T13:56:35+00:00
+# Generated at: 2026-05-08T14:16:22+00:00
 
-generated_at: '2026-05-08T13:56:35+00:00'
+generated_at: '2026-05-08T14:16:22+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -111,54 +111,6 @@ buckets:
       priority_override: null
       audit_iterations: 0
   refining:
-  - id: growth-copilot-layout-unification
-    kind: outcome
-    state: refining
-    title: Growth Studio + Copilot — unificación arquitectural y de layout (paridad cross-studio)
-    tags:
-    - module:analytics
-    - module:copilot
-    - module:shared
-    - type:refactor-fe
-    - type:layout-fix
-    - type:cross-cutting
-    last_touched: 2026-05-08
-    extra:
-      story_ids:
-      - app-shell-sidebar-copilot-decoupling
-      - growth-studio-folder-parity
-      - growth-studio-actions-schemas-real
-      - growth-studio-visual-coherence-pass
-      why_now: "Dos pains convergentes hoy bloquean escalabilidad y degradan experiencia\ncross-app:\n\n1. **Shell layout\
-        \ starvation + mutex absence cross-app** (diagnosis\n   corregida 2026-05-07 vía live repro chrome-devtools-verify):\
-        \ el\n   symptom user-reported \"sidebar se superpone con copilot\" NO es\n   z-index overlap (live repro confirma\
-        \ overlap=0px en TODAS las\n   combinaciones medidas). Real root cause = (a) `main` element es\n   `flex-1 min-w-0`\
-        \ sin floor → CopilotSidebar consume content space\n   hasta degradar main. Worst case: viewport 768 × sidebar expandido\
-        \ ×\n   copilot open = main 52px (catastrofico). (b) AppSidebar.isCollapsed\n   y CopilotStore.isOpen independientes\
-        \ — sin mutex policy auto-collapse.\n   (c) `useCopilotOffset` hook miente por 80-220px vs CopilotSidebar\n   grid\
-        \ widths reales — todos modals/sheets mis-centered. (d) Mobile\n   <768: AppSidebar carece left drawer (solo topbar\
-        \ 40px sin aria-label),\n   no FAB para reabrir copilot. Cross-studio (offer/brand/growth/sales/\n   settings/connections/scheduling).\
-        \ User explícito: \"afecta otras\n   funcionalidades más, es un tema arquitectural\" (2026-05-06) —\n   ratificado\
-        \ pero scope real expandido por evidence.\n\n2. **Growth Studio FE quedó fuera del refactor de hace ~1 mes** que\n\
-        \   homologó Brand Studio + Offer Studio (folders `pages/` + `actions/` +\n   `schemas/`, dispatchers SSoT, arch fitness\
-        \ `test-studio-structure-parity`).\n   Growth tiene `config/` + `context/` + `__mocks__/` legacy y NO tiene\n   `pages/`\
-        \ ni `actions/` ni `schemas/`. Roadmap exige agregar canales\n   sin refactor cada vez.\n\nBowtie superior + métricas\
-        \ dashboard NO se tocan — visualmente están bien\ny son invariante de negocio (Chris, 2026-05-06).\n"
-      why_next: null
-      target_end: null
-      priority: 1
-      success_metrics:
-      - main content width ≥720px en TODO studio @ viewport ≥1024px (read-comfort floor garantizado por DashboardShell + mutex
-        policy)
-      - 'Mobile <768px: AppSidebar y Copilot drawers mutuamente exclusivos; FAB copilot persistente para reabrir; aria-labels
-        descriptivos hamburger + FAB'
-      - useCopilotOffset hook y CopilotSidebar grid widths consumen mismas constantes SSoT (`copilot-shell-widths.ts`); dialogs/sheets
-        centered correctamente (drift 0px vs ±80-220px pre-fix)
-      - Z-index ladder centralizado en `lib/tokens/z-index.ts` + arch test enforza tokens en shell + copilot shell
-      - Agregar canal ficticio 'test-channel-x' a Growth Studio requiere ≤3 archivos nuevos (registry + dashboard + schema)
-        + ZERO modificación a StageDispatcher/ChannelDispatcher
-      - Arch fitness test_studio_structure_parity verde para growth-studio (modo factory adaptado)
-      - Bowtie superior + métricas dashboard intactos pixel-perfect post-refactor (screenshot regression)
   - id: pi-12-sales-agent-eval-foundation
     kind: outcome
     state: refining
@@ -297,13 +249,12 @@ buckets:
     title: sales-agent-voice-fidelity-grader-runtime
     tags:
     - legacy:pi-12
-    last_touched: 2026-05-08 08:00:00+00:00
+    last_touched: 2026-05-08 08:30:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: SPEC_RATIFIED_AWAITING_DESIGN
-      next_action: /ux-agentico lee 01-spec.md → produce 02-design-agentic.md (judge prompt slot architecture + MAJ-EVAL state
-        machine Round 1+Round 2 debate flow + voice constraints + sandbox markers + error recovery + observability) → ratificación
-        Chris → state=refining→refined → /architect
+      phase: DESIGN_DRAFT_V1_AWAITING_RATIFICATION
+      next_action: Chris ratifica DQ1-DQ8 → /ux-agentico bump v2 inline si aplica → transition state=refining→refined → /architect
+        orchestrator → ready package
       blocked_by: null
       priority_override: null
       audit_iterations: 0
@@ -342,22 +293,57 @@ buckets:
       audit_iterations: 0
   ready: []
   developing: []
-  developed:
-  - id: app-shell-sidebar-copilot-decoupling
-    kind: story
-    state: developed
-    title: app-shell-sidebar-copilot-decoupling
-    tags: []
-    last_touched: 2026-05-09 02:30:00+00:00
-    extra:
-      outcome: growth-copilot-layout-unification
-      phase: BUILD_COMPLETE
-      next_action: T-9 PUSHED. All 9 tickets DONE. Story 1 complete. Chris triggers /auditor to start Conv 3 review.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
+  developed: []
   reviewing: []
   done:
+  - id: growth-copilot-layout-unification
+    kind: outcome
+    state: done
+    title: Growth Studio + Copilot — unificación arquitectural y de layout (paridad cross-studio)
+    tags:
+    - module:analytics
+    - module:copilot
+    - module:shared
+    - type:refactor-fe
+    - type:layout-fix
+    - type:cross-cutting
+    last_touched: 2026-05-08
+    extra:
+      story_ids:
+      - app-shell-sidebar-copilot-decoupling
+      - growth-studio-folder-parity
+      - growth-studio-actions-schemas-real
+      - growth-studio-visual-coherence-pass
+      why_now: "Dos pains convergentes hoy bloquean escalabilidad y degradan experiencia\ncross-app:\n\n1. **Shell layout\
+        \ starvation + mutex absence cross-app** (diagnosis\n   corregida 2026-05-07 vía live repro chrome-devtools-verify):\
+        \ el\n   symptom user-reported \"sidebar se superpone con copilot\" NO es\n   z-index overlap (live repro confirma\
+        \ overlap=0px en TODAS las\n   combinaciones medidas). Real root cause = (a) `main` element es\n   `flex-1 min-w-0`\
+        \ sin floor → CopilotSidebar consume content space\n   hasta degradar main. Worst case: viewport 768 × sidebar expandido\
+        \ ×\n   copilot open = main 52px (catastrofico). (b) AppSidebar.isCollapsed\n   y CopilotStore.isOpen independientes\
+        \ — sin mutex policy auto-collapse.\n   (c) `useCopilotOffset` hook miente por 80-220px vs CopilotSidebar\n   grid\
+        \ widths reales — todos modals/sheets mis-centered. (d) Mobile\n   <768: AppSidebar carece left drawer (solo topbar\
+        \ 40px sin aria-label),\n   no FAB para reabrir copilot. Cross-studio (offer/brand/growth/sales/\n   settings/connections/scheduling).\
+        \ User explícito: \"afecta otras\n   funcionalidades más, es un tema arquitectural\" (2026-05-06) —\n   ratificado\
+        \ pero scope real expandido por evidence.\n\n2. **Growth Studio FE quedó fuera del refactor de hace ~1 mes** que\n\
+        \   homologó Brand Studio + Offer Studio (folders `pages/` + `actions/` +\n   `schemas/`, dispatchers SSoT, arch fitness\
+        \ `test-studio-structure-parity`).\n   Growth tiene `config/` + `context/` + `__mocks__/` legacy y NO tiene\n   `pages/`\
+        \ ni `actions/` ni `schemas/`. Roadmap exige agregar canales\n   sin refactor cada vez.\n\nBowtie superior + métricas\
+        \ dashboard NO se tocan — visualmente están bien\ny son invariante de negocio (Chris, 2026-05-06).\n"
+      why_next: null
+      target_end: null
+      priority: 1
+      success_metrics:
+      - main content width ≥720px en TODO studio @ viewport ≥1024px (read-comfort floor garantizado por DashboardShell + mutex
+        policy)
+      - 'Mobile <768px: AppSidebar y Copilot drawers mutuamente exclusivos; FAB copilot persistente para reabrir; aria-labels
+        descriptivos hamburger + FAB'
+      - useCopilotOffset hook y CopilotSidebar grid widths consumen mismas constantes SSoT (`copilot-shell-widths.ts`); dialogs/sheets
+        centered correctamente (drift 0px vs ±80-220px pre-fix)
+      - Z-index ladder centralizado en `lib/tokens/z-index.ts` + arch test enforza tokens en shell + copilot shell
+      - Agregar canal ficticio 'test-channel-x' a Growth Studio requiere ≤3 archivos nuevos (registry + dashboard + schema)
+        + ZERO modificación a StageDispatcher/ChannelDispatcher
+      - Arch fitness test_studio_structure_parity verde para growth-studio (modo factory adaptado)
+      - Bowtie superior + métricas dashboard intactos pixel-perfect post-refactor (screenshot regression)
   - id: pi-11-backend-quality-guardrails
     kind: outcome
     state: done

@@ -16,7 +16,7 @@ summary:
     title: "Phase 1 — Skeleton + SSoT modules (no behavior change)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: pushed
+    state: audit-passed
     push_commit_sha: "6f4c9ab7"
     estimate_hours: 3
     blocks: [T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9]
@@ -24,7 +24,7 @@ summary:
     title: "Phase 2 — Migrate consumers to SSoT widths (drift fix)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: pushed
+    state: audit-passed
     estimate_hours: 2
     blocked_by: [T-1]
     blocks: [T-3]
@@ -32,7 +32,7 @@ summary:
     title: "Phase 3 — Activate min-content-width floor (Scenario 1)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: pushed
+    state: audit-passed
     push_commit_sha: "f784ce75"
     estimate_hours: 2
     blocked_by: [T-2]
@@ -41,7 +41,7 @@ summary:
     title: "Phase 4 — Activate mutex policy (Scenarios 1, 3)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: pushed
+    state: audit-passed
     push_commit_sha: "6b691987"
     estimate_hours: 3
     blocked_by: [T-3]
@@ -50,7 +50,7 @@ summary:
     title: "Phase 5 — CopilotFAB + AppSidebar mobile aria-labels (Scenario 3)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: pushed
+    state: audit-passed
     push_commit_sha: "3010787e"
     estimate_hours: 2
     blocked_by: [T-4]
@@ -59,7 +59,7 @@ summary:
     title: "Phase 6 — Z-index migration to tokens (shell scope, Scenario 4)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: pushed
+    state: audit-passed
     push_commit_sha: "41f1abd1"
     estimate_hours: 2
     blocked_by: [T-5]
@@ -68,7 +68,7 @@ summary:
     title: "Phase 7+8 — Arch test rename/extension + 3 NEW arch tests + ESLint rules + DashboardLayoutClient deletion (Scenario 4)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: pushed
+    state: audit-passed
     push_commit_sha_1: "a49bfbd9"
     estimate_hours: 3
     blocked_by: [T-6]
@@ -77,7 +77,7 @@ summary:
     title: "Phase 9 — Visual regression baselines + smoke E2E specs"
     surface: FE
     owner_pool: [claude-sonnet]                  # Playwright skill expertise preferida
-    state: pushed
+    state: audit-passed
     estimate_hours: 3
     blocked_by: [T-7]
     blocks: [T-9]
@@ -85,7 +85,7 @@ summary:
     title: "Phase 10 — Modal z-index alignment ui/* primitives"
     surface: FE
     owner_pool: [claude-sonnet, claude-opus]     # toca Shadcn primitives — review más cuidadoso
-    state: pushed
+    state: audit-passed
     estimate_hours: 2
     blocked_by: [T-7, T-8]
     blocks: []
@@ -98,7 +98,7 @@ T1:
   type: frontend
   surface: FE
   production_code: true
-  state: assigned
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-07T22:35:00Z
   transitions:
@@ -148,7 +148,7 @@ T2:
   type: frontend
   surface: FE
   production_code: true
-  state: pushed
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T00:45:00Z
   push_commit_sha: "0d8701c2"
@@ -190,7 +190,7 @@ T3:
   type: frontend
   surface: FE
   production_code: true
-  state: assigned
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T20:30:00Z
   transitions:
@@ -226,7 +226,7 @@ T4:
   type: frontend
   surface: FE
   production_code: true
-  state: assigned
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T21:00:00Z
   transitions:
@@ -267,7 +267,7 @@ T5:
   type: frontend
   surface: FE
   production_code: true
-  state: pushed
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T22:00:00Z
   push_commit_sha: "3010787e"
@@ -307,7 +307,7 @@ T6:
   type: frontend
   surface: FE
   production_code: true
-  state: pushed
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T22:30:00Z
   transitions:
@@ -347,7 +347,7 @@ T7:
   type: frontend
   surface: FE
   production_code: true
-  state: pushed
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T23:00:00Z
   pushed_at: 2026-05-08T22:38:00Z
@@ -396,7 +396,7 @@ T8:
   type: frontend
   surface: FE
   production_code: true
-  state: pushed
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-08T23:30:00Z
   pushed_at: 2026-05-09T00:30:00Z
@@ -443,7 +443,7 @@ T9:
   type: frontend
   surface: FE
   production_code: true
-  state: pushed
+  state: audit-passed
   assigned_to: claude-sonnet
   assigned_at: 2026-05-09T00:35:00Z
   pushed_at: 2026-05-09T02:30:00Z
