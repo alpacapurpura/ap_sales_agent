@@ -1,0 +1,23 @@
+{
+  "id": "growth_studio_stage_query_happy",
+  "category": "tool_dispatch_correctness",
+  "user_input": "¿cómo va mi adopción los últimos 30 días?",
+  "expected_tool_call": {
+    "name": "get_stage_metrics",
+    "args": {
+      "stage": "adopcion",
+      "period": "30d"
+    }
+  },
+  "expected_block_kind": "growth.stage-metrics",
+  "expected_output": "Tu stage de adopción en los últimos 30 días tiene 1840 usuarios activos (+12% vs el período anterior) y una tasa de retención del 68%. Los canales que más empujan son Meta Ads y Email Nurture. ¿Quieres que abra la vista detallada por canal?",
+  "brand_summary": "Marca: Visionarias. Voz cálida, cercana, motivacional. Hablamos a mujeres profesionales que buscan reinventarse. Posicionamiento: metodología propia para llevar talento a impacto monetizable. Spanish neutro LATAM, sin voseo.",
+  "context": "Tenant tenant_a en /growth-studio. Tool get_stage_metrics(stage='adopcion', period='30d') disponible en grupo analytics. Tier 1 cache hit. Voice fidelity check: tuteo, sin 'vos/podés/tenés', tildes correctas, tono motivacional cercano.",
+  "voice_constraints": {
+    "tuteo": true,
+    "voseo_forbidden": ["vos", "sos", "tenés", "podés", "querés", "sabés", "hacés", "decís", "mirá", "dejá", "poné", "usá", "elegí", "configurá", "revisá", "guardá", "abrí", "fijate"],
+    "tildes_required": true,
+    "max_length_chars": 500,
+    "max_lines": 6
+  }
+}

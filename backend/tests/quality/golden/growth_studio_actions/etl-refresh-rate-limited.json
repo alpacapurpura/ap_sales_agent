@@ -1,0 +1,31 @@
+{
+  "id": "growth_studio_etl_refresh_rate_limited",
+  "category": "no_retry_loop",
+  "user_input": "refrescá Meta Ads",
+  "expected_tool_call": {
+    "name": "trigger_etl_refresh",
+    "args": {
+      "channel": "meta-ads",
+      "confirmed": false
+    }
+  },
+  "expected_tool_response_shape": {
+    "error": "rate_limit_exceeded",
+    "current_count": 5,
+    "limit": 3,
+    "retry_after_seconds": 1845
+  },
+  "expected_block_kind": "growth.etl-rate-limited",
+  "expected_output": "No puedo refrescar Meta Ads ahora. Ya disparaste 5 refreshes en la última hora (límite 3 por hora). Próximo intento disponible en aproximadamente 31 minutos.",
+  "brand_summary": "Marca: Atlas Studio. Voz minimalista, frases cortas, español neutro LATAM. Hablamos a operadores B2B. Tono: directo, sin adornos. Cero emojis. Markdown plano.",
+  "context": "Tenant tenant_a en /growth-studio. Usuario ejecutó 5 refreshes ETL para meta-ads en la última hora — límite alcanzado. Tool trigger_etl_refresh(channel='meta-ads') retorna error='rate_limit_exceeded' con retry_after_seconds=1845. AGENTE NO DEBE retry inmediato (anti retry-loop): single-shot dispatch, render <ETLRateLimitedAction> con copy claro de retry, max_turns=2 transcript constraint. NUNCA llamar trigger_etl_refresh de nuevo en el mismo turn.",
+  "voice_constraints": {
+    "tuteo": true,
+    "voseo_forbidden": ["vos", "sos", "tenés", "podés", "querés", "sabés", "hacés", "decís", "mirá", "dejá", "poné", "usá", "elegí", "configurá", "revisá", "guardá", "abrí", "fijate", "refrescá"],
+    "no_retry_loop": true,
+    "max_tool_invocations_per_turn": 1,
+    "retry_copy_required": true,
+    "max_length_chars": 320,
+    "max_lines": 4
+  }
+}

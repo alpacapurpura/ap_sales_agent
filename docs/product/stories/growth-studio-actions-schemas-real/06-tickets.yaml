@@ -143,6 +143,9 @@ tickets:
     title: "AGENTIC — 3 voice fidelity eval goldens (Spanish neutro + tool dispatch correctness + no retry loop)"
     type: test
     surface: agentic
+    state: pushed
+    pushed_at: 2026-05-09T07:30:00Z
+    push_commit_sha: TBD
     skill: builder-agentic
     owner_eligibility:
       qwen_opencode: false
@@ -167,6 +170,7 @@ tickets:
       - "Real LLM opt-in via RUN_LLM_JUDGE=1 (NANO model; cost ~$0.01-0.05 per run)"
       - "Voice anchors: tuteo, no voseo (.claude/rules/spanish-text.md), polite confirm copy, no retry loop"
       - "Reference: sales-agent-expert voice grader pattern (S9 of redesign)"
+    builder_outcome: "tests-passing per R30 — 29/29 new tests + 939/939 arch fitness + 73/73 copilot golden+tools + lint/format/mypy clean. Reuses CopilotJudge + judge_llm fixture + ANALYTICS_TOOLS registry; NO new infrastructure layer. Awaiting gate-runner + auditor-agentic verdict. Result: T-4-result.md."
 
   - id: T-5
     title: "Cross-stack contract test — BE Pydantic ↔ FE zod schema alignment + npm script export-zod-schemas"
