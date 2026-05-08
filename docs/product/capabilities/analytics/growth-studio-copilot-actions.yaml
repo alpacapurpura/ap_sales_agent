@@ -1,0 +1,50 @@
+---
+id: growth-studio-copilot-actions
+name: "Growth Studio — Copilot Actions (real tools + zod schemas)"
+module: analytics
+backbone_activity: "Operar Growth Studio desde el copilot conversacional"
+last_audit: 2026-05-08
+status: live
+slice: MVP
+links:
+  module_doc: "../../modules/analytics.md"
+  stories_dir: "../../stories/analytics/"
+description: "Permite al copilot agent interactuar con Growth Studio via 3 tools BE registrados en ANALYTICS_TOOLS group (get_stage_metrics, get_channel_overview, trigger_etl_refresh). FE expone 5 action React components + 4 zod schemas con .strict() parity vs Pydantic extra=forbid. Cross-stack contract test (z.toJSONSchema ↔ Pydantic) garantiza alignment runtime. Legacy get_funnel_metrics REPLACED atomically. NO new endpoints (REUSE 4 analytics endpoints). EtlRefreshGuard sliding-window (1h, 3/hour, fail-open per tessl__graceful-degradation)."
+stories_live: 1
+stories_planned: 0
+stories_total: 1
+story_ids:
+  - growth-studio-actions-schemas-real
+copilot_operable: true
+date_introduced: 2026-05-08
+last_modified: 2026-05-08
+---
+
+## Capabilities cubiertas por este grupo
+
+- 3 tools BE (`get_stage_metrics`, `get_channel_overview`, `trigger_etl_refresh`) en `ANALYTICS_TOOLS` group de copilot module
+- 5 action React components: `StageMetricsAction`, `ChannelOverviewAction`, `ETLRefreshAction`, `ETLRateLimitedAction`, `ETLConfirmAction`
+- 4 zod schemas con `.strict()` parity vs Pydantic `extra="forbid"` (filter params, channel config, KPI selection, tier loading)
+- `actions/registry.ts` side-effect import desde `schemas/index.ts` (mirror brand-studio pattern)
+- `EtlRefreshGuard` Redis sliding-window (1h window, 3/hour limit per channel, fail-open per tessl__graceful-degradation)
+- Cross-stack contract test (z.toJSONSchema() ↔ Pydantic schema)
+- 3 voice fidelity eval goldens para nuevos tool calls (sales_agent personas/rubrics)
+
+## Stories vinculadas
+
+| Story ID | Type | Status | Path |
+|---|---|---|---|
+| growth-studio-actions-schemas-real | service-story | live | ../../../archive/2026/stories/growth-studio-actions-schemas-real/ |
+
+## Gaps identificados
+
+- Weekly LLM judge cron wiring para voice fidelity goldens (deferred follow-up)
+- Shared voseo glossary lift cross-skill (`_VOSEO_REGEX` actualmente per eval golden file)
+- 3rd sliding-window consumer trigger → shared `BaseSlidingWindowGuard` lift refactor (Story 3+)
+- chrome-devtools-verify integration con real chat copilot (currently scoped a playground/)
+
+## Notas técnicas
+
+- R23 enforcement confirmed: T-3 + T-4 (production_code: true) implementados Opus 4.7 (Co-Authored-By footer)
+- T-1, T-2, T-5, T-6, T-7 (production_code: false) implementados Sonnet/opencode
+- Bounded mirror tolerance pattern (anti-duplication.md compliance): EtlRefreshGuard standalone OK con 1 consumer; lift on 3rd
