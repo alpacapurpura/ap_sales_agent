@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getStageForChannel } from "@/features/growth-studio/config/channel-stage-map";
+import { getStageForChannel } from "@/features/growth-studio/lib/registries/channel-registry";
 
 interface ChannelDashboardPageProps {
   params: Promise<{ tenantId: string; channelSlug: string }>;

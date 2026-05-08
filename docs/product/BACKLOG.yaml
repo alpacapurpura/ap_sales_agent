@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-07T22:55:47+00:00
+# Generated at: 2026-05-08T01:09:57+00:00
 
-generated_at: '2026-05-07T22:55:47+00:00'
+generated_at: '2026-05-08T01:09:57+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -375,12 +375,12 @@ buckets:
     state: developing
     title: growth-studio-folder-parity
     tags: []
-    last_touched: 2026-05-07 18:05:00+00:00
+    last_touched: 2026-05-08 20:15:00+00:00
     extra:
       outcome: growth-copilot-layout-unification
-      phase: BUILD_T2
-      next_action: 'T-1 DONE (pushed). T-2 ready to build: Factory dispatchers (StageDispatcher + ChannelDispatcher + sections
-        + routes thin delegate). Blocked by nothing — T-1 shipped. Build T-2 next.'
+      phase: BUILD_T3
+      next_action: 'T-2 DONE (pushed via orchestrator closure post builder cap). T-3 ready: 4-tier rename atomic (tier0-*
+        → pages/tiers/0-summary.ts). Build T-3 next.'
       blocked_by: null
       priority_override: null
       audit_iterations: 0

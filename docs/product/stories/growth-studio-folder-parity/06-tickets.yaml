@@ -25,7 +25,7 @@ summary:
     title: "Phase 2 — Factory dispatchers (StageDispatcher + ChannelDispatcher + sections)"
     surface: FE
     owner_pool: [qwen-opencode, claude-sonnet, claude-opus]
-    state: draft
+    state: pushed
     estimate_hours: 3
     blocked_by: [T-1]
     blocks: [T-3, T-4]
@@ -122,7 +122,14 @@ T2:
   type: frontend
   surface: FE
   production_code: true
-  state: draft
+  state: pushed
+  assigned_to: claude-sonnet
+  assigned_at: 2026-05-08T00:45:00Z
+  pushed_at: 2026-05-08T20:15:00Z
+  transitions:
+    - { state: assigned, at: "2026-05-08T00:45:00Z", by: "/dev-team", to: "claude-sonnet" }
+    - { state: cap-reached-mid-cleanup, at: "2026-05-08T20:10:00Z", by: "claude-sonnet", note: "Builder cap_reached at 1237s/116k tokens mid-prettier loop. Functional + arch validators GREEN. Orchestrator closure required." }
+    - { state: pushed, at: "2026-05-08T20:15:00Z", by: "/dev-team-orchestrator", note: "Manual closure: arch test allowlist update for growth-studio canonical pages/. 4/4 non-PW validators GREEN. Playwright integration_e2e_growth_smoke deferred to T-8." }
   owner_eligibility: { qwen_opencode: true, claude_sonnet: true, claude_opus_required: false }
   priority: 1
   estimate_hours: 3

@@ -48,9 +48,14 @@ const CANONICAL_FOLDERS = new Set([
 // brand-studio + offer-studio Finder-style navigation (see
 // docs/ux-sessions/2026-04-20-settings-finder-nav/UI-SPEC.md). pages/ hosts
 // the SETTINGS_SECTION_MAP + factory wrappers indexed by the server dispatcher.
+// growth-studio joins on 2026-05-08 (Story 2A folder-parity, ratificado Chris
+// 2026-05-07): factory propia adapter mode (5 stages × N channels). pages/
+// hosts StageDispatcher + ChannelDispatcher + sections/. actions/ + schemas/
+// land in T-7 placeholders for Story 2B (real actions/schemas).
 const KNOWN_NONSTANDARD: Record<string, string[]> = {
   "brand-studio": ["schemas", "actions", "pages"],
   "offer-studio": ["schemas", "actions", "pages"],
+  "growth-studio": ["schemas", "actions", "pages"],
   settings: ["pages"],
 };
 

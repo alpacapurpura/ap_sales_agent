@@ -482,7 +482,9 @@ tickets:
     title: "LangGraph graph compose + run_simulation orchestrator + artifact persistence"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: tests-passing
+    assigned_to: claude-opus
+    started_at: 2026-05-08T01:30:00Z
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -531,6 +533,9 @@ tickets:
     blocks: [T-9]
     transitions:
       - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+      - { state: ready, at: 2026-05-08T01:30:00Z, by: /dev-team }
+      - { state: developing, at: 2026-05-08T01:30:00Z, by: builder-agentic }
+      - { state: tests-passing, at: 2026-05-08T02:30:00Z, by: builder-agentic }
 
   # ═════════════════════════════════════════════════════════════════════
   # T-9 — Public API + 3 ActorProfile fixtures + frozen golden v1 + 4 arch gates

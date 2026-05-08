@@ -1,12 +1,13 @@
-import { VentasStage } from "@/features/growth-studio/components/metrics-dashboard/stages/VentasStage";
+import { StageDispatcher } from "@/features/growth-studio/pages/StageDispatcher";
 
 export const metadata = {
   title: "Ventas | Growth Studio",
 };
 
 /**
- *
+ * Server Component thin delegate para la etapa Ventas.
+ * Delega la carga lazy al StageDispatcher (Client Component).
  */
 export default function VentasPage() {
-  return <VentasStage />;
+  return <StageDispatcher slug="ventas" />;
 }

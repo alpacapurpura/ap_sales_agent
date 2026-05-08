@@ -2,10 +2,10 @@
 story_id: growth-studio-folder-parity
 outcome: growth-copilot-layout-unification
 state: developing
-phase: BUILD_T2
-last_artifact: docs/product/stories/growth-studio-folder-parity/T-1-result.md
-last_modified: 2026-05-07T18:05:00Z
-next_action: "T-1 DONE (pushed). T-2 ready to build: Factory dispatchers (StageDispatcher + ChannelDispatcher + sections + routes thin delegate). Blocked by nothing — T-1 shipped. Build T-2 next."
+phase: BUILD_T3
+last_artifact: docs/product/stories/growth-studio-folder-parity/T-2-result.md
+last_modified: 2026-05-08T20:15:00Z
+next_action: "T-2 DONE (pushed via orchestrator closure post builder cap). T-3 ready: 4-tier rename atomic (tier0-* → pages/tiers/0-summary.ts). Build T-3 next."
 build_started_at: 2026-05-07T22:30:00Z
 build_started_by: /dev-team
 ratified_by_chris: true
