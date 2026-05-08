@@ -74,12 +74,18 @@ setup('authenticate', async ({ page }) => {
         },
       });
 
-      await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30_000 });
-      const isAuthed = await page.evaluate(() => {
-        const w = window as unknown as { Clerk?: { session?: unknown } };
-        return Boolean(w.Clerk?.session);
-      });
-      expect(isAuthed, 'Clerk session not active after signIn').toBe(true);
+      await page.goto('/', { waitUntil: 'networkidle', timeout: 60_000 });
+      // Wait for Clerk hydration to complete before sanity check.
+      // domcontentloaded returns BEFORE window.Clerk.session is populated —
+      // race condition causes false negatives even when sign-in succeeded.
+      await page.waitForFunction(
+        () => {
+          const w = window as unknown as { Clerk?: { session?: unknown; loaded?: boolean } };
+          return Boolean(w.Clerk?.loaded) && Boolean(w.Clerk?.session);
+        },
+        null,
+        { timeout: 30_000 },
+      );
 
       await page.context().storageState({ path: authFile });
       console.log(`[clerk.setup] auth state saved (attempt ${attempt})`);
@@ -88,6 +94,15 @@ setup('authenticate', async ({ page }) => {
       lastErr = err;
       const msg = err instanceof Error ? err.message : String(err);
       console.warn(`[clerk.setup] attempt ${attempt} failed: ${msg}`);
+      // Sign out before retry to avoid "already signed in" error when retrying.
+      try {
+        await page.evaluate(async () => {
+          const w = window as unknown as { Clerk?: { signOut?: () => Promise<void> } };
+          await w.Clerk?.signOut?.();
+        });
+      } catch {
+        // best-effort; if sign-out fails, wipeAuthFile + new attempt creates fresh context
+      }
       wipeAuthFile();
       if (attempt <= SIGNIN_RETRIES) {
         await new Promise((r) => setTimeout(r, SIGNIN_BACKOFF_MS * attempt));
