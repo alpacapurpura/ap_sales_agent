@@ -36,12 +36,12 @@ story_ids:
   - sales-agent-dialect-configuration            # TBD, feature UX tenant config dialecto BCP-47 + runtime injection
 
   # foundation reframe (story IDs originales preservados — slug intact, narrative reframed):
-  - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators (REFINED 2026-05-08 — spec v3 + design v2 + delta v1 ratified, awaiting /architect)
+  - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators (READY 2026-05-08 — /architect delivered ready package: 03-arch + 04-validators + 05-guidelines + 06-tickets, awaiting /dev-team)
   - sales-agent-goldens-3-tenants-dataset        # → role D: goldens-generated-from-simulation (REFINED 2026-05-08 — spec v3 synthetic-first ratified, awaiting /architect)
   - sales-agent-voice-fidelity-grader-runtime    # → role E: MAJ-EVAL voice fidelity grader (REFINED 2026-05-08 — spec v2 + design v2 ratified, awaiting /architect)
-  - sales-agent-eval-pass-k-tracking             # → role F: Bloom-style pass^k
+  - sales-agent-eval-pass-k-tracking             # → role F: Bloom-style pass^k (REFINED 2026-05-08 — spec v2 strict all-of-K ratified, awaiting /architect)
   - sales-agent-voice-fidelity-ci-gate           # → role G: CI gate w/ dynamic threshold
-  - sales-agent-eval-cost-budget-cap             # → role H: cost cap (no major change)
+  - sales-agent-eval-cost-budget-cap             # → role H: cost cap multi-tier (REFINED 2026-05-08 — spec v2 ratified, awaiting /architect)
   - sales-agent-adversarial-jailbreak-suite      # → role I: PersonaGym Toxicity Control axis
 success_metrics:
   - "3 tenants seed con data realística completa (brand+offer+personality+pricing+buyer_personas) checked-in y consumibles por sales_agent runtime sin mocks"
@@ -181,8 +181,8 @@ inapropiado". CI gate bloquea regressions automáticamente.
 | Story | Role | Type | Estimate | Spec status |
 |---|---|---|---|---|
 | `sales-agent-voice-fidelity-grader-runtime` | **E** — MAJ-EVAL multi-judge debate (Sonnet=0.4 + GPT-4o=0.4 + Kimi=0.2) Round 1+Round 2 sobre 4 rubrics (voice-fidelity + qualification-accuracy NEW + no-overpromise + no-hallucination). 6-slot prompt architecture TTL=1h. Sandbox markers `<<TRANSCRIPT_BEGIN>>` anti-injection. Cache hash-invalidating + async callback. NEW rubric `qualification-accuracy.md` Story E owns | agentic | 3-4d | **refined** 2026-05-08 (spec v2 + design v2 ratified — awaiting /architect) |
-| `sales-agent-eval-pass-k-tracking` | **F** — Bloom 4-stage pass^k=3 all-trials threshold | service | 2d | refining |
-| `sales-agent-eval-cost-budget-cap` | **H** — cost cap por run (sin cambio mayor) | service | 1d | refining |
+| `sales-agent-eval-pass-k-tracking` | **F** — Bloom 4-stage strict all-of-K (Understanding/Ideation/Rollout/Judgment per trial). Heterogeneous K per persona_kind (Story C cement). Aggregator read-only consume Story E `MajEvalScore`. `inputs_hash` tamper detection + `golden_yaml_hash` mutation snapshot. Per-stage threshold env vars | service | 2d | **refined** 2026-05-08 (spec v2 ratified) |
+| `sales-agent-eval-cost-budget-cap` | **H** — multi-tier cost-bucket cap (per_trial=$0.10 / per_grade=$0.20 / per_run=$500 cold $150 warm / per_bucket=$20 generation + $400/$130 grader). Pre-flight over-estimate strict + periodic sweep 30s post-facto detection vs bypass. NEW arch fitness gate. Story B H9 expand 8→9 names | service | 1-2d | **refined** 2026-05-08 (spec v2 ratified) |
 
 #### CI + adversarial
 

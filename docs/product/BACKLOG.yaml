@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T16:16:07+00:00
+# Generated at: 2026-05-08T16:18:00+00:00
 
-generated_at: '2026-05-08T16:16:07+00:00'
+generated_at: '2026-05-08T16:18:00+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -201,20 +201,6 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-eval-cost-budget-cap
-    kind: story
-    state: refining
-    title: sales-agent-eval-cost-budget-cap
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 10:30:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: PO_DRAFT_V1_AWAITING_RATIFICATION
-      next_action: Chris ratifica Q1-Q6 → /po bump v2 inline con respuestas → state=refining→refined → /architect
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-voice-fidelity-ci-gate
     kind: story
     state: refining
@@ -230,6 +216,23 @@ buckets:
       priority_override: null
       audit_iterations: 0
   refined:
+  - id: sales-agent-eval-cost-budget-cap
+    kind: story
+    state: refined
+    title: sales-agent-eval-cost-budget-cap
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 11:00:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: SPEC_RATIFIED
+      next_action: /architect orchestrator → spawna /architect-be (BudgetState Pydantic + guard impl + cost_estimator + periodic
+        sweep + NEW arch fitness gate test_eval_llm_calls_use_budget_guard.py + capability extension) → produce ready package
+        (03-arch + 04-validators + 05-guidelines + 06-tickets) → state=refined→ready → /dev-team build (espera B+E build done
+        — bloqueador hard)
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   - id: sales-agent-eval-pass-k-tracking
     kind: story
     state: refined
