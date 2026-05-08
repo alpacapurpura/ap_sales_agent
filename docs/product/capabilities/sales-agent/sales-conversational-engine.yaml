@@ -50,6 +50,32 @@ eval:
     - "backend/tests/fixtures/eval/tenants/test_schema_alignment.py"
     - "backend/tests/fixtures/eval/tenants/test_dialect_catalog.py"
     - "backend/tests/fixtures/eval/tenants/test_seed_pii_scanner.py"
+  # Story B (eval-foundation-simulator-homologation, T-10 — 2026-05-08) — dual-LLM simulator harness
+  simulator_path: "backend/tests/agentic_evals/sales_agent/simulator/"
+  dual_llm_pattern: true
+  actor_profile_schema_version: 1
+  simulation_state_schema_version: 1
+  observability_table_eval_simulator_llm_call: true
+  observability_table_eval_simulator_trace_event: true
+  observability_table_eval_synthetic_tenants: true
+  archetypes_supported:
+    - tenant_coach_lat
+    - tenant_medicina_estetica
+    - tenant_clinica_dental
+    - tenant_agencia_growth_video
+    - tenant_agencia_automatizacion_ia
+  simulator_story_introduced: eval-foundation-simulator-homologation
+  simulator_test_coverage:
+    - "backend/tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py"
+    - "backend/tests/agentic_evals/sales_agent/simulator/test_concurrency_property.py"
+    - "backend/tests/agentic_evals/sales_agent/simulator/test_schema_migration_regression.py"
+    - "backend/tests/agentic_evals/sales_agent/simulator/test_termination_registry.py"
+    - "backend/tests/architecture/test_eval_simulator_observability_invariants.py"
+    - "backend/tests/architecture/test_simulator_no_mirrors_shared.py"
+    - "backend/tests/architecture/test_simulator_writes_eval_kind_tag.py"
+    - "backend/tests/architecture/test_simulator_public_api_surface.py"
+    - "backend/tests/architecture/test_termination_policy_registry_contract.py"
+    - "backend/tests/architecture/test_schema_migrations_registry_complete.py"
 ---
 
 ## Capabilities cubiertas por este grupo

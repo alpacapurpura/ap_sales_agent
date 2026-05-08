@@ -609,7 +609,7 @@ tickets:
     title: "Smoke test parametrized 5×archetype + property concurrency + schema regression + R3 rule SSoT update"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: tests-passing
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -681,6 +681,10 @@ tickets:
     blocks: []
     transitions:
       - { state: draft, at: 2026-05-07T22:45Z, by: /architect }
+      - { state: developing, at: 2026-05-08T19:30Z, by: builder-agentic }
+      - { state: tests-passing, at: 2026-05-08T20:00Z, by: builder-agentic }
+    assigned_to: claude-opus
+    push_commit_sha: _pending_
 
 # ═══════════════════════════════════════════════════════════════════════
 # Dependency graph (DAG)
