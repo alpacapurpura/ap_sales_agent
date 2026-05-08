@@ -1,13 +1,18 @@
 ---
 story_id: growth-studio-folder-parity
 outcome: growth-copilot-layout-unification
-state: reviewing
-phase: AUDIT_PICKUP
-last_artifact: docs/product/stories/growth-studio-folder-parity/T-8-result.md
-last_modified: 2026-05-08T17:55:00Z
-next_action: "Auditor picked up. Brief + gate refreshed (1 self-fix prettier on 2B playground file). Spawn auditor-frontend per ticket."
+state: done
+phase: MERGED
+last_artifact: docs/product/stories/growth-studio-folder-parity/CHECKPOINTS.md
+last_modified: 2026-05-08T18:30:00Z
+next_action: "Story merged. Archive to docs/archive/2026/stories/growth-studio-folder-parity/ scheduled in /pm merge commit."
 audit_started_at: 2026-05-08T17:50:00Z
 audit_started_by: /auditor
+audit_verdict: APPROVED
+audit_verdict_at: 2026-05-08T18:20:00Z
+merged_at: 2026-05-08T18:30:00Z
+merged_by: /pm
+unblocks: ["growth-studio-actions-schemas-real"]
 build_started_at: 2026-05-07T22:30:00Z
 build_started_by: /dev-team
 ratified_by_chris: true
