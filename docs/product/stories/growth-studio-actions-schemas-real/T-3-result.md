@@ -7,7 +7,7 @@
 **State:** pushed (awaiting auditor-agentic verdict per R30)
 **Builder:** claude-opus (R23 Opus 4.7 required — agentic production_code:true)
 **Completed at:** 2026-05-08 UTC
-**Commit:** TBD (set on git commit)
+**Commit:** `12962e0d`
 
 ## Summary
 

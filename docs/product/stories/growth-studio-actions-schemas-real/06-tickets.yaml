@@ -113,7 +113,7 @@ tickets:
     surface: agentic
     state: pushed
     pushed_at: 2026-05-08T00:00:00Z
-    push_commit_sha: TBD
+    push_commit_sha: 12962e0d
     skill: builder-agentic
     owner_eligibility:
       qwen_opencode: false
