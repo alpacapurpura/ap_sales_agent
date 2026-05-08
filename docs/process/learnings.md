@@ -606,3 +606,40 @@ extraction next session).
 - capability YAMLs: brand/, copilot/copilot-telegram-channel.yaml, sales-agent/sales-observability-cost-tracking.yaml
 
 ---
+
+## 2026-05-08 — Story B (eval-foundation-simulator-homologation) merged
+
+**Outcome:** PI-12 sub-épica eval-foundation-* avanza role B. Dual-LLM simulator harness disponible bajo `backend/tests/agentic_evals/sales_agent/simulator/` con public API minimal de 7 nombres (`run_simulation`, `SimulationResult`, `SimulationState`, `ActorProfile`, `TerminationReason`, `AgentErrorSubtype`, `register_termination_policy`). Unblocks Stories C/D/E/F/G/H/I downstream (~25-30d alcance restante PI-12).
+
+**Patterns reusables (4 cementaciones):**
+
+1. **Bucket-separation via NEW tables** (paridad campaigns precedent Alembic 083 → ahora Alembic 125): cuando agentic flow corre sintético en eval suite, escribir a tablas FÍSICAMENTE separadas (`eval_simulator_llm_call`, `eval_simulator_trace_event`, `eval_synthetic_tenants`) en lugar de filtros lógicos por `agent_kind` enum value en tablas producción. Beneficios: Streamlit prod queries no requieren filter, cost rollup MVs split natural, retention policies independientes, schema evolutions desacopladas.
+
+2. **Deterministic uuid5 fixture seed pattern** (D2 + H2): `tenant_id = uuid5(NS_DNS, f"eval-{archetype_slug}")` deterministic + lookup table `eval_synthetic_tenants` marca synthetic vs prod. Evita migration añadir columna `is_eval_synthetic` a 5+ business tables (costo desproporcionado vs ROI). Re-run idempotent + cleanup soft-delete trivial.
+
+3. **Eval-only LLM role registry** (D3): nuevo role `EVAL_USER_SIMULATOR` vive en `backend/tests/agentic_evals/sales_agent/simulator/_internal/llm_roles.py::EVAL_LLM_ROLES = {"EVAL_USER_SIMULATOR": "gpt-5-nano"}` — NO en `LLM_ROLE_BY_SITE` SSoT producción. Preserva domain canonical clean. Customer LLM en simulator usa router con `agent_kind="eval_simulator"` bucket separate (no consume budget guard tenant).
+
+4. **Frozen golden v1 + SCHEMA_MIGRATIONS forward-compat seed** (H1+H10): cada Pydantic model (SimulationState, ActorProfile, SimulationResult) lleva `schema_version: int = 1` field + `_internal/schema_migrations.py::SCHEMA_MIGRATIONS` registry stub (empty inicial — válido para v1-only) + frozen `_fixtures/golden_v1_simulation_result.yaml` NEVER edit. Story B primer commit del registro; bumps futuros append migration entry + nuevo frozen golden para version previa. Garantiza N-version backward compat sin breaking forever.
+
+**Hardening invariants inventario (10 cementados Story B):**
+
+- H1 schema versioning forward-compat (frozen golden + registry)
+- H2 deterministic uuid5 idempotency (sim_id + tenant_id)
+- H3 async-first concurrency-safe (cero global state mutate)
+- H4 rate-limiting customer LLM (`asyncio.Semaphore(EVAL_SIMULATOR_MAX_CONCURRENCY=10)` env-overridable)
+- H5 observability tags eval-vs-prod separation (6 mandatory eval_metadata keys)
+- H6 cost bucket separation (NEW tables + agent_kind discriminator)
+- H7 failure-mode taxonomy (AgentErrorSubtype 4 values + structured structlog)
+- H8 termination policy registry Strategy (TERMINATION_POLICIES + register_termination_policy public)
+- H9 public API minimal (`__all__` exact 7 names + arch fitness ratchet)
+- H10 frozen golden v1 NEVER-edit cement
+
+**Audit findings:**
+- 0 FAIL/0 WARN structural en C1-C5 grid (CHECKPOINTS.md APPROVED 27/27)
+- 1 self-fix Cap 1/2 trivial (T-9 arch gate allowlist incompleta — pytest collection-bound test_*/conftest filter)
+- 7× R6 process WARN (decisions_applicable cite missing en commit bodies — process improvement no architectural)
+- Pre-existing 3237 ruff/mypy + 3 unrelated pytest fails out of scope Story B
+
+**Architect-orchestrator note:** spawn `architect-orchestrator` single-shot (full-stack BE+AGENTIC) en lugar de paralelo `architect-be` + `architect-agentic` cuando subagents specs no están registrados como agent types — coherent design output + cross-cutting decisions consistent.
+
+**Next:** Stories C/D/E/F/G/H/I unblocked. Recomiendo arrancar C (`sales-agent-personas-instrumented-runtime`) — extiende `ActorProfile` schema desde STUB Story B a multi-persona YAML loader. Después D (goldens) consume simulator + curación Chris.

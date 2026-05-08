@@ -30,7 +30,7 @@ story_ids:
   # foundation new (NEW — sub-épica eval-foundation-*):
   # - maintenance-skill-sales-agent-audit        # DONE 2026-05-06 (archived, skill SSoT auditado)
   # - eval-foundation-tenant-seed-data           # DONE 2026-05-07 (archived, 5 tenants seed curados densamente — story A foundation)
-  - eval-foundation-simulator-homologation       # 2-3d, story B — wire client_simulator/ — UNBLOCKED (was waiting seed-data)
+  # - eval-foundation-simulator-homologation     # DONE 2026-05-08 (archived, Story B — dual-LLM simulator + 3 cost-bucket tables + 5 NEW arch fitness gates + frozen golden v1 + R3 SSoT update)
 
   # spawned 2026-05-06 from tenant-seed-data Q7 (placeholder, state=idea):
   - sales-agent-dialect-configuration            # TBD, feature UX tenant config dialecto BCP-47 + runtime injection
@@ -155,13 +155,15 @@ inapropiado". CI gate bloquea regressions automáticamente.
 
 ## Stories — re-decomposición synthetic-first
 
-### ✅ Done (3 — archivadas a docs/archive/2026/stories/)
+### ✅ Done (5 — archivadas a docs/archive/2026/stories/)
 
 | Story | Done date | Capability promoción |
 |---|---|---|
 | `sales-agent-eval-runner-foundation` | 2026-05-06 | sales-conversational-engine (eval suite path establecido) |
 | `sales-agent-litellm-canonicalization` | 2026-05-06 | sales-observability-cost-tracking (LiteLLM canonical path) |
 | `maintenance-skill-sales-agent-audit` | 2026-05-06 | NA (maintenance — skill `sales-agent-expert` SSoT auditado, 9 stories downstream desbloqueadas) |
+| `eval-foundation-tenant-seed-data` | 2026-05-07 | sales-conversational-engine (5 archetypes seed + dialect_catalog BCP-47) |
+| `eval-foundation-simulator-homologation` | 2026-05-08 | sales-conversational-engine (dual-LLM simulator + 3 cost-bucket tables + 5 NEW arch fitness gates + frozen golden v1 + R3 SSoT update) |
 
 ### 🔬 Refining — 8 stories (synthetic-first eval foundation, dependency graph below)
 
@@ -169,8 +171,8 @@ inapropiado". CI gate bloquea regressions automáticamente.
 
 | Story | Role | Type | Estimate | Spec status |
 |---|---|---|---|---|
-| `eval-foundation-tenant-seed-data` | **A** — 3 tenants seed (A1/A2/A3) con data completa | service | 3-4d | NEW (00-story pendiente) |
-| `eval-foundation-simulator-homologation` | **B** — homologar `client_simulator/` raíz a `backend/tests/agentic_evals/sales_agent/simulator/` con dual-LLM pattern | service | 2-3d | NEW (00-story pendiente) |
+| ~~`eval-foundation-tenant-seed-data`~~ | **A** — DONE 2026-05-07 (archived) | service | 3-4d | done |
+| ~~`eval-foundation-simulator-homologation`~~ | **B** — DONE 2026-05-08 (archived) | service | 2-3d | done |
 | `sales-agent-personas-instrumented-runtime` | **C** — convertir 5 personas YAML a ActorProfile ejecutables (Strands pattern) | agentic | 2d | refining (slug original preservado) |
 | `sales-agent-goldens-3-tenants-dataset` | **D** — generar 20-30 goldens desde simulación + curación Chris (reframe v1→v2) | service | 4-5d | refining (01-spec.md v1 archivado, v2 awaiting reframe) |
 

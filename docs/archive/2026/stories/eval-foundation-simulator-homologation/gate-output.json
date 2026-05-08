@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/eval-foundation-simulator-homologation",
+  "ticket": null,
+  "iter": 1,
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/ -v && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check src/ tests/ && .venv/bin/mypy src/ && cd /home/chris/AISALESHT && make arch-test",
+  "command_alias": "test-backend",
+  "started_at": "2026-05-07T00:00:00Z",
+  "finished_at": "2026-05-08T02:30:18Z",
+  "duration_ms": 86418000,
+  "exit_code": 1,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/eval-foundation-simulator-homologation/gate-logs/iter-1-test-backend.log",
+  "gates": [
+    {
+      "name": "pytest",
+      "status": "FAIL",
+      "errors_count": 4,
+      "first_5_errors": [
+        "FAILED tests/architecture/test_simulator_public_api_surface.py::test_no_internal_symbols_leaked",
+        "FAILED tests/scripts/test_skill_sales_agent_audit.py::test_impl_log_has_required_sections",
+        "FAILED tests/scripts/test_skill_sales_agent_audit.py::test_utility_verdicts_cover_all_skill_sections",
+        "FAILED tests/modules/copilot/api/test_suggestions_endpoint_integration.py::TestSuggestionsIntegration::test_e2e_real_engine_real_offer_provider",
+        "= 4 failed, 9455 passed, 120 skipped, 12 deselected, 114 warnings in 678.15s"
+      ]
+    },
+    {
+      "name": "ruff-check",
+      "status": "FAIL",
+      "errors_count": 3237,
+      "first_5_errors": [
+        "Found 3237 errors in 495 files (checked 1372 source files)",
+        "Multiple 'Missing type arguments for generic type dict' errors across multiple files",
+        "src/modules/brand/application/agents/style_analyzer/state.py",
+        "src/modules/copilot/application/orchestrator/stream_filters.py",
+        "src/modules/brand/infrastructure/parsers/telegram_parser.py"
+      ]
+    },
+    {
+      "name": "ruff-format",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "mypy",
+      "status": "FAIL",
+      "errors_count": 3237,
+      "first_5_errors": [
+        "src/modules/brand/application/agents/style_analyzer/state.py:43: error: Missing type arguments for generic type \"dict\"  [type-arg]",
+        "src/modules/brand/application/agents/style_analyzer/state.py:46: error: Missing type arguments for generic type \"dict\"  [type-arg]",
+        "src/modules/brand/application/agents/style_analyzer/state.py:47: error: Missing type arguments for generic type \"dict\"  [type-arg]",
+        "src/modules/brand/application/agents/style_analyzer/state.py:48: error: Missing type arguments for generic type \"dict\"  [type-arg]",
+        "src/modules/copilot/application/orchestrator/stream_filters.py:28: error: Missing type arguments for generic type \"dict\"  [type-arg]"
+      ]
+    },
+    {
+      "name": "arch-fitness",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    }
+  ],
+  "overall": {
+    "any_fail": true,
+    "fail_gate_names": [
+      "pytest",
+      "ruff-check",
+      "mypy"
+    ],
+    "summary": "pytest 4 failed (9455 passed, 120 skipped); ruff-check 3237 errors; mypy 3237 errors; ruff-format PASS; arch-fitness PASS"
+  },
+  "notes": "Full suite executed. Primary blockers: (1) pytest - 4 failures in simulator_public_api_surface, skill_sales_agent_audit, and copilot suggestions_endpoint_integration tests; (2) mypy type annotation errors (3237 errors, predominantly missing type arguments for dict/list/tuple generics) across brand/, copilot/, connections/, analytics modules; (3) ruff-check reports same 3237 errors (appears to overlap with mypy). Arch fitness tests all pass (79/79). Format check passes. Raw log: 1.9MB, 25-minute pytest execution."
+}
