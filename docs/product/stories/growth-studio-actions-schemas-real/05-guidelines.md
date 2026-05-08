@@ -193,7 +193,11 @@ if not tenant_id:
 - Existing analytics endpoints (compose): `backend/src/modules/analytics/api/metrics.py:309,340,771,832,866`
 - Existing rate limiter (compose): `backend/src/shared/billing/application/rate_limiter.py`
 - Existing eval goldens harness: `backend/tests/quality/golden/`
-- BE/FE schema alignment example (template): N/A first of its kind for growth-studio — pattern lifted from `tessl__fastapi` docs (Pydantic JSON schema export)
+- BE/FE schema alignment export script (T-5): `frontend/scripts/export-zod-schemas.ts`
+  - Run via: `cd frontend && npm run schema:export`
+  - Output: `frontend/dist/growth-studio-zod-schemas.json` (gitignored; regenerated on demand)
+  - BE arch test at: `backend/tests/architecture/test_be_fe_schema_alignment_growth_studio.py`
+  - The arch test auto-runs the npm script if the artifact is absent (self-healing in clean checkout)
 
 ## 7 · Anti-checklist before push
 

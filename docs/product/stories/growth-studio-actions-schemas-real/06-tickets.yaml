@@ -176,6 +176,8 @@ tickets:
     title: "Cross-stack contract test — BE Pydantic ↔ FE zod schema alignment + npm script export-zod-schemas"
     type: test
     surface: backend             # arch fitness lives in BE tests/architecture
+    state: pushed
+    pushed_at: 2026-05-09T08:00:00Z
     skill: builder-backend
     owner_eligibility:
       qwen_opencode: false

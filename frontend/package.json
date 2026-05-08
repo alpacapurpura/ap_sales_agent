@@ -21,7 +21,8 @@
     "test:e2e:fresh": "rm -rf playwright/.clerk/user.json && playwright test --project=smoke",
     "test:e2e:auth": "rm -rf playwright/.clerk/user.json && playwright test --project=setup",
     "test:e2e:ui": "playwright test --ui --ui-host 0.0.0.0",
-    "test:e2e:report": "playwright show-report --host 0.0.0.0"
+    "test:e2e:report": "playwright show-report --host 0.0.0.0",
+    "schema:export": "npx tsx scripts/export-zod-schemas.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.8",
