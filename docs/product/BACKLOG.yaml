@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T21:15:07+00:00
+# Generated at: 2026-05-08T21:44:57+00:00
 
-generated_at: '2026-05-08T21:15:07+00:00'
+generated_at: '2026-05-08T21:44:57+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -273,21 +273,6 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  - id: sales-agent-goldens-3-tenants-dataset
-    kind: story
-    state: ready
-    title: sales-agent-goldens-3-tenants-dataset
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-08 08:00:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: ARCHITECT_DELIVERED
-      next_action: /dev-team build cuando Story C build done (HARD blocker). Architect phase complete; package autocontenido.
-        T-1 + T-2 paralelos (Story C-independent); T-3 + T-4 agentic_eval validators gated on Story C build done.
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-voice-fidelity-grader-runtime
     kind: story
     state: ready
@@ -304,7 +289,21 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  developing: []
+  developing:
+  - id: sales-agent-goldens-3-tenants-dataset
+    kind: story
+    state: developing
+    title: sales-agent-goldens-3-tenants-dataset
+    tags:
+    - legacy:pi-12
+    last_touched: 2026-05-08 21:42:00+00:00
+    extra:
+      outcome: pi-12-sales-agent-eval-foundation
+      phase: BUILD_T1_T2_PARALLEL
+      next_action: T-1 (schema) + T-2 (PII LIFT/scanner/hook) builders Sonnet paralelos. Story C done (unblocked T-3 agentic_eval).
+      blocked_by: null
+      priority_override: null
+      audit_iterations: 0
   developed: []
   reviewing: []
   done:

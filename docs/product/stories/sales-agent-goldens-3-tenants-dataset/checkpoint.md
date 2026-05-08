@@ -1,11 +1,11 @@
 ---
 story_id: sales-agent-goldens-3-tenants-dataset
 outcome: pi-12-sales-agent-eval-foundation
-state: ready
-phase: ARCHITECT_DELIVERED
-last_artifact: 06-tickets.yaml          # ready package complete (03-arch + 04-validators + 05-guidelines + 06-tickets)
-last_modified: 2026-05-08T08:00:00Z
-next_action: "/dev-team build cuando Story C build done (HARD blocker). Architect phase complete; package autocontenido. T-1 + T-2 paralelos (Story C-independent); T-3 + T-4 agentic_eval validators gated on Story C build done."
+state: developing                          # ★ TRANSITION ready → developing 2026-05-08T21Z by /dev-team ★
+phase: BUILD_T1_T2_PARALLEL
+last_artifact: CONTEXT-BRIEF.md            # Haiku context-builder + validator (PARTIAL, 1 LOW non-blocking)
+last_modified: 2026-05-08T21:42:00Z
+next_action: "T-1 (schema) + T-2 (PII LIFT/scanner/hook) builders Sonnet paralelos. Story C done (unblocked T-3 agentic_eval)."
 ratified_by_chris: true                  # spec v3 ratified 2026-05-08T07Z; ready package follow-on
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
