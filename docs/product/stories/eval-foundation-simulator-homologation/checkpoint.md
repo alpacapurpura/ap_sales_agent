@@ -2,11 +2,11 @@
 ---
 story_id: eval-foundation-simulator-homologation
 outcome: pi-12-sales-agent-eval-foundation
-state: developed
-phase: AWAIT_AUDIT
-last_artifact: T-10-result.md
-last_modified: 2026-05-08T20:30:00Z
-next_action: "Story B BUILD COMPLETE — 10/10 tickets cerrados (T-1..T-10), todos pushed origin/development. State developing→developed (per /dev-team Step 5). Awaiting Chris manual trigger /auditor para Conv 3 review+merge. /auditor spawnea auditor-{backend,agentic} → CHECKPOINTS.md C1-C5 → APPROVED|CHANGES_REQUESTED|ESCALATED → /pm merge. Unblocks Stories C/D/E/F/G/H/I downstream."
+state: reviewing
+phase: AUDIT_PICKUP
+last_artifact: checkpoint.md
+last_modified: 2026-05-08T21:00:00Z
+next_action: "/auditor pickup. Refresh CONTEXT-BRIEF Haiku phase=auditor + gate-runner test-backend en paralelo. Después spawn auditor-backend (T-1/T-2/T-3) + auditor-agentic (T-4..T-10). Final CHECKPOINTS.md C1-C5 → /pm merge."
 ratified_by_chris: true                  # mandato 2026-05-07: "vos decidís cero deuda 1000+ tenants"
 spawned_at: 2026-05-06T17:11:00Z
 spawned_by: /pm
