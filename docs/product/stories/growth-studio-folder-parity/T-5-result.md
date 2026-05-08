@@ -3,7 +3,7 @@
 **Story:** growth-studio-folder-parity  
 **Ticket:** T-5 — Phase 5 Allowlist cleanup 6 dashboards adopt useCopilotOffset  
 **State:** pushed  
-**Commit:** (populated post-commit)  
+**Commit:** 36cbb548  
 
 ## Outcome
 
