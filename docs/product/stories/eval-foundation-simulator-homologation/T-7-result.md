@@ -256,7 +256,10 @@ git diff HEAD --name-only -- client_simulator/src/simulator/  # → empty
 
 ## Commit SHA
 
-To be filled by the next commit step.
+`39c25d96` — pushed to `origin/development` 2026-05-08. Files staged by
+exact name per parallel-safety M5/M7. Pre-commit hook native enforced
+(no `--no-verify`). One additional ruff fix applied during pre-commit
+(TC006 quoted-cast on `RunnableConfig`).
 
 ## Next builders
 
