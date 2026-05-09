@@ -97,6 +97,37 @@ eval:
     - "backend/tests/agentic_evals/sales_agent/simulator/test_customer_prompt_v2_unit.py"
     - "backend/tests/agentic_evals/sales_agent/simulator/test_customer_node_unit.py"
     - "backend/tests/architecture/test_personas_yaml_completeness.py"
+  # Story D (sales-agent-goldens-3-tenants-dataset, 2026-05-08) — goldens dataset infra synthetic-first
+  goldens_dataset_path: "backend/tests/agentic_evals/sales_agent/goldens/"
+  goldens_count_target_min: 20
+  goldens_count_target_max: 30
+  goldens_schema_version: 1
+  goldens_schema_path: "backend/tests/agentic_evals/sales_agent/goldens/_schema.py"
+  goldens_generation_script: "backend/scripts/generate_golden_candidates.py"
+  goldens_promotion_script: "backend/scripts/promote_golden.py"
+  goldens_pii_scanner_path: "backend/scripts/scan_goldens_pii.py"
+  goldens_persona_kinds_in_scope:
+    - happy
+    - nurture
+    - unqualified
+  goldens_coverage_gate_test: "backend/tests/agentic_evals/sales_agent/test_goldens_coverage.py"
+  goldens_story_introduced: sales-agent-goldens-3-tenants-dataset
+  goldens_story_merged_at: 2026-05-08
+  goldens_arch_fitness_gates_added: 5
+  goldens_test_coverage:
+    - "backend/tests/agentic_evals/sales_agent/test_goldens_schema.py"
+    - "backend/tests/agentic_evals/sales_agent/test_goldens_coverage.py"
+    - "backend/tests/agentic_evals/sales_agent/test_goldens_pii_scanner.py"
+    - "backend/tests/architecture/test_goldens_schema_completeness.py"
+    - "backend/tests/architecture/test_goldens_no_mirror_simulator_schema.py"
+    - "backend/tests/architecture/test_pii_patterns_single_source.py"
+    - "backend/tests/architecture/test_goldens_no_committed_pii.py"
+    - "backend/tests/architecture/test_goldens_cost_bucket_invariant.py"
+    - "backend/tests/scripts/test_generate_golden_candidates.py"
+    - "backend/tests/scripts/test_promote_golden.py"
+  goldens_known_issues:
+    - "T-3.bis DEEPER-A: agent_bridge._resolve_session_for_simulation T-8 stub returns None — env-gated CI smoke fails until separate sales_agent runtime fix"
+    - "T-3.bis DEEPER-B: e2e archetype_slug propagation in promote_golden flow — Sonnet follow-up"
 ---
 
 ## Capabilities cubiertas por este grupo

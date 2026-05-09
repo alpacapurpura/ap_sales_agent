@@ -1,11 +1,11 @@
 ---
 story_id: sales-agent-goldens-3-tenants-dataset
 outcome: pi-12-sales-agent-eval-foundation
-state: reviewing                            # ★ TRANSITION developed → reviewing 2026-05-09T00:00Z by /auditor (Opus 4.7) ★
-phase: AUDIT_DONE_APPROVED                   # auditor verdict APPROVED — pending /pm merge confirmation per Conv 3 protocol
-last_artifact: CHECKPOINTS.md                  # auditor C1-C5 grid + REVIEW.md
-last_modified: 2026-05-09T00:00:00Z
-next_action: "Auditor APPROVED (verdict in REVIEW.md + CHECKPOINTS.md). /pm next: state reviewing → done + trigger T-5 docs reconciliation (capability YAML + modules/sales-agent.md + auditor-downstream-regression.md SSoT 4 new rows) + archive to docs/archive/2026/stories/. Optional: Chris triggers RUN_EVALS=1 + EVAL_GOLDENS_COST_BUCKET_VERIFY=1 (~\$0.60 LLM cost) for env-gated smoke + cost-bucket invariant."
+state: done                                 # ★ TRANSITION reviewing → done 2026-05-09T01:00Z by /dev-team Path A merge — auditor APPROVED + T-3.bis surface fixes pushed + T-5 docs reconciliation done ★
+phase: MERGED_ARCHIVED                       # capability YAML + module narrative + downstream regression SSoT updated; 2 follow-up tickets pending (DEEPER-A agent_bridge + DEEPER-B archetype_slug)
+last_artifact: T-3.bis-smoke-verification.md
+last_modified: 2026-05-09T01:00:00Z
+next_action: "Story DONE. Archive to docs/archive/2026/stories/sales-agent-goldens-3-tenants-dataset/. Follow-up tickets queued: agent-bridge-session-injection-fix (DEEPER-A, Opus required, sales_agent runtime) + goldens-archetype-slug-propagation (DEEPER-B, Sonnet, T-3.2). Chris decides whether to /pm draft them or postpone."
 ratified_by_chris: true                  # spec v3 ratified 2026-05-08T07Z; ready package follow-on
 spawned_at: 2026-05-04T20:00:00Z
 spawned_by: /pm
