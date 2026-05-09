@@ -15,7 +15,7 @@ why_now: |
 target_end: null
 priority: 1
 created: 2026-05-04
-last_modified: 2026-05-07
+last_modified: 2026-05-08
 migrated_from: docs/projects/active/PI-12-sales-agent-eval-foundation/
 reframe_date: 2026-05-06
 reframe_reason: |
@@ -38,11 +38,11 @@ story_ids:
   # foundation reframe (story IDs originales preservados — slug intact, narrative reframed):
   - sales-agent-personas-instrumented-runtime    # → role C: personas-as-simulators — DONE 2026-05-08 (build 9 tickets + audit APPROVED + merge; T-6/T-7 SKIP-with-escalation toolkit dep pending Chris decision)
   - sales-agent-goldens-3-tenants-dataset        # → role D: goldens-generated-from-simulation (READY 2026-05-08 — /architect delivered ready package: 03-arch + 04-validators + 05-guidelines + 06-tickets, awaiting /dev-team build post-Story C)
-  - sales-agent-voice-fidelity-grader-runtime    # → role E: MAJ-EVAL voice fidelity grader (REFINED 2026-05-08 — spec v2 + design v2 ratified, awaiting /architect)
-  - sales-agent-eval-pass-k-tracking             # → role F: Bloom-style pass^k (REFINED 2026-05-08 — spec v2 strict all-of-K ratified, awaiting /architect)
-  - sales-agent-voice-fidelity-ci-gate           # → role G: CI gate w/ dynamic threshold per cadence (REFINED 2026-05-08 — spec v2 ratified, awaiting /architect)
-  - sales-agent-eval-cost-budget-cap             # → role H: cost cap multi-tier (REFINED 2026-05-08 — spec v2 ratified, awaiting /architect)
-  - sales-agent-adversarial-jailbreak-suite      # → role I: PersonaGym Toxicity Control axis (REFINED 2026-05-08 — spec v2 + design v2 ratified, awaiting /architect)
+  - sales-agent-voice-fidelity-grader-runtime    # → role E: MAJ-EVAL voice fidelity grader (READY 2026-05-08 — /architect delivered ready package: 03-arch + 04-validators + 05-guidelines + 06-tickets, awaiting /dev-team build post-Stories C+D)
+  - sales-agent-eval-pass-k-tracking             # → role F: Bloom-style pass^k (READY 2026-05-08 — /architect delivered ready package, awaiting /dev-team build post-Stories C+D+E)
+  - sales-agent-voice-fidelity-ci-gate           # → role G: CI gate w/ dynamic threshold per cadence (READY 2026-05-08 — /architect delivered ready package, awaiting /dev-team build LAST sub-épica eval-foundation: hard blocker B+C+D+E+F+H developed)
+  - sales-agent-eval-cost-budget-cap             # → role H: cost cap multi-tier (READY 2026-05-08 — /architect delivered ready package, awaiting /dev-team build post-Stories B+C+D+E)
+  - sales-agent-adversarial-jailbreak-suite      # → role I: PersonaGym Toxicity Control axis (READY 2026-05-08 — /architect delivered ready package, awaiting /dev-team build LAST story PI-12: hard blocker C+D+E developed; soft blocker F+G+H mockable)
 success_metrics:
   - "3 tenants seed con data realística completa (brand+offer+personality+pricing+buyer_personas) checked-in y consumibles por sales_agent runtime sin mocks"
   - "client_simulator/ homologado a backend/tests/agentic_evals/sales_agent/simulator/ con dual-LLM pattern (1 LLM=user persona, 1 LLM=sales_agent real)"
@@ -180,16 +180,16 @@ inapropiado". CI gate bloquea regressions automáticamente.
 
 | Story | Role | Type | Estimate | Spec status |
 |---|---|---|---|---|
-| `sales-agent-voice-fidelity-grader-runtime` | **E** — MAJ-EVAL multi-judge debate (Sonnet=0.4 + GPT-4o=0.4 + Kimi=0.2) Round 1+Round 2 sobre 4 rubrics (voice-fidelity + qualification-accuracy NEW + no-overpromise + no-hallucination). 6-slot prompt architecture TTL=1h. Sandbox markers `<<TRANSCRIPT_BEGIN>>` anti-injection. Cache hash-invalidating + async callback. NEW rubric `qualification-accuracy.md` Story E owns | agentic | 3-4d | **refined** 2026-05-08 (spec v2 + design v2 ratified — awaiting /architect) |
-| `sales-agent-eval-pass-k-tracking` | **F** — Bloom 4-stage strict all-of-K (Understanding/Ideation/Rollout/Judgment per trial). Heterogeneous K per persona_kind (Story C cement). Aggregator read-only consume Story E `MajEvalScore`. `inputs_hash` tamper detection + `golden_yaml_hash` mutation snapshot. Per-stage threshold env vars | service | 2d | **refined** 2026-05-08 (spec v2 ratified) |
-| `sales-agent-eval-cost-budget-cap` | **H** — multi-tier cost-bucket cap (per_trial=$0.10 / per_grade=$0.20 / per_run=$500 cold $150 warm / per_bucket=$20 generation + $400/$130 grader). Pre-flight over-estimate strict + periodic sweep 30s post-facto detection vs bypass. NEW arch fitness gate. Story B H9 expand 8→9 names | service | 1-2d | **refined** 2026-05-08 (spec v2 ratified) |
+| `sales-agent-voice-fidelity-grader-runtime` | **E** — MAJ-EVAL multi-judge debate (Sonnet=0.4 + GPT-4o=0.4 + Kimi=0.2) Round 1+Round 2 sobre 4 rubrics (voice-fidelity + qualification-accuracy NEW + no-overpromise + no-hallucination). 6-slot prompt architecture TTL=1h. Sandbox markers `<<TRANSCRIPT_BEGIN>>` anti-injection. Cache hash-invalidating + async callback. NEW rubric `qualification-accuracy.md` Story E owns | agentic | 3-4d | **ready** 2026-05-08 (ready package delivered — awaiting /dev-team build) |
+| `sales-agent-eval-pass-k-tracking` | **F** — Bloom 4-stage strict all-of-K (Understanding/Ideation/Rollout/Judgment per trial). Heterogeneous K per persona_kind (Story C cement). Aggregator read-only consume Story E `MajEvalScore`. `inputs_hash` tamper detection + `golden_yaml_hash` mutation snapshot. Per-stage threshold env vars | service | 2d | **ready** 2026-05-08 (ready package delivered — awaiting /dev-team build) |
+| `sales-agent-eval-cost-budget-cap` | **H** — multi-tier cost-bucket cap (per_trial=$0.10 / per_grade=$0.20 / per_run=$500 cold $150 warm / per_bucket=$20 generation + $400/$130 grader). Pre-flight over-estimate strict + periodic sweep 30s post-facto detection vs bypass. NEW arch fitness gate. Story B H9 expand 8→9 names | service | 1-2d | **ready** 2026-05-08 (ready package delivered — awaiting /dev-team build) |
 
 #### CI + adversarial
 
 | Story | Role | Type | Estimate | Spec status |
 |---|---|---|---|---|
-| `sales-agent-voice-fidelity-ci-gate` | **G** — CI gate dynamic threshold per cadence (PR=0.65 / nightly=0.70 / monthly=0.75). Path filters + cron + required check branch protection. PR comment rich attribution. 5-layer bypass defense | service | 2-3d | **refined** 2026-05-08 (spec v2 ratified) |
-| `sales-agent-adversarial-jailbreak-suite` | **I** — PersonaGym Toxicity Control axis + 5 attack categories (jailbreak/injection/hostile/coercion/compliance probes). Story I owns NEW rubric `toxicity-control.md` v1. 5 archetype-aware adversarial personas + 5-10 goldens via Story D pipeline. pass_k=1.0 cero tolerance. Story G monthly cadence only | agentic | 3-4d | **refined** 2026-05-08 (spec v2 + design v2 ratified) |
+| `sales-agent-voice-fidelity-ci-gate` | **G** — CI gate dynamic threshold per cadence (PR=0.65 / nightly=0.70 / monthly=0.75). Path filters + cron + required check branch protection. PR comment rich attribution. 5-layer bypass defense | service | 2-3d | **ready** 2026-05-08 (ready package delivered — awaiting /dev-team build LAST sub-épica eval-foundation) |
+| `sales-agent-adversarial-jailbreak-suite` | **I** — PersonaGym Toxicity Control axis + 5 attack categories (jailbreak/injection/hostile/coercion/compliance probes). Story I owns NEW rubric `toxicity-control.md` v1. 5 archetype-aware adversarial personas + 5-10 goldens via Story D pipeline. pass_k=1.0 cero tolerance. Story G monthly cadence only | agentic | 3-4d | **ready** 2026-05-08 (ready package delivered — awaiting /dev-team build LAST story PI-12) |
 
 **Total restante:** ~25-30d (vs 18d original — alcance ampliado por reframe).
 
@@ -248,3 +248,4 @@ Original PI.md preservado en `docs/archive/2026/legacy-pis/PI-12-sales-agent-eva
 - 2026-05-06 17:11Z — **Reframe synthetic-first** (Chris ratificó 3 archetypes A1/A2/A3). Outcome narrative re-escrito post-research mayo 2026. 3 stories nuevas: maintenance-skill-sales-agent-audit + eval-foundation-tenant-seed-data + eval-foundation-simulator-homologation. 7 stories existentes preservadas con slug original — reframe narrativo en outcome.
 - 2026-05-06 19:55Z — Story `maintenance-skill-sales-agent-audit` cerró ready package (`/po` v2 ratified → `/architect` consolidado). State refining→refined→ready en una sesión.
 - 2026-05-06 20:55Z — Story `eval-foundation-tenant-seed-data` cerró spec ratification (`/po` v2). **Scope expandido por Chris 3→5 archetypes** (A1 Coach PE + A2 Medicina estética MX + A3 Clínica dental CO + A4 Growth Marketing video+RRSS AR + A5 Agencia Automatización IA neutro 419). State refining→refined. Handoff a `/architect` pendiente. Spawned `sales-agent-dialect-configuration` (placeholder state=idea) durante Q7 — feature UX tenant config dialecto BCP-47, refinement futuro.
+- 2026-05-08 — **5/5 ready packages PI-12 sub-épica eval-foundation cerrados.** Stories E (commit `7033b178`), F (`fe657483`), H (`132d717b`), G (`0c3d477b`), I (`74432a52` + `e9134c92`) — `/architect` orchestrator entregó ready package full (03-arch + 04-validators + 05-guidelines + 06-tickets) por cada una. State `refined → ready`. Stories C (developed) + D (ready awaits build) gates upstream. **Build serialization downstream:** B(done) → C → D → E → (F+H parallel) → G → I (LAST PI-12). Outcome refresh sync 2026-05-08 — labels `REFINED awaiting /architect` → `READY awaiting /dev-team build` para 5 stories. Awaiting Chris ratification bulk + /dev-team Conv 2 trigger.

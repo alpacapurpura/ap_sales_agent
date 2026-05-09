@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-09T01:50:44+00:00
+# Generated at: 2026-05-09T02:11:04+00:00
 
-generated_at: '2026-05-09T01:50:44+00:00'
+generated_at: '2026-05-09T02:11:04+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -134,7 +134,7 @@ buckets:
     - type:agentic-eval-foundation
     - paradigm:synthetic-first
     - reframe:2026-05-06
-    last_touched: 2026-05-07
+    last_touched: 2026-05-08
     extra:
       story_ids:
       - sales-agent-eval-runner-foundation
