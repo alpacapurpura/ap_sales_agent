@@ -281,7 +281,7 @@ tickets:
     title: "maj_eval.py — MAJ-EVAL state machine Round 1 parallel + variance check + Round 2 debate + unconverged/r2_partial fallbacks"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: pushed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -366,6 +366,7 @@ tickets:
     blocks: [T-8, T-9]
     transitions:
       - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+      - { state: pushed, at: 2026-05-08, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════
