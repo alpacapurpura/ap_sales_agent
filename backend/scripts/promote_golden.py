@@ -69,6 +69,44 @@ _FORBIDDEN_TOOLS_BY_KIND: Final[dict[str, list[str]]] = {
 # Conjunto de persona_kinds en scope para Story D
 _GOLDENS_SCOPE_KINDS: Final[frozenset[str]] = frozenset({"happy", "nurture", "unqualified"})
 
+# Valores válidos de termination_reason para goldens (excluye crash/error)
+_VALID_TERMINATION_REASONS: Final[frozenset[str]] = frozenset({"GOAL_COMPLETION", "MAX_TURNS", "CUSTOMER_EXIT"})
+
+
+def _validate_artifact_promotable(artifact: dict[str, object]) -> None:
+    """Valida que el artefacto sea apto para promoverse a golden.
+
+    Los goldens son referencias de validación para simular comportamiento
+    correcto del agente. Una simulación que terminó en crash o error no puede
+    representar un comportamiento esperado válido.
+
+    Args:
+        artifact: Dict cargado desde sim_{uuid}.json.
+
+    Raises:
+        ValueError: Si el artefacto no es apto para promoción.
+    """
+    termination_reason = str(artifact.get("termination_reason", "GOAL_COMPLETION"))
+    if termination_reason not in _VALID_TERMINATION_REASONS:
+        msg = (
+            f"ERROR: no se puede promover una simulación con error/crash. "
+            f"termination_reason='{termination_reason}' no es un resultado válido. "
+            f"Solo se aceptan: {sorted(_VALID_TERMINATION_REASONS)}. "
+            f"Re-ejecuta la generación con un modelo estable o usa un golden manual."
+        )
+        raise ValueError(msg)
+
+    transcript_raw = artifact.get("transcript", [])
+    if not isinstance(transcript_raw, list) or len(transcript_raw) < 2:  # noqa: PLR2004
+        msg = (
+            f"ERROR: no se puede promover una simulación sin transcripción completa. "
+            f"El transcript tiene {len(transcript_raw) if isinstance(transcript_raw, list) else 0} turn(s) "
+            f"(mínimo 2 requerido). "
+            f"Posible causa: el agente crasheó antes de generar respuesta. "
+            f"Re-ejecuta la generación con un modelo estable."
+        )
+        raise ValueError(msg)
+
 
 def _extract_voice_attributes(tenant_slug: str) -> list[str]:
     """Auto-extrae keys de voice attributes desde personality_profile (D14).
@@ -139,6 +177,10 @@ def _build_golden(
         ValueError: Si persona_kind fuera de scope D3 (adversarial/edge/negative).
         pydantic.ValidationError: Si el artefacto produce un golden inválido.
     """
+    # DEEPER-D preflight: rechaza simulaciones con crash antes de intentar construir el golden.
+    # Esto produce un mensaje de error claro en español, mejor que un Pydantic ValidationError.
+    _validate_artifact_promotable(artifact)
+
     # DEEPER-B fix: SimulationResult.model_dump() emite 'archetype_slug', no 'tenant_archetype_slug'.
     # Leer 'tenant_archetype_slug' primero (retrocompatibilidad con artefactos viejos que lo incluían);
     # fallback a 'archetype_slug' (campo canónico de SimulationResult) cuando el primero no existe o vacío.

@@ -654,6 +654,159 @@ class TestArchetypeSlugPropagation:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# test_promote_refuses_crashed_simulation (DEEPER-D regression)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class TestPromoteRefusesCrashedSimulation:
+    """DEEPER-D: promote_golden debe rechazar simulaciones que terminaron en crash.
+
+    Una simulación con termination_reason='agent_error' no debe ser promovida
+    a golden — los goldens son referencias de validación, no capturas de crashes.
+
+    Exit code esperado: 2 con mensaje de error claro en español.
+    """
+
+    def test_build_golden_raises_on_agent_error_termination(self) -> None:
+        """artifact.termination_reason='agent_error' → ValueError con mensaje claro en español."""
+        artifact = _make_artifact(termination_reason="agent_error")
+        ctx = _make_mock_tenant_context()
+        with (
+            patch.object(_promo, "load_eval_tenant", return_value=ctx),
+            pytest.raises(ValueError, match=r"(?i)(error|crash|agent_error)"),
+        ):
+            _promo._build_golden(artifact, "coach-crash-001", notes="", actor_profile_id="perfil-crash")
+
+    def test_build_golden_raises_on_empty_transcript(self) -> None:
+        """transcript vacío con termination_reason válido → ValueError por transcript corto.
+
+        Cuando el agente crashea en el turno 0, el transcript queda vacío
+        y GoldenScenarioModel no puede construirse (min_length=2).
+        El preflight debe capturar este caso antes que Pydantic.
+        """
+        artifact = _make_artifact()
+        artifact["transcript"] = []
+        artifact["termination_reason"] = "GOAL_COMPLETION"  # pero sin turns
+        ctx = _make_mock_tenant_context()
+        with (
+            patch.object(_promo, "load_eval_tenant", return_value=ctx),
+            pytest.raises((ValueError, Exception)),
+        ):
+            _promo._build_golden(artifact, "coach-empty-001", notes="", actor_profile_id="perfil-empty")
+
+    def test_main_returns_exit_2_on_agent_error_artifact(self, tmp_path: Path) -> None:
+        """main() con artefacto crash → exit code 2 (no escribe YAML)."""
+        import json as _json
+
+        # Crear artefacto con crash
+        artifact = _make_artifact(termination_reason="agent_error")
+        artifact_path = tmp_path / f"sim_{artifact['simulation_id']}.json"
+        artifact_path.write_text(_json.dumps(artifact), encoding="utf-8")
+
+        test_args = [
+            "promote_golden.py",
+            "--simulation-id",
+            artifact["simulation_id"],
+            "--golden-id",
+            "coach-crash-main-001",
+            "--artifact-dir",
+            str(tmp_path),
+            "--actor-profile-id",
+            "perfil-crash",
+        ]
+        with (
+            patch.object(_promo, "load_eval_tenant", return_value=_make_mock_tenant_context()),
+            patch.object(sys, "argv", test_args),
+        ):
+            exit_code = _promo.main()
+        assert exit_code == 2
+
+    def test_main_does_not_write_yaml_on_agent_error(self, tmp_path: Path) -> None:
+        """main() con artefacto crash → ningún archivo YAML escrito."""
+        import json as _json
+
+        artifact = _make_artifact(termination_reason="agent_error")
+        artifact_path = tmp_path / f"sim_{artifact['simulation_id']}.json"
+        artifact_path.write_text(_json.dumps(artifact), encoding="utf-8")
+
+        test_args = [
+            "promote_golden.py",
+            "--simulation-id",
+            artifact["simulation_id"],
+            "--golden-id",
+            "coach-nowrite-001",
+            "--artifact-dir",
+            str(tmp_path),
+            "--actor-profile-id",
+            "perfil-nowrite",
+        ]
+        with (
+            patch.object(_promo, "load_eval_tenant", return_value=_make_mock_tenant_context()),
+            patch.object(sys, "argv", test_args),
+        ):
+            _promo.main()
+
+        # No debe haber escrito ningún YAML
+        yaml_files = list(tmp_path.rglob("*.yaml"))
+        assert yaml_files == [], f"Se escribió YAML inesperado: {yaml_files}"
+
+    def test_validate_artifact_promotable_rejects_all_invalid_reasons(self) -> None:
+        """_validate_artifact_promotable rechaza razones inválidas de terminación."""
+        invalid_reasons = ["agent_error", "timeout_error", "system_crash", "unknown", ""]
+        for reason in invalid_reasons:
+            artifact = _make_artifact(termination_reason=reason)
+            with pytest.raises(ValueError, match=r"(?i)(error|crash)"):
+                _promo._validate_artifact_promotable(artifact)
+
+    def test_validate_artifact_promotable_accepts_valid_reasons(self) -> None:
+        """_validate_artifact_promotable acepta las 3 razones válidas de terminación."""
+        valid_reasons = ["GOAL_COMPLETION", "MAX_TURNS", "CUSTOMER_EXIT"]
+        for reason in valid_reasons:
+            artifact = _make_artifact(termination_reason=reason)
+            # No debe lanzar excepción
+            _promo._validate_artifact_promotable(artifact)
+
+    def test_validate_artifact_promotable_rejects_empty_transcript(self) -> None:
+        """_validate_artifact_promotable rechaza transcript vacío (crash en turno 0)."""
+        artifact = _make_artifact(termination_reason="GOAL_COMPLETION")
+        artifact["transcript"] = []
+        with pytest.raises(ValueError, match=r"(?i)(transcript|turn)"):
+            _promo._validate_artifact_promotable(artifact)
+
+    def test_error_message_mentions_crash_reason(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        """Mensaje de error de preflight debe mencionar 'agent_error' y ser en español."""
+        import json as _json
+
+        artifact = _make_artifact(termination_reason="agent_error")
+        artifact_path = tmp_path / f"sim_{artifact['simulation_id']}.json"
+        artifact_path.write_text(_json.dumps(artifact), encoding="utf-8")
+
+        test_args = [
+            "promote_golden.py",
+            "--simulation-id",
+            artifact["simulation_id"],
+            "--golden-id",
+            "coach-errmsg-001",
+            "--artifact-dir",
+            str(tmp_path),
+            "--actor-profile-id",
+            "perfil-msg",
+        ]
+        with (
+            patch.object(_promo, "load_eval_tenant", return_value=_make_mock_tenant_context()),
+            patch.object(sys, "argv", test_args),
+        ):
+            exit_code = _promo.main()
+
+        assert exit_code == 2
+        captured = capsys.readouterr()
+        # El mensaje de error debe estar en stderr y mencionar el motivo del crash
+        assert "agent_error" in captured.err
+        # Debe ser un mensaje legible (no solo traceback)
+        assert "ERROR" in captured.err
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # test_e2e_smoke (CI nightly — --run-evals gateado)
 # ─────────────────────────────────────────────────────────────────────────────
 
