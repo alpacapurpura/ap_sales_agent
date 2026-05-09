@@ -19,6 +19,13 @@ from sqlalchemy.types import CHAR, Text, TypeDecorator
 
 from src.shared.domain.base_entity import Base
 
+# Capture ORIGINAL postgresql types BEFORE monkey-patch so Mock subclasses
+# can delegate to native impls when running against real postgres dialect
+# (RUN_EVALS=1 smokes). Without this, MockUUID.load_dialect_impl for
+# postgresql calls postgresql.UUID(...) → MockUUID(...) → infinite recursion.
+_ORIGINAL_POSTGRESQL_JSONB = postgresql.JSONB
+_ORIGINAL_POSTGRESQL_UUID = postgresql.UUID
+
 
 class MockJSONB(TypeDecorator):
     """SQLite doesn't support JSONB, so we map it to standard JSON or String"""
@@ -28,7 +35,7 @@ class MockJSONB(TypeDecorator):
 
     def load_dialect_impl(self, dialect):
         if dialect.name == "postgresql":
-            return dialect.type_descriptor(postgresql.JSONB())
+            return dialect.type_descriptor(_ORIGINAL_POSTGRESQL_JSONB())
         return dialect.type_descriptor(Text())
 
     def process_bind_param(self, value, dialect):
@@ -61,7 +68,7 @@ class MockUUID(TypeDecorator):
 
     def load_dialect_impl(self, dialect):
         if dialect.name == "postgresql":
-            return dialect.type_descriptor(postgresql.UUID(as_uuid=self.as_uuid))
+            return dialect.type_descriptor(_ORIGINAL_POSTGRESQL_UUID(as_uuid=self.as_uuid))
         return dialect.type_descriptor(CHAR(36))
 
     def process_bind_param(self, value, dialect):
@@ -72,7 +79,12 @@ class MockUUID(TypeDecorator):
     def process_result_value(self, value, dialect):
         if value is None:
             return None
+        # Real postgres returns native UUID object; SQLite returns CHAR(36) str.
+        # Without isinstance guard, uuid.UUID(uuid_obj) calls .replace() on UUID
+        # → AttributeError when running RUN_EVALS=1 smokes against real postgres.
         if self.as_uuid:
+            if isinstance(value, uuid.UUID):
+                return value
             return uuid.UUID(value)
         return value
 

@@ -86,7 +86,10 @@ def _validate_artifact_promotable(artifact: dict[str, object]) -> None:
     Raises:
         ValueError: Si el artefacto no es apto para promoción.
     """
-    termination_reason = str(artifact.get("termination_reason", "GOAL_COMPLETION"))
+    # Simulator runtime emits termination_reason as TerminationReason enum value
+    # (lowercase: "max_turns", "goal_completion", "customer_exit") via .value attr.
+    # GoldenScenarioModel Literal expects uppercase. Normalize before validation.
+    termination_reason = str(artifact.get("termination_reason", "GOAL_COMPLETION")).upper()
     if termination_reason not in _VALID_TERMINATION_REASONS:
         msg = (
             f"ERROR: no se puede promover una simulación con error/crash. "
@@ -259,7 +262,7 @@ def _build_golden(
         transcript=transcript,
         expected_termination_reason=str(  # type: ignore[arg-type]
             artifact.get("termination_reason", "GOAL_COMPLETION")
-        ),
+        ).upper(),
         expected_voice_attributes=_extract_voice_attributes(tenant_slug),
         expected_tools_invoked=_derive_expected_tools_invoked(
             transcript_raw  # type: ignore[arg-type]

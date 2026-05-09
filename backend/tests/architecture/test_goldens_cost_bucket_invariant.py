@@ -54,24 +54,24 @@ def _db_session():
         yield session
 
 
-def _count_eval_simulator_llm_call(session: object, min_created_at: object) -> int:
-    """Cuenta filas en eval_simulator_llm_call creadas después de min_created_at."""
+def _count_eval_simulator_llm_call(session: object, min_started_at: object) -> int:
+    """Cuenta filas en eval_simulator_llm_call creadas después de min_started_at."""
     from sqlalchemy import text
 
     result = session.execute(
-        text("SELECT COUNT(*) FROM eval_simulator_llm_call WHERE created_at > :min_created_at"),
-        {"min_created_at": min_created_at},
+        text("SELECT COUNT(*) FROM eval_simulator_llm_call WHERE started_at > :min_started_at"),
+        {"min_started_at": min_started_at},
     )
     return result.scalar_one()
 
 
-def _count_copilot_llm_call(session: object, min_created_at: object) -> int:
-    """Cuenta filas en copilot_llm_call creadas después de min_created_at."""
+def _count_copilot_llm_call(session: object, min_started_at: object) -> int:
+    """Cuenta filas en copilot_llm_call creadas después de min_started_at."""
     from sqlalchemy import text
 
     result = session.execute(
-        text("SELECT COUNT(*) FROM copilot_llm_call WHERE created_at > :min_created_at"),
-        {"min_created_at": min_created_at},
+        text("SELECT COUNT(*) FROM copilot_llm_call WHERE started_at > :min_started_at"),
+        {"min_started_at": min_started_at},
     )
     return result.scalar_one()
 

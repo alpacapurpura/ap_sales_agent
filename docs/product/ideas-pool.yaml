@@ -181,41 +181,28 @@ ideas:
 
   - id: agent-bridge-session-injection-fix
     one_liner: "Fix agent_bridge._resolve_session_for_simulation T-8 stub — currently returns None even with session injected, causing SessionUnavailable in eval-foundation smokes"
-    state: idea
+    state: dropped
     tags: [module:sales-agent, type:agentic-runtime, effort:S, value:eval-unblock-CRITICAL, source:story-d-runevals-smoke]
     created: 2026-05-08
     last_touched: 2026-05-08
+    closed: 2026-05-08
+    closing_commit: 21f2f641
     notes: |
-      Post Story D run-evals smoke (archive/sales-agent-goldens-3-tenants-dataset/T-3.bis-smoke-verification.md).
-
-      Symptom: simulator.agent_invalid_state error='Runner failed to inject SQLAlchemy session for simulation' error_class=SessionUnavailable
-      → agent crashes turn 0 before LLM fires. Cost $0.00 incurred.
-
-      Even with db_session correctly passed via run_simulation(db_session=session), agent_bridge T-8 stub returns None.
-
-      Scope: inspect modules/sales_agent/.../agent_bridge.py::_resolve_session_for_simulation T-8 stub. Wire injected session through. Verify with Story D smokes (3 env-gated tests).
-
-      Owner skill: /po (service-story sales_agent runtime). Build owner: builder-agentic Opus 4.7 (R23 — production_code:true).
-
-      Eval-foundation sub-épica BLOCKER: Stories E/F/G/H/I all need working session injection for their smokes.
-      Recommended priority: HIGH.
+      CLOSED 2026-05-08 by commit 21f2f641 — DEEPER-A agent_bridge ContextVar session injection wiring.
+      Diagnosis correction (R26): real path was tests/agentic_evals/sales_agent/simulator/_internal/{agent_bridge.py, runner.py} NOT modules/sales_agent/. Eval test infra stub, not production runtime.
+      Fix: ContextVar bridge from run_simulation(db_session=...) → graph.ainvoke() context. 31/31 simulator + 673/673 sales_agent + 1016/1016 arch fitness GREEN.
+      Verified end-to-end via 3 RUN_EVALS env-gated smokes with real LLM (~$0.30-0.60 cost per full smoke run).
 
   - id: goldens-archetype-slug-propagation
     one_liner: "Fix promote_golden e2e flow — archetype_slug not propagated from tenant context, causing 'Unknown archetype_slug' error in TestE2ESmoke"
-    state: idea
+    state: dropped
     tags: [module:sales-agent, type:tooling, effort:S, value:eval-completion, source:story-d-runevals-smoke]
     created: 2026-05-08
     last_touched: 2026-05-08
+    closed: 2026-05-08
+    closing_commit: b28c28ea
     notes: |
-      Post Story D smoke verification.
-
-      Symptom: ERROR: no se pudo construir golden: Unknown archetype_slug ''. Valid slugs: [tenant_coach_lat, tenant_medicina_estetica, ...]
-
-      e2e calls generate_golden_candidates → sim artifact → promote_golden fails — archetype_slug='' empty.
-
-      Scope: inspect generate_golden_candidates.py artifact JSON schema (writes archetype_slug?) + promote_golden::_build_golden (extracts archetype_slug from sim artifact OR resolves via tenant_slug?). Fix root cause + re-run e2e smoke.
-
-      Owner: builder-backend Sonnet. Effort: ~1h.
-      Predecesor: independent of agent-bridge-session-injection-fix.
-
-      Pendiente: spec ratification OR direct sub-ticket T-3.2 in archive bis-2 commit.
+      CLOSED 2026-05-08 by commit b28c28ea — DEEPER-B archetype_slug propagation defense in depth.
+      Root cause: SimulationResult.model_dump() serialized field as 'archetype_slug' (Pydantic field name); promote_golden read 'tenant_archetype_slug' with empty-string fallback → ValidationError.
+      Fix: 2 layers — (1) generator writes both 'archetype_slug' AND 'tenant_archetype_slug' to artifact JSON; (2) promote reads either key. 71 unit + 3 regression + 1016 arch GREEN.
+      Verified end-to-end with 3 RUN_EVALS env-gated smokes (real LLM).

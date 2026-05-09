@@ -1,20 +1,18 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-09T00:11:34+00:00`
+> Generated at: `2026-05-09T01:50:44+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### 💡 Ideas (9)
+### 💡 Ideas (7)
 - calendario-comercial `[idea]`
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
 - solo-mode-chat-first-layout `[idea]`
 - sales-inbox-responsive-collapse `[idea]`
 - sales-agent-qualification-toolkit `[idea]`
-- agent-bridge-session-injection-fix `[idea]`
-- goldens-archetype-slug-propagation `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
 ### 🔬 Refining (2 total · 0 cap-eligible / cap 3)
@@ -46,8 +44,10 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (1) · Dropped (2)
+### Parked (1) · Dropped (4)
 - 🅿 growth-studio-visual-coherence-pass
+- ❌ ~~agent-bridge-session-injection-fix~~
+- ❌ ~~goldens-archetype-slug-propagation~~
 - ❌ ~~pi-10-growth-studio-ux-homologation~~
 - ❌ ~~pi-9-growth-studio-architecture~~
 
@@ -57,15 +57,13 @@
 
 ```mermaid
 kanban
-  💡 Ideas (9)
+  💡 Ideas (7)
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
     solo-mode-chat-first-layout[solo-mode-chat-first-layout]
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
-    agent-bridge-session-injection[agent-bridge-session-injection-fix]
-    goldens-archetype-slug-propaga[goldens-archetype-slug-propagation]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
   🔬 Refining (2 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]

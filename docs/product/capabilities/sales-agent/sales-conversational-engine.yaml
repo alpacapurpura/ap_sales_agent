@@ -125,9 +125,7 @@ eval:
     - "backend/tests/architecture/test_goldens_cost_bucket_invariant.py"
     - "backend/tests/scripts/test_generate_golden_candidates.py"
     - "backend/tests/scripts/test_promote_golden.py"
-  goldens_known_issues:
-    - "T-3.bis DEEPER-A: agent_bridge._resolve_session_for_simulation T-8 stub returns None — env-gated CI smoke fails until separate sales_agent runtime fix"
-    - "T-3.bis DEEPER-B: e2e archetype_slug propagation in promote_golden flow — Sonnet follow-up"
+  goldens_known_issues: []  # Closed 2026-05-08: DEEPER-A (agent_bridge ContextVar session injection, commit 21f2f641), DEEPER-B (archetype_slug propagation, commit b28c28ea), DEEPER-C (synthetic lead seed, commit 334be34e), DEEPER-D (promote_golden refuses crashed/normalize case, commits 3733fb2c+follow-up), MockUUID conftest dual fix + LiteLLM port mapping for native WSL smokes. 3 RUN_EVALS env-gated smokes verified GREEN with real LLM end-to-end.
 ---
 
 ## Capabilities cubiertas por este grupo
