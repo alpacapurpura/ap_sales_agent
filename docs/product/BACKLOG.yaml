@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-09T19:20:21+00:00
+# Generated at: 2026-05-09T19:24:36+00:00
 
-generated_at: '2026-05-09T19:20:21+00:00'
+generated_at: '2026-05-09T19:24:36+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -15,8 +15,7 @@ caps:
   refining_stale_days: 60
   refined_stale_days: 30
   done_rolling_days: 90
-warnings:
-- refining cap exceeded (12 > 3, excl. legacy+outcomes)
+warnings: []
 stale_ideas: []
 stale_refining: []
 stale_refined: []
@@ -221,76 +220,6 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
-  - id: luana-brand-offer-studios
-    kind: story
-    state: refining
-    title: luana-brand-offer-studios
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 4 done
-      blocked_by:
-      - luana-crm-analytics-landing-connections
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-campaigns-extension-sdk
-    kind: story
-    state: refining
-    title: luana-campaigns-extension-sdk
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 7 done
-      blocked_by:
-      - luana-sales-agent-engine
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-comunify-bootstrap
-    kind: story
-    state: refining
-    title: luana-comunify-bootstrap
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 11, 13, 14
-      blocked_by:
-      - luana-nicolify-migration
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-copilot-engine
-    kind: story
-    state: refining
-    title: luana-copilot-engine
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 5 done
-      blocked_by:
-      - luana-brand-offer-studios
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-crm-analytics-landing-connections
-    kind: story
-    state: refining
-    title: luana-crm-analytics-landing-connections
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 3 done
-      blocked_by:
-      - luana-iam-tenancy-content
-      priority_override: null
-      audit_iterations: 0
   - id: luana-foundation
     kind: story
     state: refining
@@ -304,91 +233,6 @@ buckets:
         04-validators + 05-guidelines + 06-tickets, ratify or request changes. State refining → refined → ready when ratified.
         Then /dev-team picks T-1.
       blocked_by: []
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-iam-tenancy-content
-    kind: story
-    state: refining
-    title: luana-iam-tenancy-content
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 2 done
-      blocked_by:
-      - luana-shared-lift
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-lupulo-bootstrap
-    kind: story
-    state: refining
-    title: luana-lupulo-bootstrap
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 11, 12, 14
-      blocked_by:
-      - luana-nicolify-migration
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-nicolify-migration
-    kind: story
-    state: refining
-    title: luana-nicolify-migration
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po-ux opens 01-spec.md after Story 9 done
-      blocked_by:
-      - luana-v0-1-0-publish
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-sales-agent-engine
-    kind: story
-    state: refining
-    title: luana-sales-agent-engine
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 6 done AND Story E (sales-agent-voice-fidelity-grader-runtime) done
-      blocked_by:
-      - luana-copilot-engine
-      - story-E-sales-agent-voice-fidelity-grader-runtime done
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-v0-1-0-publish
-    kind: story
-    state: refining
-    title: luana-v0-1-0-publish
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 8 done
-      blocked_by:
-      - luana-campaigns-extension-sdk
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-vitalia-bootstrap
-    kind: story
-    state: refining
-    title: luana-vitalia-bootstrap
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 12-14
-      blocked_by:
-      - luana-nicolify-migration
       priority_override: null
       audit_iterations: 0
   refined: []
@@ -632,6 +476,161 @@ buckets:
         queda inconsistencia visual detectable cross-studio → unparkear → /po-ux refina. Probable que NO se ejecute (Chris
         2026-05-06: ''visualmente si se ve bien'').'
       blocked_by: null
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-brand-offer-studios
+    kind: story
+    state: parked
+    title: luana-brand-offer-studios
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po opens 01-spec.md after Story 4 done
+      blocked_by:
+      - luana-crm-analytics-landing-connections
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-campaigns-extension-sdk
+    kind: story
+    state: parked
+    title: luana-campaigns-extension-sdk
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po opens 01-spec.md after Story 7 done
+      blocked_by:
+      - luana-sales-agent-engine
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-comunify-bootstrap
+    kind: story
+    state: parked
+    title: luana-comunify-bootstrap
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 11, 13, 14
+      blocked_by:
+      - luana-nicolify-migration
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-copilot-engine
+    kind: story
+    state: parked
+    title: luana-copilot-engine
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po opens 01-spec.md after Story 5 done
+      blocked_by:
+      - luana-brand-offer-studios
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-crm-analytics-landing-connections
+    kind: story
+    state: parked
+    title: luana-crm-analytics-landing-connections
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po opens 01-spec.md after Story 3 done
+      blocked_by:
+      - luana-iam-tenancy-content
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-iam-tenancy-content
+    kind: story
+    state: parked
+    title: luana-iam-tenancy-content
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po opens 01-spec.md after Story 2 done
+      blocked_by:
+      - luana-shared-lift
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-lupulo-bootstrap
+    kind: story
+    state: parked
+    title: luana-lupulo-bootstrap
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 11, 12, 14
+      blocked_by:
+      - luana-nicolify-migration
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-nicolify-migration
+    kind: story
+    state: parked
+    title: luana-nicolify-migration
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po-ux opens 01-spec.md after Story 9 done
+      blocked_by:
+      - luana-v0-1-0-publish
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-sales-agent-engine
+    kind: story
+    state: parked
+    title: luana-sales-agent-engine
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po opens 01-spec.md after Story 6 done AND Story E (sales-agent-voice-fidelity-grader-runtime) done
+      blocked_by:
+      - luana-copilot-engine
+      - story-E-sales-agent-voice-fidelity-grader-runtime done
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-v0-1-0-publish
+    kind: story
+    state: parked
+    title: luana-v0-1-0-publish
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po opens 01-spec.md after Story 8 done
+      blocked_by:
+      - luana-campaigns-extension-sdk
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-vitalia-bootstrap
+    kind: story
+    state: parked
+    title: luana-vitalia-bootstrap
+    tags: []
+    last_touched: 2026-05-09
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 12-14
+      blocked_by:
+      - luana-nicolify-migration
       priority_override: null
       audit_iterations: 0
   dropped:

@@ -1,7 +1,7 @@
 ---
 story_id: luana-iam-tenancy-content
 outcome: luana-platform-migration
-state: refining
+state: parked
 last_artifact: 00-story.md
 last_modified: 2026-05-09
 next_action: "/po opens 01-spec.md after Story 2 done"

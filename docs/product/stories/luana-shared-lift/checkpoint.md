@@ -1,7 +1,7 @@
 ---
 story_id: luana-shared-lift
 outcome: luana-platform-migration
-state: refining
+state: parked
 phase: outcome_decomposition
 last_artifact: 00-story.md
 last_modified: 2026-05-09

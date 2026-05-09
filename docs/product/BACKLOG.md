@@ -1,11 +1,8 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-09T19:20:21+00:00`
+> Generated at: `2026-05-09T19:24:36+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
-
-## ⚠️ Warnings
-- refining cap exceeded (12 > 3, excl. legacy+outcomes)
 
 ## 📊 Roadmap view (filtered + curated)
 
@@ -18,22 +15,11 @@
 - sales-agent-qualification-toolkit `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (15 total · 12 cap-eligible / cap 3)
+### 🔬 Refining (4 total · 1 cap-eligible / cap 3)
 - **luana-platform-migration**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
-- **luana-brand-offer-studios** — outcome `luana-platform-migration`
-- **luana-campaigns-extension-sdk** — outcome `luana-platform-migration`
-- **luana-comunify-bootstrap** — outcome `luana-platform-migration`
-- **luana-copilot-engine** — outcome `luana-platform-migration`
-- **luana-crm-analytics-landing-connections** — outcome `luana-platform-migration`
 - **luana-foundation** — outcome `luana-platform-migration` [outcome_decomposition]
-- **luana-iam-tenancy-content** — outcome `luana-platform-migration`
-- **luana-lupulo-bootstrap** — outcome `luana-platform-migration`
-- **luana-nicolify-migration** — outcome `luana-platform-migration`
-- **luana-sales-agent-engine** — outcome `luana-platform-migration`
-- **luana-v0-1-0-publish** — outcome `luana-platform-migration`
-- **luana-vitalia-bootstrap** — outcome `luana-platform-migration`
 
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
@@ -59,8 +45,19 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (1) · Dropped (4)
+### Parked (12) · Dropped (4)
 - 🅿 growth-studio-visual-coherence-pass
+- 🅿 luana-brand-offer-studios
+- 🅿 luana-campaigns-extension-sdk
+- 🅿 luana-comunify-bootstrap
+- 🅿 luana-copilot-engine
+- 🅿 luana-crm-analytics-landing-connections
+- 🅿 luana-iam-tenancy-content
+- 🅿 luana-lupulo-bootstrap
+- 🅿 luana-nicolify-migration
+- 🅿 luana-sales-agent-engine
+- 🅿 luana-v0-1-0-publish
+- 🅿 luana-vitalia-bootstrap
 - ❌ ~~agent-bridge-session-injection-fix~~
 - ❌ ~~goldens-archetype-slug-propagation~~
 - ❌ ~~pi-10-growth-studio-ux-homologation~~
@@ -80,18 +77,11 @@ kanban
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (15 / cap 3)
+  🔬 Refining (4 / cap 3)
     luana-platform-migration[luana-platform-migration]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
-    luana-brand-offer-studios[luana-brand-offer-studios]
-    luana-campaigns-extension-sdk[luana-campaigns-extension-sdk]
-    luana-comunify-bootstrap[luana-comunify-bootstrap]
-    luana-copilot-engine[luana-copilot-engine]
-    luana-crm-analytics-landing-co[luana-crm-analytics-landing-connections]
     luana-foundation[luana-foundation]
-    luana-iam-tenancy-content[luana-iam-tenancy-content]
-    overflow-🔬 Refining[+5 more]
   ✅ Refined (0 / cap 5)
   📦 Ready (4 / cap 5)
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
@@ -107,8 +97,18 @@ kanban
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🅿 Parked (1)
+  🅿 Parked (12)
     growth-studio-visual-coherence[growth-studio-visual-coherence-pass]
+    luana-brand-offer-studios[luana-brand-offer-studios]
+    luana-campaigns-extension-sdk[luana-campaigns-extension-sdk]
+    luana-comunify-bootstrap[luana-comunify-bootstrap]
+    luana-copilot-engine[luana-copilot-engine]
+    luana-crm-analytics-landing-co[luana-crm-analytics-landing-connections]
+    luana-iam-tenancy-content[luana-iam-tenancy-content]
+    luana-lupulo-bootstrap[luana-lupulo-bootstrap]
+    luana-nicolify-migration[luana-nicolify-migration]
+    luana-sales-agent-engine[luana-sales-agent-engine]
+    overflow-🅿 Parked[+2 more]
 ```
 
 ---
