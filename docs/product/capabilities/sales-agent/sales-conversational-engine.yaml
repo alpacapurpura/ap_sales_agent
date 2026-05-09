@@ -126,6 +126,69 @@ eval:
     - "backend/tests/scripts/test_generate_golden_candidates.py"
     - "backend/tests/scripts/test_promote_golden.py"
   goldens_known_issues: []  # Closed 2026-05-08: DEEPER-A (agent_bridge ContextVar session injection, commit 21f2f641), DEEPER-B (archetype_slug propagation, commit b28c28ea), DEEPER-C (synthetic lead seed, commit 334be34e), DEEPER-D (promote_golden refuses crashed/normalize case, commits 3733fb2c+follow-up), MockUUID conftest dual fix + LiteLLM port mapping for native WSL smokes. 3 RUN_EVALS env-gated smokes verified GREEN with real LLM end-to-end.
+  # Story E (sales-agent-voice-fidelity-grader-runtime, 2026-05-09) — MAJ-EVAL runtime grader
+  maj_eval_grader_path: backend/tests/agentic_evals/sales_agent/grader/
+  maj_eval_judges:
+    - sonnet: 0.4     # claude-sonnet-4-6
+    - gpt-4o: 0.4     # gpt-4o-2024-11-20
+    - kimi: 0.2       # kimi-k2.6
+  maj_eval_rubrics:
+    - voice-fidelity
+    - qualification-accuracy   # NEW — Story E owns v1 full spec
+    - no-overpromise
+    - no-hallucination
+  grader:
+    paradigm: maj_eval
+    judges_count: 3
+    judges_pinned:
+      sonnet: claude-sonnet-4-6
+      gpt4o: gpt-4o-2024-11-20
+      kimi: kimi-k2.6
+    weights: [0.4, 0.4, 0.2]
+    rubrics_in_scope:
+      - voice-fidelity
+      - qualification-accuracy   # NEW Story E owns v1
+      - no-overpromise
+      - no-hallucination
+    threshold_default: 0.7
+    per_rubric_threshold_overrides:
+      no-hallucination: 0.85
+      qualification-accuracy: 0.75
+    debate_variance_r1_threshold: 0.15
+    debate_variance_r2_target: 0.10
+    cache_table: eval_simulator_grade_cache
+    grade_table: eval_simulator_grade
+    cost_baseline_cold_cache_usd: 330
+    cost_baseline_warm_cache_usd: 108
+    cache_hit_target_pct: 70
+    public_api_surface_h9_expand: 8   # was 7 post Story B; Story E adds grade_transcript_maj_eval
+    schema_version: 1                  # MajEvalScore v1 cement
+    calibration_md_paths:
+      - docs/specs/rubrics/voice_fidelity_calibration.md
+      - docs/specs/rubrics/qualification_accuracy.md
+      - docs/specs/rubrics/no_overpromise.md
+      - docs/specs/rubrics/no_hallucination.md
+    variance_round_2_threshold: 0.15
+    variance_round_2_target: 0.10
+  grader_story_introduced: sales-agent-voice-fidelity-grader-runtime
+  grader_merged_at: null   # pending /auditor APPROVED + /pm merge
+  grader_test_coverage:
+    - backend/tests/agentic_evals/sales_agent/grader/test_pydantic_types_unit.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_judge_registry.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_unit.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_debate.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_happy.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_maj_eval_adversarial.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_grader_cache.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_judge_prompts.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_run_simulation_grader_hook.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_judge_no_system_leak.py
+    - backend/tests/agentic_evals/sales_agent/grader/test_unconverged_fallback.py
+    - backend/tests/architecture/test_grader_sandbox_markers_enforced.py
+    - backend/tests/architecture/test_grader_pii_sanitize_pre_judge.py
+    - backend/tests/architecture/test_grader_round_2_no_self_reasoning.py
+    - backend/tests/architecture/test_grader_writes_eval_only_bucket.py
+    - backend/tests/architecture/test_grader_public_api_surface.py
 ---
 
 ## Capabilities cubiertas por este grupo

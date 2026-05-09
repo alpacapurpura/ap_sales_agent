@@ -806,7 +806,9 @@ tickets:
     blocks: []
     transitions:
       - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
-    assigned_to: pm
+      - { state: pushed, at: 2026-05-09, by: builder-backend-sonnet }
+    state: pushed
+    assigned_to: builder-backend-sonnet
 
 # ═══════════════════════════════════════════════════════════════════════
 # Dependency graph (DAG)
