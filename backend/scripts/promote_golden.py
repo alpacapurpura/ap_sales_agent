@@ -139,7 +139,10 @@ def _build_golden(
         ValueError: Si persona_kind fuera de scope D3 (adversarial/edge/negative).
         pydantic.ValidationError: Si el artefacto produce un golden inválido.
     """
-    tenant_slug = str(artifact.get("tenant_archetype_slug", ""))
+    # DEEPER-B fix: SimulationResult.model_dump() emite 'archetype_slug', no 'tenant_archetype_slug'.
+    # Leer 'tenant_archetype_slug' primero (retrocompatibilidad con artefactos viejos que lo incluían);
+    # fallback a 'archetype_slug' (campo canónico de SimulationResult) cuando el primero no existe o vacío.
+    tenant_slug = str(artifact.get("tenant_archetype_slug") or artifact.get("archetype_slug") or "")
     persona_kind_raw = str(artifact.get("persona_kind", "happy"))
 
     # Validar scope — adversarial=Story I, edge/negative=loader-only

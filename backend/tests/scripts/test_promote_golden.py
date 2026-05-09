@@ -510,6 +510,150 @@ class TestBuildGoldenFields:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# test_archetype_slug_propagation (DEEPER-B regression — archetype_slug fallback)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class TestArchetypeSlugPropagation:
+    """Regression: DEEPER-B — archetype_slug empty cuando artifact solo tiene 'archetype_slug'.
+
+    generate_golden_candidates.py escribe result.model_dump() → campo es 'archetype_slug'.
+    promote_golden.py leía solo 'tenant_archetype_slug' → devolvía '' → ValidationError.
+
+    Este test reproduce el artefacto real generado por _run_one_cell (sin 'tenant_archetype_slug')
+    y verifica que _build_golden resuelve el tenant_slug correctamente.
+    """
+
+    def test_artifact_with_only_archetype_slug_resolves_tenant(self) -> None:
+        """Artefacto con SOLO 'archetype_slug' (sin 'tenant_archetype_slug') → tenant_slug correcto.
+
+        Simula el artifact JSON escrito por generate_golden_candidates (result.model_dump()),
+        que solo contiene 'archetype_slug' (campo de SimulationResult), no 'tenant_archetype_slug'.
+        _build_golden debe resolverlo correctamente sin empty-string fallback.
+        """
+        tenant_slug = "tenant_coach_lat"
+        # Artefacto tipo SimulationResult.model_dump() — solo tiene 'archetype_slug'
+        artifact = _make_artifact(tenant_slug=tenant_slug)
+        # Remover 'tenant_archetype_slug' para simular artifact real del generador
+        artifact.pop("tenant_archetype_slug", None)
+        assert "archetype_slug" in artifact
+        assert "tenant_archetype_slug" not in artifact
+
+        ctx = _make_mock_tenant_context(tenant_slug)
+        with patch.object(_promo, "load_eval_tenant", return_value=ctx):
+            golden = _promo._build_golden(artifact, "coach-lat-deeperb-001", notes="", actor_profile_id="perfil-reg")
+
+        assert golden.tenant_slug == tenant_slug, (
+            f"tenant_slug vacío — bug DEEPER-B: artifact.archetype_slug='{artifact.get('archetype_slug')}' "
+            f"no fue resuelto como tenant_slug"
+        )
+
+    def test_artifact_missing_both_slug_fields_raises(self) -> None:
+        """Artefacto sin ningún campo de slug → _build_golden debe fallar con ValidationError.
+
+        Verifica que la fix no enmascare artefactos genuinamente inválidos.
+        """
+        artifact = _make_artifact(tenant_slug="tenant_coach_lat")
+        artifact.pop("tenant_archetype_slug", None)
+        artifact.pop("archetype_slug", None)
+        # Sin ningún campo de slug → tenant_slug = "" → ValidationError esperado
+
+        ctx = _make_mock_tenant_context()
+        with (
+            patch.object(_promo, "load_eval_tenant", return_value=ctx),
+            pytest.raises((ValueError, TypeError)),  # pydantic.ValidationError hereda de ValueError
+        ):
+            _promo._build_golden(artifact, "coach-no-slug-001", notes="", actor_profile_id="perfil-ns")
+
+    def test_generator_artifact_includes_tenant_archetype_slug_field(self, tmp_path: Path) -> None:
+        """Artefacto escrito por _run_one_cell debe incluir 'tenant_archetype_slug'.
+
+        Verifica la fix en generate_golden_candidates._run_one_cell:
+        artifact_data['tenant_archetype_slug'] debe ser escrito explícitamente
+        para que promote_golden no falle en el flujo E2E.
+        """
+        import asyncio
+        import json as _json
+        import uuid as _uuid
+
+        sys.path.insert(0, str(_BACKEND_ROOT / "scripts"))
+        import generate_golden_candidates as _gen
+
+        tenant_slug = "tenant_coach_lat"
+        sim_id = _uuid.uuid4()
+        run_id = _uuid.uuid4()
+
+        # Mock SimulationResult mínimo con archetype_slug (como lo retorna run_simulation)
+        mock_result = MagicMock()
+        mock_result.simulation_id = sim_id
+        mock_result.run_id = run_id
+        mock_result.archetype_slug = tenant_slug
+        mock_result.total_turns = 2
+
+        tr_reason = MagicMock()
+        tr_reason.value = "GOAL_COMPLETION"
+        mock_result.termination_reason = tr_reason
+
+        cost_summary = MagicMock()
+        cost_summary.total_cost_usd = "0.072"
+        mock_result.cost_summary = cost_summary
+
+        t1 = MagicMock()
+        t1.role = "customer"
+        t1.content = "Hola"
+        t2 = MagicMock()
+        t2.role = "agent"
+        t2.content = "Con gusto te ayudo"
+        mock_result.transcript = [t1, t2]
+
+        # model_dump() reproduce SimulationResult — archetype_slug presente, tenant_archetype_slug NO
+        mock_result.model_dump.return_value = {
+            "simulation_id": str(sim_id),
+            "run_id": str(run_id),
+            "archetype_slug": tenant_slug,  # campo real de SimulationResult
+            "transcript": [],
+            "termination_reason": "GOAL_COMPLETION",
+            "total_turns": 2,
+            "cost_summary": {"total_cost_usd": "0.072"},
+        }
+
+        mock_actor = MagicMock()
+        mock_actor.id = "perfil-happy-coach"
+        mock_actor.persona_kind = "happy"
+
+        cell = _gen.CellKey(tenant_slug=tenant_slug, persona_kind="happy", run_n=0)
+        semaphore = asyncio.Semaphore(1)
+
+        async def _run() -> _gen.CellResult:
+            with (
+                patch.object(_gen, "load_actor_profile_for_tenant", return_value=mock_actor),
+                patch.object(_gen, "get_max_turns_for_persona_kind", return_value=10),
+                patch.object(_gen, "run_simulation", new=AsyncMock(return_value=mock_result)),
+            ):
+                return await _gen._run_one_cell(
+                    cell=cell,
+                    semaphore=semaphore,
+                    output_dir=tmp_path,
+                    run_id="test-gen-slug",
+                    seed_base=42,
+                )
+
+        from unittest.mock import AsyncMock
+
+        asyncio.run(_run())
+
+        # Verificar que el artefacto JSON escrito tiene 'tenant_archetype_slug'
+        artifact_files = list(tmp_path.glob("sim_*.json"))
+        assert artifact_files, "No se escribió ningún artefacto"
+        artifact_data = _json.loads(artifact_files[0].read_text(encoding="utf-8"))
+        assert "tenant_archetype_slug" in artifact_data, (
+            "generate_golden_candidates._run_one_cell no escribe 'tenant_archetype_slug' "
+            "en el artefacto JSON — promote_golden falla en E2E con empty archetype_slug"
+        )
+        assert artifact_data["tenant_archetype_slug"] == tenant_slug
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # test_e2e_smoke (CI nightly — --run-evals gateado)
 # ─────────────────────────────────────────────────────────────────────────────
 

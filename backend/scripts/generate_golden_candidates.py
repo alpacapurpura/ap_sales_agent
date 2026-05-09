@@ -298,6 +298,10 @@ async def _run_one_cell(
         artifact_data["_cell_persona_kind"] = cell.persona_kind
         artifact_data["_cell_run_n"] = cell.run_n
         artifact_data["_cell_seed"] = seed
+        # DEEPER-B fix: SimulationResult serializa 'archetype_slug' (su campo canónico),
+        # pero promote_golden._build_golden espera 'tenant_archetype_slug'.
+        # Escribir ambos para compatibilidad cross-script y defense in depth.
+        artifact_data["tenant_archetype_slug"] = cell.tenant_slug
         artifact_path.write_text(
             json.dumps(artifact_data, indent=2, ensure_ascii=False),
             encoding="utf-8",
