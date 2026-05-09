@@ -543,7 +543,7 @@ tickets:
     title: "simulator/__init__.py H9 expand 7→8 names (grade_transcript_maj_eval) + arch fitness re-freeze + 4 NEW grader gates"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: pushed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -614,6 +614,7 @@ tickets:
     blocks: [T-9]
     transitions:
       - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+      - { state: pushed, at: 2026-05-09, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════

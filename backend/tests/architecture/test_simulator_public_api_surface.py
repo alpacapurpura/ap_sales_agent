@@ -1,8 +1,16 @@
 """Architecture fitness gate — eval-simulator public API surface (H9).
 
-Story B (T-9) cement: ``backend/tests/agentic_evals/sales_agent/simulator/__init__.py``
-exports EXACTLY 7 names. Anything more = leakage; anything less = missing
-deliverable. Story C/D/E/F/G/H/I downstream consume ONLY these 7 names.
+Story B (T-9) cement + Story E (T-8) cement:
+``backend/tests/agentic_evals/sales_agent/simulator/__init__.py`` exports
+EXACTLY 8 names. Stories F/G/H/I downstream consume ONLY these 8 names.
+
+Story B sealed 7 names. Story E expanded 7→8 with a SINGLE addition:
+``grade_transcript_maj_eval`` (the MAJ-EVAL multi-judge grader entrypoint
+defined in ``grader/_internal/maj_eval.py``). Re-frozen at 8 post-ship.
+Any future expansion requires bumping H9 invariant explicitly in
+``03-arch.md §3.6 / §4.10`` ratification cycle.
+
+Anything more = leakage; anything less = missing deliverable.
 
 Allowlists are intentionally absent — any drift fails the gate.
 
@@ -10,7 +18,8 @@ Invariants enforced:
 
 1. ``__all__`` is the literal frozenset
    ``{"run_simulation", "SimulationResult", "SimulationState", "ActorProfile",
-   "TerminationReason", "AgentErrorSubtype", "register_termination_policy"}``.
+   "TerminationReason", "AgentErrorSubtype", "register_termination_policy",
+   "grade_transcript_maj_eval"}``.
 2. Every name in ``__all__`` resolves to a public attribute (no NameError).
 3. No ``_`` prefix attributes leak via the package import surface
    (excluding Python dunder ``__name__`` / ``__file__`` / etc which are
@@ -39,6 +48,7 @@ _EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "TerminationReason",
         "AgentErrorSubtype",
         "register_termination_policy",
+        "grade_transcript_maj_eval",
     },
 )
 
@@ -48,29 +58,32 @@ _EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
 # ════════════════════════════════════════════════════════════════════════
 
 
-def test_simulator_dunder_all_exact_seven_names() -> None:
-    """``simulator.__all__`` MUST equal the expected 7-name frozenset.
+def test_simulator_dunder_all_exact_eight_names() -> None:
+    """``simulator.__all__`` MUST equal the expected 8-name frozenset.
 
-    Adding or removing names without bumping H9 invariant in
-    ``03-arch-agentic.md §6`` breaks the contract that downstream
-    stories C/D/E/F/G/H/I depend on.
+    Story B sealed 7 names; Story E (T-8) expanded 7→8 with single
+    addition ``grade_transcript_maj_eval``. Adding or removing names
+    without bumping H9 invariant in ``03-arch.md §3.6 / §4.10``
+    breaks the contract that downstream stories F/G/H/I depend on.
     """
     from tests.agentic_evals.sales_agent import simulator
 
     actual = frozenset(simulator.__all__)
     assert actual == _EXPECTED_PUBLIC_NAMES, (
-        f"__all__ drift detected. Expected exactly 7 names "
+        f"__all__ drift detected. Expected exactly 8 names "
         f"{sorted(_EXPECTED_PUBLIC_NAMES)}; got {sorted(actual)}. "
         f"Missing: {sorted(_EXPECTED_PUBLIC_NAMES - actual)}; "
         f"unexpected: {sorted(actual - _EXPECTED_PUBLIC_NAMES)}."
     )
 
 
-def test_simulator_dunder_all_length_is_seven() -> None:
-    """Cardinality cement — ``len(__all__) == 7`` literal."""
+def test_simulator_dunder_all_length_is_eight() -> None:
+    """Cardinality cement — ``len(__all__) == 8`` literal post Story E."""
     from tests.agentic_evals.sales_agent import simulator
 
-    assert len(simulator.__all__) == 7, f"__all__ MUST contain exactly 7 names per H9; got {len(simulator.__all__)}."
+    assert len(simulator.__all__) == 8, (
+        f"__all__ MUST contain exactly 8 names per H9 (Story E expand 7→8); got {len(simulator.__all__)}."
+    )
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -213,6 +226,15 @@ def test_register_termination_policy_is_callable() -> None:
 
     assert callable(simulator.register_termination_policy), (
         "register_termination_policy must be callable (str, Callable) → None."
+    )
+
+
+def test_grade_transcript_maj_eval_is_callable() -> None:
+    """``grade_transcript_maj_eval`` is the Story E public grader entrypoint."""
+    from tests.agentic_evals.sales_agent import simulator
+
+    assert callable(simulator.grade_transcript_maj_eval), (
+        "grade_transcript_maj_eval must be callable (async def per Story E T-5)."
     )
 
 
