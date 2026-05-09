@@ -752,6 +752,62 @@ def _emit_mermaid_column(lines: list[str], title: str, items: list[dict[str, Any
 # ─── CLI ──────────────────────────────────────────────────────────────
 
 
+def render_tldr(backlog: dict[str, Any]) -> str:
+    """Render dense 5-15 line snapshot for /pm bootstrap (G1).
+
+    Token-cheap alternative to full BACKLOG.md (~150 lines). Skills and
+    bootstrap reads consume this instead of full file.
+    """
+    lines: list[str] = []
+    lines.append("# Backlog TLDR (auto-generated)")
+    lines.append(f"> Generated at: `{backlog['generated_at']}`")
+    lines.append("> Source: scripts/generate_backlog.py — full view: BACKLOG.md")
+    lines.append("")
+
+    buckets = backlog["buckets"]
+    caps = backlog["caps"]
+
+    def _eligible_count(state: str) -> int:
+        return sum(
+            1
+            for it in buckets.get(state, [])
+            if it.get("kind") == "story" and not any(t.startswith("legacy:") for t in it.get("tags", []))
+        )
+
+    def _slugs(state: str, n: int = 3) -> str:
+        items = buckets.get(state, [])
+        if not items:
+            return "_(none)_"
+        names = [it.get("id", "?") for it in items[:n]]
+        more = f" +{len(items) - n}" if len(items) > n else ""
+        return ", ".join(names) + more
+
+    rows = [
+        ("idea", "Ideas", None),
+        ("refining", "Refining", "refining_max"),
+        ("refined", "Refined", "refined_max"),
+        ("ready", "Ready", "ready_max"),
+        ("developing", "Developing", "developing_max"),
+        ("developed", "Developed", "developed_max"),
+        ("reviewing", "Reviewing", "reviewing_max"),
+    ]
+    for state, label, cap_key in rows:
+        total = len(buckets.get(state, []))
+        eligible = _eligible_count(state) if cap_key else total
+        cap = caps.get(cap_key) if cap_key else None
+        cap_str = f" / cap {cap}" if cap is not None else ""
+        warn = " ⚠️" if cap is not None and eligible > cap else ""
+        lines.append(f"- **{label}** ({eligible}{cap_str}{warn}): {_slugs(state)}")
+
+    if backlog.get("warnings"):
+        lines.append("")
+        lines.append(f"⚠ Warnings ({len(backlog['warnings'])}): {'; '.join(backlog['warnings'][:3])}")
+
+    lines.append("")
+    lines.append("Detail: read `docs/product/BACKLOG.md` (kanban + roadmap) or `docs/product/stories/{id}/checkpoint.md`.")
+    return "\n".join(lines) + "\n"
+
+
 def main() -> int:
     """CLI entrypoint."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -767,9 +823,11 @@ def main() -> int:
     backlog = aggregate(args.repo)
     new_yaml = render_yaml(backlog)
     new_md = render_md(backlog)
+    new_tldr = render_tldr(backlog)
 
     yaml_path = args.repo / "docs" / "product" / "BACKLOG.yaml"
     md_path = args.repo / "docs" / "product" / "BACKLOG.md"
+    tldr_path = args.repo / "docs" / "product" / "BACKLOG-TLDR.md"
 
     def _normalize(text: str) -> str:
         """Strip volatile generated_at timestamp for drift comparison."""
@@ -780,7 +838,7 @@ def main() -> int:
         return text
 
     drift = False
-    for path, content in [(yaml_path, new_yaml), (md_path, new_md)]:
+    for path, content in [(yaml_path, new_yaml), (md_path, new_md), (tldr_path, new_tldr)]:
         on_disk = path.read_text(encoding="utf-8") if path.exists() else ""
         if _normalize(on_disk) != _normalize(content):
             drift = True
@@ -791,12 +849,15 @@ def main() -> int:
         if drift:
             print("\nRun without --check to regenerate.")  # noqa: T201
             return 1
-        print("OK — BACKLOG.yaml + BACKLOG.md fresh.")  # noqa: T201
+        print("OK — BACKLOG.yaml + BACKLOG.md + BACKLOG-TLDR.md fresh.")  # noqa: T201
         return 0
 
     yaml_path.write_text(new_yaml, encoding="utf-8")
     md_path.write_text(new_md, encoding="utf-8")
-    print(f"Wrote {yaml_path.relative_to(args.repo)} + {md_path.relative_to(args.repo)}")  # noqa: T201
+    tldr_path.write_text(new_tldr, encoding="utf-8")
+    print(  # noqa: T201
+        f"Wrote {yaml_path.relative_to(args.repo)} + {md_path.relative_to(args.repo)} + {tldr_path.relative_to(args.repo)}"
+    )
     if backlog["warnings"]:
         print(f"WARNINGS ({len(backlog['warnings'])}):")  # noqa: T201
         for w in backlog["warnings"]:

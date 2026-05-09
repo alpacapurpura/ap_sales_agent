@@ -124,6 +124,20 @@ Crear `docs/product/stories/{story-id}/T-{n}-impl-log.md` con plan inicial + ite
 
 ## Step 2 — Spawn builder (model-specific)
 
+### ★ Pre-commit smoke gate (G5 — origen report.html 2026-05-09: 17 buggy_code incidents)
+
+Antes de cualquier `git commit` por el builder, MUST cumplir gate hard:
+
+1. Run validators asociados al ticket (`acceptance.validator_ids` en `06-tickets.yaml`)
+2. ALL validators GREEN antes commit. RED → bloquea commit, fix file, re-run.
+3. Lint + format clean (`ruff check src/ + ruff format --check src/` BE; `eslint + tsc --noEmit` FE).
+4. Si validator es env-gated (ej. `EVAL_GOLDENS_COST_BUCKET_VERIFY=1`) → builder MUST run con env real, NO skip.
+5. Si validator requiere case-sensitivity check (enum/string-literal) → builder verifica match exacto antes commit.
+
+**HARD rule:** builder commitea SOLO con todos los gates GREEN. Auditor catch-bugs-pre-existing era cost-leak Opus 2-3x. Pre-commit gate cierra esto.
+
+Builder prompts en Step 2A/2B/2C citan este gate verbatim. Si builder pushea con RED → /dev-team rebota a `state: tests-failing` ANTES Step 4 verify.
+
 ### Step 2A — Owner = qwen-opencode (BE/FE no-agentic)
 
 Construir prompt para qwen invocando opencode CLI:
@@ -163,9 +177,13 @@ Convenciones (.claude/rules/* — citados también en 05-guidelines.md):
 - anti-duplication.md
 - tdd-mandatory.md
 
-Quality gates antes push:
-- TODOS validators de 04-validators.yaml asociados al ticket → GREEN
+Quality gates antes push (★ HARD — G5 pre-commit smoke gate):
+- TODOS validators de 04-validators.yaml asociados al ticket → GREEN antes commit
+- Lint + format clean (ruff check + ruff format --check BE / eslint + tsc --noEmit FE)
+- Env-gated validators corridos con env real (NO skip si validator dice EVAL_*=1)
+- Case-sensitivity check si validator compara enum/string-literal
 - 05-guidelines.md "Files in scope" respected (no escape)
+- RED bloquea commit. Fix file → re-run validator → repeat hasta GREEN.
 
 Output al terminar:
 - T-{n}-result.md con diff resumen + validator gates output literal + commit SHA
@@ -209,6 +227,7 @@ Agent({
            Skill consultados obligatorio: copilot-expert/sales-agent-expert + tessl__langgraph + claude-api + graceful-degradation
            AUTONOMOUS LOOP: implement → run validators (04-validators.yaml acceptance.validator_ids) → fix → repeat hasta GREEN o cap_reached
            TDD: eval goldens RED first, integration tests, tools tests, etc
+           ★ G5 PRE-COMMIT SMOKE GATE: validators GREEN + lint + format + env-gated tests con env real + case-sensitivity match — TODO antes commit. RED bloquea commit, fix file, re-run.
            Output: T-{n}-result.md + commit pushed
            Last line: done -> T-{n}-result.md (o blocked -> T-{n}-impl-log.md)"
 })
@@ -229,7 +248,8 @@ Agent({
            Read CONTEXT-BRIEF.md FIRST (saves 30-50k tokens vs raw docs).
            READY PACKAGE: 01-spec.md + 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml
            AUTONOMOUS LOOP: implement → run validators → fix → repeat
-           TDD obligatorio. ...
+           TDD obligatorio.
+           ★ G5 PRE-COMMIT SMOKE GATE: validators GREEN + lint + format + env-gated tests con env real + case-sensitivity match — TODO antes commit. RED bloquea commit.
            Last line: done -> T-{n}-result.md"
 })
 ```
