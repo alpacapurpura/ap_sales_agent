@@ -1,11 +1,11 @@
 ---
 story_id: sales-agent-voice-fidelity-grader-runtime
 outcome: pi-12-sales-agent-eval-foundation
-state: ready
-phase: READY_PACKAGE_DELIVERED
-last_artifact: 06-tickets.yaml  # ready package complete: 03-arch + 04-validators + 05-guidelines + 06-tickets
-last_modified: 2026-05-08T10:00:00Z
-next_action: "/dev-team build (BLOCKED on Story C+D build done — bloqueador hard). Critical path: T-1 → T-2+T-3 (parallel) → T-4+T-6+T-7 (parallel) → T-5 → T-8 → T-9 → T-10. ~26h sequential, ~18h wall-clock with concurrency. Owner routing: 6 agentic tickets Opus 4.7, 3 BE tickets Sonnet, 1 docs ticket /pm post-merge."
+state: developing                                                                                       # ★ TRANSITION ready → developing 2026-05-09 by /dev-team Conv 2 (Stories C+D done — unblocked) ★
+phase: BUILD_T2_DONE
+last_artifact: T-2-result.md
+last_modified: 2026-05-09T03:00:00Z
+next_action: "T-2 pushed (SQLA models + Pydantic types GREEN 27/27). Unblocks T-4 (judge_registry Opus 4.7), T-6 (cache.py Opus 4.7), T-7 (judge_prompts Opus 4.7). T-3 (rubric MD — parallel, no deps from T-2). Spawn builder-agentic Opus 4.7 for T-4+T-6+T-7 in parallel; spawn builder-backend Sonnet for T-3."
 ratified_by_chris: true
 design_ratified_by_chris: true   # 02-design-agentic.md v2 ratified Chris 2026-05-08T09:00Z
 arch_ready_at: 2026-05-08T10:00:00Z
