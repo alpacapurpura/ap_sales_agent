@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "pr_folder": "/home/chris/AISALESHT/docs/product/stories/sales-agent-voice-fidelity-grader-runtime",
+  "ticket": null,
+  "iter": "final-story-E",
+  "command": "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_grade.py src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_grade_cache.py tests/agentic_evals/sales_agent/grader/ --no-cache && .venv/bin/ruff format --check src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_grade.py src/modules/sales_agent/observability/eval_simulator/persistence/models/eval_simulator_grade_cache.py tests/agentic_evals/sales_agent/grader/ && .venv/bin/pytest tests/agentic_evals/sales_agent/grader/ -v --tb=short && .venv/bin/pytest tests/agentic_evals/sales_agent/simulator/ -v --tb=short && .venv/bin/pytest tests/architecture/ -x -q --override-ini=\"addopts=\"",
+  "started_at": "2026-05-08T12:30:45Z",
+  "finished_at": "2026-05-08T13:35:22Z",
+  "duration_ms": 3757000,
+  "exit_code": 1,
+  "raw_log_path": "/home/chris/AISALESHT/docs/product/stories/sales-agent-voice-fidelity-grader-runtime/gate-logs/iter-final-story-E-full-suite-2026-05-08T123045Z.log",
+  "gates": [
+    {
+      "name": "ruff_check_grader_models",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": []
+    },
+    {
+      "name": "ruff_format_grader_models",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": [],
+      "summary": "29 files already formatted"
+    },
+    {
+      "name": "pytest_grader_full",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": [],
+      "summary": "151 passed, 1 warning"
+    },
+    {
+      "name": "pytest_simulator_regression",
+      "status": "FAIL",
+      "errors_count": 1,
+      "first_5_errors": [
+        "test_db_session_propagated_to_agent_bridge_via_contextvar: TIMEOUT (30s pytest timeout triggered; socket/asyncio/posthog thread deadlock)"
+      ],
+      "summary": "1 failed (timeout), 213 passed, 36 skipped, 1 warning in 113.25s"
+    },
+    {
+      "name": "pytest_arch_fitness",
+      "status": "PASS",
+      "errors_count": 0,
+      "first_5_errors": [],
+      "summary": "1063 passed, 1 skipped, 1 warning"
+    }
+  ],
+  "overall": {
+    "any_fail": true,
+    "fail_gate_names": ["pytest_simulator_regression"],
+    "summary": "FAIL: pytest_simulator_regression timeout (test_db_session_propagated_to_agent_bridge_via_contextvar hang). Grader models linting/formatting OK. Grader unit tests 151 PASS. Arch fitness 1063 PASS. Simulator has 1 timeout issue (not grader-related; contextvar propagation test deadlock)."
+  },
+  "notes": "Final Story E execution. Grader models (eval_simulator_grade.py + cache) all lint/format compliant. Grader test suite 151 tests GREEN. SIMULATOR REGRESSION FAIL: test_db_session_propagated_to_agent_bridge_via_contextvar times out at 30s mark (async/threading/socket deadlock detected in stack trace — involves posthog consumer queue, thread socket.accept(), and asyncio DNS resolution). This is a pre-existing timeout in the simulator contextvar test, NOT a grader issue. Arch fitness suite 1063/1064 pass (1 skipped cost-bucket verify, requires env EVAL_GOLDENS_COST_BUCKET_VERIFY). Overall verdict: grader code quality PASS; simulator regression FAIL due to unrelated timeout."
+}
