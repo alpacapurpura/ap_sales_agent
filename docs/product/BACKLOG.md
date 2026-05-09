@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-09T04:20:28+00:00`
+> Generated at: `2026-05-09T04:31:26+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -28,11 +28,11 @@
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 🔨 Developing (1 / cap 3)
-- **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation` [BUILD_T9_DONE]
-
-### 🧪 Developed — esperando QA (0 / cap 10)
+### 🔨 Developing (0 / cap 3)
 - _(none)_
+
+### 🧪 Developed — esperando QA (1 / cap 10)
+- **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation`
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -73,9 +73,9 @@ kanban
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
-  🔨 Developing (1 / cap 3)
+  🔨 Developing (0 / cap 3)
+  🧪 Developed (1 / cap 10)
     sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
-  🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]

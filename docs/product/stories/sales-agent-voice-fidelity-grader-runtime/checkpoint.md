@@ -1,11 +1,11 @@
 ---
 story_id: sales-agent-voice-fidelity-grader-runtime
 outcome: pi-12-sales-agent-eval-foundation
-state: developing                                                                                       # ★ TRANSITION ready → developing 2026-05-09 by /dev-team Conv 2 (Stories C+D done — unblocked) ★
-phase: BUILD_T9_DONE
-last_artifact: T-9-result.md
-last_modified: 2026-05-09T05:00:00Z
-next_action: "T-9 pushed (integration grader_callback + 4 scenario tests + calibration MD seeds GREEN 151/151 grader suite + 213/213 Story B regression + 1063/1063 arch fitness). State tests-passing — awaiting orchestrator → gate-runner → auditor-agentic (independent verdict). T-10 docs reconciliation /pm post-merge after auditor APPROVED."
+state: developed                                                                                       # ★ TRANSITION developing → developed 2026-05-09 by /dev-team Conv 2 (10/10 tickets pushed GREEN; awaiting Chris triggers /auditor) ★
+phase: AWAIT_AUDIT
+last_artifact: T-10-result.md
+last_modified: 2026-05-09T07:00:00Z
+next_action: "10/10 tickets pushed GREEN: T-1 (cd840485) T-2 (8f9ad6ae) T-3 (9e720fa2) T-4 (90e12482) T-6 (bc340d96) T-7 (4bd47bf6) T-5 (b13cad65) T-8 (6ad6ef1a) T-9 (2ea67105) T-10 (e5407815). Final consolidated gate: 151/151 grader suite + 1063/1063 arch fitness GREEN. Simulator regression 213/213 PASS (1 timeout test_db_session_propagated_to_agent_bridge_via_contextvar at 30s pytest timeout — re-run with 120s passes 42.49s, pre-existing Story B environmental flake NOT Story E regression). Awaiting Chris triggers /auditor Conv 3 review+merge."
 ratified_by_chris: true
 design_ratified_by_chris: true   # 02-design-agentic.md v2 ratified Chris 2026-05-08T09:00Z
 arch_ready_at: 2026-05-08T10:00:00Z
