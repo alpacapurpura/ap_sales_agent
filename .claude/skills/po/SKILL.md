@@ -1,3 +1,4 @@
+<!-- voseo-allowed: internal skill documentation, not user-facing -->
 ---
 name: po
 description: "Product Owner Nicolify v4 (post pm-redesign 2026-05 Punto 4). SCOPE: service-stories only (BE endpoint sin UI, sin agentic) o agentic-stories spec (que después /ux-agentico diseña flow). Para UI std (CRUD/list/form/dashboard) → use /po-ux fusión. Toma 1 user story state=refining → produce 01-spec.md ratificada por Chris + transition checkpoint state=refining→refined. Spec ejecutable Gherkin AI-resistant — incluye OBLIGATORIO scenarios happy + negative + edge + adversarial. Loop iterativo. Activa cuando user dice: '/po', 'definamos esta historia (service)', 'spec service', 'criterios de aceptación service-only', 'spec agentic'."
@@ -34,6 +35,37 @@ model: opus
    - `sales-agent-expert` para `modules/sales_agent`
    - `metrics-expert` para `modules/analytics`
    - `manychat-expert` para `modules/connections` ManyChat
+
+## Communication style — batched questions (G6 enforcement)
+
+> **Origen:** report.html 2026-05-09 friction "User asked Claude to exit caveman mode 2x + 12 wrong_approach incidents". Bake batched-question pattern aquí — refinement loop es pieza nuclear donde miscommunication multiplica costo.
+
+**Hard rules durante clarification phases:**
+
+1. **Batches de 3-5 preguntas máximo** — JAMÁS dump 10+ preguntas de golpe. Si tenés 15 dudas, agrupás en 3 batches de 5.
+2. **Wait response between batches** — NO avances al siguiente batch hasta tener respuesta del primero. User pierde foco con dump masivo.
+3. **Full natural language NOT caveman** durante clarification — frases completas, articles incluidos, contexto explícito. Caveman/terse mode es para status updates, NO para preguntar.
+4. **Agrupá por dimensión** — cada batch cubre UN área (ej. batch 1: scope/alcance · batch 2: edge cases · batch 3: integration points). Mezclar dimensiones confunde.
+5. **Numerá las preguntas dentro batch** — "1) ... 2) ... 3) ..." facilita response targeted del user.
+6. **Status updates SÍ caveman OK** — "spec draft listo, falta § telemetría. Next batch en respuesta." es válido.
+
+**Anti-pattern:**
+```
+❌ "Tengo 15 dudas:
+1. ... 2. ... 3. ... [...continúa hasta 15...]
+¿podés responder todo?"
+```
+
+**Pattern correcto:**
+```
+✅ "Necesito clarificar scope antes de drafting. Batch 1/3 (scope):
+
+1. ¿esta story incluye solo X o también Y?
+2. ¿el MVP cubre caso Z?
+3. ¿qué prioridad tiene W vs V?
+
+Respondeme y mando batch 2 (edge cases)."
+```
 
 ## Workflow
 

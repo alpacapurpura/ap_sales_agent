@@ -91,6 +91,34 @@ Decisión:
 
 Skip Phase 0 SOLO si user prompt es genérico ("estado", "qué tenemos", "ideas nuevas") sin story-id concreto.
 
+## Cost-routing — mecánico vs reasoning (G2)
+
+> **Origen:** report.html 2026-05-09. /pm en model=opus pero ~60% ops mecánicas (Bash/Edit) no requieren Opus reasoning. Cost-leak fix: clasifica cada comando como BASH (no LLM, ~0 tokens), HAIKU (delegate worker, ~1k), OPUS (full reasoning, ~5-15k).
+
+| Op /pm | Tier | Mecánica |
+|---|---|---|
+| `regen backlog` (`generate_backlog.py`) | **BASH** | Subprocess directo, no reasoning |
+| `reconcile caps` (`reconcile_capabilities.py`) | **BASH** | Subprocess directo |
+| `append idea pool` (1 entry append a YAML) | **BASH** | yq/echo append, no reasoning |
+| `archive merged story` (mv `stories/X/` → `archive/`) | **BASH** | git mv + path rewrite |
+| `update story state` (edit checkpoint state field) | **BASH** | sed replace single line |
+| `friendly status` (group BACKLOG.yaml por state) | **BASH** | render_friendly_status.py (G8) |
+| `commit + push artefactos /pm` | **HAIKU** | `/commit-push` skill delegate |
+| Phase 0 state-reconcile (Step 0.5 above) | **BASH** | grep + test paths |
+| Bootstrap (read TLDR + git status) | **BASH** | cat + git directos |
+| Decompose épica → N stories | **OPUS** | semantic decomposition |
+| Capability promotion al merge (semantic match story→cap) | **OPUS** | judgement match scenarios |
+| Routing decision /po-ux vs /po vs /ux-agentico | **OPUS** | UI std vs service vs agentic distinction |
+| Ratificar drift detectado Phase 0 | **OPUS** | semantic understanding del intent user |
+| `priorizar` (re-ordenar outcomes by why_now/why_next) | **OPUS** | semantic priority reasoning |
+| `discovery {topic}` opportunity draft | **OPUS** | analysis + decomposition |
+| Decompose 00-research.md (competitive analysis + viability) | **OPUS** | research synthesis |
+| Hand off prompt composition para sub-skill | **OPUS** | context-aware prompt eng |
+
+**Hard rule:** Si la op aparece marcada **BASH** en tabla, /pm ejecuta directo (Bash tool), NO compone respuesta narrativa estilo Opus reasoning. Si **HAIKU**, delegate via Agent tool. Si **OPUS**, full /pm reasoning vale el costo.
+
+**Cost saving estimado:** 162 sessions × ~2 mecánicas/session × ~5k tokens evitados = **~1.6M tokens/15d** sólo cost-routing.
+
 ## Vocabulary — 10 estados macro (v4 post Punto 4 2026-05-06)
 
 Detalle completo: `docs/process/pm-redesign-2026-05.md` § Punto 4.
@@ -118,7 +146,7 @@ WIP caps enforcement: tu trabajo. Si caps excedidos al recibir nueva idea/promot
 
 | Chris dice | Acción |
 |---|---|
-| "qué tenemos" / "estado" / "panorama" / "cómo va" | Output friendly por 10 estados (ver § Output format → Friendly backlog status). NO dump técnico crudo |
+| "qué tenemos" / "estado" / "panorama" / "cómo va" | **BASH (G8):** `backend/.venv/bin/python scripts/render_friendly_status.py` → output deterministic agrupado por 10 estados con emojis. NO Opus formatting (cost-leak fix). Si user pide drill-down de item específico, ENTONCES Opus añade contexto |
 | "idea {x}" | Append a `docs/product/ideas-pool.yaml` con state=idea + tags + created date |
 | "investiguemos {idea}" / "research {idea}" | Crear `docs/product/stories/{story-id}/00-research.md` (state sigue=idea). Competitive analysis + viability + cost + mockups inline opcionales |
 | "refinemos {idea}" / "refinemos {story}" | (1) Crear `docs/product/stories/{story-id}/checkpoint.md` con state=refining. (2) Si épica → decompose primero en N stories. (3) Hand off `/po-ux` (UI std) o `/po` (service) o `/po + /ux-agentico` (agentic) |

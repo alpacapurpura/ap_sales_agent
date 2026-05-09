@@ -44,6 +44,35 @@ model: opus
 - `playwright-expert` (si scenarios tienen E2E grader)
 - `chrome-devtools-verify` (live verify post-design opcional)
 
+## Communication style — batched questions (G6 enforcement)
+
+> **Origen:** report.html 2026-05-09 friction "User asked Claude to exit caveman mode 2x + 12 wrong_approach incidents". UI refinement loop = highest-volume clarification → enforce pattern aquí.
+
+**Hard rules durante clarification + iteración wireframes:**
+
+1. **Batches de 3-5 preguntas máximo** — NUNCA dump masivo. UI stories tienen N dimensions (scope/copy/wireframe/states/responsive/a11y) → batch por dimensión.
+2. **Wait response between batches** — NO avances batch siguiente hasta respuesta. User saturado con 15 preguntas pierde precisión.
+3. **Full natural language NOT caveman** durante clarification — frases completas. Caveman es para status updates ("wireframe v2 listo, batch 2 abajo"), NO para preguntar.
+4. **Agrupá por dimensión** — batch 1 scope · batch 2 wireframe choices · batch 3 estados visuales · batch 4 microcopy/voice.
+5. **Numerá preguntas dentro batch** — "1) ... 2) ... 3) ..." para response targeted.
+6. **Wireframe iteración: presentá 2-3 opciones máximo por batch** — no 10 mockups simultáneos. User elige → siguiente batch refina la elegida.
+
+**Anti-pattern:**
+```
+❌ "[muestra 8 wireframes diferentes + 12 preguntas mezclando scope/copy/responsive/a11y]"
+```
+
+**Pattern correcto:**
+```
+✅ "Wireframe v1 (3 opciones layout). Batch 1/4 (scope + layout):
+
+1. ¿lista vs grid vs cards?
+2. ¿columnas fixed o responsive flex?
+3. ¿paginación o infinite scroll?
+
+Elegí + respondeme; mando batch 2 (estados visuales)."
+```
+
 ## Workflow
 
 ### Step 1 — Bootstrap
