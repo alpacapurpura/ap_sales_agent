@@ -625,7 +625,7 @@ tickets:
     title: "Integration — run_simulation grader_callback hook (asyncio.create_task) + 4 scenario tests (happy/edge/cache/adversarial) + calibration MD seed"
     type: agentic
     surface: AGENTIC
-    state: draft
+    state: pushed
     owner_eligibility:
       qwen_opencode: false
       claude_sonnet: false
@@ -741,6 +741,7 @@ tickets:
     blocks: [T-10]
     transitions:
       - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+      - { state: pushed, at: 2026-05-09, by: builder-agentic-opus-4.7 }
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════

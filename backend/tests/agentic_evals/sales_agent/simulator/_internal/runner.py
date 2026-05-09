@@ -54,7 +54,9 @@ Best-effort observability / artifact writes
 # refactoring. The negative-grep verifier at the gate-runner level
 # enforces this on graph.py + (defense-in-depth) on runner.py.
 
+import asyncio
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -409,7 +411,7 @@ def _validate_archetype_slug(slug: str) -> None:
         raise ValueError(msg)
 
 
-async def run_simulation(  # noqa: PLR0915 — orchestrator topology spec'd as 12 linear steps in module docstring; DEEPER-C added auto-seed branch (~6 statements). Splitting into helper functions would fragment the spec'd story-wide cement.
+async def run_simulation(  # noqa: PLR0915 — orchestrator topology spec'd as 12 linear steps in module docstring; DEEPER-C added auto-seed branch (~6 statements); Story E T-9 adds grader_callback fire-and-forget (~6 statements). Splitting into helper functions would fragment the spec'd story-wide cement.
     tenant_archetype_slug: str,
     actor_profile: ActorProfile,
     *,
@@ -418,6 +420,7 @@ async def run_simulation(  # noqa: PLR0915 — orchestrator topology spec'd as 1
     run_id: UUID | None = None,
     db_session: Any = None,
     seed_fn: Any = None,
+    grader_callback: Callable[..., Any] | None = None,
 ) -> SimulationResult:
     """Drive one full eval simulation end-to-end (T-8 cardinal deliverable).
 
@@ -435,6 +438,14 @@ async def run_simulation(  # noqa: PLR0915 — orchestrator topology spec'd as 1
         seed_fn: Override the seed callable (for tests). When provided,
             the runner skips ``eval_tenant_seeded`` fixture lookup and
             calls ``seed_fn(slug)`` instead. Production callers leave None.
+        grader_callback: Story E T-9 hook (D17 / DQ5 cement). When provided,
+            invoked POST-completion (single fire-and-forget call with the
+            full :class:`SimulationResult`) via ``asyncio.create_task``.
+            Story B's existing tests pass ``None`` → zero ripple. The
+            callback is awaited NOWHERE in the runner — preserves Story B
+            determinism + latency budget. Failures during task creation
+            are logged via ``structlog.warning`` and swallowed (graceful
+            degradation Rule 2). Default ``None``.
 
     Returns:
         :class:`SimulationResult` Pydantic with full transcript + cost
@@ -630,6 +641,32 @@ async def run_simulation(  # noqa: PLR0915 — orchestrator topology spec'd as 1
 
     # ── Step 11: Write artifact JSON (D10 — best-effort) ────────────────
     _write_artifact_json(artifact_path=artifact_abs_path, result=result)
+
+    # ── Step 11b: Story E T-9 — grader_callback fire-and-forget hook ────
+    # D17 / DQ5 cement: ``asyncio.create_task`` schedules the grader to
+    # run concurrently — runner returns the SimulationResult IMMEDIATELY
+    # without awaiting. This preserves Story B determinism + latency
+    # budget cement. Story B existing tests pass ``grader_callback=None``
+    # → zero ripple. Failure during task creation is best-effort:
+    # ``structlog.warning`` + swallow (graceful degradation Rule 2).
+    if grader_callback is not None:
+        try:
+            # D17 / DQ5 fire-and-forget cement — runner does NOT track or await
+            # the task. Story E spec ratifica fire-and-forget intentional.
+            asyncio.create_task(grader_callback(result))  # noqa: RUF006 — fire-and-forget per D17 cement
+            logger.info(
+                "simulator.grader_callback_scheduled",
+                simulation_id=str(sim_id),
+                run_id=str(effective_run_id),
+            )
+        except Exception as exc:  # noqa: BLE001 — best-effort fire-and-forget
+            logger.warning(
+                "simulator.grader_callback_schedule_failed",
+                simulation_id=str(sim_id),
+                run_id=str(effective_run_id),
+                error_class=type(exc).__name__,
+                error=str(exc),
+            )
 
     logger.info(
         "simulator.simulation_completed",
