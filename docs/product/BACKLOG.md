@@ -1,8 +1,11 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-09T14:06:19+00:00`
+> Generated at: `2026-05-09T19:20:21+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
+
+## ⚠️ Warnings
+- refining cap exceeded (12 > 3, excl. legacy+outcomes)
 
 ## 📊 Roadmap view (filtered + curated)
 
@@ -15,9 +18,22 @@
 - sales-agent-qualification-toolkit `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (2 total · 0 cap-eligible / cap 3)
+### 🔬 Refining (15 total · 12 cap-eligible / cap 3)
+- **luana-platform-migration**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
+- **luana-brand-offer-studios** — outcome `luana-platform-migration`
+- **luana-campaigns-extension-sdk** — outcome `luana-platform-migration`
+- **luana-comunify-bootstrap** — outcome `luana-platform-migration`
+- **luana-copilot-engine** — outcome `luana-platform-migration`
+- **luana-crm-analytics-landing-connections** — outcome `luana-platform-migration`
+- **luana-foundation** — outcome `luana-platform-migration` [outcome_decomposition]
+- **luana-iam-tenancy-content** — outcome `luana-platform-migration`
+- **luana-lupulo-bootstrap** — outcome `luana-platform-migration`
+- **luana-nicolify-migration** — outcome `luana-platform-migration`
+- **luana-sales-agent-engine** — outcome `luana-platform-migration`
+- **luana-v0-1-0-publish** — outcome `luana-platform-migration`
+- **luana-vitalia-bootstrap** — outcome `luana-platform-migration`
 
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
@@ -64,9 +80,18 @@ kanban
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (2 / cap 3)
+  🔬 Refining (15 / cap 3)
+    luana-platform-migration[luana-platform-migration]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
+    luana-brand-offer-studios[luana-brand-offer-studios]
+    luana-campaigns-extension-sdk[luana-campaigns-extension-sdk]
+    luana-comunify-bootstrap[luana-comunify-bootstrap]
+    luana-copilot-engine[luana-copilot-engine]
+    luana-crm-analytics-landing-co[luana-crm-analytics-landing-connections]
+    luana-foundation[luana-foundation]
+    luana-iam-tenancy-content[luana-iam-tenancy-content]
+    overflow-🔬 Refining[+5 more]
   ✅ Refined (0 / cap 5)
   📦 Ready (4 / cap 5)
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]

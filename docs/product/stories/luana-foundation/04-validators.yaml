@@ -1,0 +1,208 @@
+---
+story_id: luana-foundation
+schema: v4
+total_validators: 22
+last_modified: 2026-05-09
+ratified_by_chris: false
+---
+
+# Validators — must_pass:true ALL before state developing → developed
+
+categories:
+  non_functional:
+    - id: NF-1
+      description: "GitHub Org luana-platform exists with 5 expected repos"
+      command: |
+        gh repo list luana-platform --json name --limit 10 | jq -r '.[].name' | sort | tr '\n' ',' | grep -E '^comunify,luana-core,lupulo-labs,nicolify,vitalia,$'
+      expected_exit: 0
+      must_pass: true
+      owner: chris (manual via gh CLI)
+
+    - id: NF-2
+      description: "All 5 repos have main branch protected"
+      command: |
+        for r in luana-core nicolify vitalia comunify lupulo-labs; do
+          gh api "repos/luana-platform/$r/branches/main/protection" >/dev/null 2>&1 || exit 1
+        done
+      expected_exit: 0
+      must_pass: true
+
+    - id: NF-3
+      description: "luana-core uv workspace synces without errors"
+      command: |
+        cd ~/luana-platform/luana-core && uv sync --all-packages
+      expected_exit: 0
+      must_pass: true
+
+    - id: NF-4
+      description: "luana-core pnpm workspace installs without errors"
+      command: |
+        cd ~/luana-platform/luana-core && pnpm install --frozen-lockfile
+      expected_exit: 0
+      must_pass: true
+
+    - id: NF-5
+      description: "luana-core ruff lint passes"
+      command: |
+        cd ~/luana-platform/luana-core && uv run ruff check packages/python/
+      expected_exit: 0
+      must_pass: true
+
+    - id: NF-6
+      description: "luana-core pnpm lint passes"
+      command: |
+        cd ~/luana-platform/luana-core && pnpm lint
+      expected_exit: 0
+      must_pass: true
+
+  functional:
+    - id: F-1
+      description: "Stub Python package luana-core-platform@0.0.1-alpha publishes successfully to GH Packages"
+      command: |
+        cd ~/luana-platform/luana-core && \
+        uv build packages/python/luana-core-platform/ && \
+        UV_PUBLISH_URL=https://npm.pkg.github.com \
+        UV_PUBLISH_TOKEN=$GITHUB_TOKEN \
+        uv publish packages/python/luana-core-platform/dist/*.whl
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-2
+      description: "Stub TS package @luana/ui-kit@0.0.1-alpha publishes successfully"
+      command: |
+        cd ~/luana-platform/luana-core/packages/ts/ui-kit && \
+        npm publish --registry https://npm.pkg.github.com
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-3
+      description: "Stub brand repo (vitalia) installs luana-core-platform from GH Packages"
+      command: |
+        cd ~/luana-platform/vitalia && \
+        pip install luana-core-platform==0.0.1-alpha --index-url "https://__token__:${GITHUB_TOKEN}@maven.pkg.github.com/luana-platform/_/simple/" && \
+        python -c "import luana_core_platform; assert luana_core_platform.VERSION == '0.0.1-alpha'"
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-4
+      description: "Stub brand repo (vitalia) installs @luana/ui-kit from GH Packages"
+      command: |
+        cd ~/luana-platform/vitalia && \
+        echo "@luana:registry=https://npm.pkg.github.com" > .npmrc && \
+        echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc && \
+        pnpm add @luana/ui-kit@0.0.1-alpha
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-5
+      description: "luana-core CI workflow runs successfully on PR (smoke commit)"
+      command: |
+        gh run list --repo luana-platform/luana-core --limit 1 --json conclusion -q '.[].conclusion' | grep -E 'success'
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-6
+      description: "Brand vitalia subtree pull from luana-core succeeds"
+      command: |
+        cd ~/luana-platform/vitalia && \
+        git remote get-url luana-core && \
+        ls .claude/rules/parallel-safety.md
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-7
+      description: "Brand sync-claude-shared.sh script exists + executable"
+      command: |
+        for b in vitalia comunify lupulo-labs nicolify; do
+          test -x ~/luana-platform/$b/scripts/sync-claude-shared.sh || exit 1
+        done
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-8
+      description: "GitHub Project v2 'Luana Roadmap' exists with custom fields"
+      command: |
+        gh project list --owner luana-platform --format json | jq -r '.projects[] | select(.title=="Luana Roadmap") | .number'
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-9
+      description: ".claude-shared/{rules,skills,agents}/ in luana-core have content"
+      command: |
+        cd ~/luana-platform/luana-core && \
+        test -d .claude-shared/rules && \
+        test -d .claude-shared/skills && \
+        test -d .claude-shared/agents && \
+        test "$(ls .claude-shared/rules | wc -l)" -gt 20
+      expected_exit: 0
+      must_pass: true
+
+  visual:
+    - id: V-1
+      description: "GitHub Project v2 board renders with 3 views (Roadmap, By Brand, Active)"
+      command: "manual_check"
+      expected_exit: 0
+      must_pass: false                          # visual N/A automated, manual confirm
+      owner: chris
+
+    - id: V-2
+      description: "GitHub Org luana-platform README.md displays correctly"
+      command: "manual_check"
+      expected_exit: 0
+      must_pass: false
+      owner: chris
+
+  agentic_eval:
+    - id: AE-1
+      description: "N/A — story has no agentic surface"
+      command: "echo 'no agentic eval needed for foundation'"
+      expected_exit: 0
+      must_pass: true
+
+  documentation:
+    - id: D-1
+      description: "luana-core/docs/CONTRIBUTING.md exists + > 30 lines"
+      command: |
+        test -f ~/luana-platform/luana-core/docs/CONTRIBUTING.md && \
+        test "$(wc -l < ~/luana-platform/luana-core/docs/CONTRIBUTING.md)" -gt 30
+      expected_exit: 0
+      must_pass: true
+
+    - id: D-2
+      description: "luana-core/docs/RELEASES.md exists describing semver policy"
+      command: |
+        test -f ~/luana-platform/luana-core/docs/RELEASES.md && \
+        grep -q "semver" ~/luana-platform/luana-core/docs/RELEASES.md
+      expected_exit: 0
+      must_pass: true
+
+    - id: D-3
+      description: "luana-core/docs/ARCHITECTURE.md links to ADR-001"
+      command: |
+        grep -q "ADR-001" ~/luana-platform/luana-core/docs/ARCHITECTURE.md
+      expected_exit: 0
+      must_pass: true
+
+    - id: D-4
+      description: "luana-core/README.md exists + non-empty"
+      command: |
+        test -s ~/luana-platform/luana-core/README.md
+      expected_exit: 0
+      must_pass: true
+
+    - id: D-5
+      description: "Each brand repo has README.md non-empty"
+      command: |
+        for b in nicolify vitalia comunify lupulo-labs; do
+          test -s ~/luana-platform/$b/README.md || exit 1
+        done
+      expected_exit: 0
+      must_pass: true
+
+# Rationale notes
+notes:
+  - "All commands assume Chris cloned the 5 repos to ~/luana-platform/{repo}/ (Sunday playbook §6-§8)"
+  - "GITHUB_TOKEN env var must be set with read:packages + write:packages scopes during local validation"
+  - "F-1 + F-2 are the critical end-to-end smoke tests proving the publish→consume cycle works"
+  - "V-1 + V-2 are owner=chris manual checks — must_pass:false because visual"
+  - "Total automated validators: 18 (must_pass:true) + 2 manual + 2 N/A. Story unblocks Story 2 lift when 18/18 pass"
