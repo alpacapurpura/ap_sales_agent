@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-09T02:11:04+00:00
+# Generated at: 2026-05-09T02:37:54+00:00
 
-generated_at: '2026-05-09T02:11:04+00:00'
+generated_at: '2026-05-09T02:37:54+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -274,23 +274,23 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
+  developing:
   - id: sales-agent-voice-fidelity-grader-runtime
     kind: story
-    state: ready
+    state: developing
     title: sales-agent-voice-fidelity-grader-runtime
     tags:
     - legacy:pi-12
-    last_touched: 2026-05-08 10:00:00+00:00
+    last_touched: 2026-05-09 02:00:00+00:00
     extra:
       outcome: pi-12-sales-agent-eval-foundation
-      phase: READY_PACKAGE_DELIVERED
-      next_action: '/dev-team build (BLOCKED on Story C+D build done — bloqueador hard). Critical path: T-1 → T-2+T-3 (parallel)
-        → T-4+T-6+T-7 (parallel) → T-5 → T-8 → T-9 → T-10. ~26h sequential, ~18h wall-clock with concurrency. Owner routing:
-        6 agentic tickets Opus 4.7, 3 BE tickets Sonnet, 1 docs ticket /pm post-merge.'
+      phase: BUILD_T1
+      next_action: '/dev-team Conv 2 build T-1 first (BE Sonnet, 1.5h, no deps — Alembic migration 127). Critical path: T-1
+        → T-2+T-3 (parallel) → T-4+T-6+T-7 (parallel) → T-5 → T-8 → T-9 → T-10. ~26h sequential, ~18h wall-clock with concurrency.
+        Owner routing: 6 agentic tickets Opus 4.7, 3 BE tickets Sonnet, 1 docs ticket /pm post-merge.'
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  developing: []
   developed: []
   reviewing: []
   done:
