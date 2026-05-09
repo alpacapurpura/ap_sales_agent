@@ -505,3 +505,210 @@ def test_seed_is_idempotent_on_rerun(_db_session) -> None:  # type: ignore[no-un
 
     finally:
         _soft_delete_lookup(db, tenant_id)
+
+
+# ---------------------------------------------------------------------------
+# Section 3 — DEEPER-C synthetic lead seed regression (Bug 4 hot-fix 2026-05-08)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.no_eval
+def test_eval_synthetic_lead_id_is_deterministic() -> None:
+    """DEEPER-C: ``eval_synthetic_lead_id(tenant_id)`` is idempotent.
+
+    Pure UUID5 arithmetic — no DB. Verifica que el bridge y la fixture
+    derivan el mismo UUID dado el mismo tenant_id (bridge contract).
+    """
+    from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (
+        _eval_tenant_id,
+        eval_synthetic_lead_id,
+    )
+
+    tenant_id = _eval_tenant_id("tenant_coach_lat")
+
+    lead_id_1 = eval_synthetic_lead_id(tenant_id)
+    lead_id_2 = eval_synthetic_lead_id(tenant_id)
+
+    assert lead_id_1 == lead_id_2, f"eval_synthetic_lead_id must be idempotent — got {lead_id_1} != {lead_id_2}"
+
+    # Cross-tenant: distinct tenants yield distinct lead IDs.
+    other_tenant = _eval_tenant_id("tenant_medicina_estetica")
+    other_lead = eval_synthetic_lead_id(other_tenant)
+    assert lead_id_1 != other_lead, (
+        f"Distinct tenants must yield distinct synthetic lead IDs — got {lead_id_1} == {other_lead}"
+    )
+
+
+@pytest.mark.no_eval
+@pytest.mark.integration
+def test_seed_creates_synthetic_lead_for_fk(_db_session) -> None:  # type: ignore[no-untyped-def]
+    """DEEPER-C Bug 4 regression: post-seed, una row sintética en ``leads``
+    existe para satisfacer ``agent_traces_user_id_fkey``.
+
+    Pre-fix: ``seed_eval_tenant`` no creaba lead row → primera invocación
+    del production graph (que escribe ``agent_traces.user_id``) revienta
+    con ``ForeignKeyViolation``.
+
+    Post-fix: lead row deterministic UUID5 ``eval_synthetic_lead_id(tenant_id)``
+    + ``tenant_id`` filtered (tenant isolation per
+    ``.claude/rules/tenant-isolation.md``).
+    """
+    _skip_if_no_postgres()
+
+    from src.shared.infrastructure.models.crm import LeadModel
+    from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (
+        _eval_tenant_id,
+        _soft_delete_lookup,
+        eval_synthetic_lead_id,
+        seed_eval_tenant,
+    )
+
+    slug = "tenant_coach_lat"
+    tenant_id = _eval_tenant_id(slug)
+    expected_lead_id = eval_synthetic_lead_id(tenant_id)
+    db = _db_session
+
+    try:
+        seed_eval_tenant(db, slug)
+
+        # Post-seed: la lead row existe + filtra por tenant_id (tenant isolation).
+        lead = db.execute(
+            select(LeadModel).where(
+                LeadModel.id == expected_lead_id,
+                LeadModel.tenant_id == tenant_id,
+                LeadModel.deleted_at.is_(None),
+            ),
+        ).scalar_one_or_none()
+
+        assert lead is not None, (
+            f"Synthetic lead {expected_lead_id} para tenant {tenant_id} no encontrado — "
+            f"agent_traces FK rompería en primera invocación del production graph"
+        )
+
+        # Sanity: tenant_id matches exactly.
+        assert lead.tenant_id == tenant_id, (
+            f"Lead tenant_id {lead.tenant_id} != expected {tenant_id} — tenant isolation violated"
+        )
+
+        # Cross-tenant isolation: lead NO aparece bajo otro tenant_id.
+        other_tenant_id = _eval_tenant_id("tenant_medicina_estetica")
+        cross_leak = db.execute(
+            select(LeadModel).where(
+                LeadModel.id == expected_lead_id,
+                LeadModel.tenant_id == other_tenant_id,
+            ),
+        ).scalar_one_or_none()
+        assert cross_leak is None, (
+            f"Cross-tenant leak: synthetic lead {expected_lead_id} apareció en tenant {other_tenant_id}"
+        )
+
+        logger.info(
+            "test_seed_creates_synthetic_lead_for_fk_pass",
+            tenant_id=str(tenant_id),
+            lead_id=str(expected_lead_id),
+        )
+
+    finally:
+        _soft_delete_lookup(db, tenant_id)
+
+
+@pytest.mark.no_eval
+@pytest.mark.integration
+def test_seed_synthetic_lead_is_idempotent(_db_session) -> None:  # type: ignore[no-untyped-def]
+    """DEEPER-C: re-seeding does not duplicate the synthetic lead row.
+
+    Idempotencia garantizada via UUID5 derivation + upsert pattern.
+    """
+    _skip_if_no_postgres()
+
+    from src.shared.infrastructure.models.crm import LeadModel
+    from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (
+        _eval_tenant_id,
+        _soft_delete_lookup,
+        eval_synthetic_lead_id,
+        seed_eval_tenant,
+    )
+
+    slug = "tenant_coach_lat"
+    tenant_id = _eval_tenant_id(slug)
+    expected_lead_id = eval_synthetic_lead_id(tenant_id)
+    db = _db_session
+
+    try:
+        # Seed twice.
+        seed_eval_tenant(db, slug)
+        seed_eval_tenant(db, slug)
+
+        # Verificar exactamente 1 lead row.
+        leads = (
+            db.execute(
+                select(LeadModel).where(
+                    LeadModel.id == expected_lead_id,
+                    LeadModel.tenant_id == tenant_id,
+                ),
+            )
+            .scalars()
+            .all()
+        )
+        assert len(leads) == 1, f"Re-seed debe ser idempotente — esperaba 1 lead row, obtuvo {len(leads)}"
+
+    finally:
+        _soft_delete_lookup(db, tenant_id)
+
+
+@pytest.mark.no_eval
+def test_agent_bridge_uses_deterministic_synthetic_user_id() -> None:
+    """DEEPER-C bridge contract: ``agent_bridge`` uses
+    :func:`eval_synthetic_lead_id` (NOT ``uuid4()``) so that the
+    ``user_id`` injected in the agent's initial state matches the lead
+    row seeded by ``tenant_seeded.py``.
+
+    Pre-fix: ``synthetic_user_id = str(uuid4())`` per turn → random,
+    no FK match. Post-fix: derived from ``state.tenant_id`` via
+    deterministic UUID5.
+
+    Verified by source-text check (paridad with anti-mirror grep verifiers
+    in the simulator suite — ``test_simulator_no_mirrors_shared.py``
+    pattern). Avoids the integration cost of constructing a full
+    SimulationState + mocked agent_app + DB session.
+    """
+    from pathlib import Path
+
+    # Resolve agent_bridge.py path: __file__ lives at
+    # ``.../sales_agent/simulator/fixtures/test_tenant_seeded.py``;
+    # parents[1] is the ``simulator/`` package (parent of ``fixtures/``).
+    bridge_path = Path(__file__).resolve().parents[1] / "_internal" / "agent_bridge.py"
+    src = bridge_path.read_text(encoding="utf-8")
+
+    # Bridge MUST import the deterministic helper + upsert helper.
+    assert "from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (" in src, (
+        "agent_bridge.py must import from tenant_seeded"
+    )
+    assert "eval_synthetic_lead_id" in src, (
+        "agent_bridge.py must import + use eval_synthetic_lead_id helper (DEEPER-C bridge contract for FK satisfaction)"
+    )
+    assert "_upsert_synthetic_lead" in src, (
+        "agent_bridge.py must import + invoke _upsert_synthetic_lead "
+        "(DEEPER-C two-layer defense: bridge self-heals when caller skips seed)"
+    )
+
+    # Bridge MUST derive synthetic_user_id from tenant_id deterministic UUID5.
+    assert "synthetic_user_id = str(eval_synthetic_lead_id(state.tenant_id))" in src, (
+        "agent_bridge.py must derive synthetic_user_id deterministically — "
+        "NOT random uuid4(). Pre-fix anti-pattern: 'synthetic_user_id = str(uuid4())'."
+    )
+
+    # Bridge MUST invoke the lead upsert (best-effort) before agent_app.ainvoke.
+    assert "_upsert_synthetic_lead(db, state.tenant_id)" in src, (
+        "agent_bridge.py must invoke _upsert_synthetic_lead(db, state.tenant_id) — "
+        "bridge self-heals to satisfy agent_traces FK when callers skip seed step "
+        "(e.g. scripts/generate_golden_candidates.py path)"
+    )
+
+    # Negative grep — the legacy random uuid4 line must NOT remain
+    # (uuid4 may still be imported for turn_id; we only ban the specific
+    # synthetic_user_id assignment line).
+    assert "synthetic_user_id = str(uuid4())" not in src, (
+        "Found legacy random uuid4 assignment for synthetic_user_id — "
+        "violates DEEPER-C bridge contract (FK violation regression risk)"
+    )

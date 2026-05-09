@@ -409,7 +409,7 @@ def _validate_archetype_slug(slug: str) -> None:
         raise ValueError(msg)
 
 
-async def run_simulation(
+async def run_simulation(  # noqa: PLR0915 — orchestrator topology spec'd as 12 linear steps in module docstring; DEEPER-C added auto-seed branch (~6 statements). Splitting into helper functions would fragment the spec'd story-wide cement.
     tenant_archetype_slug: str,
     actor_profile: ActorProfile,
     *,
@@ -463,6 +463,15 @@ async def run_simulation(
     # ── Step 4: Seed tenant via fixture (T-3) ───────────────────────────
     # The fixture is sync (DB-bound) — invoke it directly. Tests can
     # bypass via the ``seed_fn`` override.
+    #
+    # DEEPER-C bridge contract (Bug 4 hot-fix 2026-05-08): when neither
+    # ``seed_fn`` nor explicit pre-seeding is provided BUT a ``db_session``
+    # is available, fall back to invoking ``seed_eval_tenant`` directly
+    # so callers (e.g. ``scripts/generate_golden_candidates.py``) get a
+    # fully-materialized tenant + synthetic lead row required by the
+    # production graph's ``agent_traces_user_id_fkey``. Best-effort:
+    # failures degrade to warning + the bridge later surfaces the real
+    # underlying issue.
     seeded_tenant_id: UUID | None = None
     if seed_fn is not None:
         try:
@@ -476,6 +485,25 @@ async def run_simulation(
                 archetype_slug=tenant_archetype_slug,
                 error_class=type(exc).__name__,
                 error=str(exc),
+            )
+    elif db_session is not None:
+        # Auto-seed when a session is available but no seed_fn supplied.
+        # Idempotent (upsert pattern) — safe even if the tenant was
+        # previously seeded by another caller (e.g. smoke fixture).
+        try:
+            from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (
+                seed_eval_tenant,
+            )
+
+            seeded_tenant_id, _ = seed_eval_tenant(db_session, tenant_archetype_slug)
+        except Exception as exc:  # noqa: BLE001 — best-effort: bridge surfaces real issues
+            logger.warning(
+                "simulator.tenant_seed_failed",
+                simulation_id=str(sim_id),
+                archetype_slug=tenant_archetype_slug,
+                error_class=type(exc).__name__,
+                error=str(exc),
+                stage="auto_seed",
             )
 
     # Defense-in-depth — if the fixture returned a different tenant_id

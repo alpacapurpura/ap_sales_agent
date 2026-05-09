@@ -221,7 +221,7 @@ def _build_terminal_dict(
     }
 
 
-async def agent_bridge(state: SimulationState) -> dict[str, Any]:  # noqa: PLR0911 — H7 taxonomy: each failure-mode path returns a distinct terminal dict (4 modes + 2 success/cleanup). Centralizing via _build_terminal_dict already, but each except branch needs its own canonical structlog event before returning. This is the cement of the H7 cardinal — refactoring to a single return would conflate event names.
+async def agent_bridge(state: SimulationState) -> dict[str, Any]:  # noqa: PLR0911, PLR0915 — H7 taxonomy: each failure-mode path returns a distinct terminal dict (4 modes + 2 success/cleanup). Centralizing via _build_terminal_dict already, but each except branch needs its own canonical structlog event before returning. This is the cement of the H7 cardinal — refactoring to a single return would conflate event names. PLR0915 (>50 statements): DEEPER-C two-layer FK defense (lead upsert + best-effort try/except) added 4 more statements; splitting into helper would obscure linear topology spec'd in §2.4.
     """LangGraph node — invoke production ``agent_app`` in-process.
 
     Topology (per 03-arch-agentic §2.4):
@@ -330,12 +330,53 @@ async def agent_bridge(state: SimulationState) -> dict[str, Any]:  # noqa: PLR09
         return _build_terminal_dict(AgentErrorSubtype.INVALID_STATE)
 
     # ── Step 5: Compose agent's initial state ─────────────────────────
-    # Build a synthetic user_id (no real lead — eval simulator does not
-    # touch crm.lead). The production state uses str(UUID), tenant_id is
-    # str. channel_type='eval_simulator' marks the downstream observability
+    # Build a deterministic synthetic user_id derived from tenant_id +
+    # ensure the matching ``leads`` row exists (FK satisfaction).
+    #
+    # DEEPER-C bridge contract (Bug 4 hot-fix 2026-05-08 post Story D
+    # archive smoke): the production graph wraps each node with
+    # ``@trace_node`` which persists a row in ``agent_traces.user_id``
+    # with a FK to ``leads.id``. Random ``uuid4()`` per turn → no matching
+    # lead row → ``ForeignKeyViolation`` on first agent invocation.
+    #
+    # Two-layer defense:
+    # 1. ``eval_synthetic_lead_id(tenant_id)`` — deterministic UUID5
+    #    derivation (single source of truth, shared with
+    #    ``tenant_seeded.py::_upsert_synthetic_lead``).
+    # 2. Best-effort upsert here — guarantees the lead row exists EVEN
+    #    when callers (e.g. ``scripts/generate_golden_candidates.py``)
+    #    skip the explicit ``seed_eval_tenant`` step. Idempotent: re-runs
+    #    are safe; if the row already exists it is left untouched. Any
+    #    persistence failure logs a structured warning and the bridge
+    #    proceeds — the production graph will then surface the real
+    #    underlying issue (e.g. DB connectivity) instead of masking it.
+    #
+    # The production state uses str(UUID); tenant_id is str.
+    # channel_type='eval_simulator' marks the downstream observability
     # path so the agent runtime's callback can route accordingly.
+    from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (
+        _upsert_synthetic_lead,
+        eval_synthetic_lead_id,
+    )
+
     try:
-        synthetic_user_id = str(uuid4())
+        synthetic_user_id = str(eval_synthetic_lead_id(state.tenant_id))
+        # Best-effort lead row upsert — bridge self-heals when caller
+        # skipped the explicit seed step. Tenant isolation preserved:
+        # helper filters by ``tenant_id`` (per ``.claude/rules/tenant-isolation.md``).
+        try:
+            _upsert_synthetic_lead(db, state.tenant_id)
+            db.commit()
+        except Exception as lead_exc:  # noqa: BLE001 — best-effort: real DB error surfaces below
+            logger.warning(
+                "simulator.synthetic_lead_seed_failed",
+                simulation_id=str(state.simulation_id),
+                tenant_id=str(state.tenant_id),
+                error_class=type(lead_exc).__name__,
+                error=str(lead_exc),
+            )
+            with contextlib.suppress(Exception):
+                db.rollback()
         history = [{"role": t.role, "content": t.content} for t in state.transcript]
         initial_state = create_initial_state(
             user_id=synthetic_user_id,

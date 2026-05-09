@@ -68,6 +68,33 @@ def _eval_tenant_id(archetype_slug: str) -> UUID:
     return uuid.uuid5(_EVAL_TENANT_NAMESPACE, f"eval-{archetype_slug}")
 
 
+def eval_synthetic_lead_id(tenant_id: UUID) -> UUID:
+    """Derivar el ``leads.id`` sintético determinístico para un eval tenant.
+
+    DEEPER-C bridge contract (Bug 4 hot-fix 2026-05-08 post Story D archive):
+    el production graph wrappea cada nodo con ``@trace_node`` que persiste
+    una row en ``agent_traces`` cuyo ``user_id`` viene del ``state["user_id"]``
+    inyectado por ``agent_bridge``. Esa row tiene FK a ``leads.id`` en el
+    schema productivo (``agent_traces_user_id_fkey``). Sin un lead row
+    sintético, la primera invocación del agente revienta con
+    ``ForeignKeyViolation`` antes del primer LLM call.
+
+    Esta derivación es la **fuente única de verdad** del UUID compartido
+    entre la fixture (que crea la row) y el bridge (que pasa el UUID al
+    state). Cambiar la fórmula sin sincronizar ambos lados rompe la
+    integridad referencial.
+
+    Args:
+        tenant_id: UUID determinístico del eval tenant
+            (output de :func:`_eval_tenant_id`).
+
+    Returns:
+        UUID — idempotente across runs: ``uuid5(NAMESPACE_DNS,
+        f"eval-{tenant_id}-synthetic-lead")``.
+    """
+    return uuid.uuid5(_EVAL_TENANT_NAMESPACE, f"eval-{tenant_id!s}-synthetic-lead")
+
+
 # ---------------------------------------------------------------------------
 # Internal seed helpers
 # ---------------------------------------------------------------------------
@@ -314,6 +341,15 @@ def _upsert_offers(
                 metadata_info={"eval_level": level, "archetype_slug": ctx.archetype_slug},
             )
             db.add(product)
+            # DEEPER-C extended scope (Bug 4 deeper finding 2026-05-08):
+            # flush per-row to avoid SA 2.0.27 ``insertmanyvalues`` sentinel
+            # mismatch when the explicit ``id`` is a UUID5 (deterministic
+            # per-cell) and the column ``default=uuid.uuid4`` is also
+            # registered. Without this, SA's bulk insert path triggers
+            # ``InvalidRequestError: Can't match sentinel values...`` and
+            # the entire seed transaction aborts → downstream lead seed
+            # never runs → agent_traces FK violation surfaces as Bug 4.
+            db.flush()
             logger.info(
                 "eval_offer_insertado",
                 offer_id=str(offer_id),
@@ -404,6 +440,12 @@ def _upsert_buyer_personas(
                 completeness_score=0.0,
             )
             db.add(persona)
+            # DEEPER-C extended scope (Bug 4 deeper finding 2026-05-08):
+            # flush per-row — same SA 2.0.27 ``insertmanyvalues`` sentinel
+            # mismatch as ``_upsert_offers``. Without this, multi-persona
+            # tenants (mainstream archetypes have 2+ personas in YAML) hit
+            # the same abort path.
+            db.flush()
             logger.info(
                 "eval_buyer_persona_insertado",
                 persona_id=str(persona_id),
@@ -426,6 +468,78 @@ def _upsert_buyer_personas(
 
     db.flush()
     return upserted_ids
+
+
+def _upsert_synthetic_lead(
+    db: Session,
+    tenant_id: UUID,
+) -> UUID:
+    """Upsert una row sintética en ``leads`` table para satisfacer la FK
+    ``agent_traces_user_id_fkey`` durante eval simulator runs.
+
+    DEEPER-C bridge contract (Bug 4 hot-fix 2026-05-08): el production
+    graph wrappea cada nodo con ``@trace_node`` que persiste rows en
+    ``agent_traces.user_id`` con FK a ``leads.id``. Sin esta row sintética,
+    la primera invocación del agente revienta con ``ForeignKeyViolation``.
+
+    El lead row es **estrictamente eval-only** (no representa usuario
+    real): ``tenant_id`` filtrado para tenant isolation, sin canales
+    populados (telegram_id/whatsapp_id/instagram_id/etc todos NULL para
+    no colisionar con leads productivos vía las constraints UNIQUE).
+
+    Idempotente: re-run safe (upsert pattern). Si existe soft-deleted,
+    se restaura ``deleted_at = None``.
+
+    Args:
+        db: Sesión DB activa (caller gestiona lifecycle).
+        tenant_id: UUID determinístico del eval tenant.
+
+    Returns:
+        UUID del lead sintético (== :func:`eval_synthetic_lead_id`).
+    """
+    from src.shared.infrastructure.models.crm import LeadModel
+
+    lead_id = eval_synthetic_lead_id(tenant_id)
+
+    existing = db.execute(
+        select(LeadModel).where(
+            LeadModel.id == lead_id,
+            LeadModel.tenant_id == tenant_id,
+        ),
+    ).scalar_one_or_none()
+
+    if existing is None:
+        # Eval-only synthetic lead — sin canales populados (no UNIQUE
+        # collisions). profile_data + style_profile vacíos: la voz del
+        # agente viene de ``personality_profiles`` (slot 5), no del lead.
+        lead = LeadModel(
+            id=lead_id,
+            tenant_id=tenant_id,
+            profile_data={},
+            fit_score=0,
+            intent_score=0,
+            temperature="COLD",
+            is_blacklisted=False,
+            style_profile={},
+            key_objections_history=[],
+        )
+        db.add(lead)
+        logger.info(
+            "eval_synthetic_lead_insertado",
+            tenant_id=str(tenant_id),
+            lead_id=str(lead_id),
+        )
+    elif existing.deleted_at is not None:
+        # Restaurar soft-deleted (re-seed idempotente).
+        existing.deleted_at = None
+        logger.info(
+            "eval_synthetic_lead_restaurado",
+            tenant_id=str(tenant_id),
+            lead_id=str(lead_id),
+        )
+
+    db.flush()
+    return lead_id
 
 
 # ---------------------------------------------------------------------------
@@ -517,6 +631,11 @@ def seed_eval_tenant(
 
     # 5. Buyer personas.
     _upsert_buyer_personas(db, tenant_id, ctx)
+
+    # 6. Synthetic lead row — DEEPER-C bridge contract Bug 4 hot-fix
+    # 2026-05-08. Sin esta row, la FK ``agent_traces_user_id_fkey`` revienta
+    # en la primera persistencia del production graph @trace_node decorator.
+    _upsert_synthetic_lead(db, tenant_id)
 
     db.commit()
 
