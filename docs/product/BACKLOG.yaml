@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-08T23:38:44+00:00
+# Generated at: 2026-05-09T00:11:34+00:00
 
-generated_at: '2026-05-08T23:38:44+00:00'
+generated_at: '2026-05-09T00:11:34+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -105,6 +105,36 @@ buckets:
     - effort:S
     - value:eval-unblock
     - source:story-c-escalation
+    last_touched: 2026-05-08
+    extra:
+      promoted_to_outcome: null
+      ost: null
+  - id: agent-bridge-session-injection-fix
+    kind: idea
+    state: idea
+    title: Fix agent_bridge._resolve_session_for_simulation T-8 stub — currently returns None even with session injected,
+      causing SessionUnavailable in eval-foundation smokes
+    tags:
+    - module:sales-agent
+    - type:agentic-runtime
+    - effort:S
+    - value:eval-unblock-CRITICAL
+    - source:story-d-runevals-smoke
+    last_touched: 2026-05-08
+    extra:
+      promoted_to_outcome: null
+      ost: null
+  - id: goldens-archetype-slug-propagation
+    kind: idea
+    state: idea
+    title: Fix promote_golden e2e flow — archetype_slug not propagated from tenant context, causing 'Unknown archetype_slug'
+      error in TestE2ESmoke
+    tags:
+    - module:sales-agent
+    - type:tooling
+    - effort:S
+    - value:eval-completion
+    - source:story-d-runevals-smoke
     last_touched: 2026-05-08
     extra:
       promoted_to_outcome: null
