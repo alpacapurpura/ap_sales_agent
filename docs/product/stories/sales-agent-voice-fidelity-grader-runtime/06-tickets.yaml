@@ -444,6 +444,8 @@ tickets:
     blocks: [T-5, T-9]
     transitions:
       - { state: draft, at: 2026-05-08T10:00Z, by: /architect }
+      - { state: pushed, at: 2026-05-09, by: builder-agentic-opus-4.7 }
+    state: pushed
     assigned_to: builder-agentic-opus-4.7
 
   # ═════════════════════════════════════════════════════════════════════
