@@ -640,3 +640,228 @@ def test_simulation_id_uses_uuid5_with_full_tuple() -> None:
         trial_n=1,
     )
     assert sim_id != sim_id_trial_1
+
+
+# ───────────────────────────────────────────────────────────────────────
+# DEEPER-A regression — runner→agent_bridge session injection wiring
+# ───────────────────────────────────────────────────────────────────────
+#
+# Origen: DEEPER-A surfaced post Story D archive (2026-05-08 verification doc
+# `docs/archive/2026/stories/sales-agent-goldens-3-tenants-dataset/`
+# T-3.bis-smoke-verification.md lines 16-20).
+#
+# Symptom (verbatim repro pre-fix):
+#   simulator.agent_invalid_state error='Runner failed to inject SQLAlchemy
+#   session for simulation' error_class=SessionUnavailable
+#
+# Root cause: `agent_bridge._resolve_session_for_simulation` was a T-7 stub
+# that always returned None. The T-8 docstring planned a contextvar/thread-local
+# bridge from `run_simulation(db_session=...)` to the helper, but the runner
+# never wired it. Real callers (generate_golden_candidates) passed db_session
+# correctly to run_simulation; runner stored it only for cost summary at end;
+# agent_bridge crashed every turn 0 with INVALID_STATE before any LLM fired.
+#
+# Fix design (R23 Opus 4.7 — agentic test infrastructure under tests/):
+# - Module-level `ContextVar` in agent_bridge.py (asyncio task-local)
+# - `_resolve_session_for_simulation(state)` reads from ContextVar
+# - run_simulation wraps `graph.ainvoke()` in try/finally that sets+resets
+#   the ContextVar around the in-process invocation
+# - Backward compatible: existing tests that monkeypatch the helper directly
+#   keep working (monkeypatch overrides function entirely, bypassing the
+#   ContextVar read)
+# - Tenant isolation preserved: ContextVar holds Session, not tenant_id;
+#   agent runtime queries continue to filter by state.tenant_id
+
+
+@pytest.mark.asyncio
+async def test_db_session_propagated_to_agent_bridge_via_contextvar(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """DEEPER-A regression — runner MUST propagate db_session to agent_bridge.
+
+    Asserts:
+
+    1. When ``run_simulation(db_session=stub)`` is called, the stub session
+       is visible to ``agent_bridge._resolve_session_for_simulation`` via
+       the ContextVar bridge.
+    2. After ``run_simulation`` returns, the ContextVar is reset to None
+       (no leakage to subsequent simulations in the same event loop).
+    3. The stub session is the exact instance passed to the runner (not
+       a copy / wrapper).
+
+    Implementation: this test runs the REAL graph (no monkeypatch on
+    build_simulation_graph), but monkeypatches the agent_bridge's lazy
+    imports so no production sales_agent runtime is touched. The DB
+    session bridge is exercised end-to-end through the runner's
+    set/reset of the ContextVar.
+
+    Pre-fix this test FAILS with: assert captured_session is stub_session
+    → ``AssertionError: None is not <MagicMock id=...>`` because
+    _resolve_session_for_simulation always returned None.
+
+    # voseo-allowed — docstring quotes structlog event names + Spanish
+    # neutro reserved for user-facing strings (this is a test docstring).
+    """
+    monkeypatch.setattr(runner_mod, "_ARTIFACTS_BASE", tmp_path)
+
+    from tests.agentic_evals.sales_agent.simulator._internal import (
+        agent_bridge as bridge_mod,
+    )
+
+    # Capture the session value resolved INSIDE agent_bridge (called by the
+    # real graph). We don't replace _resolve_session_for_simulation — we want
+    # to test that the contextvar bridge works.
+    captured: dict[str, Any] = {"session": "<not-called>"}
+
+    real_resolver = bridge_mod._resolve_session_for_simulation
+
+    def _spy_resolver(state: SimulationState) -> Any:
+        result = real_resolver(state)
+        captured["session"] = result
+        return result
+
+    monkeypatch.setattr(bridge_mod, "_resolve_session_for_simulation", _spy_resolver)
+
+    # Patch the agent_bridge's lazy imports so the bridge does NOT crash
+    # downstream after the session is resolved (we only care about whether
+    # the resolver returns the injected session).
+    from src.modules.sales_agent.application.orchestrator import graph as graph_mod
+    from src.modules.sales_agent.application.services import (
+        knowledge_builder as kb_mod,
+    )
+    from tests.agentic_evals.sales_agent.simulator._internal import (
+        observability as obs_mod,
+    )
+
+    mock_kb = MagicMock()
+    mock_kb.build_identity = MagicMock(return_value="stub_identity")
+    mock_kb.build_brand_voice = MagicMock(return_value="stub_voice")
+    monkeypatch.setattr(kb_mod, "TenantKnowledgeBuilder", MagicMock(return_value=mock_kb))
+
+    mock_app = MagicMock()
+    mock_app.ainvoke = AsyncMock(return_value={"messages": [{"role": "assistant", "content": "Hola."}]})
+    monkeypatch.setattr(graph_mod, "agent_app", mock_app)
+
+    monkeypatch.setattr(
+        obs_mod,
+        "build_eval_simulator_observability_context",
+        MagicMock(return_value=None),  # bridge falls back to no-obs path
+    )
+
+    stub_session = MagicMock(name="stub_db_session")
+    actor = _make_actor("session-injection-test")
+
+    # Pre-condition — context var must be empty before the runner sets it.
+    assert bridge_mod._simulation_db_session_var.get() is None, "ContextVar MUST default to None (test isolation)"
+
+    result = await run_simulation(
+        "tenant_coach_lat",
+        actor,
+        max_turns=2,
+        trial_n=0,
+        db_session=stub_session,
+    )
+
+    # 1. Resolver was called and saw the injected session.
+    assert captured["session"] is stub_session, (
+        f"agent_bridge._resolve_session_for_simulation MUST receive the same "
+        f"db_session passed to run_simulation. Pre-fix DEEPER-A: returns None. "
+        f"Got: {captured['session']!r}"
+    )
+
+    # 2. ContextVar reset after run_simulation returns (no leak).
+    assert bridge_mod._simulation_db_session_var.get() is None, (
+        "ContextVar MUST be reset to None after run_simulation completes "
+        "(prevents cross-simulation leakage in the same event loop)"
+    )
+
+    # 3. Run completed without INVALID_STATE termination from session probe.
+    assert result.termination_reason != TerminationReason.AGENT_ERROR or (result.error_subtype != "invalid_state"), (
+        f"Pre-fix DEEPER-A: termination=AGENT_ERROR/INVALID_STATE due to "
+        f"SessionUnavailable. Got termination={result.termination_reason} "
+        f"subtype={result.error_subtype}"
+    )
+
+
+@pytest.mark.asyncio
+async def test_contextvar_resets_when_run_simulation_raises(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """DEEPER-A defense — ContextVar MUST reset even when run_simulation raises.
+
+    Asyncio ContextVars are task-local but do leak within the same task
+    if the producer skips the reset. Use try/finally to guarantee reset.
+    """
+    monkeypatch.setattr(runner_mod, "_ARTIFACTS_BASE", tmp_path)
+
+    from tests.agentic_evals.sales_agent.simulator._internal import (
+        agent_bridge as bridge_mod,
+    )
+
+    # Force build_simulation_graph().ainvoke to raise — exercises the
+    # finally branch that resets the ContextVar.
+    fake_compiled = MagicMock()
+    fake_compiled.ainvoke = AsyncMock(side_effect=RuntimeError("boom"))
+    monkeypatch.setattr(runner_mod, "build_simulation_graph", MagicMock(return_value=fake_compiled))
+
+    stub_session = MagicMock(name="stub_for_raise_path")
+    actor = _make_actor("raise-path-test")
+
+    with pytest.raises(RuntimeError, match="boom"):
+        await run_simulation(
+            "tenant_coach_lat",
+            actor,
+            max_turns=1,
+            trial_n=0,
+            db_session=stub_session,
+        )
+
+    # ContextVar reset even though graph.ainvoke raised.
+    assert bridge_mod._simulation_db_session_var.get() is None, (
+        "ContextVar MUST reset to None even when graph.ainvoke raises "
+        "(try/finally guarantee — defense-in-depth against task-local leakage)"
+    )
+
+
+@pytest.mark.asyncio
+async def test_resolve_session_returns_none_when_not_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Backward compat — `_resolve_session_for_simulation` returns None
+    outside a `run_simulation` context.
+
+    Pre-fix behavior preserved when the ContextVar is empty: the resolver
+    returns None, agent_bridge takes the INVALID_STATE termination path.
+    This is the correct behavior for `db_session=None` invocations
+    (graceful-degradation Rule 2 fallback — best-effort).
+    """
+    from tests.agentic_evals.sales_agent.simulator._internal import (
+        agent_bridge as bridge_mod,
+    )
+
+    # No ContextVar set — fresh task scope.
+    state = SimulationState(
+        simulation_id=uuid4(),
+        run_id=uuid4(),
+        tenant_id=uuid4(),
+        archetype_slug="tenant_coach_lat",
+        actor_profile=_make_actor(),
+        trial_n=0,
+        transcript=[],
+        current_turn=0,
+        max_turns=10,
+        eval_metadata={
+            "eval_run_kind": "simulator",
+            "archetype_slug": "tenant_coach_lat",
+            "actor_profile_id": "lead-frio-impaciente",
+            "trial_n": 0,
+            "simulation_id": "00000000-0000-0000-0000-000000000000",
+            "run_id": "00000000-0000-0000-0000-000000000000",
+        },
+    )
+    resolved = bridge_mod._resolve_session_for_simulation(state)
+    assert resolved is None, (
+        "Resolver MUST return None when ContextVar is unset (preserves backward compat for db_session=None callers)"
+    )

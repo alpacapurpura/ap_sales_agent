@@ -91,6 +91,7 @@ enabled.
 # async node defined here.
 
 import contextlib
+from contextvars import ContextVar, Token
 from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import uuid4
@@ -112,37 +113,90 @@ logger = structlog.get_logger()
 
 
 # ════════════════════════════════════════════════════════════════════════
-# Session resolver — internal helper. T-8 runner injects the session via
-# either thread-local or state.eval_metadata['_db_session'] (avoids
-# polluting the Pydantic state schema with an SQLAlchemy session field).
-# Tests monkeypatch this helper to inject a stub session.
+# Session resolver — internal helper. The ``run_simulation`` orchestrator
+# (``_internal/runner.py``) sets the ``_simulation_db_session_var`` ContextVar
+# on entry and resets it on exit (try/finally). This helper reads the var.
+#
+# ContextVars are asyncio-task-local — safe under concurrent simulations
+# (each ``asyncio.gather`` task gets its own copy). They were the canonical
+# bridge sketched in the T-7 stub docstring; DEEPER-A regression
+# (2026-05-08 post Story D archive) cemented the wiring once a real-LLM
+# smoke run surfaced ``SessionUnavailable`` despite the runner accepting
+# ``db_session`` correctly.
+#
+# Existing T-7 unit tests that monkeypatch this helper directly continue
+# to work — ``monkeypatch.setattr(bridge_mod, "_resolve_session_for_simulation",
+# lambda _state: stub)`` replaces the function, bypassing the ContextVar
+# read entirely.
 # ════════════════════════════════════════════════════════════════════════
+
+# Module-level ContextVar — default ``None`` matches the legacy "session
+# unavailable" branch when no runner has set it (e.g. helper invoked
+# outside a ``run_simulation`` task scope).
+_simulation_db_session_var: ContextVar[Any | None] = ContextVar(
+    "_simulation_db_session_var",
+    default=None,
+)
+
+
+def _set_simulation_db_session(session: Any) -> Token[Any | None]:
+    """Set the simulation's SQLAlchemy session for the current asyncio task.
+
+    Returns a :class:`contextvars.Token` the caller MUST pass back to
+    :func:`_reset_simulation_db_session` (typically inside a try/finally
+    block) so the ContextVar is restored to its previous value — even if
+    the wrapped invocation raises.
+
+    Used by ``run_simulation`` to bridge its ``db_session`` parameter to
+    ``_resolve_session_for_simulation``.
+
+    Args:
+        session: The SQLAlchemy ``Session`` to expose to the bridge. May
+            be ``None`` to explicitly mark "no session for this turn"
+            (the bridge will then take the INVALID_STATE termination path).
+
+    Returns:
+        A :class:`contextvars.Token` for restoration.
+    """
+    return _simulation_db_session_var.set(session)
+
+
+def _reset_simulation_db_session(token: Token[Any | None]) -> None:
+    """Restore the ContextVar to the value it held before the matching
+    :func:`_set_simulation_db_session` call.
+
+    Idempotent — calling with the same token multiple times raises
+    :class:`LookupError`; callers should invoke this exactly once per
+    set, inside a ``try/finally`` block.
+
+    Args:
+        token: The token returned by the matching set call.
+    """
+    _simulation_db_session_var.reset(token)
 
 
 def _resolve_session_for_simulation(state: SimulationState) -> Any:
     """Resolve the SQLAlchemy ``Session`` for the current simulation.
 
-    Implementation note: T-8 runner sets a context variable / thread-local
-    on entry to ``run_simulation``, and this helper reads it. For T-7 unit
-    tests, the helper is monkey-patched to return a stub session directly.
+    Reads the ``_simulation_db_session_var`` ContextVar. The value is set
+    by ``run_simulation`` (``_internal/runner.py``) before invoking the
+    LangGraph and reset after — ContextVars are asyncio-task-local so
+    concurrent simulations do not collide.
 
     Returning ``None`` triggers an :class:`AgentErrorSubtype.INVALID_STATE`
     termination — the bridge cannot persist observability rows or load the
     agent_identity / brand_voice without a session.
 
     Args:
-        state: Current simulation state. ``state.eval_metadata`` may carry
-            session-related context for the runner-level resolver.
+        state: Current simulation state. Reserved for future per-state
+            resolution (e.g. multi-tenant simulator pools); unused today.
 
     Returns:
         SQLAlchemy ``Session`` bound to the eval tenant, or ``None`` when
-        the runner failed to inject one.
+        the runner did not inject one (e.g. ``db_session=None`` caller).
     """
-    # T-8 will replace this stub with a contextvar/thread-local read.
-    # For now (T-7), the implementation is unbound — unit tests patch this
-    # helper. Returning None matches the "session unavailable" branch.
-    del state
-    return None
+    del state  # reserved for future per-state resolution
+    return _simulation_db_session_var.get()
 
 
 # ════════════════════════════════════════════════════════════════════════

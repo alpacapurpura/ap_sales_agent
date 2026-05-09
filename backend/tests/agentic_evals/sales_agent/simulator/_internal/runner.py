@@ -63,6 +63,10 @@ from uuid import UUID
 
 import structlog
 
+from tests.agentic_evals.sales_agent.simulator._internal.agent_bridge import (
+    _reset_simulation_db_session,
+    _set_simulation_db_session,
+)
 from tests.agentic_evals.sales_agent.simulator._internal.graph import (
     build_simulation_graph,
 )
@@ -528,7 +532,18 @@ async def run_simulation(
     graph = build_simulation_graph()
 
     # ── Step 7: Invoke graph (in-process — D1 cement) ──────────────────
-    final_state_raw: Any = await graph.ainvoke(initial_state)
+    # DEEPER-A bridge (2026-05-08 post Story D archive): set the
+    # ``_simulation_db_session_var`` ContextVar so ``agent_bridge.
+    # _resolve_session_for_simulation`` returns the injected session
+    # rather than the legacy stub None. ContextVars are asyncio
+    # task-local — concurrent simulations under ``asyncio.gather`` each
+    # get their own value (no cross-cell leakage). The ``try/finally``
+    # guarantees reset even if ``graph.ainvoke`` raises.
+    _session_token = _set_simulation_db_session(db_session)
+    try:
+        final_state_raw: Any = await graph.ainvoke(initial_state)
+    finally:
+        _reset_simulation_db_session(_session_token)
     # LangGraph 0.6 returns the state as a dict-like (or the BaseModel
     # depending on graph configuration). Coerce back to Pydantic for
     # uniform downstream handling.
