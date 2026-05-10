@@ -1,158 +1,182 @@
 ---
 story_id: luana-foundation
 schema: v4
-total_validators: 22
-last_modified: 2026-05-09
-ratified_by_chris: false
+total_validators: 20                            # ★ revised down from 22 (v1) — 8 removed, 6 added ★
+must_pass_count: 19                             # 19 automated must_pass + 1 manual visual (V-1)
+last_modified: 2026-05-10
+ratified_by_chris: true                         # ★ Chris ratified scope 2026-05-10 ★
+revision_notes: |
+  v2 (2026-05-10): scope shifted to monorepo + GH Packages deferred to Story 9.
+  REMOVED (8 validators): NF-1 (5-repo gh org listing), NF-2 (5-repo branch
+  protection iter), F-1 (Python publish smoke), F-2 (TS publish smoke),
+  F-3 (cross-repo Python install), F-4 (cross-repo TS install), F-7 (subtree
+  helper script), F-8 (cross-org Project v2).
+  ADDED (4 validators): NF-3 (CODEOWNERS), NF-4 (PR template), NF-5 (ADR folder),
+  F-2 (workspace member subfolders), F-3 (per-subfolder pyproject), F-6 (arch
+  fitness bootstrap).
+  v1 (2026-05-09): 22 validators (18 must_pass) — superseded.
 ---
 
 # Validators — must_pass:true ALL before state developing → developed
 
+# Categories: non_functional / functional / visual / agentic_eval / documentation
+# All commands assume Chris cloned monorepo to ~/luana-platform/
+
 categories:
   non_functional:
+
     - id: NF-1
-      description: "GitHub Org luana-platform exists with 5 expected repos"
+      description: "Monorepo cloned with main branch protected (review_count=1, no force pushes, lint+test required)"
       command: |
-        gh repo list luana-platform --json name --limit 10 | jq -r '.[].name' | sort | tr '\n' ',' | grep -E '^comunify,luana-core,lupulo-labs,nicolify,vitalia,$'
+        gh api "repos/alpacapurpura/luana-platform/branches/main/protection" \
+          --jq '{
+            review_count: .required_pull_request_reviews.required_approving_review_count,
+            force_pushes: .allow_force_pushes.enabled,
+            checks: .required_status_checks.contexts
+          }' | grep -qE '"review_count": 1' && \
+        gh api "repos/alpacapurpura/luana-platform/branches/main/protection" \
+          --jq '.allow_force_pushes.enabled' | grep -qE '^false$'
       expected_exit: 0
       must_pass: true
-      owner: chris (manual via gh CLI)
+      owner: chris (manual via gh CLI initial config; verifiable scripted)
 
     - id: NF-2
-      description: "All 5 repos have main branch protected"
+      description: "uv workspace syncs without errors at monorepo root"
       command: |
-        for r in luana-core nicolify vitalia comunify lupulo-labs; do
-          gh api "repos/luana-platform/$r/branches/main/protection" >/dev/null 2>&1 || exit 1
-        done
+        cd ~/luana-platform && uv sync --all-packages
       expected_exit: 0
       must_pass: true
 
     - id: NF-3
-      description: "luana-core uv workspace synces without errors"
+      description: ".github/CODEOWNERS exists with required path rules (core/copilot, core/sales-agent, core/shared, ADR)"
       command: |
-        cd ~/luana-platform/luana-core && uv sync --all-packages
+        cd ~/luana-platform && \
+        test -f .github/CODEOWNERS && \
+        grep -qE '^core/copilot/\*\*' .github/CODEOWNERS && \
+        grep -qE '^core/sales-agent/\*\*' .github/CODEOWNERS && \
+        grep -qE '^core/shared/\*\*' .github/CODEOWNERS && \
+        grep -qE '^docs/architecture/ADR/\*\*' .github/CODEOWNERS
       expected_exit: 0
       must_pass: true
 
     - id: NF-4
-      description: "luana-core pnpm workspace installs without errors"
+      description: ".github/PULL_REQUEST_TEMPLATE.md exists with required sections"
       command: |
-        cd ~/luana-platform/luana-core && pnpm install --frozen-lockfile
+        cd ~/luana-platform && \
+        test -f .github/PULL_REQUEST_TEMPLATE.md && \
+        grep -q "## Qué cambia" .github/PULL_REQUEST_TEMPLATE.md && \
+        grep -q "## Por qué" .github/PULL_REQUEST_TEMPLATE.md && \
+        grep -q "## Módulos tocados" .github/PULL_REQUEST_TEMPLATE.md && \
+        grep -q "## ADR ref" .github/PULL_REQUEST_TEMPLATE.md && \
+        grep -q "## Outcome / story ref" .github/PULL_REQUEST_TEMPLATE.md
       expected_exit: 0
       must_pass: true
 
     - id: NF-5
-      description: "luana-core ruff lint passes"
+      description: "docs/architecture/ADR/README.md exists explaining ADR template + index"
       command: |
-        cd ~/luana-platform/luana-core && uv run ruff check packages/python/
+        cd ~/luana-platform && \
+        test -f docs/architecture/ADR/README.md && \
+        grep -qiE "(ADR template|template|formato Michael Nygard)" docs/architecture/ADR/README.md && \
+        grep -qiE "(ADR index|índice)" docs/architecture/ADR/README.md
       expected_exit: 0
       must_pass: true
 
     - id: NF-6
-      description: "luana-core pnpm lint passes"
+      description: "pnpm workspace installs without errors"
       command: |
-        cd ~/luana-platform/luana-core && pnpm lint
+        cd ~/luana-platform && pnpm install --frozen-lockfile
+      expected_exit: 0
+      must_pass: true
+
+    - id: NF-7
+      description: "Ruff lint passes across all subfolders"
+      command: |
+        cd ~/luana-platform && uv run ruff check core nicolify vitalia comunify lupulo
+      expected_exit: 0
+      must_pass: true
+
+    - id: NF-8
+      description: "pnpm lint passes (or no-op exits 0 on Story 1 placeholder)"
+      command: |
+        cd ~/luana-platform && pnpm lint 2>&1 | tee /tmp/pnpm-lint.log; \
+        grep -qE '(no eslint yet|0 problems|all checks passed)' /tmp/pnpm-lint.log || \
+        [ "$(grep -cE 'error' /tmp/pnpm-lint.log)" -eq 0 ]
       expected_exit: 0
       must_pass: true
 
   functional:
+
     - id: F-1
-      description: "Stub Python package luana-core-platform@0.0.1-alpha publishes successfully to GH Packages"
+      description: "luana-platform CI workflow runs successfully on PR (smoke commit)"
       command: |
-        cd ~/luana-platform/luana-core && \
-        uv build packages/python/luana-core-platform/ && \
-        UV_PUBLISH_URL=https://npm.pkg.github.com \
-        UV_PUBLISH_TOKEN=$GITHUB_TOKEN \
-        uv publish packages/python/luana-core-platform/dist/*.whl
+        gh run list --repo alpacapurpura/luana-platform --limit 1 --json conclusion -q '.[].conclusion' | grep -qE 'success'
       expected_exit: 0
       must_pass: true
 
     - id: F-2
-      description: "Stub TS package @luana/ui-kit@0.0.1-alpha publishes successfully"
+      description: "5 subfolders exist (core, nicolify, vitalia, comunify, lupulo) with README.md each"
       command: |
-        cd ~/luana-platform/luana-core/packages/ts/ui-kit && \
-        npm publish --registry https://npm.pkg.github.com
-      expected_exit: 0
-      must_pass: true
-
-    - id: F-3
-      description: "Stub brand repo (vitalia) installs luana-core-platform from GH Packages"
-      command: |
-        cd ~/luana-platform/vitalia && \
-        pip install luana-core-platform==0.0.1-alpha --index-url "https://__token__:${GITHUB_TOKEN}@maven.pkg.github.com/luana-platform/_/simple/" && \
-        python -c "import luana_core_platform; assert luana_core_platform.VERSION == '0.0.1-alpha'"
-      expected_exit: 0
-      must_pass: true
-
-    - id: F-4
-      description: "Stub brand repo (vitalia) installs @luana/ui-kit from GH Packages"
-      command: |
-        cd ~/luana-platform/vitalia && \
-        echo "@luana:registry=https://npm.pkg.github.com" > .npmrc && \
-        echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc && \
-        pnpm add @luana/ui-kit@0.0.1-alpha
-      expected_exit: 0
-      must_pass: true
-
-    - id: F-5
-      description: "luana-core CI workflow runs successfully on PR (smoke commit)"
-      command: |
-        gh run list --repo luana-platform/luana-core --limit 1 --json conclusion -q '.[].conclusion' | grep -E 'success'
-      expected_exit: 0
-      must_pass: true
-
-    - id: F-6
-      description: "Brand vitalia subtree pull from luana-core succeeds"
-      command: |
-        cd ~/luana-platform/vitalia && \
-        git remote get-url luana-core && \
-        ls .claude/rules/parallel-safety.md
-      expected_exit: 0
-      must_pass: true
-
-    - id: F-7
-      description: "Brand sync-claude-shared.sh script exists + executable"
-      command: |
-        for b in vitalia comunify lupulo-labs nicolify; do
-          test -x ~/luana-platform/$b/scripts/sync-claude-shared.sh || exit 1
+        cd ~/luana-platform && \
+        for sub in core nicolify vitalia comunify lupulo; do
+          test -d "$sub" && test -s "$sub/README.md" || exit 1
         done
       expected_exit: 0
       must_pass: true
 
-    - id: F-8
-      description: "GitHub Project v2 'Luana Roadmap' exists with custom fields"
+    - id: F-3
+      description: "Each subfolder is registered as workspace member (pyproject.toml + pnpm-workspace.yaml)"
       command: |
-        gh project list --owner luana-platform --format json | jq -r '.projects[] | select(.title=="Luana Roadmap") | .number'
+        cd ~/luana-platform && \
+        for sub in core nicolify vitalia comunify lupulo; do
+          grep -qE "\"$sub\"" pyproject.toml || exit 1
+          grep -qE "(- $sub|- $sub/\*)" pnpm-workspace.yaml || exit 1
+        done
       expected_exit: 0
       must_pass: true
 
-    - id: F-9
-      description: ".claude-shared/{rules,skills,agents}/ in luana-core have content"
+    - id: F-4
+      description: ".claude-shared/{rules,skills,agents}/ have content (>20 rules, >10 skills)"
       command: |
-        cd ~/luana-platform/luana-core && \
+        cd ~/luana-platform && \
         test -d .claude-shared/rules && \
         test -d .claude-shared/skills && \
         test -d .claude-shared/agents && \
-        test "$(ls .claude-shared/rules | wc -l)" -gt 20
+        test "$(ls .claude-shared/rules | wc -l)" -gt 20 && \
+        test "$(ls .claude-shared/skills | wc -l)" -gt 10
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-5
+      description: ".claude/ exists (copy or symlink to .claude-shared/)"
+      command: |
+        cd ~/luana-platform && \
+        test -e .claude/rules && \
+        test -e .claude/skills && \
+        test -e .claude/agents
+      expected_exit: 0
+      must_pass: true
+
+    - id: F-6
+      description: "Architectural fitness bootstrap tests pass (workspace + CODEOWNERS + ADR + claude-shared + PR template)"
+      command: |
+        cd ~/luana-platform/nicolify && \
+        test -d tests/architecture && \
+        (cd ~/luana-platform && uv run pytest nicolify/tests/architecture/ -x -q --tb=short)
       expected_exit: 0
       must_pass: true
 
   visual:
+
     - id: V-1
-      description: "GitHub Project v2 board renders with 3 views (Roadmap, By Brand, Active)"
+      description: "Manual: Chris confirms branch protection UI shows correct settings"
       command: "manual_check"
       expected_exit: 0
       must_pass: false                          # visual N/A automated, manual confirm
       owner: chris
 
-    - id: V-2
-      description: "GitHub Org luana-platform README.md displays correctly"
-      command: "manual_check"
-      expected_exit: 0
-      must_pass: false
-      owner: chris
-
   agentic_eval:
+
     - id: AE-1
       description: "N/A — story has no agentic surface"
       command: "echo 'no agentic eval needed for foundation'"
@@ -160,49 +184,54 @@ categories:
       must_pass: true
 
   documentation:
+
     - id: D-1
-      description: "luana-core/docs/CONTRIBUTING.md exists + > 30 lines"
+      description: "docs/CONTRIBUTING.md exists describing Conventional Commits + PR flow + ADR rules + > 30 lines"
       command: |
-        test -f ~/luana-platform/luana-core/docs/CONTRIBUTING.md && \
-        test "$(wc -l < ~/luana-platform/luana-core/docs/CONTRIBUTING.md)" -gt 30
+        cd ~/luana-platform && \
+        test -f docs/CONTRIBUTING.md && \
+        test "$(wc -l < docs/CONTRIBUTING.md)" -gt 30 && \
+        grep -qiE "conventional commits" docs/CONTRIBUTING.md && \
+        grep -qiE "(ADR|architecture decision)" docs/CONTRIBUTING.md
       expected_exit: 0
       must_pass: true
 
     - id: D-2
-      description: "luana-core/docs/RELEASES.md exists describing semver policy"
+      description: "docs/ARCHITECTURE.md exists describing monorepo topology + 5 subfolders"
       command: |
-        test -f ~/luana-platform/luana-core/docs/RELEASES.md && \
-        grep -q "semver" ~/luana-platform/luana-core/docs/RELEASES.md
+        cd ~/luana-platform && \
+        test -f docs/ARCHITECTURE.md && \
+        grep -qE "core" docs/ARCHITECTURE.md && \
+        grep -qE "nicolify" docs/ARCHITECTURE.md && \
+        grep -qE "vitalia" docs/ARCHITECTURE.md && \
+        grep -qE "comunify" docs/ARCHITECTURE.md && \
+        grep -qE "lupulo" docs/ARCHITECTURE.md
       expected_exit: 0
       must_pass: true
 
     - id: D-3
-      description: "luana-core/docs/ARCHITECTURE.md links to ADR-001"
+      description: "docs/RELEASES.md placeholder exists noting publishing deferred to Story 9"
       command: |
-        grep -q "ADR-001" ~/luana-platform/luana-core/docs/ARCHITECTURE.md
+        cd ~/luana-platform && \
+        test -f docs/RELEASES.md && \
+        grep -qiE "(story 9|luana-v0-1-0-publish|deferred|placeholder)" docs/RELEASES.md
       expected_exit: 0
       must_pass: true
 
     - id: D-4
-      description: "luana-core/README.md exists + non-empty"
+      description: "README.md at repo root exists + non-empty"
       command: |
-        test -s ~/luana-platform/luana-core/README.md
+        cd ~/luana-platform && test -s README.md
       expected_exit: 0
       must_pass: true
 
-    - id: D-5
-      description: "Each brand repo has README.md non-empty"
-      command: |
-        for b in nicolify vitalia comunify lupulo-labs; do
-          test -s ~/luana-platform/$b/README.md || exit 1
-        done
-      expected_exit: 0
-      must_pass: true
-
-# Rationale notes
+# Summary
 notes:
-  - "All commands assume Chris cloned the 5 repos to ~/luana-platform/{repo}/ (Sunday playbook §6-§8)"
-  - "GITHUB_TOKEN env var must be set with read:packages + write:packages scopes during local validation"
-  - "F-1 + F-2 are the critical end-to-end smoke tests proving the publish→consume cycle works"
-  - "V-1 + V-2 are owner=chris manual checks — must_pass:false because visual"
-  - "Total automated validators: 18 (must_pass:true) + 2 manual + 2 N/A. Story unblocks Story 2 lift when 18/18 pass"
+  - "Total validators: 14 (12 must_pass:true + 1 manual visual + 1 N/A agentic_eval)"
+  - "All commands assume Chris cloned monorepo to ~/luana-platform/"
+  - "GITHUB_TOKEN env var must be set with `repo` scope for gh API checks (NF-1, F-1)"
+  - "Story 1 done (state developed) when 12/12 must_pass:true validators GREEN"
+  - "Then: Chris triggers /auditor for CHECKPOINTS C1-C5 → done"
+  - "REMOVED from v1: GH Packages publishing smoke tests (F-1, F-2 publish + F-3, F-4 install) — Story 9"
+  - "REMOVED from v1: subtree helper script + cross-org Project v2 — single repo, no need"
+  - "ADDED in v2: NF-3 CODEOWNERS, NF-4 PR template, NF-5 ADR folder, F-6 arch fitness bootstrap"

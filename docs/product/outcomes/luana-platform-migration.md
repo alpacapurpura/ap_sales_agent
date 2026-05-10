@@ -6,8 +6,13 @@ phase: outcome_decomposition
 created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-09
-target_close_window: 2026-07-31                # 8 sem migration + 4 sem stabilization
+target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
+repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/
+repo_url: https://github.com/alpacapurpura/luana-platform.git
+license: proprietary                            # ★ ratified 2026-05-10 ★ All rights reserved, private repo
+gh_packages_strategy: deferred                  # ★ ratified 2026-05-10 ★ workspace-internal (uv + pnpm) until Story 9 publishing
+claude_subs: 1                                  # ★ ratified 2026-05-10 ★ scope reduced from 5 to 1, sequential build, progressive sub additions Q3-Q4 2026
 business_outcome: "Operate 4 vertical SaaS brands (Nicolify + Vitalia + Comunify + Lupulo Labs) on shared Luana core with brand-isolated deployments, enabling core improvements to ripple to 4 brands automatically while preserving vertical-specific adaptations via formal extension points"
 hypothesis: "Multi-Brand Vertical SaaS pattern (canonical industry pattern: ServiceTitan, Toast, Mindbody) reduces cost to launch new vertical from months to weeks while preserving SSoT discipline. Validated by 14 atomic stories shipping incrementally with /pm v4 state machine + validators + auditor checkpoints."
 success_metrics:
@@ -21,7 +26,7 @@ related_adrs:
   - "docs/architecture/luana-platform/adr/ADR-001-luana-platform.md"
 related_audits:
   - "docs/architecture/luana-platform/01-core-audit.md"
-ratified_by_chris: false                       # ★ awaiting Chris ratification post Sunday 2026-05-11 ★
+ratified_by_chris: true                        # ★ ratified 2026-05-10 ★ ADR-001 + scope decisions confirmed
 legacy_exempt: false                            # this outcome uses v4 paradigm fully
 ---
 
@@ -90,11 +95,13 @@ Story 11 — Vitalia   Story 12 — Comunify   Story 13 — Lupulo   Story 14 �
 | `luana-lupulo-bootstrap` | — | 10 |
 | `luana-brand-voice-elevation` | — | 10 (can run parallel to 11-13) |
 
-### 2.2 State + WIP cap honored
+### 2.2 State + WIP cap honored (REVISED 2026-05-10 — 1 Claude sequential)
 
-- Stories 11-14 pueden correr paralelo (4 Claude subs distintos)
-- WIP `developing` ≤ 3 → Stories 11-13 corren paralelo, 14 espera o se intercala
-- WIP `reviewing` ≤ 2 → /auditor procesa de a 2 stories simultáneas máx
+- 1 Claude Code Max sub disponible. Stories ejecutan **secuencialmente**, no paralelo.
+- Chris compra subs adicionales progresivamente Q3-Q4 2026 — cuando lleguen Stories 11-13 (~Sem 9-10), tal vez ya 2-3 subs disponibles, recuperar paralelo si aplicable.
+- WIP `developing` ≤ 3 cap intacto pero usage actual = 1 con 1 sub.
+- WIP `reviewing` ≤ 2 cap intacto.
+- Timeline original (8 sem) extendido a **14-16 sem migration + 4 sem stabilization** = target close ~2026-09-15.
 
 ### 2.3 Skills + cost routing
 
@@ -120,12 +127,28 @@ Story 11 — Vitalia   Story 12 — Comunify   Story 13 — Lupulo   Story 14 �
 | 7 | Trough Sem 1-5 sin features nuevos Nicolify | Medium | Communicate to existing customers, freeze feature requests |
 | 8 | Costos Sentry per-brand + Postgres backups | Low | Budget reviewed +$150-200/mo, included in $1100-1400/mo total |
 
-### 3.2 Dependencies externas
+### 3.2 Dependencies externas (REVISED 2026-05-10)
 
-- Chris ratifica ADR-001 (target 2026-05-11)
-- Chris compra 4 Claude Code Max subs adicionales (5 totales)
-- Chris crea GitHub Org `luana-platform` (Story 1 deliverable)
-- Story E sales-agent-voice-fidelity-grader-runtime → `done` (target 2026-05-12 post /auditor)
+- ✅ Chris ratificó ADR-001 + scope decisions (2026-05-10)
+- ✅ Chris creó repo `alpacapurpura/luana-platform` (private, empty)
+- ⏸ Subs adicionales Claude Code Max — progressive, NO bloqueante (1 sub OK para arrancar)
+- ⏸ Story E sales-agent-voice-fidelity-grader-runtime → `done` (bloquea solamente Story 7, no Stories 1-6)
+
+## 3.3 Anti-island pattern (futuros colaboradores)
+
+Cuando Chris contrate colaboradores (TBD), aplicar pattern para preservar SSoT discipline:
+
+| # | Pattern | Mecánica |
+|---|---|---|
+| 1 | **CODEOWNERS** | Paths críticos (`core/copilot/`, `core/sales-agent/`, `core/shared/`) requieren review Chris. Generated en Story 1 T-X. |
+| 2 | **ADR mandatory** | Todo cambio core (cross-module behavior, schema, API contract) requiere ADR en `docs/architecture/ADR/`. Sin ADR → PR rejected. |
+| 3 | **Conventional Commits + PR template** | Colaborador responde "qué + por qué + qué módulos toca". Auto-link a outcome/story id. |
+| 4 | **Branch protection main** | PR mandatory + required checks (lint+test+arch-fitness) + 1 review (Chris) + signed commits. |
+| 5 | **/pm SSoT enforcement** | Todo feature pasa por outcome → story → ready package. NO commits sueltos a core sin ticket asociado. |
+| 6 | **Brand isolation por path** | Colaborador asignado a `vitalia/` no toca `core/` ni `nicolify/`. CODEOWNERS bloquea. |
+| 7 | **No new patterns sin lift shared** | Si colaborador-A en vitalia/ inventa patrón útil, antes de agregar en core → /pm review + lift formal. Anti-mirror per `.claude/rules/anti-duplication.md`. |
+
+Cuando 2+ devs onboard → formalizar `docs/process/collaboration-protocol.md`. Por ahora pattern arriba alcanza.
 
 ## 4. Stories archive map (post-completion)
 
@@ -170,15 +193,25 @@ Stories que NO entran en este outcome pero quedan registradas en backlog:
 
 | Role | Person | Date | Status |
 |---|---|---|---|
-| Founder + CEO | Chris | _PENDING_ | awaiting ratification 2026-05-11 |
-| Outcome curator | /pm skill (Opus 4.7) | 2026-05-09 | drafted |
-| Architecture | ADR-001 ratification | _PENDING_ | docs/architecture/luana-platform/adr/ADR-001 |
+| Founder + CEO | Chris | 2026-05-10 | ✅ ratified ADR-001 + 3 scope decisions (monorepo + proprietary + defer GH Packages) |
+| Outcome curator | /pm skill (Opus 4.7) | 2026-05-09 → updated 2026-05-10 | drafted + revised post ratification |
+| Architecture | ADR-001 ratification | 2026-05-10 | ✅ ratified by Chris (verbal) |
+
+### 7.1 Scope decisions ratified 2026-05-10
+
+| Decisión | Valor | Razón |
+|---|---|---|
+| Repo topology | **Monorepo** (`alpacapurpura/luana-platform`) | 1 Claude sub + Chris solo + colaboradores TBD. Refactor a multi-repo cuando contrate equipo per-brand. |
+| License | **Proprietary** | Estándar SaaS B2B. Repos privados. Tu IP. |
+| GH Packages publishing | **Diferido** hasta Story 9 | Workspace-internal (uv + pnpm) sin overhead publishing inicial. Story 9 introduce publish pipeline. |
+| Claude subs | **1 actual**, progressive Q3-Q4 2026 | Stories ejecutan secuencial. Timeline +6 sem. |
 
 ---
 
-**Next steps post-ratification:**
-1. /po service-stories (no UI) opens 01-spec.md per Story 1-9 (engine lifts, no UI work)
-2. /po-ux opens 01-spec.md per Story 10-14 (brand bootstraps incluyen UI theming)
-3. /architect spawns architect-orchestrator per story → 03-arch + 04-validators + 05-guidelines + 06-tickets = ready package
-4. /dev-team picks Story 1 first → autonomous build → /auditor → done
-5. Repeat ticket-por-ticket per story per /pm v4 paradigm
+**Next steps post-ratification (REVISED 2026-05-10):**
+1. ✅ /pm spawns architect-orchestrator → revise Story 1 ready package for monorepo + proprietary + defer GH Packages (in progress 2026-05-10)
+2. /pm Story 1 state refining → refined → ready post architect re-emit
+3. /dev-team picks Story 1 T-1 → autonomous build (Sonnet OK, no R23 trigger — infra only)
+4. /auditor when Story 1 developed → CHECKPOINTS C1-C5
+5. /pm merge → capability promoted → Story 2 unparked → repeat per /pm v4 paradigm
+6. Stories 11-14 originally paralelas → secuenciales 1 Claude (revisit cuando subs adicionales lleguen Q3-Q4)

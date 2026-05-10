@@ -1,276 +1,314 @@
 ---
 story_id: luana-foundation
-tickets_version: 1
-total_tickets: 11
-last_modified: 2026-05-09
-ratified_by_chris: false
+tickets_version: 2                              # ★ revision applied 2026-05-10 ★
+total_tickets: 7                                # ★ reduced from 11 (v1) ★
+last_modified: 2026-05-10
+ratified_by_chris: true                         # ★ Chris ratified scope 2026-05-10 ★
+revision_notes: |
+  v2 (2026-05-10): 7 tickets (was 11). Removed: T-5 release.yml,
+  T-6 GH Packages publish smoke, T-8 cross-repo install smoke. Simplified:
+  T-1 (clone + governance, was create org + 5 repos). New: T-5 subfolders +
+  workspace registration; T-6 docs seed includes ADR README.
+  v1 (2026-05-09): 11 tickets, GH Packages publishing in scope — superseded.
 ---
 
 # Tickets DAG — Luana Foundation
 
 # Each ticket is atomic, independently mergeable, with clear inputs/outputs.
-# Owner field: per 05-guidelines.md §5, all eligible Sonnet (no R23 trigger).
+# Owner field: per 05-guidelines.md §5, all eligible Sonnet (no R23 trigger — pure infra).
+# All work happens in ~/luana-platform/ (cloned monorepo). Story 1 does NOT touch AISALESHT.
 
 tickets:
 
   - id: T-1
-    subject: "Create GitHub Org luana-platform + 5 private repos with branch protection"
+    subject: "Clone monorepo + branch protection + CODEOWNERS + PR template + ADR folder"
     description: |
-      Manual Chris step (browser) + gh CLI scripts.
+      **Pre-flight (Chris done 2026-05-10):**
+      - ✅ Repo `alpacapurpura/luana-platform` exists (private, empty)
+      - ✅ ADR-001 ratified
 
-      **Manual (Chris):** create org luana-platform via github.com/account/organizations/new (Free plan).
+      **Steps:**
+      1. Clone repo locally:
+         ```
+         cd ~ && git clone git@github.com:alpacapurpura/luana-platform.git
+         cd luana-platform
+         ```
+      2. Configure branch protection on main via gh API:
+         ```
+         gh api -X PUT "repos/alpacapurpura/luana-platform/branches/main/protection" \
+           -f required_pull_request_reviews.required_approving_review_count=1 \
+           -f required_status_checks.strict=true \
+           -f required_status_checks.contexts[]="lint" \
+           -f required_status_checks.contexts[]="test" \
+           -f enforce_admins=false \
+           -f allow_force_pushes=false
+         ```
+         (Note: branch protection initially fails because `lint`/`test` checks don't exist yet.
+          Set checks AFTER T-3 merges. This ticket sets review_count + force-push block first;
+          add status checks post T-3 via second gh API call.)
+      3. Create `.github/CODEOWNERS` with required path rules (per 03-arch.md §5.1)
+      4. Create `.github/PULL_REQUEST_TEMPLATE.md` with required sections (per 03-arch.md §5.2)
+      5. Create `docs/architecture/ADR/README.md` explaining ADR template + index (per 03-arch.md §5.3)
+      6. Commit: `feat(repo): bootstrap monorepo governance (CODEOWNERS + PR template + ADR folder + branch protection)`
+      7. Open PR, self-merge once CI exists (T-3); for T-1 alone: direct push allowed since branch protection not yet enforcing checks (Chris bootstrap moment).
 
-      **Scripted (after Chris confirms org exists):**
-      - gh repo create × 5 (luana-core, nicolify, vitalia, comunify, lupulo-labs) all --private
-      - Branch protection on main for all 5 (PR mandatory, required checks lint+test, review_count=0)
-      - GH Discussions enable org-wide
+      **Note:** Chris is solo owner — `required_approving_review_count=1` + `enforce_admins=false`
+      means Chris can self-approve PR. CODEOWNERS attribution = Chris.
     files:
-      - "(no AISALESHT files — all GitHub side)"
+      - "~/luana-platform/.github/CODEOWNERS"
+      - "~/luana-platform/.github/PULL_REQUEST_TEMPLATE.md"
+      - "~/luana-platform/docs/architecture/ADR/README.md"
     blocked_by: []
-    blocks: [T-2, T-7]
-    estimated_minutes: 20
-    owner_eligibility: [sonnet, opus]
-    validators_addressed: [NF-1, NF-2]
-
-  - id: T-2
-    subject: "Bootstrap luana-core monorepo skeleton (pyproject + package.json + turbo.json + workspaces)"
-    description: |
-      In ~/luana-platform/luana-core/, create:
-      - pyproject.toml (uv workspace root, py3.12, ruff config line=120)
-      - package.json (pnpm workspaces, turbo dev dep, type: module)
-      - turbo.json (build/test/lint/publish task pipeline)
-      - pnpm-workspace.yaml (packages: ['packages/ts/*'])
-      - .python-version (3.12)
-      - .npmrc (publishConfig to GH Packages)
-      - .gitignore (cp from AISALESHT)
-      - LICENSE placeholder (Chris ratifies content Q1)
-      - README.md short stub
-      Commit: feat(repo): bootstrap monorepo skeleton uv+pnpm+turborepo
-    files:
-      - "~/luana-platform/luana-core/pyproject.toml"
-      - "~/luana-platform/luana-core/package.json"
-      - "~/luana-platform/luana-core/turbo.json"
-      - "~/luana-platform/luana-core/pnpm-workspace.yaml"
-      - "~/luana-platform/luana-core/.python-version"
-      - "~/luana-platform/luana-core/.npmrc"
-      - "~/luana-platform/luana-core/.gitignore"
-      - "~/luana-platform/luana-core/LICENSE"
-      - "~/luana-platform/luana-core/README.md"
-    blocked_by: [T-1]
-    blocks: [T-3, T-4, T-5]
+    blocks: [T-2]
     estimated_minutes: 45
     owner_eligibility: [sonnet, opus]
-    validators_addressed: [NF-3, NF-4]
+    validators_addressed: [NF-1, NF-3, NF-4, NF-5]
+
+  - id: T-2
+    subject: "Bootstrap monorepo workspace skeleton (pyproject + package.json + turbo.json + workspaces + .python-version + .gitignore + LICENSE + README)"
+    description: |
+      In ~/luana-platform/, create at REPO ROOT:
+
+      - `pyproject.toml` — uv workspace root with:
+        - `[tool.uv.workspace] members = ["core", "nicolify", "vitalia", "comunify", "lupulo"]`
+        - `[tool.ruff] line-length = 120, target-version = "py312"`
+        - NO `[project]` section at root (workspace root is not a package itself)
+      - `package.json` — pnpm workspace root with:
+        - `"private": true`
+        - `"name": "luana-platform"`
+        - `"packageManager": "pnpm@9.x"`
+        - `devDependencies: { turbo: "^2.3.0" }`
+        - `scripts: { lint, test, build } via turbo run`
+      - `turbo.json` — task pipeline (build, test, lint with dependsOn ^build for build/test)
+      - `pnpm-workspace.yaml` — `packages: [core, nicolify, vitalia, comunify, lupulo]`
+      - `.python-version` — `3.12`
+      - `.gitignore` — copied from AISALESHT (Python venvs, node_modules, .env*, dist/, build/, .turbo, etc.)
+      - `LICENSE` — proprietary "All Rights Reserved" template (Chris ratified 2026-05-10)
+      - `README.md` — short stub (5-10 lines) with project name + link to docs/
+
+      **NO** `.npmrc` with publishConfig (Story 9). **NO** `.releaserc.json` (Story 9).
+
+      Commit: `feat(repo): bootstrap monorepo skeleton uv+pnpm+turborepo`
+    files:
+      - "~/luana-platform/pyproject.toml"
+      - "~/luana-platform/package.json"
+      - "~/luana-platform/turbo.json"
+      - "~/luana-platform/pnpm-workspace.yaml"
+      - "~/luana-platform/.python-version"
+      - "~/luana-platform/.gitignore"
+      - "~/luana-platform/LICENSE"
+      - "~/luana-platform/README.md"
+    blocked_by: [T-1]
+    blocks: [T-3, T-4, T-5, T-6]
+    estimated_minutes: 50
+    owner_eligibility: [sonnet, opus]
+    validators_addressed: [NF-2, NF-6, NF-7, NF-8, D-4]
 
   - id: T-3
-    subject: "luana-core CI workflow (.github/workflows/ci.yml) with 4 parallel jobs"
+    subject: "CI workflow (.github/workflows/ci.yml) with 4 parallel jobs"
     description: |
-      Create ci.yml with python-lint, python-test, ts-lint, ts-test jobs.
-      Uses astral-sh/setup-uv, pnpm/action-setup, actions/setup-node@v4 (node 22).
-      Triggered on PR + push to main.
-      Required for branch protection (T-1 declared lint+test).
+      Create `.github/workflows/ci.yml` per 03-arch.md §4.1 with 4 jobs:
+      - python-lint: setup-uv + ruff check
+      - python-test: setup-uv + pytest (placeholder OK Story 1 — `|| echo "no tests"`)
+      - ts-lint: pnpm/action-setup + eslint (placeholder OK Story 1)
+      - ts-test: pnpm/action-setup + vitest (placeholder OK Story 1)
 
-      Smoke test: open PR with trivial change, verify CI green.
-      Commit: feat(ci): bootstrap CI workflow 4 parallel jobs
+      Triggered on PR + push to main.
+
+      **Post-merge of T-3:** Update branch protection to require `lint` + `test`
+      status checks. /dev-team decides naming strategy — either:
+      - 4 separate checks (python-lint, python-test, ts-lint, ts-test), OR
+      - 2 aggregator jobs (lint = ruff+eslint, test = pytest+vitest)
+      Choose what works with branch protection UI.
+
+      Smoke test: open trivial PR (whitespace change), verify CI green, then
+      gh API call to add status checks to branch protection.
+
+      Commit: `feat(ci): bootstrap CI workflow 4 parallel jobs`
     files:
-      - "~/luana-platform/luana-core/.github/workflows/ci.yml"
+      - "~/luana-platform/.github/workflows/ci.yml"
     blocked_by: [T-2]
-    blocks: [T-9, T-11]
-    estimated_minutes: 30
-    owner_eligibility: [sonnet]
-    validators_addressed: [NF-5, NF-6, F-5]
+    blocks: [T-7]
+    estimated_minutes: 40
+    owner_eligibility: [sonnet, opus]
+    validators_addressed: [F-1]
 
   - id: T-4
-    subject: "Lift .claude-shared/ from AISALESHT to luana-core"
+    subject: "Lift .claude-shared/ from AISALESHT (cp -r)"
     description: |
-      cp -r AISALESHT/.claude/{rules,skills,agents} luana-core/.claude-shared/
-      Verify all rules + skills + agents present.
-      Commit: chore: lift .claude-shared from AISALESHT (initial sync)
+      Lift `.claude/` directory tree from AISALESHT to `.claude-shared/` in monorepo:
+
+      ```
+      cd ~/luana-platform
+      mkdir -p .claude-shared
+      cp -r /home/chris/AISALESHT/.claude/rules .claude-shared/
+      cp -r /home/chris/AISALESHT/.claude/skills .claude-shared/
+      cp -r /home/chris/AISALESHT/.claude/agents .claude-shared/
+      ```
+
+      Then create `.claude/` as a directory copy (NOT symlink — Windows-compat for future):
+      ```
+      cp -r .claude-shared .claude
+      ```
+      (Alternative: symlink `ln -sf .claude-shared .claude` if Linux-only confirmed.)
+
+      Verify: `ls .claude/rules/parallel-safety.md` exists.
+
+      Commit: `chore: lift .claude-shared from AISALESHT (initial sync)`
+
+      **No subtree pattern needed** — single monorepo, all workspace members see `.claude/` directly.
     files:
-      - "~/luana-platform/luana-core/.claude-shared/rules/"
-      - "~/luana-platform/luana-core/.claude-shared/skills/"
-      - "~/luana-platform/luana-core/.claude-shared/agents/"
+      - "~/luana-platform/.claude-shared/rules/"
+      - "~/luana-platform/.claude-shared/skills/"
+      - "~/luana-platform/.claude-shared/agents/"
+      - "~/luana-platform/.claude/"
     blocked_by: [T-2]
     blocks: [T-7]
     estimated_minutes: 20
     owner_eligibility: [sonnet, opus]
-    validators_addressed: [F-9]
+    validators_addressed: [F-4, F-5]
 
   - id: T-5
-    subject: "luana-core release.yml + .releaserc.json (semantic-release setup)"
+    subject: "Bootstrap 5 subfolders (core + nicolify + vitalia + comunify + lupulo) with placeholder structure"
     description: |
-      .github/workflows/release.yml triggered on push to main.
-      Steps: build all → uv publish python packages → semantic-release for TS.
-      .releaserc.json with conventional-commits config + monorepo plugins.
-      Permissions: contents:write, packages:write, issues:write, pull-requests:write.
-      Commit: feat(ci): semantic-release on main push
+      For each of `core`, `nicolify`, `vitalia`, `comunify`, `lupulo`:
+
+      - Create directory at repo root
+      - `{sub}/README.md` — purpose + scope + link to `docs/ARCHITECTURE.md` (5-10 lines)
+      - `{sub}/pyproject.toml` — minimal workspace member:
+        - `[project] name = "luana-{sub}" version = "0.0.1-alpha" requires-python = ">=3.12"`
+        - empty `dependencies = []` (Story 2+ populates)
+      - `{sub}/package.json` — minimal workspace member:
+        - `"name": "@luana/{sub}", "version": "0.0.1-alpha", "private": true`
+
+      Subfolder-specific notes:
+      - `core/`: explicit purpose statement "engine SSoT — Story 2 lifts shared/, Story 3 lifts iam/, etc."
+      - `nicolify/`: "canonical SaaS marketing — Story 10 lifts AISALESHT codebase here"
+      - `vitalia/`, `comunify/`, `lupulo/`: brand placeholder — "vertical-{niche} populated Stories 11-13"
+
+      Verify pyproject.toml workspace registration (T-2 declared `members = [core, nicolify, vitalia, comunify, lupulo]` — these dirs must exist now).
+
+      Commit: `feat(repo): bootstrap 5 workspace subfolders (core + 4 brands placeholders)`
     files:
-      - "~/luana-platform/luana-core/.github/workflows/release.yml"
-      - "~/luana-platform/luana-core/.releaserc.json"
+      - "~/luana-platform/core/README.md"
+      - "~/luana-platform/core/pyproject.toml"
+      - "~/luana-platform/core/package.json"
+      - "~/luana-platform/nicolify/README.md"
+      - "~/luana-platform/nicolify/pyproject.toml"
+      - "~/luana-platform/nicolify/package.json"
+      - "~/luana-platform/vitalia/README.md"
+      - "~/luana-platform/vitalia/pyproject.toml"
+      - "~/luana-platform/vitalia/package.json"
+      - "~/luana-platform/comunify/README.md"
+      - "~/luana-platform/comunify/pyproject.toml"
+      - "~/luana-platform/comunify/package.json"
+      - "~/luana-platform/lupulo/README.md"
+      - "~/luana-platform/lupulo/pyproject.toml"
+      - "~/luana-platform/lupulo/package.json"
     blocked_by: [T-2]
-    blocks: [T-6]
-    estimated_minutes: 30
-    owner_eligibility: [sonnet]
+    blocks: [T-7]
+    estimated_minutes: 35
+    owner_eligibility: [sonnet, opus]
+    validators_addressed: [F-2, F-3]
 
   - id: T-6
-    subject: "GH Packages smoke test: publish stub luana-core-platform@0.0.1-alpha + @luana/ui-kit@0.0.1-alpha"
+    subject: "Documentation seed: CONTRIBUTING.md + ARCHITECTURE.md + ADR README + RELEASES.md placeholder"
     description: |
-      Create minimal stub packages:
-      - packages/python/luana-core-platform/ with src/luana_core_platform/__init__.py exporting VERSION='0.0.1-alpha'
-      - packages/ts/ui-kit/ with src/index.ts exporting VERSION='0.0.1-alpha'
-      Build + publish manually first time (post merge T-5 release.yml automates).
-      Verify package appears at github.com/luana-platform/luana-core/packages.
-      Commit: feat(packages): add stub luana-core-platform + @luana/ui-kit smoke
+      Create at `~/luana-platform/docs/`:
+
+      **CONTRIBUTING.md** (>30 lines):
+      - Conventional Commits format + types + scopes (matching workspace members)
+      - PR flow (clone → branch from main → PR back → squash merge)
+      - Branch protection rules (required reviews, status checks)
+      - ADR rules (mandatory for core/** changes; link to ADR template)
+      - .claude-shared/ workflow (single-source, no subtree)
+      - Spanish neutro per `.claude/rules/spanish-text.md`
+
+      **ARCHITECTURE.md**:
+      - Monorepo topology overview
+      - 5 subfolders (core + 4 brands) purpose
+      - Workspace member declaration (uv + pnpm)
+      - Link to ADR-001 (back-link to outcome doc `docs/product/outcomes/luana-platform-migration.md`)
+      - Topology diagram (markdown ASCII art per 03-arch.md §1)
+
+      **architecture/ADR/README.md** (already created in T-1) — verify present + cross-link from ARCHITECTURE.md.
+
+      **RELEASES.md** (placeholder):
+      - Note: "Publishing pipeline DEFERRED to Story 9 (`luana-v0-1-0-publish`)"
+      - Brief future intent (semver policy when Story 9 lands)
+      - Link to outcome doc `luana-platform-migration.md` for Story 9 spec
+
+      Commit: `docs: seed CONTRIBUTING + ARCHITECTURE + RELEASES placeholder`
     files:
-      - "~/luana-platform/luana-core/packages/python/luana-core-platform/pyproject.toml"
-      - "~/luana-platform/luana-core/packages/python/luana-core-platform/src/luana_core_platform/__init__.py"
-      - "~/luana-platform/luana-core/packages/ts/ui-kit/package.json"
-      - "~/luana-platform/luana-core/packages/ts/ui-kit/src/index.ts"
-    blocked_by: [T-5]
-    blocks: [T-7, T-8]
-    estimated_minutes: 60
-    owner_eligibility: [sonnet]
-    validators_addressed: [F-1, F-2]
+      - "~/luana-platform/docs/CONTRIBUTING.md"
+      - "~/luana-platform/docs/ARCHITECTURE.md"
+      - "~/luana-platform/docs/RELEASES.md"
+    blocked_by: [T-2]
+    blocks: [T-7]
+    estimated_minutes: 50
+    owner_eligibility: [sonnet, opus]
+    validators_addressed: [D-1, D-2, D-3]
 
   - id: T-7
-    subject: "Bootstrap 4 brand repo skeletons + .claude subtree pull"
+    subject: "Architectural fitness tests bootstrap + final validation suite"
     description: |
-      For each of vitalia, comunify, lupulo-labs, nicolify:
-      - Clone repo locally
-      - Create apps/{api,web}/ + vertical-{niche}/ + deployments/k8s/ folders (placeholders)
-      - Add scripts/sync-claude-shared.sh executable
-      - git remote add luana-core
-      - git subtree add --prefix=.claude --squash luana-core main
-      - Create stub README.md + brand.config.{ts,py} template
-      - Push initial commit
+      In `~/luana-platform/nicolify/tests/architecture/` (chosen because Story 10 lifts
+      AISALESHT into nicolify/, where tests/architecture/ already lives in AISALESHT today):
 
-      Commit per brand: chore({brand}): bootstrap brand skeleton + .claude subtree
-    files:
-      - "~/luana-platform/{vitalia,comunify,lupulo-labs,nicolify}/apps/{api,web}/"
-      - "~/luana-platform/{brand}/vertical-{niche}/"
-      - "~/luana-platform/{brand}/scripts/sync-claude-shared.sh"
-      - "~/luana-platform/{brand}/.claude/"
-      - "~/luana-platform/{brand}/README.md"
-      - "~/luana-platform/{brand}/brand.config.ts"
-      - "~/luana-platform/{brand}/brand.config.py"
-    blocked_by: [T-1, T-4, T-6]
-    blocks: [T-9, T-10]
-    estimated_minutes: 80
-    owner_eligibility: [sonnet]
-    validators_addressed: [F-6, F-7, D-5]
+      Create pytest tests:
+      - `test_workspace_integrity.py`:
+        - test_pyproject_workspace_members_resolve() — declared members are real dirs
+        - test_pnpm_workspace_members_resolve() — pnpm-workspace.yaml entries are real dirs
+      - `test_codeowners_present.py`:
+        - test_codeowners_file_exists()
+        - test_codeowners_protects_core_paths() — core/copilot, core/sales-agent, core/shared, ADR
+      - `test_adr_folder_present.py`:
+        - test_adr_readme_exists() — docs/architecture/ADR/README.md present + has template + index sections
+      - `test_pr_template_present.py`:
+        - test_pr_template_has_required_sections() — Qué cambia / Por qué / Módulos tocados / ADR ref / Outcome ref
+      - `test_claude_shared_present.py`:
+        - test_rules_dir_non_empty() (>20 files)
+        - test_skills_dir_non_empty() (>10 dirs)
+        - test_agents_dir_non_empty()
 
-  - id: T-8
-    subject: "Smoke test: brand vitalia installs luana-core-platform + @luana/ui-kit from GH Packages"
-    description: |
-      In ~/luana-platform/vitalia/:
-      - Configure .npmrc with @luana scope → npm.pkg.github.com
-      - Install luana-core-platform + @luana/ui-kit
-      - Verify Python import works + npm package present in node_modules
+      Add `nicolify/tests/architecture/__init__.py` and `nicolify/tests/__init__.py` empty files.
 
-      Validators F-3 + F-4 must pass.
-      Commit: test: smoke install Luana packages in vitalia
-    files:
-      - "~/luana-platform/vitalia/.npmrc"
-      - "~/luana-platform/vitalia/apps/api/requirements.txt"
-      - "~/luana-platform/vitalia/apps/web/package.json"
-    blocked_by: [T-6, T-7]
-    blocks: [T-11]
-    estimated_minutes: 30
-    owner_eligibility: [sonnet]
-    validators_addressed: [F-3, F-4]
-
-  - id: T-9
-    subject: "GitHub Project v2 'Luana Roadmap' + custom fields"
-    description: |
-      gh project create --owner luana-platform --title "Luana Roadmap"
-      Add custom fields: Brand (single-select 5 options), State (single-select 9 states), Story (text), Estimated Sprint (number).
-      Add 14 stories from outcome luana-platform-migration.md as draft items.
-      Configure 3 views: Roadmap, By Brand, Active.
-      Commit reference in luana-core/docs/PROJECT-BOARD.md (URL + structure documented).
-    files:
-      - "~/luana-platform/luana-core/docs/PROJECT-BOARD.md (NEW)"
-    blocked_by: [T-1]
-    blocks: []
-    estimated_minutes: 30
-    owner_eligibility: [sonnet]
-    validators_addressed: [F-8]
-
-  - id: T-10
-    subject: "Documentation seed: CONTRIBUTING.md + RELEASES.md + ARCHITECTURE.md"
-    description: |
-      luana-core/docs/CONTRIBUTING.md:
-      - Conventional Commits format
-      - PR flow (branch from main, PR back, no direct push)
-      - Branch protection rules
-      - .claude-shared/ subtree update process
-
-      luana-core/docs/RELEASES.md:
-      - semver policy (MAJOR/MINOR/PATCH)
-      - semantic-release auto-bump rules
-      - GitHub Packages publish workflow
-      - Pre-release tags (0.0.x-alpha → 0.1.0)
-
-      luana-core/docs/ARCHITECTURE.md:
-      - Link to ADR-001 (copy from nicolify/docs/architecture/luana-platform/adr/ if needed)
-      - Link to 01-core-audit.md
-      - Link to 05-cross-repo-tooling.md
-      - Topology diagram (markdown)
-
-      Commit: docs: seed CONTRIBUTING + RELEASES + ARCHITECTURE
-    files:
-      - "~/luana-platform/luana-core/docs/CONTRIBUTING.md"
-      - "~/luana-platform/luana-core/docs/RELEASES.md"
-      - "~/luana-platform/luana-core/docs/ARCHITECTURE.md"
-    blocked_by: [T-2]
-    blocks: [T-11]
-    estimated_minutes: 60
-    owner_eligibility: [sonnet]
-    validators_addressed: [D-1, D-2, D-3, D-4]
-
-  - id: T-11
-    subject: "Architectural fitness tests + final validation"
-    description: |
-      luana-core/tests/architecture/:
-      - test_workspace_integrity.py (pyproject + package.json members resolve)
-      - test_claude_shared_present.py (rules/skills/agents non-empty)
-      - test_ci_workflow_complete.py (ci.yml has 4 jobs, release.yml present)
-      - test_branch_protection_enforced.py (gh API check 5 repos)
-
-      Run validators 04-validators.yaml — all 18 must_pass:true must pass.
+      Run validators 04-validators.yaml — all 12 must_pass:true must pass.
       Generate gate-output.json + commit reference.
 
-      Commit: test(arch): bootstrap fitness tests + validation suite
+      Commit: `test(arch): bootstrap fitness tests + validation suite`
     files:
-      - "~/luana-platform/luana-core/tests/architecture/test_workspace_integrity.py"
-      - "~/luana-platform/luana-core/tests/architecture/test_claude_shared_present.py"
-      - "~/luana-platform/luana-core/tests/architecture/test_ci_workflow_complete.py"
-      - "~/luana-platform/luana-core/tests/architecture/test_branch_protection_enforced.py"
-    blocked_by: [T-3, T-7, T-8, T-10]
+      - "~/luana-platform/nicolify/tests/__init__.py"
+      - "~/luana-platform/nicolify/tests/architecture/__init__.py"
+      - "~/luana-platform/nicolify/tests/architecture/test_workspace_integrity.py"
+      - "~/luana-platform/nicolify/tests/architecture/test_codeowners_present.py"
+      - "~/luana-platform/nicolify/tests/architecture/test_adr_folder_present.py"
+      - "~/luana-platform/nicolify/tests/architecture/test_pr_template_present.py"
+      - "~/luana-platform/nicolify/tests/architecture/test_claude_shared_present.py"
+    blocked_by: [T-3, T-4, T-5, T-6]
     blocks: []
-    estimated_minutes: 60
-    owner_eligibility: [sonnet]
-    validators_addressed: [all NF + F + D]
+    estimated_minutes: 70
+    owner_eligibility: [sonnet, opus]
+    validators_addressed: [F-6, all NF + F + D verification run]
 
-# Total estimated tool-time: ~7 horas Sonnet
-# Realistic Sem 1 spread: 3-4 días con buffer
-# Story 1 done = state developed (validators all pass)
+# Total estimated tool-time: ~5 horas Sonnet (310 min)
+# Realistic spread: 2-3 días con buffer
+# Story 1 done = state developed (validators 12/12 must_pass GREEN)
 # Then: Chris triggers /auditor for CHECKPOINTS C1-C5 → done
 
 dag_summary: |
-  T-1 ─┬─→ T-2 ─┬─→ T-3 ──┬──→ T-9
-       │       ├─→ T-4 ──→ T-7 ─┬─→ T-8 ─→ T-11
-       │       └─→ T-5 ──→ T-6 ─┘    │
-       │                              └─→ T-11
-       └────────────────────────→ T-9
-       T-2 ──→ T-10 ──→ T-11
+  T-1 ──→ T-2 ──┬──→ T-3 ──┐
+                ├──→ T-4 ──┤
+                ├──→ T-5 ──┤──→ T-7
+                └──→ T-6 ──┘
 
-critical_path: T-1 → T-2 → T-5 → T-6 → T-7 → T-8 → T-11 (~5h serial)
+critical_path: T-1 → T-2 → T-6 → T-7 (~3.5h serial)
 
 parallel_paths:
-  - T-3 (CI) parallel with T-4 (claude-shared lift) parallel with T-5 (release)
-  - T-9 (project v2) + T-10 (docs) parallel with T-7 (brand bootstrap)
+  - T-3 (CI) parallel with T-4 (claude-shared lift) parallel with T-5 (subfolders) parallel with T-6 (docs)
+  - All 4 fan-out from T-2 and converge into T-7
 
 risks:
-  - T-1 manual step requires Chris availability
-  - T-6 GH Packages auth flow is novel — buffer +30min
-  - T-8 cross-repo install may surface .npmrc edge cases
+  - T-1 branch protection requires existing PR template + CODEOWNERS to take effect — initial commit during bootstrap moment is direct push allowed (Chris solo + CODEOWNERS not enforcing yet because no protection rule on `.github/**`); subsequent commits via PR
+  - T-3 status check naming: branch protection UI requires the exact check name. /dev-team decides whether to use job name (python-lint/python-test/ts-lint/ts-test) directly or aggregator (lint/test). Document choice in T-3-result.md.
+  - T-4 .claude/ symlink vs copy: choose copy for cross-OS safety (Windows future). Symlink fine if confirmed Linux-only.

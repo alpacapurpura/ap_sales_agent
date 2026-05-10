@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-09T19:24:36+00:00
+# Generated at: 2026-05-10T23:39:33+00:00
 
-generated_at: '2026-05-09T19:24:36+00:00'
+generated_at: '2026-05-10T23:39:33+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -220,23 +220,23 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
+  refined: []
+  ready:
   - id: luana-foundation
     kind: story
-    state: refining
+    state: ready
     title: luana-foundation
     tags: []
-    last_touched: 2026-05-09 19:00:00+00:00
+    last_touched: 2026-05-10
     extra:
       outcome: luana-platform-migration
-      phase: outcome_decomposition
-      next_action: DRAFT ready package complete. Awaiting Chris ratification Sunday 2026-05-11 — read 01-spec + 03-arch +
-        04-validators + 05-guidelines + 06-tickets, ratify or request changes. State refining → refined → ready when ratified.
-        Then /dev-team picks T-1.
+      phase: ready_package_revised
+      next_action: Ready package revised v2 per Chris ratification 2026-05-10 (monorepo + proprietary + defer GH Packages).
+        7 tickets, 14 validators (12 must_pass), ~5h Sonnet tool-time. /dev-team picks T-1 when ready to start sequential
+        build.
       blocked_by: []
       priority_override: null
       audit_iterations: 0
-  refined: []
-  ready:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready

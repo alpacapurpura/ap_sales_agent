@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-09T19:24:36+00:00`
+> Generated at: `2026-05-10T23:39:33+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -15,16 +15,16 @@
 - sales-agent-qualification-toolkit `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (4 total · 1 cap-eligible / cap 3)
+### 🔬 Refining (3 total · 0 cap-eligible / cap 3)
 - **luana-platform-migration**
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
-- **luana-foundation** — outcome `luana-platform-migration` [outcome_decomposition]
 
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
 
-### 📦 Ready for development (4 / cap 5)
+### 📦 Ready for development (5 / cap 5)
+- **luana-foundation** — outcome `luana-platform-migration`
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
@@ -77,13 +77,13 @@ kanban
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (4 / cap 3)
+  🔬 Refining (3 / cap 3)
     luana-platform-migration[luana-platform-migration]
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
-    luana-foundation[luana-foundation]
   ✅ Refined (0 / cap 5)
-  📦 Ready (4 / cap 5)
+  📦 Ready (5 / cap 5)
+    luana-foundation[luana-foundation]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
