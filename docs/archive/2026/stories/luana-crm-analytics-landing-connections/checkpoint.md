@@ -1,12 +1,12 @@
 ---
 story_id: luana-crm-analytics-landing-connections
 outcome: luana-platform-migration
-state: developed                                # All 13 tickets shipped to luana-platform main (2cac18d..981bf3b). Gate-output.json written 2026-05-11.
-phase: complete
-last_artifact: gate-output.json
+state: done                                     # ★ /pm merged 2026-05-11. auditor-backend Opus APPROVED 30/30. Archived. ★
+phase: MERGED_ARCHIVED
+last_artifact: 07-merge.md
 last_modified: 2026-05-11
 base_sha: ca1ab02ff55cb38d0c9acb2d86e8f7ea45ec393b
-next_action: "Awaiting /auditor Conv 3 review (orchestrator spawns auditor-backend Opus)."
+next_action: "Archived to docs/archive/2026/stories/. Phase E retro-audit Stories 1+2+3 next."
 ratified_by_chris: true                         # pre-auth §7.2 — outcome luana-platform-migration §7.3 lift mode + §7.4 halt
 spawned_at: 2026-05-09
 spawned_by: /pm
