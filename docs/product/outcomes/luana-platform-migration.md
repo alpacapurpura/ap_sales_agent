@@ -6,8 +6,8 @@ phase: story_1_done_phase_b_active
 created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-11
-stories_done: [luana-foundation, luana-shared-lift]   # 2026-05-11 (both)
-stories_active: [luana-iam-tenancy-content]     # 2026-05-11 — Phase C autonomous batch session 1
+stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content]   # 2026-05-11 all 3
+stories_active: [luana-crm-analytics-landing-connections]     # 2026-05-11 — Phase D autonomous batch session 1
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/

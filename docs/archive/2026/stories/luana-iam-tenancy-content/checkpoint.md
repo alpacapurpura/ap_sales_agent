@@ -1,11 +1,11 @@
 ---
 story_id: luana-iam-tenancy-content
 outcome: luana-platform-migration
-state: developed                                # /dev-team closed 2026-05-11 — 20/20 validators GREEN
-phase: complete
-last_artifact: gate-output.json
+state: done                                     # ★ /pm merged 2026-05-11. Archived. Phase D unblocked. ★
+phase: MERGED_ARCHIVED
+last_artifact: 07-merge.md
 last_modified: 2026-05-11
-next_action: "/auditor reviews story — Chris triggers Conv 3."
+next_action: "Archived to docs/archive/2026/stories/luana-iam-tenancy-content/. Phase D Story 4 starts."
 ratified_by_chris: true                         # pre-auth §7.2 — Story 2 done unblocks Story 3 + architect ratified within ADR-001 + lift mode §7.3
 spawned_at: 2026-05-09
 spawned_by: /pm
