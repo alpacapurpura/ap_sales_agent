@@ -1,0 +1,289 @@
+---
+story_id: luana-crm-analytics-landing-connections
+schema_version: 4
+last_modified: 2026-05-11
+drafted_by: /architect (claude-opus-4-7)
+total_validators: 24
+---
+
+# 04-validators.yaml — luana-crm-analytics-landing-connections
+#
+# Schema v4: 5 categories (non_functional / functional / visual / agentic_eval / documentation).
+# Each validator MUST be shell-executable. must_pass flag indicates blocking vs informational.
+#
+# Order of execution (mirrors §2 lift order in 03-arch.md):
+#   1. Workspace registration (V-NF-1..3)
+#   2. Per-package smoke (V-F-py-1..4)
+#   3. Cross-package integration (V-F-x-1..2)
+#   4. ETL contract regen smoke (V-F-etl-1..2)
+#   5. Connections engine smoke (V-F-conn-1)
+#   6. AISALESHT untouched (V-NF-4)
+#   7. No-publish (V-NF-5..7)
+#   8. Brand-agnostic engines arch fitness (V-AG-1..3)
+#   9. Documentation (V-D-1..2)
+
+non_functional:
+  - id: V-NF-1
+    name: "uv sync --all-packages succeeds (Python workspace, 19 packages)"
+    description: "Root pyproject.toml lists all Story 2+3+4 packages as workspace members. uv resolves all sources."
+    command: |
+      cd ~/luana-platform && uv sync --all-packages 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1, T-8]
+
+  - id: V-NF-2
+    name: "Each Story 4 Python package has pyproject.toml at version 0.0.1-alpha"
+    description: "Per spec §3.1 — 4 packages × pyproject.toml at correct version."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in luana-core-crm luana-core-analytics-engine luana-core-landing luana-core-connections; do
+        if [ ! -f "core/${pkg}/pyproject.toml" ]; then echo "MISSING: core/${pkg}/pyproject.toml"; MISSING=$((MISSING+1)); fi
+        if ! grep -q 'version = "0.0.1-alpha"' "core/${pkg}/pyproject.toml" 2>/dev/null; then echo "WRONG VERSION: core/${pkg}"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-2, T-3a, T-3b, T-3c, T-4, T-5]
+
+  - id: V-NF-3
+    name: "Workspace declares Story 4 packages in [tool.uv.sources]"
+    description: "All 4 Story 4 packages registered as workspace sources for cross-package import resolution."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in luana-core-crm luana-core-analytics-engine luana-core-landing luana-core-connections; do
+        if ! grep -q "^${pkg} = { workspace = true }" pyproject.toml; then echo "NOT IN [tool.uv.sources]: ${pkg}"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1]
+
+  - id: V-NF-4
+    name: "AISALESHT not modified in Story 4 commits"
+    description: "Per 01-spec.md §3.6. NO file under backend/src/modules/{crm,analytics,landing,connections}/ OR backend/tests/modules/{same set}/ modified during Story 4."
+    command: |
+      cd /home/chris/AISALESHT
+      BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-crm-analytics-landing-connections/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+      DIFF=$(git diff "$BASE_SHA" HEAD --name-only 2>/dev/null | grep -E '^(backend/src/modules/(crm|analytics|landing|connections)|backend/tests/modules/(crm|analytics|landing|connections))/' || true)
+      if [ -n "$DIFF" ]; then
+        echo "AISALESHT FILES MODIFIED (forbidden Story 4 surfaces):"
+        echo "$DIFF"
+        exit 1
+      fi
+      echo "OK: AISALESHT untouched"
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-NF-5
+    name: "No publishConfig in any Story 4 package"
+    description: "Per 01-spec.md §3.7 — no GH Packages publishing in Story 4 (Story 9 territory)."
+    command: |
+      cd ~/luana-platform
+      OFFENDERS=$(grep -l 'publishConfig\|\[project\.urls\].*registry' core/luana-core-crm/pyproject.toml core/luana-core-analytics-engine/pyproject.toml core/luana-core-landing/pyproject.toml core/luana-core-connections/pyproject.toml 2>/dev/null || true)
+      if [ -n "$OFFENDERS" ]; then echo "Found publish config in: $OFFENDERS"; exit 1; fi
+      echo "OK: no publish config"
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-NF-6
+    name: "No .releaserc.json files introduced by Story 4"
+    description: "Per 01-spec.md §3.7."
+    command: |
+      cd ~/luana-platform
+      FOUND=$(find . -name '.releaserc*' -not -path './node_modules/*' 2>/dev/null || true)
+      if [ -n "$FOUND" ]; then echo "Found release configs: $FOUND"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-NF-7
+    name: "No release.yml or publish workflow added"
+    description: "Per 01-spec.md §3.7."
+    command: |
+      cd ~/luana-platform
+      FOUND=$(find .github/workflows -name 'release*' -o -name 'publish*' 2>/dev/null || true)
+      if [ -n "$FOUND" ]; then echo "Found release/publish workflows: $FOUND"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-NF-8
+    name: "uv run ruff check Story 4 packages GREEN"
+    description: "Per 01-spec.md §3.5 — ruff baseline passes on lifted code (lift mode preserves lint state from AISALESHT)."
+    command: |
+      cd ~/luana-platform && uv run ruff check core/luana-core-crm core/luana-core-analytics-engine core/luana-core-landing core/luana-core-connections 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+functional:
+  # Per-package Python smoke tests
+  - id: V-F-py-1
+    name: "luana-core-crm tests pass (28 tests — 1 deferred: test_contacts_api.py)"
+    description: "uv run pytest core/luana-core-crm/tests/ GREEN. test_contacts_api.py NOT lifted (deferred Story 8 with contacts.py)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-crm/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-2]
+
+  - id: V-F-py-2
+    name: "luana-core-analytics-engine tests pass (102 tests)"
+    description: "uv run pytest core/luana-core-analytics-engine/tests/ GREEN. Includes test_metric_catalog.py for catalog SSoT alignment."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-analytics-engine/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-3a, T-3b, T-3c]
+
+  - id: V-F-py-3
+    name: "luana-core-landing tests pass (13 tests)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-landing/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-4]
+
+  - id: V-F-py-4
+    name: "luana-core-connections tests pass (33 tests)"
+    description: "uv run pytest. NOTE: api/dependencies/__init__.py DEFERRED Story 7; copilot_provider/ DEFERRED Story 6."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-connections/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-5]
+
+  # Cross-package integration smoke
+  - id: V-F-x-1
+    name: "Cross-package Python import works (Story 4 packages consume platform + iam)"
+    description: "Per 01-spec.md scenario A — luana_core_{crm,analytics_engine,landing,connections}.* imports from luana_core_platform.* AND luana_core_iam.* work."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      # Story 4 domain entities
+      from luana_core_crm.domain.lead import Lead
+      from luana_core_crm.domain.customer import CustomerProfile
+      from luana_core_crm.domain.sale import Sale
+      from luana_core_analytics_engine.domain.metric_catalog import METRIC_CATALOG
+      from luana_core_analytics_engine.domain.extraction_contract import EXTRACTION_CONTRACTS
+      from luana_core_landing.domain.landing_page import LandingPage
+      from luana_core_connections.domain import ChannelType  # adjust if domain has different exports
+      # Story 4 → Story 3 edges (iam)
+      from luana_core_iam.domain.user import User
+      from luana_core_iam.api.dependencies import get_current_user
+      # Story 4 → Story 2 platform edges
+      from luana_core_platform.domain.base_entity import Base
+      from luana_core_platform.domain.currency import FALLBACK_CURRENCY
+      print('all Story 4 cross-package imports OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-8]
+
+  - id: V-F-x-2
+    name: "uv run pytest entire luana-platform (Stories 2+3+4) GREEN"
+    description: "Aggregate test runs Story 2+3+4 packages + arch fitness in one command. Confirms no regressions in Story 2+3 packages from new Story 4 workspace deps."
+    command: |
+      cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-8, T-11, T-12]
+
+  # ETL extraction-contract regen smoke + idempotency
+  - id: V-F-etl-1
+    name: "make extraction-contract regenerates markdown successfully"
+    description: "Per 01-spec.md §3.3 + scenario B — per-package Makefile target executes the script and writes docs/extraction-contract.md."
+    command: |
+      cd ~/luana-platform/core/luana-core-analytics-engine
+      make extraction-contract 2>&1 | tail -20
+      test -f docs/extraction-contract.md && test -s docs/extraction-contract.md
+    must_pass: true
+    addressed_by_tickets: [T-9]
+
+  - id: V-F-etl-2
+    name: "make extraction-contract is idempotent (same bytes on consecutive runs)"
+    description: "Per 03-arch.md §7.3 — two consecutive regens produce identical SHA256."
+    command: |
+      cd ~/luana-platform/core/luana-core-analytics-engine
+      make extraction-contract > /dev/null 2>&1
+      HASH1=$(sha256sum docs/extraction-contract.md | cut -d' ' -f1)
+      make extraction-contract > /dev/null 2>&1
+      HASH2=$(sha256sum docs/extraction-contract.md | cut -d' ' -f1)
+      if [ "$HASH1" != "$HASH2" ]; then
+        echo "FAIL: extraction-contract regen drifted between runs"
+        echo "  hash1=$HASH1"
+        echo "  hash2=$HASH2"
+        exit 1
+      fi
+      echo "OK: regen idempotent"
+    must_pass: true
+    addressed_by_tickets: [T-9]
+
+  # Connections engine smoke
+  - id: V-F-conn-1
+    name: "Connections engine accepts stub adapter registration (brand-agnostic)"
+    description: "Per 01-spec.md scenario C + §3.4 — engine ABC structural contract preserved, can register a stub adapter without brand affiliation."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-connections/tests/test_engine_stub_adapter_registration.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-10]
+
+visual: []  # No UI changes in Story 4.
+
+agentic_eval:
+  - id: V-AG-1
+    name: "Architecture fitness — Story 4 engines are brand-agnostic"
+    description: "Per 03-arch.md §7.1. NO `if brand == \"...\"` or brand-key string literals in luana-core-{crm,analytics-engine,landing,connections} source."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story4_brand_agnostic_engines.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-11]
+
+  - id: V-AG-2
+    name: "Architecture fitness — Story 4 packages have no forward module imports"
+    description: "Per 03-arch.md §7.2. NO Story 4 package imports from luana_core_{brand,offer,copilot,sales_agent,campaigns,scheduling,advertising,social_media} OR from src.modules.*. Forward-coupling would break the migration sequence."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story4_no_forward_module_imports.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-12]
+
+  - id: V-AG-3
+    name: "Architecture fitness — analytics extraction contract regen reproducible"
+    description: "Per 03-arch.md §7.3. The per-package Makefile target produces idempotent output (cement of SSoT principle from .claude/rules/etl-extraction-contract.md)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_analytics_extraction_contract_drift.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-9]
+
+documentation:
+  - id: V-D-1
+    name: "Each Story 4 package has README.md stub"
+    description: "Per 05-guidelines.md §scope. Stub explains: package name, lift origin path (AISALESHT), key exports."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in luana-core-crm luana-core-analytics-engine luana-core-landing luana-core-connections; do
+        if [ ! -f "core/${pkg}/README.md" ]; then echo "MISSING: core/${pkg}/README.md"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-D-2
+    name: "core/DEFERRED-FILES.md updated with Story 4 entries"
+    description: "Per 03-arch.md §9.4 — audit trail of Story 4 deferred files: 4 copilot_provider/ + 1 connections api/dependencies/__init__.py + 2 crm contacts.py-related files."
+    command: |
+      F=~/luana-platform/core/DEFERRED-FILES.md
+      grep -q "Story 4 deferrals" "$F" && \
+      grep -q "crm/copilot_provider" "$F" && \
+      grep -q "analytics/copilot_provider" "$F" && \
+      grep -q "landing/copilot_provider" "$F" && \
+      grep -q "connections/copilot_provider" "$F" && \
+      grep -q "connections/api/dependencies" "$F" && \
+      grep -q "crm/api/contacts.py" "$F" && \
+      grep -q "contact_query_service.py" "$F"
+    must_pass: true
+    addressed_by_tickets: [T-13]

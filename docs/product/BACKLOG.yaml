@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T07:13:52+00:00
+# Generated at: 2026-05-11T12:11:24+00:00
 
-generated_at: '2026-05-11T07:13:52+00:00'
+generated_at: '2026-05-11T12:11:24+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -306,7 +306,21 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
-  developed: []
+  developed:
+  - id: luana-crm-analytics-landing-connections
+    kind: story
+    state: developed
+    title: luana-crm-analytics-landing-connections
+    tags: []
+    last_touched: 2026-05-11
+    extra:
+      outcome: luana-platform-migration
+      phase: complete
+      next_action: Awaiting /auditor Conv 3 review (orchestrator spawns auditor-backend Opus).
+      blocked_by:
+      - luana-iam-tenancy-content
+      priority_override: null
+      audit_iterations: 0
   reviewing: []
   done:
   - id: growth-copilot-layout-unification
@@ -511,20 +525,6 @@ buckets:
       next_action: /po opens 01-spec.md after Story 5 done
       blocked_by:
       - luana-brand-offer-studios
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-crm-analytics-landing-connections
-    kind: story
-    state: parked
-    title: luana-crm-analytics-landing-connections
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 3 done
-      blocked_by:
-      - luana-iam-tenancy-content
       priority_override: null
       audit_iterations: 0
   - id: luana-lupulo-bootstrap

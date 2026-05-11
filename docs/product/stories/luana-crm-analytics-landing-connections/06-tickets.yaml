@@ -1,0 +1,670 @@
+---
+story_id: luana-crm-analytics-landing-connections
+tickets_version: 1
+last_modified: 2026-05-11
+drafted_by: /architect (claude-opus-4-7)
+total_tickets: 13
+authority: 03-arch.md + 04-validators.yaml + 05-guidelines.md + Story 3 06-tickets.yaml pattern
+---
+
+# 06-tickets.yaml — luana-crm-analytics-landing-connections
+#
+# DAG-ordered tickets. Each atomic ≤2h Sonnet time (Opus rescue cap_reached per outcome §7.4).
+# Foundation-first: T-1 (workspace prep) → 4 parallelizable lifts (T-2, T-3a/b/c, T-4, T-5)
+# → integration (T-8) → ETL integration + smoke + arch fitness (T-9..T-12) → finalization (T-13).
+
+tickets:
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-1 — Workspace prep
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-1
+    title: "Update luana-platform workspace registration for 4 Story 4 Python packages"
+    owner_eligibility: [sonnet]
+    surface: workspace_config
+    production_code: false
+    estimated_time_minutes: 20
+    blocked_by: []
+    blocks: [T-2, T-3a, T-3b, T-3c, T-4, T-5]
+    validators_addressed: [V-NF-1, V-NF-2, V-NF-3]
+    files_to_create: []
+    files_to_modify:
+      - "~/luana-platform/pyproject.toml"
+    description: |
+      Modify ~/luana-platform/pyproject.toml `[tool.uv.workspace] members` and
+      `[tool.uv.sources]` per 03-arch.md §4.1 template — declare all 4 Story 4
+      luana-core-* packages as workspace members + sources, preserving Stories
+      2 + 3 packages (15 already registered).
+
+      DO NOT create the package folders yet — T-2..T-5 do that.
+
+      Verify: `cd ~/luana-platform && uv sync --all-packages` should still
+      succeed AFTER pyproject update — uv tolerates missing packages
+      temporarily; full GREEN comes after T-2..T-5.
+
+      Stage by name. Commit per 05-guidelines.md §5:
+      ```
+      chore(workspace): register Story 4 packages in uv workspace
+      ```
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-2 — Lift luana-core-crm
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-2
+    title: "Lift luana-core-crm from backend/src/modules/crm/ (49 production files + 28 tests; copilot_provider/ + contacts.py + contact_query_service.py + test_contacts_api.py deferred)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-crm
+    production_code: true
+    estimated_time_minutes: 90
+    blocked_by: [T-1]
+    blocks: [T-8]
+    validators_addressed: [V-NF-2, V-F-py-1, V-D-2]
+    files_to_create:
+      - "core/luana-core-crm/pyproject.toml"
+      - "core/luana-core-crm/README.md"
+      - "core/luana-core-crm/src/luana_core_crm/__init__.py"
+      - "core/luana-core-crm/src/luana_core_crm/api/{__init__,customers,leads,nps,referrals,sales}.py"
+      - "core/luana-core-crm/src/luana_core_crm/api/dto/*.py"
+      - "core/luana-core-crm/src/luana_core_crm/application/__init__.py"
+      - "core/luana-core-crm/src/luana_core_crm/application/services/{__init__,customer_service,lead_service,lifecycle_service,nps_service,referral_service,sale_service}.py"
+      - "core/luana-core-crm/src/luana_core_crm/domain/{__init__,customer,enums,events,lead,nps,referral,sale,scoring}.py"
+      - "core/luana-core-crm/src/luana_core_crm/infrastructure/{__init__}/"
+      - "core/luana-core-crm/src/luana_core_crm/infrastructure/models/*.py"
+      - "core/luana-core-crm/src/luana_core_crm/infrastructure/repositories/*.py"
+      - "core/luana-core-crm/tests/{__init__,conftest}.py"
+      - "core/luana-core-crm/tests/test_*.py (28 files, EXCLUDE test_contacts_api.py)"
+    description: |
+      LIFT VERBATIM (per 05-guidelines.md §1.1 + §3.4):
+
+      1. Explicit per-subfolder copy (DO NOT `cp -r crm/*`):
+         ```bash
+         for sub in api application domain infrastructure __init__.py; do
+           cp -r /home/chris/AISALESHT/backend/src/modules/crm/$sub \
+                 ~/luana-platform/core/luana-core-crm/src/luana_core_crm/
+         done
+         # DO NOT cp -r crm/copilot_provider — DEFERRED Story 6
+         ```
+      2. Delete deferred Story 8 files (lifted by accident in subfolder copy):
+         ```bash
+         rm -f ~/luana-platform/core/luana-core-crm/src/luana_core_crm/api/contacts.py
+         rm -f ~/luana-platform/core/luana-core-crm/src/luana_core_crm/application/services/contact_query_service.py
+         ```
+      3. Copy tests, EXCLUDE test_contacts_api.py:
+         ```bash
+         rsync -av --exclude='test_contacts_api.py' \
+               /home/chris/AISALESHT/backend/tests/modules/crm/ \
+               ~/luana-platform/core/luana-core-crm/tests/
+         ```
+      4. Apply sed import rewrites per 05-guidelines.md §1.3 (substitute `<m>`=crm, `<pkg_snake>`=luana_core_crm).
+      5. Verify no `src.modules.{copilot,sales_agent,campaigns}` leaks:
+         ```bash
+         grep -rEn "from src\.modules\.(copilot|sales_agent|campaigns)" \
+              ~/luana-platform/core/luana-core-crm/src/ \
+              && echo "FAIL: deferred leaked" || echo "OK"
+         ```
+      6. Write pyproject.toml per 03-arch.md §8.1.
+      7. Write README.md stub mentioning lift origin + 2 deferrals.
+      8. Run `cd ~/luana-platform && uv sync --all-packages` (resolves now).
+      9. Run `cd ~/luana-platform && uv run pytest core/luana-core-crm/tests/ -x -q --tb=short` — GREEN.
+      10. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-3a — Lift luana-core-analytics-engine framework + domain
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-3a
+    title: "Lift luana-core-analytics-engine — domain + application framework (~30 files, no providers/workers yet)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-analytics-engine
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-1]
+    blocks: [T-3b, T-3c]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-analytics-engine/pyproject.toml"
+      - "core/luana-core-analytics-engine/README.md"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/__init__.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/api/*.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/application/{__init__}/"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/application/dto/*.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/application/services/{__init__,etl_service,metrics_service,channel_registry}.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/application/services/stage_services/*.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/domain/{__init__,campaign_entities,enums,event,exceptions,extraction_contract,extraction_result,industry_benchmarks,metric_catalog,metric_resolver,models,period_config,ports}.py"
+      - "core/luana-core-analytics-engine/tests/{__init__,conftest}.py"
+      - "core/luana-core-analytics-engine/tests/test_metric_catalog.py + ~30 other domain/application test files"
+    description: |
+      LIFT VERBATIM — phase 1 of 3 for analytics (framework + domain):
+
+      1. Explicit per-subfolder copy (DO NOT `cp -r analytics/*`):
+         ```bash
+         for sub in api application domain __init__.py; do
+           cp -r /home/chris/AISALESHT/backend/src/modules/analytics/$sub \
+                 ~/luana-platform/core/luana-core-analytics-engine/src/luana_core_analytics_engine/
+         done
+         # DO NOT cp -r analytics/{infrastructure,workers,copilot_provider} — T-3b/T-3c handle infrastructure + workers
+         ```
+      2. Apply sed import rewrites per 05-guidelines.md §1.3 (substitute `<m>`=analytics, `<pkg_snake>`=luana_core_analytics_engine).
+      3. Copy partial tests (skip infrastructure/providers/sync tests — T-3b lifts those):
+         ```bash
+         # Lift unit tests for domain + application. Inventory:
+         cd /home/chris/AISALESHT/backend/tests/modules/analytics
+         ls *.py | head -40
+         # Lift everything; deps on infrastructure resolve when T-3b lands.
+         cp -r /home/chris/AISALESHT/backend/tests/modules/analytics/* \
+               ~/luana-platform/core/luana-core-analytics-engine/tests/
+         ```
+      4. Write pyproject.toml per 03-arch.md §8.2.
+      5. Write README.md stub (mention 3-phase lift T-3a/b/c).
+      6. RUN `uv sync` to resolve.
+      7. Tests may NOT all be GREEN yet (infrastructure missing). DOCUMENT count + which tests fail (likely most due to missing repositories/providers). Defer GREEN check to T-3c.
+      8. Verify zero `src.modules.copilot` leaks.
+      9. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-3b — Lift luana-core-analytics-engine providers + ETL pipeline
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-3b
+    title: "Lift luana-core-analytics-engine — infrastructure/{providers,etl,models,repositories,cache,sync} (~70 files)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-analytics-engine
+    production_code: true
+    estimated_time_minutes: 90
+    blocked_by: [T-3a]
+    blocks: [T-3c]
+    validators_addressed: [V-NF-2]
+    state: pushed
+    push_commit_sha: 2d5460d
+    pushed_at: 2026-05-11
+    builder: builder-backend (claude-sonnet-4-6)
+    files_to_create:
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/infrastructure/{__init__}/"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/infrastructure/cache/*.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/infrastructure/etl/{__init__,aggregations,period_pipeline,pipeline,transformers}.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/infrastructure/models/*.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/infrastructure/providers/{__init__,base,crm_internal_provider,google_ads_provider,google_analytics_provider,mailerlite_provider,manychat_provider,meta_campaign_provider,meta_pixel_provider,meta_provider,registry,search_console_provider,shopify_provider,tiktok_provider,youtube_provider}.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/infrastructure/repositories/*.py"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/infrastructure/sync/*.py"
+    description: |
+      LIFT VERBATIM — phase 2 of 3 for analytics (infrastructure):
+
+      1. Copy infrastructure:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/src/modules/analytics/infrastructure \
+               ~/luana-platform/core/luana-core-analytics-engine/src/luana_core_analytics_engine/
+         ```
+      2. Apply sed import rewrites per 05-guidelines.md §1.3 (only on newly added files):
+         ```bash
+         cd ~/luana-platform/core/luana-core-analytics-engine
+         find src/luana_core_analytics_engine/infrastructure -name "*.py" -exec sed -i \
+             -e 's|from src\.modules\.analytics\.|from luana_core_analytics_engine.|g' \
+             -e 's|from src\.modules\.iam\.|from luana_core_iam.|g' \
+             -e 's|from src\.shared\.|from luana_core_platform.|g' \
+             -e 's|from src\.core\.|from luana_core_platform.core.|g' \
+             {} \;
+         ```
+      3. Verify no `src.modules.{copilot,sales_agent,campaigns}` leaks.
+      4. Run `uv sync` — should still resolve.
+      5. Tests probably still NOT all GREEN until T-3c (workers + scheduler tests).
+      6. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-3c — Lift luana-core-analytics-engine workers + scheduler + GREEN tests
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-3c
+    title: "Lift luana-core-analytics-engine — workers + scheduler + tests GREEN aggregate (102 tests)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-analytics-engine
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-3b]
+    blocks: [T-8, T-9]
+    validators_addressed: [V-NF-2, V-F-py-2]
+    files_to_create:
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/workers/{__init__,manychat_sync,scheduler,settings,tasks}.py"
+    description: |
+      LIFT VERBATIM — phase 3 of 3 for analytics (workers + scheduler):
+
+      1. Copy workers:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/src/modules/analytics/workers \
+               ~/luana-platform/core/luana-core-analytics-engine/src/luana_core_analytics_engine/
+         ```
+      2. Apply sed import rewrites per 05-guidelines.md §1.3 on workers/.
+      3. Verify no `src.modules.{copilot,sales_agent,campaigns}` leaks.
+      4. NOW run full test suite — should be GREEN:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-analytics-engine/tests/ -x -q --tb=short
+         ```
+      5. If FAIL: diagnose per 05-guidelines.md §9 pitfalls (missing dep, mock path, etc.).
+      6. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-4 — Lift luana-core-landing
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-4
+    title: "Lift luana-core-landing from backend/src/modules/landing/ (20 production files + 13 tests; copilot_provider/ deferred)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-landing
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-1]
+    blocks: [T-8]
+    validators_addressed: [V-NF-2, V-F-py-3]
+    files_to_create:
+      - "core/luana-core-landing/pyproject.toml"
+      - "core/luana-core-landing/README.md"
+      - "core/luana-core-landing/src/luana_core_landing/__init__.py"
+      - "core/luana-core-landing/src/luana_core_landing/api/*.py"
+      - "core/luana-core-landing/src/luana_core_landing/application/*.py"
+      - "core/luana-core-landing/src/luana_core_landing/domain/*.py"
+      - "core/luana-core-landing/src/luana_core_landing/infrastructure/models/*.py"
+      - "core/luana-core-landing/src/luana_core_landing/infrastructure/repositories/*.py"
+      - "core/luana-core-landing/tests/{__init__,conftest}.py"
+      - "core/luana-core-landing/tests/test_*.py (13 files)"
+    description: |
+      LIFT VERBATIM:
+
+      1. Explicit per-subfolder copy (DO NOT `cp -r landing/*`):
+         ```bash
+         for sub in api application domain infrastructure __init__.py; do
+           cp -r /home/chris/AISALESHT/backend/src/modules/landing/$sub \
+                 ~/luana-platform/core/luana-core-landing/src/luana_core_landing/
+         done
+         # DO NOT cp -r landing/copilot_provider — DEFERRED Story 6
+         ```
+      2. Copy tests:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/tests/modules/landing/* \
+               ~/luana-platform/core/luana-core-landing/tests/
+         ```
+      3. Apply sed import rewrites per 05-guidelines.md §1.3.
+      4. Verify no `src.modules.copilot` leaks.
+      5. Write pyproject.toml per 03-arch.md §8.3 + README.md stub.
+      6. `uv sync` + `uv run pytest core/luana-core-landing/tests/ -x -q` — GREEN.
+      7. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-5 — Lift luana-core-connections
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-5
+    title: "Lift luana-core-connections from backend/src/modules/connections/ (65 production files + 33 tests; copilot_provider/ + api/dependencies/ deferred)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-connections
+    production_code: true
+    estimated_time_minutes: 120
+    blocked_by: [T-1]
+    blocks: [T-8, T-10]
+    validators_addressed: [V-NF-2, V-F-py-4]
+    files_to_create:
+      - "core/luana-core-connections/pyproject.toml"
+      - "core/luana-core-connections/README.md"
+      - "core/luana-core-connections/src/luana_core_connections/__init__.py"
+      - "core/luana-core-connections/src/luana_core_connections/api/{__init__,channel_info,gmail,google_ads,google_analytics,google_calendar,health,instagram,manychat,marketing_webhooks,meta,search_console,shopify,status,telegram,tiktok,webhook,whatsapp,youtube,youtube_analytics}.py"
+      - "core/luana-core-connections/src/luana_core_connections/api/dto/*.py"
+      - "core/luana-core-connections/src/luana_core_connections/application/services/*.py"
+      - "core/luana-core-connections/src/luana_core_connections/domain/*.py"
+      - "core/luana-core-connections/src/luana_core_connections/infrastructure/channels/*.py"
+      - "core/luana-core-connections/src/luana_core_connections/infrastructure/channels/whatsapp/{base,factory,interface,v1,v2}.py"
+      - "core/luana-core-connections/src/luana_core_connections/infrastructure/marketing_connectors/{base,mailerlite,manychat,shopify}.py"
+      - "core/luana-core-connections/src/luana_core_connections/infrastructure/models/*.py"
+      - "core/luana-core-connections/src/luana_core_connections/infrastructure/repositories/*.py"
+      - "core/luana-core-connections/tests/{__init__,conftest}.py"
+      - "core/luana-core-connections/tests/test_*.py (33 files)"
+    description: |
+      LIFT VERBATIM (largest module — uses density-aware subfolder copy):
+
+      1. Explicit per-subfolder copy (DO NOT `cp -r connections/*`):
+         ```bash
+         for sub in api application domain infrastructure __init__.py; do
+           cp -r /home/chris/AISALESHT/backend/src/modules/connections/$sub \
+                 ~/luana-platform/core/luana-core-connections/src/luana_core_connections/
+         done
+         # DO NOT cp -r connections/copilot_provider — DEFERRED Story 6
+         ```
+      2. Delete deferred Story 7 file (api/dependencies/__init__.py was inside api/):
+         ```bash
+         rm -rf ~/luana-platform/core/luana-core-connections/src/luana_core_connections/api/dependencies
+         ```
+      3. Copy tests verbatim:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/tests/modules/connections/* \
+               ~/luana-platform/core/luana-core-connections/tests/
+         ```
+      4. Apply sed import rewrites per 05-guidelines.md §1.3.
+      5. Verify no `src.modules.{copilot,sales_agent,campaigns}` leaks:
+         ```bash
+         grep -rEn "from src\.modules\.(copilot|sales_agent|campaigns)" \
+              ~/luana-platform/core/luana-core-connections/src/ \
+              && echo "FAIL: deferred leaked" || echo "OK"
+         ```
+      6. Write pyproject.toml per 03-arch.md §8.4 + README.md stub (note 2 deferrals).
+      7. `uv sync` + `uv run pytest core/luana-core-connections/tests/ -x -q` — GREEN.
+         Some tests may rely on `api/dependencies/__init__.py` — mark/skip those tests with a clear comment referencing T-5 deferral, OR keep failing if test count budget allows ≤5% drop per 05-guidelines.md §6 halt #9.
+      8. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-8 — Cross-package integration smoke
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-8
+    title: "Cross-package integration: uv sync --all-packages + smoke imports work + aggregate pytest"
+    owner_eligibility: [sonnet]
+    surface: workspace_integration
+    production_code: false
+    estimated_time_minutes: 30
+    blocked_by: [T-2, T-3c, T-4, T-5]
+    blocks: [T-9, T-10, T-11, T-12, T-13]
+    validators_addressed: [V-NF-1, V-F-x-1, V-F-x-2]
+    description: |
+      INTEGRATION SMOKE:
+      1. `cd ~/luana-platform && uv sync --all-packages` — must succeed (V-NF-1).
+         If dependency resolution fails: verify each Story 4 pyproject.toml
+         declares correct [tool.uv.sources] per 03-arch.md §8.
+      2. Run V-F-x-1 cross-package Python imports smoke (per 04-validators.yaml).
+      3. Run V-F-x-2 aggregate pytest:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src
+         ```
+         Confirms Stories 2+3 packages didn't regress under Story 4 workspace deps.
+      4. Commit any pyproject.toml tweaks needed for resolution (rare).
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-9 — ETL extraction-contract regen integration
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-9
+    title: "Lift extraction-contract regen script + create per-package Makefile + arch fitness drift test"
+    owner_eligibility: [sonnet]
+    surface: luana-core-analytics-engine
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-3c, T-8]
+    blocks: []
+    validators_addressed: [V-F-etl-1, V-F-etl-2, V-AG-3]
+    files_to_create:
+      - "core/luana-core-analytics-engine/scripts/generate_extraction_contract_doc.py"
+      - "core/luana-core-analytics-engine/Makefile"
+      - "core/luana-core-analytics-engine/docs/extraction-contract.md (generated)"
+      - "core/tests/architecture/test_analytics_extraction_contract_drift.py"
+    description: |
+      ETL extraction-contract regen integration per 03-arch.md §10 + 05-guidelines.md §1.6:
+
+      1. Lift script verbatim with path adjustment:
+         ```bash
+         cp /home/chris/AISALESHT/backend/scripts/generate_extraction_contract_doc.py \
+            ~/luana-platform/core/luana-core-analytics-engine/scripts/
+         ```
+      2. Apply sed inside script body:
+         ```bash
+         sed -i \
+             -e 's|from src\.modules\.analytics\.|from luana_core_analytics_engine.|g' \
+             ~/luana-platform/core/luana-core-analytics-engine/scripts/generate_extraction_contract_doc.py
+         ```
+      3. Update the output path constant inside the script:
+         - Locate the `_BACKEND_ROOT` / output path assignment (near top — uses `Path(__file__).resolve().parents[1]` or similar).
+         - Adjust so script writes to `<package_root>/docs/extraction-contract.md` instead of `<repo_root>/docs/etl/extraction-contract.md`.
+         - Example: change output assignment to `output = Path(__file__).resolve().parent.parent / "docs" / "extraction-contract.md"`.
+      4. Create Makefile per 03-arch.md §10.2:
+         ```makefile
+         .PHONY: extraction-contract
+         extraction-contract:
+         	cd $(CURDIR) && uv run python scripts/generate_extraction_contract_doc.py
+         	@echo "✓ Regenerated docs/extraction-contract.md"
+         ```
+         (Note: leading tab character required for `cd` line in Makefile syntax.)
+      5. Run `make extraction-contract`:
+         ```bash
+         cd ~/luana-platform/core/luana-core-analytics-engine && make extraction-contract
+         ```
+         Verify `docs/extraction-contract.md` exists and is non-empty.
+      6. Verify idempotency (V-F-etl-2 in 04-validators.yaml).
+      7. Create arch fitness test `core/tests/architecture/test_analytics_extraction_contract_drift.py` per 03-arch.md §7.3 template.
+      8. Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_analytics_extraction_contract_drift.py -x -q
+         ```
+         GREEN required.
+      9. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-10 — Connections engine stub-adapter smoke
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-10
+    title: "Write engine stub-adapter registration smoke test (brand-agnostic verification)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-connections
+    production_code: true
+    estimated_time_minutes: 40
+    blocked_by: [T-5, T-8]
+    blocks: []
+    validators_addressed: [V-F-conn-1]
+    files_to_create:
+      - "core/luana-core-connections/tests/test_engine_stub_adapter_registration.py"
+    description: |
+      Per 01-spec.md scenario C + 03-arch.md §7.4 + §11.3 — verify connections
+      engine ABC structural contract accepts a stub adapter without brand
+      affiliation.
+
+      1. Inspect actual lifted engine ABC API:
+         ```bash
+         cat ~/luana-platform/core/luana-core-connections/src/luana_core_connections/infrastructure/channels/whatsapp/interface.py
+         cat ~/luana-platform/core/luana-core-connections/src/luana_core_connections/infrastructure/marketing_connectors/base.py
+         # Identify the protocol classes / factory functions exposed.
+         ```
+      2. Write `tests/test_engine_stub_adapter_registration.py`:
+         - Import the protocol class (e.g., `WhatsAppAdapter` ABC or `MarketingConnectorBase`).
+         - Define a `StubAdapter` class implementing the protocol with brand-free `provider_name = "stub-test"`.
+         - Verify the stub instantiates without raising.
+         - Verify the factory (if engine exposes a `factory.create_adapter(...)`) accepts the stub.
+         - Optionally call the engine registry (if `infrastructure/channels/__init__.py` has a register API).
+      3. Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-connections/tests/test_engine_stub_adapter_registration.py -x -q
+         ```
+         GREEN required (V-F-conn-1).
+      4. If engine has NO stub-friendly API (everything tightly coupled to concrete adapters), escalate per 05-guidelines.md §6 halt #3.
+      5. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-11 — Brand-agnostic engines arch fitness
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-11
+    title: "Add NEW architecture fitness test: Story 4 brand-agnostic engines invariant"
+    owner_eligibility: [sonnet]
+    surface: arch_fitness
+    production_code: true
+    estimated_time_minutes: 30
+    blocked_by: [T-8]
+    blocks: []
+    validators_addressed: [V-AG-1]
+    files_to_create:
+      - "core/tests/architecture/test_story4_brand_agnostic_engines.py"
+    description: |
+      NEW arch fitness test per 03-arch.md §7.1:
+
+      1. Write `core/tests/architecture/test_story4_brand_agnostic_engines.py`
+         per 03-arch.md §7.1 template (PKGS list + FORBIDDEN_PATTERNS + 1 test function).
+      2. Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story4_brand_agnostic_engines.py -x -q
+         ```
+         GREEN required.
+      3. If test FAILs → escalate per 05-guidelines.md §6 halt #7 (means AISALESHT source has pre-existing brand contamination — should NOT have been merged to AISALESHT either).
+      4. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-12 — No-forward-imports arch fitness
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-12
+    title: "Add NEW architecture fitness test: Story 4 no forward module imports"
+    owner_eligibility: [sonnet]
+    surface: arch_fitness
+    production_code: true
+    estimated_time_minutes: 30
+    blocked_by: [T-8]
+    blocks: []
+    validators_addressed: [V-AG-2]
+    files_to_create:
+      - "core/tests/architecture/test_story4_no_forward_module_imports.py"
+    description: |
+      NEW arch fitness test per 03-arch.md §7.2:
+
+      1. Write `core/tests/architecture/test_story4_no_forward_module_imports.py`
+         per 03-arch.md §7.2 template (STORY4_PKGS + FORBIDDEN_IMPORTS + 1 test function).
+      2. Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story4_no_forward_module_imports.py -x -q
+         ```
+         GREEN required.
+      3. If FAILs → likely an accidental deferred-file leak; check §3.3 deferred list; revert lift + re-run with explicit subfolder loop.
+      4. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-13 — Finalization: lint + AISALESHT untouched + DEFERRED-FILES + READMEs
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-13
+    title: "Lint + AISALESHT untouched verifier + DEFERRED-FILES.md update + 4 README.md stubs"
+    owner_eligibility: [sonnet]
+    surface: documentation_and_verifiers
+    production_code: false
+    estimated_time_minutes: 45
+    blocked_by: [T-8]
+    blocks: []
+    validators_addressed: [V-NF-4, V-NF-5, V-NF-6, V-NF-7, V-NF-8, V-D-1, V-D-2]
+    files_to_create:
+      - "core/luana-core-crm/README.md (if not done in T-2)"
+      - "core/luana-core-analytics-engine/README.md (if not done in T-3a)"
+      - "core/luana-core-landing/README.md (if not done in T-4)"
+      - "core/luana-core-connections/README.md (if not done in T-5)"
+    files_to_modify:
+      - "core/DEFERRED-FILES.md  (append Story 4 deferrals)"
+    description: |
+      FINALIZATION pass:
+
+      1. Run ruff (V-NF-8):
+         ```bash
+         cd ~/luana-platform && uv run ruff check \
+             core/luana-core-crm \
+             core/luana-core-analytics-engine \
+             core/luana-core-landing \
+             core/luana-core-connections
+         ```
+         GREEN required. If FAILs, diagnose per 05-guidelines.md §9 pitfalls (likely sed bug — re-apply sed on offending file).
+
+      2. AISALESHT untouched verifier (V-NF-4):
+         ```bash
+         cd /home/chris/AISALESHT
+         BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-crm-analytics-landing-connections/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+         git diff "$BASE_SHA" HEAD --name-only | grep -E '^(backend/src/modules/(crm|analytics|landing|connections)|backend/tests/modules/(crm|analytics|landing|connections))/' && echo "FAIL" || echo "OK"
+         ```
+
+      3. No-publish verifiers (V-NF-5, V-NF-6, V-NF-7):
+         - `grep -l 'publishConfig' core/luana-core-{crm,analytics-engine,landing,connections}/pyproject.toml` → must be empty.
+         - `find ~/luana-platform -name '.releaserc*' -not -path '*/node_modules/*'` → must be empty.
+         - `find ~/luana-platform/.github/workflows -name 'release*' -o -name 'publish*'` → must be empty.
+
+      4. For each of 4 Story 4 packages, ensure README.md exists with:
+         - Package name + version (0.0.1-alpha)
+         - Lift origin path (AISALESHT module path)
+         - Key exports (1 paragraph)
+         - Story 4 lift commit refs
+         - Per-package deferrals note (each one mentions copilot_provider/ defer to Story 6; crm + connections mention additional deferrals)
+
+      5. Append to `~/luana-platform/core/DEFERRED-FILES.md` (created Story 2,
+         appended Story 3) the full Story 4 block per 03-arch.md §9.4 template:
+         ```markdown
+
+         ## Story 4 deferrals (2026-05-11)
+
+         ### Defer to Story 6 (copilot lift)
+         - backend/src/modules/crm/copilot_provider/ → Story 6 (imports src.modules.copilot.domain.ports::{BaseCopilotProvider, ModuleData, DataQueryPlan, DataQueryResult})
+         - backend/src/modules/analytics/copilot_provider/ → Story 6
+         - backend/src/modules/landing/copilot_provider/ → Story 6
+         - backend/src/modules/connections/copilot_provider/ → Story 6
+
+         ### Defer to Story 7 (sales_agent lift)
+         - backend/src/modules/connections/api/dependencies/__init__.py → Story 7 (composition root for MessageHandlerPort = ChatOrchestrator singleton)
+
+         ### Defer to Story 8 (campaigns lift)
+         - backend/src/modules/crm/api/contacts.py → Story 8 (imports src.modules.campaigns.api._dependencies + dtos.pagination)
+         - backend/src/modules/crm/application/services/contact_query_service.py → Story 8 (idem)
+         - backend/tests/modules/crm/test_contacts_api.py → Story 8 (tests deferred contacts.py)
+
+         ### Brand-specific adapters reserved (NOT yet existing)
+         - Future Lupulo POS adapter → Stories 11-13 (will live in `vertical-lupulo/connections/`)
+         - Future Vitalia payment gateway → Stories 11-13 (`vertical-vitalia/connections/`)
+         - Future Comunify-specific adapters → Stories 11-13 (`vertical-comunify/connections/`)
+
+         Current marketing connectors (manychat, mailerlite, shopify) ARE multi-tenant SaaS channels (not brand-specific) — lifted to core.
+         ```
+
+      6. Verify V-D-1 + V-D-2 GREEN.
+      7. Final commit per 05-guidelines.md §5.
+
+# ────────────────────────────────────────────────────────────────────────────
+# DAG Summary
+# ────────────────────────────────────────────────────────────────────────────
+dag_summary: |
+  Total: 13 tickets
+
+  Critical path (sequential):
+    T-1 (workspace prep)
+      → T-2 (crm) || T-3a → T-3b → T-3c (analytics 3-phase) || T-4 (landing) || T-5 (connections)
+        → T-8 (integration smoke)
+          → T-9 (ETL regen integration) + T-10 (connections smoke) + T-11 (brand-agnostic arch) + T-12 (no-forward arch) + T-13 (finalization)
+
+  Parallelizable batches:
+    Lift batch post-T-1: T-2 (crm) || T-3a-c (analytics serial within batch) || T-4 (landing) || T-5 (connections)
+    Finalization parallel post-T-8: T-9 (ETL) || T-10 (conn smoke) || T-11 (brand-agnostic) || T-12 (no-forward) || T-13 (lint+docs)
+
+  BUT: 1 Claude session sequentially per outcome §7.4. /dev-team picks ONE
+  ticket at a time, GREEN validators before next pick.
+
+  Estimated total tool-time (sequential 1 Claude): ~11.5h
+    - T-1 + lifts (T-2, T-3a/b/c, T-4, T-5): ~7h
+    - T-8 + ETL + arch fitness + smoke + finalization (T-8..T-13): ~3.5h
+    - Buffer for sed fixups + mock path migrations + deferred-leak debugging: ~1h
+
+  Budget per outcome §7.2: soft check-in at $500/$1000/$1500 cumulative
+  (incl. /pm + /architect + /dev-team).
+
+# ────────────────────────────────────────────────────────────────────────────
+# Owner eligibility summary
+# ────────────────────────────────────────────────────────────────────────────
+owner_eligibility_summary: |
+  Sonnet (mechanical lift, identical to Stories 2-3 pattern): T-1 through T-13 (all 13 tickets)
+  Opus rescue (cap_reached only, per outcome §7.4): any ticket if 3 auto-fix iter fail
+
+  Per outcome §7.3 — lift mode = mechanical pattern. No production agentic
+  code in Story 4 (production_code: true on T-2..T-5, T-9, T-10, T-11, T-12
+  because module code is the brand chasis + new arch fitness tests, but no
+  LLM-call code, no agentic graph). Sonnet handles cleanly.
+
+  Per R23 — even production_code: true is Sonnet-OK because no agentic logic
+  changes during lift. Lift mode forbids new abstractions.
+
+  Brand-agnostic engine verification (T-11) + no-forward-imports (T-12) +
+  ETL regen idempotency (T-9) are all mechanical regex grep + subprocess
+  assertions — Sonnet OK.
+
+# ────────────────────────────────────────────────────────────────────────────
+# Defer notes (re-confirmed for builder reference)
+# ────────────────────────────────────────────────────────────────────────────
+defer_notes: |
+  These are NOT tickets in this story — but builder MUST be aware:
+
+  1. backend/src/modules/{crm,analytics,landing,connections}/copilot_provider/ → Story 6
+     Builder skips when lifting each module (T-2, T-3a, T-4, T-5).
+     Detection: `from src.modules.copilot` import = DEFERRED.
+
+  2. backend/src/modules/connections/api/dependencies/__init__.py → Story 7
+     Builder deletes post-`cp -r api/` in T-5.
+     Detection: `from src.modules.sales_agent` import = DEFERRED.
+
+  3. backend/src/modules/crm/api/contacts.py → Story 8
+  4. backend/src/modules/crm/application/services/contact_query_service.py → Story 8
+  5. backend/tests/modules/crm/test_contacts_api.py → Story 8
+     Builder deletes post-`cp -r api/` in T-2 (and excludes test from rsync).
+     Detection: `from src.modules.campaigns` import = DEFERRED.
+
+  6. Future brand-specific adapters (Lupulo POS, Vitalia gateway, etc.) → Stories 11-13
+     DO NOT EXIST in AISALESHT today. NOTHING TO DEFER from current source.
+     DEFERRED-FILES.md merely notes them as reserved for future-Story new code.

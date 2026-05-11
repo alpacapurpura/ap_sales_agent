@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-11T07:13:52+00:00`
+> Generated at: `2026-05-11T12:11:24+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -32,8 +32,8 @@
 ### 🔨 Developing (1 / cap 3)
 - **luana-platform-migration**
 
-### 🧪 Developed — esperando QA (0 / cap 10)
-- _(none)_
+### 🧪 Developed — esperando QA (1 / cap 10)
+- **luana-crm-analytics-landing-connections** — outcome `luana-platform-migration`
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -44,13 +44,12 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (11) · Dropped (4)
+### Parked (10) · Dropped (4)
 - 🅿 growth-studio-visual-coherence-pass
 - 🅿 luana-brand-offer-studios
 - 🅿 luana-campaigns-extension-sdk
 - 🅿 luana-comunify-bootstrap
 - 🅿 luana-copilot-engine
-- 🅿 luana-crm-analytics-landing-connections
 - 🅿 luana-lupulo-bootstrap
 - 🅿 luana-nicolify-migration
 - 🅿 luana-sales-agent-engine
@@ -87,25 +86,25 @@ kanban
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
   🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
-  🧪 Developed (0 / cap 10)
+  🧪 Developed (1 / cap 10)
+    luana-crm-analytics-landing-co[luana-crm-analytics-landing-connections]
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🅿 Parked (11)
+  🅿 Parked (10)
     growth-studio-visual-coherence[growth-studio-visual-coherence-pass]
     luana-brand-offer-studios[luana-brand-offer-studios]
     luana-campaigns-extension-sdk[luana-campaigns-extension-sdk]
     luana-comunify-bootstrap[luana-comunify-bootstrap]
     luana-copilot-engine[luana-copilot-engine]
-    luana-crm-analytics-landing-co[luana-crm-analytics-landing-connections]
     luana-lupulo-bootstrap[luana-lupulo-bootstrap]
     luana-nicolify-migration[luana-nicolify-migration]
     luana-sales-agent-engine[luana-sales-agent-engine]
     luana-v0-1-0-publish[luana-v0-1-0-publish]
-    overflow-🅿 Parked[+1 more]
+    luana-vitalia-bootstrap[luana-vitalia-bootstrap]
 ```
 
 ---
