@@ -1,0 +1,169 @@
+{
+  "story_id": "luana-iam-tenancy-content",
+  "schema_version": 4,
+  "generated_at": "2026-05-11",
+  "generated_by": "/dev-team (claude-sonnet-4-6)",
+  "verdict": "GREEN",
+  "total_validators": 20,
+  "passed": 20,
+  "failed": 0,
+  "skipped": 0,
+  "aggregate_tests": {
+    "passed": 1132,
+    "skipped": 14,
+    "failed": 0,
+    "story3_packages_only": 237,
+    "run_command": "uv run pytest core/ --tb=short --ignore=core/src"
+  },
+  "validators": [
+    {
+      "id": "V-NF-1",
+      "name": "uv sync --all-packages succeeds",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "15 workspace packages resolve correctly"
+    },
+    {
+      "id": "V-NF-2",
+      "name": "6 Story 3 packages at version 0.0.1-alpha",
+      "status": "PASS",
+      "must_pass": true
+    },
+    {
+      "id": "V-NF-3",
+      "name": "Workspace [tool.uv.sources] has all 6 Story 3 packages",
+      "status": "PASS",
+      "must_pass": true
+    },
+    {
+      "id": "V-NF-4",
+      "name": "AISALESHT untouched in Story 3 commits",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "base_sha=8a6f151443ec40d4bfbc5911967946bbf11dd3a6 — no AISALESHT files modified"
+    },
+    {
+      "id": "V-NF-5",
+      "name": "No publishConfig in Story 3 packages",
+      "status": "PASS",
+      "must_pass": true
+    },
+    {
+      "id": "V-NF-6",
+      "name": "No .releaserc files",
+      "status": "PASS",
+      "must_pass": true
+    },
+    {
+      "id": "V-NF-7",
+      "name": "No release/publish workflows",
+      "status": "PASS",
+      "must_pass": true
+    },
+    {
+      "id": "V-NF-8",
+      "name": "ruff check Story 3 packages GREEN",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "E711 added to root ignore (SQLAlchemy IS NULL pattern). All other checks pass."
+    },
+    {
+      "id": "V-F-py-1",
+      "name": "luana-core-iam tests pass",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "161 tests (16 test files) — confirmed in aggregate run"
+    },
+    {
+      "id": "V-F-py-2",
+      "name": "luana-core-tenant-profile tests pass",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "54 passed"
+    },
+    {
+      "id": "V-F-py-3",
+      "name": "luana-core-tenant-domains tests pass",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "54 passed"
+    },
+    {
+      "id": "V-F-py-4",
+      "name": "luana-core-commercial-calendar tests pass",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "36 passed. copilot_provider/ DEFERRED per 03-arch.md §9."
+    },
+    {
+      "id": "V-F-py-5",
+      "name": "luana-core-social-proof tests pass",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "35 passed. copilot_provider/ DEFERRED per 03-arch.md §9."
+    },
+    {
+      "id": "V-F-py-6",
+      "name": "luana-core-assets tests pass",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "58 passed. FK stub products table in conftest."
+    },
+    {
+      "id": "V-F-x-1",
+      "name": "Cross-package Python import smoke (Story 3 → Story 2 edges)",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "All 10 cross-package imports succeed with env vars set. Redis/CLERK_ISSUER warnings expected in test env."
+    },
+    {
+      "id": "V-F-x-2",
+      "name": "uv run pytest entire luana-platform GREEN",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "1132 passed, 14 skipped, 0 failed in 142s. Fix applied: removed tests/__init__.py from all packages (importlib mode handles isolation without them; __init__.py caused tests.conftest module collision in aggregate run)."
+    },
+    {
+      "id": "V-AG-1",
+      "name": "Architecture fitness — luana-core-iam is brand-agnostic",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "5/5 checks pass: no brand conditionals, no hardcoded Clerk app IDs, ClerkService reads from settings"
+    },
+    {
+      "id": "V-AG-2",
+      "name": "Architecture fitness — Story 3 packages have no forward module imports",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "5/5 checks pass: no imports from future stories, no src.modules.* imports"
+    },
+    {
+      "id": "V-D-1",
+      "name": "All 6 Story 3 packages have README.md",
+      "status": "PASS",
+      "must_pass": true
+    },
+    {
+      "id": "V-D-2",
+      "name": "DEFERRED-FILES.md updated with Story 3 entries",
+      "status": "PASS",
+      "must_pass": true,
+      "note": "Story 3 deferrals section present. commercial_calendar/copilot_provider + social_proof/copilot_provider documented."
+    }
+  ],
+  "commits": [
+    "ab18d46 feat(story-3/T-3): lift luana-core-tenant-profile — 54 tests GREEN",
+    "067edf4 feat(story-3/T-4): lift luana-core-tenant-domains — 54 tests GREEN",
+    "5929054 feat(story-3/T-5): lift luana-core-commercial-calendar — 36 tests GREEN",
+    "0ee9e8e feat(story-3/T-6): lift luana-core-social-proof + luana-core-assets — 93 tests GREEN",
+    "5403b4c feat(story-3/T-8): arch fitness tests — 5 passed",
+    "3b62d58 feat(story-3/T-9): ruff lint pass GREEN",
+    "ced9a5f feat(story-3/T-10+T-11): docs — READMEs + DEFERRED-FILES.md"
+  ],
+  "deviations": [
+    "copilot_provider/ deferred in commercial_calendar + social_proof (Story 6)",
+    "tests/__init__.py removed from all packages to fix importlib aggregate collision",
+    "E711 added to ruff ignore (SQLAlchemy IS NULL ORM pattern)",
+    "luana-core-assets needs boto3 + python-multipart deps (added to pyproject.toml)"
+  ]
+}

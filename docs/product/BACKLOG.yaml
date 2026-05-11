@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T04:15:01+00:00
+# Generated at: 2026-05-11T07:01:13+00:00
 
-generated_at: '2026-05-11T04:15:01+00:00'
+generated_at: '2026-05-11T07:01:13+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -525,20 +525,6 @@ buckets:
       next_action: /po opens 01-spec.md after Story 3 done
       blocked_by:
       - luana-iam-tenancy-content
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-iam-tenancy-content
-    kind: story
-    state: parked
-    title: luana-iam-tenancy-content
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 2 done
-      blocked_by:
-      - luana-shared-lift
       priority_override: null
       audit_iterations: 0
   - id: luana-lupulo-bootstrap
