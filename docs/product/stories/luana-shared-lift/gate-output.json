@@ -1,0 +1,69 @@
+{
+  "story": "luana-shared-lift",
+  "iteration": "T-17-final",
+  "timestamp": "2026-05-10",
+  "verdict": "PASS",
+  "remote_repo": "alpacapurpura/luana-platform",
+  "final_commit": "4ca22c6",
+  "commits_range": "9615d47..4ca22c6",
+  "python_tests": {
+    "passed": 728,
+    "skipped": 6,
+    "failed": 0,
+    "warnings": 9
+  },
+  "ts_tests": {
+    "passed": 39,
+    "failed": 0
+  },
+  "arch_tests": {
+    "active": 4,
+    "deferred": 3,
+    "failed": 0
+  },
+  "validators": {
+    "V-NF-1": "PASS",
+    "V-NF-2": "PASS",
+    "V-NF-4": "PASS",
+    "V-NF-8": "PASS",
+    "V-NF-9": "PASS",
+    "V-F-x-1": "PASS",
+    "V-F-x-2": "PASS",
+    "V-F-x-3": "PASS",
+    "V-D-1": "PASS",
+    "V-D-2": "PASS"
+  },
+  "tickets": {
+    "T-1": "done",
+    "T-2": "done",
+    "T-3": "done",
+    "T-4": "done",
+    "T-5": "done",
+    "T-6": "done",
+    "T-7": "done",
+    "T-8": "done",
+    "T-9": "done",
+    "T-10": "done",
+    "T-11": "done",
+    "T-12": "done",
+    "T-13": "done",
+    "T-14": "done",
+    "T-15": "done",
+    "T-16": "done",
+    "T-17": "done"
+  },
+  "deferred_files": [
+    "backend/src/shared/workers/copilot_quality_eval.py (Story 6)",
+    "backend/src/shared/workers/copilot_rag_eval.py (Story 6)",
+    "backend/src/shared/workers/sales_agent_quality_eval.py (Story 7)",
+    "backend/src/shared/application/personality_event_handlers.py (Story 7)"
+  ],
+  "deviations": [
+    "src/core/ lifted into luana-core-platform (not in spec §2.2)",
+    "@luana/format extends to lib/utils + lib/constants",
+    "@luana/schemas is placeholder (lib/zod-schemas/ doesn't exist in AISALESHT)",
+    "4 module-coupled files deferred to Stories 6/7",
+    "9 Python packages (spec said 10, mapping resolves to 9)",
+    "Cyclic dep platform<->llm resolved via uv workspace sources"
+  ]
+}

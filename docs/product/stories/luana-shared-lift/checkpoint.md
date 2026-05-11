@@ -1,11 +1,11 @@
 ---
 story_id: luana-shared-lift
 outcome: luana-platform-migration
-state: ready                                    # ★ /architect closed ready package 2026-05-11 ★
-phase: ready_for_dev_team
-last_artifact: 06-tickets.yaml
-last_modified: 2026-05-11
-next_action: "/dev-team picks up. Reads 06-tickets.yaml + 05-guidelines.md. Iterates ticket-by-ticket against 04-validators.yaml."
+state: developed                                 # ★ /dev-team closed all 17 tickets 2026-05-10 ★
+phase: developed_awaiting_review
+last_artifact: T-17 READMEs + DEFERRED-FILES.md
+last_modified: 2026-05-10
+next_action: "Chris triggers /auditor for Conv 3 review. state=developed→reviewing."
 ratified_by_chris: true                         # pre-auth §7.2 lift mode
 spawned_at: 2026-05-09
 spawned_by: /pm + claude-opus-4-7
@@ -73,7 +73,7 @@ T-1 (workspace prep)
 - 2026-05-09: spawned, parked (blocked_by Story 1)
 - 2026-05-11: Story 1 done → unblocked. /pm self-drafted 01-spec.md per §7.2 pre-auth.
 - 2026-05-11: /architect produced 03-arch + 04-validators + 05-guidelines + 06-tickets. state=refined→ready.
-- next: /dev-team picks T-1 (workspace prep) sequentially per outcome §7.4 (1 ticket at a time, GREEN validators before next).
+- 2026-05-10: /dev-team completed all 17 tickets. 728 Python tests pass, 39 TS tests pass. Pushed to alpacapurpura/luana-platform main (9615d47..4ca22c6). state=ready→developing→developed.
 
 ## Notes for /dev-team
 
