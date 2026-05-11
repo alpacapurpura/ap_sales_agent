@@ -1,11 +1,11 @@
 ---
 story_id: luana-shared-lift
 outcome: luana-platform-migration
-state: developed                                 # ★ /dev-team closed all 17 tickets 2026-05-10 ★
-phase: developed_awaiting_review
-last_artifact: T-17 READMEs + DEFERRED-FILES.md
-last_modified: 2026-05-10
-next_action: "Chris triggers /auditor for Conv 3 review. state=developed→reviewing."
+state: reviewing                                 # ★ AUDIT COMPLETE — APPROVED 2026-05-11 ★
+phase: AUDIT_APPROVED
+last_artifact: CHECKPOINTS.md (C1-C5 grid, verdict APPROVED, 2 trivial self-fixes)
+last_modified: 2026-05-11
+next_action: "/pm merge luana-platform → state=done → archive story → unblock Story 3 luana-iam-tenancy-content"
 ratified_by_chris: true                         # pre-auth §7.2 lift mode
 spawned_at: 2026-05-09
 spawned_by: /pm + claude-opus-4-7
@@ -18,7 +18,11 @@ artifacts:
   - 04-validators.yaml                          # ★ NEW 2026-05-11 ★
   - 05-guidelines.md                            # ★ NEW 2026-05-11 ★
   - 06-tickets.yaml                             # ★ NEW 2026-05-11 ★
-audit_iterations: 0
+audit_iterations: 1
+audit_self_fixes: 2
+audit_verdict: APPROVED
+auditor: claude-sonnet-4-6
+auditor_sha_range: "9615d47..8e86d98 (16 dev + 2 auditor fix commits)"
 legacy_exempt: false
 sequence_in_outcome: 2
 blocks: [luana-iam-tenancy-content]
