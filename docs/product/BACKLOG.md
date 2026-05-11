@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-11T12:39:23+00:00`
+> Generated at: `2026-05-11T18:15:08+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -32,8 +32,8 @@
 ### 🔨 Developing (1 / cap 3)
 - **luana-platform-migration**
 
-### 🧪 Developed — esperando QA (0 / cap 10)
-- _(none)_
+### 🧪 Developed — esperando QA (1 / cap 10)
+- **luana-brand-offer-studios** — outcome `luana-platform-migration`
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -44,9 +44,8 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (10) · Dropped (4)
+### Parked (9) · Dropped (4)
 - 🅿 growth-studio-visual-coherence-pass
-- 🅿 luana-brand-offer-studios
 - 🅿 luana-campaigns-extension-sdk
 - 🅿 luana-comunify-bootstrap
 - 🅿 luana-copilot-engine
@@ -86,16 +85,16 @@ kanban
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
   🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
-  🧪 Developed (0 / cap 10)
+  🧪 Developed (1 / cap 10)
+    luana-brand-offer-studios[luana-brand-offer-studios]
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🅿 Parked (10)
+  🅿 Parked (9)
     growth-studio-visual-coherence[growth-studio-visual-coherence-pass]
-    luana-brand-offer-studios[luana-brand-offer-studios]
     luana-campaigns-extension-sdk[luana-campaigns-extension-sdk]
     luana-comunify-bootstrap[luana-comunify-bootstrap]
     luana-copilot-engine[luana-copilot-engine]

@@ -1,0 +1,253 @@
+---
+story_id: luana-brand-offer-studios
+schema_version: 4
+last_modified: 2026-05-11
+drafted_by: /architect (claude-opus-4-7)
+total_validators: 21
+---
+
+# 04-validators.yaml — luana-brand-offer-studios
+#
+# Schema v4: 5 categories (non_functional / functional / visual / agentic_eval / documentation).
+# Each validator MUST be shell-executable. must_pass flag indicates blocking vs informational.
+#
+# Order of execution (mirrors §2 lift order in 03-arch.md):
+#   1. Workspace registration (V-NF-1..3)
+#   2. Per-package smoke (V-F-py-1..2)
+#   3. Cross-package integration (V-F-x-1..2)
+#   4. Offer catalogs DAG smoke (V-F-cat-1)
+#   5. AISALESHT untouched (V-NF-4)
+#   6. No-publish (V-NF-5..7)
+#   7. Lint (V-NF-8)
+#   8. Brand-agnostic engines arch fitness (V-AG-1)
+#   9. No-forward-imports arch fitness (V-AG-2)
+#  10. Voice compiler SSoT placement arch fitness (V-AG-3)
+#  11. Documentation (V-D-1..2)
+
+non_functional:
+  - id: V-NF-1
+    name: "uv sync --all-packages succeeds (21 packages: Stories 2+3+4+5)"
+    description: "Root pyproject.toml lists all Story 2+3+4+5 packages as workspace members. uv resolves all sources."
+    command: |
+      cd ~/luana-platform && uv sync --all-packages 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1, T-14]
+
+  - id: V-NF-2
+    name: "Each Story 5 Python package has pyproject.toml at version 0.0.1-alpha"
+    description: "Per 03-arch.md §3.1 — 2 packages × pyproject.toml at correct version."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in luana-core-brand-studio luana-core-offer-studio; do
+        if [ ! -f "core/${pkg}/pyproject.toml" ]; then echo "MISSING: core/${pkg}/pyproject.toml"; MISSING=$((MISSING+1)); fi
+        if ! grep -q 'version = "0.0.1-alpha"' "core/${pkg}/pyproject.toml" 2>/dev/null; then echo "WRONG VERSION: core/${pkg}"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-2, T-9]
+
+  - id: V-NF-3
+    name: "Workspace declares Story 5 packages in [tool.uv.sources]"
+    description: "Both Story 5 packages registered as workspace sources for cross-package import resolution."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in luana-core-brand-studio luana-core-offer-studio; do
+        if ! grep -q "^${pkg} = { workspace = true }" pyproject.toml; then echo "NOT IN [tool.uv.sources]: ${pkg}"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1]
+
+  - id: V-NF-4
+    name: "AISALESHT not modified in Story 5 commits"
+    description: "Per outcome §7.3 lift mode + 05-guidelines.md §2.2. NO file under backend/src/modules/{brand,offer}/ OR backend/tests/modules/{brand,offer}/ modified during Story 5."
+    command: |
+      cd /home/chris/AISALESHT
+      BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-brand-offer-studios/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+      DIFF=$(git diff "$BASE_SHA" HEAD --name-only 2>/dev/null | grep -E '^(backend/src/modules/(brand|offer)|backend/tests/modules/(brand|offer))/' || true)
+      if [ -n "$DIFF" ]; then
+        echo "AISALESHT FILES MODIFIED (forbidden Story 5 surfaces):"
+        echo "$DIFF"
+        exit 1
+      fi
+      echo "OK: AISALESHT untouched"
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-NF-5
+    name: "No publishConfig in any Story 5 package"
+    description: "Per outcome §7.1 GH Packages deferred until Story 9. No publish config allowed in Story 5."
+    command: |
+      cd ~/luana-platform
+      OFFENDERS=$(grep -l 'publishConfig\|\[project\.urls\].*registry' core/luana-core-brand-studio/pyproject.toml core/luana-core-offer-studio/pyproject.toml 2>/dev/null || true)
+      if [ -n "$OFFENDERS" ]; then echo "Found publish config in: $OFFENDERS"; exit 1; fi
+      echo "OK: no publish config"
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-NF-6
+    name: "No .releaserc.json files introduced by Story 5"
+    description: "Per outcome §7.1 GH Packages deferred."
+    command: |
+      cd ~/luana-platform
+      FOUND=$(find . -name '.releaserc*' -not -path './node_modules/*' 2>/dev/null || true)
+      if [ -n "$FOUND" ]; then echo "Found release configs: $FOUND"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-NF-7
+    name: "No release.yml or publish workflow added"
+    description: "Per outcome §7.1."
+    command: |
+      cd ~/luana-platform
+      FOUND=$(find .github/workflows -maxdepth 2 -type f \( -name 'release*' -o -name 'publish*' \) 2>/dev/null || true)
+      if [ -n "$FOUND" ]; then echo "Found release/publish workflows: $FOUND"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-NF-8
+    name: "uv run ruff check Story 5 packages GREEN"
+    description: "Per 05-guidelines.md §1.5 — ruff baseline passes on lifted code (lift mode preserves lint state from AISALESHT)."
+    command: |
+      cd ~/luana-platform && uv run ruff check core/luana-core-brand-studio core/luana-core-offer-studio 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+functional:
+  # Per-package Python smoke tests
+  - id: V-F-py-1
+    name: "luana-core-brand-studio tests pass (34 tests — 3 deferred to Story 6)"
+    description: "uv run pytest core/luana-core-brand-studio/tests/ GREEN. test_brand_context_injector.py + test_buyer_persona_fields_dropped_regression.py + test_worker_emits_summary_and_pills.py NOT lifted (deferred Story 6 — they import copilot)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-brand-studio/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-2, T-3, T-4, T-5, T-6, T-7, T-8]
+
+  - id: V-F-py-2
+    name: "luana-core-offer-studio tests pass (73 tests — 1 deferred to Story 6)"
+    description: "uv run pytest core/luana-core-offer-studio/tests/ GREEN. test_offer_data_access_provider.py NOT lifted (deferred Story 6). test_offer_ai_endpoint.py may have per-test skips for the deferred offer_ai.py routes (≤5% test drop budget per outcome §7.4 halt #9)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-9, T-10, T-11, T-12, T-13]
+
+  # Cross-package integration smoke
+  - id: V-F-x-1
+    name: "Cross-package Python import works (Story 5 packages consume platform + iam)"
+    description: "Per 03-arch.md §1.2 + scenario validation — luana_core_{brand_studio,offer_studio}.* imports from luana_core_platform.* AND luana_core_iam.* work. PersonalityCompiler imports verify ADR-001 §2.4 placement."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      # Story 5 brand-studio
+      from luana_core_brand_studio.domain.aggregates import BrandSettings
+      from luana_core_brand_studio.domain.personality import PersonalityCompiler
+      from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
+      from luana_core_brand_studio.domain.field_contract import BRAND_SECTION_MAP
+      from luana_core_brand_studio.application.services.brand_read_port_impl import BrandReadPortImpl
+      # Story 5 offer-studio
+      from luana_core_offer_studio.domain.offer import Offer
+      from luana_core_offer_studio.domain.enums import OfferArchetype, OfferValueLevel
+      from luana_core_offer_studio.domain.archetype_catalog import ARCHETYPE_CATALOG
+      from luana_core_offer_studio.domain.offer_type_preset_catalog import OFFER_TYPE_PRESET_CATALOG
+      from luana_core_offer_studio.application.services.offer_read_port_impl import OfferReadPortImpl
+      # Story 5 → Story 3 edges (iam)
+      from luana_core_iam.domain.user import User
+      from luana_core_iam.api.dependencies import get_current_user
+      # Story 5 → Story 2 platform edges
+      from luana_core_platform.domain.base_entity import Base
+      from luana_core_platform.domain.field_contract import FieldContract
+      from luana_core_platform.domain.ports import BrandReadPort, OfferReadPort
+      print('all Story 5 cross-package imports OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-14]
+
+  - id: V-F-x-2
+    name: "uv run pytest entire luana-platform (Stories 2+3+4+5) GREEN"
+    description: "Aggregate test runs Story 2+3+4+5 packages + arch fitness in one command. Confirms no regressions in Story 2+3+4 packages from new Story 5 workspace deps."
+    command: |
+      cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-14, T-15, T-16, T-17]
+
+  # Offer catalogs DAG smoke (Story 5-specific cement)
+  - id: V-F-cat-1
+    name: "Offer catalogs DAG smoke — 7 catalogs loaded + ≥76 presets (per 03-arch.md §7.4)"
+    description: "Per offer-expert skill SSoT + outcome §7.3 verbatim lift — confirms 7-catalog DAG preserved post-lift with at least 76 presets, 5 archetypes, 5 value levels, 4 variant structures, 21+ section keys."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/test_catalogs_dag_smoke.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-17]
+
+visual: []  # No UI changes in Story 5 (BE-only lift; FE refactor deferred to Story 10+).
+
+agentic_eval:
+  - id: V-AG-1
+    name: "Architecture fitness — Story 5 engines are brand-agnostic"
+    description: "Per 03-arch.md §7.1. NO `if brand == \"...\"` or brand-key string literals in luana-core-{brand-studio,offer-studio} source. ADR-001 §2.4 + outcome §2 brand isolation strategy."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story5_brand_agnostic_engines.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-15]
+
+  - id: V-AG-2
+    name: "Architecture fitness — Story 5 packages have no forward module imports"
+    description: "Per 03-arch.md §7.2. NO Story 5 package imports from luana_core_{copilot,sales_agent,campaigns,advertising,social_media,scheduling} OR from src.modules.*. Forward-coupling would break the migration sequence."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story5_no_forward_module_imports.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-16]
+
+  - id: V-AG-3
+    name: "Architecture fitness — voice compiler v2 SSoT lives in brand-studio per ADR-001 §2.4"
+    description: "Per 03-arch.md §7.3 + §10. PersonalityCompiler class located in luana-core-brand-studio.domain.personality + no mirror declared elsewhere (anti-mirror SSoT cement). This test BLOCKS any future story from creating a parallel PersonalityCompiler class."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story5_voice_compiler_in_brand_studio.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-17]
+
+documentation:
+  - id: V-D-1
+    name: "Each Story 5 package has README.md stub"
+    description: "Per 05-guidelines.md §scope. Stub explains: package name, lift origin path (AISALESHT), key exports + deferrals."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in luana-core-brand-studio luana-core-offer-studio; do
+        if [ ! -f "core/${pkg}/README.md" ]; then echo "MISSING: core/${pkg}/README.md"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-D-2
+    name: "core/DEFERRED-FILES.md updated with Story 5 entries"
+    description: "Per 03-arch.md §9.6 — audit trail of Story 5 deferred files: 13 copilot_provider/ files + 3 offer/api/ deferrals + 4 test deferrals + voice-cloning reserved notes."
+    command: |
+      F=~/luana-platform/core/DEFERRED-FILES.md
+      grep -q "Story 5 deferrals" "$F" && \
+      grep -q "brand/copilot_provider" "$F" && \
+      grep -q "offer/copilot_provider" "$F" && \
+      grep -q "offer/api/offer_ai.py" "$F" && \
+      grep -q "offer/api/counts.py" "$F" && \
+      grep -q "offer/api/campaigns.py" "$F" && \
+      grep -q "test_brand_context_injector.py" "$F" && \
+      grep -q "test_buyer_persona_fields_dropped_regression.py" "$F" && \
+      grep -q "test_worker_emits_summary_and_pills.py" "$F" && \
+      grep -q "test_offer_data_access_provider.py" "$F" && \
+      grep -q "BrandVoicePort" "$F" && \
+      grep -q "voice_cloning" "$F"
+    must_pass: true
+    addressed_by_tickets: [T-18]

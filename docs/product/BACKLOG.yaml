@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T12:39:23+00:00
+# Generated at: 2026-05-11T18:15:08+00:00
 
-generated_at: '2026-05-11T12:39:23+00:00'
+generated_at: '2026-05-11T18:15:08+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -306,7 +306,20 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
-  developed: []
+  developed:
+  - id: luana-brand-offer-studios
+    kind: story
+    state: developed
+    title: luana-brand-offer-studios
+    tags: []
+    last_touched: 2026-05-11
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: /auditor (Chris triggers manually) takes Story 5 for QA C1-C5
+      blocked_by: []
+      priority_override: null
+      audit_iterations: 0
   reviewing: []
   done:
   - id: growth-copilot-layout-unification
@@ -455,20 +468,6 @@ buckets:
         queda inconsistencia visual detectable cross-studio → unparkear → /po-ux refina. Probable que NO se ejecute (Chris
         2026-05-06: ''visualmente si se ve bien'').'
       blocked_by: null
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-brand-offer-studios
-    kind: story
-    state: parked
-    title: luana-brand-offer-studios
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 4 done
-      blocked_by:
-      - luana-crm-analytics-landing-connections
       priority_override: null
       audit_iterations: 0
   - id: luana-campaigns-extension-sdk

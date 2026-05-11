@@ -1,0 +1,859 @@
+---
+story_id: luana-brand-offer-studios
+tickets_version: 1
+last_modified: 2026-05-11
+drafted_by: /architect (claude-opus-4-7)
+total_tickets: 18
+authority: 03-arch.md + 04-validators.yaml + 05-guidelines.md + Story 4 06-tickets.yaml pattern
+---
+
+# 06-tickets.yaml — luana-brand-offer-studios
+#
+# DAG-ordered tickets. Each atomic ≤2h Sonnet time (Opus rescue cap_reached per outcome §7.4).
+# Foundation-first: T-1 (workspace prep) → brand sub-batch (T-2..T-8) + offer sub-batch (T-9..T-13)
+# → integration (T-14) → arch fitness + cement (T-15..T-17) → finalization (T-18).
+
+tickets:
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-1 — Workspace prep
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-1
+    title: "Update luana-platform workspace registration for 2 Story 5 Python packages"
+    owner_eligibility: [sonnet]
+    surface: workspace_config
+    production_code: false
+    estimated_time_minutes: 15
+    blocked_by: []
+    blocks: [T-2, T-9]
+    validators_addressed: [V-NF-1, V-NF-2, V-NF-3]
+    files_to_create: []
+    files_to_modify:
+      - "~/luana-platform/pyproject.toml"
+    description: |
+      Modify ~/luana-platform/pyproject.toml `[tool.uv.workspace] members` and
+      `[tool.uv.sources]` per 03-arch.md §4.1 template — declare both Story 5
+      luana-core-* packages as workspace members + sources, preserving Stories
+      2 + 3 + 4 packages (19 already registered).
+
+      DO NOT create the package folders yet — T-2 and T-9 do that.
+
+      Verify: `cd ~/luana-platform && uv sync --all-packages` should still
+      succeed AFTER pyproject update — uv tolerates missing packages
+      temporarily; full GREEN comes after T-2..T-13.
+
+      Stage by name. Commit per 05-guidelines.md §5:
+      ```
+      chore(workspace): register Story 5 packages in uv workspace
+      ```
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-2 — luana-core-brand-studio skeleton
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-2
+    title: "Create luana-core-brand-studio package skeleton (pyproject + README + empty src/ + tests/)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-brand-studio
+    production_code: true
+    estimated_time_minutes: 20
+    blocked_by: [T-1]
+    blocks: [T-3]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-brand-studio/pyproject.toml"
+      - "core/luana-core-brand-studio/README.md"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/__init__.py"
+      - "core/luana-core-brand-studio/tests/__init__.py"
+    description: |
+      Create empty package skeleton:
+
+      1. `mkdir -p core/luana-core-brand-studio/src/luana_core_brand_studio core/luana-core-brand-studio/tests`
+      2. Write pyproject.toml per 03-arch.md §8.1 (includes langgraph + qdrant-client deps).
+      3. Write README.md stub: package name, lift origin (`backend/src/modules/brand/`),
+         note 4 deferrals (copilot_provider/ + 3 test files to Story 6).
+      4. Create empty `src/luana_core_brand_studio/__init__.py` + `tests/__init__.py`.
+      5. Run `cd ~/luana-platform && uv sync --all-packages` — package skeleton resolves.
+      6. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-3 — Lift brand domain layer + tests
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-3
+    title: "Lift brand domain/ layer (15 files: aggregates, identity, personality, narrative, positioning, story, strategy, team, buyer_persona, communication_assets, entities, field_contract, section_catalog, buyer_persona_field_contract)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-brand-studio
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-2]
+    blocks: [T-4]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/domain/__init__.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/domain/{aggregates,buyer_persona,buyer_persona_field_contract,communication_assets,entities,field_contract,identity,narrative,personality,positioning,section_catalog,story,strategy,team}.py"
+      - "core/luana-core-brand-studio/tests/test_personality_domain.py + test_personality_compiler_output.py + test_personality_compiler_v2.py + test_domain_models.py + test_buyer_persona_entity.py + test_buyer_persona_model.py"
+    description: |
+      LIFT VERBATIM:
+
+      1. `cp -r /home/chris/AISALESHT/backend/src/modules/brand/domain/ \
+                ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/`
+      2. Apply sed import rewrites per 05-guidelines.md §1.3 (substitute `<m>`=brand, `<pkg_snake>`=luana_core_brand_studio).
+      3. Selectively copy domain tests (the unit tests directly testing domain classes):
+         ```bash
+         for t in test_personality_domain.py test_personality_compiler_output.py test_personality_compiler_v2.py test_domain_models.py test_buyer_persona_entity.py; do
+           cp /home/chris/AISALESHT/backend/tests/modules/brand/$t \
+              ~/luana-platform/core/luana-core-brand-studio/tests/
+         done
+         ```
+      4. Apply sed on tests.
+      5. Run isolated test for domain:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-brand-studio/tests/test_personality_domain.py core/luana-core-brand-studio/tests/test_personality_compiler_v2.py core/luana-core-brand-studio/tests/test_domain_models.py -x -q
+         ```
+         Some may not be GREEN until infrastructure (T-4) lands (e.g., test_buyer_persona_model.py depends on infrastructure model). Defer GREEN to T-8 aggregate.
+      6. Verify zero `src.modules.copilot` leaks: `grep -rE "from src\.modules\." src/luana_core_brand_studio/domain/`.
+      7. Verify `class PersonalityCompiler` exists in `domain/personality.py` (ADR-001 §2.4 placement cement).
+      8. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-4 — Lift brand infrastructure layer + tests
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-4
+    title: "Lift brand infrastructure/ layer (5 repos + 5 models + 4 parsers + 1 qdrant store)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-brand-studio
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-3]
+    blocks: [T-5]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/infrastructure/__init__.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/infrastructure/models/*.py (6 files)"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/infrastructure/parsers/*.py (5 files)"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/infrastructure/qdrant/{__init__,style_anchor_store}.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/infrastructure/repositories/*.py (6 files)"
+      - "core/luana-core-brand-studio/tests/test_avatar_repository.py + test_brand_repository.py + test_brand_summary_repository.py + test_buyer_persona_model.py + test_buyer_persona_repository.py + test_personality_repository.py + test_style_anchor_store.py + test_parsers.py"
+    description: |
+      LIFT VERBATIM:
+
+      1. `cp -r /home/chris/AISALESHT/backend/src/modules/brand/infrastructure/ \
+                ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/`
+      2. Apply sed per 05-guidelines.md §1.3.
+      3. Copy infrastructure tests:
+         ```bash
+         for t in test_avatar_repository.py test_brand_repository.py test_brand_summary_repository.py test_buyer_persona_model.py test_buyer_persona_repository.py test_personality_repository.py test_style_anchor_store.py test_parsers.py; do
+           cp /home/chris/AISALESHT/backend/tests/modules/brand/$t \
+              ~/luana-platform/core/luana-core-brand-studio/tests/
+         done
+         ```
+      4. Apply sed on tests.
+      5. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-brand-studio/tests/test_brand_repository.py core/luana-core-brand-studio/tests/test_buyer_persona_repository.py -x -q
+         ```
+         GREEN where dep-complete.
+      6. Verify zero leaks.
+      7. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-5 — Lift brand application + services layer
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-5
+    title: "Lift brand application/ (extraction + services excluding voice_fidelity + style_analyzer)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-brand-studio
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-4]
+    blocks: [T-6]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/__init__.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/{extraction_crawler,extraction_orchestrator,extraction_routes,extraction_service,extraction_trace}.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/services/{__init__,brand_data_adapter,brand_field_apply_adapter,brand_read_port_impl,personality_service}.py"
+      - "core/luana-core-brand-studio/tests/test_brand_section_updated_event.py + test_personality_service.py + test_personality_integration.py + test_personality_profile_updated_event.py + test_clone_dry_run.py + test_data_model_purge.py + test_outbox_adapter_integration.py + test_extraction_*.py + application/services/test_brand_data_adapter_pr2.py + integration/test_outbox_cutover.py"
+    description: |
+      LIFT VERBATIM:
+
+      1. Copy `application/` BUT exclude `agents/` (T-6) + `voice_fidelity/` (T-6):
+         ```bash
+         cd ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio
+         mkdir -p application/services
+         # Top-level application files
+         for f in __init__.py extraction_crawler.py extraction_orchestrator.py extraction_routes.py extraction_service.py extraction_trace.py; do
+           cp /home/chris/AISALESHT/backend/src/modules/brand/application/$f application/
+         done
+         # services/ subfolder
+         cp -r /home/chris/AISALESHT/backend/src/modules/brand/application/services/* application/services/
+         ```
+         (agents/ + voice_fidelity/ deferred to T-6.)
+      2. Apply sed per 05-guidelines.md §1.3.
+      3. Copy application tests (excluding voice_fidelity grader + extraction_orchestrator_per_wave_save which test cross-cutting):
+         ```bash
+         for t in test_brand_section_updated_event.py test_personality_service.py test_personality_integration.py test_personality_profile_updated_event.py test_clone_dry_run.py test_data_model_purge.py test_outbox_adapter_integration.py test_extraction_service.py test_extraction_router.py test_extraction_trace.py test_extraction_orchestrator_per_wave_save.py test_personality_api.py; do
+           cp /home/chris/AISALESHT/backend/tests/modules/brand/$t \
+              ~/luana-platform/core/luana-core-brand-studio/tests/
+         done
+         # Subfolder tests
+         mkdir -p ~/luana-platform/core/luana-core-brand-studio/tests/application/services
+         cp /home/chris/AISALESHT/backend/tests/modules/brand/application/__init__.py ~/luana-platform/core/luana-core-brand-studio/tests/application/
+         cp /home/chris/AISALESHT/backend/tests/modules/brand/application/services/__init__.py ~/luana-platform/core/luana-core-brand-studio/tests/application/services/
+         cp /home/chris/AISALESHT/backend/tests/modules/brand/application/services/test_brand_data_adapter_pr2.py ~/luana-platform/core/luana-core-brand-studio/tests/application/services/
+         mkdir -p ~/luana-platform/core/luana-core-brand-studio/tests/integration
+         cp /home/chris/AISALESHT/backend/tests/modules/brand/integration/__init__.py ~/luana-platform/core/luana-core-brand-studio/tests/integration/
+         cp /home/chris/AISALESHT/backend/tests/modules/brand/integration/test_outbox_cutover.py ~/luana-platform/core/luana-core-brand-studio/tests/integration/
+         ```
+      4. Apply sed on tests.
+      5. Verify zero leaks.
+      6. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-6 — Lift brand voice-fidelity + StyleAnalyzer LangGraph agent
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-6
+    title: "Lift brand application/voice_fidelity/ + application/agents/style_analyzer/ (LangGraph onboarding agent)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-brand-studio
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-5]
+    blocks: [T-7]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/voice_fidelity/{__init__,golden,grader}.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/agents/__init__.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/agents/style_analyzer/{__init__,graph,nodes,nodes_research,prompts,state}.py"
+      - "core/luana-core-brand-studio/tests/test_voice_fidelity_grader.py"
+    description: |
+      LIFT VERBATIM (LangGraph agent + voice fidelity grader):
+
+      1. Copy voice_fidelity/:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/src/modules/brand/application/voice_fidelity \
+               ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/application/
+         ```
+      2. Copy agents/style_analyzer/ (LangGraph onboarding agent — verbatim, no topology change):
+         ```bash
+         mkdir -p ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/application/agents
+         cp /home/chris/AISALESHT/backend/src/modules/brand/application/agents/__init__.py \
+            ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/application/agents/
+         cp -r /home/chris/AISALESHT/backend/src/modules/brand/application/agents/style_analyzer \
+               ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/application/agents/
+         ```
+      3. Apply sed per 05-guidelines.md §1.3.
+      4. Copy tests:
+         ```bash
+         cp /home/chris/AISALESHT/backend/tests/modules/brand/test_voice_fidelity_grader.py \
+            ~/luana-platform/core/luana-core-brand-studio/tests/
+         ```
+      5. Apply sed on test.
+      6. Verify langgraph + langchain-core deps resolve:
+         ```bash
+         cd ~/luana-platform && uv run python -c "from luana_core_brand_studio.application.agents.style_analyzer.graph import onboarding_app; print('LangGraph onboarding_app import OK')"
+         ```
+      7. Verify zero leaks.
+      8. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-7 — Lift brand api layer (skip copilot_provider/ implicit; that's at module root not api/)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-7
+    title: "Lift brand api/ layer (8 routers + 4 DTOs)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-brand-studio
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-6]
+    blocks: [T-8]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/api/__init__.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/api/{avatars,buyer_personas,extraction,personality,router,sections,style}.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/api/dto/{__init__,avatars,buyer_personas,extraction}.py"
+      - "core/luana-core-brand-studio/tests/test_buyer_persona_api.py + test_personality_api.py (if not lifted T-5)"
+    description: |
+      LIFT VERBATIM:
+
+      1. `cp -r /home/chris/AISALESHT/backend/src/modules/brand/api/ \
+                ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/`
+      2. Apply sed per 05-guidelines.md §1.3.
+      3. Copy api tests:
+         ```bash
+         for t in test_buyer_persona_api.py; do
+           cp /home/chris/AISALESHT/backend/tests/modules/brand/$t \
+              ~/luana-platform/core/luana-core-brand-studio/tests/
+         done
+         # test_personality_api.py likely already lifted T-5 — skip if exists
+         test -f ~/luana-platform/core/luana-core-brand-studio/tests/test_personality_api.py \
+           || cp /home/chris/AISALESHT/backend/tests/modules/brand/test_personality_api.py \
+                 ~/luana-platform/core/luana-core-brand-studio/tests/
+         ```
+      4. Apply sed.
+      5. Verify zero leaks.
+      6. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-8 — Lift brand workers + finalize brand-studio (GREEN aggregate)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-8
+    title: "Lift brand workers/ + in-source tests/ + lift brand conftest + finalize brand-studio tests aggregate GREEN"
+    owner_eligibility: [sonnet]
+    surface: luana-core-brand-studio
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-7]
+    blocks: [T-14]
+    validators_addressed: [V-NF-2, V-F-py-1]
+    files_to_create:
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/workers/{__init__,tasks}.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/tests/{__init__,repro_issue}.py"
+      - "core/luana-core-brand-studio/tests/conftest.py"
+    description: |
+      LIFT VERBATIM (workers + finalize):
+
+      1. Copy workers + in-source tests folder:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/src/modules/brand/workers \
+               ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/
+         cp -r /home/chris/AISALESHT/backend/src/modules/brand/tests \
+               ~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/
+         ```
+      2. Copy conftest.py:
+         ```bash
+         cp /home/chris/AISALESHT/backend/tests/modules/brand/conftest.py \
+            ~/luana-platform/core/luana-core-brand-studio/tests/
+         ```
+      3. Apply sed per 05-guidelines.md §1.3 on workers + conftest + in-source tests.
+      4. Run aggregate GREEN check:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-brand-studio/tests/ -x -q --tb=short
+         ```
+         Target: 34/34 tests GREEN (3 deferred to Story 6, not lifted).
+         If FAIL: diagnose per 05-guidelines.md §9 pitfalls.
+      5. Verify zero `src.modules.{copilot,sales_agent,advertising,campaigns}` leaks.
+      6. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-9 — luana-core-offer-studio skeleton + lift offer domain (7 catalogs DAG, 76 presets)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-9
+    title: "Create offer-studio skeleton + lift offer/domain/ (22 files including 7 catalogs DAG, 76 presets verbatim)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-offer-studio
+    production_code: true
+    estimated_time_minutes: 75
+    blocked_by: [T-1]
+    blocks: [T-10]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-offer-studio/pyproject.toml"
+      - "core/luana-core-offer-studio/README.md"
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/__init__.py"
+      - "core/luana-core-offer-studio/tests/__init__.py"
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/domain/__init__.py + 22 .py files (catalogs DAG + enums + events + offer aggregate root)"
+      - "core/luana-core-offer-studio/tests/domain/__init__.py + 12 catalog test files"
+    description: |
+      LIFT VERBATIM (skeleton + offer domain):
+
+      1. `mkdir -p core/luana-core-offer-studio/src/luana_core_offer_studio core/luana-core-offer-studio/tests`
+      2. Write pyproject.toml per 03-arch.md §8.2.
+      3. Write README.md stub: package name, lift origin (`backend/src/modules/offer/`),
+         note 7 catalogs DAG + 76 presets SSoT, 4 deferrals.
+      4. Create empty `src/luana_core_offer_studio/__init__.py` + `tests/__init__.py`.
+      5. Copy domain layer:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/src/modules/offer/domain \
+               ~/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/
+         ```
+      6. Apply sed per 05-guidelines.md §1.3.
+      7. Copy domain tests:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/tests/modules/offer/domain \
+               ~/luana-platform/core/luana-core-offer-studio/tests/
+         ```
+      8. Apply sed on domain tests.
+      9. Verify 7 catalogs intact:
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_offer_studio.domain.archetype_catalog import ARCHETYPE_CATALOG
+         from luana_core_offer_studio.domain.value_level_catalog import VALUE_LEVEL_CATALOG
+         from luana_core_offer_studio.domain.format_catalog import FORMAT_CATALOG
+         from luana_core_offer_studio.domain.section_catalog import SECTION_CATALOG
+         from luana_core_offer_studio.domain.offer_ladder_hints import OFFER_LADDER_HINTS
+         from luana_core_offer_studio.domain.offer_type_preset_catalog import OFFER_TYPE_PRESET_CATALOG
+         from luana_core_offer_studio.domain.variant_structure_catalog import VARIANT_STRUCTURE_CATALOG
+         print(f'7 catalogs loaded: archetypes={len(ARCHETYPE_CATALOG)} value_levels={len(VALUE_LEVEL_CATALOG)} sections={len(SECTION_CATALOG)} presets={len(OFFER_TYPE_PRESET_CATALOG)} variants={len(VARIANT_STRUCTURE_CATALOG)} formats={len(FORMAT_CATALOG)} ladder_hints={len(OFFER_LADDER_HINTS)}')
+         "
+         ```
+         Confirm ≥76 presets (lift preserves AISALESHT current count).
+      10. Run isolated domain tests:
+          ```bash
+          cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/domain/ -x -q --tb=short
+          ```
+          GREEN (domain is self-contained).
+      11. Verify zero leaks.
+      12. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-10 — Lift offer infrastructure layer
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-10
+    title: "Lift offer infrastructure/ layer (7 models + 8 repositories)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-offer-studio
+    production_code: true
+    estimated_time_minutes: 50
+    blocked_by: [T-9]
+    blocks: [T-11]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/infrastructure/__init__.py"
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/infrastructure/models/*.py (7 files)"
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/infrastructure/repositories/*.py (8 files)"
+      - "core/luana-core-offer-studio/tests/infrastructure/__init__.py + 3 infra test files"
+    description: |
+      LIFT VERBATIM:
+
+      1. `cp -r /home/chris/AISALESHT/backend/src/modules/offer/infrastructure/ \
+                ~/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/`
+      2. Apply sed per 05-guidelines.md §1.3.
+      3. Copy infrastructure tests:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/tests/modules/offer/infrastructure \
+               ~/luana-platform/core/luana-core-offer-studio/tests/
+         ```
+      4. Apply sed.
+      5. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/infrastructure/ -x -q
+         ```
+      6. Verify zero leaks.
+      7. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-11 — Lift offer application layer
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-11
+    title: "Lift offer application/ layer (11 top-level + 8 services including offer_read_port_impl + product_mapping_port_impl)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-offer-studio
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-10]
+    blocks: [T-12]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/application/__init__.py + 11 top-level .py files"
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/application/services/{__init__,landing_generation_service,offer_asset_service,offer_completion_service,offer_counts_service,offer_knowledge_service,offer_lifecycle_service,offer_read_port_impl,product_mapping_port_impl}.py"
+      - "core/luana-core-offer-studio/tests/application/__init__.py + 10 application test files"
+    description: |
+      LIFT VERBATIM:
+
+      1. `cp -r /home/chris/AISALESHT/backend/src/modules/offer/application/ \
+                ~/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/`
+      2. Apply sed per 05-guidelines.md §1.3.
+      3. Copy application tests:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/tests/modules/offer/application \
+               ~/luana-platform/core/luana-core-offer-studio/tests/
+         ```
+      4. Apply sed.
+      5. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/application/ -x -q --tb=short
+         ```
+      6. Verify zero leaks.
+      7. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-12 — Lift offer api layer (skip 3 deferred files)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-12
+    title: "Lift offer api/ layer (22 routers — skip offer_ai.py + counts.py + campaigns.py; 9 DTOs) + api tests (skip test_offer_data_access_provider.py)"
+    owner_eligibility: [sonnet]
+    surface: luana-core-offer-studio
+    production_code: true
+    estimated_time_minutes: 75
+    blocked_by: [T-11]
+    blocks: [T-13]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/api/__init__.py + 19 .py routers (skip 3)"
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/api/dto/{__init__,asset_dtos,campaigns_dtos,counts_dtos,extraction,knowledge_dtos,landing_dtos,lifecycle_dtos,offer_gallery,products}.py"
+      - "core/luana-core-offer-studio/tests/api/__init__.py + 15 api test files (skip test_data_access_provider)"
+    description: |
+      LIFT VERBATIM (with 3 deferrals per 03-arch.md §9.2 + 05-guidelines.md §3.3):
+
+      1. Copy api/:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/src/modules/offer/api \
+               ~/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/
+         ```
+      2. Delete 3 deferred files (lifted as part of api/ subfolder):
+         ```bash
+         rm -f ~/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/api/offer_ai.py
+         rm -f ~/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/api/counts.py
+         rm -f ~/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/api/campaigns.py
+         ```
+      3. Apply sed per 05-guidelines.md §1.3.
+      4. Copy api tests (using rsync exclude):
+         ```bash
+         mkdir -p ~/luana-platform/core/luana-core-offer-studio/tests/api
+         rsync -av --exclude='__pycache__/' \
+               /home/chris/AISALESHT/backend/tests/modules/offer/api/ \
+               ~/luana-platform/core/luana-core-offer-studio/tests/api/
+         ```
+      5. Apply sed on tests.
+      6. Check if `test_offer_ai_endpoint.py` (lifted at module root, not api/) needs per-test skips:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/test_offer_ai_endpoint.py -x -q --tb=short || true
+         ```
+         If FAIL on import (offer_ai.py removed): add per-test skips with reason
+         "DEFERRED Story 6 — offer_ai.py routes need copilot.offer_psychology_service" per 05-guidelines.md §1.6.
+         Budget ≤5% test drop.
+      7. Verify zero leaks of `src.modules.{copilot,advertising,sales_agent,campaigns}`.
+      8. Verify zero forward Story imports (no `luana_core_{copilot,sales_agent,advertising,campaigns}` imports).
+      9. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-13 — Lift offer workers + finalize offer-studio (GREEN aggregate)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-13
+    title: "Lift offer workers/ + lift offer conftest + workers tests + finalize offer-studio tests aggregate GREEN"
+    owner_eligibility: [sonnet]
+    surface: luana-core-offer-studio
+    production_code: true
+    estimated_time_minutes: 50
+    blocked_by: [T-12]
+    blocks: [T-14]
+    validators_addressed: [V-NF-2, V-F-py-2]
+    files_to_create:
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/workers/{__init__,tasks}.py"
+      - "core/luana-core-offer-studio/tests/conftest.py"
+      - "core/luana-core-offer-studio/tests/workers/__init__.py + test_tasks_section_grouping.py"
+      - "core/luana-core-offer-studio/tests/<22 module-root test files>"
+    description: |
+      LIFT VERBATIM (workers + module-root tests + finalize):
+
+      1. Copy workers/:
+         ```bash
+         cp -r /home/chris/AISALESHT/backend/src/modules/offer/workers \
+               ~/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/
+         ```
+      2. Copy conftest + remaining module-root tests using rsync exclude:
+         ```bash
+         rsync -av \
+               --exclude='__pycache__/' \
+               --exclude='test_offer_data_access_provider.py' \
+               --exclude='api/' --exclude='application/' --exclude='domain/' --exclude='infrastructure/' \
+               /home/chris/AISALESHT/backend/tests/modules/offer/ \
+               ~/luana-platform/core/luana-core-offer-studio/tests/
+         # Workers tests (separate folder, lift verbatim)
+         cp -r /home/chris/AISALESHT/backend/tests/modules/offer/workers \
+               ~/luana-platform/core/luana-core-offer-studio/tests/
+         ```
+      3. Apply sed per 05-guidelines.md §1.3 on workers + tests.
+      4. Run aggregate GREEN check:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/ -x -q --tb=short
+         ```
+         Target: 73 tests GREEN (1 deferred to Story 6 not lifted; per-test skips on `test_offer_ai_endpoint.py` documented).
+         If FAIL: diagnose per 05-guidelines.md §9 pitfalls.
+      5. Verify zero leaks.
+      6. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-14 — Cross-package integration smoke + aggregate pytest
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-14
+    title: "Cross-package integration: uv sync --all-packages + smoke imports work + aggregate pytest (Stories 2+3+4+5)"
+    owner_eligibility: [sonnet]
+    surface: workspace_integration
+    production_code: false
+    estimated_time_minutes: 30
+    blocked_by: [T-8, T-13]
+    blocks: [T-15, T-16, T-17, T-18]
+    validators_addressed: [V-NF-1, V-F-x-1, V-F-x-2]
+    description: |
+      INTEGRATION SMOKE:
+      1. `cd ~/luana-platform && uv sync --all-packages` — must succeed (V-NF-1).
+         If dependency resolution fails: verify each Story 5 pyproject.toml declares
+         correct [tool.uv.sources] per 03-arch.md §8.
+      2. Run V-F-x-1 cross-package Python imports smoke (per 04-validators.yaml).
+      3. Run V-F-x-2 aggregate pytest:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src
+         ```
+         Confirms Stories 2+3+4 packages didn't regress under Story 5 workspace deps.
+      4. Commit any pyproject.toml tweaks needed for resolution (rare).
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-15 — Brand-agnostic engines arch fitness
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-15
+    title: "Add NEW architecture fitness test: Story 5 brand-agnostic engines invariant"
+    owner_eligibility: [sonnet]
+    surface: arch_fitness
+    production_code: true
+    estimated_time_minutes: 25
+    blocked_by: [T-14]
+    blocks: []
+    validators_addressed: [V-AG-1]
+    files_to_create:
+      - "core/tests/architecture/test_story5_brand_agnostic_engines.py"
+    description: |
+      NEW arch fitness test per 03-arch.md §7.1:
+
+      1. Write `core/tests/architecture/test_story5_brand_agnostic_engines.py`
+         per 03-arch.md §7.1 template (PKGS list with brand-studio + offer-studio +
+         FORBIDDEN_PATTERNS + 1 test function).
+      2. Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story5_brand_agnostic_engines.py -x -q
+         ```
+         GREEN required.
+      3. If test FAILs → escalate per 05-guidelines.md §6 halt #7 (means AISALESHT source has
+         pre-existing brand contamination — should NOT have been merged to AISALESHT either).
+      4. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-16 — No-forward-imports arch fitness
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-16
+    title: "Add NEW architecture fitness test: Story 5 no forward module imports"
+    owner_eligibility: [sonnet]
+    surface: arch_fitness
+    production_code: true
+    estimated_time_minutes: 25
+    blocked_by: [T-14]
+    blocks: []
+    validators_addressed: [V-AG-2]
+    files_to_create:
+      - "core/tests/architecture/test_story5_no_forward_module_imports.py"
+    description: |
+      NEW arch fitness test per 03-arch.md §7.2:
+
+      1. Write `core/tests/architecture/test_story5_no_forward_module_imports.py`
+         per 03-arch.md §7.2 template (STORY5_PKGS + FORBIDDEN_IMPORTS + 1 test function).
+      2. Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story5_no_forward_module_imports.py -x -q
+         ```
+         GREEN required.
+      3. If FAILs → likely an accidental deferred-file leak; check §3.3 deferred list; revert
+         lift + re-run with explicit subfolder loop.
+      4. Commit per 05-guidelines.md §5.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-17 — Voice compiler SSoT cement + offer catalogs DAG smoke
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-17
+    title: "Add NEW arch fitness tests: voice compiler SSoT placement (ADR-001 §2.4) + offer catalogs DAG smoke"
+    owner_eligibility: [sonnet]
+    surface: arch_fitness
+    production_code: true
+    estimated_time_minutes: 35
+    blocked_by: [T-14]
+    blocks: []
+    validators_addressed: [V-AG-3, V-F-cat-1]
+    files_to_create:
+      - "core/tests/architecture/test_story5_voice_compiler_in_brand_studio.py"
+      - "core/luana-core-offer-studio/tests/test_catalogs_dag_smoke.py"
+    description: |
+      TWO NEW tests cementing Story 5 SSoT decisions:
+
+      1. **Voice compiler placement** (`core/tests/architecture/test_story5_voice_compiler_in_brand_studio.py`)
+         per 03-arch.md §7.3 + §10:
+         - Assert `class PersonalityCompiler` exists in `core/luana-core-brand-studio/src/luana_core_brand_studio/domain/personality.py`.
+         - Assert NO mirror `class PersonalityCompiler` anywhere else in `core/`.
+         - This BLOCKS future stories from creating a parallel compiler.
+
+         Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story5_voice_compiler_in_brand_studio.py -x -q
+         ```
+         GREEN required.
+
+         If FAIL "class missing": sed corrupted personality.py → revert + narrower sed.
+         If FAIL "mirror found": someone introduced a duplicate → escalate per §6 halt #11.
+
+      2. **Offer catalogs DAG smoke** (`core/luana-core-offer-studio/tests/test_catalogs_dag_smoke.py`)
+         per 03-arch.md §7.4:
+         - Asserts the 7 catalogs are loaded.
+         - Asserts counts: 5 archetypes, 5 value levels, 4 variant structures, ≥21 section keys, ≥76 presets.
+         - If AISALESHT current counts differ (catalog evolved since this doc), builder ADJUSTS assertions to actual lifted values
+           + documents the actual count in commit body (NOT a regression — lift preserves whatever AISALESHT has).
+
+         Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/test_catalogs_dag_smoke.py -x -q
+         ```
+         GREEN required.
+
+      3. Commit per 05-guidelines.md §5 (single commit covering both tests).
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-18 — Finalization: lint + AISALESHT untouched + DEFERRED-FILES + READMEs
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-18
+    title: "Lint + AISALESHT untouched verifier + DEFERRED-FILES.md update + 2 README.md stubs polish"
+    owner_eligibility: [sonnet]
+    surface: documentation_and_verifiers
+    production_code: false
+    estimated_time_minutes: 35
+    blocked_by: [T-14]
+    blocks: []
+    validators_addressed: [V-NF-4, V-NF-5, V-NF-6, V-NF-7, V-NF-8, V-D-1, V-D-2]
+    files_to_create:
+      - "core/luana-core-brand-studio/README.md (polish if needed — T-2 created stub)"
+      - "core/luana-core-offer-studio/README.md (polish if needed — T-9 created stub)"
+    files_to_modify:
+      - "core/DEFERRED-FILES.md  (append Story 5 deferrals)"
+    description: |
+      FINALIZATION pass:
+
+      1. Run ruff (V-NF-8):
+         ```bash
+         cd ~/luana-platform && uv run ruff check \
+             core/luana-core-brand-studio \
+             core/luana-core-offer-studio
+         ```
+         GREEN required. If FAILs, diagnose per 05-guidelines.md §9 pitfalls (likely sed bug — re-apply sed on offending file).
+
+      2. AISALESHT untouched verifier (V-NF-4):
+         ```bash
+         cd /home/chris/AISALESHT
+         BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-brand-offer-studios/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+         git diff "$BASE_SHA" HEAD --name-only | grep -E '^(backend/src/modules/(brand|offer)|backend/tests/modules/(brand|offer))/' && echo "FAIL" || echo "OK"
+         ```
+
+      3. No-publish verifiers (V-NF-5, V-NF-6, V-NF-7):
+         - `grep -l 'publishConfig' core/luana-core-{brand-studio,offer-studio}/pyproject.toml` → must be empty.
+         - `find ~/luana-platform -name '.releaserc*' -not -path '*/node_modules/*'` → must be empty.
+         - `find ~/luana-platform/.github/workflows -maxdepth 2 -name 'release*' -o -name 'publish*'` → must be empty.
+
+      4. For both Story 5 packages, ensure README.md exists with:
+         - Package name + version (0.0.1-alpha)
+         - Lift origin path (AISALESHT module path)
+         - Key exports (1 paragraph)
+         - Story 5 lift commit refs
+         - Per-package deferrals note:
+           - brand: 8 copilot_provider/ files + 3 test files defer to Story 6
+           - offer: 5 copilot_provider/ files + offer_ai.py + 1 test file defer to Story 6; counts.py + campaigns.py defer to Story 8
+
+      5. Append to `~/luana-platform/core/DEFERRED-FILES.md` (created Story 2, appended
+         Stories 3+4) the full Story 5 block per 03-arch.md §9.6 template:
+         ```markdown
+
+         ## Story 5 deferrals (2026-05-11)
+
+         ### Defer to Story 6 (copilot lift)
+         - backend/src/modules/brand/copilot_provider/ (8 files) → Story 6 (imports src.modules.copilot.domain.{ports, workflow})
+         - backend/src/modules/offer/copilot_provider/ (5 files) → Story 6 (imports src.modules.copilot.domain.{ports, workflow})
+         - backend/src/modules/offer/api/offer_ai.py → Story 6 (imports src.modules.copilot.application.services.offer_psychology_service)
+         - backend/tests/modules/brand/test_brand_context_injector.py → Story 6
+         - backend/tests/modules/brand/test_buyer_persona_fields_dropped_regression.py → Story 6
+         - backend/tests/modules/brand/test_worker_emits_summary_and_pills.py → Story 6
+         - backend/tests/modules/offer/test_offer_data_access_provider.py → Story 6
+
+         ### Defer to Story 8 (campaigns/advertising lift)
+         - backend/src/modules/offer/api/counts.py → Story 8 (imports src.modules.advertising.application.services.offer_campaigns_read_adapter)
+         - backend/src/modules/offer/api/campaigns.py → Story 8 (idem)
+
+         ### Reserved (design decision, NOT existing code)
+         - BrandVoicePort Protocol → Story 7 (consumer-side intro; impl in core-brand-studio wired then; NOT Story 5 because §7.3 forbids new abstractions)
+         - voice_cloning BrandConfig flag → Stories 11-13 (per-brand value at vertical bootstrap; BrandConfig schema itself in Story 8/9)
+         - voice cloning pipeline (LLM-distillation from chat samples) → Stories 11-13 (NEW code, does NOT exist in AISALESHT today)
+         ```
+
+      6. Verify V-D-1 + V-D-2 GREEN per 04-validators.yaml.
+      7. Final commit per 05-guidelines.md §5.
+
+# ────────────────────────────────────────────────────────────────────────────
+# DAG Summary
+# ────────────────────────────────────────────────────────────────────────────
+dag_summary: |
+  Total: 18 tickets
+
+  Critical path (sequential):
+    T-1 (workspace prep)
+      → [brand sub-batch sequential: T-2 → T-3 → T-4 → T-5 → T-6 → T-7 → T-8]
+      ‖ [offer sub-batch sequential: T-9 → T-10 → T-11 → T-12 → T-13]
+        (brand and offer can parallel because no inter-Story-5 deps)
+          → T-14 (integration smoke)
+            → T-15 (brand-agnostic arch) ‖ T-16 (no-forward arch) ‖ T-17 (voice compiler + catalogs DAG) ‖ T-18 (lint+docs)
+
+  Parallelizable batches:
+    Lift batch post-T-1: brand sub-batch (T-2..T-8) ‖ offer sub-batch (T-9..T-13)
+      (NB: within each sub-batch tickets are sequential, but brand and offer parallel each other)
+    Finalization parallel post-T-14: T-15 ‖ T-16 ‖ T-17 ‖ T-18
+
+  BUT: 1 Claude session sequentially per outcome §7.4. /dev-team picks ONE
+  ticket at a time, GREEN validators before next pick.
+
+  Estimated total tool-time (sequential 1 Claude): ~12h
+    - T-1: ~15min
+    - brand sub-batch (T-2..T-8): ~6h
+    - offer sub-batch (T-9..T-13): ~5h
+    - T-14 integration: ~30min
+    - T-15..T-17 arch fitness: ~1.5h
+    - T-18 finalization: ~35min
+    - Buffer for sed fixups + mock path migrations + deferred-leak debugging: ~30min
+
+  Budget per outcome §7.2: soft check-in at $500/$1000/$1500 cumulative
+  (incl. /pm + /architect + /dev-team).
+
+# ────────────────────────────────────────────────────────────────────────────
+# Owner eligibility summary
+# ────────────────────────────────────────────────────────────────────────────
+owner_eligibility_summary: |
+  Sonnet (mechanical lift, identical to Stories 2-4 pattern): T-1 through T-18 (all 18 tickets)
+  Opus rescue (cap_reached only, per outcome §7.4): any ticket if 3 auto-fix iter fail
+
+  Per outcome §7.3 — lift mode = mechanical pattern. No production agentic code in Story 5:
+    - production_code: true on T-2..T-13, T-15, T-16, T-17 because module code is engine surface
+      + new arch fitness tests, but NO LLM-call code changes, NO new agentic graph, NO new tools.
+      Brand has StyleAnalyzer LangGraph agent (extraction utility) — lifted verbatim, not modified.
+      Sonnet handles cleanly.
+
+  Per R23 — even production_code: true is Sonnet-OK because no agentic logic changes during lift.
+  Lift mode forbids new abstractions (including BrandVoicePort introduction — Story 7 territory).
+
+  Brand-agnostic engine verification (T-15) + no-forward-imports (T-16) + voice compiler SSoT
+  cement (T-17) + offer catalogs DAG smoke (T-17) are all mechanical regex grep + module-level
+  import assertions — Sonnet OK.
+
+# ────────────────────────────────────────────────────────────────────────────
+# Defer notes (re-confirmed for builder reference)
+# ────────────────────────────────────────────────────────────────────────────
+defer_notes: |
+  These are NOT tickets in this story — but builder MUST be aware:
+
+  1. backend/src/modules/{brand,offer}/copilot_provider/ → Story 6
+     Builder skips when lifting each module (T-3..T-8 for brand; T-9..T-13 for offer).
+     Detection: `from src.modules.copilot` import = DEFERRED.
+     copilot_provider/ subfolder lives at module root, NOT in api/ or domain/ — so
+     subfolder-loop iteration over {api,application,domain,infrastructure,workers,tests,__init__.py}
+     in 05-guidelines.md §3.4 naturally skips it.
+
+  2. backend/src/modules/offer/api/offer_ai.py → Story 6
+     Builder deletes post-`cp -r api/` in T-12.
+     Detection: `from src.modules.copilot.application.services.offer_psychology_service` = DEFERRED.
+
+  3. backend/src/modules/offer/api/counts.py → Story 8
+  4. backend/src/modules/offer/api/campaigns.py → Story 8
+     Builder deletes post-`cp -r api/` in T-12.
+     Detection: `from src.modules.advertising.application.services.offer_campaigns_read_adapter` = DEFERRED.
+
+  5. 3 brand tests + 1 offer test → Story 6
+     Builder excludes via rsync `--exclude` flags per 05-guidelines.md §3.4.
+     Detection: `from src.modules.copilot` import in tests = DEFERRED.
+
+  6. BrandVoicePort + BrandVoiceService → Story 7 (NEW abstractions, NOT existing code)
+     Builder DOES NOT introduce these in Story 5. ADR-001 §2.4 voice compiler ELEVATION =
+     verbatim placement of existing PersonalityCompiler in brand-studio/domain/personality.py.
+     Port introduction is Story 7 consumer-side concern.
+
+  7. voice cloning pipeline code → Stories 11-13 (NEW code, not in AISALESHT today)
+     Builder DOES NOT introduce voice_cloning function/class/module in Story 5.
+     Flag `voice_cloning: bool` is BrandConfig field (Story 8/9 schema; Stories 11-13 values).

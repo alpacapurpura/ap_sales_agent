@@ -6,8 +6,8 @@ phase: story_1_done_phase_b_active
 created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-11
-stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections]   # 2026-05-11 all 4 (autonomous batch session 1)
-stories_active: []                              # autonomous batch session 1 complete. Stories 5-14 next session.
+stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios]   # 2026-05-11 all 5 (Stories 1-4 session 1 + Story 5 session 2)
+stories_active: []                              # Story 5 developed 2026-05-11. Stories 6-14 next.
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/
@@ -208,16 +208,18 @@ Stories que NO entran en este outcome pero quedan registradas en backlog:
 | GH Packages publishing | **Diferido** hasta Story 9 | Workspace-internal (uv + pnpm) sin overhead publishing inicial. Story 9 introduce publish pipeline. |
 | Claude subs | **1 actual**, progressive Q3-Q4 2026 | Stories ejecutan secuencial. Timeline +6 sem. |
 
-### 7.2 Autonomous execution policies ratified 2026-05-11
+### 7.2 Autonomous execution policies ratified 2026-05-11 (extended session 2 2026-05-11)
 
 Para que /pm + /po + /architect + /dev-team + /auditor + /pm merge ejecuten en una sola conversación sin Chris approval per story.
 
 | Policy | Valor ratificado | Aplica a |
 |---|---|---|
-| **Pre-auth spec/design ratification** | **AUTO** si stay within ADR-001 + outcome §3.3 anti-island + 3 scope decisions §7.1 + lift mode §7.3 | Stories 2-4 (shared-lift, iam-tenancy-content, crm-analytics-landing-connections) |
+| **Pre-auth spec/design ratification** | **AUTO** si stay within ADR-001 + outcome §3.3 anti-island + 3 scope decisions §7.1 + lift mode §7.3 | Stories 2-4 (sesión 1) + **Story 5** (sesión 2 extension, Chris mandate "story 5 sola, hazlo de forma autonoma") |
 | **Audit failure response** | Auto-fix Opus cap 3 iter, después escalar Chris | Todas autonomous stories |
 | **Sonnet cap_reached on ticket** | Auto-rescate Opus puntual SOLO en ese ticket | Todas autonomous stories |
 | **Budget per session** | **NO HARD CAP** — Chris tracking externo. Soft check-ins a $500 / $1000 / $1500 cumulative (Claude reporta progress + cost a Chris pero no para) | Todas autonomous stories |
+
+**Story 5 autonomy rationale (sesión 2):** Story 5 nominalmente Tier 3 (§7.4) — design surface posible (voice compiler v2 elevation + voice cloning feature flag). Mitigación: ambas decisiones ya ratificadas en ADR-001 §2.4 (compiler elevado a core-brand-studio, cloning flag declarativo por brand en BrandConfig). Por tanto Story 5 ejecuta como lift-mode con design-decisions pre-ratificadas. NO surface design decisions cardinales → autonomy segura.
 
 ### 7.3 Lift mode constraint precise (Stories 2-4)
 
@@ -261,9 +263,11 @@ Para que auto-spec/design/arch ratification sea segura, "lift mode" significa EX
 | Tier 3 mid-flight check-in | 5-7 (brand-offer + copilot + sales-agent — R23 Opus para 6+7) | 1 story per session | Decisiones design surfacing — Chris check-in mid-flight |
 | Tier 4 per-story ratify | 8-14 (extension SDK + brand bootstraps) | 1 story per session | Decisiones verticales/architectural |
 
-**Realistic session 1 plan:** Stories 1 + 2 + 3 + 4 closed = 4 stories cumulative (~$700-1600, ~30h tool-time wall).
+**Realistic session 1 plan:** Stories 1 + 2 + 3 + 4 closed = 4 stories cumulative (~$700-1600, ~30h tool-time wall). **Real:** 4/4 closed ~10.5h ~$390 (2026-05-11).
 
-Después: Chris evaluates, ratifica Stories 5-7 individualmente.
+**Session 2 plan (2026-05-11):** Story 5 sola autonomous per Chris mandate. §7.2 extended Story 5 lift-mode pre-auth (design decisions ya ratificadas ADR-001 §2.4). ~14-20 tickets, target ~3-6h.
+
+Después: Chris evaluates, ratifica Stories 6-7 individualmente.
 
 ---
 
