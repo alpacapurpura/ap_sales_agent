@@ -1,11 +1,11 @@
 ---
 story_id: luana-foundation
 outcome: luana-platform-migration
-state: ready                                    # ★ post Chris ratification + architect revision 2026-05-10 ★
-phase: ready_package_revised
-last_artifact: 06-tickets.yaml
-last_modified: 2026-05-10
-next_action: "Ready package revised v2 per Chris ratification 2026-05-10 (monorepo + proprietary + defer GH Packages). 7 tickets, 14 validators (12 must_pass), ~5h Sonnet tool-time. /dev-team picks T-1 when ready to start sequential build."
+state: developed                                # ★ /dev-team Sonnet completed T-1..T-7, 2026-05-11. 13/14 must_pass GREEN. NF-1 blocked (GitHub Free plan). ★
+phase: VALIDATORS_DONE
+last_artifact: gate-output.json
+last_modified: 2026-05-11
+next_action: "Chris: decide NF-1 (branch protection): upgrade Pro / make public / waive. Then trigger /auditor C1-C5 → /pm merge."
 ratified_by_chris: true                         # ★ Chris ratified scope 2026-05-10 ★
 spawned_at: 2026-05-09
 spawned_by: /pm + claude-opus-4-7
@@ -65,6 +65,13 @@ Architect revised all 5 ready package files in-place per `/pm` directive 2026-05
 ## Crash recovery (R27)
 
 If session crashes mid-story: resume by reading `checkpoint.md` (this file) → identify `phase` → continue `next_action`. Latest artifact is `last_artifact`. Tickets in flight tracked via `T-{n}-impl-log.md`.
+
+## Bitácora
+
+- 2026-05-09: spawned by /pm — initial v1 ready package
+- 2026-05-10: revised by /architect v2 (Chris ratification — monorepo + proprietary + defer GH Packages)
+- 2026-05-11: state ready → developing — /pm autonomous batch session 1 (Stories 1-4)
+- 2026-05-11: state developing → developed — /dev-team Sonnet completed T-1..T-7 sequentially. 13/14 must_pass GREEN. NF-1 blocked (GitHub Free plan private repo cannot use branch protection API). Commit SHAs: T-1=6fb9bc6, T-2=92688c3, T-3=7e8821f, T-4=df6dd3b, T-5=e106bde, T-6=4942caf, T-7=1a5085a.
 
 ## Notes
 
