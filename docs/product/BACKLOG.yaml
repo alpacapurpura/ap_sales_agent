@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T18:15:08+00:00
+# Generated at: 2026-05-11T18:35:32+00:00
 
-generated_at: '2026-05-11T18:15:08+00:00'
+generated_at: '2026-05-11T18:35:32+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -121,6 +121,20 @@ buckets:
     extra:
       promoted_to_outcome: null
       ost: null
+  - id: luana-copilot-engine
+    kind: story
+    state: idea
+    title: luana-copilot-engine
+    tags: []
+    last_touched: 2026-05-11
+    extra:
+      outcome: luana-platform-migration
+      phase: null
+      next_action: 'Chris evaluates Story 6 strategy: autonomous Tier 3 lift OR per-story ratify. R23 Opus mandatory (agentic
+        production code).'
+      blocked_by: []
+      priority_override: null
+      audit_iterations: 0
   - id: sales-agent-dialect-configuration
     kind: story
     state: idea
@@ -306,20 +320,7 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
-  developed:
-  - id: luana-brand-offer-studios
-    kind: story
-    state: developed
-    title: luana-brand-offer-studios
-    tags: []
-    last_touched: 2026-05-11
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /auditor (Chris triggers manually) takes Story 5 for QA C1-C5
-      blocked_by: []
-      priority_override: null
-      audit_iterations: 0
+  developed: []
   reviewing: []
   done:
   - id: growth-copilot-layout-unification
@@ -496,20 +497,6 @@ buckets:
       next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 11, 13, 14
       blocked_by:
       - luana-nicolify-migration
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-copilot-engine
-    kind: story
-    state: parked
-    title: luana-copilot-engine
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 5 done
-      blocked_by:
-      - luana-brand-offer-studios
       priority_override: null
       audit_iterations: 0
   - id: luana-lupulo-bootstrap
@@ -730,6 +717,12 @@ capabilities:
   planned: 0
   deprecated: 0
   total: 3
+- module: luana-core
+  live: 2
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 2
 - module: offer
   live: 5
   in_progress: 0

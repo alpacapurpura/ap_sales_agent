@@ -2,7 +2,7 @@
 outcome_id: luana-platform-migration
 slug: luana-platform-migration
 state: developing                               # 10-state v4 — Story 1 done 2026-05-11, Phase B Story 2 in flight
-phase: story_1_done_phase_b_active
+phase: story_5_done_phase_c_active
 created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-11

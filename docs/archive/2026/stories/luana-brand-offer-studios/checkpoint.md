@@ -1,10 +1,12 @@
 ---
 story_id: luana-brand-offer-studios
 outcome: luana-platform-migration
-state: developed
-last_artifact: T-18-result.md
+state: done                                     # ★ /pm merged 2026-05-11. auditor-backend Opus APPROVED. Archived. ★
+phase: MERGED_ARCHIVED
+last_artifact: 07-merge.md
 last_modified: 2026-05-11
-next_action: "/auditor (Chris triggers manually) takes Story 5 for QA C1-C5"
+next_action: "Archived to docs/archive/2026/stories/luana-brand-offer-studios/. Story 6 luana-copilot-engine unparkable."
+done_at: 2026-05-11
 developed_at: 2026-05-11
 developing_started_at: 2026-05-11
 ratified_by_chris: true
@@ -41,6 +43,8 @@ artifacts:
 - 2026-05-11: state=ready → developing. /dev-team spawning builder-backend Sonnet autonomous batch T-1..T-18. Specialist routing per Chris session 1 correction.
 - 2026-05-11: T-1..T-14 shipped by 4 Sonnet spawns + 1 Opus rescue (T-12 cross-module mapper). T-15..T-18 closure final spawn.
 - 2026-05-11: state=developing → developed. All Story 5 commits 9139f7c..34496ae. Validators: 20/21 GREEN, 1 waiver (V-F-x-2 aggregate test isolation pre-existing Story 9). Ready for /auditor QA.
+- 2026-05-11: auditor-backend Opus APPROVED (2 WARN non-blocking, V-F-x-2 waiver accepted per session 1 precedent). REVIEW.md written.
+- 2026-05-11: state=developed → done. /pm merged. 07-merge.md written. 2 capabilities promoted live (luana-core-brand-studio + luana-core-offer-studio). Story archived to docs/archive/2026/stories/luana-brand-offer-studios/.
 
 ## Commit SHA → ticket map
 

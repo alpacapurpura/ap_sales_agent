@@ -1,0 +1,66 @@
+---
+capability_id: luana-core-offer-studio
+module: luana-core
+slug: offer-studio
+status: live
+date_introduced: 2026-05-11
+story_introduced: luana-brand-offer-studios
+package_version: 0.0.1-alpha
+package_path: core/luana-core-offer-studio
+license: proprietary
+---
+
+# luana-core-offer-studio
+
+Offer domain engine lifted verbatim from AISALESHT `backend/src/modules/offer/` to `luana-platform/core/luana-core-offer-studio/` per outcome `luana-platform-migration` Story 5.
+
+## Surface
+
+- **Domain layer (7 catalogs DAG):** ExpertBusinessType + OfferValueLevel + SectionCatalog + VariantStructure (base layer) → OfferArchetype (intermediate) → OfferFormat + OfferLadderHints + OfferTypePreset (composites). 21 sections + 84 presets + 25 formats + 5 archetypes + 5 value levels + 8 variants + 45 ladder hints.
+- **Application services:** offer_data_adapter, offer_extraction_orchestrator (wave-based), launch_edition_service, form_runtime_engine, condition_evaluator (conditional questions/flags resolution)
+- **Infrastructure:** SQLA models (Offer + Edition + Asset + Variant + Section), repositories
+- **API:** REST routers (offers, editions, launches, extraction, sections)
+- **Workers:** Celery tasks for extraction wave execution
+
+## Catalog versioning
+
+`_CATALOG_VERSION` constants preserved verbatim per layer. Future catalog edits requiere version bump + arch fitness re-validation (V-F-cat-1).
+
+## Test coverage
+
+- 628 tests GREEN per `cd /home/chris/luana-platform && uv run pytest core/luana-core-offer-studio/tests/`
+- 12 skipped (deferred copilot_provider tests + offer_ai routes per DEFERRED-FILES.md)
+- 1 warning (pre-existing AISALESHT)
+
+## Arch fitness gates
+
+- V-AG-1 brand-agnostic (no `if brand ==` control flow)
+- V-AG-2 no-forward-imports (no imports a luana_core_{copilot,sales_agent,campaigns,advertising,social_media,scheduling})
+- V-F-cat-1 catalogs-DAG smoke (all 7 catalog modules importable + counts ≥ floors)
+
+## Dependencies
+
+- luana-core-platform (shared base + events)
+- luana-core-llm (LLM router for extraction)
+- luana-core-iam (tenant context)
+- luana-core-brand-studio (cross-module brand↔offer linkage)
+
+## Deferred files (target Story 6/8)
+
+- `offer/copilot_provider/` (multiple files) — Story 6 (luana-core-copilot lift)
+- `offer/api/offer_ai.py` — Story 6 (LLM-dependent routes)
+- `offer/api/counts.py` — Story 6 (cross-package query depends copilot)
+- `offer/api/campaigns.py` — Story 8 (luana-core-campaigns lift)
+- 1 offer test file (depends on copilot_provider) — Story 6
+
+## Cross-module mapper resolution
+
+`LeadModel↔MessageModel/AppointmentModel` SA relationships resolved via test stubs in offer-studio conftest (sales_agent + scheduling lifted Stories 7). No production runtime impact during Story 5 lift — full resolution Stories 6/7.
+
+## Reference
+
+- Source: AISALESHT `backend/src/modules/offer/`
+- Destination: luana-platform `core/luana-core-offer-studio/`
+- Commits Story 5: 9139f7c..34496ae (13 commits, shared with brand-studio)
+- ADR: docs/architecture/luana-platform/adr/ADR-001-luana-platform.md
+- Merge doc: docs/archive/2026/stories/luana-brand-offer-studios/07-merge.md

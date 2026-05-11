@@ -1,12 +1,12 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-11T18:15:08+00:00`
+> Generated at: `2026-05-11T18:35:32+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### 💡 Ideas (8)
+### 💡 Ideas (9)
 - calendario-comercial `[idea]`
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
@@ -14,6 +14,7 @@
 - sales-inbox-responsive-collapse `[idea]`
 - sales-agent-qualification-toolkit `[idea]`
 - fix-reconcile-capabilities-script-v4-paradigm `[idea]`
+- luana-copilot-engine `[story]`
 - sales-agent-dialect-configuration `[story]`
 
 ### 🔬 Refining (2 total · 0 cap-eligible / cap 3)
@@ -32,8 +33,8 @@
 ### 🔨 Developing (1 / cap 3)
 - **luana-platform-migration**
 
-### 🧪 Developed — esperando QA (1 / cap 10)
-- **luana-brand-offer-studios** — outcome `luana-platform-migration`
+### 🧪 Developed — esperando QA (0 / cap 10)
+- _(none)_
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -44,11 +45,10 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (9) · Dropped (4)
+### Parked (8) · Dropped (4)
 - 🅿 growth-studio-visual-coherence-pass
 - 🅿 luana-campaigns-extension-sdk
 - 🅿 luana-comunify-bootstrap
-- 🅿 luana-copilot-engine
 - 🅿 luana-lupulo-bootstrap
 - 🅿 luana-nicolify-migration
 - 🅿 luana-sales-agent-engine
@@ -65,7 +65,7 @@
 
 ```mermaid
 kanban
-  💡 Ideas (8)
+  💡 Ideas (9)
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
@@ -73,6 +73,7 @@ kanban
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
     fix-reconcile-capabilities-scr[fix-reconcile-capabilities-script-v4-par]
+    luana-copilot-engine[luana-copilot-engine]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
   🔬 Refining (2 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
@@ -85,19 +86,17 @@ kanban
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
   🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
-  🧪 Developed (1 / cap 10)
-    luana-brand-offer-studios[luana-brand-offer-studios]
+  🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🅿 Parked (9)
+  🅿 Parked (8)
     growth-studio-visual-coherence[growth-studio-visual-coherence-pass]
     luana-campaigns-extension-sdk[luana-campaigns-extension-sdk]
     luana-comunify-bootstrap[luana-comunify-bootstrap]
-    luana-copilot-engine[luana-copilot-engine]
     luana-lupulo-bootstrap[luana-lupulo-bootstrap]
     luana-nicolify-migration[luana-nicolify-migration]
     luana-sales-agent-engine[luana-sales-agent-engine]
@@ -122,10 +121,11 @@ kanban
 | crm | 2 | 0 | 0 | 0 | 2 |
 | iam | 2 | 0 | 0 | 0 | 2 |
 | landing | 3 | 0 | 0 | 0 | 3 |
+| luana-core | 2 | 0 | 0 | 0 | 2 |
 | offer | 5 | 0 | 0 | 0 | 5 |
 | sales-agent | 4 | 1 | 1 | 0 | 6 |
 | scheduling | 3 | 0 | 0 | 0 | 3 |
 | social-media | 2 | 0 | 0 | 0 | 2 |
 | tenant-domains | 1 | 0 | 0 | 0 | 1 |
-| **TOTAL** | **50** | **3** | **1** | **0** | **54** |
+| **TOTAL** | **52** | **3** | **1** | **0** | **56** |
 

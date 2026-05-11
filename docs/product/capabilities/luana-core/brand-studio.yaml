@@ -1,0 +1,63 @@
+---
+capability_id: luana-core-brand-studio
+module: luana-core
+slug: brand-studio
+status: live
+date_introduced: 2026-05-11
+story_introduced: luana-brand-offer-studios
+package_version: 0.0.1-alpha
+package_path: core/luana-core-brand-studio
+license: proprietary
+---
+
+# luana-core-brand-studio
+
+Brand domain engine lifted verbatim from AISALESHT `backend/src/modules/brand/` to `luana-platform/core/luana-core-brand-studio/` per outcome `luana-platform-migration` Story 5.
+
+## Surface
+
+- **Domain layer:** Identity, Personality (3-pilar PersonalityProfile + StoryBrand narrative + brand_personality Jung archetype), BuyerPersona (multi-persona + field_contract), Positioning (UVP + competitor matrix), Story (origin + mission + vision), Strategy (objectives + go-to-market), Team (instructors + methodology), Communication Assets, Authority Vault (credentials + testimonials)
+- **Application services:** brand_data_adapter, brand_field_apply_adapter, personality_service (compile system_instruction), extraction_orchestrator (wave-based LLM extraction), extraction_service, voice_fidelity grader, style_analyzer agent
+- **Infrastructure:** SQLA models (Identity, Personality, BuyerPersona, Avatar, ExtractionTrace, Summary), repositories
+- **API:** REST routers (avatars, buyer_personas, extraction, personality, sections, style)
+- **Workers:** Celery tasks for extraction wave execution
+
+## Voice compiler v2 SSoT (ADR-001 §2.4)
+
+`class PersonalityCompiler` vive en `luana_core_brand_studio.domain.personality.PersonalityCompiler`. Único compiler — cemented por arch fitness V-AG-3 (voice-compiler-SSoT placement test).
+
+Story 7 (luana-sales-agent-engine) consumirá vía `BrandVoicePort.compileSystemInstruction(tenant_id) → str` (port introducido Story 7, no Story 5).
+
+Voice cloning pipeline NO existe yet — deferred Stories 11-13 (brand bootstraps).
+
+## Test coverage
+
+- 420 tests GREEN per `cd /home/chris/luana-platform && uv run pytest core/luana-core-brand-studio/tests/`
+- 8 warnings (pre-existing AISALESHT debt — Pydantic v2 `class Config` deprecation + legacy EventBus)
+
+## Arch fitness gates
+
+- V-AG-1 brand-agnostic (no `if brand ==` control flow + no hardcoded secrets)
+- V-AG-2 no-forward-imports (no imports a luana_core_{copilot,sales_agent,campaigns,advertising,social_media,scheduling})
+- V-AG-3 voice-compiler-SSoT (PersonalityCompiler único en este package)
+
+## Dependencies
+
+- luana-core-platform (shared base + events + persistence base)
+- luana-core-llm (LLM router for extraction)
+- luana-core-iam (tenant context)
+
+## Deferred files (target Story 6/7+)
+
+- `brand/copilot_provider/` (multiple files) — Story 6 (luana-core-copilot lift)
+- 3 brand test files (depend on copilot_provider) — Story 6
+- BrandVoicePort interface intro — Story 7
+- voice_cloning feature flag impl — Stories 11-13
+
+## Reference
+
+- Source: AISALESHT `backend/src/modules/brand/`
+- Destination: luana-platform `core/luana-core-brand-studio/`
+- Commits Story 5: 9139f7c..34496ae (13 commits)
+- ADR: docs/architecture/luana-platform/adr/ADR-001-luana-platform.md §2.4
+- Merge doc: docs/archive/2026/stories/luana-brand-offer-studios/07-merge.md
