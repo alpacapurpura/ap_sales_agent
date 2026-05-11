@@ -1,18 +1,19 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-10T23:39:33+00:00`
+> Generated at: `2026-05-11T00:24:51+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
 ## 📊 Roadmap view (filtered + curated)
 
-### 💡 Ideas (7)
+### 💡 Ideas (8)
 - calendario-comercial `[idea]`
 - metricas-atraccion `[idea]`
 - live-selling-whatsapp-assistant `[idea]`
 - solo-mode-chat-first-layout `[idea]`
 - sales-inbox-responsive-collapse `[idea]`
 - sales-agent-qualification-toolkit `[idea]`
+- fix-reconcile-capabilities-script-v4-paradigm `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
 ### 🔬 Refining (3 total · 0 cap-eligible / cap 3)
@@ -33,8 +34,8 @@
 ### 🔨 Developing (0 / cap 3)
 - _(none)_
 
-### 🧪 Developed — esperando QA (1 / cap 10)
-- **sales-agent-voice-fidelity-grader-runtime** — outcome `pi-12-sales-agent-eval-foundation`
+### 🧪 Developed — esperando QA (0 / cap 10)
+- _(none)_
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -69,13 +70,14 @@
 
 ```mermaid
 kanban
-  💡 Ideas (7)
+  💡 Ideas (8)
     calendario-comercial[calendario-comercial]
     metricas-atraccion[metricas-atraccion]
     live-selling-whatsapp-assistan[live-selling-whatsapp-assistant]
     solo-mode-chat-first-layout[solo-mode-chat-first-layout]
     sales-inbox-responsive-collaps[sales-inbox-responsive-collapse]
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
+    fix-reconcile-capabilities-scr[fix-reconcile-capabilities-script-v4-par]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
   🔬 Refining (3 / cap 3)
     luana-platform-migration[luana-platform-migration]
@@ -89,8 +91,7 @@ kanban
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
   🔨 Developing (0 / cap 3)
-  🧪 Developed (1 / cap 10)
-    sales-agent-voice-fidelity-gra[sales-agent-voice-fidelity-grader-runtim]
+  🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
@@ -129,9 +130,9 @@ kanban
 | iam | 2 | 0 | 0 | 0 | 2 |
 | landing | 3 | 0 | 0 | 0 | 3 |
 | offer | 5 | 0 | 0 | 0 | 5 |
-| sales-agent | 4 | 1 | 0 | 0 | 5 |
+| sales-agent | 4 | 1 | 1 | 0 | 6 |
 | scheduling | 3 | 0 | 0 | 0 | 3 |
 | social-media | 2 | 0 | 0 | 0 | 2 |
 | tenant-domains | 1 | 0 | 0 | 0 | 1 |
-| **TOTAL** | **50** | **3** | **0** | **0** | **53** |
+| **TOTAL** | **50** | **3** | **1** | **0** | **54** |
 

@@ -1,11 +1,12 @@
 ---
 story_id: sales-agent-voice-fidelity-grader-runtime
 outcome: pi-12-sales-agent-eval-foundation
-state: developed                                                                                       # ★ TRANSITION developing → developed 2026-05-09 by /dev-team Conv 2 (10/10 tickets pushed GREEN; awaiting Chris triggers /auditor) ★
-phase: AWAIT_AUDIT
-last_artifact: T-10-result.md
-last_modified: 2026-05-09T07:00:00Z
-next_action: "10/10 tickets pushed GREEN: T-1 (cd840485) T-2 (8f9ad6ae) T-3 (9e720fa2) T-4 (90e12482) T-6 (bc340d96) T-7 (4bd47bf6) T-5 (b13cad65) T-8 (6ad6ef1a) T-9 (2ea67105) T-10 (e5407815). Final consolidated gate: 151/151 grader suite + 1063/1063 arch fitness GREEN. Simulator regression 213/213 PASS (1 timeout test_db_session_propagated_to_agent_bridge_via_contextvar at 30s pytest timeout — re-run with 120s passes 42.49s, pre-existing Story B environmental flake NOT Story E regression). Awaiting Chris triggers /auditor Conv 3 review+merge."
+state: done                                                                                            # ★ TRANSITION reviewing → done 2026-05-11 — auditor-agentic APPROVED + /pm merge applied (07-merge.md + capability promoted + outcome updated) ★
+phase: MERGED_AND_ARCHIVED
+last_artifact: 07-merge.md
+last_modified: 2026-05-11T00:30:00Z
+next_action: "DONE — story archived to docs/archive/2026/stories/sales-agent-voice-fidelity-grader-runtime/. Capability sales-eval-multi-judge-grader live. Luana Story 7 dependency satisfied. Stories F+G+H+I deferred to post-luana-Story-7 build per scope A."
+audit_iterations: 1
 ratified_by_chris: true
 design_ratified_by_chris: true   # 02-design-agentic.md v2 ratified Chris 2026-05-08T09:00Z
 arch_ready_at: 2026-05-08T10:00:00Z
@@ -21,7 +22,9 @@ artifacts:
   - 04-validators.yaml    # schema v4, 4/4 scenario coverage, 28 validators
   - 05-guidelines.md      # patterns required + forbidden + files in/out scope + owner routing
   - 06-tickets.yaml       # 10 tickets, DAG, decisions coverage D1-D20 + DQ1-DQ8 + D-AG-* + D-BE-*
-audit_iterations: 0
+  - REVIEW-agentic.md     # auditor-agentic Conv 3 iter 1 — APPROVED 2026-05-11
+  - CHECKPOINTS.md        # C1-C5 grid all PASS
+  - 07-merge.md           # /pm merge applied 2026-05-11
 legacy_exempt: true
 migrated_from: docs/projects/active/PI-12-sales-agent-eval-foundation/sprints/*/stories/sales-agent-voice-fidelity-grader-runtime/
 build_blockers:
@@ -45,3 +48,6 @@ build_blockers:
   - `06-tickets.yaml` (10 tickets, ~26h total estimate): T-1 DDL migration 127 (BE Sonnet, 1.5h), T-2 SQLA models + Pydantic types (BE Sonnet, 2.5h), T-3 rubric MD v1 REPLACE Story C placeholder (BE Sonnet, 1h), T-4 judge_registry 3 judges + LiteLLM Proxy (Opus 4.7, 2h), T-5 maj_eval state machine ★ (Opus 4.7, 5h — most complex), T-6 cache.py hash composition + lookup/persist (Opus 4.7, 2.5h), T-7 judge_prompts 6-slot + sandbox + Round 2 peer-only ★ (Opus 4.7, 3h), T-8 H9 expand 7→8 + arch fitness re-freeze + 4 NEW grader gates (Opus 4.7, 1.5h), T-9 integration grader_callback + 4 scenario tests + calibration MD seed ★ (Opus 4.7, 5h — most complex integration), T-10 docs reconciliation /pm post-merge (1.5h). DAG critical path: T-1 → T-2+T-3 → T-4+T-6+T-7 → T-5 → T-8 → T-9 → T-10. Decisions coverage matrix D1-D20 + DQ1-DQ8 + D-AG-1..D-AG-18 + D-BE-1..D-BE-8 (52 decisiones mapped to tickets). Hardening coverage H1+H7+H9 (H10 affirmative no-touch).
   - **State `state: refined → ready`** (ratified Chris automatic post architect package complete + validation against spec/design v2). Phase=READY_PACKAGE_DELIVERED. Next: /dev-team build (BLOCKED on Story C+D build done — bloqueador hard).
 - 2026-05-09 05:00Z — `builder-agentic-opus-4.7` shipped T-9 (integration `run_simulation` `grader_callback` hook + 4 scenario tests + calibration MD seeds). Files: 19 NEW (integration.py, conftest.py, 4 scenario tests, 5 validator-alias/leak/unconverged tests, scenarios/__init__, calibration/__init__, 4 calibration MD seed files) + 1 EDIT additive minimal (`simulator/_internal/runner.py` `grader_callback: Callable | None = None` + `asyncio.create_task` fire-and-forget post Step 11b). Validators GREEN: be_lint + be_format (28 files), be_mypy_strict (2 files), grader suite **151/151 PASS**, Story B regression **213/213 PASS** (36 eval-skipped, 1 deselected pre-existing flaky redis test), arch fitness **1063/1063 PASS** (1 env-gated skip). Cement intact: D17/DQ5 fire-and-forget (verified `test_runner_does_not_await_callback` 1s timeout); Story B determinism (zero ripple for `grader_callback=None` default); D-AG-9 injection_attempt_detected propagation; DQ3 anti-anchoring R2 peer-only; DQ6 r2_partial fallback; DQ8 unconverged → R1 + structlog warn (NOT block) + suspicious all-1.0+injection flag; D14/DQ2 sandbox markers literal slot 5; H7 cost-bucket invariant intact; H9 8-name surface intact. Phase=BUILD_T9_DONE. State=tests-passing. Next: orchestrator → gate-runner → auditor-agentic Opus (independent verdict). T-10 docs reconciliation /pm post-merge.
+- 2026-05-10 19:00Z — Chris triggered autonomous closure scope A (only Story E for luana Story 7 unblock). `/pm` transition state=developed → reviewing. Phase=AUDIT_IN_PROGRESS. Spawn auditor-agentic Conv 3 review (CHECKPOINTS C1-C5 + agentic categories). Reasoning: Story E `done` destranca luana-sales-agent-engine (Story 7 in luana-platform-migration outcome) when it gets lifted to luana-core/sales-agent/eval/. Stories F-I (CI gate, pass^k, cost budget, jailbreak) deferred to post-luana-Story-7 build (avoid re-lift double work).
+- 2026-05-11 00:00Z — `auditor-agentic` Opus 4.7 Conv 3 INDEPENDENT review iter 1: verdict **APPROVED**. CHECKPOINTS C1-C5 all PASS. 1 advisory WARN Cat 15 commit body heading cosmetic (NOT blocking). Re-execute native WSL: 151/151 grader + 1063/1063 arch fitness + 214/214 simulator regression PASS. WebFetch Anthropic prompt-caching docs live-verified TTL=1h. 52 cement decisions honored, zero drift, R5 schema-mirror exception cleanly observed.
+- 2026-05-11 00:30Z — `/pm` Conv 3 merge applied: `07-merge.md` written + capability `sales-eval-multi-judge-grader.yaml` promoted live (5 scenarios verbatim) + INDEX.md updated + outcome pi-12-sales-agent-eval-foundation.md story_ids comment refresh + BACKLOG regen + state `reviewing → done`. Archive operation: `git mv docs/product/stories/sales-agent-voice-fidelity-grader-runtime/ docs/archive/2026/stories/`. **Luana Story 7 dependency `Story E done` ✅ satisfied** (per outcome luana-platform-migration §2 Story 7).

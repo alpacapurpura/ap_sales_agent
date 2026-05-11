@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-10T23:39:33+00:00
+# Generated at: 2026-05-11T00:24:51+00:00
 
-generated_at: '2026-05-10T23:39:33+00:00'
+generated_at: '2026-05-11T00:24:51+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -106,6 +106,18 @@ buckets:
     - value:eval-unblock
     - source:story-c-escalation
     last_touched: 2026-05-08
+    extra:
+      promoted_to_outcome: null
+      ost: null
+  - id: fix-reconcile-capabilities-script-v4-paradigm
+    kind: idea
+    state: idea
+    title: fix-reconcile-capabilities-script-v4-paradigm
+    tags:
+    - tooling:scripts
+    - paradigm:v4
+    - bug
+    last_touched: 2026-05-11
     extra:
       promoted_to_outcome: null
       ost: null
@@ -309,25 +321,7 @@ buckets:
       priority_override: null
       audit_iterations: 0
   developing: []
-  developed:
-  - id: sales-agent-voice-fidelity-grader-runtime
-    kind: story
-    state: developed
-    title: sales-agent-voice-fidelity-grader-runtime
-    tags:
-    - legacy:pi-12
-    last_touched: 2026-05-09 07:00:00+00:00
-    extra:
-      outcome: pi-12-sales-agent-eval-foundation
-      phase: AWAIT_AUDIT
-      next_action: '10/10 tickets pushed GREEN: T-1 (cd840485) T-2 (8f9ad6ae) T-3 (9e720fa2) T-4 (90e12482) T-6 (bc340d96)
-        T-7 (4bd47bf6) T-5 (b13cad65) T-8 (6ad6ef1a) T-9 (2ea67105) T-10 (e5407815). Final consolidated gate: 151/151 grader
-        suite + 1063/1063 arch fitness GREEN. Simulator regression 213/213 PASS (1 timeout test_db_session_propagated_to_agent_bridge_via_contextvar
-        at 30s pytest timeout — re-run with 120s passes 42.49s, pre-existing Story B environmental flake NOT Story E regression).
-        Awaiting Chris triggers /auditor Conv 3 review+merge.'
-      blocked_by: null
-      priority_override: null
-      audit_iterations: 0
+  developed: []
   reviewing: []
   done:
   - id: growth-copilot-layout-unification
@@ -789,9 +783,9 @@ capabilities:
 - module: sales-agent
   live: 4
   in_progress: 1
-  planned: 0
+  planned: 1
   deprecated: 0
-  total: 5
+  total: 6
 - module: scheduling
   live: 3
   in_progress: 0

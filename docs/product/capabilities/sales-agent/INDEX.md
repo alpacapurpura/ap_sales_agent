@@ -22,3 +22,4 @@
 | sales-outbound-orchestrator | OutboundOrchestrator — campaign launches outbound | live | 1/0 |
 | sales-observability-cost-tracking | Observabilidad sales_agent — traces + llm_call + cost tracking | live | 2/0 |
 | sales-follow-up-workers | Workers sales_agent — follow-up + payment reminder + frozen detection | live | 2/0 |
+| sales-eval-multi-judge-grader | MAJ-EVAL multi-judge grader — voice fidelity + qualification + no-overpromise + no-hallucination | live | 1/4 |

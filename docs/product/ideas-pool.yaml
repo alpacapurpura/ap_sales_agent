@@ -206,3 +206,27 @@ ideas:
       Root cause: SimulationResult.model_dump() serialized field as 'archetype_slug' (Pydantic field name); promote_golden read 'tenant_archetype_slug' with empty-string fallback → ValidationError.
       Fix: 2 layers — (1) generator writes both 'archetype_slug' AND 'tenant_archetype_slug' to artifact JSON; (2) promote reads either key. 71 unit + 3 regression + 1016 arch GREEN.
       Verified end-to-end with 3 RUN_EVALS env-gated smokes (real LLM).
+
+  - id: fix-reconcile-capabilities-script-v4-paradigm
+    state: idea
+    created: 2026-05-11
+    tags:
+      - tooling:scripts
+      - paradigm:v4
+      - bug
+    summary: |
+      scripts/reconcile_capabilities.py looks for stories at legacy v3 path
+      docs/product/stories/{module}/{story_id}.yaml. v4 paradigm uses
+      docs/product/stories/{story_id}/checkpoint.md (flat) + done stories live in
+      docs/archive/2026/stories/{story_id}/checkpoint.md.
+      Result: ALL story files marked "missing", caps with new story_ids get
+      flipped to status=planned + stories_live=0. Caused friction during
+      Story E sales-agent-voice-fidelity-grader-runtime cap promotion 2026-05-11
+      (had to manual-override status=live in YAML + add explanation comment).
+    fix_scope: |
+      Update reconcile_capabilities.py to scan BOTH:
+      1. docs/product/stories/{story_id}/checkpoint.md → parse `state` field
+      2. docs/archive/2026/stories/{story_id}/checkpoint.md → state=done
+      Compute stories_status list from those, derive cap status correctly.
+    estimated_effort: 1-2h Sonnet
+    why_now: minor friction, recur every cap promotion
