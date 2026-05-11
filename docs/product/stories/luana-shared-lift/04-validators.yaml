@@ -1,0 +1,357 @@
+---
+story_id: luana-shared-lift
+schema_version: 4
+last_modified: 2026-05-11
+drafted_by: /architect (claude-opus-4-7)
+total_validators: 32
+---
+
+# 04-validators.yaml — luana-shared-lift
+#
+# Schema v4: 5 categories (non_functional / functional / visual / agentic_eval / documentation).
+# Each validator MUST be shell-executable. must_pass flag indicates blocking vs informational.
+#
+# Order of execution (mirrors §2 lift order in 03-arch.md):
+#   1. Workspace registration (V-NF-1..3)
+#   2. Per-package smoke (V-F-py-1..9 + V-F-ts-1..6)
+#   3. Cross-package integration (V-F-x-1..3)
+#   4. AISALESHT untouched (V-NF-4)
+#   5. No-publish (V-NF-5..7)
+#   6. Arch fitness (V-AG-1..2)
+#   7. Documentation (V-D-1..2)
+
+non_functional:
+  - id: V-NF-1
+    name: "uv sync --all-packages succeeds (Python workspace)"
+    description: "Root pyproject.toml lists all 9 luana-core-* packages as workspace members. uv resolves all sources including cyclic platform↔llm dep."
+    command: |
+      cd ~/luana-platform && uv sync --all-packages 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1, T-13]
+
+  - id: V-NF-2
+    name: "pnpm install --frozen-lockfile succeeds (TS workspace)"
+    description: "Root pnpm-workspace.yaml includes core/@luana/* glob. All 6 packages discovered and installable."
+    command: |
+      cd ~/luana-platform && pnpm install --frozen-lockfile 2>&1 | tail -10
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1, T-13]
+
+  - id: V-NF-3
+    name: "Each Python package has pyproject.toml at version 0.0.1-alpha"
+    description: "Per spec §3.1 — 9 packages × pyproject.toml at correct version."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in luana-core-platform luana-core-llm luana-core-channels luana-core-idempotency luana-core-observability luana-core-events luana-core-extraction luana-core-compliance luana-core-billing; do
+        if [ ! -f "core/${pkg}/pyproject.toml" ]; then echo "MISSING: core/${pkg}/pyproject.toml"; MISSING=$((MISSING+1)); fi
+        if ! grep -q 'version = "0.0.1-alpha"' "core/${pkg}/pyproject.toml" 2>/dev/null; then echo "WRONG VERSION: core/${pkg}"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10]
+
+  - id: V-NF-4
+    name: "AISALESHT not modified in Story 2 commits"
+    description: "Per 01-spec.md §3.4. NO file under backend/src/shared/ or frontend/src/{components/ui,lib,hooks}/ modified during Story 2."
+    command: |
+      cd /home/chris/AISALESHT
+      # Verify against last N commits during Story 2 window. STORY_BASE_SHA stored at story start.
+      # Assumes /pm captures base SHA in checkpoint.md before Story 2 begins.
+      BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-shared-lift/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+      DIFF=$(git diff "$BASE_SHA" HEAD --name-only | grep -E '^(backend/src/shared|frontend/src/(components/ui|lib|hooks|__tests__))/' || true)
+      if [ -n "$DIFF" ]; then
+        echo "AISALESHT FILES MODIFIED (forbidden):"
+        echo "$DIFF"
+        exit 1
+      fi
+      echo "OK: AISALESHT untouched"
+    must_pass: true
+    addressed_by_tickets: [T-15]
+
+  - id: V-NF-5
+    name: "No publishConfig in any package.json"
+    description: "Per 01-spec.md §3.5 — no GH Packages publishing in Story 2 (Story 9 territory)."
+    command: |
+      cd ~/luana-platform
+      OFFENDERS=$(grep -l 'publishConfig' core/@luana/*/package.json 2>/dev/null || true)
+      if [ -n "$OFFENDERS" ]; then echo "Found publishConfig in: $OFFENDERS"; exit 1; fi
+      echo "OK: no publishConfig"
+    must_pass: true
+    addressed_by_tickets: [T-15]
+
+  - id: V-NF-6
+    name: "No .releaserc.json files"
+    description: "Per 01-spec.md §3.5 — no semantic-release config."
+    command: |
+      cd ~/luana-platform
+      FOUND=$(find . -name '.releaserc*' -not -path './node_modules/*' 2>/dev/null || true)
+      if [ -n "$FOUND" ]; then echo "Found release configs: $FOUND"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-15]
+
+  - id: V-NF-7
+    name: "No release.yml or publish workflow"
+    description: "Per 01-spec.md §3.5 — no publish workflow."
+    command: |
+      cd ~/luana-platform
+      FOUND=$(find .github/workflows -name 'release*' -o -name 'publish*' 2>/dev/null || true)
+      if [ -n "$FOUND" ]; then echo "Found release/publish workflows: $FOUND"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-15]
+
+  - id: V-NF-8
+    name: "uv run ruff check core/ GREEN"
+    description: "Per 01-spec.md §3.3 — ruff baseline passes on lifted Python code (no new lint violations introduced by lift)."
+    command: |
+      cd ~/luana-platform && uv run ruff check core/ 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-14]
+
+  - id: V-NF-9
+    name: "pnpm lint GREEN"
+    description: "Per 01-spec.md §3.3."
+    command: |
+      cd ~/luana-platform && pnpm lint 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: false  # informational — Story 1 placeholder may still echo
+    addressed_by_tickets: [T-14]
+
+  - id: V-NF-10
+    name: "Each TS package has package.json at version 0.0.1-alpha and private: true"
+    description: "Per spec §3.1."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in design-tokens hooks format ui-kit api-client schemas; do
+        F="core/@luana/${pkg}/package.json"
+        if [ ! -f "$F" ]; then echo "MISSING: $F"; MISSING=$((MISSING+1)); continue; fi
+        if ! grep -q '"version": "0.0.1-alpha"' "$F"; then echo "WRONG VERSION: $F"; MISSING=$((MISSING+1)); fi
+        if ! grep -q '"private": true' "$F"; then echo "NOT PRIVATE: $F"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-11, T-12]
+
+functional:
+  # Python package smoke tests
+  - id: V-F-py-1
+    name: "luana-core-platform tests pass"
+    description: "uv run pytest core/luana-core-platform/tests/ GREEN."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-platform/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-2]
+
+  - id: V-F-py-2
+    name: "luana-core-llm tests pass"
+    description: "uv run pytest core/luana-core-llm/tests/ GREEN."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-llm/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-3]
+
+  - id: V-F-py-3
+    name: "luana-core-channels tests pass"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-channels/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-4]
+
+  - id: V-F-py-4
+    name: "luana-core-idempotency tests pass"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-idempotency/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-5]
+
+  - id: V-F-py-5
+    name: "luana-core-observability tests pass"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-observability/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-6]
+
+  - id: V-F-py-6
+    name: "luana-core-events tests pass"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-events/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-7]
+
+  - id: V-F-py-7
+    name: "luana-core-extraction tests pass"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-extraction/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-8]
+
+  - id: V-F-py-8
+    name: "luana-core-compliance tests pass"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-compliance/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-9]
+
+  - id: V-F-py-9
+    name: "luana-core-billing tests pass"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-billing/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-10]
+
+  # TypeScript package smoke tests
+  - id: V-F-ts-1
+    name: "@luana/design-tokens build passes"
+    command: |
+      cd ~/luana-platform && pnpm --filter @luana/design-tokens build 2>&1 | tail -10
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-11]
+
+  - id: V-F-ts-2
+    name: "@luana/hooks build passes"
+    command: |
+      cd ~/luana-platform && pnpm --filter @luana/hooks build 2>&1 | tail -10
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-11]
+
+  - id: V-F-ts-3
+    name: "@luana/format build + test passes"
+    description: "Has format-date.test.ts + format-money.test.ts that lift verbatim."
+    command: |
+      cd ~/luana-platform && pnpm --filter @luana/format test 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-11]
+
+  - id: V-F-ts-4
+    name: "@luana/ui-kit build + test passes"
+    description: "Lifted label.test.tsx + inline-editable.test.tsx."
+    command: |
+      cd ~/luana-platform && pnpm --filter @luana/ui-kit test 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-12]
+
+  - id: V-F-ts-5
+    name: "@luana/api-client build passes"
+    command: |
+      cd ~/luana-platform && pnpm --filter @luana/api-client build 2>&1 | tail -10
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-12]
+
+  - id: V-F-ts-6
+    name: "@luana/schemas placeholder valid"
+    description: "Empty package — verify package.json valid + test stub passes."
+    command: |
+      cd ~/luana-platform && pnpm --filter @luana/schemas test 2>&1 | tail -5
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-12]
+
+  # Cross-package integration smoke
+  - id: V-F-x-1
+    name: "Cross-package Python import works (observability imports platform)"
+    description: "Per 01-spec.md scenario D — luana_core_observability.recording imports from luana_core_platform.domain works."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_observability.recording.sanitization import sanitize_payload
+      from luana_core_platform.domain.base_entity import Base
+      from luana_core_billing.application.budget_guard import BudgetGuard
+      from luana_core_llm.factory import LLMFactory
+      from luana_core_events.outbox.domain.outbox_entry import OutboxEntry
+      from luana_core_channels.format import get_channel_format
+      from luana_core_idempotency.domain.key import IdempotencyKey
+      from luana_core_compliance.domain.lead_opt_in import LeadOptIn
+      from luana_core_extraction.base_orchestrator import BaseExtractionOrchestrator
+      print('all imports OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-F-x-2
+    name: "Cross-package TS import works (ui-kit imports format + hooks + design-tokens)"
+    description: "Smoke test that workspace:* resolves correctly at TS compile."
+    command: |
+      cd ~/luana-platform && cat > /tmp/smoke.ts <<'TS_EOF'
+      import { Button } from "@luana/ui-kit";
+      import { formatMoney } from "@luana/format";
+      import { useViewport } from "@luana/hooks";
+      console.log(typeof Button, typeof formatMoney, typeof useViewport);
+      TS_EOF
+      # Use a single package's tsc to compile against workspace
+      pnpm --filter @luana/ui-kit exec tsc --noEmit /tmp/smoke.ts 2>&1 | tail -10
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: false  # informational — barrel exports may need ticket polish
+    addressed_by_tickets: [T-13]
+
+  - id: V-F-x-3
+    name: "uv run pytest entire luana-platform GREEN"
+    description: "Aggregate test runs all 9 package suites + arch fitness in one command."
+    command: |
+      cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-13, T-16]
+
+visual: []  # No UI changes in Story 2.
+
+agentic_eval:
+  - id: V-AG-1
+    name: "Architecture fitness — observability has no module deps"
+    description: "Migrated test_shared_agent_observability_purity.py renamed to test_observability_no_module_deps.py. Enforces luana_core_observability never imports from nicolify/* (or any brand app)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_observability_no_module_deps.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-16]
+
+  - id: V-AG-2
+    name: "Architecture fitness — outbox invariants preserved"
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_events_outbox_invariants.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-16]
+
+documentation:
+  - id: V-D-1
+    name: "Each package has README.md stub"
+    description: "Per 05-guidelines.md §scope. Stub explains: package name, lift origin path (AISALESHT), key exports."
+    command: |
+      cd ~/luana-platform
+      MISSING=0
+      for pkg in luana-core-platform luana-core-llm luana-core-channels luana-core-idempotency luana-core-observability luana-core-events luana-core-extraction luana-core-compliance luana-core-billing; do
+        if [ ! -f "core/${pkg}/README.md" ]; then echo "MISSING: core/${pkg}/README.md"; MISSING=$((MISSING+1)); fi
+      done
+      for pkg in design-tokens hooks format ui-kit api-client schemas; do
+        if [ ! -f "core/@luana/${pkg}/README.md" ]; then echo "MISSING: core/@luana/${pkg}/README.md"; MISSING=$((MISSING+1)); fi
+      done
+      test $MISSING -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-17]
+
+  - id: V-D-2
+    name: "Deferred files list documented in 03-arch.md §9"
+    description: "Audit trail: 4 module-coupled files (shared/workers/{copilot,sales_agent}_*.py + shared/application/personality_event_handlers.py) explicitly deferred to Stories 6/7."
+    command: |
+      grep -q "Deferred Files (Story 2 exception list)" /home/chris/AISALESHT/docs/product/stories/luana-shared-lift/03-arch.md
+    must_pass: true
+    addressed_by_tickets: [T-17]

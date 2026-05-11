@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-11T01:34:45+00:00`
+> Generated at: `2026-05-11T01:49:50+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -23,7 +23,8 @@
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
 
-### 📦 Ready for development (4 / cap 5)
+### 📦 Ready for development (5 / cap 5)
+- **luana-shared-lift** — outcome `luana-platform-migration`
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
@@ -81,7 +82,8 @@ kanban
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
   ✅ Refined (0 / cap 5)
-  📦 Ready (4 / cap 5)
+  📦 Ready (5 / cap 5)
+    luana-shared-lift[luana-shared-lift]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]

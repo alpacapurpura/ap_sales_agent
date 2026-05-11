@@ -1,0 +1,554 @@
+---
+story_id: luana-shared-lift
+tickets_version: 1
+last_modified: 2026-05-11
+drafted_by: /architect (claude-opus-4-7)
+total_tickets: 17
+authority: 03-arch.md + 04-validators.yaml + 05-guidelines.md
+---
+
+# 06-tickets.yaml — luana-shared-lift
+#
+# DAG-ordered tickets. Each atomic ≤2h Sonnet time (Opus rescue cap_reached per outcome §7.4).
+# Foundation-first: T-1 (workspace prep) → T-2 (platform = the foundation) → Batch 2 parallelizable
+# → Batch 3 parallelizable → cross-package integration → finalization.
+
+tickets:
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-1 — Workspace prep
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-1
+    title: "Update luana-platform workspace registration for 9 Python + 6 TS packages"
+    owner_eligibility: [sonnet]
+    surface: workspace_config
+    production_code: false
+    estimated_time_minutes: 30
+    blocked_by: []
+    blocks: [T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-11, T-12]
+    validators_addressed: [V-NF-1, V-NF-2]
+    files_to_create:
+      - "(none — modifies existing root config files)"
+    files_to_modify:
+      - "~/luana-platform/pyproject.toml"
+      - "~/luana-platform/pnpm-workspace.yaml"
+    description: |
+      Modify ~/luana-platform/pyproject.toml `[tool.uv.workspace] members` and
+      `[tool.uv.sources]` per 03-arch.md §4.1 template — declare all 9
+      luana-core-* packages as workspace members + sources.
+
+      Verify pnpm-workspace.yaml has `core/@luana/*` glob (likely already
+      present from Story 1; add if missing).
+
+      DO NOT create the package folders yet — T-2..T-12 do that.
+
+      Verify: `cd ~/luana-platform && uv sync --all-packages` should succeed
+      with empty deps (V-NF-1 mostly trivial at this point; full GREEN comes
+      after T-2..T-10).
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-2 — Foundation: luana-core-platform (includes src/core/)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-2
+    title: "Lift luana-core-platform (foundation: src/core + shared/domain + shared/links + shared/infrastructure/* + shared/workers/brand_summary_regen + shared/api + shared/application/{ai_action_service,brand_summary_event_handlers,field_diff,progress_emitter})"
+    owner_eligibility: [opus]                                     # cyclic dep with llm requires care
+    surface: luana-core-platform
+    production_code: true                                         # foundation for all other lifts
+    estimated_time_minutes: 120
+    blocked_by: [T-1]
+    blocks: [T-3, T-13]
+    validators_addressed: [V-NF-3, V-F-py-1]
+    files_to_create:
+      - "core/luana-core-platform/pyproject.toml"
+      - "core/luana-core-platform/README.md"
+      - "core/luana-core-platform/src/luana_core_platform/__init__.py"
+      - "core/luana-core-platform/src/luana_core_platform/core/{config,context,database,enums,exceptions,logger,rate_limit,security,sentry,arq_pool,base_repository,__init__}.py"
+      - "core/luana-core-platform/src/luana_core_platform/domain/{base_entity,currency,currency_catalog,datetime_utils,enums,events,expert_business_type,extraction_jobs,field_contract,locale,messages,ports,schemas/,__init__}.py"
+      - "core/luana-core-platform/src/luana_core_platform/links/{models,ports/,schemas,service,__init__}.py"
+      - "core/luana-core-platform/src/luana_core_platform/infrastructure/{files,prompts,database,external,web,models,__init__}/"
+      - "core/luana-core-platform/src/luana_core_platform/workers/brand_summary_regen.py"
+      - "core/luana-core-platform/src/luana_core_platform/api/currencies.py"
+      - "core/luana-core-platform/src/luana_core_platform/application/{ai_action_service,brand_summary_event_handlers,field_diff,progress_emitter,__init__}.py"
+      - "core/luana-core-platform/tests/__init__.py"
+      - "core/luana-core-platform/tests/{test_currencies_api,test_currency,test_currency_catalog,test_datetime_utils,test_event_bus,test_expert_business_type,test_field_contract_platform,test_legacy_event_bus_deprecation_warning,test_locale,test_prompt_loader_resilience,test_web_crawler,test_ai_action_extract_json,test_ai_action_service}.py"
+      - "core/luana-core-platform/tests/application/{test_brand_summary_event_handlers,test_field_diff,test_progress_emitter}.py"
+      - "core/luana-core-platform/tests/workers/test_brand_summary_regen.py"
+      - "core/luana-core-platform/tests/infrastructure/llm/ (if any LLM tests target platform — verify)"
+    description: |
+      LIFT VERBATIM (per 05-guidelines.md §1.1):
+      1. Copy backend/src/core/ → core/luana-core-platform/src/luana_core_platform/core/
+      2. Copy backend/src/shared/domain/ → .../luana_core_platform/domain/
+      3. Copy backend/src/shared/links/ → .../luana_core_platform/links/
+      4. Copy backend/src/shared/infrastructure/{files,prompts,database,external,web,models}/ → .../luana_core_platform/infrastructure/<sub>/
+      5. Copy backend/src/shared/workers/brand_summary_regen.py → .../luana_core_platform/workers/ (NOT the eval workers — deferred)
+      6. Copy backend/src/shared/api/ → .../luana_core_platform/api/
+      7. Copy backend/src/shared/application/{ai_action_service,brand_summary_event_handlers,field_diff,progress_emitter}.py → .../luana_core_platform/application/
+         (NOT personality_event_handlers — deferred per §3.3)
+      8. Copy tests verbatim per 03-arch.md §6.1 mapping.
+      9. Apply sed import path rewrites per 05-guidelines.md §1.3:
+         - from src.core. → from luana_core_platform.core.
+         - from src.shared.domain. → from luana_core_platform.domain.
+         - from src.shared.links. → from luana_core_platform.links.
+         - from src.shared.infrastructure.{files,prompts,...} → from luana_core_platform.infrastructure.{files,prompts,...}
+         - from src.shared.workers. → from luana_core_platform.workers.
+         - from src.shared.api. → from luana_core_platform.api.
+         - from src.shared.application.{ai_action_service,...} → from luana_core_platform.application.{ai_action_service,...}
+         - from src.shared.infrastructure.llm. → from luana_core_llm.  (CYCLIC — files/image_analysis + ai_action_service consume LLM)
+      10. Write pyproject.toml per 03-arch.md §8.1 template (declares luana-core-llm cyclic dep via [tool.uv.sources]).
+      11. Write README.md stub.
+      12. Run `cd ~/luana-platform && uv sync --all-packages` (will fail because luana-core-llm not lifted yet — expected; T-13 retries).
+      13. Run `cd ~/luana-platform && uv run pytest core/luana-core-platform/tests/ -x -q` — most tests will fail on llm imports until T-3 lifts llm; defer GREEN to T-13.
+      14. Commit per 05-guidelines.md §7.
+
+      DEVIATION NOTE: src/core/ lift NOT in spec §2.2 but required per 03-arch.md §9.
+      Document in commit body.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-3 — luana-core-llm (Batch 2, depends on platform domain)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-3
+    title: "Lift luana-core-llm from backend/src/shared/infrastructure/llm/"
+    owner_eligibility: [sonnet]
+    surface: luana-core-llm
+    production_code: true
+    estimated_time_minutes: 90
+    blocked_by: [T-2]
+    blocks: [T-13]
+    validators_addressed: [V-NF-3, V-F-py-2]
+    files_to_create:
+      - "core/luana-core-llm/pyproject.toml"
+      - "core/luana-core-llm/README.md"
+      - "core/luana-core-llm/src/luana_core_llm/{__init__,base,factory,router}.py"
+      - "core/luana-core-llm/src/luana_core_llm/{application,domain,infrastructure,providers}/"
+      - "core/luana-core-llm/tests/"
+    description: |
+      LIFT VERBATIM:
+      1. cp -r backend/src/shared/infrastructure/llm/ core/luana-core-llm/src/luana_core_llm/
+      2. cp -r backend/tests/shared/infrastructure/llm/ core/luana-core-llm/tests/
+      3. Apply sed rewrites:
+         - from src.shared.infrastructure.llm. → from luana_core_llm.
+         - from src.shared.domain. → from luana_core_platform.domain.
+         - from src.core. → from luana_core_platform.core.
+      4. Write pyproject.toml per 03-arch.md §8.1 (declares luana-core-platform).
+      5. Write README.md stub.
+      6. Run `cd ~/luana-platform && uv sync --all-packages` — should resolve cycle now.
+      7. Run tests: `uv run pytest core/luana-core-llm/tests/ -x -q --tb=short` GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-4 — luana-core-channels (Batch 2, depends on platform.domain.messages)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-4
+    title: "Lift luana-core-channels from agent_observability/channels + infrastructure/channels"
+    owner_eligibility: [sonnet]
+    surface: luana-core-channels
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-2]
+    blocks: [T-13]
+    validators_addressed: [V-NF-3, V-F-py-3]
+    files_to_create:
+      - "core/luana-core-channels/pyproject.toml"
+      - "core/luana-core-channels/README.md"
+      - "core/luana-core-channels/src/luana_core_channels/{format,format_for_channel,intent_detector,__init__}.py"
+      - "core/luana-core-channels/src/luana_core_channels/infrastructure/channels/"
+      - "core/luana-core-channels/tests/"
+    description: |
+      LIFT:
+      1. cp backend/src/shared/agent_observability/channels/*.py → core/luana-core-channels/src/luana_core_channels/
+      2. cp -r backend/src/shared/infrastructure/channels/ → core/luana-core-channels/src/luana_core_channels/infrastructure/channels/
+      3. cp -r backend/tests/shared/agent_observability/channels/ → core/luana-core-channels/tests/
+      4. Apply sed:
+         - from src.shared.agent_observability.channels. → from luana_core_channels.
+         - from src.shared.infrastructure.channels. → from luana_core_channels.infrastructure.channels.
+         - from src.shared.domain. → from luana_core_platform.domain.
+      5. Write pyproject.toml + README.md.
+      6. Run tests GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-5 — luana-core-idempotency (Batch 2, leaf)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-5
+    title: "Lift luana-core-idempotency from backend/src/shared/idempotency/"
+    owner_eligibility: [sonnet]
+    surface: luana-core-idempotency
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-2]
+    blocks: [T-13]
+    validators_addressed: [V-NF-3, V-F-py-4]
+    files_to_create:
+      - "core/luana-core-idempotency/pyproject.toml"
+      - "core/luana-core-idempotency/README.md"
+      - "core/luana-core-idempotency/src/luana_core_idempotency/{application,domain,infrastructure,__init__}/"
+      - "core/luana-core-idempotency/tests/"
+    description: |
+      LIFT:
+      1. cp -r backend/src/shared/idempotency/ → core/luana-core-idempotency/src/luana_core_idempotency/
+      2. cp -r backend/tests/shared/idempotency/ → core/luana-core-idempotency/tests/
+      3. Apply sed: from src.shared.idempotency. → from luana_core_idempotency. ; from src.core. → from luana_core_platform.core.
+      4. Write pyproject.toml + README.md.
+      5. Run tests GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-6 — luana-core-observability (Batch 3, big package)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-6
+    title: "Lift luana-core-observability from agent_observability/{recording,persistence,cost,pricing,application,workers,reporting}"
+    owner_eligibility: [sonnet]
+    surface: luana-core-observability
+    production_code: true
+    estimated_time_minutes: 120
+    blocked_by: [T-2, T-3]
+    blocks: [T-7, T-10, T-13]
+    validators_addressed: [V-NF-3, V-F-py-5]
+    files_to_create:
+      - "core/luana-core-observability/pyproject.toml"
+      - "core/luana-core-observability/README.md"
+      - "core/luana-core-observability/src/luana_core_observability/{registry,__init__}.py"
+      - "core/luana-core-observability/src/luana_core_observability/{recording,persistence,cost,pricing,application,workers,reporting}/"
+      - "core/luana-core-observability/tests/"
+    description: |
+      LIFT:
+      1. cp -r backend/src/shared/agent_observability/{recording,persistence,cost,pricing,application,workers,reporting}/ → core/luana-core-observability/src/luana_core_observability/<sub>/
+      2. cp backend/src/shared/agent_observability/__init__.py + registry.py → core/luana-core-observability/src/luana_core_observability/
+      3. cp -r backend/tests/shared/agent_observability/ → core/luana-core-observability/tests/agent_observability/  (preserve subfolder structure)
+      4. Apply sed:
+         - from src.shared.agent_observability. → from luana_core_observability. (excluding channels)
+         - from src.shared.agent_observability.channels. → from luana_core_channels.
+         - from src.shared.domain. → from luana_core_platform.domain.
+         - from src.core. → from luana_core_platform.core.
+      5. Write pyproject.toml + README.md.
+      6. Verify NO mirror with copilot/sales_agent versions per anti-duplication.md (this IS the canonical lift).
+      7. Run tests GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-7 — luana-core-events (Batch 3, depends on observability.sanitization)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-7
+    title: "Lift luana-core-events from backend/src/shared/domain_events/"
+    owner_eligibility: [sonnet]
+    surface: luana-core-events
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-2, T-6]                                     # uses observability.sanitization
+    blocks: [T-13]
+    validators_addressed: [V-NF-3, V-F-py-6]
+    files_to_create:
+      - "core/luana-core-events/pyproject.toml"
+      - "core/luana-core-events/README.md"
+      - "core/luana-core-events/src/luana_core_events/{outbox,__init__}/"
+      - "core/luana-core-events/tests/"
+    description: |
+      LIFT:
+      1. cp -r backend/src/shared/domain_events/ → core/luana-core-events/src/luana_core_events/
+      2. cp -r backend/tests/shared/domain_events/ → core/luana-core-events/tests/
+      3. Apply sed:
+         - from src.shared.domain_events. → from luana_core_events.
+         - from src.shared.agent_observability.recording.sanitization → from luana_core_observability.recording.sanitization
+         - from src.shared.domain. → from luana_core_platform.domain.
+         - from src.core. → from luana_core_platform.core.
+      4. Write pyproject.toml + README.md.
+      5. Run tests GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-8 — luana-core-extraction (Batch 3, small)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-8
+    title: "Lift luana-core-extraction from backend/src/shared/application/extraction/"
+    owner_eligibility: [sonnet]
+    surface: luana-core-extraction
+    production_code: true
+    estimated_time_minutes: 30
+    blocked_by: [T-2]
+    blocks: [T-13]
+    validators_addressed: [V-NF-3, V-F-py-7]
+    files_to_create:
+      - "core/luana-core-extraction/pyproject.toml"
+      - "core/luana-core-extraction/README.md"
+      - "core/luana-core-extraction/src/luana_core_extraction/{base_orchestrator,__init__}.py"
+      - "core/luana-core-extraction/tests/"
+    description: |
+      LIFT:
+      1. cp backend/src/shared/application/extraction/*.py → core/luana-core-extraction/src/luana_core_extraction/
+      2. cp -r backend/tests/shared/application/extraction/ → core/luana-core-extraction/tests/
+      3. Apply sed:
+         - from src.shared.application.extraction. → from luana_core_extraction.
+         - from src.shared.application.progress_emitter → from luana_core_platform.application.progress_emitter
+         - from src.shared.domain. → from luana_core_platform.domain.
+      4. Write pyproject.toml + README.md.
+      5. Run tests GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-9 — luana-core-compliance (Batch 3)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-9
+    title: "Lift luana-core-compliance from backend/src/shared/compliance/"
+    owner_eligibility: [sonnet]
+    surface: luana-core-compliance
+    production_code: true
+    estimated_time_minutes: 75
+    blocked_by: [T-2]
+    blocks: [T-13]
+    validators_addressed: [V-NF-3, V-F-py-8]
+    files_to_create:
+      - "core/luana-core-compliance/pyproject.toml"
+      - "core/luana-core-compliance/README.md"
+      - "core/luana-core-compliance/src/luana_core_compliance/{application,domain,infrastructure,__init__}/"
+      - "core/luana-core-compliance/tests/"
+    description: |
+      LIFT:
+      1. cp -r backend/src/shared/compliance/ → core/luana-core-compliance/src/luana_core_compliance/
+      2. cp -r backend/tests/shared/compliance/ → core/luana-core-compliance/tests/
+      3. Apply sed:
+         - from src.shared.compliance. → from luana_core_compliance.
+         - from src.shared.domain. → from luana_core_platform.domain.
+         - from src.core. → from luana_core_platform.core.
+      4. Write pyproject.toml + README.md.
+      5. Run tests GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-10 — luana-core-billing (Batch 3, depends on observability)
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-10
+    title: "Lift luana-core-billing from backend/src/shared/billing/"
+    owner_eligibility: [sonnet]
+    surface: luana-core-billing
+    production_code: true
+    estimated_time_minutes: 90
+    blocked_by: [T-2, T-6]
+    blocks: [T-13]
+    validators_addressed: [V-NF-3, V-F-py-9]
+    files_to_create:
+      - "core/luana-core-billing/pyproject.toml"
+      - "core/luana-core-billing/README.md"
+      - "core/luana-core-billing/src/luana_core_billing/{application,domain,infrastructure,workers,__init__}/"
+      - "core/luana-core-billing/tests/"
+    description: |
+      LIFT:
+      1. cp -r backend/src/shared/billing/ → core/luana-core-billing/src/luana_core_billing/
+      2. cp -r backend/tests/shared/billing/ → core/luana-core-billing/tests/
+      3. Apply sed:
+         - from src.shared.billing. → from luana_core_billing.
+         - from src.shared.agent_observability.cost. → from luana_core_observability.cost.
+         - from src.shared.agent_observability.persistence.models. → from luana_core_observability.persistence.models.
+         - from src.shared.domain. → from luana_core_platform.domain.
+         - from src.core. → from luana_core_platform.core.
+      4. Write pyproject.toml + README.md.
+      5. Run tests GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-11 — TS Batch 1: design-tokens + hooks + format
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-11
+    title: "Lift TS foundation packages: @luana/design-tokens, @luana/hooks, @luana/format"
+    owner_eligibility: [sonnet]
+    surface: "@luana/{design-tokens,hooks,format}"
+    production_code: true
+    estimated_time_minutes: 75
+    blocked_by: [T-1]
+    blocks: [T-12, T-13]
+    validators_addressed: [V-NF-10, V-F-ts-1, V-F-ts-2, V-F-ts-3]
+    files_to_create:
+      - "core/@luana/design-tokens/{package.json,tsconfig.json,README.md,src/index.ts,src/z-index.ts}"
+      - "core/@luana/hooks/{package.json,tsconfig.json,README.md,src/index.ts,src/use-*.ts (9 hooks),tests/}"
+      - "core/@luana/format/{package.json,tsconfig.json,README.md,src/index.ts,src/{format-date,format-money,utils,case-conversion}.ts,src/constants/,tests/}"
+    description: |
+      LIFT TS BATCH 1:
+      1. design-tokens: cp frontend/src/lib/tokens/* → core/@luana/design-tokens/src/. Write barrel index.ts + package.json + tsconfig.json + README.md.
+      2. hooks: cp frontend/src/hooks/* (excluding __tests__/) → core/@luana/hooks/src/. Lift __tests__/ → tests/. Write barrel + configs.
+      3. format: cp frontend/src/lib/{format-date.ts,format-money.ts,utils.ts,case-conversion.ts} + lib/constants/* → core/@luana/format/src/. Lift lib/__tests__/format-*.test.ts → tests/. Write barrel + configs.
+      4. NO INTERNAL @/ imports within Batch 1 packages — they're leaves.
+      5. Run `pnpm install --frozen-lockfile` + per-package `pnpm --filter @luana/{name} test` GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-12 — TS Batch 2: ui-kit + api-client + schemas placeholder
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-12
+    title: "Lift TS consumer packages: @luana/ui-kit, @luana/api-client, @luana/schemas (placeholder)"
+    owner_eligibility: [sonnet]
+    surface: "@luana/{ui-kit,api-client,schemas}"
+    production_code: true
+    estimated_time_minutes: 90
+    blocked_by: [T-11]
+    blocks: [T-13]
+    validators_addressed: [V-NF-10, V-F-ts-4, V-F-ts-5, V-F-ts-6]
+    files_to_create:
+      - "core/@luana/ui-kit/{package.json,tsconfig.json,README.md,src/index.ts,src/*.tsx (43 components),tests/}"
+      - "core/@luana/api-client/{package.json,tsconfig.json,README.md,src/index.ts,src/{http-client,config}.ts,src/api/*.ts,tests/}"
+      - "core/@luana/schemas/{package.json,tsconfig.json,README.md,src/index.ts}"
+    description: |
+      LIFT TS BATCH 2:
+      1. ui-kit: cp -r frontend/src/components/ui/*.tsx → core/@luana/ui-kit/src/. Lift __tests__/ → tests/. Apply sed:
+         - @/components/ui/ → @luana/ui-kit/ (internal cross-references between primitives)
+         - @/hooks/use- → @luana/hooks (use-copilot-offset)
+         - @/lib/tokens → @luana/design-tokens
+         - @/lib/utils → @luana/format/utils
+         - @/lib/constants → @luana/format/constants
+      2. api-client: cp frontend/src/lib/{http-client,config}.ts + cp -r lib/api/ → core/@luana/api-client/src/. Apply sed:
+         - @/lib/case-conversion → @luana/format/case-conversion
+         - @/lib/config → @luana/api-client/config (internal)
+         - @/lib/http-client → @luana/api-client/http-client (internal)
+      3. schemas: empty placeholder. Write package.json (per 03-arch.md §8.2), tsconfig, README.md noting "populated Story 4/5", src/index.ts with `export {};`.
+      4. Run `pnpm install` + per-package tests GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-13 — Cross-package integration smoke + workspace assembly
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-13
+    title: "Cross-package integration: uv sync --all-packages + pnpm install + smoke imports work"
+    owner_eligibility: [opus]                                  # may need cyclic-dep troubleshooting
+    surface: workspace_integration
+    production_code: false
+    estimated_time_minutes: 60
+    blocked_by: [T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-11, T-12]
+    blocks: [T-14, T-15, T-16, T-17]
+    validators_addressed: [V-NF-1, V-NF-2, V-F-x-1, V-F-x-2, V-F-x-3]
+    files_to_modify:
+      - "(may need pyproject.toml tweaks per package if uv sync fails on cyclic resolution)"
+    description: |
+      INTEGRATION SMOKE:
+      1. `cd ~/luana-platform && uv sync --all-packages` — must succeed.
+         If cyclic resolution fails: verify both luana-core-platform and luana-core-llm declare each other in [tool.uv.sources]. Consult uv docs https://docs.astral.sh/uv/concepts/workspaces/ for cyclic workspace fix patterns.
+      2. `pnpm install --frozen-lockfile` — must succeed.
+      3. Run V-F-x-1 cross-package Python imports smoke (per 04-validators.yaml).
+      4. Run V-F-x-2 cross-package TS imports smoke.
+      5. Run V-F-x-3 aggregate `uv run pytest core/` GREEN.
+      6. Commit any pyproject.toml tweaks needed for resolution.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-14 — Lint pass
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-14
+    title: "Lint pass — uv run ruff check + pnpm lint GREEN"
+    owner_eligibility: [sonnet]
+    surface: workspace_lint
+    production_code: false
+    estimated_time_minutes: 30
+    blocked_by: [T-13]
+    blocks: []
+    validators_addressed: [V-NF-8, V-NF-9]
+    description: |
+      1. `cd ~/luana-platform && uv run ruff check core/` — should be GREEN if AISALESHT was GREEN at baseline (lift verbatim preserves lint state).
+      2. `pnpm lint` — informational (may echo Story 1 placeholder).
+      3. If ruff fails on lifted code: NO scope expansion to fix. Diagnose if it's a lift mistake (wrong sed) vs genuine ruff drift. Lift mistake → fix per-file sed. Drift → escalate (lift mode forbids reformat).
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-15 — No-publish + no-AISALESHT-mutation verifier
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-15
+    title: "Verify no-publish artifacts + AISALESHT untouched"
+    owner_eligibility: [sonnet]
+    surface: validators
+    production_code: false
+    estimated_time_minutes: 20
+    blocked_by: [T-13]
+    blocks: []
+    validators_addressed: [V-NF-4, V-NF-5, V-NF-6, V-NF-7]
+    description: |
+      1. Run V-NF-4: `git diff <base-sha> HEAD --name-only | grep -E '^(backend/src/shared|frontend/src/(components/ui|lib|hooks))/'` → must be empty.
+      2. Run V-NF-5: `grep -l 'publishConfig' ~/luana-platform/core/@luana/*/package.json` → must be empty.
+      3. Run V-NF-6: `find ~/luana-platform -name '.releaserc*' -not -path '*/node_modules/*'` → must be empty.
+      4. Run V-NF-7: `find ~/luana-platform/.github/workflows -name 'release*' -o -name 'publish*'` → must be empty.
+      5. If any check fails → revert offending change.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-16 — Arch fitness tests migration
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-16
+    title: "Migrate 5 architecture fitness tests to core/tests/architecture/"
+    owner_eligibility: [sonnet]
+    surface: arch_fitness
+    production_code: true                                       # arch tests prevent regression
+    estimated_time_minutes: 45
+    blocked_by: [T-13]
+    blocks: []
+    validators_addressed: [V-F-x-3, V-AG-1, V-AG-2]
+    files_to_create:
+      - "core/tests/__init__.py"
+      - "core/tests/architecture/__init__.py"
+      - "core/tests/architecture/test_observability_no_module_deps.py"     # renamed from test_shared_agent_observability_purity.py
+      - "core/tests/architecture/test_events_outbox_invariants.py"          # renamed from test_outbox_invariants.py
+      - "core/tests/architecture/test_extraction_orchestrator_inheritance.py"
+      - "core/tests/architecture/test_llm_routing_ssot.py"
+      - "core/tests/architecture/test_channels_router_invariants.py"       # renamed from test_channel_router_registry_invariants.py
+    description: |
+      1. cp backend/tests/architecture/test_shared_agent_observability_purity.py → core/tests/architecture/test_observability_no_module_deps.py
+      2. cp backend/tests/architecture/test_outbox_invariants.py → core/tests/architecture/test_events_outbox_invariants.py
+      3. cp backend/tests/architecture/test_extraction_orchestrator_inheritance.py → core/tests/architecture/test_extraction_orchestrator_inheritance.py
+      4. cp backend/tests/architecture/test_llm_routing_ssot.py → core/tests/architecture/test_llm_routing_ssot.py
+      5. cp backend/tests/architecture/test_channel_router_registry_invariants.py → core/tests/architecture/test_channels_router_invariants.py
+      6. Apply sed verbatim path rewrites per 05-guidelines.md §1.3 — these tests use grep-like patterns over module paths.
+      7. Update path constants inside tests to scan luana-platform packages instead of backend/src/.
+      8. Run `cd ~/luana-platform && uv run pytest core/tests/architecture/ -x -q` GREEN.
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # T-17 — Per-package READMEs + audit trail finalization
+  # ────────────────────────────────────────────────────────────────────────────
+  - id: T-17
+    title: "Per-package README.md stubs + deferred-files audit trail"
+    owner_eligibility: [sonnet]
+    surface: documentation
+    production_code: false
+    estimated_time_minutes: 45
+    blocked_by: [T-13]
+    blocks: []
+    validators_addressed: [V-D-1, V-D-2]
+    files_to_create:
+      - "core/luana-core-{platform,llm,channels,idempotency,observability,events,extraction,compliance,billing}/README.md"
+      - "core/@luana/{design-tokens,hooks,format,ui-kit,api-client,schemas}/README.md"
+      - "core/DEFERRED-FILES.md  (audit trail of 4 files deferred to Stories 6/7)"
+    description: |
+      1. For each of 15 packages, write README.md with:
+         - Package name + version
+         - Lift origin path (AISALESHT)
+         - Key exports (1 paragraph)
+         - Story 2 lift commit ref
+      2. Write core/DEFERRED-FILES.md documenting:
+         - backend/src/shared/workers/copilot_quality_eval.py → Story 6
+         - backend/src/shared/workers/copilot_rag_eval.py → Story 6
+         - backend/src/shared/workers/sales_agent_quality_eval.py → Story 7
+         - backend/src/shared/application/personality_event_handlers.py → Story 7
+         - backend/tests/shared/workers/test_copilot_*.py → Story 6
+         - backend/tests/shared/application/test_personality_event_handlers.py → Story 7
+         Reason: each imports src.modules.{copilot,sales_agent}. They lift when their consumer modules lift.
+      3. Verify V-D-1 + V-D-2 GREEN.
+
+# ────────────────────────────────────────────────────────────────────────────
+# DAG Summary
+# ────────────────────────────────────────────────────────────────────────────
+dag_summary: |
+  Total: 17 tickets
+
+  Critical path (sequential):
+    T-1 (workspace prep)
+      → T-2 (foundation: platform + src/core)
+        → T-3 (llm; closes platform↔llm cycle)
+          → T-13 (integration smoke)
+            → T-14 + T-15 + T-16 + T-17 (finalization, parallelizable)
+
+  Parallelizable batches:
+    Batch 2 (post-T-2, before T-13):    T-3, T-4, T-5  (Python: llm, channels, idempotency)
+    Batch 3a (post-T-2):                T-8, T-9       (extraction, compliance — small)
+    Batch 3b (post-T-6):                T-7, T-10      (events, billing — depend on observability)
+    Batch 6 (post-T-2, T-3):            T-6            (observability — big)
+
+    TS Batch 1 (post-T-1):              T-11           (design-tokens, hooks, format)
+    TS Batch 2 (post-T-11):             T-12           (ui-kit, api-client, schemas)
+
+  Estimated total tool-time (sequential 1 Claude): ~17h
+    - Foundation (T-1..T-3): ~4h
+    - Lifts (T-4..T-10): ~7.5h
+    - TS lifts (T-11..T-12): ~3h
+    - Integration + finalization (T-13..T-17): ~3.5h
+
+  Budget per outcome §7.2: soft check-in at $500/$1000/$1500 cumulative (incl. Phase A).
+
+# ────────────────────────────────────────────────────────────────────────────
+# Owner eligibility summary
+# ────────────────────────────────────────────────────────────────────────────
+owner_eligibility_summary: |
+  Sonnet (mechanical lift): T-1, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-11, T-12, T-14, T-15, T-16, T-17 (15 tickets)
+  Opus (complex coupling resolution): T-2 (foundation with cyclic dep declaration), T-13 (integration smoke — may need cyclic resolution troubleshooting) (2 tickets)
+
+  Per outcome §7.3 — owner_eligibility: [opus] on the foundation tickets reflects R23 (production code agentic consumers downstream). Cyclic dep + foundation lift = highest care.
+  Per R23 — Sonnet OK for mechanical lift (production_code: true but no agentic logic changes). Lift mode prevents new abstractions.

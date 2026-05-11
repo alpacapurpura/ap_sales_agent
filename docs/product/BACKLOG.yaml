@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T01:34:45+00:00
+# Generated at: 2026-05-11T01:49:50+00:00
 
-generated_at: '2026-05-11T01:34:45+00:00'
+generated_at: '2026-05-11T01:49:50+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -215,6 +215,20 @@ buckets:
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
   refined: []
   ready:
+  - id: luana-shared-lift
+    kind: story
+    state: ready
+    title: luana-shared-lift
+    tags: []
+    last_touched: 2026-05-11
+    extra:
+      outcome: luana-platform-migration
+      phase: ready_for_dev_team
+      next_action: /dev-team picks up. Reads 06-tickets.yaml + 05-guidelines.md. Iterates ticket-by-ticket against 04-validators.yaml.
+      blocked_by:
+      - luana-foundation
+      priority_override: null
+      audit_iterations: 0
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready
