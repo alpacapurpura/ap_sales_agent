@@ -3,11 +3,11 @@ story_id: luana-copilot-engine
 outcome: luana-platform-migration
 state: developing
 phase: building_T1_to_T21
-last_artifact: T-3-result.md
+last_artifact: T-8-result.md
 last_modified: 2026-05-11
 dev_team_started_at: 2026-05-11
-last_completed_batch: "T-1 (8506a45) + T-2 (a1180ce) + T-3 (63b069c) — workspace + skeleton + domain lift"
-next_action: "builder-agentic Opus spawn next batch T-6 (infra repos+models) → T-7 (persisters) → T-8 (channels/voice/qdrant/cache/prompts/web/workers). R23 Opus mandatory ALL tickets."
+last_completed_batch: "Batch 2: T-6 (917c362 — infra repos+models) + T-7 (a60fa7b — persisters) + T-8 (e1e446f — channels/voice/qdrant/cache/prompts/web/workers/in_memory_registries). Cumulative: 111 test PASS isolated."
+next_action: "builder-agentic Opus spawn next batch T-9 (orchestrator LangGraph+deepagents — 16 files + state + system_prompt_composer + subagents) → T-10 (tools registry + 28 tools + 3 subfolders) → T-11 (router+suggestions+workflows+procedures+...). R23 Opus mandatory ALL tickets."
 unparked_at: 2026-05-11
 unparked_reason: "Story 5 luana-brand-offer-studios done 2026-05-11. DAG sequencing allows Story 6."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 extension + R23)
@@ -60,6 +60,8 @@ new_arch_fitness_tests: 8  # V-AG-1..V-AG-8 in core/tests/architecture/
 ---
 
 ## Bitácora
+
+- 2026-05-11 (Batch 2 close): T-6 + T-7 + T-8 committed luana-platform main. SHAs: 917c362 + a60fa7b + e1e446f. 111 test PASS isolated cumulative (18 + 34 + 59). V-F-marketing-kb GREEN. All deps (qdrant + arq + jinja2 + trafilatura + tiktoken) resolve. Process drifts documented: (1) T-6 step 7 message_model.py spec drift (sales_agent territory Story 7), (2) §1.3 sed gap for unittest.mock.patch() string literals (manually fixed T-7+T-8), (3) some repo tests defer to T-15 conftest lift (DAG order natural consequence). Next: T-9 application/orchestrator.
 
 - 2026-05-11: state=idea → refining. Session 3 autonomous pre-auth ratified by Chris (outcome §7.2 + §7.4 extension). 6 decisiones técnicas D-T1..D-T6 + 3 ratificaciones business documented in outcome §7.2. Next: architect-orchestrator Opus spawn produces ready package (Stories 6+7 combined).
 
