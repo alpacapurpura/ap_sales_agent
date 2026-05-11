@@ -122,14 +122,30 @@
 - Auditor verdict: APPROVED
 - Status: ✅ DONE
 
-### Cumulative session 1
-- Phases done: A + B
-- Cost cumulative: ~$85 (well under $500 soft check-in)
-- Wall clock cumulative: ~4 hours
-- Stories done: luana-foundation + luana-shared-lift
-- Packages live: 5 caps (Story 1 infra) + 15 caps (Story 2 lift) = 20
-- AISALESHT untouched throughout
-- Continuing to Phase C Story 3 luana-iam-tenancy-content
+### Cumulative session 1 (final)
+- Phases done: A + B + C + D + E (retro-audit)
+- Cost cumulative: ~$390 (well under $1500 hard cap, $500 soft check-in observed)
+- Wall clock cumulative: ~10.5 hours
+- Stories done: luana-foundation + luana-shared-lift + luana-iam-tenancy-content + luana-crm-analytics-landing-connections
+- Capabilities live: 30 (5 + 15 + 6 + 4)
+- AISALESHT untouched throughout all 4 stories
+- Retro-audit Phase E: 1 HIGH + 1 MEDIUM + 3 LOW, deferred Story 9 (no rollback)
+- Mid-session: switched general-purpose → specialists at Story 3 audit (Chris correction)
+
+**Final report:** `luana-platform-migration-session-1-summary.md`
+
+## Phase C — Story 3 luana-iam-tenancy-content
+
+(Closed 2026-05-11 — auditor-backend Opus APPROVED 27/27. 6 packages lifted. Commits to luana-platform 0333a46. AISALESHT closure ca1ab02f.)
+
+## Phase D — Story 4 luana-crm-analytics-landing-connections
+
+(Closed 2026-05-11 — builder-backend Sonnet × 7 spawns + 1 Opus rescue T-3a. auditor-backend Opus APPROVED 30/30. 4 packages + cross-Story platform integration. 11 luana-platform commits 2cac18d..981bf3b. AISALESHT closure c7505d13. Final close 90b287e3.)
+
+## Phase E — Retro-audit Stories 1+2+3 generic agents
+
+(Closed 2026-05-11 — auditor-backend Opus MINOR_FINDINGS. Validated lift-mode integrity all 3 stories. Identified 1 HIGH (CI fallthrough) + 1 MEDIUM (pre-commit hook) + 3 LOW (pre-existing AISALESHT debt). No rollback. All deferred Story 9.)
+
 
 
 
