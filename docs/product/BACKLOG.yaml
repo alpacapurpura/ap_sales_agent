@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T21:05:33+00:00
+# Generated at: 2026-05-11T21:43:24+00:00
 
-generated_at: '2026-05-11T21:05:33+00:00'
+generated_at: '2026-05-11T21:43:24+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -330,9 +330,9 @@ buckets:
     extra:
       outcome: luana-platform-migration
       phase: building_T1_to_T21
-      next_action: builder-agentic Opus spawn next batch T-9 (orchestrator LangGraph+deepagents — 16 files + state + system_prompt_composer
-        + subagents) → T-10 (tools registry + 28 tools + 3 subfolders) → T-11 (router+suggestions+workflows+procedures+...).
-        R23 Opus mandatory ALL tickets.
+      next_action: 'builder-agentic Opus spawn next batch T-12 (application/services + discovery + extraction_card_flow —
+        10 files + 2 single-file) → T-13 (observability subfolder D-T6 subclass invariants — callback_handler, turn_envelope,
+        persistence repos) → T-14 (api/ 22 files: 11 routers + 11 DTOs). R23 Opus mandatory ALL tickets.'
       blocked_by: []
       priority_override: null
       audit_iterations: 0

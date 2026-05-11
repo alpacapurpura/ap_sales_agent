@@ -3,11 +3,11 @@ story_id: luana-copilot-engine
 outcome: luana-platform-migration
 state: developing
 phase: building_T1_to_T21
-last_artifact: T-8-result.md
+last_artifact: T-11-result.md
 last_modified: 2026-05-11
 dev_team_started_at: 2026-05-11
-last_completed_batch: "Batch 2: T-6 (917c362 — infra repos+models) + T-7 (a60fa7b — persisters) + T-8 (e1e446f — channels/voice/qdrant/cache/prompts/web/workers/in_memory_registries). Cumulative: 111 test PASS isolated."
-next_action: "builder-agentic Opus spawn next batch T-9 (orchestrator LangGraph+deepagents — 16 files + state + system_prompt_composer + subagents) → T-10 (tools registry + 28 tools + 3 subfolders) → T-11 (router+suggestions+workflows+procedures+...). R23 Opus mandatory ALL tickets."
+last_completed_batch: "Batch 3: T-9 (8602ae0 — orchestrator LangGraph+deepagents+11-slot composer+3 subagents — 18 src + 12 tests, 52 PASS) + T-10 (c0040be — ToolRegistry+24 tools+3 subfolders — 42 src + 14 tests, 40 PASS) + T-11 (3fcd317 — 9 application subfolders router/suggestions/workflows/procedures/data_access/extraction/guided/memory/observability — 42 src + 27 tests, 97 PASS). Cumulative across 3 batches: ~244 src + ~78 tests + 300 PASS isolated. T-1..T-11 done (11 of 21)."
+next_action: "builder-agentic Opus spawn next batch T-12 (application/services + discovery + extraction_card_flow — 10 files + 2 single-file) → T-13 (observability subfolder D-T6 subclass invariants — callback_handler, turn_envelope, persistence repos) → T-14 (api/ 22 files: 11 routers + 11 DTOs). R23 Opus mandatory ALL tickets."
 unparked_at: 2026-05-11
 unparked_reason: "Story 5 luana-brand-offer-studios done 2026-05-11. DAG sequencing allows Story 6."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 extension + R23)
