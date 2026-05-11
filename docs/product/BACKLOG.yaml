@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T01:00:39+00:00
+# Generated at: 2026-05-11T01:34:45+00:00
 
-generated_at: '2026-05-11T01:00:39+00:00'
+generated_at: '2026-05-11T01:34:45+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -137,25 +137,6 @@ buckets:
       priority_override: null
       audit_iterations: 0
   refining:
-  - id: luana-platform-migration
-    kind: outcome
-    state: refining
-    title: luana-platform-migration
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      story_ids: []
-      why_now: null
-      why_next: null
-      target_end: null
-      priority: P0
-      success_metrics:
-      - Luana core v0.1.0 published to GitHub Packages with 22+ versioned packages and 5 critical extension points
-      - Nicolify migrated to consume Luana with zero functional regression (all current tests pass)
-      - 3 new brand apps (Vitalia, Comunify, Lupulo) bootstrapped with vertical-specific extensions registered
-      - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
-      - Operating cost stays within $1100-1400/mo budget
-      - Zero core code branches conditional on brand identity (arch fitness enforced)
   - id: pi-12-sales-agent-eval-foundation
     kind: outcome
     state: refining
@@ -305,22 +286,27 @@ buckets:
       blocked_by: null
       priority_override: null
       audit_iterations: 0
-  developing: []
-  developed:
-  - id: luana-foundation
-    kind: story
-    state: developed
-    title: luana-foundation
+  developing:
+  - id: luana-platform-migration
+    kind: outcome
+    state: developing
+    title: luana-platform-migration
     tags: []
     last_touched: 2026-05-11
     extra:
-      outcome: luana-platform-migration
-      phase: VALIDATORS_DONE
-      next_action: 'Chris: decide NF-1 (branch protection): upgrade Pro / make public / waive. Then trigger /auditor C1-C5
-        → /pm merge.'
-      blocked_by: []
-      priority_override: null
-      audit_iterations: 0
+      story_ids: []
+      why_now: null
+      why_next: null
+      target_end: null
+      priority: P0
+      success_metrics:
+      - Luana core v0.1.0 published to GitHub Packages with 22+ versioned packages and 5 critical extension points
+      - Nicolify migrated to consume Luana with zero functional regression (all current tests pass)
+      - 3 new brand apps (Vitalia, Comunify, Lupulo) bootstrapped with vertical-specific extensions registered
+      - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
+      - Operating cost stays within $1100-1400/mo budget
+      - Zero core code branches conditional on brand identity (arch fitness enforced)
+  developed: []
   reviewing: []
   done:
   - id: growth-copilot-layout-unification

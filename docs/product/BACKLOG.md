@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-11T01:00:39+00:00`
+> Generated at: `2026-05-11T01:34:45+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -16,8 +16,7 @@
 - fix-reconcile-capabilities-script-v4-paradigm `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (3 total · 0 cap-eligible / cap 3)
-- **luana-platform-migration**
+### 🔬 Refining (2 total · 0 cap-eligible / cap 3)
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
 
@@ -30,11 +29,11 @@
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 🔨 Developing (0 / cap 3)
-- _(none)_
+### 🔨 Developing (1 / cap 3)
+- **luana-platform-migration**
 
-### 🧪 Developed — esperando QA (1 / cap 10)
-- **luana-foundation** — outcome `luana-platform-migration`
+### 🧪 Developed — esperando QA (0 / cap 10)
+- _(none)_
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -78,8 +77,7 @@ kanban
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
     fix-reconcile-capabilities-scr[fix-reconcile-capabilities-script-v4-par]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (3 / cap 3)
-    luana-platform-migration[luana-platform-migration]
+  🔬 Refining (2 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
   ✅ Refined (0 / cap 5)
@@ -88,9 +86,9 @@ kanban
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
-  🔨 Developing (0 / cap 3)
-  🧪 Developed (1 / cap 10)
-    luana-foundation[luana-foundation]
+  🔨 Developing (1 / cap 3)
+    luana-platform-migration[luana-platform-migration]
+  🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]

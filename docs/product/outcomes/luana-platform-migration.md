@@ -1,11 +1,13 @@
 ---
 outcome_id: luana-platform-migration
 slug: luana-platform-migration
-state: refining                                # 10-state v4
-phase: outcome_decomposition
+state: developing                               # 10-state v4 — Story 1 done 2026-05-11, Phase B Story 2 in flight
+phase: story_1_done_phase_b_active
 created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
-last_modified: 2026-05-09
+last_modified: 2026-05-11
+stories_done: [luana-foundation]                # 2026-05-11
+stories_active: [luana-shared-lift]             # 2026-05-11 — Phase B autonomous batch session 1
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/
