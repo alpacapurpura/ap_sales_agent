@@ -1,11 +1,13 @@
 ---
 story_id: luana-copilot-engine
 outcome: luana-platform-migration
-state: ready
-phase: ready_package_closed_awaiting_dev_team
-last_artifact: 06-tickets.yaml
+state: developing
+phase: building_T1_to_T21
+last_artifact: T-3-result.md
 last_modified: 2026-05-11
-next_action: "/dev-team picks T-1 (workspace prep) → T-21 (finalization) sequentially. R23 Opus mandatory ALL 21 tickets."
+dev_team_started_at: 2026-05-11
+last_completed_batch: "T-1 (8506a45) + T-2 (a1180ce) + T-3 (63b069c) — workspace + skeleton + domain lift"
+next_action: "builder-agentic Opus spawn next batch T-6 (infra repos+models) → T-7 (persisters) → T-8 (channels/voice/qdrant/cache/prompts/web/workers). R23 Opus mandatory ALL tickets."
 unparked_at: 2026-05-11
 unparked_reason: "Story 5 luana-brand-offer-studios done 2026-05-11. DAG sequencing allows Story 6."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 extension + R23)

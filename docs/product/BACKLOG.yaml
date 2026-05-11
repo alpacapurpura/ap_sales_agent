@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T20:46:53+00:00
+# Generated at: 2026-05-11T20:54:40+00:00
 
-generated_at: '2026-05-11T20:46:53+00:00'
+generated_at: '2026-05-11T20:54:40+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -215,19 +215,6 @@ buckets:
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
   refined: []
   ready:
-  - id: luana-copilot-engine
-    kind: story
-    state: ready
-    title: luana-copilot-engine
-    tags: []
-    last_touched: 2026-05-11
-    extra:
-      outcome: luana-platform-migration
-      phase: ready_package_closed_awaiting_dev_team
-      next_action: /dev-team picks T-1 (workspace prep) → T-21 (finalization) sequentially. R23 Opus mandatory ALL 21 tickets.
-      blocked_by: []
-      priority_override: null
-      audit_iterations: 0
   - id: luana-sales-agent-engine
     kind: story
     state: ready
@@ -334,6 +321,20 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
+  - id: luana-copilot-engine
+    kind: story
+    state: developing
+    title: luana-copilot-engine
+    tags: []
+    last_touched: 2026-05-11
+    extra:
+      outcome: luana-platform-migration
+      phase: building_T1_to_T21
+      next_action: builder-agentic Opus spawn next batch T-6 (infra repos+models) → T-7 (persisters) → T-8 (channels/voice/qdrant/cache/prompts/web/workers).
+        R23 Opus mandatory ALL tickets.
+      blocked_by: []
+      priority_override: null
+      audit_iterations: 0
   developed: []
   reviewing: []
   done:
