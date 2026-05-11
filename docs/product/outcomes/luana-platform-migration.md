@@ -7,7 +7,7 @@ created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-11
 stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios]   # 2026-05-11 all 5 (Stories 1-4 session 1 + Story 5 session 2)
-stories_active: []                              # Story 5 developed 2026-05-11. Stories 6-14 next.
+stories_active: [luana-copilot-engine, luana-sales-agent-engine]   # Session 3 2026-05-11 Stories 6+7 secuencial autonomous (refining state at session start)
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/
@@ -208,18 +208,36 @@ Stories que NO entran en este outcome pero quedan registradas en backlog:
 | GH Packages publishing | **Diferido** hasta Story 9 | Workspace-internal (uv + pnpm) sin overhead publishing inicial. Story 9 introduce publish pipeline. |
 | Claude subs | **1 actual**, progressive Q3-Q4 2026 | Stories ejecutan secuencial. Timeline +6 sem. |
 
-### 7.2 Autonomous execution policies ratified 2026-05-11 (extended session 2 2026-05-11)
+### 7.2 Autonomous execution policies ratified 2026-05-11 (extended session 2 + session 3 2026-05-11)
 
 Para que /pm + /po + /architect + /dev-team + /auditor + /pm merge ejecuten en una sola conversación sin Chris approval per story.
 
 | Policy | Valor ratificado | Aplica a |
 |---|---|---|
-| **Pre-auth spec/design ratification** | **AUTO** si stay within ADR-001 + outcome §3.3 anti-island + 3 scope decisions §7.1 + lift mode §7.3 | Stories 2-4 (sesión 1) + **Story 5** (sesión 2 extension, Chris mandate "story 5 sola, hazlo de forma autonoma") |
+| **Pre-auth spec/design ratification** | **AUTO** si stay within ADR-001 + outcome §3.3 anti-island + 3 scope decisions §7.1 + lift mode §7.3 | Stories 2-4 (sesión 1) + **Story 5** (sesión 2) + **Stories 6+7** (sesión 3 extension, Chris mandate 2026-05-11: secuencial autonomous, R23 Opus mandatory all tickets) |
 | **Audit failure response** | Auto-fix Opus cap 3 iter, después escalar Chris | Todas autonomous stories |
-| **Sonnet cap_reached on ticket** | Auto-rescate Opus puntual SOLO en ese ticket | Todas autonomous stories |
-| **Budget per session** | **NO HARD CAP** — Chris tracking externo. Soft check-ins a $500 / $1000 / $1500 cumulative (Claude reporta progress + cost a Chris pero no para) | Todas autonomous stories |
+| **Sonnet cap_reached on ticket** | Auto-rescate Opus puntual SOLO en ese ticket | Todas autonomous stories (Stories 6+7 R23 → Opus only, no Sonnet eligibility) |
+| **Budget per session** | **NO HARD CAP** — Chris tracking externo. Soft check-ins a $500 / $1000 / $1500 / $2500 cumulative (Claude reporta progress + cost a Chris pero no para) | Todas autonomous stories |
 
 **Story 5 autonomy rationale (sesión 2):** Story 5 nominalmente Tier 3 (§7.4) — design surface posible (voice compiler v2 elevation + voice cloning feature flag). Mitigación: ambas decisiones ya ratificadas en ADR-001 §2.4 (compiler elevado a core-brand-studio, cloning flag declarativo por brand en BrandConfig). Por tanto Story 5 ejecuta como lift-mode con design-decisions pre-ratificadas. NO surface design decisions cardinales → autonomy segura.
+
+**Stories 6+7 autonomy rationale (sesión 3, 2026-05-11):** Cap §7.4 extendido a **2 stories Tier 3 secuencial** esta sesión, análogo a §7.2 Story 5 extension. R23 Opus mandatory all tickets (agentic production code) — esperado ~$2000-3500 sesión.
+
+**3 ratificaciones business sesión 3:**
+1. **§7.4 cap extendido a 2 stories Tier 3** — Stories 6+7 secuencial autonomous, análogo Story 5
+2. **Story 7 eval gate WAIVED a Luana v0.2.0** — Story E (sales-agent-voice-fidelity-ci-gate) bloqueada por PI-12 eval-foundation incompleta. Lift Story 7 sales_agent runtime SIN Story E done; voice fidelity CI gate diferido hasta v0.2.0 ship completo del eval framework. Documentar como blocker WAIVED en Story 7 checkpoint + DEFERRED-FILES
+3. **R23 Opus mandatory all tickets** — Stories 6+7 production agentic code. ALL tickets owner=builder-agentic Opus 4.7. NO Sonnet eligibility
+
+**6 decisiones técnicas Chris mandate "cero deuda + máxima escalabilidad" (baked en architect prompt):**
+
+| ID | Decisión | Implicación architect |
+|---|---|---|
+| **D-T1** | Lift mode con preservación de contratos para Story 8 EP formalization | Tool/workflow/extractor registries (copilot) interfaces preserved EXACTLY. Story 8 wrappea como EP-1..EP-5 sin refactor mayor. Arch fitness Story 6: `test_copilot_registry_contracts_stable.py` |
+| **D-T2** | Cross-module mapper cleanup Stories 5→6→7 | Story 6 lifta `MessageModel` (copilot owns) → offer-studio conftest MIGRA stub a real import. Arch fitness `test_no_residual_test_stubs_post_story_6.py`. Zero deuda técnica residual |
+| **D-T3** | Voice compiler integration Story 7 via BrandVoicePort hexagonal | Story 7 introduce port + impl + consumer per ADR-001 §2.4. `BrandVoicePort` interface en luana-core-brand-studio + concrete `BrandVoiceCompilerAdapter` + DI consumer en luana-core-sales-agent. Arch fitness `test_sales_agent_uses_voice_port_no_direct_compiler_import.py` |
+| **D-T4** | Single architect spawn para AMBAS stories | UN solo architect-orchestrator Opus produce ready packages 6+7 en una pasada — cross-Story decisiones coordinadas |
+| **D-T5** | builder-agentic + auditor-agentic specialists | Build Stories 6+7 = `builder-agentic` Opus. Audit Stories 6+7 = `auditor-agentic` Opus. Schema-mirror exception (backend-ddd §"Schema-mirror exception") sigue válido si shared/ migration ripple |
+| **D-T6** | Cross-module mapper Story 6 specific solutions | Copilot lift toca LangGraph 2.0 StateGraph + checkpointers (verbatim), Anthropic prompt cache slots 5min/1h TTL (preserve), copilot_trace_event + copilot_llm_call observability (lift via shared/agent_observability inherit per anti-duplication.md), tool/workflow/extractor registries (D-T1), Qdrant RAG tenant filtering, module registry. ready package 03-arch.md tabula cada subsystem + lift strategy + tests downstream regression per R3 auditor-downstream-regression.md |
 
 ### 7.3 Lift mode constraint precise (Stories 2-4)
 
@@ -260,14 +278,16 @@ Para que auto-spec/design/arch ratification sea segura, "lift mode" significa EX
 |---|---|---|---|
 | Tier 1 fully autonomous | 1 (luana-foundation, ready) | 1 story session 1 | Build only — ready package existe |
 | Tier 2 lift-mode autonomous | 2-4 (shared-lift + iam-tenancy + crm-analytics) | up to 3 stories session 1 | /pm spec → /architect → /dev-team → /auditor → merge |
-| Tier 3 mid-flight check-in | 5-7 (brand-offer + copilot + sales-agent — R23 Opus para 6+7) | 1 story per session | Decisiones design surfacing — Chris check-in mid-flight |
+| Tier 3 mid-flight check-in | 5-7 (brand-offer + copilot + sales-agent — R23 Opus para 6+7) | 1 story per session DEFAULT, up to 2 per session if pre-ratified (sesión 3 precedent — Stories 6+7 secuencial autonomous) | Decisiones design surfacing — Chris check-in mid-flight |
 | Tier 4 per-story ratify | 8-14 (extension SDK + brand bootstraps) | 1 story per session | Decisiones verticales/architectural |
 
 **Realistic session 1 plan:** Stories 1 + 2 + 3 + 4 closed = 4 stories cumulative (~$700-1600, ~30h tool-time wall). **Real:** 4/4 closed ~10.5h ~$390 (2026-05-11).
 
-**Session 2 plan (2026-05-11):** Story 5 sola autonomous per Chris mandate. §7.2 extended Story 5 lift-mode pre-auth (design decisions ya ratificadas ADR-001 §2.4). ~14-20 tickets, target ~3-6h.
+**Session 2 plan (2026-05-11):** Story 5 sola autonomous per Chris mandate. §7.2 extended Story 5 lift-mode pre-auth (design decisions ya ratificadas ADR-001 §2.4). ~14-20 tickets, target ~3-6h. **Real:** 1 story closed ~3h ~$390 (ish — Session 2 stats en 07-merge.md).
 
-Después: Chris evaluates, ratifica Stories 6-7 individualmente.
+**Session 3 plan (2026-05-11):** Stories 6+7 secuencial autonomous per Chris mandate. §7.2 extended Stories 6+7 lift-mode pre-auth con 6 decisiones técnicas (D-T1..D-T6) + 3 ratificaciones business pre-baked. R23 Opus mandatory all tickets. ~33-47 tickets total (18-25 Story 6 + 15-22 Story 7). Target ~$2000-3500 cumulative session 3.
+
+Después: Chris evaluates session 3 stats, ratifica Stories 8+ individualmente.
 
 ---
 

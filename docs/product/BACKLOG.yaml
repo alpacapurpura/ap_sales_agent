@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T18:35:32+00:00
+# Generated at: 2026-05-11T20:11:15+00:00
 
-generated_at: '2026-05-11T18:35:32+00:00'
+generated_at: '2026-05-11T20:11:15+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -121,20 +121,6 @@ buckets:
     extra:
       promoted_to_outcome: null
       ost: null
-  - id: luana-copilot-engine
-    kind: story
-    state: idea
-    title: luana-copilot-engine
-    tags: []
-    last_touched: 2026-05-11
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: 'Chris evaluates Story 6 strategy: autonomous Tier 3 lift OR per-story ratify. R23 Opus mandatory (agentic
-        production code).'
-      blocked_by: []
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-dialect-configuration
     kind: story
     state: idea
@@ -227,6 +213,35 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
+  - id: luana-copilot-engine
+    kind: story
+    state: refining
+    title: luana-copilot-engine
+    tags: []
+    last_touched: 2026-05-11
+    extra:
+      outcome: luana-platform-migration
+      phase: awaiting_architect_orchestrator
+      next_action: architect-orchestrator Opus spawn (single, produces ready packages Stories 6+7) — D-T1..D-T6 + 3 ratifications
+        carried in prompt verbatim
+      blocked_by: []
+      priority_override: null
+      audit_iterations: 0
+  - id: luana-sales-agent-engine
+    kind: story
+    state: refining
+    title: luana-sales-agent-engine
+    tags: []
+    last_touched: 2026-05-11
+    extra:
+      outcome: luana-platform-migration
+      phase: awaiting_architect_orchestrator
+      next_action: architect-orchestrator Opus spawn (single, produces ready packages Stories 6+7 combined) — D-T1..D-T6 +
+        3 ratifications baked in prompt
+      blocked_by:
+      - luana-copilot-engine
+      priority_override: null
+      audit_iterations: 0
   refined: []
   ready:
   - id: sales-agent-adversarial-jailbreak-suite
@@ -525,21 +540,6 @@ buckets:
       next_action: /po-ux opens 01-spec.md after Story 9 done
       blocked_by:
       - luana-v0-1-0-publish
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-sales-agent-engine
-    kind: story
-    state: parked
-    title: luana-sales-agent-engine
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po opens 01-spec.md after Story 6 done AND Story E (sales-agent-voice-fidelity-grader-runtime) done
-      blocked_by:
-      - luana-copilot-engine
-      - story-E-sales-agent-voice-fidelity-grader-runtime done
       priority_override: null
       audit_iterations: 0
   - id: luana-v0-1-0-publish
