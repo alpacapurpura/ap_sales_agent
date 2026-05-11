@@ -1,5 +1,5 @@
 # Backlog TLDR (auto-generated)
-> Generated at: `2026-05-11T00:22:53+00:00`
+> Generated at: `2026-05-11T00:34:26+00:00`
 > Source: scripts/generate_backlog.py — full view: BACKLOG.md
 
 - **Ideas** (8): calendario-comercial, metricas-atraccion, live-selling-whatsapp-assistant +5

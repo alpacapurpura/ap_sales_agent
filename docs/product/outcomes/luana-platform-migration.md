@@ -206,6 +206,63 @@ Stories que NO entran en este outcome pero quedan registradas en backlog:
 | GH Packages publishing | **Diferido** hasta Story 9 | Workspace-internal (uv + pnpm) sin overhead publishing inicial. Story 9 introduce publish pipeline. |
 | Claude subs | **1 actual**, progressive Q3-Q4 2026 | Stories ejecutan secuencial. Timeline +6 sem. |
 
+### 7.2 Autonomous execution policies ratified 2026-05-11
+
+Para que /pm + /po + /architect + /dev-team + /auditor + /pm merge ejecuten en una sola conversación sin Chris approval per story.
+
+| Policy | Valor ratificado | Aplica a |
+|---|---|---|
+| **Pre-auth spec/design ratification** | **AUTO** si stay within ADR-001 + outcome §3.3 anti-island + 3 scope decisions §7.1 + lift mode §7.3 | Stories 2-4 (shared-lift, iam-tenancy-content, crm-analytics-landing-connections) |
+| **Audit failure response** | Auto-fix Opus cap 3 iter, después escalar Chris | Todas autonomous stories |
+| **Sonnet cap_reached on ticket** | Auto-rescate Opus puntual SOLO en ese ticket | Todas autonomous stories |
+| **Budget per session** | **NO HARD CAP** — Chris tracking externo. Soft check-ins a $500 / $1000 / $1500 cumulative (Claude reporta progress + cost a Chris pero no para) | Todas autonomous stories |
+
+### 7.3 Lift mode constraint precise (Stories 2-4)
+
+Para que auto-spec/design/arch ratification sea segura, "lift mode" significa EXACTAMENTE:
+
+**MUST DO:**
+- Lift código existente AISALESHT (`backend/src/{shared,modules/X}/`) → `luana-core/python/luana-core-{name}/src/luana_core_{name}/` preservando boundaries DDD verbatim
+- Preserve file names + class names + function signatures + public API surface
+- Preserve tests verbatim (`tests/modules/X/` → `luana-core/python/luana-core-{name}/tests/`) — same structure
+- Preserve module imports topology (no merging modules, no splitting modules)
+- Add per-package: `pyproject.toml` (uv workspace member, version 0.0.1-alpha) + `__init__.py` + `README.md` stub
+- Add per-package: `package.json` (pnpm workspace member, version 0.0.1-alpha) si hay TS deliverable
+- Update import paths: `from src.shared.X` → `from luana_core_X` (Python) o `@luana/x` (TS)
+- Register in workspace root: `pyproject.toml` workspace members + `pnpm-workspace.yaml` packages
+- Tests pass: same coverage threshold as AISALESHT (BE 43% / FE 20%)
+
+**MUST NOT DO (escalate Chris if needed):**
+- ❌ Scope expansion (don't add features, don't introduce new abstractions)
+- ❌ Refactor module boundaries (don't merge brand+offer into one package)
+- ❌ Rename modules or change public API (anti-anti-island principle)
+- ❌ Change tech stack defaults (Python 3.12, SQLA 2.0, FastAPI, Pydantic v2 — same as AISALESHT)
+- ❌ New patterns not in AISALESHT (don't introduce dependency injection framework if AISALESHT doesn't have one)
+- ❌ Schema migration changes (Stories 2-4 lift code, NOT migrations — migrations stay in brand apps)
+- ❌ Cross-brand architecture decisions (schema ownership ambiguous → STOP, escalate)
+- ❌ Drop/deprecate code without explicit Chris ratify
+
+**Halt criteria (auto-stop + escalate Chris):**
+1. Scope expansion needed (mechanical lift impossible without refactor)
+2. Cross-brand architecture decision discovered
+3. New tech stack decision required
+4. Auditor REJECTED + 3 auto-fix Opus iter all fail
+5. Cascade fail: Sonnet cap_reached → Opus rescue also fail
+6. Cumulative session cost exceeds $1500 → soft check-in (yo reporto, Chris confirma continuar)
+
+### 7.4 Stories per session capacity (1 Claude)
+
+| Tier | Stories | Per-conversation cap | Notes |
+|---|---|---|---|
+| Tier 1 fully autonomous | 1 (luana-foundation, ready) | 1 story session 1 | Build only — ready package existe |
+| Tier 2 lift-mode autonomous | 2-4 (shared-lift + iam-tenancy + crm-analytics) | up to 3 stories session 1 | /pm spec → /architect → /dev-team → /auditor → merge |
+| Tier 3 mid-flight check-in | 5-7 (brand-offer + copilot + sales-agent — R23 Opus para 6+7) | 1 story per session | Decisiones design surfacing — Chris check-in mid-flight |
+| Tier 4 per-story ratify | 8-14 (extension SDK + brand bootstraps) | 1 story per session | Decisiones verticales/architectural |
+
+**Realistic session 1 plan:** Stories 1 + 2 + 3 + 4 closed = 4 stories cumulative (~$700-1600, ~30h tool-time wall).
+
+Después: Chris evaluates, ratifica Stories 5-7 individualmente.
+
 ---
 
 **Next steps post-ratification (REVISED 2026-05-10):**
