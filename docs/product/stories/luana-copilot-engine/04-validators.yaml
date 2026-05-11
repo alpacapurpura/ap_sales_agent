@@ -1,0 +1,378 @@
+---
+story_id: luana-copilot-engine
+schema_version: 4
+last_modified: 2026-05-11
+drafted_by: /architect-orchestrator (claude-opus-4-7)
+total_validators: 24
+---
+
+# 04-validators.yaml — luana-copilot-engine
+#
+# Schema v4: 5 categories (non_functional / functional / visual / agentic_eval / documentation).
+# Each must be shell-executable. must_pass:true blocks merge.
+# Order of execution mirrors §2 lift order in 03-arch.md (workspace → skeleton → domain → infra → app → api → unlift → cleanup → integration → arch fitness → finalization).
+
+non_functional:
+  - id: V-NF-1
+    name: "uv sync --all-packages succeeds (22 packages: Stories 2+3+4+5+6)"
+    description: "Root pyproject.toml lists all packages including new luana-core-copilot. uv resolves all sources."
+    command: |
+      cd ~/luana-platform && uv sync --all-packages 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1, T-18]
+
+  - id: V-NF-2
+    name: "luana-core-copilot pyproject.toml at version 0.0.6-alpha"
+    description: "Per 03-arch.md §3.2 — package versioned correctly."
+    command: |
+      cd ~/luana-platform
+      test -f core/luana-core-copilot/pyproject.toml || { echo "MISSING pyproject"; exit 1; }
+      grep -q 'version = "0.0.6-alpha"' core/luana-core-copilot/pyproject.toml || { echo "WRONG VERSION"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-2]
+
+  - id: V-NF-3
+    name: "Workspace declares luana-core-copilot in [tool.uv.sources]"
+    command: |
+      cd ~/luana-platform
+      grep -q '^luana-core-copilot = { workspace = true }' pyproject.toml || { echo "NOT IN sources"; exit 1; }
+      grep -q '"core/luana-core-copilot"' pyproject.toml || { echo "NOT IN members"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-1]
+
+  - id: V-NF-4
+    name: "AISALESHT not modified in Story 6 commits"
+    description: "Per outcome §7.3 lift mode. NO file under backend/src/modules/copilot/ OR backend/tests/modules/copilot/ modified during Story 6."
+    command: |
+      cd /home/chris/AISALESHT
+      BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-copilot-engine/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+      DIFF=$(git diff "$BASE_SHA" HEAD --name-only 2>/dev/null | grep -E '^(backend/src/modules/copilot|backend/tests/modules/copilot)/' || true)
+      if [ -n "$DIFF" ]; then echo "AISALESHT FILES MODIFIED:"; echo "$DIFF"; exit 1; fi
+      echo "OK: AISALESHT untouched"
+    must_pass: true
+    addressed_by_tickets: [T-21]
+
+  - id: V-NF-5
+    name: "No publishConfig in Story 6 package"
+    description: "Per outcome §7.1 GH Packages deferred until Story 9."
+    command: |
+      cd ~/luana-platform
+      OFFENDERS=$(grep -l 'publishConfig\|\[project\.urls\].*registry' core/luana-core-copilot/pyproject.toml 2>/dev/null || true)
+      if [ -n "$OFFENDERS" ]; then echo "Found publish config: $OFFENDERS"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-21]
+
+  - id: V-NF-6
+    name: "No .releaserc or release.yml workflow added"
+    command: |
+      cd ~/luana-platform
+      FOUND_R=$(find . -name '.releaserc*' -not -path './node_modules/*' 2>/dev/null || true)
+      FOUND_W=$(find .github/workflows -maxdepth 2 -type f \( -name 'release*' -o -name 'publish*' \) 2>/dev/null || true)
+      if [ -n "$FOUND_R" ] || [ -n "$FOUND_W" ]; then echo "Found: $FOUND_R $FOUND_W"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-21]
+
+  - id: V-NF-7
+    name: "uv run ruff check luana-core-copilot GREEN"
+    command: |
+      cd ~/luana-platform && uv run ruff check core/luana-core-copilot 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-21]
+
+functional:
+  - id: V-F-py-1
+    name: "luana-core-copilot tests pass (~213 tests)"
+    description: "uv run pytest core/luana-core-copilot/tests/ GREEN. All 213 AISALESHT copilot tests lift (none deferred)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/ -x -q --tb=short --ignore=core/luana-core-copilot/tests/streaming_integration.py 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-2, T-3, T-6, T-7, T-8, T-9, T-10, T-11, T-12, T-13, T-14, T-15]
+
+  - id: V-F-py-2
+    name: "Stories 2-5 packages still GREEN after Story 6 copilot_provider/ unlift (T-16)"
+    description: "Per D-T6 + R3 downstream regression — unlift introduces copilot_provider/ subfolders back to Stories 2-5 packages. Their tests must still pass."
+    command: |
+      cd ~/luana-platform
+      uv run pytest core/luana-core-commercial-calendar/tests/ core/luana-core-social-proof/tests/ core/luana-core-crm/tests/ core/luana-core-analytics-engine/tests/ core/luana-core-landing/tests/ core/luana-core-connections/tests/ core/luana-core-brand-studio/tests/ core/luana-core-offer-studio/tests/ -x -q --tb=short 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-16]
+
+  - id: V-F-x-1
+    name: "Cross-package Python smoke (Story 6 package consumes Stories 2-5 + observability)"
+    description: "Per 03-arch.md §1.3 — luana_core_copilot.* imports resolve."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      # Story 6 domain core
+      from luana_core_copilot.domain.module_registry import ModuleRegistry, ModuleDescriptor
+      from luana_core_copilot.domain.ports import BaseCopilotProvider
+      from luana_core_copilot.domain.workflow import Workflow, WorkflowEngine
+      from luana_core_copilot.domain.extraction_domain_registry import ExtractorRegistry
+      # Application registries (D-T1 FROZEN)
+      from luana_core_copilot.application.tools.registry import ToolRegistry
+      from luana_core_copilot.application.workflows.registry import WorkflowRegistry
+      from luana_core_copilot.application.suggestions.registry import SuggestionRegistry
+      # Orchestrator
+      from luana_core_copilot.application.orchestrator.graph import build_deep_agent_graph
+      from luana_core_copilot.application.orchestrator.system_prompt_composer import compose_system_prompt
+      # Observability subclasses (D-T6 anti-mirror)
+      from luana_core_copilot.observability.recording.callback_handler import CopilotCallbackHandler
+      from luana_core_copilot.observability.recording.turn_envelope import CopilotObservabilityContext
+      # Verify subclass relationship
+      from luana_core_observability.recording.base_callback_handler import BaseAgentCallbackHandler
+      from luana_core_observability.recording.turn_envelope import BaseObservabilityContext
+      assert issubclass(CopilotCallbackHandler, BaseAgentCallbackHandler), 'CopilotCallbackHandler must subclass BaseAgentCallbackHandler (D-T6)'
+      assert issubclass(CopilotObservabilityContext, BaseObservabilityContext), 'CopilotObservabilityContext must subclass BaseObservabilityContext (D-T6)'
+      # Cross-package edges
+      from luana_core_brand_studio.domain.aggregates import BrandSettings
+      from luana_core_offer_studio.domain.offer import Offer
+      from luana_core_iam.api.dependencies import get_current_user
+      from luana_core_platform.domain.ports import BrandReadPort, OfferReadPort
+      print('Story 6 cross-package imports + D-T6 subclass relationships OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-F-x-2
+    name: "Aggregate pytest entire luana-platform GREEN (22 packages)"
+    description: "Confirms no regressions in Stories 2-5 from Story 6 lift + unlift (T-16)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-F-langgraph
+    name: "LangGraph 2.0 orchestrator smoke — build_deep_agent_graph compiles"
+    description: "Per 03-arch-agentic.md §2 + tessl__langgraph patterns. StateGraph + ToolNode + AsyncPostgresSaver checkpointer + deepagents SubAgentMiddleware compile without error."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_copilot.application.orchestrator.graph import build_deep_agent_graph
+      from luana_core_copilot.application.orchestrator.state import CopilotState
+      # Smoke: graph builds (uses Mock LLM if no API key; verify class structure)
+      assert callable(build_deep_agent_graph), 'build_deep_agent_graph must be importable + callable'
+      # State TypedDict has mandatory keys
+      assert 'tenant_id' in CopilotState.__annotations__, 'tenant_id MANDATORY (tenant isolation in state)'
+      assert 'iterations' in CopilotState.__annotations__, 'iterations MANDATORY (max-iter guard)'
+      assert 'messages' in CopilotState.__annotations__, 'messages MANDATORY (add_messages reducer)'
+      print('LangGraph state + build_deep_agent_graph smoke OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-9]
+
+  - id: V-F-prompt-cache
+    name: "Prompt cache slot architecture smoke — compose_system_prompt signature stable"
+    description: "Per 03-arch-agentic.md §3 — 11 slots + cache_breakpoint_after=6 + ttl_long_hours=True default."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      import inspect
+      from luana_core_copilot.application.orchestrator.system_prompt_composer import compose_system_prompt
+      sig = inspect.signature(compose_system_prompt)
+      params = sig.parameters
+      # FROZEN per D-T1 — these 5 params + types + defaults are golden snapshot
+      assert 'static_fragments' in params
+      assert 'per_tenant_fragments' in params
+      assert 'volatile_fragments' in params
+      assert 'cache_breakpoint_after' in params
+      assert 'ttl_long_hours' in params
+      print('compose_system_prompt signature stable OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-9]
+
+  - id: V-F-registry-1
+    name: "ToolRegistry public API stable + populated"
+    description: "Per D-T1 — ToolRegistry.register/get/list/groups + ALWAYS_AVAILABLE_GROUPS + ROUTE_TOOL_MAP loaded."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_copilot.application.tools.registry import ToolRegistry, ALWAYS_AVAILABLE_GROUPS
+      assert hasattr(ToolRegistry, 'register'), 'ToolRegistry.register frozen'
+      assert hasattr(ToolRegistry, 'get'), 'ToolRegistry.get frozen'
+      assert hasattr(ToolRegistry, 'list'), 'ToolRegistry.list frozen'
+      assert hasattr(ToolRegistry, 'groups'), 'ToolRegistry.groups frozen'
+      assert isinstance(ALWAYS_AVAILABLE_GROUPS, tuple), 'ALWAYS_AVAILABLE_GROUPS frozen tuple'
+      print(f'ToolRegistry stable, ALWAYS_AVAILABLE_GROUPS={ALWAYS_AVAILABLE_GROUPS}')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-10, T-20]
+
+  - id: V-F-registry-2
+    name: "WorkflowRegistry + ExtractorRegistry + ModuleRegistry + SuggestionRegistry public API stable"
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_copilot.application.workflows.registry import WorkflowRegistry
+      from luana_core_copilot.domain.extraction_domain_registry import ExtractorRegistry
+      from luana_core_copilot.domain.module_registry import ModuleRegistry, ModuleDescriptor
+      from luana_core_copilot.application.suggestions.registry import SuggestionRegistry
+      for cls in (WorkflowRegistry, ExtractorRegistry, ModuleRegistry, SuggestionRegistry):
+          assert hasattr(cls, 'register'), f'{cls.__name__}.register frozen'
+          assert hasattr(cls, 'get') or hasattr(cls, 'all_providers'), f'{cls.__name__} getter frozen'
+      assert hasattr(ModuleDescriptor, '__dataclass_fields__'), 'ModuleDescriptor dataclass frozen'
+      print('4 registries D-T1 FROZEN OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-3, T-11, T-20]
+
+  - id: V-F-trace
+    name: "copilot_trace_event recorder smoke — best-effort write succeeds"
+    description: "Per 03-arch-agentic.md §7 — observability writes resilient. Mock DB session + verify sanitize_payload applied."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_*trace*.py core/luana-core-copilot/tests/test_*observability*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-F-cost
+    name: "copilot_llm_call cost recorder writes via pop_cost(litellm_call_id)"
+    description: "Per S12 + PI-12 S1 T-1 cement — cost_usd via CustomLogger bridge, NEVER calculate_cost() runtime."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_*callback*.py core/luana-core-copilot/tests/test_*llm_call*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-F-marketing-kb
+    name: "Qdrant marketing_kb_store smoke — tenant-agnostic global KB"
+    description: "Per F10 — collection nicolify_marketing_kb, dim 3072, search() callable, chunk_markdown breadcrumb-aware."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_marketing_kb*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-8]
+
+  - id: V-F-tools
+    name: "Tool registry register + dispatch smoke (28 tools — F5 + F7 baseline)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_tool*.py core/luana-core-copilot/tests/test_*_tools.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-10]
+
+  - id: V-F-workflows
+    name: "Workflow registry + WorkflowEngine smoke (F6 — pilots brand+offer workflows discoverable)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_workflow*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-11]
+
+  - id: V-F-modules-discovery
+    name: "Module discovery + ModuleDescriptor complete for Stories 2-5 packages (D-T6)"
+    description: "Per F1 — pkgutil discovery finds copilot_provider/ in all lifted packages. ModuleDescriptor populated."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_copilot.application.discovery import discover_providers
+      from luana_core_copilot.domain.module_registry import ModuleRegistry
+      discover_providers()
+      mods = {m.module_key for m in ModuleRegistry.list_modules()}
+      # Expected post-T-16 unlift: 8 packages with copilot_provider/ (brand, offer, crm, analytics, landing, connections, commercial_calendar, social_proof)
+      expected = {'brand', 'offer', 'crm', 'analytics', 'landing', 'connections', 'commercial_calendar', 'social_proof'}
+      missing = expected - mods
+      assert not missing, f'Missing ModuleDescriptors: {missing}. Got: {mods}'
+      print(f'ModuleRegistry discovered: {sorted(mods)}')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-16, T-20]
+
+visual: []  # No UI changes in Story 6 (BE-only lift; FE Streamlit admin shell stays in AISALESHT until Story 10).
+
+agentic_eval:
+  - id: V-AG-1
+    name: "Architecture fitness — luana-core-copilot brand-agnostic engine"
+    description: "Per 03-arch.md §7.1. NO if brand == or brand-key string literals in luana_core_copilot source."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story6_brand_agnostic_engine.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-19]
+
+  - id: V-AG-2
+    name: "Architecture fitness — luana-core-copilot no forward Story imports"
+    description: "Per 03-arch.md §7.2. NO luana_core_sales_agent or luana_core_{campaigns,advertising,social_media,scheduling} imports. NO src.modules.* imports."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story6_no_forward_module_imports.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-19]
+
+  - id: V-AG-3
+    name: "Architecture fitness — copilot registry contracts stable (D-T1 GOLDEN SNAPSHOT)"
+    description: "Per 03-arch.md §7.3 + D-T1. ToolRegistry / WorkflowRegistry / ExtractorRegistry / ModuleRegistry / SuggestionRegistry public signatures match golden snapshot. ALWAYS_AVAILABLE_GROUPS + _BASE_TOOL_GROUPS + ROUTE_TOOL_MAP shape preserved. Story 8 EP-1..EP-5 wraps WITHOUT changing internals."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_copilot_registry_contracts_stable.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-20]
+
+  - id: V-AG-4
+    name: "Architecture fitness — no residual test stubs post-Story 6 (D-T2)"
+    description: "Per 03-arch.md §7.4 + D-T2. offer-studio conftest.py does NOT contain class MessageModel(_Base) declaration — must import from luana_core_copilot.persistence.models.message_model. AppointmentModel stub allowed (Story 8 territory)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_no_residual_test_stubs_post_story_6.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-17, T-20]
+
+  - id: V-AG-5
+    name: "Architecture fitness — no mirror observability in copilot (D-T6 + anti-duplication)"
+    description: "Per 03-arch.md §7.5 + anti-duplication.md cardinal rule. CopilotCallbackHandler subclasses BaseAgentCallbackHandler from luana_core_observability. NEVER mirrors. Same for CopilotObservabilityContext. NEVER class FXResolver / CostCalculator / PricingResolver / sanitize_payload declared in luana_core_copilot (must import)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_no_mirror_observability_in_copilot.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-20]
+
+  - id: V-AG-6
+    name: "Architecture fitness — ModuleDescriptor complete for lifted packages (D-T6)"
+    description: "Per 03-arch.md §7.6 + D-T6. After discover_providers() pkgutil scan, ModuleRegistry contains entries for brand, offer, crm, analytics, landing, connections, commercial_calendar, social_proof — all Stories 2-5 lifted packages with copilot_provider/."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_module_descriptor_complete_for_lifted_packages.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-20]
+
+  - id: V-AG-7
+    name: "Architecture fitness — voice compiler SSoT still intact (regression Story 5)"
+    description: "Per 03-arch.md §7.7. Re-run Story 5 V-AG-3 invariant: only luana-core-brand-studio.domain.personality declares class PersonalityCompiler. Story 6 MUST NOT introduce mirror."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_voice_compiler_ssot_still_intact.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-20]
+
+  - id: V-AG-8
+    name: "Architecture fitness — [COPILOT-*] anchor registry count stable (36 anchors)"
+    description: "Per 03-arch.md §7.8 + copilot-expert SKILL.md F11. Exactly 36 anchors with regex \\[COPILOT-[A-Z0-9-]+\\] in luana_core_copilot/**/*.py. Bump requires explicit registry update."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_copilot_anchors_count_stable.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-20]
+
+documentation:
+  - id: V-D-1
+    name: "luana-core-copilot has README.md stub"
+    command: |
+      test -f ~/luana-platform/core/luana-core-copilot/README.md
+    must_pass: true
+    addressed_by_tickets: [T-2, T-21]
+
+  - id: V-D-2
+    name: "core/DEFERRED-FILES.md updated with Story 6 entries + UNLIFTED Stories 2-5 copilot_provider/"
+    description: "Per 03-arch.md §9.4. Audit trail: 30 UNLIFTED files (Stories 2-5 copilot_provider/) + NEW Story 6 deferrals (Streamlit admin pages → Story 10, connections/api/dependencies/__init__.py real wiring → Story 7, AppointmentModel stub → Story 8)."
+    command: |
+      F=~/luana-platform/core/DEFERRED-FILES.md
+      grep -q "Story 6 deferrals" "$F" || { echo "MISSING Story 6 section"; exit 1; }
+      grep -q "UNLIFTED Story 6" "$F" || { echo "MISSING UNLIFTED section"; exit 1; }
+      grep -q "Streamlit admin" "$F" || { echo "MISSING Streamlit defer"; exit 1; }
+      grep -q "AppointmentModel" "$F" || { echo "MISSING AppointmentModel note"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-21]

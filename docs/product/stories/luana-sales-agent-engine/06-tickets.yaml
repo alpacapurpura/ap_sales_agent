@@ -1,0 +1,870 @@
+---
+story_id: luana-sales-agent-engine
+tickets_version: 1
+last_modified: 2026-05-11
+drafted_by: /architect-orchestrator (claude-opus-4-7)
+total_tickets: 19
+authority: 03-arch.md + 03-arch-agentic.md + 04-validators.yaml + 05-guidelines.md + 6 D-T decisiones + ratificaciones 1-3 (R23 Opus mandatory, eval WAIVED Luana v0.2.0, §7.4 cap extended Stories 6+7)
+---
+
+# 06-tickets.yaml — luana-sales-agent-engine
+#
+# DAG-ordered tickets. R23 mandate: ALL owner = builder-agentic Opus 4.7 (NO Sonnet — agentic production code).
+# blocked_by: luana-copilot-engine (Story 6) done.
+# Foundation: T-1 (workspace) → T-2 (skeleton) → T-3 (D-T3 port intro — UNIQUE) → T-4..T-15 (lift layers) → T-16 (connections unlift) → T-17 (integration) → T-18 (arch fitness 8 tests) → T-19 (finalization).
+
+tickets:
+
+  - id: T-1
+    title: "Update luana-platform workspace registration for luana-core-sales-agent package"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: false
+    estimated_time_minutes: 15
+    blocked_by: []
+    blocks: [T-2]
+    validators_addressed: [V-NF-1, V-NF-3]
+    files_to_modify:
+      - "~/luana-platform/pyproject.toml"
+    description: |
+      Add `core/luana-core-sales-agent` to `[tool.uv.workspace] members` + `[tool.uv.sources]`.
+      Stories 2-6 packages already registered (22 total). Post-T-1: 23 packages.
+
+      Stage by name. Commit:
+      ```
+      chore(workspace): register Story 7 luana-core-sales-agent package
+      ```
+
+  - id: T-2
+    title: "Create luana-core-sales-agent package skeleton"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 20
+    blocked_by: [T-1]
+    blocks: [T-3]
+    validators_addressed: [V-NF-2, V-D-1]
+    files_to_create:
+      - "core/luana-core-sales-agent/pyproject.toml"
+      - "core/luana-core-sales-agent/README.md"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/__init__.py"
+      - "core/luana-core-sales-agent/tests/__init__.py"
+    description: |
+      1. mkdir -p core/luana-core-sales-agent/src/luana_core_sales_agent core/luana-core-sales-agent/tests
+      2. Write pyproject.toml per 03-arch.md §3.2 (17 internal package deps including luana-core-brand-studio for D-T3 BrandVoicePort).
+      3. README.md stub: pkg name, version 0.0.7-alpha, lift origin (backend/src/modules/sales_agent/),
+         key exports (SalesAgentState, build_sales_agent_graph, compose_prompt with BrandVoicePort consumer,
+         SalesAgentCallbackHandler subclass, 5 base tool groups), §3 protected surfaces preservation note,
+         deferrals (eval framework → Luana v0.2.0, Streamlit admin → Story 10, scheduling runtime → Story 8).
+      4. uv sync — skeleton resolves.
+
+  - id: T-3
+    title: "★ D-T3 INTRODUCE BrandVoicePort + BrandVoiceService adapter in luana-core-brand-studio (per ADR-001 §2.4 + Story 5 §9.4 deferral resolution)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-2]
+    blocks: [T-4]
+    validators_addressed: [V-F-py-2, V-AG-4]
+    files_to_create:
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/ports/__init__.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/ports/brand_voice_port.py"
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/application/services/brand_voice_service.py"
+      - "core/luana-core-brand-studio/tests/test_brand_voice_service.py"
+    description: |
+      **CRITICAL UNIQUE TICKET — this is the ONLY Story 7 ticket modifying luana-core-brand-studio package.**
+      Per ADR-001 §2.4 + Story 5 §9.4 deferral resolution + Session 3 ratificación (single design decision pre-ratified).
+
+      Create BrandVoicePort Protocol + BrandVoiceService adapter per 05-guidelines.md §1.3 verbatim.
+
+      Steps:
+      1. mkdir -p core/luana-core-brand-studio/src/luana_core_brand_studio/application/ports
+      2. Write brand_voice_port.py (Protocol with 2 async methods — compile_system_instruction + get_voice_metadata).
+      3. Write brand_voice_service.py (concrete adapter wrapping PersonalityCompiler + PersonalityRepository).
+      4. Write test_brand_voice_service.py (~6 tests covering Protocol conformance + return behavior + None profile fallback).
+
+      ★ IMPORTANT INVARIANTS:
+      - DO NOT modify PersonalityCompiler.compile() signature (Story 5 SSoT cement).
+      - DO NOT move PersonalityCompiler from domain/personality.py (regression Story 5 V-AG-3).
+      - Port public API FROZEN at 2 methods. Bumping requires architect ratification (Story 7 §6 halt #2).
+
+      Run:
+      ```bash
+      cd ~/luana-platform && uv run pytest core/luana-core-brand-studio/tests/ -x -q
+      ```
+      Target: existing 34 Story 5 tests still GREEN + ~6 new tests for BrandVoiceService GREEN.
+
+      Verify smoke import:
+      ```bash
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_brand_studio.application.ports.brand_voice_port import BrandVoicePort
+      from luana_core_brand_studio.application.services.brand_voice_service import BrandVoiceService
+      assert hasattr(BrandVoicePort, 'compile_system_instruction')
+      assert hasattr(BrandVoicePort, 'get_voice_metadata')
+      print('D-T3 INTRODUCED OK')"
+      ```
+
+      Commit:
+      ```
+      feat(luana-core-brand-studio): introduce BrandVoicePort + BrandVoiceService adapter (D-T3 ADR-001 §2.4 cement)
+      ```
+
+  - id: T-4
+    title: "Lift sales_agent domain layer (10 files: model_tier, events, message, base_entity, semantic_routes, exceptions, enums, tuning, enrollment, memory/)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-3]
+    blocks: [T-5]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/domain/{__init__,model_tier,events,message,base_entity,semantic_routes,exceptions,enums,tuning,enrollment}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/domain/memory/{__init__,repository}.py"
+      - "Tests test_model_tier.py + test_events.py + test_enrollment.py + test_memory_repository.py + test_semantic_routes.py"
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/sales_agent/domain \
+               ~/luana-platform/core/luana-core-sales-agent/src/luana_core_sales_agent/
+      2. Apply sed per 05-guidelines.md §1.4.
+      3. Copy domain tests (~5 files) + apply sed.
+      4. Run isolated.
+      5. Verify model_tier.py preserves LLM_ROLE_BY_SITE + SPECIALIST_TO_ROLE SSoT per S12.
+      6. Verify zero leaks.
+      7. Commit.
+
+  - id: T-5
+    title: "Lift sales_agent infrastructure/models/ (13 SQLA models) + infrastructure/db/ (base + database + repositories/business_repository + models/)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-4]
+    blocks: [T-6]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/__init__.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/models/*.py (13 files including message_model, enrollment_model, prompt_version_model, agent_state_checkpoint_model — §3 protected)"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/db/{base,database}.py + db/repositories/business_repository.py + db/models/__init__.py"
+      - "Tests for above"
+    description: |
+      LIFT VERBATIM:
+
+      1. mkdir + cp -r infrastructure/models + infrastructure/db.
+      2. Apply sed.
+      3. Copy tests.
+      4. Verify message_model.py + enrollment_model.py + prompt_version_model.py + agent_state_checkpoint_model.py
+         are sha256-hash-stable (§3 protected per sales-agent-expert).
+      5. Run isolated.
+      6. Verify zero leaks.
+      7. Commit.
+
+  - id: T-6
+    title: "Lift sales_agent infrastructure repositories (4 repos) + memory + monitoring + prompts/{base, semantic, templates/, legacy/}"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-5]
+    blocks: [T-7]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/repositories/{__init__,enrollment_repository,message_repository,state_repository,workflow_metric_repository}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/memory/{__init__,vector_store,audit_repository}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/monitoring/{__init__,tracing}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/prompts/{__init__,base,semantic}.py + templates/ + legacy/"
+      - "Tests for above"
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r infrastructure/{repositories,memory,monitoring,prompts}.
+      2. Apply sed.
+      3. Copy tests.
+      4. Run isolated.
+      5. Verify zero leaks.
+      6. Commit.
+
+  - id: T-7
+    title: "Lift sales_agent infrastructure/external/ (output_manager, buffer_service, safety_service) + ws_manager (§3 protected — hash-stable lift)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-6]
+    blocks: [T-8]
+    validators_addressed: [V-NF-2, V-F-channels]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/external/{__init__,output_manager,buffer_service,safety_service}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/ws_manager.py"
+      - "Tests for above"
+    description: |
+      LIFT VERBATIM (§3 protected — output_manager.process_response, buffer_service):
+
+      1. cp -r infrastructure/external + cp ws_manager.py.
+      2. Apply sed — IMPORTANT: only import path rewrites. NO logic refactor.
+      3. Copy tests.
+      4. Verify sha256 hashes of output_manager.py + buffer_service.py + safety_service.py
+         match AISALESHT source POST sed (V-AG-8 prep).
+      5. Verify channel format consumption: output_manager imports `from luana_core_channels.format import get_channel_format`.
+      6. Verify typing_simulation_cpm registry override pattern preserved (S12).
+      7. Run isolated.
+      8. Verify zero leaks.
+      9. Commit per §5.
+
+  - id: T-8
+    title: "Lift sales_agent application/orchestrator/ (10 files — LangGraph supervisor specialist routing + SmartBufferService + tool_call_dedup — §3 protected)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-7]
+    blocks: [T-9]
+    validators_addressed: [V-NF-2, V-F-langgraph, V-F-buffer-output]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/__init__.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/orchestrator/{__init__,graph,smart_debounce_runner,chat,state,conversation_pipeline,identity_resolver,audit_emitter,outbound_orchestrator,tool_call_dedup}.py"
+      - "Tests test_graph + test_smart_debounce_runner + test_state + test_chat + test_conversation_pipeline + test_tool_call_dedup + test_identity_resolver + test_outbound_orchestrator"
+    description: |
+      LIFT VERBATIM (LangGraph supervisor specialist + §3 protected smart_debounce_runner + tool_call_dedup):
+
+      1. cp -r application/orchestrator.
+      2. Apply sed.
+      3. Copy tests.
+      4. Verify SalesAgentState TypedDict preserves all keys per 03-arch-agentic.md §1.
+      5. Verify LangGraph build_sales_agent_graph + supervisor specialist routing nodes preserved.
+      6. Verify sha256 of smart_debounce_runner.py + tool_call_dedup.py match AISALESHT (V-AG-8 prep).
+      7. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_graph.py \
+             core/luana-core-sales-agent/tests/test_state.py \
+             core/luana-core-sales-agent/tests/test_smart_debounce_runner.py -x -q
+         ```
+      8. Verify zero leaks.
+      9. Commit.
+
+  - id: T-9
+    title: "Lift sales_agent application/agents/sales/ (4 files: graph, nodes, tools, enrollment_tools — specialist sub-agents subgraph)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-8]
+    blocks: [T-10]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/agents/__init__.py + sales/{__init__,graph,nodes,tools,enrollment_tools}.py"
+      - "Tests test_agents_sales_*.py"
+    description: |
+      LIFT VERBATIM:
+
+      1. mkdir + cp -r application/agents.
+      2. Apply sed.
+      3. Copy tests.
+      4. Run isolated.
+      5. Verify zero leaks.
+      6. Commit.
+
+  - id: T-10
+    title: "Lift sales_agent application/tools/ (registry + payment + scheduling provider strategy pattern + webhook_providers)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-9]
+    blocks: [T-11]
+    validators_addressed: [V-NF-2, V-F-tools-registry]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/tools/{__init__,registry}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/tools/payment/{__init__,tools,providers,webhook_providers}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/tools/scheduling/{__init__,tools,providers,webhook_providers}.py"
+      - "Tests tools/payment/* + tools/scheduling/* + test_tool_registry"
+    description: |
+      LIFT VERBATIM (§3 protected webhook adapters + scheduling provider strategy pattern):
+
+      1. cp -r application/tools (3 subfolders + registry).
+      2. Apply sed — IMPORTANT: deferred imports inside method bodies of scheduling/providers.py
+         (e.g., `from src.shared.links.ports.scheduling import ...`) → `from luana_core_platform.links.ports.scheduling import ...`
+         after sed. Method-body `from src.modules.iam.infrastructure.models.tenant_model import TenantModel`
+         → `from luana_core_iam.infrastructure.models.tenant_model import TenantModel`.
+      3. Verify sha256 of payment/webhook_providers.py + scheduling/webhook_providers.py
+         match AISALESHT (§3 protected V-AG-8).
+      4. Copy tests (extensive — payment + scheduling subfolders).
+      5. Run isolated.
+      6. Verify zero leaks.
+      7. Verify scheduling top-level imports: NO `from luana_core_scheduling` at module top-level
+         (allowed only inside method bodies — V-AG-2 AST check).
+      8. Commit.
+
+  - id: T-11
+    title: "Lift sales_agent application/quality/judge + application/prompts/compose (D-T3 BrandVoicePort consumer wiring slot 5 BRAND_VOICE)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-10]
+    blocks: [T-12]
+    validators_addressed: [V-NF-2, V-F-slot-5-voice-port, V-F-prompt-cache]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/quality/{__init__,judge}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/prompts/{__init__,compose}.py"
+      - "Tests test_judge + test_compose + test_slot_5_brand_voice"
+    description: |
+      LIFT VERBATIM + D-T3 consumer wiring:
+
+      1. cp application/quality + application/prompts.
+      2. Apply sed.
+      3. ★ CRITICAL — modify compose.py to consume D-T3 BrandVoicePort:
+
+         AISALESHT compose.py likely imports PersonalityCompiler directly or calls knowledge_builder.build_identity.
+         REFACTOR (minimal — preserve all 5 slots, just change slot 5 source) per 05-guidelines.md §1.3 + 03-arch-agentic.md §3:
+
+         ```python
+         # luana_core_sales_agent.application.prompts.compose
+         from luana_core_brand_studio.application.ports.brand_voice_port import BrandVoicePort
+
+         async def compose_prompt(
+             specialist: str,
+             state: SalesAgentState,
+             voice_port: BrandVoicePort,  # ← D-T3 NEW required parameter
+             ...
+         ) -> list[ChatCompletionContentPartParam]:
+             ...
+             # Slot 5 BRAND_VOICE — D-T3 hexagonal consumption
+             brand_voice_text = await voice_port.compile_system_instruction(state["tenant_id"])
+             voice_metadata = await voice_port.get_voice_metadata(state["tenant_id"])
+             state["voice_metadata"] = voice_metadata
+             slots[5] = {
+                 "type": "text",
+                 "text": brand_voice_text,
+                 "cache_control": {"type": "ephemeral"},  # 5min TTL per-tenant
+             }
+             ...
+         ```
+
+         IMPORTANT: this is the ONLY logic-level refactor in Story 7 (beyond D-T3 port intro T-3). It's pre-ratified
+         per ADR-001 §2.4. AISALESHT's compose.py reaching out to PersonalityCompiler directly is what D-T3 replaces.
+         The signature now accepts voice_port; consumer code (conversation_pipeline.py + chat.py) must pass it via DI.
+
+         ★ ALSO modify knowledge_builder.build_identity() if it calls PersonalityCompiler — replace with voice_port.
+         Per `sales-agent-expert` SKILL.md + ADR-001 §2.4.
+
+         Files likely modified beyond sed:
+         - application/prompts/compose.py (slot 5 source change)
+         - application/services/knowledge_builder.py (build_identity now consumes voice_port)
+         - application/orchestrator/conversation_pipeline.py (pass voice_port to compose_prompt)
+         - application/orchestrator/chat.py (idem)
+         - application/orchestrator/outbound_orchestrator.py (idem)
+         - workers/appointment_reminder_engine.py (idem)
+         - application/quality/judge.py (if it consumes voice — pass voice_port)
+
+      4. Copy tests + apply sed.
+      5. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_compose*.py \
+             core/luana-core-sales-agent/tests/test_judge*.py -x -q
+         ```
+      6. Verify compose_prompt signature has voice_port parameter (V-F-slot-5-voice-port).
+      7. Verify zero leaks + zero direct PersonalityCompiler imports.
+      8. Commit.
+
+  - id: T-12
+    title: "Lift sales_agent application/services/ (16 files including knowledge_builder voice port consumer + closer_studio + style_anchor_retriever + offer_prompt_renderer + semantic_router + ...)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-11]
+    blocks: [T-13]
+    validators_addressed: [V-NF-2, V-F-intent]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/services/ (16 files)"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/services/closer_studio/ (4 files)"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/event_bus.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/payment_event_handlers.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/application/scheduling_event_handlers.py"
+      - "Tests for above + tests/services/closer_studio/"
+    description: |
+      LIFT VERBATIM with D-T3 BrandVoicePort consumer threading (knowledge_builder primarily):
+
+      1. cp -r application/services + cp application/{event_bus,payment_event_handlers,scheduling_event_handlers}.py.
+      2. Apply sed.
+      3. ★ knowledge_builder.py: if it calls PersonalityCompiler.compile() directly (likely yes per audit grep),
+         replace with `await voice_port.compile_system_instruction(tenant_id)` — accept voice_port as build_identity param.
+      4. Copy tests.
+      5. Run isolated.
+      6. Verify zero PersonalityCompiler direct imports in services (V-AG-3 prep).
+      7. Commit.
+
+  - id: T-13
+    title: "Lift sales_agent api/ (8 files: closer_studio + WS + enrollments + audit + webhooks + dto/) + workers/ (7 files: follow_up_engine + appointment_reminder + frozen_detection + payment_reminder + verify_pending_*)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-12]
+    blocks: [T-14]
+    validators_addressed: [V-NF-2, V-F-closer-studio, V-F-followup]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/api/{__init__,closer_studio,ws,enrollments,audit,scheduler_webhooks,payment_webhooks}.py + dto/"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/workers/{__init__,follow_up_engine,appointment_reminder_engine,frozen_detection,payment_reminder_engine,verify_pending_payments,verify_pending_bookings}.py"
+      - "Tests test_closer_studio_* + test_ws_* + test_enrollments_* + test_audit + test_followup + test_workers_*"
+    description: |
+      LIFT VERBATIM (§3 protected — 5 files: closer_studio.py + ws.py + enrollments.py + follow_up_engine.py + webhooks):
+
+      1. cp -r api/ + workers/.
+      2. Apply sed — IMPORT-ONLY rewrites. NO logic refactor on §3 surfaces.
+      3. Verify sha256 of api/closer_studio.py + api/ws.py + api/enrollments.py + workers/follow_up_engine.py
+         + api/scheduler_webhooks.py + api/payment_webhooks.py match AISALESHT (§3 protected V-AG-8 prep).
+      4. Copy tests.
+      5. Run isolated.
+      6. Verify FastAPI(redirect_slashes=False) invariant preserved if any app setup.
+      7. Verify zero leaks.
+      8. Commit.
+
+  - id: T-14
+    title: "Lift sales_agent observability subfolder (D-T6 subclass pattern — CopilotCallbackHandler analog)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-13]
+    blocks: [T-15]
+    validators_addressed: [V-NF-2, V-F-trace-cost, V-F-pii]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/observability/__init__.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/observability/recording/{__init__,callback_handler,turn_envelope,factory}.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/observability/persistence/{__init__,llm_call_repository,trace_event_repository,routing_log_repository}.py + models/"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/observability/workers/dual_write_reconciliation_task.py"
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/observability/domain_events/subscribers.py"
+      - "Tests test_callback_handler + test_turn_envelope + test_factory + test_trace_event_repo + test_llm_call_repo + test_routing_log_repo + test_dual_write_reconciliation + test_subscribers"
+    description: |
+      LIFT VERBATIM (CRITICAL — D-T6 anti-mirror enforcement, EXCLUDE eval_simulator/):
+
+      1. mkdir observability/.
+      2. Per 05-guidelines.md §1.6 — explicit per-subfolder cp -r SKIPPING eval_simulator:
+         ```bash
+         SRC=/home/chris/AISALESHT/backend/src/modules/sales_agent/observability
+         DST=~/luana-platform/core/luana-core-sales-agent/src/luana_core_sales_agent/observability
+
+         cp "$SRC"/__init__.py "$DST/"
+         for sub in recording persistence workers domain_events; do
+           cp -r "$SRC/$sub" "$DST/"
+         done
+         # DO NOT cp $SRC/eval_simulator — Luana v0.2.0 territory
+         ```
+      3. Verify eval_simulator NOT lifted:
+         ```bash
+         test -d ~/luana-platform/core/luana-core-sales-agent/src/luana_core_sales_agent/observability/eval_simulator \
+             && echo "FAIL: eval_simulator leaked" || echo "OK"
+         ```
+      4. Apply sed per §1.4 — `from src.shared.agent_observability.` → `from luana_core_observability.`.
+      5. ★ VERIFY D-T6 subclass invariant per 05-guidelines.md §1.5:
+         ```bash
+         grep -A 2 "class SalesAgentCallbackHandler" \
+             ~/luana-platform/core/luana-core-sales-agent/src/luana_core_sales_agent/observability/recording/callback_handler.py
+         # Expected: class SalesAgentCallbackHandler(BaseAgentCallbackHandler):
+
+         grep -rE "class (FXResolver|CostCalculator|PricingResolver|BaseObservabilityContext|BaseAgentCallbackHandler)\b" \
+             ~/luana-platform/core/luana-core-sales-agent/src/luana_core_sales_agent/ \
+             && echo "FAIL: anti-mirror violation D-T6" || echo "OK"
+         ```
+      6. Copy tests (EXCLUDE eval simulator tests).
+      7. Verify smoke imports:
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_sales_agent.observability.recording.callback_handler import SalesAgentCallbackHandler
+         from luana_core_observability.recording.base_callback_handler import BaseAgentCallbackHandler
+         assert issubclass(SalesAgentCallbackHandler, BaseAgentCallbackHandler), 'D-T6'
+         from luana_core_sales_agent.observability.recording.turn_envelope import SalesAgentObservabilityContext
+         from luana_core_observability.recording.turn_envelope import BaseObservabilityContext
+         assert issubclass(SalesAgentObservabilityContext, BaseObservabilityContext), 'D-T6'
+         print('Sales agent D-T6 subclass OK')"
+         ```
+      8. Run isolated.
+      9. Commit.
+
+  - id: T-15
+    title: "Lift sales_agent copilot_provider/provider.py (1 file — subclasses luana-core-copilot BaseCopilotProvider)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 20
+    blocked_by: [T-14]
+    blocks: [T-16]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-sales-agent/src/luana_core_sales_agent/copilot_provider/{__init__,provider}.py"
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/sales_agent/copilot_provider \
+               ~/luana-platform/core/luana-core-sales-agent/src/luana_core_sales_agent/
+      2. Apply sed — `from src.modules.copilot.` → `from luana_core_copilot.`.
+      3. Verify provider subclasses BaseCopilotProvider:
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_sales_agent.copilot_provider.provider import provider as sales_provider
+         from luana_core_copilot.domain.ports import BaseCopilotProvider
+         assert isinstance(sales_provider, BaseCopilotProvider) or issubclass(type(sales_provider), BaseCopilotProvider)
+         print('Sales agent copilot provider OK')"
+         ```
+      4. Verify discovery picks up:
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_copilot.application.discovery import discover_providers
+         from luana_core_copilot.domain.module_registry import ModuleRegistry
+         discover_providers()
+         mods = {m.module_key for m in ModuleRegistry.list_modules()}
+         assert 'sales_agent' in mods, f'sales_agent not discovered: {mods}'
+         print(f'Discovered: {sorted(mods)}')"
+         ```
+      5. Commit.
+
+  - id: T-16
+    title: "Replace luana-core-connections/api/dependencies/__init__.py NotImplementedError stub with real ChatOrchestrator wiring (Stories 4+6 deferral resolved)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 30
+    blocked_by: [T-15]
+    blocks: [T-17]
+    validators_addressed: [V-F-py-3]
+    files_to_modify:
+      - "core/luana-core-connections/src/luana_core_connections/api/dependencies/__init__.py"
+    description: |
+      Per Story 4 §9 + Story 6 §9.2 deferral resolution:
+
+      1. Read AISALESHT version for composition root code:
+         ```bash
+         cat /home/chris/AISALESHT/backend/src/modules/connections/api/dependencies/__init__.py
+         ```
+      2. Lift verbatim with sed:
+         - `from src.modules.copilot.` → `from luana_core_copilot.`
+         - `from src.modules.sales_agent.` → `from luana_core_sales_agent.`
+         - `from src.shared.` → `from luana_core_platform.` (or specific sub-packages)
+         - `from src.modules.iam.` → `from luana_core_iam.`
+      3. Replace existing `NotImplementedError` stub in luana-core-connections package.
+      4. Run connections tests GREEN:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-connections/tests/ -x -q
+         ```
+         Target: 100% GREEN with real ChatOrchestrator wiring.
+      5. Verify message handler smoke (mock):
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_connections.api.dependencies import get_message_handler
+         # Should be callable, not raise NotImplementedError
+         assert callable(get_message_handler)
+         print('Connections wiring resolved')"
+         ```
+      6. Commit:
+         ```
+         chore(luana-core-connections): replace NotImplementedError stub with real ChatOrchestrator wiring (Stories 4+6 deferral resolved)
+         ```
+
+  - id: T-17
+    title: "Cross-package integration smoke + aggregate pytest GREEN (23 packages Stories 2-7)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: false
+    estimated_time_minutes: 30
+    blocked_by: [T-16]
+    blocks: [T-18, T-19]
+    validators_addressed: [V-NF-1, V-F-x-1, V-F-x-2]
+    description: |
+      INTEGRATION SMOKE:
+
+      1. cd ~/luana-platform && uv sync --all-packages — must succeed (23 packages).
+      2. Run V-F-x-1 cross-package Python imports smoke per 04-validators.yaml (validates D-T3 + D-T6 + copilot_provider).
+      3. Run V-F-x-2 aggregate pytest:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src \
+             --ignore=core/luana-core-copilot/tests/test_streaming_integration.py \
+             --ignore=core/luana-core-sales-agent/tests/eval_simulator/ \
+             --ignore=core/luana-core-sales-agent/tests/agentic_evals/
+         ```
+         Confirms Stories 2-6 packages didn't regress + Story 7 GREEN.
+      4. Verify ModuleRegistry has sales_agent post-T-15:
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_copilot.application.discovery import discover_providers
+         from luana_core_copilot.domain.module_registry import ModuleRegistry
+         discover_providers()
+         mods = {m.module_key for m in ModuleRegistry.list_modules()}
+         expected = {'brand', 'offer', 'crm', 'analytics', 'landing', 'connections', 'commercial_calendar', 'social_proof', 'sales_agent'}
+         missing = expected - mods
+         assert not missing, f'Missing: {missing}'
+         print(f'Discovered: {sorted(mods)}')"
+         ```
+      5. Commit any pyproject tweaks.
+
+  - id: T-18
+    title: "Add NEW arch fitness tests Story 7 (8 tests — D-T3 + D-T6 + brand-agnostic + no-forward-imports + no-eval-framework + voice-port-interface + voice-compiler-SSoT-regression + §3-protected-surfaces-hash)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-17]
+    blocks: [T-19]
+    validators_addressed: [V-AG-1, V-AG-2, V-AG-3, V-AG-4, V-AG-5, V-AG-6, V-AG-7, V-AG-8]
+    files_to_create:
+      - "core/tests/architecture/test_story7_brand_agnostic_engine.py"
+      - "core/tests/architecture/test_story7_no_forward_module_imports.py"
+      - "core/tests/architecture/test_sales_agent_uses_voice_port_no_direct_compiler_import.py"
+      - "core/tests/architecture/test_voice_port_interface_complete.py"
+      - "core/tests/architecture/test_no_eval_framework_lifted.py"
+      - "core/tests/architecture/test_no_mirror_observability_in_sales_agent.py"
+      - "core/tests/architecture/test_voice_compiler_ssot_still_intact_story7.py"
+      - "core/tests/architecture/test_sales_agent_protected_surfaces_intact.py"
+      - "core/tests/architecture/_snapshots/sales_agent_protected_surfaces_v1.json"
+    description: |
+      EIGHT NEW arch fitness tests cementing Story 7 D-T3 + D-T6 + protected surfaces:
+
+      ## 1. Brand-agnostic engine (V-AG-1)
+      Same Story 5+6 template extended to luana-core-sales-agent. PKGS = [("luana-core-sales-agent", "luana_core_sales_agent")].
+
+      ## 2. No forward Story imports (V-AG-2)
+      `test_story7_no_forward_module_imports.py`:
+      - Top-level: NO `from luana_core_{campaigns,advertising,social_media}` imports
+      - Scheduling: AST check — allowed inside method bodies / TYPE_CHECKING, NOT top-level
+      - NO `from src.modules.*` anywhere
+
+      ## 3. D-T3 — Sales agent uses BrandVoicePort, NEVER PersonalityCompiler direct (V-AG-3)
+      ```python
+      def test_sales_agent_never_imports_personality_compiler():
+          pkg = Path("core/luana-core-sales-agent/src/luana_core_sales_agent")
+          offenders = []
+          for py in pkg.rglob("*.py"):
+              text = py.read_text(encoding="utf-8")
+              if "from luana_core_brand_studio.domain.personality" in text:
+                  offenders.append(py)
+              if "PersonalityCompiler" in text and "BrandVoicePort" not in text:
+                  offenders.append(py)
+          assert not offenders, f"D-T3 cardinal violation: {offenders}"
+      ```
+
+      ## 4. D-T3 — BrandVoicePort interface complete (V-AG-4)
+      ```python
+      def test_voice_port_methods_cover_consumed_surface():
+          from luana_core_brand_studio.application.ports.brand_voice_port import BrandVoicePort
+          assert hasattr(BrandVoicePort, "compile_system_instruction")
+          assert hasattr(BrandVoicePort, "get_voice_metadata")
+          # Verify Protocol — runtime_checkable
+          import typing
+          assert isinstance(BrandVoicePort, typing.Protocol.__class__)
+      ```
+
+      ## 5. NO eval framework lifted (V-AG-5)
+      Per 03-arch.md §7.5:
+      ```python
+      def test_eval_simulator_not_in_sales_agent():
+          forbidden = [
+              "core/luana-core-sales-agent/src/luana_core_sales_agent/observability/eval_simulator",
+              "core/luana-core-sales-agent/tests/eval_simulator",
+              "core/luana-core-sales-agent/tests/agentic_evals",
+          ]
+          for fp in forbidden:
+              assert not Path(fp).exists(), f"Eval framework leaked: {fp} (Luana v0.2.0 territory)"
+      ```
+
+      ## 6. D-T6 — No mirror observability sales_agent (V-AG-6)
+      Same template as Story 6 V-AG-5 applied to luana-core-sales-agent.
+
+      ## 7. Voice compiler SSoT regression Stories 5+6+7 (V-AG-7)
+      Re-runs Story 5 V-AG-3 invariant — only luana-core-brand-studio.domain.personality declares PersonalityCompiler.
+
+      ## 8. §3 protected surfaces hash-stable (V-AG-8)
+      ```python
+      import hashlib
+      from pathlib import Path
+      import json
+
+      PROTECTED_FILES = {
+          "luana-core-sales-agent/src/luana_core_sales_agent/api/closer_studio.py": "EXPECTED_SHA256",
+          "luana-core-sales-agent/src/luana_core_sales_agent/api/ws.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/application/orchestrator/smart_debounce_runner.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/external/output_manager.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/application/services/enrollment_service.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/domain/enrollment.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/models/enrollment_model.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/api/enrollments.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/application/tools/payment/webhook_providers.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/application/tools/scheduling/webhook_providers.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/workers/follow_up_engine.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/infrastructure/models/prompt_version_model.py": "...",
+          "luana-core-sales-agent/src/luana_core_sales_agent/application/orchestrator/tool_call_dedup.py": "...",
+      }
+      # Compute current sha256 of each, compare against snapshot in _snapshots/sales_agent_protected_surfaces_v1.json
+      # First-run: generate snapshot. Subsequent: assert no drift.
+      ```
+      NOTE: sed import rewrites WILL change file hashes vs AISALESHT — snapshot captures POST-sed canonical hashes
+      at Story 7 lift moment. Future stories that modify these files re-snapshot only with arch ratification.
+
+      All 8 GREEN required. Commit.
+
+  - id: T-19
+    title: "Finalization: lint + AISALESHT untouched + DEFERRED-FILES.md update + README polish"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: false
+    estimated_time_minutes: 35
+    blocked_by: [T-17]
+    blocks: []
+    validators_addressed: [V-NF-4, V-NF-5, V-NF-6, V-NF-7, V-D-1, V-D-2]
+    files_to_modify:
+      - "core/DEFERRED-FILES.md (append Story 7 — D-T3 INTRODUCED + UNLIFTED connections wiring + DEFERRED eval Luana v0.2.0 + Story E waiver + scheduling runtime Story 8)"
+      - "core/luana-core-sales-agent/README.md (final polish)"
+    description: |
+      FINALIZATION:
+
+      1. Run ruff (V-NF-7):
+         ```bash
+         cd ~/luana-platform && uv run ruff check core/luana-core-sales-agent
+         ```
+
+      2. AISALESHT untouched verifier (V-NF-4):
+         ```bash
+         cd /home/chris/AISALESHT
+         BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-sales-agent-engine/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+         git diff "$BASE_SHA" HEAD --name-only | grep -E '^(backend/src/modules/sales_agent|backend/tests/modules/sales_agent|backend/tests/agentic_evals/sales_agent)/' && echo "FAIL" || echo "OK"
+         ```
+
+      3. No-publish verifiers.
+
+      4. README.md polish — include:
+         - Package name + version (0.0.7-alpha)
+         - Lift origin (backend/src/modules/sales_agent/)
+         - Key exports paragraph
+         - Story 7 lift commit refs (will fill post-commit)
+         - INTRODUCED Story 7 (D-T3): BrandVoicePort + BrandVoiceService (in luana-core-brand-studio per ADR-001 §2.4)
+         - UNLIFTED Story 7: connections api/dependencies real ChatOrchestrator wiring
+         - DEFERRED (Luana v0.2.0): eval simulator + MAJ-EVAL grader + personas catalog + goldens dataset + adversarial jailbreak suite + Story E voice fidelity CI gate
+         - DEFERRED (Story 8): scheduling concrete provider runtime + scheduling module lift
+         - DEFERRED (Story 10): Streamlit admin pages
+
+      5. Append to core/DEFERRED-FILES.md per 03-arch.md §9.6 template:
+         ```markdown
+
+         ## Story 7 deferrals (2026-05-11) + INTRODUCED + UNLIFTED
+
+         ### INTRODUCED Story 7 (D-T3 per ADR-001 §2.4 + Session 3 ratificación):
+         - core/luana-core-brand-studio/src/luana_core_brand_studio/application/ports/brand_voice_port.py (BrandVoicePort Protocol)
+         - core/luana-core-brand-studio/src/luana_core_brand_studio/application/services/brand_voice_service.py (BrandVoiceService concrete adapter)
+         - core/luana-core-brand-studio/tests/test_brand_voice_service.py
+         - core/luana-core-sales-agent/src/luana_core_sales_agent/application/prompts/compose.py modified to consume BrandVoicePort via DI
+
+         ### UNLIFTED Story 7 (Story 4+6 deferral resolved):
+         - core/luana-core-connections/src/luana_core_connections/api/dependencies/__init__.py — NotImplementedError stub REPLACED with real ChatOrchestrator wiring (luana_core_copilot + luana_core_sales_agent)
+
+         ### NEW Story 7 deferrals:
+
+         #### Defer to Luana v0.2.0 (per Session 3 ratificación 2 + outcome §2 OQ1)
+         - backend/src/modules/sales_agent/observability/eval_simulator/ (entire subfolder — 8 files src + persistence models)
+         - backend/tests/agentic_evals/sales_agent/ (entire tree — simulator + grader + personas + goldens + adversarial)
+         - backend/tests/modules/sales_agent/eval_simulator/ (if exists)
+         - Story E (sales-agent-voice-fidelity-grader-runtime) → WAIVED to Luana v0.2.0
+         - MAJ-EVAL grader runtime infra (cost-bucket separated tables: eval_simulator_llm_call + eval_simulator_trace_event + eval_simulator_grade + eval_simulator_grade_cache + eval_synthetic_tenants)
+
+         #### Defer to Story 8 (campaigns/scheduling lift batch)
+         - Scheduling concrete provider runtime: sales_agent/application/tools/scheduling/providers.py LIFTS with deferred-import pattern preserved. Runtime fails on scheduler tool invocation in Luana standalone UNTIL Story 8 lifts scheduling module. Nicolify shell wires scheduling pre-Story 8 (acceptable known-limitation).
+
+         #### Defer to Story 10 (nicolify migration)
+         - backend/src/admin/pages/{sales-routing,sales-agent-quality,costo-agentes,llm-virtual-keys,llm-models}.py — Streamlit admin shell.
+
+         ### Reserved (NEW abstractions, Stories 11-13+)
+         - voice_cloning BrandConfig flag (per Story 5 §9.5)
+         - voice cloning pipeline (LLM-distillation from 50+ chat samples — NOT in AISALESHT)
+         ```
+
+      6. Verify V-D-1 + V-D-2 GREEN.
+
+      7. Final commit:
+         ```
+         chore(luana-platform): Story 7 lint + AISALESHT untouched + DEFERRED-FILES update (D-T3 INTRODUCED + eval framework + Story E waiver + connections wiring + scheduling deferred Story 8)
+         ```
+
+# ────────────────────────────────────────────────────────────────────────────
+# DAG Summary
+# ────────────────────────────────────────────────────────────────────────────
+dag_summary: |
+  Total: 19 tickets
+
+  Critical path (sequential):
+    T-1 (workspace) → T-2 (skeleton)
+    → T-3 (D-T3 BrandVoicePort + adapter intro in luana-core-brand-studio — UNIQUE)
+    → T-4 (domain) → T-5 (infra models+db) → T-6 (infra repos+memory+monitoring+prompts) → T-7 (infra external — §3)
+    → T-8 (app orchestrator — §3 smart_debounce) → T-9 (app agents/sales subgraph)
+    → T-10 (app tools — payment+scheduling provider strategy — §3 webhook adapters)
+    → T-11 (app quality+prompts — D-T3 compose.py slot 5 consumer wiring)
+    → T-12 (app services — knowledge_builder D-T3 thread)
+    → T-13 (api+workers — §3 closer_studio+ws+enrollments+follow_up)
+    → T-14 (observability subfolder — D-T6 subclass)
+    → T-15 (copilot_provider provider.py subclass)
+    → T-16 (connections wiring resolution — Stories 4+6 deferral)
+    → T-17 (integration smoke + aggregate pytest 23 packages)
+    → T-18 (8 NEW arch fitness tests) ‖ T-19 (lint + docs + DEFERRED-FILES)
+
+  Parallelizable batches:
+    Post-T-17: T-18 ‖ T-19
+    BUT 1 Claude sequential per outcome §7.4.
+
+  Estimated total tool-time (sequential 1 Claude Opus): ~13h
+    - T-1: ~15min
+    - T-2: ~20min
+    - T-3 (D-T3 intro): ~45min
+    - T-4..T-7 (domain+infra): ~3.5h
+    - T-8..T-12 (application — most complex): ~5h
+    - T-13 (api+workers): ~1h
+    - T-14 (observability D-T6): ~45min
+    - T-15 (copilot_provider): ~20min
+    - T-16 (connections wiring): ~30min
+    - T-17..T-19 (integration+arch+finalize): ~2h
+
+  Combined Stories 6+7 total estimate: ~27h tool-time (sequential 1 Claude Opus).
+  Budget: per outcome §7.2 NO HARD CAP, soft check-ins at $500/$1000/$1500/$2500 cumulative.
+  R23 Opus mandatory. Expected $2000-3500 cumulative Session 3 per Chris ratificación.
+
+# ────────────────────────────────────────────────────────────────────────────
+# Owner eligibility summary (R23 — agentic production code)
+# ────────────────────────────────────────────────────────────────────────────
+owner_eligibility_summary: |
+  R23 mandate (Session 3 ratificación 3): ALL Story 7 tickets owner = builder-agentic Opus 4.7.
+  NO Sonnet eligibility — sales_agent module is production agentic code (LangGraph supervisor
+  routing, Anthropic prompt cache slot 5 BRAND_VOICE via D-T3, §3 protected surfaces, observability
+  subclass pattern, channel format consumption, follow-up engine cadence).
+
+  All tickets including mechanical-feeling (T-1 workspace, T-19 finalization) → Opus because
+  in production_code: true path for agentic engine surfaces. Per R23 SKILL.md skill routing.
+
+  Exception: T-3 D-T3 BrandVoicePort introduction touches luana-core-brand-studio (NOT sales_agent
+  package itself) — BUT pre-ratified per ADR-001 §2.4 + Session 3 mandate. Architect oversight
+  ensured at lift moment (this 03-arch.md doc).
+
+# ────────────────────────────────────────────────────────────────────────────
+# Defer notes (re-confirmed)
+# ────────────────────────────────────────────────────────────────────────────
+defer_notes: |
+  1. observability/eval_simulator/ + agentic_evals/sales_agent/ → Luana v0.2.0
+     Per Session 3 ratificación 2 + outcome §2 OQ1. Builder DOES NOT lift these.
+     V-AG-5 arch test enforces absence.
+
+  2. backend/src/admin/pages/{sales-routing,...}.py → Story 10
+     Streamlit shell with nicolify migration.
+
+  3. Scheduling concrete provider runtime → Story 8
+     sales_agent/application/tools/scheduling/providers.py LIFTS with deferred imports preserved.
+     Runtime resolution requires scheduling module — Story 8 lifts. Until then known-limitation.
+
+  4. EP-1..EP-5 Extension SDK formalization → Story 8
+     Stories 6+7 freeze registries; Story 8 wraps as formal SDK.
+
+  5. voice_cloning BrandConfig flag → Stories 11-13
+     Per Story 5 §9.5. NOT existing AISALESHT code.
+
+  6. Voice cloning pipeline → Stories 11-13
+     LLM-distillation from chat samples. NEW code, not in AISALESHT.
+
+  7. luana-core-connections wiring resolution → ALREADY HANDLED IN T-16
+     Story 4 + Story 6 deferred. Story 7 unblocks. T-16 ticket dedicated.

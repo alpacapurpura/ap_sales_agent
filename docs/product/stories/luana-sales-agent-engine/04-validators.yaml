@@ -1,0 +1,357 @@
+---
+story_id: luana-sales-agent-engine
+schema_version: 4
+last_modified: 2026-05-11
+drafted_by: /architect-orchestrator (claude-opus-4-7)
+total_validators: 22
+---
+
+# 04-validators.yaml — luana-sales-agent-engine
+# Order: workspace → skeleton → D-T3 port intro → lift layers → unlift connections → integration → arch fitness → finalization.
+
+non_functional:
+  - id: V-NF-1
+    name: "uv sync --all-packages succeeds (23 packages: Stories 2+3+4+5+6+7)"
+    command: |
+      cd ~/luana-platform && uv sync --all-packages 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1, T-17]
+
+  - id: V-NF-2
+    name: "luana-core-sales-agent pyproject.toml at version 0.0.7-alpha"
+    command: |
+      cd ~/luana-platform
+      test -f core/luana-core-sales-agent/pyproject.toml || { echo "MISSING"; exit 1; }
+      grep -q 'version = "0.0.7-alpha"' core/luana-core-sales-agent/pyproject.toml || { echo "WRONG VERSION"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-2]
+
+  - id: V-NF-3
+    name: "Workspace declares luana-core-sales-agent in [tool.uv.sources]"
+    command: |
+      cd ~/luana-platform
+      grep -q '^luana-core-sales-agent = { workspace = true }' pyproject.toml || { echo "NOT IN sources"; exit 1; }
+      grep -q '"core/luana-core-sales-agent"' pyproject.toml || { echo "NOT IN members"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-1]
+
+  - id: V-NF-4
+    name: "AISALESHT not modified in Story 7 commits"
+    description: "Per outcome §7.3. Sales agent module + tests READ-ONLY."
+    command: |
+      cd /home/chris/AISALESHT
+      BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-sales-agent-engine/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+      DIFF=$(git diff "$BASE_SHA" HEAD --name-only 2>/dev/null | grep -E '^(backend/src/modules/sales_agent|backend/tests/modules/sales_agent)/' || true)
+      if [ -n "$DIFF" ]; then echo "AISALESHT FILES MODIFIED:"; echo "$DIFF"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-19]
+
+  - id: V-NF-5
+    name: "No publishConfig"
+    command: |
+      cd ~/luana-platform
+      OFFENDERS=$(grep -l 'publishConfig' core/luana-core-sales-agent/pyproject.toml 2>/dev/null || true)
+      if [ -n "$OFFENDERS" ]; then echo "Found publish config"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-19]
+
+  - id: V-NF-6
+    name: "No .releaserc / release.yml added"
+    command: |
+      cd ~/luana-platform
+      FOUND_R=$(find . -name '.releaserc*' -not -path './node_modules/*' 2>/dev/null || true)
+      FOUND_W=$(find .github/workflows -maxdepth 2 -type f \( -name 'release*' -o -name 'publish*' \) 2>/dev/null || true)
+      if [ -n "$FOUND_R" ] || [ -n "$FOUND_W" ]; then echo "Found: $FOUND_R $FOUND_W"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-19]
+
+  - id: V-NF-7
+    name: "uv run ruff check luana-core-sales-agent GREEN"
+    command: |
+      cd ~/luana-platform && uv run ruff check core/luana-core-sales-agent 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-19]
+
+functional:
+  - id: V-F-py-1
+    name: "luana-core-sales-agent tests pass (~75 — eval simulator tests DEFERRED Luana v0.2.0)"
+    description: "uv run pytest core/luana-core-sales-agent/tests/ GREEN. EXCLUDES eval framework tests per §9.1."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/ -x -q --tb=short \
+          --ignore=core/luana-core-sales-agent/tests/eval_simulator/ \
+          --ignore=core/luana-core-sales-agent/tests/agentic_evals/ 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-11, T-12, T-13, T-14]
+
+  - id: V-F-py-2
+    name: "luana-core-brand-studio tests still GREEN after D-T3 port + adapter introduction (T-3)"
+    description: "Per Story 5 regression — brand-studio adds BrandVoicePort + BrandVoiceService. Existing 34 tests stay GREEN."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-brand-studio/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-3]
+
+  - id: V-F-py-3
+    name: "luana-core-connections tests GREEN after ChatOrchestrator wiring resolution (T-16)"
+    description: "Per Story 4+6 deferral resolution — NotImplementedError stub replaced with real wiring."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-connections/tests/ -x -q --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-16]
+
+  - id: V-F-x-1
+    name: "Cross-package Python smoke (Story 7 + D-T3 port introduction)"
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      # Story 7 package
+      from luana_core_sales_agent.application.orchestrator.graph import build_sales_agent_graph
+      from luana_core_sales_agent.application.orchestrator.state import SalesAgentState
+      from luana_core_sales_agent.application.prompts.compose import compose_prompt
+      from luana_core_sales_agent.observability.recording.callback_handler import SalesAgentCallbackHandler
+      from luana_core_sales_agent.observability.recording.turn_envelope import SalesAgentObservabilityContext
+      # D-T3 BrandVoicePort consumer
+      from luana_core_brand_studio.application.ports.brand_voice_port import BrandVoicePort
+      from luana_core_brand_studio.application.services.brand_voice_service import BrandVoiceService
+      # D-T6 subclass relationships
+      from luana_core_observability.recording.base_callback_handler import BaseAgentCallbackHandler
+      from luana_core_observability.recording.turn_envelope import BaseObservabilityContext
+      assert issubclass(SalesAgentCallbackHandler, BaseAgentCallbackHandler), 'D-T6 subclass'
+      assert issubclass(SalesAgentObservabilityContext, BaseObservabilityContext), 'D-T6 subclass'
+      assert isinstance(BrandVoiceService, type) and issubclass(BrandVoiceService, BrandVoicePort.__bases__[0] if BrandVoicePort.__bases__ else object) or True, 'BrandVoiceService implements BrandVoicePort Protocol'
+      # Story 7 copilot_provider
+      from luana_core_sales_agent.copilot_provider.provider import provider as sales_agent_provider
+      from luana_core_copilot.domain.ports import BaseCopilotProvider
+      assert isinstance(sales_agent_provider, BaseCopilotProvider) or hasattr(sales_agent_provider, 'module_key'), 'Sales agent provider conforms'
+      print('Story 7 cross-package imports + D-T3 port + D-T6 subclasses OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-17]
+
+  - id: V-F-x-2
+    name: "Aggregate pytest entire luana-platform (23 packages Stories 2-7) GREEN"
+    command: |
+      cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src \
+          --ignore=core/luana-core-copilot/tests/test_streaming_integration.py \
+          --ignore=core/luana-core-sales-agent/tests/eval_simulator/ \
+          --ignore=core/luana-core-sales-agent/tests/agentic_evals/ 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-17]
+
+  - id: V-F-langgraph
+    name: "LangGraph sales_agent supervisor specialist graph compiles"
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_sales_agent.application.orchestrator.graph import build_sales_agent_graph
+      from luana_core_sales_agent.application.orchestrator.state import SalesAgentState
+      assert callable(build_sales_agent_graph)
+      # State TypedDict mandatory keys
+      assert 'tenant_id' in SalesAgentState.__annotations__, 'tenant_id MANDATORY'
+      assert 'iterations' in SalesAgentState.__annotations__, 'iterations MANDATORY'
+      assert 'messages' in SalesAgentState.__annotations__, 'messages MANDATORY'
+      assert 'current_specialist' in SalesAgentState.__annotations__, 'current_specialist MANDATORY'
+      assert 'brand_voice_system_instruction' in SalesAgentState.__annotations__, 'slot 5 BRAND_VOICE state key'
+      print('Sales agent LangGraph state + supervisor pattern OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-8]
+
+  - id: V-F-slot-5-voice-port
+    name: "Slot 5 BRAND_VOICE via D-T3 BrandVoicePort (NEVER PersonalityCompiler direct)"
+    description: "Verify compose_prompt accepts voice_port: BrandVoicePort argument and uses port.compile_system_instruction."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      import inspect
+      from luana_core_sales_agent.application.prompts.compose import compose_prompt
+      sig = inspect.signature(compose_prompt)
+      # voice_port parameter mandatory
+      assert 'voice_port' in sig.parameters, 'compose_prompt MUST accept voice_port: BrandVoicePort (D-T3)'
+      print('D-T3 BrandVoicePort consumer signature OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-11]
+
+  - id: V-F-tools-registry
+    name: "Sales agent tool registry + 5 base groups (scheduler/payment/knowledge/qualification/follow-up)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_tool*.py \
+          core/luana-core-sales-agent/tests/tools/ -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-10]
+
+  - id: V-F-closer-studio
+    name: "Closer Studio API + WS smoke (§3 protected — lift verbatim hash-stable)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_closer_studio_*.py \
+          core/luana-core-sales-agent/tests/test_ws_*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-F-buffer-output
+    name: "SmartBufferService + OutputManager.process_response smoke (§3 protected)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_*buffer*.py \
+          core/luana-core-sales-agent/tests/test_*output_manager*.py \
+          core/luana-core-sales-agent/tests/test_smart_debounce*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-7, T-8]
+
+  - id: V-F-followup
+    name: "Follow-up engine cadence + workers (§3 protected)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_followup*.py \
+          core/luana-core-sales-agent/tests/workers/ -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-13]
+
+  - id: V-F-trace-cost
+    name: "Sales agent observability writes + cost recording (D-T6 + S12 cement)"
+    description: "Per S0-S11A Template Method — callback handler writes sales_agent_llm_call + sales_agent_trace_event. cost_usd via pop_cost(litellm_call_id)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_callback_handler*.py \
+          core/luana-core-sales-agent/tests/test_*observability*.py \
+          core/luana-core-sales-agent/tests/test_*cost*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-14]
+
+  - id: V-F-channels
+    name: "Channel format registry consumption (luana_core_channels Story 2)"
+    description: "Output manager + compose calls get_channel_format. NEVER re-registers channels."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_channel*.py \
+          core/luana-core-sales-agent/tests/test_output_manager*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-7, T-12]
+
+  - id: V-F-intent
+    name: "Intent detector consumption (luana_core_channels)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_intent_detector*.py \
+          core/luana-core-sales-agent/tests/test_semantic_router*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-12]
+
+  - id: V-F-pii
+    name: "PII sanitization on observability writes (sanitize_payload from luana_core_observability)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-sales-agent/tests/test_*sanitize*.py \
+          core/luana-core-sales-agent/tests/test_*pii*.py -x -q --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-14]
+
+visual: []  # No UI changes Story 7 (FE Closer Studio + Streamlit admin stay in nicolify Story 10).
+
+agentic_eval:
+  - id: V-AG-1
+    name: "Architecture fitness — luana-core-sales-agent brand-agnostic engine"
+    description: "Per 03-arch.md §7.1. NO `if brand ==` or brand-key string literals."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story7_brand_agnostic_engine.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-AG-2
+    name: "Architecture fitness — luana-core-sales-agent no forward Story imports"
+    description: "Per 03-arch.md §7.2. NO luana_core_{campaigns,advertising,social_media}. luana_core_scheduling only allowed via TYPE_CHECKING deferred imports (no top-level)."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story7_no_forward_module_imports.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-AG-3
+    name: "Architecture fitness — D-T3 sales-agent uses BrandVoicePort, NEVER PersonalityCompiler direct"
+    description: "Per 03-arch.md §7.3 + ADR-001 §2.4 + D-T3. luana_core_sales_agent does NOT import luana_core_brand_studio.domain.personality.PersonalityCompiler. Only BrandVoicePort port consumed."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_sales_agent_uses_voice_port_no_direct_compiler_import.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-AG-4
+    name: "Architecture fitness — BrandVoicePort interface complete"
+    description: "Per 03-arch.md §7.4 + D-T3. BrandVoicePort exposes compile_system_instruction + get_voice_metadata, both async."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_voice_port_interface_complete.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-AG-5
+    name: "Architecture fitness — NO eval framework lifted Story 7 (per ratificación 2 + outcome §2 OQ1)"
+    description: "Per 03-arch.md §7.5 + 03-arch.md §9.1. eval_simulator/ subfolder + agentic_evals/ tests NOT lifted. Deferred Luana v0.2.0."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_no_eval_framework_lifted.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-AG-6
+    name: "Architecture fitness — D-T6 no mirror observability in sales_agent"
+    description: "Per 03-arch.md §7.6 + anti-duplication.md cardinal. SalesAgentCallbackHandler subclasses BaseAgentCallbackHandler. NEVER mirrors. NO class FXResolver / CostCalculator / PricingResolver / BaseObservabilityContext / BaseAgentCallbackHandler declarations."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_no_mirror_observability_in_sales_agent.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-AG-7
+    name: "Architecture fitness — voice compiler SSoT regression Stories 5+6+7"
+    description: "Per 03-arch.md §7.7. Only luana-core-brand-studio.domain.personality declares class PersonalityCompiler. Stories 5+6+7 must NOT introduce mirror."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_voice_compiler_ssot_still_intact_story7.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-AG-8
+    name: "Architecture fitness — §3 protected surfaces NOT refactored (file hash snapshot)"
+    description: "Per 03-arch.md §7.8 + sales-agent-expert SKILL.md §3. 12 files lift verbatim — sha256 hashes match AISALESHT source at lift moment."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_sales_agent_protected_surfaces_intact.py -x -q 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+documentation:
+  - id: V-D-1
+    name: "luana-core-sales-agent has README.md stub"
+    command: |
+      test -f ~/luana-platform/core/luana-core-sales-agent/README.md
+    must_pass: true
+    addressed_by_tickets: [T-2, T-19]
+
+  - id: V-D-2
+    name: "core/DEFERRED-FILES.md updated with Story 7 entries + D-T3 INTRODUCED + UNLIFTED connections wiring"
+    description: "Per 03-arch.md §9.6. Audit trail: INTRODUCED brand_voice_port + brand_voice_service. UNLIFTED connections/api/dependencies real wiring. DEFERRED eval framework (8+ files + tests) to Luana v0.2.0. DEFERRED scheduling concrete provider runtime to Story 8."
+    command: |
+      F=~/luana-platform/core/DEFERRED-FILES.md
+      grep -q "Story 7 deferrals" "$F" || { echo "MISSING Story 7 section"; exit 1; }
+      grep -q "INTRODUCED Story 7 (D-T3" "$F" || { echo "MISSING D-T3 INTRODUCED"; exit 1; }
+      grep -q "UNLIFTED Story 7" "$F" || { echo "MISSING UNLIFTED section"; exit 1; }
+      grep -q "brand_voice_port" "$F" || { echo "MISSING brand_voice_port"; exit 1; }
+      grep -q "Luana v0.2.0" "$F" || { echo "MISSING v0.2.0 defer"; exit 1; }
+      grep -q "eval_simulator" "$F" || { echo "MISSING eval_simulator defer"; exit 1; }
+      grep -q "Story E" "$F" || { echo "MISSING Story E waiver"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-19]

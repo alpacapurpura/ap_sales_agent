@@ -1,0 +1,973 @@
+---
+story_id: luana-copilot-engine
+tickets_version: 1
+last_modified: 2026-05-11
+drafted_by: /architect-orchestrator (claude-opus-4-7)
+total_tickets: 21
+authority: 03-arch.md + 03-arch-agentic.md + 04-validators.yaml + 05-guidelines.md + 6 D-T decisiones técnicas + R23 Opus mandatory all tickets
+---
+
+# 06-tickets.yaml — luana-copilot-engine
+#
+# DAG-ordered tickets. R23 mandate: ALL owner = builder-agentic Opus 4.7 (NO Sonnet eligibility — agentic production code).
+# Foundation-first: T-1 (workspace prep) → T-2 (skeleton) → T-3..T-15 (lift layers) → T-16 (unlift Stories 2-5 copilot_provider) → T-17 (D-T2 stub cleanup) → T-18 (integration) → T-19..T-21 (arch fitness + cement + finalization).
+
+tickets:
+
+  - id: T-1
+    title: "Update luana-platform workspace registration for luana-core-copilot package"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: false
+    estimated_time_minutes: 15
+    blocked_by: []
+    blocks: [T-2]
+    validators_addressed: [V-NF-1, V-NF-3]
+    files_to_create: []
+    files_to_modify:
+      - "~/luana-platform/pyproject.toml"
+    description: |
+      Modify ~/luana-platform/pyproject.toml `[tool.uv.workspace] members` and
+      `[tool.uv.sources]` per 03-arch.md §4 — declare luana-core-copilot as
+      workspace member + source, preserving Stories 2+3+4+5 packages (21 already registered).
+      Total post-T-1: 22 packages.
+
+      DO NOT create the package folder yet — T-2 does that.
+
+      Verify: `cd ~/luana-platform && uv sync --all-packages` should still succeed
+      AFTER pyproject update (uv tolerates missing packages temporarily; full GREEN
+      comes post-T-2..T-15).
+
+      Stage by name. Commit per 05-guidelines.md §5:
+      ```
+      chore(workspace): register Story 6 luana-core-copilot package
+      ```
+
+  - id: T-2
+    title: "Create luana-core-copilot package skeleton (pyproject + README + empty src/ + tests/)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 20
+    blocked_by: [T-1]
+    blocks: [T-3]
+    validators_addressed: [V-NF-2, V-D-1]
+    files_to_create:
+      - "core/luana-core-copilot/pyproject.toml"
+      - "core/luana-core-copilot/README.md"
+      - "core/luana-core-copilot/src/luana_core_copilot/__init__.py"
+      - "core/luana-core-copilot/tests/__init__.py"
+    description: |
+      Create empty skeleton per 03-arch.md §3.2:
+
+      1. `mkdir -p core/luana-core-copilot/src/luana_core_copilot core/luana-core-copilot/tests`
+      2. Write pyproject.toml verbatim per 03-arch.md §3.2 (12 internal package deps + LangGraph + deepagents + Qdrant + arq + Jinja2 + tiktoken + trafilatura + litellm).
+      3. README.md stub: pkg name, version 0.0.6-alpha, lift origin (backend/src/modules/copilot/), key exports
+         (ToolRegistry, WorkflowRegistry, ExtractorRegistry, ModuleRegistry, CopilotState, build_deep_agent_graph,
+         compose_system_prompt, CopilotCallbackHandler subclass), deferrals (Streamlit admin → Story 10,
+         connections/api/dependencies real wiring → Story 7).
+      4. Empty `src/luana_core_copilot/__init__.py` + `tests/__init__.py`.
+      5. Run `cd ~/luana-platform && uv sync --all-packages` — skeleton resolves.
+      6. Commit per 05-guidelines.md §5.
+
+  - id: T-3
+    title: "Lift copilot domain layer (33 files: module_registry + ports + workflow + extractor_registry + hooks + rules + skills + message + events + etc.)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 75
+    blocked_by: [T-2]
+    blocks: [T-6]
+    validators_addressed: [V-NF-2, V-F-registry-2]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/domain/__init__.py + 22 top-level domain files"
+      - "core/luana-core-copilot/src/luana_core_copilot/domain/hooks/{__init__,hook_registry,copilot_events}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/domain/rules/{__init__,rule_definition,rule_registry,rule_metadata}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/domain/skills/{__init__,skill_definition,skill_registry,skill_metadata}.py"
+      - "core/luana-core-copilot/tests/test_module_registry.py + test_message.py + test_workflow.py + test_field_paths_hint.py + test_mutation_journal.py + test_ports.py + test_hooks_*.py + test_rules_*.py + test_skills_*.py + ..."
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/copilot/domain/ \
+                ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/
+      2. Apply sed per 05-guidelines.md §1.3 (substitute <m>=copilot, <pkg_snake>=luana_core_copilot).
+      3. Selectively copy domain tests (33 files cover registries + ports + types):
+         ```bash
+         for t in test_module_registry.py test_message.py test_workflow.py test_field_paths_hint.py \
+                  test_mutation_journal.py test_ports.py test_extraction_domain_registry.py \
+                  test_message_blocks.py test_card_payloads.py test_navigation_map.py \
+                  test_schema_introspection.py test_offer_fields.py test_plan_state.py \
+                  test_procedure_state.py test_routing_policy.py test_voice.py test_suggestion.py \
+                  test_tenant_limits.py; do
+           [ -f /home/chris/AISALESHT/backend/tests/modules/copilot/$t ] && \
+             cp /home/chris/AISALESHT/backend/tests/modules/copilot/$t \
+                ~/luana-platform/core/luana-core-copilot/tests/
+         done
+         mkdir -p ~/luana-platform/core/luana-core-copilot/tests/domain/{hooks,rules,skills}
+         # Hooks/rules/skills tests if present
+         for sub in hooks rules skills; do
+           [ -d /home/chris/AISALESHT/backend/tests/modules/copilot/domain/$sub ] && \
+             cp -r /home/chris/AISALESHT/backend/tests/modules/copilot/domain/$sub \
+                   ~/luana-platform/core/luana-core-copilot/tests/domain/
+         done
+         ```
+      4. Apply sed on tests.
+      5. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_module_registry.py \
+             core/luana-core-copilot/tests/test_workflow.py \
+             core/luana-core-copilot/tests/test_field_paths_hint.py -x -q
+         ```
+         GREEN (domain is self-contained).
+      6. Verify zero `src.modules.*` leaks.
+      7. Verify class declarations preserved: `grep "class ToolRegistry\|class WorkflowRegistry\|class ExtractorRegistry\|class ModuleRegistry\|class ModuleDescriptor\|class Tool\b\|class Workflow\b" src/luana_core_copilot/domain/` shows expected.
+      8. Commit per 05-guidelines.md §5.
+
+  - id: T-6
+    title: "Lift copilot infrastructure repositories (10 repos) + models (12 SQLA models)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-3]
+    blocks: [T-7]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/__init__.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/repositories/*.py (10 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/models/*.py (12 files including message_model.py — D-T2 target)"
+      - "core/luana-core-copilot/tests/test_*_repository.py (~10 files)"
+      - "core/luana-core-copilot/tests/test_*_model.py (where applicable)"
+    description: |
+      LIFT VERBATIM:
+
+      1. mkdir -p ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/infrastructure
+         cp /home/chris/AISALESHT/backend/src/modules/copilot/infrastructure/__init__.py \
+            ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/infrastructure/
+         cp -r /home/chris/AISALESHT/backend/src/modules/copilot/infrastructure/repositories \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/infrastructure/
+         cp -r /home/chris/AISALESHT/backend/src/modules/copilot/infrastructure/models \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/infrastructure/
+      2. Apply sed per §1.3.
+      3. Copy infrastructure repo + model tests:
+         ```bash
+         for t in test_conversation_repository.py test_inspiration_repository.py test_mutation_journal_repository.py \
+                  test_pinned_memory_repository.py test_routing_log_repository.py test_event_repository.py \
+                  test_tenant_limits_repository.py test_workflow_metric_repository.py test_message_codec.py; do
+           [ -f /home/chris/AISALESHT/backend/tests/modules/copilot/$t ] && \
+             cp /home/chris/AISALESHT/backend/tests/modules/copilot/$t \
+                ~/luana-platform/core/luana-core-copilot/tests/
+         done
+         ```
+      4. Apply sed.
+      5. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_conversation_repository.py \
+             core/luana-core-copilot/tests/test_message_codec.py -x -q
+         ```
+      6. Verify zero leaks.
+      7. ★ Verify message_model.py exists at canonical path (D-T2 target for T-17):
+         `test -f ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/infrastructure/models/message_model.py`
+      8. Commit per 05-guidelines.md §5.
+
+  - id: T-7
+    title: "Lift copilot infrastructure persisters (5 files: brand_persister + buyer_persona_persister + offer_persister + persister_registry + __init__)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-6]
+    blocks: [T-8]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/persisters/{__init__,brand_persister,buyer_persona_persister,offer_persister,persister_registry}.py"
+      - "core/luana-core-copilot/tests/test_brand_persister.py + test_buyer_persona_persister.py + test_offer_persister.py + test_persister_registry.py"
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/copilot/infrastructure/persisters \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/infrastructure/
+      2. Apply sed (these consume brand-studio + offer-studio domain — Stories 5 already lifted).
+      3. Copy tests + sed.
+      4. Run isolated.
+      5. Verify zero leaks.
+      6. Commit per 05-guidelines.md §5.
+
+  - id: T-8
+    title: "Lift copilot infrastructure {channels, voice, qdrant, cache, prompts, web, workers, in_memory_*_registry}"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-7]
+    blocks: [T-9]
+    validators_addressed: [V-NF-2, V-F-marketing-kb]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/channels/{__init__,telegram_bot,in_memory_channel}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/voice/{__init__,whisper_transcriber}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/qdrant/{__init__,marketing_kb_store}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/cache/{__init__,data_query_cache}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/prompts/{__init__,base,sanitizer}.py + templates/ + brand_extraction/"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/web/{__init__,trafilatura_client,tavily_search}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/workers/{__init__,telegram_worker}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/infrastructure/in_memory_{hook,rule,skill}_registry.py"
+      - "Tests for above"
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/copilot/infrastructure/{channels,voice,qdrant,cache,prompts,web,workers} \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/infrastructure/
+         cp /home/chris/AISALESHT/backend/src/modules/copilot/infrastructure/in_memory_*_registry.py \
+            ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/infrastructure/
+      2. Apply sed per §1.3.
+      3. Copy related tests (test_marketing_kb_store.py, test_telegram_bot.py, test_whisper_*.py,
+         test_data_query_cache.py, test_in_memory_*_registry.py, test_trafilatura_*.py).
+      4. Apply sed.
+      5. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_marketing_kb_store.py \
+             core/luana-core-copilot/tests/test_in_memory_*_registry.py -x -q
+         ```
+      6. Verify qdrant-client + arq + jinja2 + trafilatura + tiktoken deps resolve.
+      7. Verify zero leaks.
+      8. Commit per 05-guidelines.md §5.
+
+  - id: T-9
+    title: "Lift copilot application/orchestrator/ (16 files — LangGraph deep_agent harness + system_prompt_composer + state + chat + subagents/)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-8]
+    blocks: [T-10]
+    validators_addressed: [V-NF-2, V-F-langgraph, V-F-prompt-cache]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/application/__init__.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/orchestrator/{__init__,graph,deep_agent,system_prompt_composer,system_prompt_layout,state,chat,conversational_questioning,inspirations_layer,block_adapters,stream_filters,stream_provenance,output_sanitizer,tool_call_dedup,context_budget,subagent_budget,invoke_result}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/orchestrator/subagents/{__init__,data_query,url_analyzer,audit_inspector}.py"
+      - "Tests test_graph.py + test_system_prompt_*.py + test_state.py + test_chat.py + test_subagents_*.py + test_stream_*.py + test_tool_call_dedup.py + test_inspirations_layer.py + test_conversational_questioning.py + test_block_adapters.py"
+    description: |
+      LIFT VERBATIM (LangGraph + deepagents harness — preserve verbatim per D-T6):
+
+      1. mkdir -p ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/application
+         cp /home/chris/AISALESHT/backend/src/modules/copilot/application/__init__.py \
+            ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/application/
+         cp -r /home/chris/AISALESHT/backend/src/modules/copilot/application/orchestrator \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/application/
+      2. Apply sed per §1.3.
+      3. Copy orchestrator tests:
+         ```bash
+         for t in test_graph.py test_system_prompt_composer.py test_system_prompt_order.py test_state.py \
+                  test_chat.py test_subagents_data_query.py test_subagents_url_analyzer.py \
+                  test_subagents_audit_inspector.py test_stream_filters.py test_stream_provenance.py \
+                  test_tool_call_dedup.py test_inspirations_layer.py test_conversational_questioning.py \
+                  test_block_adapters.py test_streaming_integration.py test_brand_lighthouse_in_system_prompt.py; do
+           [ -f /home/chris/AISALESHT/backend/tests/modules/copilot/$t ] && \
+             cp /home/chris/AISALESHT/backend/tests/modules/copilot/$t \
+                ~/luana-platform/core/luana-core-copilot/tests/
+         done
+         ```
+      4. Apply sed on tests.
+      5. Verify imports resolve (LangGraph 2.0 + deepagents 0.5.3 + Anthropic SDK):
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_copilot.application.orchestrator.graph import build_deep_agent_graph
+         from luana_core_copilot.application.orchestrator.system_prompt_composer import compose_system_prompt
+         from luana_core_copilot.application.orchestrator.state import CopilotState
+         print('orchestrator imports OK')"
+         ```
+      6. Run isolated (skip streaming integration test — flaky F0+ heritage):
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/test_graph.py \
+             core/luana-core-copilot/tests/test_system_prompt_composer.py \
+             core/luana-core-copilot/tests/test_state.py -x -q
+         ```
+      7. Verify zero leaks.
+      8. Commit per 05-guidelines.md §5.
+
+  - id: T-10
+    title: "Lift copilot application/tools/ (28 files: registry + 24 tools + 4 subfolders ask_tenant_data, guided, shared_tools)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-9]
+    blocks: [T-11]
+    validators_addressed: [V-NF-2, V-F-registry-1, V-F-tools]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/application/tools/__init__.py + registry.py + 24 tool files"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/tools/ask_tenant_data/ (7 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/tools/guided/ (4 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/tools/shared_tools/ (2 files)"
+      - "Tests test_tool_registry.py + test_*_tools.py + test_ask_tenant_data_*.py + test_guided_*.py"
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/copilot/application/tools \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/application/
+      2. Apply sed per §1.3.
+      3. Copy tool tests (extensive — ~30 files):
+         ```bash
+         for t in test_tool_registry.py test_analytics_tools.py test_assets_tools.py \
+                  test_connections_tools.py test_crm_tools.py test_document_tools.py \
+                  test_extract_from_doc.py test_extraction_tools.py test_fetch_url.py \
+                  test_knowledge_search.py test_knowledge_tools.py test_landing_tools.py \
+                  test_module_tools.py test_mutations.py test_navigation.py \
+                  test_offer_ladder_tools.py test_offer_section_tools.py test_pin_to_memory.py \
+                  test_procedure_tools.py test_research.py test_sales_agent_tools.py \
+                  test_telegram_redirect.py test_url_inspiration_analyzer.py test_awareness.py \
+                  test_ask_tenant_data_integration.py test_ask_tenant_data_*.py \
+                  test_guided_*.py test_shared_tools_*.py; do
+           [ -f /home/chris/AISALESHT/backend/tests/modules/copilot/$t ] && \
+             cp /home/chris/AISALESHT/backend/tests/modules/copilot/$t \
+                ~/luana-platform/core/luana-core-copilot/tests/
+         done
+         ```
+      4. Apply sed on tests.
+      5. Verify ToolRegistry public API stable:
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_copilot.application.tools.registry import ToolRegistry, ALWAYS_AVAILABLE_GROUPS
+         assert all(hasattr(ToolRegistry, m) for m in ('register', 'get', 'list', 'groups'))
+         print(f'ToolRegistry OK, ALWAYS={ALWAYS_AVAILABLE_GROUPS}')"
+         ```
+      6. Run isolated tests.
+      7. Verify zero leaks.
+      8. Commit per 05-guidelines.md §5.
+
+  - id: T-11
+    title: "Lift copilot application/{router, suggestions, workflows, procedures, data_access, extraction, guided, memory, observability} (~30 files)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-10]
+    blocks: [T-12]
+    validators_addressed: [V-NF-2, V-F-workflows, V-F-registry-2]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/application/router/ (4 files: __init__, model_router, classifiers/)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/suggestions/ (engine + registry + providers/ — 7 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/workflows/ (engine + registry — 3 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/procedures/ (4 files: base + brand_setup + offer_creation + first_setup)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/data_access/ (2 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/extraction/ (3 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/guided/ (6 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/memory/ (5 files)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/observability/ (3 files: __init__, judge, rag_goldens)"
+    description: |
+      LIFT VERBATIM:
+
+      1. For each subfolder, cp -r from AISALESHT to luana-platform application/.
+      2. Apply sed per §1.3.
+      3. Copy tests (~20 files): test_workflow_registry, test_workflow_engine, test_workflow_compliance,
+         test_suggestion_engine, test_suggestion_registry, test_*_provider, test_router_*, test_classifier_*,
+         test_procedure_*, test_extraction_active_job, test_guided_*, test_memory_*,
+         test_observability_judge, test_rag_goldens.
+      4. Apply sed.
+      5. Verify WorkflowRegistry / SuggestionRegistry / ExtractorRegistry public APIs stable.
+      6. Run isolated.
+      7. Verify zero leaks.
+      8. Commit per 05-guidelines.md §5.
+
+  - id: T-12
+    title: "Lift copilot application/services/ (10 files) + application/discovery.py + extraction_card_flow.py"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-11]
+    blocks: [T-13]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/application/services/ (10 files + handlers/)"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/discovery.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/application/extraction_card_flow.py"
+      - "Tests test_brand_ai_actions_service + test_offer_psychology_service + test_mutation_apply_service + test_telegram_link_service + test_document_processor + test_contextual_chunker + test_limits_resolver + test_event_cleanup + test_offer_suggestion_reader + test_handlers/* + test_discovery + test_extraction_card_flow"
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/copilot/application/services \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/application/
+         cp /home/chris/AISALESHT/backend/src/modules/copilot/application/{discovery,extraction_card_flow}.py \
+            ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/application/
+      2. Apply sed per §1.3.
+      3. Copy tests.
+      4. Apply sed on tests.
+      5. Run isolated.
+      6. Verify zero leaks.
+      7. Commit per 05-guidelines.md §5.
+
+  - id: T-13
+    title: "Lift copilot observability subfolder (CopilotCallbackHandler + CopilotObservabilityContext — D-T6 subclass pattern + module-scoped repos)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-12]
+    blocks: [T-14]
+    validators_addressed: [V-NF-2, V-F-trace, V-F-cost]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/observability/__init__.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/observability/recording/{__init__,callback_handler,turn_envelope,domain_subscribers}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/observability/persistence/{__init__,llm_call_repository,trace_event_repository}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/observability/api/__init__.py"
+      - "Tests test_callback_handler_*.py + test_turn_envelope.py + test_trace_event_repo.py + test_llm_call_repo.py + test_domain_subscribers.py"
+    description: |
+      LIFT VERBATIM (CRITICAL — D-T6 anti-mirror enforcement):
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/copilot/observability \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/
+      2. Apply sed per §1.3 — especially `from src.shared.agent_observability.` → `from luana_core_observability.`.
+      3. ★ VERIFY D-T6 subclass invariant per 05-guidelines.md §1.4:
+         ```bash
+         # File should INHERIT, not REDEFINE
+         grep -A 2 "class CopilotCallbackHandler" \
+             ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/observability/recording/callback_handler.py
+         # Expected: class CopilotCallbackHandler(BaseAgentCallbackHandler):
+
+         # CRITICAL anti-mirror — these classes/funcs MUST NOT be declared (only imported)
+         grep -rE "class (FXResolver|CostCalculator|PricingResolver|BaseObservabilityContext|BaseAgentCallbackHandler)\b" \
+             ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/ \
+             && echo "FAIL: anti-mirror violation — D-T6 cardinal" \
+             || echo "OK: anti-mirror clean"
+         ```
+         If FAILs → delete redundant class def, replace with `from luana_core_observability...` import.
+      4. Copy tests.
+      5. Apply sed.
+      6. Verify smoke imports:
+         ```bash
+         cd ~/luana-platform && uv run python -c "
+         from luana_core_copilot.observability.recording.callback_handler import CopilotCallbackHandler
+         from luana_core_observability.recording.base_callback_handler import BaseAgentCallbackHandler
+         assert issubclass(CopilotCallbackHandler, BaseAgentCallbackHandler), 'D-T6 cardinal'
+         from luana_core_copilot.observability.recording.turn_envelope import CopilotObservabilityContext
+         from luana_core_observability.recording.turn_envelope import BaseObservabilityContext
+         assert issubclass(CopilotObservabilityContext, BaseObservabilityContext), 'D-T6 cardinal'
+         print('D-T6 subclass OK')"
+         ```
+      7. Run isolated.
+      8. Verify zero leaks.
+      9. Commit per 05-guidelines.md §5.
+
+  - id: T-14
+    title: "Lift copilot api/ (22 files: 11 routers + 11 DTOs + _dependencies.py)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-13]
+    blocks: [T-15]
+    validators_addressed: [V-NF-2]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/api/__init__.py + _dependencies.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/api/{chat,conversations,voice,telegram,plan,suggestions,actions,events,media,knowledge,nudge}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/api/{conversation_dto,document_dto,media_dto,suggestions_dto,tenant_limits_dto,voice_dto,telegram_dto,dto}.py"
+      - "Tests test_chat_api + test_conversations_api + test_voice_api + test_telegram_api + test_plan_api + test_suggestions_api + test_events_api + test_actions_api + test_media_api + test_knowledge_api + test_nudge_api"
+    description: |
+      LIFT VERBATIM:
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/copilot/api \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/
+      2. Apply sed per §1.3.
+      3. Copy api tests (~11 files).
+      4. Apply sed.
+      5. Run isolated.
+      6. Verify zero leaks.
+      7. Verify `FastAPI(redirect_slashes=False)` invariant preserved in any app setup.
+      8. Commit per 05-guidelines.md §5.
+
+  - id: T-15
+    title: "Lift copilot evals/ (4 files) + utils/ (1 file) + finalize copilot package GREEN aggregate"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-14]
+    blocks: [T-16]
+    validators_addressed: [V-NF-2, V-F-py-1]
+    files_to_create:
+      - "core/luana-core-copilot/src/luana_core_copilot/evals/{__init__,golden_dataset,runner}.py + scorers/{__init__,base,classifier,summarizer}.py"
+      - "core/luana-core-copilot/src/luana_core_copilot/utils/__init__.py"
+      - "core/luana-core-copilot/tests/conftest.py"
+      - "Tests test_evals_*.py + test_golden_dataset.py + test_classifier_scorer.py + test_summarizer_scorer.py + test_runner.py"
+    description: |
+      LIFT VERBATIM (evals + utils + finalize):
+
+      1. cp -r /home/chris/AISALESHT/backend/src/modules/copilot/evals \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/
+         cp -r /home/chris/AISALESHT/backend/src/modules/copilot/utils \
+               ~/luana-platform/core/luana-core-copilot/src/luana_core_copilot/
+         cp /home/chris/AISALESHT/backend/tests/modules/copilot/conftest.py \
+            ~/luana-platform/core/luana-core-copilot/tests/
+      2. Copy any remaining unlifted tests:
+         ```bash
+         rsync -av --ignore-existing \
+               /home/chris/AISALESHT/backend/tests/modules/copilot/ \
+               ~/luana-platform/core/luana-core-copilot/tests/
+         ```
+      3. Apply sed per §1.3 on all evals + utils + conftest + remaining tests.
+      4. Run aggregate GREEN check:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-copilot/tests/ -x -q --tb=short \
+             --ignore=core/luana-core-copilot/tests/test_streaming_integration.py
+         ```
+         Target: 213 tests GREEN (test_streaming_integration deferred — flaky F0+ heritage).
+      5. Verify zero `src.modules.*` leaks anywhere in src/.
+      6. Verify [COPILOT-*] anchor count = 36:
+         ```bash
+         grep -roE "\[COPILOT-[A-Z0-9-]+\]" ~/luana-platform/core/luana-core-copilot/src/ | sort -u | wc -l
+         # Expected: 36
+         ```
+      7. Commit per 05-guidelines.md §5.
+
+  - id: T-16
+    title: "UNLIFT Stories 2-5 copilot_provider/ subfolders (22 src files + 4 tests + offer_ai.py) — 30 files total"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 90
+    blocked_by: [T-15]
+    blocks: [T-17, T-18]
+    validators_addressed: [V-F-py-2, V-F-modules-discovery]
+    files_to_create:
+      - "core/luana-core-brand-studio/src/luana_core_brand_studio/copilot_provider/ (8 files lifted from AISALESHT)"
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/copilot_provider/ (5 files lifted)"
+      - "core/luana-core-offer-studio/src/luana_core_offer_studio/api/offer_ai.py (1 file lifted)"
+      - "core/luana-core-crm/src/luana_core_crm/copilot_provider/ (2 files)"
+      - "core/luana-core-analytics-engine/src/luana_core_analytics_engine/copilot_provider/ (2 files)"
+      - "core/luana-core-landing/src/luana_core_landing/copilot_provider/ (2 files)"
+      - "core/luana-core-connections/src/luana_core_connections/copilot_provider/ (2 files)"
+      - "core/luana-core-commercial-calendar/src/luana_core_commercial_calendar/copilot_provider/ (2 files)"
+      - "core/luana-core-social-proof/src/luana_core_social_proof/copilot_provider/ (2 files)"
+      - "core/luana-core-brand-studio/tests/{test_brand_context_injector,test_buyer_persona_fields_dropped_regression,test_worker_emits_summary_and_pills}.py (3 cross-coupling tests)"
+      - "core/luana-core-offer-studio/tests/test_offer_data_access_provider.py (1 cross-coupling test)"
+    description: |
+      UNLIFT — most complex ticket. Per 05-guidelines.md §1.5 recipe + 03-arch.md §9.4 manifest:
+
+      For each of 8 Stories 2-5 packages with previously-deferred copilot_provider/:
+
+      ```bash
+      # Example brand-studio (Story 5 — 8 files):
+      SRC=/home/chris/AISALESHT/backend/src/modules/brand/copilot_provider
+      DST=~/luana-platform/core/luana-core-brand-studio/src/luana_core_brand_studio/copilot_provider
+
+      mkdir -p "$DST"
+      cp "$SRC"/{__init__,context_inject,module_data,provider,summary,tools,workflow_handlers,workflows}.py "$DST/"
+
+      # Apply DIFFERENT sed per package — each rewrites:
+      # - own self-imports → own package
+      # - src.modules.copilot.* → luana_core_copilot.*
+      # - src.shared.* → luana_core_platform.* (and other shared packages)
+
+      cd ~/luana-platform/core/luana-core-brand-studio
+      find src/luana_core_brand_studio/copilot_provider -name "*.py" -exec sed -i \
+        's|from src\.modules\.brand\.|from luana_core_brand_studio.|g' {} \;
+      find src/luana_core_brand_studio/copilot_provider -name "*.py" -exec sed -i \
+        's|from src\.modules\.copilot\.|from luana_core_copilot.|g' {} \;
+      find src/luana_core_brand_studio/copilot_provider -name "*.py" -exec sed -i \
+        's|from src\.shared\.domain\.|from luana_core_platform.domain.|g' {} \;
+      find src/luana_core_brand_studio/copilot_provider -name "*.py" -exec sed -i \
+        's|from src\.shared\.links\.|from luana_core_platform.links.|g' {} \;
+      # ... (full sed list per 05-guidelines.md §1.3)
+
+      # Run brand-studio aggregate tests GREEN
+      cd ~/luana-platform && uv run pytest core/luana-core-brand-studio/tests/ -x -q
+      ```
+
+      Repeat for:
+      - offer-studio (5 files) + lift offer_ai.py from offer/api/ (1 file)
+      - crm (2 files), analytics-engine (2 files), landing (2 files), connections (2 files)
+      - commercial-calendar (2 files), social-proof (2 files)
+
+      Plus lift 4 cross-coupling tests:
+      ```bash
+      cp /home/chris/AISALESHT/backend/tests/modules/brand/test_brand_context_injector.py \
+         ~/luana-platform/core/luana-core-brand-studio/tests/
+      cp /home/chris/AISALESHT/backend/tests/modules/brand/test_buyer_persona_fields_dropped_regression.py \
+         ~/luana-platform/core/luana-core-brand-studio/tests/
+      cp /home/chris/AISALESHT/backend/tests/modules/brand/test_worker_emits_summary_and_pills.py \
+         ~/luana-platform/core/luana-core-brand-studio/tests/
+      cp /home/chris/AISALESHT/backend/tests/modules/offer/test_offer_data_access_provider.py \
+         ~/luana-platform/core/luana-core-offer-studio/tests/
+      # Apply sed on each: copilot → luana_core_copilot + brand → luana_core_brand_studio etc.
+      ```
+
+      ★ POST-UNLIFT validation (CRITICAL — V-F-py-2):
+      ```bash
+      cd ~/luana-platform && uv run pytest \
+          core/luana-core-brand-studio/tests/ \
+          core/luana-core-offer-studio/tests/ \
+          core/luana-core-crm/tests/ \
+          core/luana-core-analytics-engine/tests/ \
+          core/luana-core-landing/tests/ \
+          core/luana-core-connections/tests/ \
+          core/luana-core-commercial-calendar/tests/ \
+          core/luana-core-social-proof/tests/ \
+          -x -q --tb=short
+      ```
+      Target: ALL Stories 2-5 packages GREEN post-unlift. Per R3 downstream regression rule.
+
+      Then verify ModuleRegistry discovery:
+      ```bash
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_copilot.application.discovery import discover_providers
+      from luana_core_copilot.domain.module_registry import ModuleRegistry
+      discover_providers()
+      mods = {m.module_key for m in ModuleRegistry.list_modules()}
+      expected = {'brand', 'offer', 'crm', 'analytics', 'landing', 'connections', 'commercial_calendar', 'social_proof'}
+      missing = expected - mods
+      assert not missing, f'Missing: {missing}'
+      print(f'Discovered: {sorted(mods)}')"
+      ```
+
+      Commit per 05-guidelines.md §5.
+
+  - id: T-17
+    title: "D-T2 cleanup — replace MessageModel stub in offer-studio conftest with real luana_core_copilot import"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 30
+    blocked_by: [T-16]
+    blocks: [T-18]
+    validators_addressed: [V-AG-4]
+    files_to_modify:
+      - "core/luana-core-offer-studio/tests/conftest.py"
+    description: |
+      Per 03-arch.md §1 deviations + D-T2 + 05-guidelines.md §1.6:
+
+      File: ~/luana-platform/core/luana-core-offer-studio/tests/conftest.py
+      Lines: 145-157 contain MessageModel stub class declaration.
+
+      REPLACE block:
+      ```python
+      # Cross-module stubs: only register if not already in registry (idempotent)
+      if "messages" not in _Base.metadata.tables:
+          class MessageModel(_Base):
+              """Stub for sales_agent.MessageModel (Story 7 lift). FK target only..."""
+              __tablename__ = "messages"
+              id = _sa.Column(MockUUID(as_uuid=True), primary_key=True)
+              lead_id = _sa.Column(MockUUID(as_uuid=True), _sa.ForeignKey("leads.id"), nullable=True)
+      ```
+
+      WITH:
+      ```python
+      # Story 6 D-T2 cleanup — MessageModel now lifted to luana_core_copilot.
+      # Story 5 stub removed; real model registered via import.
+      from luana_core_copilot.infrastructure.models.message_model import MessageModel  # noqa: F401
+      ```
+
+      KEEP AppointmentModel stub (lines 160-172) — scheduling = Story 8 territory. Update comment:
+      ```python
+      # Stub for scheduling.AppointmentModel (Story 8 lift — campaigns-extension-sdk batch).
+      # Story 6 D-T2 evaluation: AppointmentModel stub remains because scheduling
+      # module not lifted until Story 8.
+      ```
+
+      Run aggregate offer-studio tests GREEN:
+      ```bash
+      cd ~/luana-platform && uv run pytest core/luana-core-offer-studio/tests/ -x -q --tb=short
+      ```
+      Target: 73 tests GREEN (same as Story 5 baseline + zero regressions).
+
+      Commit per 05-guidelines.md §5.
+
+  - id: T-18
+    title: "Cross-package integration smoke + aggregate pytest GREEN (22 packages Stories 2+3+4+5+6)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: false
+    estimated_time_minutes: 30
+    blocked_by: [T-17]
+    blocks: [T-19, T-20, T-21]
+    validators_addressed: [V-NF-1, V-F-x-1, V-F-x-2]
+    description: |
+      INTEGRATION SMOKE:
+
+      1. cd ~/luana-platform && uv sync --all-packages — must succeed (V-NF-1).
+      2. Run V-F-x-1 cross-package Python imports smoke per 04-validators.yaml.
+      3. Run V-F-x-2 aggregate pytest:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/ -x -q --tb=short --ignore=core/src \
+             --ignore=core/luana-core-copilot/tests/test_streaming_integration.py
+         ```
+         Confirms Stories 2-5 + 6 packages aggregate GREEN.
+      4. Commit any pyproject.toml tweaks needed for resolution (rare).
+      5. Commit per 05-guidelines.md §5.
+
+  - id: T-19
+    title: "Add NEW arch fitness tests: brand-agnostic engine + no-forward-imports (Story 6)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 30
+    blocked_by: [T-18]
+    blocks: [T-20, T-21]
+    validators_addressed: [V-AG-1, V-AG-2]
+    files_to_create:
+      - "core/tests/architecture/test_story6_brand_agnostic_engine.py"
+      - "core/tests/architecture/test_story6_no_forward_module_imports.py"
+    description: |
+      NEW arch fitness tests per 03-arch.md §7.1 + §7.2:
+
+      1. test_story6_brand_agnostic_engine.py — extend Story 5 template:
+         ```python
+         PKGS = [("luana-core-copilot", "luana_core_copilot")]
+         FORBIDDEN_PATTERNS = [
+             r"if\s+brand\s*==",
+             r"if\s+tenant\.brand\s*==",
+             r"if\s+self\.brand\s*==",
+             r'brand\s*==\s*["\'](nicolify|vitalia|comunify|lupulo)["\']',
+             r'(API_KEY|SECRET|TOKEN)\s*=\s*["\'](?!os\.|settings\.|env|getenv).{8,}["\']',
+         ]
+         # Same test fn as Story 5 §7.1
+         ```
+      2. test_story6_no_forward_module_imports.py:
+         ```python
+         STORY6_PKGS = ["luana-core-copilot"]
+         FORBIDDEN_IMPORTS = [
+             r"from\s+luana_core_(sales_agent|campaigns|advertising|social_media|scheduling)\.",
+             r"from\s+src\.modules\.",
+         ]
+         ```
+      3. Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story6_*.py -x -q
+         ```
+      4. If V-AG-1 FAILs → escalate per 05-guidelines.md §6 halt #7.
+      5. Commit per 05-guidelines.md §5.
+
+  - id: T-20
+    title: "Add NEW arch fitness tests: D-T1+D-T2+D-T6 cement (5 tests)"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-18]
+    blocks: [T-21]
+    validators_addressed: [V-AG-3, V-AG-4, V-AG-5, V-AG-6, V-AG-7, V-AG-8]
+    files_to_create:
+      - "core/tests/architecture/test_copilot_registry_contracts_stable.py"
+      - "core/tests/architecture/_snapshots/copilot_registry_v1.json"
+      - "core/tests/architecture/test_no_residual_test_stubs_post_story_6.py"
+      - "core/tests/architecture/test_no_mirror_observability_in_copilot.py"
+      - "core/tests/architecture/test_module_descriptor_complete_for_lifted_packages.py"
+      - "core/tests/architecture/test_voice_compiler_ssot_still_intact.py"
+      - "core/tests/architecture/test_copilot_anchors_count_stable.py"
+    description: |
+      SIX NEW arch fitness tests cementing Story 6 D-T1 + D-T2 + D-T6:
+
+      ## 1. D-T1 — Registry contracts FROZEN (V-AG-3)
+      `test_copilot_registry_contracts_stable.py` per 03-arch.md §7.3 + 05-guidelines.md §1.8:
+      - Generate golden snapshot `_snapshots/copilot_registry_v1.json` (write-once script).
+      - Compare ToolRegistry, WorkflowRegistry, ExtractorRegistry, ModuleRegistry, SuggestionRegistry
+        public method names + signatures + dataclass fields against snapshot.
+      - Mismatch FAIL with diff.
+
+      ## 2. D-T2 — Test stub cleanup (V-AG-4)
+      `test_no_residual_test_stubs_post_story_6.py` per 03-arch.md §7.4:
+      - Asserts `core/luana-core-offer-studio/tests/conftest.py` does NOT contain
+        `class MessageModel(_Base)` declaration (must be import statement only).
+      - AppointmentModel stub allowed per documented allowlist.
+
+      ## 3. D-T6 — Anti-mirror observability (V-AG-5)
+      `test_no_mirror_observability_in_copilot.py` per 03-arch.md §7.5:
+      - Verify CopilotCallbackHandler subclasses BaseAgentCallbackHandler.
+      - Verify CopilotObservabilityContext subclasses BaseObservabilityContext.
+      - Scan luana_core_copilot for forbidden class declarations:
+        `class FXResolver`, `class CostCalculator`, `class PricingResolver`,
+        `class BaseObservabilityContext`, `class BaseAgentCallbackHandler`.
+      - Scan for forbidden function declarations: `def sanitize_payload`.
+      - All MUST be imports from luana_core_observability.
+
+      ## 4. D-T6 — ModuleDescriptor complete (V-AG-6)
+      `test_module_descriptor_complete_for_lifted_packages.py` per 03-arch.md §7.6:
+      - After `discover_providers()` pkgutil scan, ModuleRegistry contains entries for
+        brand, offer, crm, analytics, landing, connections, commercial_calendar, social_proof.
+      - Each ModuleDescriptor has `module_key`, `display_name`, `data_access_kinds`, `tools`, `workflows`.
+
+      ## 5. Regression Story 5 — Voice compiler SSoT (V-AG-7)
+      `test_voice_compiler_ssot_still_intact.py` per 03-arch.md §7.7:
+      - Only luana-core-brand-studio.domain.personality declares `class PersonalityCompiler`.
+      - Re-run Story 5 V-AG-3 invariant — Story 6 MUST NOT introduce mirror.
+
+      ## 6. [COPILOT-*] anchor stability (V-AG-8)
+      `test_copilot_anchors_count_stable.py` per 03-arch.md §7.8:
+      ```python
+      import re
+      from pathlib import Path
+
+      def test_copilot_anchor_count_is_36():
+          pkg_dir = Path(__file__).parent.parent.parent / "luana-core-copilot" / "src" / "luana_core_copilot"
+          anchors = set()
+          for py in pkg_dir.rglob("*.py"):
+              text = py.read_text(encoding="utf-8")
+              anchors.update(re.findall(r"\[COPILOT-[A-Z0-9-]+\]", text))
+          assert len(anchors) == 36, f"Expected 36 anchors, got {len(anchors)}: {sorted(anchors)}"
+      ```
+
+      All 6 GREEN required. If FAIL: diagnose per 05-guidelines.md §9 pitfalls.
+
+      Commit per 05-guidelines.md §5 (single commit covering all 6 tests).
+
+  - id: T-21
+    title: "Finalization: lint + AISALESHT untouched verifier + DEFERRED-FILES.md update + README polish"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: false
+    estimated_time_minutes: 35
+    blocked_by: [T-18]
+    blocks: []
+    validators_addressed: [V-NF-4, V-NF-5, V-NF-6, V-NF-7, V-D-1, V-D-2]
+    files_to_create:
+      - "(README.md polish if needed — T-2 created stub)"
+    files_to_modify:
+      - "core/DEFERRED-FILES.md (append Story 6 entries + UNLIFTED Stories 2-5 section)"
+      - "core/luana-core-copilot/README.md (final polish)"
+    description: |
+      FINALIZATION pass:
+
+      1. Run ruff (V-NF-7):
+         ```bash
+         cd ~/luana-platform && uv run ruff check core/luana-core-copilot
+         ```
+         GREEN required. If FAILs → diagnose per 05-guidelines.md §9 pitfalls (likely sed bug).
+
+      2. AISALESHT untouched verifier (V-NF-4):
+         ```bash
+         cd /home/chris/AISALESHT
+         BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-copilot-engine/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+         git diff "$BASE_SHA" HEAD --name-only | grep -E '^(backend/src/modules/copilot|backend/tests/modules/copilot)/' && echo "FAIL" || echo "OK"
+         ```
+
+      3. No-publish verifiers (V-NF-5, V-NF-6):
+         - `grep -l 'publishConfig' core/luana-core-copilot/pyproject.toml` → empty.
+         - `find ~/luana-platform -name '.releaserc*' -not -path '*/node_modules/*'` → empty.
+         - `find ~/luana-platform/.github/workflows -maxdepth 2 -name 'release*' -o -name 'publish*'` → empty.
+
+      4. Ensure README.md has:
+         - Package name + version (0.0.6-alpha)
+         - Lift origin (backend/src/modules/copilot/)
+         - Key exports paragraph
+         - Story 6 lift commit refs (will fill in post-commit)
+         - Deferrals:
+           - Streamlit admin pages → Story 10 (nicolify shell)
+           - connections/api/dependencies real wiring → Story 7
+           - AppointmentModel stub → Story 8 (scheduling lift)
+         - UNLIFTED Stories 2-5 copilot_provider/ acknowledgment
+
+      5. Append to ~/luana-platform/core/DEFERRED-FILES.md per 03-arch.md §9.4 template:
+         ```markdown
+
+         ## Story 6 deferrals (2026-05-11) + unlifts
+
+         ### UNLIFTED Story 6 (previously deferred Stories 2-5 — 30 files):
+         - commercial-calendar/copilot_provider/ (Story 3) — 2 files
+         - social-proof/copilot_provider/ (Story 3) — 2 files
+         - crm/copilot_provider/ (Story 4) — 2 files
+         - analytics-engine/copilot_provider/ (Story 4) — 2 files
+         - landing/copilot_provider/ (Story 4) — 2 files
+         - connections/copilot_provider/ (Story 4) — 2 files
+         - brand-studio/copilot_provider/ (Story 5) — 8 files
+         - offer-studio/copilot_provider/ (Story 5) — 5 files
+         - offer-studio/api/offer_ai.py (Story 5) — 1 file
+         - brand-studio tests: test_brand_context_injector + test_buyer_persona_fields_dropped_regression + test_worker_emits_summary_and_pills (Story 5) — 3 files
+         - offer-studio tests: test_offer_data_access_provider (Story 5) — 1 file
+
+         ### NEW Story 6 deferrals:
+
+         #### Defer to Story 10 (nicolify migration)
+         - backend/src/admin/pages/{trazas,copilot-routing,costo-copilot,copilot-limits,copilot-quality,marketing-kb,brand-summaries}.py — Streamlit admin shell migrates with nicolify shell in Story 10.
+         - backend/src/admin/app.py, modules/, pages/__init__.py — idem.
+
+         #### Defer to Story 7 (sales_agent lift)
+         - backend/src/modules/connections/api/dependencies/__init__.py real wiring of ChatOrchestrator — requires luana_core_sales_agent's MessageHandlerPort impl. Stub NotImplementedError stays.
+
+         #### Defer to Story 8 (scheduling lift — campaigns-extension-sdk batch)
+         - AppointmentModel stub in offer-studio conftest.py — scheduling module lifts in Story 8.
+
+         ### Reserved (NEW abstractions, NOT existing AISALESHT code)
+         - EP-1..EP-5 Extension SDK formalization → Story 8. Stories 6+7 freeze registries; Story 8 wraps as SDK without changing internals.
+         ```
+
+      6. Verify V-D-1 + V-D-2 GREEN per 04-validators.yaml.
+
+      7. Final commit per 05-guidelines.md §5.
+
+# ────────────────────────────────────────────────────────────────────────────
+# DAG Summary
+# ────────────────────────────────────────────────────────────────────────────
+dag_summary: |
+  Total: 21 tickets
+
+  Critical path (sequential):
+    T-1 (workspace) → T-2 (skeleton)
+    → T-3 (domain) → T-6 (infra repos+models)
+    → T-7 (infra persisters) → T-8 (infra channels+voice+qdrant+cache+prompts+web+workers)
+    → T-9 (orchestrator LangGraph+deepagents) → T-10 (tools registry + 28 tools)
+    → T-11 (router+suggestions+workflows+procedures+extraction+memory+guided+observability)
+    → T-12 (services+discovery+extraction_card_flow)
+    → T-13 (observability subfolder D-T6 subclasses) → T-14 (api) → T-15 (evals+utils+finalize)
+    → T-16 (UNLIFT Stories 2-5 copilot_provider/ — 30 files)
+    → T-17 (D-T2 MessageModel stub cleanup)
+    → T-18 (integration smoke + aggregate pytest)
+    → T-19 (brand-agnostic + no-forward arch) ‖ T-20 (D-T1+D-T2+D-T6 cement 6 arch tests) ‖ T-21 (lint+docs+DEFERRED-FILES)
+
+  Parallelizable batches:
+    Post-T-18: T-19 ‖ T-20 ‖ T-21
+    BUT 1 Claude sequential per outcome §7.4 — pick ONE ticket at a time.
+
+  Estimated total tool-time (sequential 1 Claude Opus): ~14h
+    - T-1: ~15min
+    - T-2: ~20min
+    - T-3..T-8 (infra+domain): ~5.5h
+    - T-9..T-13 (application+observability): ~4.5h
+    - T-14..T-15 (api+evals+finalize): ~1.5h
+    - T-16 (UNLIFT — most complex): ~1.5h
+    - T-17 (D-T2 cleanup): ~30min
+    - T-18..T-21 (integration+arch+finalize): ~2.5h
+
+  Budget per outcome §7.2 + Session 3 ratificación 1: NO HARD CAP, soft check-ins at
+  $500/$1000/$1500/$2500 cumulative. R23 Opus mandatory.
+
+# ────────────────────────────────────────────────────────────────────────────
+# Owner eligibility summary (R23 — agentic production code)
+# ────────────────────────────────────────────────────────────────────────────
+owner_eligibility_summary: |
+  R23 mandate (Session 3 ratificación 3): ALL Story 6 tickets owner = builder-agentic Opus 4.7.
+  NO Sonnet eligibility — copilot module is production agentic code (LangGraph runtime,
+  Anthropic prompt cache slots, deepagents subagent harness, registries SSoT, observability writes).
+
+  Even mechanical-feeling tickets (T-1 workspace, T-21 finalization) → Opus because they're
+  in the production_code: true path for agentic engine surfaces. Per R23 SKILL.md skill
+  routing — production_code=true + agentic surface = Opus mandatory.
+
+  builder-backend Schema-mirror exception (backend-ddd.md) NOT applicable here — Story 6
+  is NOT a schema-only migration ripple from shared/agent_observability (those were Story 2).
+
+# ────────────────────────────────────────────────────────────────────────────
+# Defer notes (re-confirmed for builder reference)
+# ────────────────────────────────────────────────────────────────────────────
+defer_notes: |
+  These are NOT tickets in this story — but builder MUST be aware:
+
+  1. backend/src/admin/pages/{trazas,copilot-routing,...}.py → Story 10
+     Builder DOES NOT lift Streamlit shell. Admin migrates with nicolify in Story 10.
+
+  2. backend/src/modules/connections/api/dependencies/__init__.py real wiring → Story 7
+     Stub NotImplementedError stays until Story 7 introduces luana_core_sales_agent.MessageHandlerPort.
+
+  3. AppointmentModel stub in offer-studio conftest → Story 8
+     Scheduling module not in Story 6 batch; stays as SQLA mapper resolution stub.
+
+  4. EP-1..EP-5 Extension SDK formalization → Story 8
+     Story 6 FREEZES registries; Story 8 wraps as formal SDK without changing internals.
+     If builder finds itself drafting `class ExtensionPoint` or similar → STOP, scope expansion (§6 halt #5).
+
+  5. BrandVoicePort introduction → Story 7
+     Story 5 deferred; Story 6 does NOT introduce. Story 7 architect handles consumer-side wiring.
+     If builder needs voice consumer in copilot → use existing pattern (copilot does NOT call sales_agent
+     voice paths; copilot consumes brand-studio PersonalityCompiler if needed directly).
+
+  6. Voice cloning pipeline → Stories 11-13
+     Per Story 5 deferral. NEW code, doesn't exist in AISALESHT.

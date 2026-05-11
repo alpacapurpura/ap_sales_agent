@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T20:11:15+00:00
+# Generated at: 2026-05-11T20:46:53+00:00
 
-generated_at: '2026-05-11T20:11:15+00:00'
+generated_at: '2026-05-11T20:46:53+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -213,37 +213,36 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
+  refined: []
+  ready:
   - id: luana-copilot-engine
     kind: story
-    state: refining
+    state: ready
     title: luana-copilot-engine
     tags: []
     last_touched: 2026-05-11
     extra:
       outcome: luana-platform-migration
-      phase: awaiting_architect_orchestrator
-      next_action: architect-orchestrator Opus spawn (single, produces ready packages Stories 6+7) — D-T1..D-T6 + 3 ratifications
-        carried in prompt verbatim
+      phase: ready_package_closed_awaiting_dev_team
+      next_action: /dev-team picks T-1 (workspace prep) → T-21 (finalization) sequentially. R23 Opus mandatory ALL 21 tickets.
       blocked_by: []
       priority_override: null
       audit_iterations: 0
   - id: luana-sales-agent-engine
     kind: story
-    state: refining
+    state: ready
     title: luana-sales-agent-engine
     tags: []
     last_touched: 2026-05-11
     extra:
       outcome: luana-platform-migration
-      phase: awaiting_architect_orchestrator
-      next_action: architect-orchestrator Opus spawn (single, produces ready packages Stories 6+7 combined) — D-T1..D-T6 +
-        3 ratifications baked in prompt
+      phase: ready_package_closed_awaiting_dev_team
+      next_action: /dev-team picks T-1 (workspace prep) → T-19 (finalization) AFTER Story 6 done. R23 Opus mandatory ALL 19
+        tickets. D-T3 BrandVoicePort introduction in T-3 (touches luana-core-brand-studio per ADR-001 §2.4).
       blocked_by:
       - luana-copilot-engine
       priority_override: null
       audit_iterations: 0
-  refined: []
-  ready:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready

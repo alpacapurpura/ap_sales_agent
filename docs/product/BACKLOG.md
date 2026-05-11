@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-11T20:11:15+00:00`
+> Generated at: `2026-05-11T20:46:53+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -16,16 +16,16 @@
 - fix-reconcile-capabilities-script-v4-paradigm `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (4 total · 2 cap-eligible / cap 3)
+### 🔬 Refining (2 total · 0 cap-eligible / cap 3)
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
-- **luana-copilot-engine** — outcome `luana-platform-migration` [awaiting_architect_orchestrator]
-- **luana-sales-agent-engine** — outcome `luana-platform-migration` [awaiting_architect_orchestrator]
 
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
 
-### 📦 Ready for development (4 / cap 5)
+### 📦 Ready for development (6 / cap 5)
+- **luana-copilot-engine** — outcome `luana-platform-migration`
+- **luana-sales-agent-engine** — outcome `luana-platform-migration`
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
@@ -74,13 +74,13 @@ kanban
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
     fix-reconcile-capabilities-scr[fix-reconcile-capabilities-script-v4-par]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (4 / cap 3)
+  🔬 Refining (2 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
+  ✅ Refined (0 / cap 5)
+  📦 Ready (6 / cap 5)
     luana-copilot-engine[luana-copilot-engine]
     luana-sales-agent-engine[luana-sales-agent-engine]
-  ✅ Refined (0 / cap 5)
-  📦 Ready (4 / cap 5)
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
