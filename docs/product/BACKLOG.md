@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-11T04:13:56+00:00`
+> Generated at: `2026-05-11T04:15:01+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -35,8 +35,8 @@
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_
 
-### 🔍 Reviewing (1 / cap 2)
-- luana-shared-lift
+### 🔍 Reviewing (0 / cap 2)
+- _(none in review)_
 
 ### Recently shipped (last 90d, 4 items)
 - growth-copilot-layout-unification — 2026-05-08
@@ -89,8 +89,7 @@ kanban
   🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
   🧪 Developed (0 / cap 10)
-  🔍 Reviewing (1 / cap 2)
-    luana-shared-lift[luana-shared-lift]
+  🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]

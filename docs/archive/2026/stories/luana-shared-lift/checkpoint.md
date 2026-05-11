@@ -1,11 +1,11 @@
 ---
 story_id: luana-shared-lift
 outcome: luana-platform-migration
-state: reviewing                                 # ★ AUDIT COMPLETE — APPROVED 2026-05-11 ★
-phase: AUDIT_APPROVED
-last_artifact: CHECKPOINTS.md (C1-C5 grid, verdict APPROVED, 2 trivial self-fixes)
+state: done                                      # ★ /pm merged 2026-05-11. Archived. Phase C unblocked. ★
+phase: MERGED_ARCHIVED
+last_artifact: 07-merge.md
 last_modified: 2026-05-11
-next_action: "/pm merge luana-platform → state=done → archive story → unblock Story 3 luana-iam-tenancy-content"
+next_action: "Archived to docs/archive/2026/stories/luana-shared-lift/. Phase C Story 3 luana-iam-tenancy-content starts now."
 ratified_by_chris: true                         # pre-auth §7.2 lift mode
 spawned_at: 2026-05-09
 spawned_by: /pm + claude-opus-4-7

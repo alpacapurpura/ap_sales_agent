@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T04:13:56+00:00
+# Generated at: 2026-05-11T04:15:01+00:00
 
-generated_at: '2026-05-11T04:13:56+00:00'
+generated_at: '2026-05-11T04:15:01+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -307,21 +307,7 @@ buckets:
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
   developed: []
-  reviewing:
-  - id: luana-shared-lift
-    kind: story
-    state: reviewing
-    title: luana-shared-lift
-    tags: []
-    last_touched: 2026-05-11
-    extra:
-      outcome: luana-platform-migration
-      phase: AUDIT_APPROVED
-      next_action: /pm merge luana-platform → state=done → archive story → unblock Story 3 luana-iam-tenancy-content
-      blocked_by:
-      - luana-foundation
-      priority_override: null
-      audit_iterations: 1
+  reviewing: []
   done:
   - id: growth-copilot-layout-unification
     kind: outcome

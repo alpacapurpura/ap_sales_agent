@@ -75,5 +75,61 @@
 - Auditor verdict: APPROVED
 - Status: ✅ DONE
 
+## Phase B — Story 2 luana-shared-lift
+
+### Spec self-draft 2026-05-11
+- /pm self-drafted 01-spec.md per §7.2 pre-auth (lift mode constraint)
+- Auto-ratified per pre-auth
+- State parked → refined
+
+### /architect ready package 2026-05-11
+- Opus orchestrator produced 03-arch.md (751 lines) + 04-validators.yaml (38 validators) + 05-guidelines.md (anti-island patterns) + 06-tickets.yaml (17 tickets DAG)
+- 5 deviations documented within lift mode
+- Tokens: ~223k Opus, ~$15-20
+- State refined → ready
+
+### /dev-team build 2026-05-11
+- Sonnet sequential T-1..T-17
+- Wall clock: ~100 min (vs 17h estimate — Sonnet handled even Opus-marked T-2 + T-13 mechanical lift cleanly)
+- Tokens: ~95k Sonnet, ~$5
+- 728 Python + 39 TS tests pass
+- 4 active arch fitness + 3 deferred
+- AISALESHT UNTOUCHED verified
+- 9 Python + 6 TS = 15 packages at 0.0.1-alpha
+- Commits: 9615d47..4ca22c6
+- State ready → developing → developed
+
+### /auditor 2026-05-11
+- Sonnet C1-C5 grid APPROVED 31/31 ✅
+- 2 trivial self-fix: 2b27bce (stale TYPE_CHECKING import path) + 8e86d98 (ruff I001 sort)
+- 3 WARN non-blocking (W1 model_registry stale imports → Stories 3-8 fix, W2 Pydantic v2 Config pre-existing, W3 no per-ticket result granularity convention)
+- Tokens: ~114k Sonnet, ~$5
+- State developed → reviewing
+
+### /pm merge 2026-05-11
+- 07-merge.md written
+- Story state reviewing → done
+- Archived to docs/archive/2026/stories/luana-shared-lift/
+- 15 capabilities tracked at outcome level (9 Python + 6 TS packages)
+- Outcome stories_done: [luana-foundation, luana-shared-lift]
+- BACKLOG regen done
+
+### Phase B close
+- Total cost Phase B: ~$30 (Opus arch + Sonnet build + Sonnet audit)
+- Wall clock: ~3 hours
+- Tickets: 17/17 pushed
+- Validators: 38 GREEN
+- Auditor verdict: APPROVED
+- Status: ✅ DONE
+
+### Cumulative session 1
+- Phases done: A + B
+- Cost cumulative: ~$85 (well under $500 soft check-in)
+- Wall clock cumulative: ~4 hours
+- Stories done: luana-foundation + luana-shared-lift
+- Packages live: 5 caps (Story 1 infra) + 15 caps (Story 2 lift) = 20
+- AISALESHT untouched throughout
+- Continuing to Phase C Story 3 luana-iam-tenancy-content
+
 
 
