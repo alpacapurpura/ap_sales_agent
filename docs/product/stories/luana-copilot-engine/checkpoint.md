@@ -3,11 +3,11 @@ story_id: luana-copilot-engine
 outcome: luana-platform-migration
 state: developing
 phase: building_T1_to_T21
-last_artifact: T-11-result.md
+last_artifact: T-15-result.md
 last_modified: 2026-05-11
 dev_team_started_at: 2026-05-11
-last_completed_batch: "Batch 3: T-9 (8602ae0 — orchestrator LangGraph+deepagents+11-slot composer+3 subagents — 18 src + 12 tests, 52 PASS) + T-10 (c0040be — ToolRegistry+24 tools+3 subfolders — 42 src + 14 tests, 40 PASS) + T-11 (3fcd317 — 9 application subfolders router/suggestions/workflows/procedures/data_access/extraction/guided/memory/observability — 42 src + 27 tests, 97 PASS). Cumulative across 3 batches: ~244 src + ~78 tests + 300 PASS isolated. T-1..T-11 done (11 of 21)."
-next_action: "builder-agentic Opus spawn next batch T-12 (application/services + discovery + extraction_card_flow — 10 files + 2 single-file) → T-13 (observability subfolder D-T6 subclass invariants — callback_handler, turn_envelope, persistence repos) → T-14 (api/ 22 files: 11 routers + 11 DTOs). R23 Opus mandatory ALL tickets."
+last_completed_batch: "Batch 5 T-15 finalize: T-15 (4c98bfe — evals/+utils/+aggregate GREEN — 1603 PASS / 25 SKIP / 0 FAIL / 0 ERR + 33/33 anchors + zero src.modules.* leaks + local prompt_loader override per M8 + 25 DAG-deferred tests skip-annotated by bucket A/B/C/misc). Cumulative T-1..T-15 done (15 of 21). luana-core-copilot package COMPLETE pre-T-16."
+next_action: "builder-agentic Opus spawn T-16 (UNLIFT Stories 2-5 copilot_provider/ — 22 src + 4 tests + offer_ai.py — 30 files total). Will unlock 16 of 25 SKIP from Bucket A. Then T-17 (D-T2 stub cleanup) → T-18 (integration) → T-19..T-21 (arch fitness + cement + finalize)."
 unparked_at: 2026-05-11
 unparked_reason: "Story 5 luana-brand-offer-studios done 2026-05-11. DAG sequencing allows Story 6."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 extension + R23)
@@ -60,6 +60,8 @@ new_arch_fitness_tests: 8  # V-AG-1..V-AG-8 in core/tests/architecture/
 ---
 
 ## Bitácora
+
+- 2026-05-11 (Batch 5 close — T-15 finalize): T-15 committed luana-platform main 4c98bfe. **luana-core-copilot package COMPLETE pre-T-16**: 1603 PASS / 25 SKIP / 0 FAIL / 0 ERR aggregate. Anchor count 33/33 (T-15 target; T-16 brings 3 more for total 36 from business modules' copilot_provider/). Zero src.modules.* leaks. Two NEW NON-LIFT adaptations on copilot package (within scope): (1) `__init__.py` anchor restoration (`[COPILOT-REDESIGN-2026-04]` missing from T-2 skeleton), (2) local `prompt_loader` singleton override in `infrastructure/prompts/base.py` to point at package-local templates (M8 extend-not-replace — shared `PromptLoader` class re-used; AISALESHT-relic default `templates_dir` bypassed). 25 SKIP categorized by bucket: A-T16-UNLIFT(16) + B-migrations(3) + C-workers.settings(4) + misc(2). Process drift: anchor count diff (32 vs 33 vs 36) resolved per spawn directive — 33 in copilot/ proper, 3 more arrive with T-16 UNLIFT. Next: T-16 UNLIFT (90min, 30 files).
 
 - 2026-05-11 (Batch 2 close): T-6 + T-7 + T-8 committed luana-platform main. SHAs: 917c362 + a60fa7b + e1e446f. 111 test PASS isolated cumulative (18 + 34 + 59). V-F-marketing-kb GREEN. All deps (qdrant + arq + jinja2 + trafilatura + tiktoken) resolve. Process drifts documented: (1) T-6 step 7 message_model.py spec drift (sales_agent territory Story 7), (2) §1.3 sed gap for unittest.mock.patch() string literals (manually fixed T-7+T-8), (3) some repo tests defer to T-15 conftest lift (DAG order natural consequence). Next: T-9 application/orchestrator.
 

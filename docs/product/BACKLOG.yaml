@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-11T21:43:24+00:00
+# Generated at: 2026-05-12T00:00:23+00:00
 
-generated_at: '2026-05-11T21:43:24+00:00'
+generated_at: '2026-05-12T00:00:23+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -330,9 +330,9 @@ buckets:
     extra:
       outcome: luana-platform-migration
       phase: building_T1_to_T21
-      next_action: 'builder-agentic Opus spawn next batch T-12 (application/services + discovery + extraction_card_flow —
-        10 files + 2 single-file) → T-13 (observability subfolder D-T6 subclass invariants — callback_handler, turn_envelope,
-        persistence repos) → T-14 (api/ 22 files: 11 routers + 11 DTOs). R23 Opus mandatory ALL tickets.'
+      next_action: builder-agentic Opus spawn T-16 (UNLIFT Stories 2-5 copilot_provider/ — 22 src + 4 tests + offer_ai.py
+        — 30 files total). Will unlock 16 of 25 SKIP from Bucket A. Then T-17 (D-T2 stub cleanup) → T-18 (integration) → T-19..T-21
+        (arch fitness + cement + finalize).
       blocked_by: []
       priority_override: null
       audit_iterations: 0
