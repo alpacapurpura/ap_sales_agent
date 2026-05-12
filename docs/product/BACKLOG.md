@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-12T07:05:01+00:00`
+> Generated at: `2026-05-12T07:05:37+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -32,11 +32,11 @@
 ### 🔨 Developing (1 / cap 3)
 - **luana-platform-migration**
 
-### 🧪 Developed — esperando QA (1 / cap 10)
-- **luana-sales-agent-engine** — outcome `luana-platform-migration`
+### 🧪 Developed — esperando QA (0 / cap 10)
+- _(none)_
 
-### 🔍 Reviewing (0 / cap 2)
-- _(none in review)_
+### 🔍 Reviewing (1 / cap 2)
+- luana-sales-agent-engine
 
 ### Recently shipped (last 90d, 4 items)
 - growth-copilot-layout-unification — 2026-05-08
@@ -83,9 +83,9 @@ kanban
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
   🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
-  🧪 Developed (1 / cap 10)
+  🧪 Developed (0 / cap 10)
+  🔍 Reviewing (1 / cap 2)
     luana-sales-agent-engine[luana-sales-agent-engine]
-  🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]

@@ -1,13 +1,14 @@
 ---
 story_id: luana-sales-agent-engine
 outcome: luana-platform-migration
-state: developed
-phase: developed_awaiting_audit
+state: reviewing
+phase: auditor_agentic_spawned
 last_artifact: T-19-result.md
 last_modified: 2026-05-12
 dev_team_started_at: 2026-05-12
 dev_team_completed_at: 2026-05-12
-next_action: "Phase 5 closed — all 19 tickets GREEN. 22/22 validators GREEN or WAIVED (V-F-x-2 pre-existing waiver Story 6 precedent). 8 NEW arch fitness tests V-AG-1..V-AG-8 cement D-T3 + D-T6 cardinals. Trigger /auditor for Phase 6 — auditor-agentic Opus C1-C5 + V-AG verification + downstream regression R3."
+audit_started_at: 2026-05-12
+next_action: "Auditor-agentic Opus C1-C5 + V-AG-1..V-AG-8 + downstream regression R3 in flight. Auto-fix Opus cap 2 iter trivial findings. Verdict APPROVED → /pm Phase 7 merge."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 + ratificación 2 eval WAIVED)
 session_3_ratification_date: 2026-05-11
 session_3_mandate: "autonomous Tier 3 lift per outcome §7.2 + §7.4 cap extended 2 stories. R23 Opus mandatory all tickets. D-T3 BrandVoicePort hexagonal introduced this story."
@@ -64,6 +65,8 @@ new_arch_fitness_tests: 8  # V-AG-1..V-AG-8 in core/tests/architecture/
 ---
 
 ## Bitácora
+
+- 2026-05-12 (state developed → reviewing): Phase 6 audit start. auditor-agentic Opus spawned. C1 (code) + C2 (spec) + C3 (architecture) + C4 (cross-cutting) + C5 (trace) + 8 NEW arch fitness V-AG-1..V-AG-8 + downstream regression R3. Auto-fix cap 2 iter trivial findings (lint/typo/format). Halt criteria: REJECT + 3 auto-fix iter fail → escalate Chris.
 
 - 2026-05-12 (batch 6 — T-16+T-17+T-18+T-19 GREEN, state developing → developed): Phase 5 build CLOSED. luana-platform commits `6625646` (T-16 connections wiring real ChatOrchestrator — Stories 4+6 deferral resolved) + T-17 verification-only (no commit, uv sync 23 packages + V-F-x-1 cross-package smoke + ModuleRegistry 9 modules + V-F-x-2 waiver acceptance per Story 6 precedent) + `9d497d6` (T-18 8 NEW arch fitness V-AG-1..V-AG-8 + §3 protected surfaces snapshot v1 — D-T3 + D-T6 + Story 5 SSoT regression cement) + `537a6d8` (T-19 finalization — ruff GREEN + AISALESHT untouched verified + DEFERRED-FILES.md Story 7 section appended + README polish). All 19 Story 7 tickets GREEN. 22 validators must_pass GREEN or WAIVED. AISALESHT `backend/src/modules/sales_agent/` UNTOUCHED throughout 19 tickets (V-NF-4 cardinal live-verified). Next: Phase 6 spawn auditor-agentic Opus.
 

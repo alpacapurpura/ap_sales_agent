@@ -1,5 +1,5 @@
 # Backlog TLDR (auto-generated)
-> Generated at: `2026-05-12T07:05:01+00:00`
+> Generated at: `2026-05-12T07:05:37+00:00`
 > Source: scripts/generate_backlog.py — full view: BACKLOG.md
 
 - **Ideas** (8): calendario-comercial, metricas-atraccion, live-selling-whatsapp-assistant +5
@@ -7,7 +7,7 @@
 - **Refined** (0 / cap 5): _(none)_
 - **Ready** (0 / cap 5): sales-agent-adversarial-jailbreak-suite, sales-agent-eval-cost-budget-cap, sales-agent-eval-pass-k-tracking +1
 - **Developing** (0 / cap 3): luana-platform-migration
-- **Developed** (1 / cap 10): luana-sales-agent-engine
-- **Reviewing** (0 / cap 2): _(none)_
+- **Developed** (0 / cap 10): _(none)_
+- **Reviewing** (1 / cap 2): luana-sales-agent-engine
 
 Detail: read `docs/product/BACKLOG.md` (kanban + roadmap) or `docs/product/stories/{id}/checkpoint.md`.

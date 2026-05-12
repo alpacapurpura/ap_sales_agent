@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T07:05:01+00:00
+# Generated at: 2026-05-12T07:05:37+00:00
 
-generated_at: '2026-05-12T07:05:01+00:00'
+generated_at: '2026-05-12T07:05:37+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -306,24 +306,23 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
-  developed:
+  developed: []
+  reviewing:
   - id: luana-sales-agent-engine
     kind: story
-    state: developed
+    state: reviewing
     title: luana-sales-agent-engine
     tags: []
     last_touched: 2026-05-12
     extra:
       outcome: luana-platform-migration
-      phase: developed_awaiting_audit
-      next_action: Phase 5 closed — all 19 tickets GREEN. 22/22 validators GREEN or WAIVED (V-F-x-2 pre-existing waiver Story
-        6 precedent). 8 NEW arch fitness tests V-AG-1..V-AG-8 cement D-T3 + D-T6 cardinals. Trigger /auditor for Phase 6 —
-        auditor-agentic Opus C1-C5 + V-AG verification + downstream regression R3.
+      phase: auditor_agentic_spawned
+      next_action: Auditor-agentic Opus C1-C5 + V-AG-1..V-AG-8 + downstream regression R3 in flight. Auto-fix Opus cap 2 iter
+        trivial findings. Verdict APPROVED → /pm Phase 7 merge.
       blocked_by:
       - luana-copilot-engine
       priority_override: null
       audit_iterations: 0
-  reviewing: []
   done:
   - id: growth-copilot-layout-unification
     kind: outcome
