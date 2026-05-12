@@ -1,0 +1,79 @@
+---
+capability_id: luana-core-release-pipeline
+module: luana-core
+slug: release-pipeline
+status: live
+date_introduced: 2026-05-12
+story_introduced: luana-v0-1-0-publish
+package_version: v0.1.0
+license: proprietary
+---
+
+# luana-core-release-pipeline
+
+Luana v0.1.0 release engineering infrastructure — cross-package version bumps + release-please config + GitHub Actions release workflow + Keep-a-Changelog + migration guide + API docs auto-gen + SemVer F1-F6 cement. Cemented Session 4 (2026-05-12) per outcome `luana-platform-migration` Story 9.
+
+## Architecture overview
+
+**Pre-Story-9 state:** 26 Python packages + 7 TS packages at mixed `0.0.x-alpha` versions (Stories 1-8 lift mode).
+
+**Post-Story-9 state:** All 33 packages at `v0.1.0` ("production-grade alpha" per 00-story.md — no `-alpha` suffix). First publish target = `v0.1.0` to GitHub Packages **private** registry (proprietary license cement per outcome §7.1).
+
+**SemVer flip:** Per outcome §7.5.2 D4=C, Story 9 marks transition from alpha (`0.0.x`) to real SemVer enforcement. Future commits respect F1-F6 cement (major = breaking EP signature / minor = additive EP / patch = bug fix / BrandContext field add = minor / BrandContext field remove = major / anti-default-flip applies post-v0.1.0).
+
+## Deliverables
+
+### Release infrastructure
+- `.release-please-config.json` — monorepo Python+TS plugin (release-please 16+ per architect §0 #4). 33 packages enumerated. Linked-versions enforced.
+- `.release-please-manifest.json` — initial state with all 33 packages at 0.1.0.
+- `.github/workflows/release.yml` — 7-job atomic pipeline:
+  - Trigger on `v*.*.*` tag push (manual `git tag v0.1.0` first override per architect §0 #7)
+  - Build Python (uv build) + TS (pnpm build) sequentially per language
+  - `publish-typescript needs publish-python` (atomic ordering)
+  - Publish to GitHub Packages private registry (`npm.pkg.github.com` for TS, GitHub Packages PyPI for Python)
+  - Halt criterion #1 graceful — if `GITHUB_TOKEN` missing perms → explicit fail with halt message
+  - Timeouts configured (well below GitHub Actions 6h cap)
+
+### Documentation deliverables
+- `CHANGELOG.md` — Keep-a-Changelog 1.1.0 format. Manual seed entry for v0.1.0 with Stories 1-9 cross-package history (≥26 entries). Future versions auto-derived from Conventional Commits via release-please v0.2.0+.
+- `docs/migration-from-nicolify.md` (§1-§6) — consumer migration guide for Stories 10-13 brand bootstraps. Covers install via GH Packages + import path rewrite + BrandContext usage + EP-1..EP-5 registration.
+- `docs/api/` — auto-gen scripts:
+  - Python: pdoc 14+ config + `make api-docs-python` script
+  - TypeScript: typedoc 0.27+ config + `pnpm api-docs-ts` script
+  - Output to `docs/api/python/` + `docs/api/typescript/` (NO GH Pages deploy Story 9 — emit artifacts only per architect §0 #5)
+- `RELEASES.md` — v0.1.0 release procedure + rollback + `GH_PACKAGES_TOKEN` setup + SemVer F1-F6 verbatim cement.
+
+## SemVer F1-F6 cement (per spec §5.6)
+
+| Rule | Scenario | Bump |
+|---|---|---|
+| F1 | Future commit touches EP signature | major (1.0.0 next) |
+| F2 | Future commit adds new EP | minor (0.2.0 next) |
+| F3 | Future patch (bug fix) | patch (0.1.1 next) |
+| F4 | BrandContext field addition | minor (non-breaking — handlers ignore unknown) |
+| F5 | BrandContext field removal | major (breaking) |
+| F6 | Default flag flip post-v0.1.0 | anti-default-flip-audit applies (`.claude/rules/anti-default-flip-audit.md`) |
+
+## Halt criteria documented (V-X-1)
+
+GH Packages org-level token/billing missing → workflow halts gracefully with explicit error. NOT silent fail. Escalates to Chris setup.
+
+## Architecture cement
+
+- **V-NF-1 cumulative 9 stories:** AISALESHT `backend/src/modules/` untouched 9 stories (Stories 1-9 cement)
+- **V-NF-2/3/7:** All 33 packages at 0.1.0 (26 Python + 7 TS) — NO `-alpha` suffix retained
+- **V-AG cumulative:** Stories 6+7 frozen registries byte-stable (golden snapshots GREEN post-Story-9 version bump) + Story 8 12 arch fitness tests STILL GREEN
+- **5 NEW Story 9 arch fitness test files (26 tests total):** version uniformity + no-alpha + release-please valid + workflow valid + CHANGELOG format + migration guide + API docs scripts + lockfiles consistent + no public npm + first-tag procedure documented + SemVer rules cemented + GH Packages auth halt documented + AISALESHT untouched
+
+## Test coverage
+
+- `core/tests/architecture/test_*_story_9*.py` — 5 NEW Story 9 arch fitness GREEN (26 tests)
+- Story 8 arch fitness 12 tests STILL GREEN (zero regression)
+- Stories 1-8 packages downstream regression spot check: 149/149 arch fitness + 103/103 Story 8 packages + 9/9 Stories 6+7 frozen golden snapshots — all GREEN
+- Pre-existing 40 sales-agent failures DEFERRED to Story 10+ cleanup (architect §0)
+
+## Consumers (future)
+
+- Story 10 (nicolify migration): consumes `pip install luana-core-*==0.1.0` + `npm install @luana/*@0.1.0`. First real consumer of publish pipeline.
+- Stories 11-13 (brand bootstraps): Vitalia + Comunify + Lupulo consume v0.1.0 packages.
+- Future versions: release-please auto-derives bumps from Conventional Commits. SemVer F1-F6 enforced.

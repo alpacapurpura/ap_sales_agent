@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-12T17:59:42+00:00`
+> Generated at: `2026-05-12T19:19:58+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -35,8 +35,8 @@
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_
 
-### 🔍 Reviewing (1 / cap 2)
-- luana-v0-1-0-publish
+### 🔍 Reviewing (0 / cap 2)
+- _(none in review)_
 
 ### Recently shipped (last 90d, 4 items)
 - growth-copilot-layout-unification — 2026-05-08
@@ -82,8 +82,7 @@ kanban
   🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
   🧪 Developed (0 / cap 10)
-  🔍 Reviewing (1 / cap 2)
-    luana-v0-1-0-publish[luana-v0-1-0-publish]
+  🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
@@ -114,11 +113,11 @@ kanban
 | crm | 2 | 0 | 0 | 0 | 2 |
 | iam | 2 | 0 | 0 | 0 | 2 |
 | landing | 3 | 0 | 0 | 0 | 3 |
-| luana-core | 6 | 0 | 0 | 0 | 6 |
+| luana-core | 7 | 0 | 0 | 0 | 7 |
 | offer | 5 | 0 | 0 | 0 | 5 |
 | sales-agent | 4 | 1 | 1 | 0 | 6 |
 | scheduling | 3 | 0 | 0 | 0 | 3 |
 | social-media | 2 | 0 | 0 | 0 | 2 |
 | tenant-domains | 1 | 0 | 0 | 0 | 1 |
-| **TOTAL** | **56** | **3** | **1** | **0** | **60** |
+| **TOTAL** | **57** | **3** | **1** | **0** | **61** |
 

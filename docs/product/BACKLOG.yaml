@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T17:59:42+00:00
+# Generated at: 2026-05-12T19:19:58+00:00
 
-generated_at: '2026-05-12T17:59:42+00:00'
+generated_at: '2026-05-12T19:19:58+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -307,22 +307,7 @@ buckets:
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
   developed: []
-  reviewing:
-  - id: luana-v0-1-0-publish
-    kind: story
-    state: reviewing
-    title: luana-v0-1-0-publish
-    tags: []
-    last_touched: 2026-05-12
-    extra:
-      outcome: luana-platform-migration
-      phase: AUDIT_C1_C5
-      next_action: Phase 6 — auditor-backend Opus spawn for C1-C5 + 23 validators re-run + R3 downstream regression Stories
-        1-8 packages.
-      blocked_by:
-      - luana-campaigns-extension-sdk
-      priority_override: null
-      audit_iterations: 0
+  reviewing: []
   done:
   - id: growth-copilot-layout-unification
     kind: outcome
@@ -676,11 +661,11 @@ capabilities:
   deprecated: 0
   total: 3
 - module: luana-core
-  live: 6
+  live: 7
   in_progress: 0
   planned: 0
   deprecated: 0
-  total: 6
+  total: 7
 - module: offer
   live: 5
   in_progress: 0
