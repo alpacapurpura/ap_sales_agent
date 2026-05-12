@@ -2,10 +2,10 @@
 story_id: luana-campaigns-extension-sdk
 outcome: luana-platform-migration
 state: developing
-phase: BUILD_BATCH_B
-last_artifact: T-4-impl-log.md
+phase: BUILD_BATCH_C
+last_artifact: T-6-impl-log.md
 last_modified: 2026-05-12
-next_action: "Batch A T-1..T-4 DONE (luana-platform commit ee0b15a). Batch B = T-7..T-18 Sonnet eligible (ExtensionPointRegistry + test-brand scaffold + arch fitness + campaigns engine + TS types + FE consumers). T-5+T-6 Opus required (builder-agentic, Stories 6+7 frozen registry wrappers)."
+next_action: "Batch B T-5+T-6 DONE (luana-platform commits 5ece4cf + 2e20def). Stories 6+7 V-AG-3 byte-stable preserved (15/15 PASS). Batch C = T-7..T-18 Sonnet eligible — backlog EP-6..EP-18 stubs + TS mirror + campaigns lift + test-brand + docs + arch fitness + finalization."
 ratified_by_chris: true                         # ★ Session 4 ratification 2026-05-12 — Chris delegated `toma tú todas las decisiones` ★
 spawned_at: 2026-05-09
 spawned_by: /pm
@@ -92,3 +92,4 @@ halt_criteria_session_4:
 - 2026-05-12: /po Opus drafted 01-spec.md (1047 lines, 22 Gherkin scenarios, 14 explicit out-of-scope, 5 open Qs for architect, 3 exception types, BrandContext frozen 9-field per §7.5.2 D3). Per §7.5.2 D7=B Chris pre-auth secuencial autonomous, state refining → refined. Next: spawn architect-orchestrator Opus for ready package.
 - 2026-05-12: architect-orchestrator Opus emitted ready package — 03-arch.md (325 lines) + 03-arch-be.md (1387 lines) + 04-validators.yaml (26 validators: 5 V-NF + 12 V-F + 6 V-AG + 3 V-D) + 05-guidelines.md (858 lines) + 06-tickets.yaml (18 tickets DAG-ordered, T-5+T-6 Opus required for Stories 6+7 frozen registries wrappers, T-1..T-4 + T-7..T-18 Sonnet eligible). 5 open Qs resolved architect-bounded (26 Python + 7 TS workspace members post-Story-8, scheduling NOT lifted Story 8, EP-3/EP-4 read-only adapter graceful NotImplementedError, BrandContext.feature_flags opaque dict, TS hand-maintained alpha). State refined → ready. Next: /dev-team autonomous build.
 - 2026-05-12: builder-backend Sonnet Batch A T-1..T-4 DONE. luana-platform commits ae8cb96..ee0b15a pushed. Files: workspace pyproject.toml (T-1) + SDK skeleton (T-2) + BrandContext 9-field frozen (T-3 TDD 4 tests GREEN) + exceptions+18models+protocols (T-4 TDD 14 tests GREEN). All uv run pytest tests/unit/ PASS. Ruff lint 0 errors. AISALESHT impl-logs T-1..T-4 written. State developing, phase BUILD_BATCH_A → BUILD_BATCH_B.
+- 2026-05-12: builder-agentic Opus Batch B T-5+T-6 DONE. luana-platform commits 5ece4cf + 2e20def pushed. T-5 = ExtensionPointRegistry executable EP-1..EP-5 + CC-1..CC-5 runtime enforcement (TDD 33 tests, 31/33 GREEN — 2 adapter graceful tests RED awaiting T-6). T-6 = `_adapters.py` read-only Stories 6+7 frozen registry wrappers (TDD 9 tests GREEN; AST parse no private surface; NotImplementedError graceful when public method absent — current Story 6+7 state). Full SDK test suite: 60/60 PASS post Batch B. Stories 6+7 V-AG-3 byte-stable golden snapshots: 15/15 PASS (test_copilot_registry_contracts_stable + test_story{6,7}_brand_agnostic_engine + test_story{6,7}_no_forward_module_imports). Ruff check + format clean. AISALESHT impl-logs T-5+T-6 written. State developing, phase BUILD_BATCH_B → BUILD_BATCH_C.
