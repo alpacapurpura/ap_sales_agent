@@ -7,7 +7,7 @@ created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-12
 stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios, luana-copilot-engine, luana-sales-agent-engine, luana-campaigns-extension-sdk, luana-v0-1-0-publish]   # 2026-05-12 all 9 (Stories 1-4 session 1 + Story 5 session 2 + Stories 6+7 session 3 + Stories 8+9 session 4 secuencial autonomous)
-stories_active: []   # Stories 8+9 done 2026-05-12. Session 4 CLOSES. Story 10 luana-nicolify-migration unblocked, awaits Chris ratification next session
+stories_active: [luana-nicolify-migration]   # 2026-05-12 Session 5 — Story 10 ratified Chris (10 business decisions cemented §7.6) transition parked→refining
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/
@@ -377,6 +377,72 @@ Brand A invents feature → /pm evaluates if generalizable → if yes, lift to c
 Example: Vitalia treatment agent (Story 11.5+) battle-tested → learnings surface (e.g., "all verticals need pre/post engagement reminders") → /pm promotes generic abstraction to `luana-core-engagement-scheduler` package → Comunify cohort retention + Lupulo dietary follow-up consume same primitive.
 
 Architect Story 8 emits docs Section "How features graduate to core" — guideline document, NOT formal mechanic.
+
+### 7.6 Session 5 — Story 10 luana-nicolify-migration business decisions (ratified 2026-05-12)
+
+10 business decisions ratified by Chris **before** spec/architect/build spawns. Architect Story 10 consumes §7.6 as binding spec. Future stories 10b/11/12/13/14 inherit applicable decisions by default (re-ratify only if vertical-specific deviation needed).
+
+| # | Decisión | Opción | Implicancia binding |
+|---|---|---|---|
+| 1 | **Scope completeness** | **A — Full migration big bang** (BE + FE + tests + smoke E2E) | Sub-agent decomposition smart blast radius isolation. Cap paralelización **≤2 agentes simultaneous** (NOT 3 — Chris framing). Opus mayoritario en críticos. Halt-and-ask Chris si surprise surface. Admin Streamlit + workers diferidos Story 10b. |
+| 2 | **DB migration strategy** | **B — Fresh nicolify DB + purge total + alembic restart limpio** | Sin clientes prod/dev real → ventana oportunidad clean break. Sub-tickets: (a) crear `nicolify_dev` DB nueva, (b) consolidar alembic history en `001_initial_snapshot.py` reflecting current schema (no replay 150+ migrations), (c) update env vars + docker-compose.dev.yml `POSTGRES_DB=nicolify`, (d) drop AISALESHT DB al cierre Story 10 después tests green. |
+| 3 | **AISALESHT repo lifecycle** | **A — Archive read-only post-Story-10** | GitHub Settings → Archive. History accesible read-only para arqueología. Reversible 1-click si surge necesidad. |
+| 4 | **/pm SSoT location** | **A — Migrates atómicamente con Story 10 Fase 4 merge** | Sub-ticket dedicated: `git mv docs/product/ → luana-platform/docs/product/` + commit en luana-platform. **"Muy cuidadoso"** — snapshot final pre-move en AISALESHT como audit trail + verify scripts (`generate_backlog.py`, `reconcile_capabilities.py`, pre-commit hooks) corren post-move sin path hardcoded breakage + test BACKLOG regen + cap reconcile en nueva ubicación ANTES archive AISALESHT. Halt-and-ask si Claude descubre path hardcoded raro. Story 10 archive dir vive en `luana-platform/docs/archive/2026/stories/luana-nicolify-migration/`. |
+| 5 | **Test parity bar** | **B — Match baseline + fix-on-discovery oportunista trivial only** | T-1 build captura baseline snapshot (`pytest --json-report` + estado actual). T-N final: delta=0 new failures requirement enforcement (auditor verifica). 40 pre-existing sales_agent failures NO bloquean merge → siguen deferred. Si sub-agent durante import rewrite ENCUENTRA failure trivial-de-fixear (5 min, no rabbit hole) → arregla on-the-fly. Si requiere más → documenta + defer. |
+| 6 | **FE Next.js strategy** | **B — FE workspace member luana-platform monorepo** | `git mv AISALESHT/frontend/ → luana-platform/nicolify/frontend/`. Add to `pnpm-workspace.yaml`: `- 'nicolify/frontend'`. `package.json`: `"name": "@nicolify/web"` + deps `"@luana/X": "workspace:*"`. Find/replace imports `@/components/ui` → `@luana/ui-kit`. Vercel reconfig: root directory monorepo → `nicolify/frontend/`. Custom domain dev-app.nicolify.com (CF tunnel) preserved. Sub-ticket dedicated con halt-and-ask si Vercel surprise. |
+| 7 | **Streamlit admin** | **B — Defer Story 10b dedicated cleanup** | Admin Streamlit low-traffic (Chris only). Post-Story-10 admin "no migrated" estado aceptable 1-2 semanas. Story 10b dedicada hace migration luego. **Escape hatch:** architect Story 10 puede proponer incluir admin SI trivial (3-5 archivos, imports clean) con halt-and-ask Chris. Default: deferred. |
+| 8 | **CI parity gate location** | **B — luana-platform root, cross-brand gates** | `Makefile` en root orquesta validation cross-brand. Hoy: solo Nicolify post-migration. Stories 11-13 heredan beneficio automático (cada brand nuevo agrega su target sin reconfig root). Defense-in-depth para refactors core (R3 downstream regression executable gate, no solo principio). Pre-push hook apunta a root Makefile. |
+| 9 | **40 sales_agent pre-existing failures** | **B — Continue defer Story 14 brand-voice-elevation natural home** | Story 14 explicitly toca sales_agent surface (PersonalityProfile + voice cloning refactor). T-N final Story 10 genera `docs/product/stories/luana-nicolify-migration/DEFERRED-FAILURES-STORY-10.md` con paths exactos + nota "see Story 14 for fix plan". Auditor verifica delta=0 sin tocar esos 40. |
+| 10 | **Pre-auth scope Sesión 5** | **A — Story 10 solo (default Tier 3-4 per §7.4)** | Sesión 5 cierra Story 10 únicamente. Stories 10b/11/12/13/14 awaiting per-story ratification next sessions. **Handoff prompt Story 10b** generated al cierre sesión 5 (Chris request explícito). |
+
+#### 7.6.1 Cross-Story precedent inheritance (Stories 10b/11-14 default values)
+
+Decisiones aplicables horizontal heredan default. Re-ratify SOLO si vertical-specific deviation:
+
+| Decisión | Hereda? | Notas |
+|---|---|---|
+| 1 (full big bang vs phases) | No — story-specific | Story 10b puede ser phased si admin tiene módulos múltiples |
+| 2 (fresh DB + purge) | **Sí Stories 11-13** — Vitalia/Comunify/Lupulo bootstrap fresh DBs from scratch | Per §7.5.5 each brand own DB isolated server |
+| 3 (archive AISALESHT) | One-time decision | N/A |
+| 4 (/pm SSoT in luana-platform) | **Sí permanent** | Future stories live there |
+| 5 (match baseline) | **Sí** — default test parity bar | Override only if explicit Chris ratification |
+| 6 (FE workspace member) | **Sí Stories 11-13** — cada brand FE workspace member | Vitalia/Comunify/Lupulo FE viven `nicolify-pattern` |
+| 7 (admin deferred) | Story 10b specific | N/A |
+| 8 (ci-parity root) | **Sí permanent** | Story 11+ heredan automático |
+| 9 (defer 40 failures) | One-time decision Story 10 | Story 14 inherits as scope |
+| 10 (story-only per session) | **Default Tier 3-4** — re-ratify per-session | Pre-auth case-by-case |
+
+#### 7.6.2 Session 5 halt-and-ask triggers (per Chris explicit framing)
+
+Chris explicit mandate: **"si detectas algo que pueda requerir mi intervención paraliza y pregunta"**.
+
+Triggers que escalate Chris durante Fases 1-3 (no proceed sin ratificación):
+
+1. Architect descubre coupling oculto cross-module no documentado en outcome §2 dependencies
+2. Builder import rewrite descubre que un módulo tiene cross-module dependency a otro módulo en grupo DIFERENTE (sharded Wave 1 viola disjoint principle)
+3. Vercel reconfig surface unexpected issue (custom domain, env vars, secrets, build config)
+4. CF tunnel `dev-app.nicolify.com` mapping rompe post-FE-move
+5. Alembic snapshot consolidation surface schema inconsistency (e.g., model definitions ≠ DB state)
+6. Tests pass locally pero ci-parity root falla (env divergence)
+7. Pipeline release-please primer execution falla en GitHub Actions
+8. luana-platform monorepo state inesperado (e.g., uncommitted changes, branch mismatch)
+9. Cumulative cost sesión > $5000 (soft check-in, continuar pero report Chris)
+10. Auditor + 2 auto-fix iter all fail → escalate (no 3rd iter sin Chris)
+
+#### 7.6.3 Session 5 success criteria
+
+Story 10 reaches `done` state when ALL true:
+- BE: imports rewritten `from src.modules.X` → `from luana_core_X` en 26 packages target
+- FE: imports rewritten `@/...` → `@luana/...` + FE workspace member luana-platform
+- Fresh `nicolify_dev` DB + alembic snapshot consolidated + AISALESHT DB dropped
+- Tests BE: same coverage threshold 43% + delta=0 new failures vs baseline
+- Tests FE: same coverage threshold 20% + delta=0 new failures vs baseline
+- Playwright smoke E2E green (Chris journey end-to-end through nicolify app)
+- ci-parity root green (luana-platform/Makefile orchestrates)
+- /pm SSoT migrated to luana-platform/docs/product/ + scripts verified
+- AISALESHT repo archived GitHub UI
+- 07-merge.md + capability promoted + outcome §1 stories_done 10/14 appended
+- Handoff prompt Story 10b generated for Chris next session
 
 ---
 

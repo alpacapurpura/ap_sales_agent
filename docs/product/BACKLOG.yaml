@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T19:19:58+00:00
+# Generated at: 2026-05-12T22:01:21+00:00
 
-generated_at: '2026-05-12T19:19:58+00:00'
+generated_at: '2026-05-12T22:01:21+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -213,6 +213,21 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
+  - id: luana-nicolify-migration
+    kind: story
+    state: refining
+    title: luana-nicolify-migration
+    tags: []
+    last_touched: 2026-05-12
+    extra:
+      outcome: luana-platform-migration
+      phase: PHASE_0_DONE_PHASE_1_PO_SPEC
+      next_action: /po Opus spawn — emit 01-spec.md Gherkin scenarios per surface (BE imports + FE imports + tests + DB strategy
+        + smoke E2E + AISALESHT lifecycle + /pm SSoT migration)
+      blocked_by:
+      - luana-v0-1-0-publish
+      priority_override: null
+      audit_iterations: 0
   refined: []
   ready:
   - id: sales-agent-adversarial-jailbreak-suite
@@ -483,20 +498,6 @@ buckets:
       next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 11, 12, 14
       blocked_by:
       - luana-nicolify-migration
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-nicolify-migration
-    kind: story
-    state: parked
-    title: luana-nicolify-migration
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po-ux opens 01-spec.md after Story 9 done
-      blocked_by:
-      - luana-v0-1-0-publish
       priority_override: null
       audit_iterations: 0
   - id: luana-vitalia-bootstrap

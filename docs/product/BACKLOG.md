@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-12T19:19:58+00:00`
+> Generated at: `2026-05-12T22:01:21+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -16,9 +16,10 @@
 - fix-reconcile-capabilities-script-v4-paradigm `[idea]`
 - sales-agent-dialect-configuration `[story]`
 
-### 🔬 Refining (2 total · 0 cap-eligible / cap 3)
+### 🔬 Refining (3 total · 1 cap-eligible / cap 3)
 - **pi-12-sales-agent-eval-foundation**
 - **pi-3-sales-agent-improvement**
+- **luana-nicolify-migration** — outcome `luana-platform-migration` [PHASE_0_DONE_PHASE_1_PO_SPEC]
 
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
@@ -44,11 +45,10 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (5) · Dropped (4)
+### Parked (4) · Dropped (4)
 - 🅿 growth-studio-visual-coherence-pass
 - 🅿 luana-comunify-bootstrap
 - 🅿 luana-lupulo-bootstrap
-- 🅿 luana-nicolify-migration
 - 🅿 luana-vitalia-bootstrap
 - ❌ ~~agent-bridge-session-injection-fix~~
 - ❌ ~~goldens-archetype-slug-propagation~~
@@ -70,9 +70,10 @@ kanban
     sales-agent-qualification-tool[sales-agent-qualification-toolkit]
     fix-reconcile-capabilities-scr[fix-reconcile-capabilities-script-v4-par]
     sales-agent-dialect-configurat[sales-agent-dialect-configuration]
-  🔬 Refining (2 / cap 3)
+  🔬 Refining (3 / cap 3)
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
+    luana-nicolify-migration[luana-nicolify-migration]
   ✅ Refined (0 / cap 5)
   📦 Ready (4 / cap 5)
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
@@ -88,11 +89,10 @@ kanban
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🅿 Parked (5)
+  🅿 Parked (4)
     growth-studio-visual-coherence[growth-studio-visual-coherence-pass]
     luana-comunify-bootstrap[luana-comunify-bootstrap]
     luana-lupulo-bootstrap[luana-lupulo-bootstrap]
-    luana-nicolify-migration[luana-nicolify-migration]
     luana-vitalia-bootstrap[luana-vitalia-bootstrap]
 ```
 
