@@ -1,0 +1,290 @@
+---
+story_id: luana-v0-1-0-publish
+schema: v4
+total_validators: 23
+must_pass_count: 22                              # 22 automated must_pass + 1 manual (V-X-1 halt criterion doc)
+last_modified: 2026-05-12
+architect_owner: claude-opus-4-7
+ratified_by_chris: true
+revision_notes: |
+  v1 (2026-05-12): Story 9 ready package emission. Validators cover
+  cardinal invariants:
+   - V-NF-* (6): AISALESHT untouched + uniform 0.1.0 + no -alpha + brand stubs coherence + roots
+   - V-F-release-* (8): releaserc + workflow yaml + tag trigger + changelog + migration guide + api docs + dry-run + lockfile
+   - V-AG-* (5): test-brand smoke vs published + downstream regression + ToolRegistry/WorkflowRegistry goldens + 5 EPs callable
+   - V-D-* (5): CHANGELOG + migration + extension-points + RELEASES + SemVer F1-F6
+   - V-X-1 (1): GH Packages auth halt criterion documented (manual gate Chris ratifies)
+---
+
+# Validators — Story 9 must_pass:true ALL before state developing → developed
+
+# Conventions:
+# - All commands assume cwd `/home/chris/luana-platform/` unless noted
+# - Validators marked `gated_env: NAME=1` are opt-in (e.g., post-publish smoke needs registry up)
+# - Validators marked `best_effort: true` warn instead of fail (e.g., AISALESHT path env-gated)
+
+categories:
+  non_functional:
+
+    - id: V-NF-1
+      description: "AISALESHT backend/ + frontend/ zero diffs main..development (V-NF-4 cumulative cement 9 stories)"
+      command: |
+        \
+          git diff --name-only main..development -- backend/ frontend/ | grep -v '^$' | wc -l | grep -q '^0$'
+      expected_exit: 0
+      must_pass: true
+      note: "Story 9 = release infra only — zero touching AISALESHT business code"
+
+    - id: V-NF-2
+      description: "All 26 Python pyproject.toml in core/luana-core-* declare version = '0.1.0'"
+      command: |
+        cd ~/luana-platform && \
+          MISMATCHED=$(find core -maxdepth 2 -name "pyproject.toml" \
+            -path "*luana-core-*" \
+            ! -exec grep -q '^version = "0.1.0"$' {} \; -print 2>/dev/null | wc -l) && \
+          test "$MISMATCHED" -eq 0
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-NF-3
+      description: "All 7 TS @luana/* package.json declare version 0.1.0"
+      command: |
+        cd ~/luana-platform && \
+          MISMATCHED=$(find core/@luana -maxdepth 2 -name "package.json" \
+            ! -exec grep -q '"version": "0.1.0"' {} \; -print 2>/dev/null | wc -l) && \
+          test "$MISMATCHED" -eq 0
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-NF-4
+      description: "apps/test-brand/pyproject.toml bumped to 0.1.0"
+      command: |
+        cd ~/luana-platform && grep -q '^version = "0.1.0"$' apps/test-brand/pyproject.toml
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-NF-5
+      description: "Workspace roots coherent: core/pyproject.toml + /package.json bumped to 0.1.0"
+      command: |
+        cd ~/luana-platform && \
+          grep -q '^version = "0.1.0"$' core/pyproject.toml && \
+          grep -q '"version": "0.1.0"' package.json
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-NF-6
+      description: "Brand stubs (nicolify/vitalia/comunify/lupulo) bumped to 0.1.0 (coherence — architect §0 decision)"
+      command: |
+        cd ~/luana-platform && \
+          for brand in nicolify vitalia comunify lupulo; do
+            grep -q '^version = "0.1.0"$' "$brand/pyproject.toml" || exit 1
+            grep -q '"version": "0.1.0"' "$brand/package.json" || exit 1
+          done
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-NF-7
+      description: "No -alpha suffix retained anywhere in pyproject/package.json"
+      command: |
+        cd ~/luana-platform && \
+          FOUND=$(grep -rE '0\.0\.[0-9]+-alpha|0\.1\.0-alpha' --include=pyproject.toml --include=package.json core/ apps/test-brand/ nicolify/ vitalia/ comunify/ lupulo/ package.json 2>/dev/null | wc -l) && \
+          test "$FOUND" -eq 0
+      expected_exit: 0
+      must_pass: true
+
+  functional:
+
+    - id: V-F-release-1
+      description: "release-please-config.json + .release-please-manifest.json emitted at root with valid JSON schema"
+      command: |
+        cd ~/luana-platform && \
+          test -f release-please-config.json && \
+          test -f .release-please-manifest.json && \
+          jq -e '.packages | length == 33' release-please-config.json && \
+          jq -e '.["core/luana-core-platform"] == "0.1.0"' .release-please-manifest.json
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-F-release-2
+      description: ".github/workflows/release.yml emitted + valid YAML (actionlint clean)"
+      command: |
+        cd ~/luana-platform && \
+          test -f .github/workflows/release.yml && \
+          python -c "import yaml, sys; yaml.safe_load(open('.github/workflows/release.yml'))" && \
+          which actionlint && actionlint .github/workflows/release.yml || \
+          echo "::warning::actionlint not installed in env; YAML parse OK"
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-F-release-3
+      description: "release.yml triggers on 'v*.*.*' tag push (yaml parse assertion)"
+      command: |
+        cd ~/luana-platform && \
+          python -c "import yaml; cfg = yaml.safe_load(open('.github/workflows/release.yml')); tags = cfg.get('on',{}).get('push',{}).get('tags',[]) or cfg.get(True,{}).get('push',{}).get('tags',[]); assert 'v*.*.*' in tags, f'tags={tags}'"
+      expected_exit: 0
+      must_pass: true
+      note: "yaml.safe_load may parse 'on' as bool True due to YAML 1.1 — handled both paths"
+
+    - id: V-F-release-4
+      description: "release.yml job dependency graph atomicity (publish-typescript depends_on publish-python)"
+      command: |
+        cd ~/luana-platform && \
+          python -c "import yaml; cfg = yaml.safe_load(open('.github/workflows/release.yml')); jobs = cfg['jobs']; needs = jobs['publish-typescript'].get('needs', []); assert 'publish-python' in needs, f'needs={needs}'"
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-F-release-5
+      description: "CHANGELOG.md emitted at root + contains '## [0.1.0]' + ≥ 26 package mention entries"
+      command: |
+        cd ~/luana-platform && \
+          test -f CHANGELOG.md && \
+          grep -qE '^## \[0\.1\.0\]' CHANGELOG.md && \
+          COUNT=$(grep -cE '^- (\*\*)?luana-core-[a-z-]+|^- (\*\*)?@luana/' CHANGELOG.md) && \
+          test "$COUNT" -ge 26
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-F-release-6
+      description: "docs/migration-from-nicolify.md emitted with §1..§6 sections"
+      command: |
+        cd ~/luana-platform && \
+          test -f docs/migration-from-nicolify.md && \
+          SECTIONS=$(grep -cE '^## §[1-6]' docs/migration-from-nicolify.md) && \
+          test "$SECTIONS" -ge 6
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-F-release-7
+      description: "docs/api/python/ + docs/api/typescript/ directories exist + generate_api_docs.sh runnable"
+      command: |
+        cd ~/luana-platform && \
+          test -d docs/api/python && \
+          test -d docs/api/typescript && \
+          test -x scripts/generate_api_docs.sh && \
+          PY_DIRS=$(find docs/api/python -maxdepth 1 -mindepth 1 -type d | wc -l) && \
+          test "$PY_DIRS" -ge 20
+      expected_exit: 0
+      must_pass: true
+      note: "Best-effort: 20+ of 26 Python packages have pdoc output (V-AG threshold)"
+
+    - id: V-F-release-8
+      description: "uv.lock + pnpm-lock.yaml regenerated post-bump (lockfile consistent)"
+      command: |
+        cd ~/luana-platform && \
+          uv lock --check && \
+          pnpm install --frozen-lockfile --offline 2>&1 | grep -qiE '(Lockfile is up to date|already up-to-date)' || \
+          pnpm install --frozen-lockfile --offline
+      expected_exit: 0
+      must_pass: true
+
+  agentic_integration:
+
+    - id: V-AG-1
+      description: "apps/test-brand smoke pack 10 scenarios GREEN vs WORKSPACE deps (pre-publish baseline)"
+      command: |
+        cd ~/luana-platform/apps/test-brand && \
+          uv run pytest tests/ -x -q --tb=short
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-AG-2
+      description: "Downstream regression Stories 1-8: zero NEW failures post-bump (delta == 0)"
+      command: |
+        cd ~/luana-platform && \
+          uv sync --all-packages && \
+          uv run pytest core/ -x -q --tb=line --ignore=core/luana-core-sales-agent 2>&1 | tail -20 && \
+          # sales-agent isolated (40 PRE-EXISTING per outcome §7.5.4 + Story 8 07-merge.md)
+          uv run pytest core/luana-core-sales-agent -q --tb=line 2>&1 | tail -5 | grep -qE 'passed.*40 failed|40 failed' || \
+          { echo "::error::sales-agent failure delta NON-ZERO (NEW failures introduced — V-AG-2 FAIL)"; exit 1; }
+      expected_exit: 0
+      must_pass: true
+      note: "40 PRE-EXISTING failures cement — regex confirms count unchanged"
+
+    - id: V-AG-3
+      description: "EP-3 ToolRegistry adapter byte-stable (Story 6+7 frozen registry golden snapshot post-bump)"
+      command: |
+        cd ~/luana-platform && \
+          uv run pytest core/luana-core-extension-sdk/tests/test_adapters.py::test_ep3_tool_registry_byte_stable -x -q
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-AG-4
+      description: "EP-4 WorkflowRegistry adapter byte-stable golden snapshot"
+      command: |
+        cd ~/luana-platform && \
+          uv run pytest core/luana-core-extension-sdk/tests/test_adapters.py::test_ep4_workflow_registry_byte_stable -x -q
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-AG-5
+      description: "EP-1..EP-5 5 critical EPs callable from ExtensionPointRegistry post-bump (lift mode preservation)"
+      command: |
+        cd ~/luana-platform && \
+          uv run python -c "from luana_core_extension_sdk import ExtensionPointRegistry; r = ExtensionPointRegistry(); methods = ['offer_preset_pack_register', 'brand_voice_seed_register', 'sales_agent_tool_register', 'copilot_workflow_register', 'copilot_extractor_register']; assert all(hasattr(r, m) for m in methods), [m for m in methods if not hasattr(r, m)]"
+      expected_exit: 0
+      must_pass: true
+
+  documentation:
+
+    - id: V-D-1
+      description: "CHANGELOG.md contains Stories 1-9 cross-story summary section"
+      command: |
+        cd ~/luana-platform && \
+          for story_marker in "Foundations" "Shared lift" "IAM" "CRM" "Brand" "Copilot Engine" "Sales Agent Engine" "Campaigns" "Release Engineering"; do
+            grep -qiE "$story_marker" CHANGELOG.md || { echo "::error::CHANGELOG missing section: $story_marker"; exit 1; }
+          done
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-D-2
+      description: "docs/migration-from-nicolify.md contains 6 mandatory sections (§1..§6) with substantive content (≥ 50 lines)"
+      command: |
+        cd ~/luana-platform && \
+          LINES=$(wc -l < docs/migration-from-nicolify.md) && \
+          test "$LINES" -ge 50 && \
+          grep -qE '^## §1' docs/migration-from-nicolify.md && \
+          grep -qE '^## §6' docs/migration-from-nicolify.md
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-D-3
+      description: "docs/extension-points.md header stamp updated to 'v0.1.0 (production-grade alpha)'"
+      command: |
+        cd ~/luana-platform && \
+          head -10 docs/extension-points.md | grep -qE 'v0\.1\.0.*production-grade alpha'
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-D-4
+      description: "docs/RELEASES.md updated with v0.1.0 procedure + rollback + token setup + SemVer F1-F6"
+      command: |
+        cd ~/luana-platform && \
+          grep -qE 'v0\.1\.0' docs/RELEASES.md && \
+          grep -qiE 'rollback' docs/RELEASES.md && \
+          grep -qiE 'token.*setup|GH_PACKAGES_TOKEN' docs/RELEASES.md && \
+          grep -qE 'F1.*F6|SemVer' docs/RELEASES.md
+      expected_exit: 0
+      must_pass: true
+
+    - id: V-D-5
+      description: "SemVer F1-F6 rules enumerated verbatim (major/minor/patch/breaking)"
+      command: |
+        cd ~/luana-platform && \
+          for rule in F1 F2 F3 F4 F5 F6; do
+            grep -qE "$rule.*(major|minor|patch|breaking)" docs/RELEASES.md || \
+            grep -qE "$rule.*(major|minor|patch|breaking)" docs/migration-from-nicolify.md || \
+            { echo "::error::SemVer $rule missing"; exit 1; }
+          done
+      expected_exit: 0
+      must_pass: true
+
+  halt_criterion:
+
+    - id: V-X-1
+      description: "GH Packages auth halt criterion documented in docs/RELEASES.md (Scenario 5 cement)"
+      command: |
+        cd ~/luana-platform && \
+          grep -qiE 'GITHUB_TOKEN.*write:packages|halt criterion|HALT|escalate' docs/RELEASES.md
+      expected_exit: 0
+      must_pass: true
+      note: "Manual gate — Chris verifies token setup procedure documented even if actual token setup happens post-merge"

@@ -1,0 +1,690 @@
+---
+story_id: luana-v0-1-0-publish
+tickets_version: 1
+total_tickets: 5
+ratified_by_chris: true
+last_modified: 2026-05-12
+architect_owner: claude-opus-4-7
+notes: |
+  5 tickets, all Sonnet eligible. Linear DAG: T-1 → T-2 → T-3 → T-4 → T-5.
+  T-2 + T-3 could parallelize logically (independent surfaces) but
+  Story 9 sequential autonomous per session 4 pre-auth — keep linear
+  for clarity and single Claude execution. Architect chose finer atomicity
+  over batch consolidation for parity with Story 8 ticket granularity.
+---
+
+# Tickets — Story 9: Luana v0.1.0 release pipeline
+
+# All work in /home/chris/luana-platform/ (separate monorepo).
+# AISALESHT edits ONLY for Story 9 SSoT artifacts (impl-logs, checkpoint, outcome state).
+# All tickets Sonnet eligible (production_code=false per checkpoint binding_decisions).
+
+tickets:
+
+  - id: T-1
+    subject: "Workspace version bumps cross-package + lockfile regen"
+    description: |
+      **Scope:** Mechanical bump of 33 publishable packages + workspace roots + brand stubs
+      from current heterogeneous `0.0.x-alpha` states to uniform `0.1.0`. Idempotent sed/jq.
+
+      **Steps:**
+
+      1. Audit current state:
+         ```bash
+         cd ~/luana-platform
+         find core/ apps/test-brand/ nicolify/ vitalia/ comunify/ lupulo/ -maxdepth 2 \
+           \( -name "pyproject.toml" -o -name "package.json" \) -print | \
+           xargs grep -l "0.0.[0-9]*-alpha" | sort
+         ```
+         Confirm match with 03-arch-be.md §1 inventory: 26 Python core/ + 1 core/pyproject.toml + 1 test-brand + 4 brand stubs (8 files) + 7 TS @luana/* + 5 brand stubs package.json + root package.json = ~52 files.
+
+      2. Python bumps (idempotent sed):
+         ```bash
+         find core/ apps/test-brand/ nicolify/ vitalia/ comunify/ lupulo/ -maxdepth 2 \
+           -name "pyproject.toml" \
+           -exec sed -i -E 's/^version = "0\.0\.[0-9]+-alpha"$/version = "0.1.0"/' {} \;
+         ```
+
+      3. TS bumps:
+         ```bash
+         # @luana scope via pnpm
+         pnpm -r --filter "./core/@luana/*" exec npm version 0.1.0 \
+           --no-git-tag-version --allow-same-version
+
+         # Brand stubs + root via jq (idempotent atomic write)
+         for pkgjson in nicolify/package.json vitalia/package.json \
+                        comunify/package.json lupulo/package.json package.json; do
+           jq '.version = "0.1.0"' "$pkgjson" > "${pkgjson}.tmp" && \
+             mv "${pkgjson}.tmp" "$pkgjson"
+         done
+         ```
+
+      4. Add `publishConfig` to @luana/* package.json if missing (release infra prep):
+         ```bash
+         for pkgjson in core/@luana/*/package.json; do
+           if ! jq -e '.publishConfig.registry' "$pkgjson" > /dev/null; then
+             jq '.publishConfig = {"registry": "https://npm.pkg.github.com/"}' \
+               "$pkgjson" > "${pkgjson}.tmp" && mv "${pkgjson}.tmp" "$pkgjson"
+           fi
+         done
+         ```
+
+      5. Lockfile regen:
+         ```bash
+         uv lock --upgrade
+         pnpm install --lockfile-only
+         ```
+
+      6. Verify:
+         ```bash
+         find . -maxdepth 3 \( -name "pyproject.toml" -o -name "package.json" \) \
+           ! -path "*/node_modules/*" ! -path "*/dist/*" -exec grep -l "0.0.[0-9]*-alpha" {} \;
+         # Expected: empty (no -alpha remaining)
+         ```
+
+      7. Stage + commit:
+         ```bash
+         git add core/ apps/ nicolify/ vitalia/ comunify/ lupulo/ package.json uv.lock pnpm-lock.yaml
+         git commit -m "chore(workspace): bump 33 packages 0.0.x-alpha → 0.1.0
+
+         Uniform version cement per Story 9 release pipeline. SemVer real flip
+         post outcome §7.5.2 D4=C. Lockfiles regen. publishConfig added to
+         @luana/* TS packages (GitHub Packages npm registry).
+
+         Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+         git push origin main
+         ```
+
+      **Idempotency:** re-running T-1 = no-op (sed regex no longer matches).
+    files:
+      - "core/pyproject.toml"
+      - "core/luana-core-platform/pyproject.toml"
+      - "core/luana-core-llm/pyproject.toml"
+      - "core/luana-core-channels/pyproject.toml"
+      - "core/luana-core-idempotency/pyproject.toml"
+      - "core/luana-core-observability/pyproject.toml"
+      - "core/luana-core-events/pyproject.toml"
+      - "core/luana-core-extraction/pyproject.toml"
+      - "core/luana-core-compliance/pyproject.toml"
+      - "core/luana-core-billing/pyproject.toml"
+      - "core/luana-core-iam/pyproject.toml"
+      - "core/luana-core-tenant-profile/pyproject.toml"
+      - "core/luana-core-tenant-domains/pyproject.toml"
+      - "core/luana-core-commercial-calendar/pyproject.toml"
+      - "core/luana-core-social-proof/pyproject.toml"
+      - "core/luana-core-assets/pyproject.toml"
+      - "core/luana-core-crm/pyproject.toml"
+      - "core/luana-core-analytics-engine/pyproject.toml"
+      - "core/luana-core-landing/pyproject.toml"
+      - "core/luana-core-connections/pyproject.toml"
+      - "core/luana-core-brand-studio/pyproject.toml"
+      - "core/luana-core-offer-studio/pyproject.toml"
+      - "core/luana-core-copilot/pyproject.toml"
+      - "core/luana-core-sales-agent/pyproject.toml"
+      - "core/luana-core-campaigns/pyproject.toml"
+      - "core/luana-core-extension-sdk/pyproject.toml"
+      - "apps/test-brand/pyproject.toml"
+      - "core/@luana/api-client/package.json"
+      - "core/@luana/design-tokens/package.json"
+      - "core/@luana/extension-sdk/package.json"
+      - "core/@luana/format/package.json"
+      - "core/@luana/hooks/package.json"
+      - "core/@luana/schemas/package.json"
+      - "core/@luana/ui-kit/package.json"
+      - "nicolify/pyproject.toml"
+      - "nicolify/package.json"
+      - "vitalia/pyproject.toml"
+      - "vitalia/package.json"
+      - "comunify/pyproject.toml"
+      - "comunify/package.json"
+      - "lupulo/pyproject.toml"
+      - "lupulo/package.json"
+      - "package.json"
+      - "uv.lock"
+      - "pnpm-lock.yaml"
+    blocked_by: []
+    blocks: [T-2, T-3, T-4]
+    estimated_minutes: 60
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    validators_addressed: [V-NF-2, V-NF-3, V-NF-4, V-NF-5, V-NF-6, V-NF-7, V-F-release-8]
+
+  - id: T-2
+    subject: "Release infra: .github/workflows/release.yml + release-please-config.json + .release-please-manifest.json + commitlint.config.cjs seed"
+    description: |
+      **Scope:** Emit GitHub Actions release workflow + release-please monorepo config.
+      Tag-triggered, fail-fast atomicity, dual auth path (GITHUB_TOKEN OR GH_PACKAGES_TOKEN).
+
+      **Steps:**
+
+      1. Create `.github/workflows/release.yml` per 03-arch.md §3 verbatim YAML.
+         Verify shape:
+         - Trigger: `on.push.tags: ['v*.*.*']`
+         - Jobs: `validate-tag, build-python, build-typescript, publish-python, publish-typescript, create-github-release, smoke-test-published`
+         - `publish-typescript` depends_on `publish-python` (atomicity)
+         - Each job has `timeout-minutes`
+         - Secrets ref: `${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}`
+
+      2. Create `release-please-config.json` per 03-arch.md §4 verbatim JSON.
+         33 packages enumerated. `linked-versions` plugin.
+
+      3. Create `.release-please-manifest.json` with 33 entries all at `0.1.0`.
+
+      4. Create `commitlint.config.cjs` seed (per 05-guidelines §1.4):
+         ```js
+         module.exports = {
+           extends: ['@commitlint/config-conventional'],
+           rules: {
+             'subject-case': [0],
+             'subject-max-length': [2, 'always', 100],
+           },
+         };
+         ```
+         (Active enforcement deferred Story 10+ — Story 9 emits seed only.)
+
+      5. Lint:
+         ```bash
+         # If actionlint available
+         actionlint .github/workflows/release.yml || \
+           echo "::warning::actionlint not installed (validator V-F-release-2 has fallback)"
+         # Python yaml.safe_load fallback
+         python -c "import yaml; yaml.safe_load(open('.github/workflows/release.yml'))"
+         # Schema check
+         jq -e '.packages | length == 33' release-please-config.json
+         ```
+
+      6. Commit:
+         ```bash
+         git add .github/workflows/release.yml release-please-config.json \
+                 .release-please-manifest.json commitlint.config.cjs
+         git commit -m "feat(release): introduce GH Packages publish pipeline
+
+         release.yml workflow (tag-triggered v*.*.*) + release-please config
+         (33 packages monorepo linked-versions). commitlint seed (active v0.2.0+).
+
+         Dual auth: GH_PACKAGES_TOKEN || GITHUB_TOKEN fallback.
+
+         Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+         git push origin main
+         ```
+    files:
+      - ".github/workflows/release.yml"
+      - "release-please-config.json"
+      - ".release-please-manifest.json"
+      - "commitlint.config.cjs"
+    blocked_by: [T-1]
+    blocks: [T-4]
+    estimated_minutes: 75
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    validators_addressed: [V-F-release-1, V-F-release-2, V-F-release-3, V-F-release-4]
+
+  - id: T-3
+    subject: "Docs deliverables: CHANGELOG.md + migration-from-nicolify.md + docs/api/ auto-gen + RELEASES update + extension-points header stamp + scripts/"
+    description: |
+      **Scope:** Cross-package CHANGELOG seed + consumer migration guide + API reference
+      auto-gen scripts + RELEASES.md extension + extension-points.md header stamp + smoke
+      script + rollback script.
+
+      **Steps:**
+
+      1. Emit `CHANGELOG.md` (root, ~150 lines) per 03-arch.md §7 verbatim seed.
+         Sections: Stories 1-9 entries + "Known issues" + Migration ref + tagref.
+
+      2. Emit `docs/migration-from-nicolify.md` (~150-200 lines) per 03-arch.md §8 verbatim outline.
+         §1 Audience, §2 Pre-migration checklist, §3 Import mapping, §4 Dep installation,
+         §5 Extension SDK consumer pattern, §6 Troubleshooting.
+         **Spanish neutro LatAm tuteo** per 05-guidelines §1.5.
+
+      3. Create `scripts/generate_api_docs.sh` per 03-arch-be.md §4.1:
+         - pdoc per core/luana-core-* (output docs/api/python/{pkg}/)
+         - typedoc monorepo (output docs/api/typescript/)
+         - chmod +x
+
+      4. Run `scripts/generate_api_docs.sh` to populate `docs/api/`:
+         ```bash
+         bash scripts/generate_api_docs.sh
+         ```
+         Best-effort: per-package failures emit warnings, script continues. Target ≥ 20 of 26
+         Python packages have output (V-F-release-7 threshold).
+
+      5. Create `scripts/publish_smoke_test.sh` per 03-arch.md §6 verbatim bash.
+         chmod +x.
+
+      6. Create `scripts/rollback_partial_publish.sh`:
+         ```bash
+         #!/bin/bash
+         set -euo pipefail
+         VERSION="${1:?Usage: rollback_partial_publish.sh VERSION}"
+
+         echo "Rolling back partial publish of v${VERSION}"
+         echo "WARNING: this deletes published packages from GH Packages registry."
+         read -p "Proceed? [yes/no]: " CONFIRM
+         [ "$CONFIRM" = "yes" ] || exit 0
+
+         # Delete Python packages
+         for pkg in luana-core-platform luana-core-llm luana-core-channels \
+                    luana-core-idempotency luana-core-observability luana-core-events \
+                    luana-core-extraction luana-core-compliance luana-core-billing \
+                    luana-core-iam luana-core-tenant-profile luana-core-tenant-domains \
+                    luana-core-commercial-calendar luana-core-social-proof luana-core-assets \
+                    luana-core-crm luana-core-analytics-engine luana-core-landing \
+                    luana-core-connections luana-core-brand-studio luana-core-offer-studio \
+                    luana-core-copilot luana-core-sales-agent luana-core-campaigns \
+                    luana-core-extension-sdk; do
+           VERSIONS=$(gh api "/orgs/alpacapurpura/packages/pypi/${pkg}/versions" \
+             --jq '.[] | select(.name == "'${VERSION}'") | .id' 2>/dev/null || echo "")
+           for vid in $VERSIONS; do
+             gh api -X DELETE "/orgs/alpacapurpura/packages/pypi/${pkg}/versions/${vid}"
+             echo "Deleted $pkg@${VERSION}"
+           done
+         done
+
+         # Delete TS packages
+         for pkg in api-client design-tokens extension-sdk format hooks schemas ui-kit; do
+           VERSIONS=$(gh api "/orgs/alpacapurpura/packages/npm/${pkg}/versions" \
+             --jq '.[] | select(.name == "'${VERSION}'") | .id' 2>/dev/null || echo "")
+           for vid in $VERSIONS; do
+             gh api -X DELETE "/orgs/alpacapurpura/packages/npm/${pkg}/versions/${vid}"
+             echo "Deleted @luana/$pkg@${VERSION}"
+           done
+         done
+
+         echo "Rollback complete. Delete tag locally + remote, then retry release after fix."
+         ```
+         chmod +x.
+
+      7. EXTEND `docs/RELEASES.md`: append sections after existing placeholder content:
+         - "## Release v0.1.0 (2026-05-XX) — first publication"
+         - "## Token setup (GH Packages auth)" — both `GITHUB_TOKEN` default + `GH_PACKAGES_TOKEN` PAT paths
+         - "## SemVer F1-F6 cement" — verbatim table from 01-spec.md §11
+         - "## Manual first-tag procedure" — `git tag v0.1.0 && git push origin v0.1.0` + post-tag verification
+         - "## Rollback procedure" — reference `scripts/rollback_partial_publish.sh`
+         - "## Halt criteria" — Scenario 5 + 6 cement (per 03-arch.md §17)
+
+      8. EXTEND `docs/extension-points.md`: update header line 3:
+         ```diff
+         -> **Versión:** v0.1.0 (alpha) · **Fecha:** 2026-05-12 · **Owner:** luana-core-extension-sdk
+         +> **Versión:** v0.1.0 (production-grade alpha) · **Fecha:** 2026-05-XX · **Owner:** luana-core-extension-sdk
+         ```
+
+      9. Commit:
+         ```bash
+         git add CHANGELOG.md docs/migration-from-nicolify.md docs/RELEASES.md \
+                 docs/extension-points.md docs/api/ scripts/
+         git commit -m "docs(release): emit CHANGELOG + migration guide + API docs + RELEASES v0.1.0 procedure
+
+         Cross-package CHANGELOG (Stories 1-9). Spanish neutro tuteo migration guide
+         (§1-§6 consumer playbook). pdoc + typedoc auto-gen scripts. RELEASES.md
+         extended with v0.1.0 procedure + token setup + SemVer F1-F6 cement +
+         rollback procedure + halt criteria. extension-points header v0.1.0 stamp.
+
+         Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+         git push origin main
+         ```
+    files:
+      - "CHANGELOG.md"
+      - "docs/migration-from-nicolify.md"
+      - "docs/RELEASES.md"
+      - "docs/extension-points.md"
+      - "docs/api/python/"
+      - "docs/api/typescript/"
+      - "scripts/generate_api_docs.sh"
+      - "scripts/publish_smoke_test.sh"
+      - "scripts/rollback_partial_publish.sh"
+    blocked_by: [T-1]
+    blocks: [T-4]
+    estimated_minutes: 90
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    validators_addressed: [V-F-release-5, V-F-release-6, V-F-release-7, V-D-1, V-D-2, V-D-3, V-D-4, V-D-5, V-X-1]
+
+  - id: T-4
+    subject: "Arch fitness tests Story 9 (workspace versions + workflow YAML + releaserc + docs deliverables + AISALESHT guard)"
+    description: |
+      **Scope:** Emit 5 new arch fitness tests cementing Story 9 invariants. TDD: write RED test
+      first (would fail without T-1/T-2/T-3 deliverables), then re-run GREEN after T-1+T-2+T-3.
+
+      **Tests to write:**
+
+      1. `tests/architecture/test_workspace_versions_uniform_at_v0_1_0.py`:
+         ```python
+         import re
+         from pathlib import Path
+
+         ROOT = Path(__file__).resolve().parents[2]
+
+         def test_all_python_packages_at_0_1_0():
+             """V-NF-2: all 26 luana-core-* + test-brand + brand stubs pyproject at 0.1.0."""
+             pyprojects = list((ROOT / "core").glob("luana-core-*/pyproject.toml"))
+             pyprojects += [ROOT / "apps/test-brand/pyproject.toml"]
+             pyprojects += [ROOT / brand / "pyproject.toml" for brand in ["nicolify", "vitalia", "comunify", "lupulo"]]
+             pyprojects.append(ROOT / "core/pyproject.toml")
+             assert len(pyprojects) >= 31, f"only {len(pyprojects)} pyprojects found"
+             for path in pyprojects:
+                 content = path.read_text()
+                 match = re.search(r'^version = "(.+?)"$', content, re.MULTILINE)
+                 assert match, f"no version in {path}"
+                 assert match.group(1) == "0.1.0", f"{path}: version={match.group(1)} (expected 0.1.0)"
+
+         def test_all_typescript_packages_at_0_1_0():
+             """V-NF-3 + V-NF-6: all 7 @luana/* + brand stubs + root package.json at 0.1.0."""
+             import json
+             pkgjsons = list((ROOT / "core/@luana").glob("*/package.json"))
+             pkgjsons += [ROOT / brand / "package.json" for brand in ["nicolify", "vitalia", "comunify", "lupulo"]]
+             pkgjsons.append(ROOT / "package.json")
+             for path in pkgjsons:
+                 data = json.loads(path.read_text())
+                 assert data["version"] == "0.1.0", f"{path}: version={data['version']}"
+
+         def test_no_alpha_suffix_anywhere():
+             """V-NF-7: no -alpha substring in version fields."""
+             for path in (ROOT / "core").rglob("pyproject.toml"):
+                 if "node_modules" in str(path) or "dist" in str(path):
+                     continue
+                 content = path.read_text()
+                 match = re.search(r'^version = "(.+?)"$', content, re.MULTILINE)
+                 if match:
+                     assert "-alpha" not in match.group(1), f"{path}: -alpha suffix retained"
+         ```
+
+      2. `tests/architecture/test_release_workflow_yaml_valid.py`:
+         ```python
+         import yaml
+         from pathlib import Path
+         ROOT = Path(__file__).resolve().parents[2]
+
+         def _load_workflow():
+             with open(ROOT / ".github/workflows/release.yml") as f:
+                 return yaml.safe_load(f)
+
+         def test_release_workflow_triggers_on_tag():
+             """V-F-release-3: release.yml triggers on v*.*.* tag push."""
+             cfg = _load_workflow()
+             # YAML 1.1 'on' may parse as True (Python bool)
+             trigger = cfg.get("on") or cfg.get(True)
+             tags = trigger["push"]["tags"]
+             assert "v*.*.*" in tags, f"tags={tags}"
+
+         def test_release_workflow_atomicity_publish_dependency():
+             """V-F-release-4: publish-typescript depends on publish-python (atomicity)."""
+             cfg = _load_workflow()
+             needs = cfg["jobs"]["publish-typescript"].get("needs", [])
+             needs_list = [needs] if isinstance(needs, str) else list(needs)
+             assert "publish-python" in needs_list, f"needs={needs_list}"
+
+         def test_release_workflow_required_jobs_present():
+             """V-F-release-2: all critical jobs declared."""
+             cfg = _load_workflow()
+             jobs = cfg["jobs"].keys()
+             required = ["validate-tag", "build-python", "build-typescript", "publish-python", "publish-typescript", "create-github-release"]
+             for job in required:
+                 assert job in jobs, f"missing job: {job}"
+         ```
+
+      3. `tests/architecture/test_releaserc_config_valid.py`:
+         ```python
+         import json
+         from pathlib import Path
+         ROOT = Path(__file__).resolve().parents[2]
+
+         def test_release_please_config_has_33_packages():
+             cfg = json.loads((ROOT / "release-please-config.json").read_text())
+             assert len(cfg["packages"]) == 33, f"got {len(cfg['packages'])} packages"
+
+         def test_release_please_manifest_seeded_at_0_1_0():
+             m = json.loads((ROOT / ".release-please-manifest.json").read_text())
+             assert all(v == "0.1.0" for v in m.values()), f"non-uniform: {m}"
+         ```
+
+      4. `tests/architecture/test_docs_v0_1_0_deliverables_present.py`:
+         ```python
+         from pathlib import Path
+         import re
+         ROOT = Path(__file__).resolve().parents[2]
+
+         def test_changelog_has_v0_1_0_section():
+             content = (ROOT / "CHANGELOG.md").read_text()
+             assert re.search(r"^## \[0\.1\.0\]", content, re.MULTILINE), "missing ## [0.1.0]"
+             count = len(re.findall(r"^- (\*\*)?luana-core-[a-z-]+|^- (\*\*)?@luana/", content, re.MULTILINE))
+             assert count >= 26, f"only {count} package entries"
+
+         def test_migration_guide_has_6_sections():
+             content = (ROOT / "docs/migration-from-nicolify.md").read_text()
+             sections = re.findall(r"^## §[1-6]", content, re.MULTILINE)
+             assert len(set(sections)) == 6, f"sections={sections}"
+
+         def test_api_docs_directories_populated():
+             py_dir = ROOT / "docs/api/python"
+             ts_dir = ROOT / "docs/api/typescript"
+             assert py_dir.is_dir(), "docs/api/python missing"
+             assert ts_dir.is_dir(), "docs/api/typescript missing"
+             py_pkgs = [p for p in py_dir.iterdir() if p.is_dir()]
+             assert len(py_pkgs) >= 20, f"only {len(py_pkgs)} python pkgs documented"
+
+         def test_extension_points_header_bumped():
+             content = (ROOT / "docs/extension-points.md").read_text()
+             assert "v0.1.0 (production-grade alpha)" in content, "header not bumped"
+
+         def test_releases_md_has_v0_1_0_procedure():
+             content = (ROOT / "docs/RELEASES.md").read_text()
+             assert re.search(r"v0\.1\.0", content), "no v0.1.0 reference"
+             assert re.search(r"(?i)(rollback)", content), "no rollback procedure"
+             assert re.search(r"(?i)(GITHUB_TOKEN|GH_PACKAGES_TOKEN)", content), "no token setup"
+             assert re.search(r"F1.*F6|SemVer", content), "no SemVer F1-F6"
+         ```
+
+      5. `tests/architecture/test_aisaleshT_untouched_story_9.py`:
+         ```python
+         import os
+         import subprocess
+         import pytest
+
+         AISALESHT_PATH = os.environ.get("AISALESHT_PATH", "/home/chris/AISALESHT")
+
+         @pytest.mark.skipif(
+             not os.path.isdir(AISALESHT_PATH),
+             reason="AISALESHT_PATH not set or not accessible — best-effort guard"
+         )
+         def test_aisaleshT_business_code_untouched():
+             """V-NF-1: business code (backend/ + frontend/) zero diff main..development."""
+             result = subprocess.run(
+                 ["git", "diff", "--name-only", "main..development", "--", "backend/", "frontend/"],
+                 cwd=AISALESHT_PATH,
+                 capture_output=True,
+                 text=True,
+                 check=False,
+             )
+             diff_files = [l for l in result.stdout.strip().split("\n") if l]
+             assert not diff_files, f"AISALESHT business code touched: {diff_files}"
+         ```
+
+      **Run + verify:**
+      ```bash
+      cd ~/luana-platform && uv run pytest tests/architecture/ -x -q --tb=short
+      # All 5 new tests GREEN (plus any existing Story 1-8 arch fitness tests in dir)
+      ```
+
+      **Commit:**
+      ```bash
+      git add tests/architecture/test_workspace_versions_uniform_at_v0_1_0.py \
+              tests/architecture/test_release_workflow_yaml_valid.py \
+              tests/architecture/test_releaserc_config_valid.py \
+              tests/architecture/test_docs_v0_1_0_deliverables_present.py \
+              tests/architecture/test_aisaleshT_untouched_story_9.py
+      git commit -m "test(arch-fitness): cement Story 9 invariants
+
+      5 new arch fitness tests:
+      - workspace versions uniform 0.1.0 (33 packages)
+      - release.yml YAML structural (trigger + atomicity + jobs)
+      - release-please-config 33 packages + manifest seeded
+      - 5 docs deliverables present (CHANGELOG + migration + api + RELEASES + extension-points)
+      - AISALESHT business code untouched (V-NF-1 best-effort guard env-gated)
+
+      Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+      git push origin main
+      ```
+    files:
+      - "tests/architecture/test_workspace_versions_uniform_at_v0_1_0.py"
+      - "tests/architecture/test_release_workflow_yaml_valid.py"
+      - "tests/architecture/test_releaserc_config_valid.py"
+      - "tests/architecture/test_docs_v0_1_0_deliverables_present.py"
+      - "tests/architecture/test_aisaleshT_untouched_story_9.py"
+    blocked_by: [T-2, T-3]
+    blocks: [T-5]
+    estimated_minutes: 75
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    validators_addressed: [V-NF-1, V-NF-2, V-NF-3, V-NF-7, V-F-release-1, V-F-release-2, V-F-release-3, V-F-release-4, V-D-1, V-D-2, V-D-3, V-D-4, V-D-5]
+
+  - id: T-5
+    subject: "Finalization: lint + format + downstream regression + V-NF-1 verify + impl-logs + DEFERRED-FILES + checkpoint dev→developed"
+    description: |
+      **Scope:** Story 9 closure — full suite GREEN + impl-logs + DEFERRED-FILES update +
+      checkpoint state transition + outcome state update prep for merge.
+
+      **Steps:**
+
+      1. Lint + format full luana-platform:
+         ```bash
+         cd ~/luana-platform
+         uv run ruff check . --fix
+         uv run ruff format .
+         pnpm lint || echo "::warning::pnpm lint has placeholder echo from Story 1 — non-blocking"
+         ```
+
+      2. Run full test suite (downstream regression V-AG-2):
+         ```bash
+         cd ~/luana-platform
+         uv sync --all-packages
+         # Per-package isolated (sales-agent has 40 PRE-EXISTING)
+         uv run pytest core/luana-core-copilot -q --tb=line 2>&1 | tail -5
+         uv run pytest core/luana-core-brand-studio -q --tb=line 2>&1 | tail -5
+         uv run pytest core/luana-core-offer-studio -q --tb=line 2>&1 | tail -5
+         uv run pytest core/luana-core-campaigns -q --tb=line 2>&1 | tail -5
+         uv run pytest core/luana-core-extension-sdk -q --tb=line 2>&1 | tail -5
+         # Sales-agent expected 40 PRE-EXISTING failures + 1 collection error
+         uv run pytest core/luana-core-sales-agent -q --tb=line 2>&1 | tail -10
+         # New Story 9 arch fitness
+         uv run pytest tests/architecture/ -q --tb=short
+         # Smoke test pack (workspace deps — pre-publish baseline)
+         cd apps/test-brand && uv run pytest -q --tb=line
+         ```
+
+         **Acceptance:**
+         - copilot: 1603 GREEN + 25 skipped (Story 6 baseline)
+         - brand-studio: 470 GREEN
+         - offer-studio: 633 GREEN
+         - campaigns: 446 GREEN
+         - extension-sdk: 92 GREEN
+         - sales-agent: EXACTLY 40 failed + 1 collection error (PRE-EXISTING — V-AG-2 cement zero delta)
+         - arch fitness: ALL GREEN (5 NEW + Story 1-8 cumulative)
+         - test-brand: 10 smoke scenarios GREEN (V-AG-1 pre-publish)
+
+      3. AISALESHT V-NF-1 verify:
+         ```bash
+         cd /home/chris/AISALESHT
+         git diff --name-only main..development -- backend/ frontend/ | head
+         # Expected: empty
+         ```
+
+      4. Update `core/DEFERRED-FILES.md` (luana-platform) — append Story 9 deferrals:
+         ```markdown
+         ## Story 9 (luana-v0-1-0-publish — DONE 2026-05-XX)
+
+         ### Deferred to Story 10+ (sales-agent test fixture cleanup)
+         - **40 sales-agent PRE-EXISTING failures** — Story 7 carry-over (template_dir issue + cost_recorder fixtures). Trivial test infra debt, NOT production code bug. Address Story 10+ dedicated cleanup ticket.
+         - **1 sales-agent collection error** — same Story 7 carry-over.
+
+         ### Deferred to Story 10+ (post-merge enforcement)
+         - **commitlint pre-commit hook active enforcement** — `commitlint.config.cjs` seed emitted Story 9, husky/auto-install deferred Story 10+ migration.
+         - **GitHub Pages deploy for docs/api/** — out of Story 9 scope per architect §0 cement table. Stories 14+ marketing scope.
+         - **release-please auto-PR for v0.2.0+** — first tag v0.1.0 manual override. release-please takes over for additive releases post-merge.
+
+         ### Deferred to v0.2.0+ (eval framework + brand isolation)
+         - **PI-12 eval framework lift** — sales-agent eval foundation. v0.2.0 backlog per outcome §6.
+         - **Per-brand prod deployment isolation** — Stories 11-13 brand bootstraps scope.
+         ```
+
+      5. AISALESHT Story 9 SSoT artifacts — 5 impl-log files:
+         For each T-1..T-5, emit `docs/product/stories/luana-v0-1-0-publish/T-{n}-impl-log.md`:
+         ```markdown
+         ---
+         ticket: T-{n}
+         story: luana-v0-1-0-publish
+         owner: sonnet (claude-sonnet-4-5)
+         duration_min: <wall_time>
+         tokens_in: <approx>
+         tokens_out: <approx>
+         status: complete
+         completed_at: 2026-05-XX
+         ---
+
+         # T-{n} impl-log
+
+         ## What
+         <ticket subject>
+
+         ## Files touched
+         <list>
+
+         ## Validators addressed
+         <list>
+
+         ## Notes / gotchas
+         <if any>
+         ```
+
+      6. Update `docs/product/stories/luana-v0-1-0-publish/checkpoint.md`:
+         - `state: refined → developing → developed`
+         - `phase: STORY_DEVELOPED_AWAITING_AUDIT`
+         - `last_artifact: T-5-impl-log.md`
+         - `next_action: "All 23 validators GREEN. Story 9 developed — Chris triggers /auditor for reviewing phase."`
+
+      7. Emit `scripts/emit_process_metric.py` invocation per R12 layer 1 (5 calls — one per ticket).
+
+      8. Commit:
+         ```bash
+         # In luana-platform
+         cd ~/luana-platform
+         git add core/DEFERRED-FILES.md
+         git commit -m "chore(story-9): T-5 finalization — DEFERRED-FILES Story 9 + ruff format pass
+
+         5 deferrals registered (40 sales-agent pre-existing + commitlint enforcement +
+         GH Pages deploy + release-please auto-PR + v0.2.0+ items).
+
+         Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+         git push origin main
+
+         # In AISALESHT — 5 impl-logs + checkpoint transition
+         cd /home/chris/AISALESHT
+         git add docs/product/stories/luana-v0-1-0-publish/T-1-impl-log.md \
+                 docs/product/stories/luana-v0-1-0-publish/T-2-impl-log.md \
+                 docs/product/stories/luana-v0-1-0-publish/T-3-impl-log.md \
+                 docs/product/stories/luana-v0-1-0-publish/T-4-impl-log.md \
+                 docs/product/stories/luana-v0-1-0-publish/T-5-impl-log.md \
+                 docs/product/stories/luana-v0-1-0-publish/checkpoint.md \
+                 docs/product/BACKLOG.md docs/product/BACKLOG.yaml \
+                 docs/product/BACKLOG-TLDR.md
+         git commit -m "docs(story-9): T-1..T-5 impl-logs + checkpoint developing → developed
+
+         Story 9 (luana-v0-1-0-publish) all 23 validators GREEN. Ready for /auditor
+         reviewing phase. AISALESHT V-NF-1 cumulative 9 stories preserved.
+
+         Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+         git push origin development
+         ```
+    files:
+      - "core/DEFERRED-FILES.md"  # luana-platform
+      - "../AISALESHT/docs/product/stories/luana-v0-1-0-publish/T-1-impl-log.md"
+      - "../AISALESHT/docs/product/stories/luana-v0-1-0-publish/T-2-impl-log.md"
+      - "../AISALESHT/docs/product/stories/luana-v0-1-0-publish/T-3-impl-log.md"
+      - "../AISALESHT/docs/product/stories/luana-v0-1-0-publish/T-4-impl-log.md"
+      - "../AISALESHT/docs/product/stories/luana-v0-1-0-publish/T-5-impl-log.md"
+      - "../AISALESHT/docs/product/stories/luana-v0-1-0-publish/checkpoint.md"
+    blocked_by: [T-4]
+    blocks: []
+    estimated_minutes: 60
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    validators_addressed: [V-NF-1, V-AG-1, V-AG-2, V-AG-3, V-AG-4, V-AG-5]

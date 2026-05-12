@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-12T17:08:24+00:00`
+> Generated at: `2026-05-12T17:26:10+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -23,7 +23,8 @@
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
 
-### 📦 Ready for development (4 / cap 5)
+### 📦 Ready for development (5 / cap 5)
+- **luana-v0-1-0-publish** — outcome `luana-platform-migration`
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
@@ -44,12 +45,11 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (6) · Dropped (4)
+### Parked (5) · Dropped (4)
 - 🅿 growth-studio-visual-coherence-pass
 - 🅿 luana-comunify-bootstrap
 - 🅿 luana-lupulo-bootstrap
 - 🅿 luana-nicolify-migration
-- 🅿 luana-v0-1-0-publish
 - 🅿 luana-vitalia-bootstrap
 - ❌ ~~agent-bridge-session-injection-fix~~
 - ❌ ~~goldens-archetype-slug-propagation~~
@@ -75,7 +75,8 @@ kanban
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
   ✅ Refined (0 / cap 5)
-  📦 Ready (4 / cap 5)
+  📦 Ready (5 / cap 5)
+    luana-v0-1-0-publish[luana-v0-1-0-publish]
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
@@ -89,12 +90,11 @@ kanban
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🅿 Parked (6)
+  🅿 Parked (5)
     growth-studio-visual-coherence[growth-studio-visual-coherence-pass]
     luana-comunify-bootstrap[luana-comunify-bootstrap]
     luana-lupulo-bootstrap[luana-lupulo-bootstrap]
     luana-nicolify-migration[luana-nicolify-migration]
-    luana-v0-1-0-publish[luana-v0-1-0-publish]
     luana-vitalia-bootstrap[luana-vitalia-bootstrap]
 ```
 
