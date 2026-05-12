@@ -1,8 +1,10 @@
 ---
 story_id: luana-copilot-engine
 outcome: luana-platform-migration
-state: reviewing
-phase: auditor_agentic_spawned
+state: done
+phase: merged_archived
+done_at: 2026-05-11
+merged_by: /pm (claude-opus-4-7)
 last_artifact: T-21-result.md
 last_modified: 2026-05-11
 dev_team_started_at: 2026-05-11
