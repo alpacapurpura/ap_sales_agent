@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-12T06:11:20+00:00`
+> Generated at: `2026-05-12T07:05:01+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -29,12 +29,11 @@
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 🔨 Developing (2 / cap 3)
+### 🔨 Developing (1 / cap 3)
 - **luana-platform-migration**
-- **luana-sales-agent-engine** — outcome `luana-platform-migration` [builder_agentic_batch_1_spawned]
 
-### 🧪 Developed — esperando QA (0 / cap 10)
-- _(none)_
+### 🧪 Developed — esperando QA (1 / cap 10)
+- **luana-sales-agent-engine** — outcome `luana-platform-migration`
 
 ### 🔍 Reviewing (0 / cap 2)
 - _(none in review)_
@@ -82,10 +81,10 @@ kanban
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
-  🔨 Developing (2 / cap 3)
+  🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
+  🧪 Developed (1 / cap 10)
     luana-sales-agent-engine[luana-sales-agent-engine]
-  🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
