@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T03:20:21+00:00
+# Generated at: 2026-05-12T03:31:58+00:00
 
-generated_at: '2026-05-12T03:20:21+00:00'
+generated_at: '2026-05-12T03:31:58+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -215,21 +215,6 @@ buckets:
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
   refined: []
   ready:
-  - id: luana-sales-agent-engine
-    kind: story
-    state: ready
-    title: luana-sales-agent-engine
-    tags: []
-    last_touched: 2026-05-11
-    extra:
-      outcome: luana-platform-migration
-      phase: ready_package_closed_awaiting_dev_team
-      next_action: /dev-team picks T-1 (workspace prep) → T-19 (finalization) AFTER Story 6 done. R23 Opus mandatory ALL 19
-        tickets. D-T3 BrandVoicePort introduction in T-3 (touches luana-core-brand-studio per ADR-001 §2.4).
-      blocked_by:
-      - luana-copilot-engine
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready
@@ -321,6 +306,21 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
+  - id: luana-sales-agent-engine
+    kind: story
+    state: developing
+    title: luana-sales-agent-engine
+    tags: []
+    last_touched: 2026-05-12
+    extra:
+      outcome: luana-platform-migration
+      phase: builder_agentic_batch_1_spawned
+      next_action: Builder-agentic Opus batch 1 (T-1+T-2+T-3) in flight. T-3 introduces D-T3 BrandVoicePort hexagonal port
+        in luana-core-brand-studio per ADR-001 §2.4. Then batches 2-6 sequential.
+      blocked_by:
+      - luana-copilot-engine
+      priority_override: null
+      audit_iterations: 0
   developed: []
   reviewing: []
   done:

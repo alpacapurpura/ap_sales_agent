@@ -1,11 +1,12 @@
 ---
 story_id: luana-sales-agent-engine
 outcome: luana-platform-migration
-state: ready
-phase: ready_package_closed_awaiting_dev_team
+state: developing
+phase: builder_agentic_batch_1_spawned
 last_artifact: 06-tickets.yaml
-last_modified: 2026-05-11
-next_action: "/dev-team picks T-1 (workspace prep) → T-19 (finalization) AFTER Story 6 done. R23 Opus mandatory ALL 19 tickets. D-T3 BrandVoicePort introduction in T-3 (touches luana-core-brand-studio per ADR-001 §2.4)."
+last_modified: 2026-05-12
+dev_team_started_at: 2026-05-12
+next_action: "Builder-agentic Opus batch 1 (T-1+T-2+T-3) in flight. T-3 introduces D-T3 BrandVoicePort hexagonal port in luana-core-brand-studio per ADR-001 §2.4. Then batches 2-6 sequential."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 + ratificación 2 eval WAIVED)
 session_3_ratification_date: 2026-05-11
 session_3_mandate: "autonomous Tier 3 lift per outcome §7.2 + §7.4 cap extended 2 stories. R23 Opus mandatory all tickets. D-T3 BrandVoicePort hexagonal introduced this story."
@@ -62,6 +63,8 @@ new_arch_fitness_tests: 8  # V-AG-1..V-AG-8 in core/tests/architecture/
 ---
 
 ## Bitácora
+
+- 2026-05-12: state=ready → developing. Session 3 Phase 5 build start. Builder-agentic Opus batch 1 spawning (T-1+T-2+T-3). Story 6 closed DONE 2026-05-11 (commit 6d95b503 archive). All 19 tickets owner=builder-agentic Opus (R23). D-T3 BrandVoicePort intro T-3 — only Story 7 ticket touching luana-core-brand-studio (pre-ratified ADR-001 §2.4 + Session 3 ratificación). Eval framework WAIVED Luana v0.2.0.
 
 - 2026-05-11: state=parked → refining. Session 3 autonomous pre-auth ratified Chris (outcome §7.2 + §7.4 extension). Story E voice fidelity CI gate WAIVED to Luana v0.2.0 per ratificación 2 + outcome §2 OQ1. D-T3 BrandVoicePort hexagonal introduction baked in architect prompt. Next: architect-orchestrator Opus produces ready package combined w/ Story 6.
 

@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-12T03:20:21+00:00`
+> Generated at: `2026-05-12T03:31:58+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -23,15 +23,15 @@
 ### ✅ Refined — listo para arquitectos (0 / cap 5)
 - _(none)_
 
-### 📦 Ready for development (5 / cap 5)
-- **luana-sales-agent-engine** — outcome `luana-platform-migration`
+### 📦 Ready for development (4 / cap 5)
 - **sales-agent-adversarial-jailbreak-suite** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-cost-budget-cap** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 🔨 Developing (1 / cap 3)
+### 🔨 Developing (2 / cap 3)
 - **luana-platform-migration**
+- **luana-sales-agent-engine** — outcome `luana-platform-migration` [builder_agentic_batch_1_spawned]
 
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_
@@ -77,14 +77,14 @@ kanban
     pi-12-sales-agent-eval-foundat[pi-12-sales-agent-eval-foundation]
     pi-3-sales-agent-improvement[pi-3-sales-agent-improvement]
   ✅ Refined (0 / cap 5)
-  📦 Ready (5 / cap 5)
-    luana-sales-agent-engine[luana-sales-agent-engine]
+  📦 Ready (4 / cap 5)
     sales-agent-adversarial-jailbr[sales-agent-adversarial-jailbreak-suite]
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
-  🔨 Developing (1 / cap 3)
+  🔨 Developing (2 / cap 3)
     luana-platform-migration[luana-platform-migration]
+    luana-sales-agent-engine[luana-sales-agent-engine]
   🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
