@@ -1,11 +1,11 @@
 ---
 story_id: luana-campaigns-extension-sdk
 outcome: luana-platform-migration
-state: developing
-phase: BUILD_BATCH_E
-last_artifact: T-13-impl-log.md
+state: developed
+phase: BUILD_DONE
+last_artifact: T-18-impl-log.md
 last_modified: 2026-05-12
-next_action: "Batch D T-9..T-13 DONE (luana-platform commit df722df pushed). T-13 = campaigns api + workers lift (28 files, 446 tests GREEN, zero import leaks). AISALESHT campaigns source V-NF-1 confirmed zero diff. Next = Batch E (T-14..T-18: apps/test-brand smoke pack + final polish)."
+next_action: "Story 8 build phase DONE. luana-platform pushed (3aeb795). All 672 tests GREEN. V-NF-1 confirmed. Impl-logs T-1..T-18 complete. AISALESHT impl-logs + auditor-downstream-regression.md + anti-duplication.md committed. Awaiting orchestrator → gate-runner → auditor-backend (independent verdict)."
 ratified_by_chris: true                         # ★ Session 4 ratification 2026-05-12 — Chris delegated `toma tú todas las decisiones` ★
 spawned_at: 2026-05-09
 spawned_by: /pm

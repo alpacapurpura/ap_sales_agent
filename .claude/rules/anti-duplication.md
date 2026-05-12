@@ -32,6 +32,7 @@ Patrón canónico vive en `shared/`. Módulos heredan, NUNCA mirror.
 | Compliance gates | `shared/compliance/` (ComplianceService) | campaigns · sales_agent |
 | Domain events | `shared/events/` | todos cross-module |
 | Cross-module ports | `shared/links/ports/` | todos cross-domain |
+| **luana-platform Extension SDK** | `core/luana-core-extension-sdk/src/luana_core_extension_sdk/extension_points.py::ExtensionPointRegistry` | ALL vertical brand packages (test-brand, future copilot/sales-agent vertical consumers) |
 
 **Shrink-only:** registro NO duplica per-módulo. Patrón nuevo cross-agent → lift shared primer commit.
 
