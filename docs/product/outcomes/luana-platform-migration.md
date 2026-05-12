@@ -6,8 +6,8 @@ phase: story_5_done_phase_c_active
 created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-12
-stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios, luana-copilot-engine, luana-sales-agent-engine]   # 2026-05-12 all 7 (Stories 1-4 session 1 + Story 5 session 2 + Stories 6+7 session 3)
-stories_active: []   # Story 7 done 2026-05-12. Story 8 luana-campaigns-extension-sdk unblocked, awaits Chris ratification next session
+stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios, luana-copilot-engine, luana-sales-agent-engine, luana-campaigns-extension-sdk]   # 2026-05-12 all 8 (Stories 1-4 session 1 + Story 5 session 2 + Stories 6+7 session 3 + Story 8 session 4)
+stories_active: [luana-v0-1-0-publish]   # Story 8 done 2026-05-12. Story 9 picks up secuencial autonomous per §7.5.2 D7=B
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/

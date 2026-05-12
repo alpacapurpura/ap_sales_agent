@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-12T12:51:05+00:00`
+> Generated at: `2026-05-12T17:08:24+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -115,11 +115,11 @@ kanban
 | crm | 2 | 0 | 0 | 0 | 2 |
 | iam | 2 | 0 | 0 | 0 | 2 |
 | landing | 3 | 0 | 0 | 0 | 3 |
-| luana-core | 4 | 0 | 0 | 0 | 4 |
+| luana-core | 6 | 0 | 0 | 0 | 6 |
 | offer | 5 | 0 | 0 | 0 | 5 |
 | sales-agent | 4 | 1 | 1 | 0 | 6 |
 | scheduling | 3 | 0 | 0 | 0 | 3 |
 | social-media | 2 | 0 | 0 | 0 | 2 |
 | tenant-domains | 1 | 0 | 0 | 0 | 1 |
-| **TOTAL** | **54** | **3** | **1** | **0** | **58** |
+| **TOTAL** | **56** | **3** | **1** | **0** | **60** |
 

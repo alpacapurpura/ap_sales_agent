@@ -1,0 +1,115 @@
+---
+capability_id: luana-core-extension-sdk
+module: luana-core
+slug: extension-sdk
+status: live
+date_introduced: 2026-05-12
+story_introduced: luana-campaigns-extension-sdk
+package_version: 0.0.8-alpha
+package_path: core/luana-core-extension-sdk
+ts_package_path: typescript/extension-sdk
+ts_package_version: 0.0.8-alpha
+license: proprietary
+---
+
+# luana-core-extension-sdk
+
+Formal Extension SDK contract surface for Luana platform — 18 extension points + 5 cross-cutting policies enforcing brand isolation while preserving shared SSoT discipline. Cemented Session 4 (2026-05-12) per outcome `luana-platform-migration` Story 8.
+
+## Architecture overview
+
+`ExtensionPointRegistry` class — central registry brand apps consume at FastAPI lifespan startup via explicit `register_all(registry)` pattern (§7.5.2 D2=B). Post-lifespan `registry.lock()` cements immutability (CC-3).
+
+Two-tier EP cement:
+- **EP-1..EP-5 critical EXECUTABLE** — full register + dispatch paths. Wrap Stories 6+7 frozen registries byte-stable (D-T1 cardinal).
+- **EP-6..EP-18 backlog SIGNATURE-ONLY** — registry receives registrations + dispatch raises `NotImplementedError` graceful. Implementations deferred Stories 11-13 vertical bootstraps.
+
+## 18 Extension Points formalized (§7.5.3)
+
+### EP-1..EP-5 critical (executable v0.0.8-alpha)
+
+| EP | Method | Pattern | Mode | Purpose |
+|---|---|---|---|---|
+| EP-1 | `field_override(handler)` | Callable | append | Brand overrides field defaults (e.g., Vitalia medical_consent custom validators) |
+| EP-2 | `offer_preset_pack_register(pack)` | DataClass | append | Brand registers vertical preset pack (e.g., Comunify creator_offer_pack) |
+| EP-3 | `sales_agent_tool_register(tool)` | DataClass | append | Brand registers sales_agent tool wrapping Story 7 ToolRegistry byte-stable |
+| EP-4 | `copilot_workflow_register(workflow)` | DataClass | append | Brand registers copilot workflow wrapping Story 6 WorkflowRegistry byte-stable |
+| EP-5 | `scheduling_booking_policy_register(policy)` | DataClass | append | Brand registers booking policy (e.g., Lupulo table_capacity_policy) |
+
+### EP-6..EP-18 backlog (signature-only v0.0.8-alpha, implementation Stories 11-13)
+
+| EP | Method | Surface | Pattern | Mode | Vertical example |
+|---|---|---|---|---|---|
+| EP-6 | `sidebar_routes_register(routes)` | BE+FE | DataClass | append | Vitalia `/consentimientos-medicos` route |
+| EP-7 | `extractor_register(extractor)` | BE | DataClass | append | Vitalia `medical_history_extractor` (wave injection) |
+| EP-8 | `channel_adapter_register(adapter)` | BE | DataClass+Callables | append | Covers sales_agent + copilot + ANY vertical brand agent (treatment_agent, kitchen_agent) per outcome §7.5.3 EP-8 extended scope |
+| EP-9 | `metric_register(metric)` | BE | DataClass | append | ETL pipeline level (e.g., Vitalia `prepaid_consultations_count`) |
+| EP-10 | `landing_template_register(template)` | BE | DataClass | append | JSON schema declarative (single Landing Engine FE consumes) |
+| EP-11 | `campaign_template_register(template)` | BE | DataClass | append | Ordered drip sequence + triggers + conditions |
+| EP-12 | `asset_template_register(template)` | BE | DataClass | append | Static template + placeholder replacement (no AI gen scope) |
+| EP-13 | `sales_agent_guardrail_register(guardrail)` | BE | Callable | append | Pre-send + pre-receive BOTH from v0.1.0 per §7.5.3 EP-13 extended scope |
+| EP-14 | `copilot_kb_pack_register(pack)` | BE | DataClass | append | tenant_scope: 'brand' \| 'tenant' \| 'both' per §7.5.3 EP-14 detail |
+| EP-15 | `crm_lifecycle_stage_register(stage)` | BE | DataClass | append | Declarative insert-between (Vitalia `consultation_scheduled`) |
+| EP-16 | `iam_signup_handler(handler)` | BE | Callable | append | Async background + `pending_review` state |
+| EP-17 | `tenant_plan_tier_register(tier)` | BE | DataClass | **override** | Brand replaces core tiers completamente |
+| EP-18 | `onboarding_wizard_steps_register(steps)` | FE+BE | DataClass | **override** | Brand replaces wizard completamente |
+
+## Cross-cutting policies (§7.5.1)
+
+| ID | Policy | Enforcement |
+|---|---|---|
+| CC-1 | Signature pattern per-EP natural (data → DataClass, behavior → Callable) | Architecture |
+| CC-2 | Default `mode='append'` + `mode='override'` permitted only on EP-17 + EP-18 | Runtime + arch fitness `test_mode_override_only_EP-17_EP-18_permitted` |
+| CC-3 | Startup-only registration | `registry.lock()` raises `RegistrationClosedError` post-lifespan |
+| CC-4 | Namespaced obligatorio (`brand_slug.` prefix) + strict raise on duplicate | Runtime `NamespaceViolationError` + `DuplicateRegistrationError` + arch fitness `test_brand_slug_namespace_allowlist.py` |
+| CC-5 | Immutable post-startup (no `unregister_*`) | Arch fitness `test_no_unregister_api.py` AttributeError on attempt |
+
+## BrandContext frozen dataclass (9 fields, §7.5.2 D3)
+
+```python
+@dataclass(frozen=True)
+class BrandContext:
+    tenant_id: str
+    brand_slug: str
+    plan_tier: str
+    locale: str
+    feature_flags: dict[str, Any]   # opaque dict — brand apps inject at request boundary
+    tenant_profile_id: str
+    vertical_kind: str
+    compliance_flags: dict[str, Any]
+    pii_policy: str
+```
+
+Future-proof: optional fields can be added without breaking handlers (backward compat). Removing/changing semantic = breaking → SDK semver bump major (post Story 9 publish enforced).
+
+## Architecture cement
+
+- **D-T1 frozen contracts:** EP-3/EP-4 wrappers via `_adapters.py` READ-ONLY delegation. Stories 6+7 registries byte-stable preserved (golden snapshot tests Story 6 V-AG-3 + Story 7 ToolRegistry GREEN post-Story-8).
+- **§7.5.4 NO EP-19:** Vertical agents are brand APPs consuming luana-core piecewise, NOT core extension points. Arch fitness `test_no_ep19_method_in_registry.py` enforces. `docs/extension-points.md §4` documents Vitalia treatment-agent worked recipe.
+- **§7.5.6 Cross-brand learning principle:** Features graduate to core via /pm promotion path (never cross-namespace consumption).
+
+## TypeScript mirror @luana/extension-sdk (partial)
+
+`typescript/extension-sdk/` ships type mirror for FE-surface EPs:
+- BrandContext interface mirror (9 fields)
+- EP-6 SidebarRouteDef + EP-10 LandingTemplateDef + EP-18 WizardStepDef interfaces
+- 3 exception classes (DuplicateRegistrationError + NamespaceViolationError + RegistrationClosedError)
+
+Hand-maintained for v0.0.8-alpha (small surface). Codegen automation deferred Story 9+ if needed.
+
+## Smoke test pack `apps/test-brand/`
+
+Per §7.5.2 D6=A — SDK ships v0.0.8 with live integration test:
+- 18 register_all handlers (5 executable + 13 stubs)
+- 10 smoke scenarios D1-D3 + C1-C5 + frozen ctx GREEN
+- FastAPI lifespan event + `register_all(registry)` + `registry.lock()` end-to-end
+
+## Test coverage
+
+- `core/luana-core-extension-sdk/tests/` — 92 unit + integration tests GREEN
+- `core/tests/architecture/test_*_story8*.py` + 11 other arch fitness tests — 12 NEW arch fitness Story 8 GREEN
+- `apps/test-brand/python/test_brand/tests/test_sdk_smoke.py` — smoke pack GREEN
+
+## Consumers (future)
+
+Stories 11-13 brand bootstraps consume SDK at FastAPI lifespan startup. Vitalia treatment-agent recipe (post Story 11.5) demonstrates pattern — see `docs/extension-points.md §4`.

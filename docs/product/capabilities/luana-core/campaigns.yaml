@@ -1,0 +1,43 @@
+---
+capability_id: luana-core-campaigns
+module: luana-core
+slug: campaigns
+status: live
+date_introduced: 2026-05-12
+story_introduced: luana-campaigns-extension-sdk
+package_version: 0.0.8-alpha
+package_path: core/luana-core-campaigns
+license: proprietary
+---
+
+# luana-core-campaigns
+
+Campaigns engine lifted verbatim from AISALESHT `backend/src/modules/campaigns/` to `luana-platform/core/luana-core-campaigns/` per outcome `luana-platform-migration` Story 8.
+
+Mechanical lift mode §7.3 — preserved file names + class names + function signatures + public API surface. AISALESHT `backend/src/modules/campaigns/` source untouched (V-NF-1 cement). Import paths rewritten `from src.modules.campaigns.X` → `from luana_core_campaigns.X`.
+
+## Surface
+
+- **Domain layer (12 src + 7 test files):** campaign + segment + audit_log + events + repositories interfaces + enums
+- **Infrastructure layer (29 src files):** channels (WhatsApp + email + SMS adapters per pre-existing AISALESHT pattern) + repositories (SQLA implementations) + resilience (circuit breakers + retries) + SQLA models + links (cross-module ports) + external (Stripe + Twilio + provider adapters)
+- **Application layer (21 src files):** dtos (Pydantic v2) + ports (cross-module domain interfaces) + services (campaign_orchestrator + segment_resolver + scheduler) + segment_filter_evaluator + observability/persistence/models/llm_call_model bridge
+- **API + workers layer (13 src files):** routers (campaigns CRUD + execution + analytics) + `_dependencies.py` + workers (scheduler_tick + execution_worker + reminder_worker arq pattern)
+- **Tests preserved verbatim:** 446 tests GREEN post-lift (baseline coverage threshold AISALESHT preserved)
+
+## Scope boundaries
+
+- Lift mode strict — NO refactor, NO scope expansion, NO new abstractions
+- Workers scheduled via arq queues (pre-existing AISALESHT pattern preserved)
+- Multi-tenant: every query filter `tenant_id` (pre-existing pattern preserved)
+- Cross-module imports forbidden (lifted unchanged from AISALESHT DDD strict)
+
+## Consumers
+
+Story 8 ships campaigns engine standalone. Future consumers:
+- Stories 11-13 brand apps wire campaigns into their FastAPI app via dependency injection
+- Story 9 publish pipeline propagates to all brand consumers when GH Packages live
+- Vitalia treatment-agent recipe (post Story 11.5) may register campaign templates via EP-11 for pre/post-operatorio engagement sequences
+
+## Test coverage
+
+`core/luana-core-campaigns/tests/` — 446 tests GREEN per Story 8 T-13 final. Lift baseline preserved.
