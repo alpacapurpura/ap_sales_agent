@@ -1,0 +1,82 @@
+---
+capability_id: luana-core-copilot
+module: luana-core
+slug: copilot
+status: live
+date_introduced: 2026-05-11
+story_introduced: luana-copilot-engine
+package_version: 0.0.6-alpha
+package_path: core/luana-core-copilot
+license: proprietary
+---
+
+# luana-core-copilot
+
+Copilot agentic engine lifted verbatim from AISALESHT `backend/src/modules/copilot/` (33k LOC) to `luana-platform/core/luana-core-copilot/` per outcome `luana-platform-migration` Story 6.
+
+## Surface
+
+- **Domain layer:** module_registry (lazy-load per brand), ports (cross-module contracts), workflow + extractor + rule + skill + hook registries (5 frozen public APIs per D-T1), message/event/voice/suggestion/plan domain types, mutation_journal, schema_introspection, field_paths_hint, navigation_map, card_payloads, routing_policy
+- **Infrastructure:** SQLA models (conversation + inspiration + mutation_journal + pinned_memory + routing_log + event + tenant_limits + workflow_metric + 4 more), repositories, persisters (brand + buyer_persona + offer + registry), channels (Telegram bot + in_memory), voice (Whisper transcriber), Qdrant (marketing_kb_store tenant-agnostic), cache (data_query_cache), prompts (base + sanitizer + templates Jinja2 + brand_extraction prompts), web (Trafilatura + Tavily search), workers (Telegram worker arq), in_memory_{hook,rule,skill}_registry
+- **Application orchestrator:** LangGraph 2.0 StateGraph + deepagents harness + 11-slot prompt cache composer (TTL 1h slots 1-3, 5min slots 4-6, per-tenant cache prefix) + 3 subagents (data_query + url_analyzer + audit_inspector) + state + chat + conversational_questioning + inspirations_layer + block_adapters + stream_filters + stream_provenance + output_sanitizer + tool_call_dedup + context_budget + subagent_budget
+- **Application tools:** ToolRegistry SSoT + 24 tools + ask_tenant_data/ (7 files) + guided/ (4 files) + shared_tools/ (2 files)
+- **Application subfolders:** router (model_router + classifiers/), suggestions (engine + registry + providers/), workflows (engine + registry), procedures (brand_setup + offer_creation + first_setup), data_access, extraction, guided, memory, observability (judge + rag_goldens)
+- **Application services:** brand_ai_actions, offer_psychology, mutation_apply, telegram_link, document_processor, contextual_chunker, limits_resolver, event_cleanup, offer_suggestion_reader + handlers/ + discovery + extraction_card_flow
+- **Observability subfolder (D-T6 subclass pattern):** CopilotCallbackHandler(BaseAgentCallbackHandler) + CopilotObservabilityContext(BaseObservabilityContext) + module-scoped LLMCallRepository + TraceEventRepository + DomainSubscribers (inherit from luana_core_observability — NEVER mirror)
+- **API:** 11 routers (chat + conversations + voice + telegram + plan + suggestions + actions + events + media + knowledge + nudge) + 11 DTOs + _dependencies.py
+- **Evals:** golden_dataset + 4 scorers (base + classifier + summarizer + runner) — 20 goldens lifted with copilot
+- **Utils:** module-internal helpers
+
+## Frozen public API (D-T1)
+
+ToolRegistry + WorkflowRegistry + ExtractorRegistry + ModuleRegistry + SuggestionRegistry public method signatures + dataclass fields FROZEN at lift moment. Golden snapshot `core/tests/architecture/_snapshots/copilot_registry_v1.json` (write-once script). V-AG-3 enforces byte-stable diff. Story 8 EP-1..EP-5 wraps externally — no internals modified.
+
+## Anti-mirror cardinal (D-T6)
+
+CopilotCallbackHandler + CopilotObservabilityContext are SUBCLASSES of `luana_core_observability.recording.base_callback_handler.BaseAgentCallbackHandler` + `BaseObservabilityContext`. NEVER mirror shared/agent_observability — INHERIT only. V-AG-5 arch fitness enforces (5 forbidden class declarations + 1 forbidden function = zero declarations in copilot src/). Anti-duplication.md cardinal.
+
+## Test coverage
+
+- 1640 pytest collected luana-core-copilot (1603 pass + 25 skipped DAG-deferred + 12 conftest discovery)
+- 22/24 validators GREEN (V-NF-1..V-NF-7 + V-AG-1..V-AG-8 + V-F-langgraph + V-F-prompt-cache + V-F-tools + V-F-workflows + V-F-registry-1/2 + V-F-trace + V-F-cost + V-F-py-1 + V-F-py-2 + V-F-marketing-kb + V-F-x-1 + V-D-1 + V-D-2)
+- 2 waiver acceptances (V-F-x-2 conftest collision pre-existing Story 4/5 + V-F-x-1 API surface adaptation lift-verbatim)
+- Downstream regression Stories 2-5 packages: 2218 passed / 19 skipped / **zero regressions**
+
+## Arch fitness gates (8 NEW Story 6)
+
+- V-AG-1 brand-agnostic (no `if brand ==` control flow + no hardcoded secrets)
+- V-AG-2 no-forward-imports (no imports a luana_core_{sales_agent,campaigns,advertising,social_media,scheduling})
+- V-AG-3 D-T1 copilot_registry_contracts_stable (golden snapshot byte-stable)
+- V-AG-4 D-T2 no_residual_test_stubs_post_story_6 (MessageModel allowlisted with Story 7 reference per R26 deferral)
+- V-AG-5 D-T6 no_mirror_observability_in_copilot (5 forbidden classes + 1 forbidden function declarations = zero)
+- V-AG-6 D-T6 module_descriptor_complete_for_lifted_packages
+- V-AG-7 voice_compiler_ssot_still_intact (regression Story 5 — only luana-core-brand-studio has PersonalityCompiler)
+- V-AG-8 copilot_anchors_count_stable (33 copilot proper + 3 unlifted business modules = 36 total)
+
+## Dependencies
+
+- luana-core-platform (shared base + events + persistence base)
+- luana-core-observability (BaseAgentCallbackHandler + BaseObservabilityContext + base repos — anti-mirror cardinal)
+- luana-core-extraction (BaseExtractionOrchestrator)
+- luana-core-events (DomainEvent base)
+- luana-core-llm (LLM router + provider adapters)
+- luana-core-channels (channel format registry)
+- luana-core-iam (tenant context)
+- luana-core-brand-studio (consumer of PersonalityCompiler — voice compiler SSoT)
+- luana-core-offer-studio (consumer of offer ladder hints)
+- luana-core-crm, analytics-engine, landing, connections, commercial-calendar, social-proof (T-16 UNLIFT brought copilot_provider/ subfolders)
+
+## Deferred files (target Story 7+)
+
+- T-17 MessageModel D-T2 cleanup → Story 7 (R26 correction: MessageModel lives in sales_agent NOT copilot)
+- Streamlit admin pages → Story 10 (nicolify shell migration)
+- connections/api/dependencies real ChatOrchestrator wiring → Story 7 (needs luana_core_sales_agent)
+- AppointmentModel stub in offer-studio conftest → Story 8 (scheduling lift)
+
+## Reference
+
+- Source: AISALESHT `backend/src/modules/copilot/`
+- Destination: luana-platform `core/luana-core-copilot/`
+- Commits Story 6: 8506a45..3d4f872 (15 luana-platform commits)
+- Merge doc: docs/archive/2026/stories/luana-copilot-engine/07-merge.md
+- ADR: docs/architecture/luana-platform/adr/ADR-001-luana-platform.md (registry contracts, anti-mirror cardinal per anti-duplication.md)
