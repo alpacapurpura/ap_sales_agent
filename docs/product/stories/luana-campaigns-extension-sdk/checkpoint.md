@@ -1,11 +1,11 @@
 ---
 story_id: luana-campaigns-extension-sdk
 outcome: luana-platform-migration
-state: developed
-phase: BUILD_DONE
+state: reviewing
+phase: AUDIT_C1_C5
 last_artifact: T-18-impl-log.md
 last_modified: 2026-05-12
-next_action: "Story 8 build phase DONE. luana-platform pushed (3aeb795). All 672 tests GREEN. V-NF-1 confirmed. Impl-logs T-1..T-18 complete. AISALESHT impl-logs + auditor-downstream-regression.md + anti-duplication.md committed. Awaiting orchestrator → gate-runner → auditor-backend (independent verdict)."
+next_action: "Phase 6 — auditor-backend Opus spawn for C1-C5 verdict + arch fitness V-AG-* re-run + R3 downstream regression Stories 1-7 packages."
 ratified_by_chris: true                         # ★ Session 4 ratification 2026-05-12 — Chris delegated `toma tú todas las decisiones` ★
 spawned_at: 2026-05-09
 spawned_by: /pm
