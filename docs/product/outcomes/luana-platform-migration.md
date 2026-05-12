@@ -5,9 +5,9 @@ state: developing                               # 10-state v4 — Story 1 done 2
 phase: story_5_done_phase_c_active
 created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
-last_modified: 2026-05-11
-stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios, luana-copilot-engine]   # 2026-05-11 all 6 (Stories 1-4 session 1 + Story 5 session 2 + Story 6 session 3)
-stories_active: [luana-sales-agent-engine]   # Story 7 ready, handed off to new conversation per Chris mandate
+last_modified: 2026-05-12
+stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios, luana-copilot-engine, luana-sales-agent-engine]   # 2026-05-12 all 7 (Stories 1-4 session 1 + Story 5 session 2 + Stories 6+7 session 3)
+stories_active: []   # Story 7 done 2026-05-12. Story 8 luana-campaigns-extension-sdk unblocked, awaits Chris ratification next session
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/
@@ -288,6 +288,95 @@ Para que auto-spec/design/arch ratification sea segura, "lift mode" significa EX
 **Session 3 plan (2026-05-11):** Stories 6+7 secuencial autonomous per Chris mandate. §7.2 extended Stories 6+7 lift-mode pre-auth con 6 decisiones técnicas (D-T1..D-T6) + 3 ratificaciones business pre-baked. R23 Opus mandatory all tickets. ~33-47 tickets total (18-25 Story 6 + 15-22 Story 7). Target ~$2000-3500 cumulative session 3.
 
 Después: Chris evaluates session 3 stats, ratifica Stories 8+ individualmente.
+
+**Session 4 plan (2026-05-12):** Stories 8+9 secuencial autonomous per Chris mandate. §7.4 extended to **3 stories Tier 3 sequencial** with pre-ratified design decisions §7.5 (Story 8 SDK design) + §7.1 scope (Story 9 publish — license proprietary + GH Packages + monorepo already ratified). R23 NOT triggered (Story 8 SDK + campaigns engine = production_code=false; Story 9 = pure infra/CI). Sonnet eligible for non-agentic tickets, Opus for agentic surfaces (EP-3 sales_agent tool wrappers + EP-4 copilot workflow wrappers freeze contracts from Stories 6+7 frozen registries). Target ~$2000-3500 cumulative session 4.
+
+### 7.5 Session 4 — Story 8 SDK design decisions (ratified 2026-05-12 — Chris delegated `toma tú todas las decisiones`)
+
+7 business decisions + 13 backlog EP signatures + 5 cross-cutting policies cemented BEFORE refining→refined transition. Architect Story 8 consumes §7.5 as binding spec.
+
+#### 7.5.1 Cross-cutting policies (apply to all 18 EPs)
+
+| ID | Policy | Rationale |
+|---|---|---|
+| **CC-1** | Signature pattern **per-EP natural** — data (DataClass) for declarative metadata, Callable for behavior handlers | matches EP-1..EP-5 hybrid pattern. Forced uniformity = artificial. |
+| **CC-2** | **Default append + override case-by-case** via explicit `mode='append'\|'override'` flag (where applicable per EP) | brand mostly extends core menu. Override exception, not norm. |
+| **CC-3** | **Startup-only registration** universal for all 13 backlog EPs | fail-fast at FastAPI lifespan event. Type-safe. Runtime-dynamic register deferred v0.2.x if surfaces. |
+| **CC-4** | **Strict raise on duplicate + namespaced obligatorio** (`vitalia.foo_extractor`, never bare `foo_extractor`) | brand isolation cross-brand. Cross-brand learning happens via /pm core promotion path, never via cross-namespace consumption. |
+| **CC-5** | **Inmutable post-startup** — no `unregister_*` API | simple. State mutation bugs prevented. Brand re-deploys for changes. |
+
+#### 7.5.2 Decisions 2-7 (Phase 0 questions resolved)
+
+| # | Question | Decision | Rationale |
+|---|---|---|---|
+| 1 | SDK Scope | **B — EP-1..EP-5 críticos + EP-6..EP-18 signatures-only** | Chris ratified 2026-05-12. Contrato público estable desde v0.1.0 Story 9 publish. |
+| 2 | Discovery mechanism | **B — Explicit register in brand startup** via FastAPI lifespan event (`registry = ExtensionRegistry(); register_all(registry); app = create_app(registry=registry)`) | type-checked, debuggable, no setuptools magic. Each brand controls if/when/how. |
+| 3 | BrandContext shape | **Full + extensible frozen dataclass** — fields: `tenant_id, brand_slug, plan_tier, locale, feature_flags, tenant_profile_id, vertical_kind, compliance_flags, pii_policy`. Future fields opcionales agregables sin breaking bump (handler ignora si no usa) | handlers ricos en metadata. Pagar precio hoy vs refactor mañana. |
+| 4 | SDK versioning | **C — Strict alpha minor/patch from v0.0.8 + flip real SemVer Story 9 publish** | hábito disciplinado pre-publish + lockdown post-publish con tests downstream R3. |
+| 5 | Examples docs | **B — Per-vertical concrete examples** (Vitalia + Comunify + Lupulo) + **vertical-agent-recipe doc** Story 8 ships en `docs/extension-points.md` | pre-think Stories 11-13 bootstraps. Docs son docs, fácil update si decisión cambia. |
+| 6 | Stub brand test pack | **A — Includes Story 8** `apps/test-brand/` smoke test EP-1..EP-5 ejecutables + EP-6..EP-18 NotImplementedError graceful smoke (registry receives all, handler raises if invoked) | SDK ships v0.0.8-alpha with live integration test. Riesgo silente eliminado. |
+| 7 | Pre-auth scope Session 4 | **B — Stories 8+9 secuencial autonomous** (cap §7.4 extended to **3 stories Tier 3 secuencial**). Halt si Story 9 GH Packages config requiere Chris token/org setup | Story 9 = lift-mode-equivalent (decisiones §7.1 ya ratificadas: proprietary + GH Packages + monorepo). 1 sesión cierra v0.1.0 publish. |
+
+#### 7.5.3 Per-EP backlog signature decisions (EP-6..EP-18)
+
+Architect Story 8 emits `luana-core-extension-sdk/python/extension_points.py` + `@luana/extension-sdk/src/index.ts` con estos contratos cementados:
+
+| EP | Name | Surface | Pattern | Mode | Key signature decision |
+|---|---|---|---|---|---|
+| **EP-6** | `sidebar_routes_register` | BE+FE sync | DataClass | append | `SidebarRouteDef = {slug, label, icon, parent_slug?, role_required?, order}`. BE expone `/api/v1/_sdk/sidebar` que FE Next.js consume. Una sola registración cubre ambos lados. |
+| **EP-7** | `extractor_register` | BE | DataClass | append | `ExtractorDef = {name, target_module, wave_position, prompt_template_ref, output_schema_ref, dependencies}`. Inyectado en `BaseExtractionOrchestrator` wave position. Reusa infra Stories 5 (brand/offer/landing/buyer_persona extractors lifted). |
+| **EP-8** | `channel_adapter_register` | BE | DataClass+Callables | append | `ChannelAdapterDef = {channel_slug, send: Callable, receive: Callable, format_for_channel: Callable, webhook_handler?}`. **Cubre sales_agent + copilot + cualquier vertical agent del brand (treatment_agent, kitchen_agent, etc.)** — ampliado por Vitalia recipe §7.5.4. |
+| **EP-9** | `metric_register` | BE | DataClass | append | `MetricDef = {name, module, aggregation, unit, currency_aware, sql_query? \| python_compute?, stage_assignment, refresh_freq}`. ETL pipeline level — corre en stage service ciclo, persiste en `official_metrics` table. |
+| **EP-10** | `landing_template_register` | BE | DataClass | append | `LandingTemplateDef = {template_id, vertical_hint, sections_schema, preview_url}`. **JSON schema declarativo** — single Landing Engine FE consume schema. Brands no shipean React components custom. |
+| **EP-11** | `campaign_template_register` | BE | DataClass | append | `CampaignTemplateDef = {template_id, channel: ['email'\|'whatsapp'\|'sms'], steps: list[CampaignStepDef], trigger_event, conditions}`. Drip pattern (secuencia ordered con triggers + conditions). |
+| **EP-12** | `asset_template_register` | BE | DataClass | append | `AssetTemplateDef = {template_id, asset_type: ['image'\|'video'\|'pdf'\|'kit'], placeholders: dict, source_path}`. **Static template + placeholder replacement**. AI gen NOT scope SDK. |
+| **EP-13** | `sales_agent_guardrail_register` | BE | Callable | append | `GuardrailDef = {name, pre_send_check: Callable[[str, BrandContext], GuardrailResult], pre_receive_check?: Callable[[str, BrandContext], GuardrailResult], priority: int, mode: 'block'\|'warn'\|'rewrite'}`. **Pre-send + pre-receive ambos** desde v0.1.0 (Chris "pagar precio hoy"). |
+| **EP-14** | `copilot_kb_pack_register` | BE | DataClass | append | `KbPackDef = {pack_id, documents_path, embedding_model_ref, qdrant_collection_name, tenant_scope: 'brand'\|'tenant'\|'both', metadata}`. **Lazy-load + background warm-up** post-startup. `tenant_scope='both'` replica pack per-tenant (Vitalia: brand-scope medical-protocols + tenant-scope clínica-internal-KB). |
+| **EP-15** | `crm_lifecycle_stage_register` | BE | DataClass | append | `LifecycleStageDef = {stage_id, label, after_stage: str, before_stage: str, transition_rules: list[Callable]}`. **Declarativa pura insert-between** (append). Brand inserta entre stages core. No remove. |
+| **EP-16** | `iam_signup_handler` | BE | Callable | append | `register(handler: Callable[[ClerkUser, BrandContext], SignupResult])` donde `SignupResult = {status: 'approved'\|'pending_review'\|'rejected', metadata, blocking_reason?}`. **Async background + pending_review state**. Requires CRM lifecycle support `pending_review` (EP-15 brand registers). |
+| **EP-17** | `tenant_plan_tier_register` | BE | DataClass | **override** | `PlanTierDef = {tier_id, label, price_monthly, currency, features: list[str], limits: dict, stripe_price_id?}`. **Brand replaces core tiers completamente**. Cada brand su pricing model. Core no impone tiers — solo expone API + enforcement. |
+| **EP-18** | `onboarding_wizard_steps_register` | FE+BE | DataClass | **override** | `WizardStepDef = {step_id, title, component_ref, prereqs: list[str], skippable: bool, post_action_event?}`. **Brand replaces wizard completamente**. Cada vertical flow muy distinto. Core ships `default-wizard` Nicolify, otros brands shipean sus wizards. |
+
+#### 7.5.4 Vitalia treatment-agent recipe insight (NO EP-19 — pattern doc only)
+
+Chris example (2026-05-12): Vitalia post-migration feature = "treatment follow-up agent" pre/post operatorio. Será agente NUEVO (no parte de sales_agent), usa infra base, requiere "tacto + conocimiento médico", NO recomendaciones legales (informa como enfermera). Multi-session offer consumption (numero predefinido o doctor estima → UI doctor/enfermera para tracking).
+
+**Decisión: NO crear EP-19 `vertical_agent_register`.** Pattern hexagonal puro — vertical agent ES un APP del brand, NO un EP del core.
+
+`apps/vitalia/agents/treatment_agent/` vive en brand repo, consume luana-core piecewise:
+- `luana-core-observability` (subclass `VitaliaTreatmentCallbackHandler(BaseAgentCallbackHandler)` + `VitaliaTreatmentObservabilityContext(BaseObservabilityContext)` — pattern Story 6+7 cement)
+- `luana-core-scheduling` (job queue + reminders pre/post-session)
+- `luana-core-channels` via **EP-8** (treatment agent registers channels)
+- `luana-core-marketing-kb` via **EP-14** (medical-protocols-kb-pack-v1 brand-scope + clínica-internal-KB tenant-scope)
+- `luana-core-prompt-cache` (slot composer — slot 5 BRAND_VOICE via BrandVoicePort Story 7 D-T3)
+- `luana-core-extension-sdk` (register treatment-specific tools via **EP-3**, guardrails via **EP-13** — "no medical recommendations" hard guardrail)
+
+**Multi-session offer model:** offer-studio `VariantStructure` ya soporta packs (Story 5 lifted). Doctor/enfermera tracking UI = Story 11.5+ Vitalia-specific scope, NOT Story 8 SDK scope.
+
+**Documentation deliverable Story 8:** `docs/extension-points.md` section "Recipe: Build a vertical agent on top of luana-core". Includes Vitalia treatment-agent as worked example. Stories 11-13 bootstrap consumers.
+
+#### 7.5.5 Dev infra dummy domains (Story 11-13 scope, NOT Story 8)
+
+Dev domain plan (Chris owns `alpacapurpura.lat` registrar):
+
+| Brand | Dev | Prod |
+|---|---|---|
+| Nicolify | dev-app.nicolify.com (existing CF tunnel) | app.nicolify.com (existing) |
+| Vitalia | dev-app.vitalialat.com (Chris compra) o fallback `dev-vitalia.alpacapurpura.lat` | app.vitalialat.com (Chris compra Q3-Q4 2026) |
+| Comunify | dev-comunify.alpacapurpura.lat (fallback gratis subdomain) | TBD post Story 12 |
+| Lupulo | dev-lupulo.alpacapurpura.lat (fallback gratis subdomain) | TBD post Story 13 |
+
+CF tunnel concurrent 5 services: `cloudflared` con multiple `--config` per brand, distintas ports locales. Setup en Stories 11-13 brand bootstraps, NO Story 8.
+
+**Production deployment isolation (Chris ratified 2026-05-12):** cada brand su propio servidor (GCP / AWS / etc independiente), env vars, Docker Compose + Dockerfile, Clerk app, API keys LLM, Stripe account, Sentry project, Postgres + Qdrant instance, centro de costos operación. Dev compartido (monorepo, 1+ Claude subs). Producción aislada total.
+
+#### 7.5.6 Cross-brand learning principle (core promotion path)
+
+Brand A invents feature → /pm evaluates if generalizable → if yes, lift to core → brands B, C, D consume via SDK. NEVER cross-brand direct import. Namespace isolation (CC-4) enforces this.
+
+Example: Vitalia treatment agent (Story 11.5+) battle-tested → learnings surface (e.g., "all verticals need pre/post engagement reminders") → /pm promotes generic abstraction to `luana-core-engagement-scheduler` package → Comunify cohort retention + Lupulo dietary follow-up consume same primitive.
+
+Architect Story 8 emits docs Section "How features graduate to core" — guideline document, NOT formal mechanic.
 
 ---
 

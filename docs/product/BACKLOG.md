@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-12T07:05:37+00:00`
+> Generated at: `2026-05-12T12:31:45+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -35,8 +35,8 @@
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_
 
-### 🔍 Reviewing (1 / cap 2)
-- luana-sales-agent-engine
+### 🔍 Reviewing (0 / cap 2)
+- _(none in review)_
 
 ### Recently shipped (last 90d, 4 items)
 - growth-copilot-layout-unification — 2026-05-08
@@ -44,9 +44,8 @@
 - pi-4-brand-evolutive-maintenance — 2026-05-06
 - pi-5-copilot-multicanal-telegram — 2026-05-06
 
-### Parked (7) · Dropped (4)
+### Parked (6) · Dropped (4)
 - 🅿 growth-studio-visual-coherence-pass
-- 🅿 luana-campaigns-extension-sdk
 - 🅿 luana-comunify-bootstrap
 - 🅿 luana-lupulo-bootstrap
 - 🅿 luana-nicolify-migration
@@ -84,16 +83,14 @@ kanban
   🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
   🧪 Developed (0 / cap 10)
-  🔍 Reviewing (1 / cap 2)
-    luana-sales-agent-engine[luana-sales-agent-engine]
+  🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)
     growth-copilot-layout-unificat[growth-copilot-layout-unification]
     pi-11-backend-quality-guardrai[pi-11-backend-quality-guardrails]
     pi-4-brand-evolutive-maintenan[pi-4-brand-evolutive-maintenance]
     pi-5-copilot-multicanal-telegr[pi-5-copilot-multicanal-telegram]
-  🅿 Parked (7)
+  🅿 Parked (6)
     growth-studio-visual-coherence[growth-studio-visual-coherence-pass]
-    luana-campaigns-extension-sdk[luana-campaigns-extension-sdk]
     luana-comunify-bootstrap[luana-comunify-bootstrap]
     luana-lupulo-bootstrap[luana-lupulo-bootstrap]
     luana-nicolify-migration[luana-nicolify-migration]
@@ -118,11 +115,11 @@ kanban
 | crm | 2 | 0 | 0 | 0 | 2 |
 | iam | 2 | 0 | 0 | 0 | 2 |
 | landing | 3 | 0 | 0 | 0 | 3 |
-| luana-core | 3 | 0 | 0 | 0 | 3 |
+| luana-core | 4 | 0 | 0 | 0 | 4 |
 | offer | 5 | 0 | 0 | 0 | 5 |
 | sales-agent | 4 | 1 | 1 | 0 | 6 |
 | scheduling | 3 | 0 | 0 | 0 | 3 |
 | social-media | 2 | 0 | 0 | 0 | 2 |
 | tenant-domains | 1 | 0 | 0 | 0 | 1 |
-| **TOTAL** | **53** | **3** | **1** | **0** | **57** |
+| **TOTAL** | **54** | **3** | **1** | **0** | **58** |
 

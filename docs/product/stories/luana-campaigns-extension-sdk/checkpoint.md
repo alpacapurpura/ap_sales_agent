@@ -1,21 +1,92 @@
 ---
 story_id: luana-campaigns-extension-sdk
 outcome: luana-platform-migration
-state: parked
-last_artifact: 00-story.md
-last_modified: 2026-05-09
-next_action: "/po opens 01-spec.md after Story 7 done"
-ratified_by_chris: false
+state: refined
+phase: SPEC_RATIFIED
+last_artifact: 01-spec.md
+last_modified: 2026-05-12
+next_action: "/architect orchestrator Opus spawns to produce ready package (03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml)"
+ratified_by_chris: true                         # ★ Session 4 ratification 2026-05-12 — Chris delegated `toma tú todas las decisiones` ★
 spawned_at: 2026-05-09
 spawned_by: /pm
 parallel_safe: false
 sequence_in_outcome: 8
 blocks: [luana-v0-1-0-publish]
-blocked_by: [luana-sales-agent-engine]
-target_state: developed by 2026-06-01
-estimated_complexity: medium
-estimated_tickets: 10-14
-surface: backend (campaigns engine + extension SDK formal)
-production_code: false                          # SDK + campaigns engine
+blocked_by: []                                  # Story 7 done 2026-05-12 — unblocked
+target_state: developed by 2026-05-13           # session 4 autonomous Stories 8+9 secuencial
+estimated_complexity: medium-high               # was medium — EP-6..EP-18 signatures-only adds 6-8 tickets per outcome §7.5.2 D1=B
+estimated_tickets: 18-22                        # was 10-14 — EP-1..EP-5 critical (10-12) + EP-6..EP-18 signatures (6-8) + stub brand test pack (~3)
+surface: backend (campaigns engine lift + extension SDK formalization + apps/test-brand smoke pack)
+production_code: false                          # SDK is contract surface + campaigns engine is non-agentic. R23 NOT triggered. Sonnet eligible.
 owner_eligibility: [opus, sonnet]
+session: 4
+session_pre_auth: stories_8_plus_9_sequential_autonomous   # outcome §7.5.2 D7=B (cap §7.4 extended to 3 stories Tier 3)
+
+# ★ Session 4 binding decisions cementadas — architect Story 8 consume §7.5 ★
+
+binding_decisions:
+  outcome_section: "§7.5 Session 4 — Story 8 SDK design decisions (ratified 2026-05-12)"
+
+  cross_cutting_policies:                       # outcome §7.5.1
+    CC-1: "Signature pattern per-EP natural (data → DataClass, behavior → Callable)"
+    CC-2: "Default append + override case-by-case via mode flag"
+    CC-3: "Startup-only registration universal"
+    CC-4: "Strict raise on duplicate + namespaced obligatorio (brand_slug prefix)"
+    CC-5: "Inmutable post-startup (no unregister_*)"
+
+  scope_decisions:                              # outcome §7.5.2
+    D1_scope: "Option B — EP-1..EP-5 críticos + EP-6..EP-18 signatures-only"
+    D2_discovery: "Option B — Explicit register in FastAPI lifespan"
+    D3_brand_context: "Full + extensible frozen dataclass"
+    D4_versioning: "Option C — strict alpha minor/patch + flip SemVer Story 9"
+    D5_examples: "Option B — Per-vertical concrete examples + vertical-agent-recipe doc"
+    D6_stub_brand: "Option A — apps/test-brand/ included Story 8"
+    D7_pre_auth_session4: "Option B — Stories 8+9 secuencial autonomous"
+
+  ep_signatures_summary:                        # outcome §7.5.3 — architect Story 8 emits full contracts
+    critical_eps: ["EP-1 field_override", "EP-2 offer_preset_pack_register", "EP-3 sales_agent_tool_register", "EP-4 copilot_workflow_register", "EP-5 scheduling_booking_policy_register"]
+    backlog_eps: ["EP-6 sidebar_routes_register", "EP-7 extractor_register", "EP-8 channel_adapter_register", "EP-9 metric_register", "EP-10 landing_template_register", "EP-11 campaign_template_register", "EP-12 asset_template_register", "EP-13 sales_agent_guardrail_register", "EP-14 copilot_kb_pack_register", "EP-15 crm_lifecycle_stage_register", "EP-16 iam_signup_handler", "EP-17 tenant_plan_tier_register", "EP-18 onboarding_wizard_steps_register"]
+
+  vertical_agent_recipe:                        # outcome §7.5.4
+    decision: "NO EP-19 — pattern doc only"
+    doc_deliverable: "docs/extension-points.md section 'Recipe: Build a vertical agent on top of luana-core' (Vitalia treatment-agent as worked example)"
+
+  ep_8_extended_scope:                          # outcome §7.5.3 EP-8 change (was sales_agent only)
+    decision: "EP-8 covers sales_agent + copilot + ANY vertical brand agent (treatment_agent, kitchen_agent, etc.)"
+    rationale: "Vitalia recipe demands channel adapter usable beyond sales_agent runtime"
+
+  ep_13_extended_scope:                         # outcome §7.5.3 EP-13 change (was pre-send only)
+    decision: "EP-13 includes pre-send + pre-receive checks from v0.1.0"
+    rationale: "Chris 'pagar precio hoy vs refactor mañana'. Pre-receive useful for PII/off-topic filtering early."
+
+  ep_14_tenant_scope:                           # outcome §7.5.3 EP-14 detail
+    decision: "tenant_scope: 'brand' | 'tenant' | 'both'"
+    rationale: "Vitalia: brand-scope (medical protocols shared all clínicas) + tenant-scope (clínica internal KB)"
+
+frozen_contracts_from_stories_6_7:
+  copilot_registries: ["ToolRegistry", "WorkflowRegistry", "ExtractorRegistry", "ModuleRegistry", "SuggestionRegistry"]
+  copilot_golden_snapshot: "tests/architecture/test_copilot_registry_contracts_stable.py (V-AG-3 Story 6)"
+  sales_agent_registry: ["ToolRegistry"]
+  rule: "EP-3/EP-4/EP-5 wrap these registries WITHOUT refactoring. Byte-stable contract."
+
+allowlisted_stubs_for_story_8:                 # Story 7 audit-fix 147c61d carry-over
+  - "AppointmentModel stub (scheduling territory)"
+  - "ProductModel stub (catalog territory)"
+  note: "Story 8 cements removal when scheduling/catalog surfaces lift OR allowlists with explicit reason post-Story-8"
+
+halt_criteria_session_4:
+  - "Scope expansion needed beyond lift+SDK (campaigns module refactor needed)"
+  - "EP signature decision surfaces durante build NOT covered by outcome §7.5"
+  - "Auditor REJECTED + 3 auto-fix Opus iter all fail"
+  - "Cumulative session 4 cost crosses $2500 → soft check-in"
+  - "Builder cap_reached 10 iter on same ticket"
+  - "AISALESHT touched by accident (V-NF-4 invariant violated)"
+  - "Stories 6+7 frozen registries breakage detected (EP wrappers no preserve contract byte-stable)"
 ---
+
+## Bitácora
+
+- 2026-05-09: spawned by /pm, state=parked (blocked_by Story 7)
+- 2026-05-12: Story 7 done — Story 8 unblocked
+- 2026-05-12: Session 4 Phase 0 — Chris ratified scope=B (EP-1..5 + EP-6..18 signatures-only). Chris delegated remaining 6 decisions + 13 backlog EP signatures + 5 CC policies to /pm. Decisions cementadas en outcome §7.5. State parked → refining. Next: spawn /po Opus for 01-spec.md draft.
+- 2026-05-12: /po Opus drafted 01-spec.md (1047 lines, 22 Gherkin scenarios, 14 explicit out-of-scope, 5 open Qs for architect, 3 exception types, BrandContext frozen 9-field per §7.5.2 D3). Per §7.5.2 D7=B Chris pre-auth secuencial autonomous, state refining → refined. Next: spawn architect-orchestrator Opus for ready package.
