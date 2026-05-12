@@ -1,8 +1,8 @@
 ---
 story_id: luana-copilot-engine
 outcome: luana-platform-migration
-state: developed
-phase: all_19_tickets_green
+state: reviewing
+phase: auditor_agentic_spawned
 last_artifact: T-21-result.md
 last_modified: 2026-05-11
 dev_team_started_at: 2026-05-11

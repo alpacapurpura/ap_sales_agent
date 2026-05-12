@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T02:35:17+00:00
+# Generated at: 2026-05-12T02:36:00+00:00
 
-generated_at: '2026-05-12T02:35:17+00:00'
+generated_at: '2026-05-12T02:36:00+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -321,22 +321,22 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
-  developed:
+  developed: []
+  reviewing:
   - id: luana-copilot-engine
     kind: story
-    state: developed
+    state: reviewing
     title: luana-copilot-engine
     tags: []
     last_touched: 2026-05-11
     extra:
       outcome: luana-platform-migration
-      phase: all_19_tickets_green
+      phase: auditor_agentic_spawned
       next_action: auditor-agentic Opus spawn — C1-C5 categories verification + 8 NEW arch fitness gates (V-AG-1..V-AG-8 from
         core/tests/architecture/) independent verdict. Cumulative tool-time ~14h Opus across 6 batches per outcome §7.2 budget.
       blocked_by: []
       priority_override: null
       audit_iterations: 0
-  reviewing: []
   done:
   - id: growth-copilot-layout-unification
     kind: outcome
