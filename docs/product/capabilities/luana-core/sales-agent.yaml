@@ -1,0 +1,119 @@
+---
+capability_id: luana-core-sales-agent
+module: luana-core
+slug: sales-agent
+status: live
+date_introduced: 2026-05-12
+story_introduced: luana-sales-agent-engine
+package_version: 0.0.7-alpha
+package_path: core/luana-core-sales-agent
+license: proprietary
+---
+
+# luana-core-sales-agent
+
+Sales agent agentic engine lifted verbatim from AISALESHT `backend/src/modules/sales_agent/` (17k LOC) to `luana-platform/core/luana-core-sales-agent/` per outcome `luana-platform-migration` Story 7. Eval framework EXCLUDED (deferred Luana v0.2.0 per Session 3 ratificación 2 + outcome §2 OQ1).
+
+## Surface
+
+- **Domain layer:** model_tier (LLM_ROLE_BY_SITE + SPECIALIST_TO_ROLE SSoT), events, message, base_entity, semantic_routes, exceptions, enums, tuning, enrollment, memory/repository
+- **Infrastructure models (13 SQLA, §3 4 hash-stable):** message_model + enrollment_model + prompt_version_model + agent_state_checkpoint_model (§3 hash-stable) + agent_trace + llm_log + payment_grant_audit + payment_link + payment_webhook_event + scheduler_webhook_event + sensitive_data + tool_call_dedup + workflow_metric
+- **Infrastructure db:** base + database + repositories/business_repository + models/
+- **Infrastructure repositories (4):** enrollment + message + state + workflow_metric (tenant-isolated)
+- **Infrastructure memory:** vector_store (Qdrant) + audit_repository
+- **Infrastructure monitoring:** tracing (trace_node decorator + agent_trace recording)
+- **Infrastructure prompts:** base + semantic + templates/ (22 .j2) + legacy/
+- **Infrastructure external (§3 4 hash-stable):** output_manager (channel format consumption + typing_simulation_cpm registry override S12) + buffer_service (SmartBufferService.smart_debounce_runner CPM LATAM) + safety_service + ws_manager (WebSocket)
+- **Application orchestrator (10 files, §3 2 hash-stable):** graph (LangGraph supervisor specialist routing — qualifier/product_expert/closer/supervisor/tool_executor/safety/escalate) + smart_debounce_runner + chat + state (SalesAgentState TypedDict) + conversation_pipeline + identity_resolver + audit_emitter + outbound_orchestrator + tool_call_dedup (§3 hash-stable)
+- **Application agents/sales subgraph (4 files):** graph + nodes + tools + enrollment_tools
+- **Application tools (registry + 3 subfolders, §3 2 hash-stable):** ToolRegistry + payment/(tools + providers + webhook_providers §3) + scheduling/(tools + providers + webhook_providers §3 + deferred-import pattern preserved per §9.2 Story 8 territory)
+- **Application quality:** judge
+- **Application prompts:** compose (★ D-T3 slot 5 BRAND_VOICE BrandVoicePort consumer wiring — 5-slot Anthropic prompt cache TTL 5min per-tenant)
+- **Application services (16 files):** knowledge_builder (D-T3 voice_port consumer) + style_anchor_retriever + offer_prompt_renderer + semantic_router + extraction_card_flow + discovery + payment_service + scheduling_service + closer_studio_service + appointment_service + buffer_service_proxy + tools_service + tracing_service + sentry_service + ...
+- **Application services/closer_studio:** 4 files (closer_studio service composition)
+- **Application root:** event_bus + payment_event_handlers + scheduling_event_handlers
+- **API (8 files):** closer_studio + ws + enrollments + audit + scheduler_webhooks + payment_webhooks + dto/ + __init__ (§3 5 hash-stable: closer_studio + ws + enrollments + scheduler_webhooks + payment_webhooks)
+- **Workers (7 files):** follow_up_engine (§3 hash-stable) + appointment_reminder_engine + frozen_detection + payment_reminder_engine + verify_pending_payments + verify_pending_bookings
+- **Observability subfolder (D-T6 subclass pattern):** SalesAgentCallbackHandler(BaseAgentCallbackHandler) + SalesAgentObservabilityContext(BaseObservabilityContext) + module-scoped LLMCallRepository + TraceEventRepository + RoutingLogRepository + DualWriteReconciliationTask + DomainSubscribers (inherit from luana_core_observability — NEVER mirror). EXCLUDES eval_simulator (Luana v0.2.0)
+- **Copilot provider:** provider.py subclasses BaseCopilotProvider — ModuleRegistry discovers sales_agent (9 modules total)
+
+## NEW Story 7 abstractions (luana-core-brand-studio, D-T3 per ADR-001 §2.4)
+
+- **BrandVoicePort Protocol** (`core/luana-core-brand-studio/src/luana_core_brand_studio/application/ports/brand_voice_port.py`) — hexagonal port for sales_agent + future consumers. 2 async methods: `compile_system_instruction(tenant_id)` + `get_voice_metadata(tenant_id)`. FROZEN public API at lift moment; bumping requires architect ratification.
+- **BrandVoiceService** (`core/luana-core-brand-studio/src/luana_core_brand_studio/application/services/brand_voice_service.py`) — concrete adapter wrapping PersonalityCompiler + PersonalityRepository. Best-effort error handling (None profile fallback).
+
+## §3 Protected surfaces (12-13 files, hash-stable snapshot v1)
+
+`core/tests/architecture/_snapshots/sales_agent_protected_surfaces_v1.json` captures sha256 POST-sed POST-ruff at lift moment:
+- api/closer_studio.py + api/ws.py + api/enrollments.py + api/scheduler_webhooks.py + api/payment_webhooks.py
+- application/orchestrator/smart_debounce_runner.py + application/orchestrator/tool_call_dedup.py
+- infrastructure/external/output_manager.py + infrastructure/external/buffer_service.py + infrastructure/external/safety_service.py + infrastructure/ws_manager.py
+- infrastructure/models/message_model.py + infrastructure/models/enrollment_model.py + infrastructure/models/prompt_version_model.py + infrastructure/models/agent_state_checkpoint_model.py
+- application/tools/payment/webhook_providers.py + application/tools/scheduling/webhook_providers.py
+- workers/follow_up_engine.py
+- domain/enrollment.py
+
+V-AG-8 enforces drift detection.
+
+## D-T3 cardinal (BrandVoicePort hexagonal port)
+
+Sales agent NEVER imports PersonalityCompiler directly. Slot 5 BRAND_VOICE consumes via `voice_port.compile_system_instruction(tenant_id)` + `voice_port.get_voice_metadata(tenant_id)`. PersonalityCompiler SSoT stays in `luana_core_brand_studio.domain.personality` (Story 5 cement). V-AG-3 + V-AG-4 + V-AG-7 triple-cement.
+
+## D-T6 cardinal (anti-mirror observability subclass)
+
+SalesAgentCallbackHandler + SalesAgentObservabilityContext are SUBCLASSES of `luana_core_observability.recording.base_callback_handler.BaseAgentCallbackHandler` + `BaseObservabilityContext`. NEVER mirror shared/agent_observability — INHERIT only. V-AG-6 arch fitness enforces (5 forbidden class declarations + 1 forbidden function = zero declarations in sales_agent src/). Anti-duplication.md cardinal.
+
+## D-T1 sales_agent tool registry frozen at lift moment
+
+`application/tools/registry.py` ToolRegistry public API FROZEN. Story 8 EP-1..EP-5 Extension SDK wraps registry as formal extension points (EP-3 tool + EP-4 workflow + EP-5 specialist) without internals modified.
+
+## Test coverage
+
+- 429/469 pytest GREEN (40 baseline failures pre-existing Story 4 luana-core-platform tech debt + T-7 templates_dir issue — IDENTICAL pre/post-audit-fix via git stash A/B)
+- 21/22 validators GREEN (V-NF-1..V-NF-7 + V-F-py-1/2/3 + V-F-x-1 + V-F-langgraph + V-F-slot-5-voice-port + V-F-prompt-cache + V-F-tools-registry + V-F-closer-studio + V-F-followup + V-F-intent + V-F-channels + V-F-buffer-output + V-F-trace-cost + V-F-pii + V-AG-1..V-AG-8 + V-D-1 + V-D-2)
+- 1/22 waiver (V-F-x-2 conftest collision workspace constraint pre-existing Story 4/5 per Story 6 precedent)
+- Downstream regression Stories 2-6 packages post-audit-fix: brand-studio 470 GREEN + offer-studio 633 GREEN + crm 308 GREEN + connections 648 GREEN + copilot test discovery resolved + **zero new regressions**
+
+## Arch fitness gates (8 NEW Story 7)
+
+- V-AG-1 brand-agnostic engine (no `if brand ==` control flow + no hardcoded secrets)
+- V-AG-2 no-forward-imports (no luana_core_{campaigns,advertising,social_media} top-level + scheduling AST inside method bodies only)
+- V-AG-3 D-T3 sales_agent_uses_voice_port_no_direct_compiler_import (zero PersonalityCompiler imports in sales_agent src/)
+- V-AG-4 D-T3 voice_port_interface_complete (BrandVoicePort Protocol 2 methods FROZEN)
+- V-AG-5 no_eval_framework_lifted (eval_simulator + agentic_evals NOT in sales_agent — Luana v0.2.0)
+- V-AG-6 D-T6 no_mirror_observability_in_sales_agent (5 forbidden classes + 1 forbidden function = zero)
+- V-AG-7 voice_compiler_ssot_still_intact_story7 (regression Stories 5+6 — only brand-studio.domain.personality declares PersonalityCompiler)
+- V-AG-8 sales_agent_protected_surfaces_intact (§3 13 files hash-stable snapshot v1)
+
+## Dependencies
+
+- luana-core-platform (shared base + events + persistence base)
+- luana-core-observability (BaseAgentCallbackHandler + BaseObservabilityContext + base repos — anti-mirror cardinal)
+- luana-core-extraction (BaseExtractionOrchestrator)
+- luana-core-events (DomainEvent base)
+- luana-core-llm (LLM router + provider adapters)
+- luana-core-channels (channel format registry — output_manager consumer)
+- luana-core-iam (tenant context)
+- luana-core-brand-studio (BrandVoicePort hexagonal port consumer — D-T3)
+- luana-core-copilot (BaseCopilotProvider for copilot_provider subclass)
+- luana-core-crm (LeadModel.messages relationship)
+
+## Deferred files (target Luana v0.2.0 + Story 8 + Story 10)
+
+- **Luana v0.2.0** (per Session 3 ratificación 2 + outcome §2 OQ1):
+  - backend/src/modules/sales_agent/observability/eval_simulator/ (entire subfolder)
+  - backend/tests/agentic_evals/sales_agent/ (entire tree)
+  - Story E (sales-agent-voice-fidelity-grader-runtime) → WAIVED
+- **Story 8 (campaigns-extension-sdk):**
+  - Scheduling concrete provider runtime — deferred-import pattern preserved
+  - EP-1..EP-5 Extension SDK formalization
+- **Story 10 (nicolify migration):**
+  - Streamlit admin pages
+
+## Reference
+
+- Source: AISALESHT `backend/src/modules/sales_agent/`
+- Destination: luana-platform `core/luana-core-sales-agent/`
+- Commits Story 7: 583bbcf..147c61d (17 luana-platform commits + 1 audit-fix)
+- Merge doc: docs/archive/2026/stories/luana-sales-agent-engine/07-merge.md
+- ADR: docs/architecture/luana-platform/adr/ADR-001-luana-platform.md (D-T3 §2.4 + anti-mirror cardinal per anti-duplication.md)

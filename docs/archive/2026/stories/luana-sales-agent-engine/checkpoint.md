@@ -1,14 +1,17 @@
 ---
 story_id: luana-sales-agent-engine
 outcome: luana-platform-migration
-state: reviewing
-phase: auditor_agentic_spawned
-last_artifact: T-19-result.md
+state: done
+phase: merged_archived
+last_artifact: 07-merge.md
 last_modified: 2026-05-12
 dev_team_started_at: 2026-05-12
 dev_team_completed_at: 2026-05-12
 audit_started_at: 2026-05-12
-next_action: "Auditor-agentic Opus C1-C5 + V-AG-1..V-AG-8 + downstream regression R3 in flight. Auto-fix Opus cap 2 iter trivial findings. Verdict APPROVED → /pm Phase 7 merge."
+audit_completed_at: 2026-05-12
+done_at: 2026-05-12
+merged_by: /pm (claude-opus-4-7)
+next_action: "Story 7 closed DONE. 7/14 outcome stories. Story 8 unblocked. Session 3 closes (Stories 6+7 sequential autonomous extension §7.4 cap 2 stories Tier 3 completed)."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 + ratificación 2 eval WAIVED)
 session_3_ratification_date: 2026-05-11
 session_3_mandate: "autonomous Tier 3 lift per outcome §7.2 + §7.4 cap extended 2 stories. R23 Opus mandatory all tickets. D-T3 BrandVoicePort hexagonal introduced this story."
@@ -65,6 +68,8 @@ new_arch_fitness_tests: 8  # V-AG-1..V-AG-8 in core/tests/architecture/
 ---
 
 ## Bitácora
+
+- 2026-05-12 (state reviewing → done): Phase 7 merge applied by /pm. auditor-agentic Opus APPROVED with 1 trivial finding auto-fixed iter 1 of cap 2 (D-T2 T-17 cement MessageModel stub cleanup — commit `147c61d` luana-platform). REVIEW-agentic.md cement. Capability `luana-core-sales-agent` v0.0.7-alpha promoted to docs/product/capabilities/luana-core/sales-agent.yaml. Outcome `luana-platform-migration` stories_done append luana-sales-agent-engine → 7/14 stories DONE. Story 8 luana-campaigns-extension-sdk unblocked. Session 3 closes (Stories 6+7 secuencial autonomous Tier 3 §7.4 cap extension completed).
 
 - 2026-05-12 (state developed → reviewing): Phase 6 audit start. auditor-agentic Opus spawned. C1 (code) + C2 (spec) + C3 (architecture) + C4 (cross-cutting) + C5 (trace) + 8 NEW arch fitness V-AG-1..V-AG-8 + downstream regression R3. Auto-fix cap 2 iter trivial findings (lint/typo/format). Halt criteria: REJECT + 3 auto-fix iter fail → escalate Chris.
 
