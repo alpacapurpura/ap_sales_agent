@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T03:31:58+00:00
+# Generated at: 2026-05-12T06:11:20+00:00
 
-generated_at: '2026-05-12T03:31:58+00:00'
+generated_at: '2026-05-12T06:11:20+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -315,8 +315,8 @@ buckets:
     extra:
       outcome: luana-platform-migration
       phase: builder_agentic_batch_1_spawned
-      next_action: Builder-agentic Opus batch 1 (T-1+T-2+T-3) in flight. T-3 introduces D-T3 BrandVoicePort hexagonal port
-        in luana-core-brand-studio per ADR-001 §2.4. Then batches 2-6 sequential.
+      next_action: Batches 1-5 (T-1..T-15) GREEN. Batch 6 = T-16 (connections wiring unlift Stories 4+6 deferral resolved)
+        + T-17 (integration smoke) + T-18 (8 NEW arch fitness) + T-19 (finalization).
       blocked_by:
       - luana-copilot-engine
       priority_override: null

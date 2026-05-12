@@ -3,10 +3,10 @@ story_id: luana-sales-agent-engine
 outcome: luana-platform-migration
 state: developing
 phase: builder_agentic_batch_1_spawned
-last_artifact: 06-tickets.yaml
+last_artifact: T-15-result.md
 last_modified: 2026-05-12
 dev_team_started_at: 2026-05-12
-next_action: "Builder-agentic Opus batch 1 (T-1+T-2+T-3) in flight. T-3 introduces D-T3 BrandVoicePort hexagonal port in luana-core-brand-studio per ADR-001 §2.4. Then batches 2-6 sequential."
+next_action: "Batches 1-5 (T-1..T-15) GREEN. Batch 6 = T-16 (connections wiring unlift Stories 4+6 deferral resolved) + T-17 (integration smoke) + T-18 (8 NEW arch fitness) + T-19 (finalization)."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 + ratificación 2 eval WAIVED)
 session_3_ratification_date: 2026-05-11
 session_3_mandate: "autonomous Tier 3 lift per outcome §7.2 + §7.4 cap extended 2 stories. R23 Opus mandatory all tickets. D-T3 BrandVoicePort hexagonal introduced this story."
@@ -63,6 +63,10 @@ new_arch_fitness_tests: 8  # V-AG-1..V-AG-8 in core/tests/architecture/
 ---
 
 ## Bitácora
+
+- 2026-05-12 (batch 5 — T-13+T-14+T-15 GREEN): luana-platform commits `18bea75` (T-13 api+workers + 6 §3 hash-stable) + `84c3377` (T-14 observability subfolder D-T6 subclass + EXCLUDE eval_simulator + agentic_evals Luana v0.2.0) + `c82a3f2` (T-15 copilot_provider + entry-point + ModuleRegistry discovery picks up sales_agent). 9 modules total in registry (Stories 6 8 + Story 7 sales_agent). D-T6 anti-mirror cardinal verified 4-layer evidence. AISALESHT UNTOUCHED throughout 15 tickets cumulative.
+
+- 2026-05-12 (batch 1-4): T-1..T-12 GREEN (12 commits cumulative — workspace + skeleton + D-T3 BrandVoicePort + domain + infra layers + orchestrator + agents/sales + tools + quality+prompts D-T3 compose_prompt + services). 20 pre-existing failures categorized as Story 4 luana-core-platform CRM tech debt + T-7 templates_dir absolute path inherited issue.
 
 - 2026-05-12: state=ready → developing. Session 3 Phase 5 build start. Builder-agentic Opus batch 1 spawning (T-1+T-2+T-3). Story 6 closed DONE 2026-05-11 (commit 6d95b503 archive). All 19 tickets owner=builder-agentic Opus (R23). D-T3 BrandVoicePort intro T-3 — only Story 7 ticket touching luana-core-brand-studio (pre-ratified ADR-001 §2.4 + Session 3 ratificación). Eval framework WAIVED Luana v0.2.0.
 
