@@ -1,11 +1,11 @@
 ---
 story_id: luana-v0-1-0-publish
 outcome: luana-platform-migration
-state: developed
-phase: STORY_DEVELOPED_AWAITING_AUDIT
+state: reviewing
+phase: AUDIT_C1_C5
 last_artifact: T-5-impl-log.md
 last_modified: 2026-05-12
-next_action: "Build phase done (tests-passing). Awaiting orchestrator → auditor-backend (independent verdict). luana-platform commits on main. AISALESHT impl-logs committed to development."
+next_action: "Phase 6 — auditor-backend Opus spawn for C1-C5 + 23 validators re-run + R3 downstream regression Stories 1-8 packages."
 ratified_by_chris: true                        # ★ Session 4 pre-auth — outcome §7.5.2 D7=B + §7.1 scope decisions ★
 spawned_at: 2026-05-09
 spawned_by: /pm
