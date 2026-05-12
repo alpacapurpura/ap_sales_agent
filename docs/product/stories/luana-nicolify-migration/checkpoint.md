@@ -1,11 +1,11 @@
 ---
 story_id: luana-nicolify-migration
 outcome: luana-platform-migration
-state: refining                                  # 2026-05-12 Session 5 — Chris ratified 10 business decisions §7.6, /po next
-phase: PHASE_0_DONE_PHASE_1_PO_SPEC
-last_artifact: checkpoint.md
+state: refined                                   # 2026-05-12 Session 5 Phase 1 — Chris ratified 01-spec.md + Halt Trigger #11 added to §7.6.2
+phase: PHASE_1_SPEC_RATIFIED_PHASE_1B_ARCHITECT
+last_artifact: 01-spec.md
 last_modified: 2026-05-12
-next_action: "/po Opus spawn — emit 01-spec.md Gherkin scenarios per surface (BE imports + FE imports + tests + DB strategy + smoke E2E + AISALESHT lifecycle + /pm SSoT migration)"
+next_action: "architect-orchestrator Opus spawn — emit ready package 5 files (03-arch.md consolidado + 03-arch-be.md + 04-validators.yaml executable + 05-guidelines.md + 06-tickets.yaml sharded per blast-radius)"
 ratified_by_chris: true                          # 2026-05-12 — 10 business decisions §7.6 cemented Session 5 Phase 0
 spawned_at: 2026-05-09
 spawned_by: /pm
@@ -55,3 +55,4 @@ Detail completo: `docs/product/outcomes/luana-platform-migration.md` § 7.6
 - **2026-05-09**: Story spawned by /pm state=parked. blocked_by Story 9 (then in development)
 - **2026-05-12**: Story 9 closed DONE. Story 10 unblocked but ratified_by_chris=false
 - **2026-05-12 Session 5 Phase 0**: /pm spawned. Chris ratified 10 business decisions §7.6. Transition state=parked → refining. /po next.
+- **2026-05-12 Session 5 Phase 1**: /po Opus emitted 01-spec.md (1304 líneas, 9 features × 4 escenarios = 36 Gherkin scenarios). Chris ratified spec + accepted NEW Halt Trigger #11 (test mock missing path). Outcome §7.6.2 updated. Transition state=refining → refined. architect-orchestrator next.

@@ -428,6 +428,7 @@ Triggers que escalate Chris durante Fases 1-3 (no proceed sin ratificación):
 8. luana-platform monorepo state inesperado (e.g., uncommitted changes, branch mismatch)
 9. Cumulative cost sesión > $5000 (soft check-in, continuar pero report Chris)
 10. Auditor + 2 auto-fix iter all fail → escalate (no 3rd iter sin Chris)
+11. **Sub-agent rewrite descubre test mock apuntando a path `src.shared.X` SIN equivalent en luana-core packages** (legacy test infra mock, distinto de Trigger #1 que cubre production imports missing). Halt-and-ask Chris entre: (A) inline mock value into test sin patch, (B) lift symbol Story 14 deferred, (C) skip test temporalmente con magic comment `# luana-migration-defer` + Story 14 ticket. **Ratified Chris 2026-05-12 Session 5 Phase 1.**
 
 #### 7.6.3 Session 5 success criteria
 
