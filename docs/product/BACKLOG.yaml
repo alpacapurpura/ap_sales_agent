@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T17:26:10+00:00
+# Generated at: 2026-05-12T17:59:29+00:00
 
-generated_at: '2026-05-12T17:26:10+00:00'
+generated_at: '2026-05-12T17:59:29+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -215,22 +215,6 @@ buckets:
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
   refined: []
   ready:
-  - id: luana-v0-1-0-publish
-    kind: story
-    state: ready
-    title: luana-v0-1-0-publish
-    tags: []
-    last_touched: 2026-05-12
-    extra:
-      outcome: luana-platform-migration
-      phase: READY_PACKAGE_COMPLETE
-      next_action: 'Ready package complete (03-arch.md + 03-arch-be.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml).
-        23 validators / 5 tickets / all Sonnet eligible. Next: /dev-team session 4 continuation picks up T-1 → T-5 secuencial
-        autonomous per outcome §7.5.2 D7=B.'
-      blocked_by:
-      - luana-campaigns-extension-sdk
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready
@@ -322,7 +306,22 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
-  developed: []
+  developed:
+  - id: luana-v0-1-0-publish
+    kind: story
+    state: developed
+    title: luana-v0-1-0-publish
+    tags: []
+    last_touched: 2026-05-12
+    extra:
+      outcome: luana-platform-migration
+      phase: STORY_DEVELOPED_AWAITING_AUDIT
+      next_action: Build phase done (tests-passing). Awaiting orchestrator → auditor-backend (independent verdict). luana-platform
+        commits on main. AISALESHT impl-logs committed to development.
+      blocked_by:
+      - luana-campaigns-extension-sdk
+      priority_override: null
+      audit_iterations: 0
   reviewing: []
   done:
   - id: growth-copilot-layout-unification

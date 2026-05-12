@@ -1,11 +1,11 @@
 ---
 story_id: luana-v0-1-0-publish
 outcome: luana-platform-migration
-state: ready
-phase: READY_PACKAGE_COMPLETE
-last_artifact: 06-tickets.yaml
+state: developed
+phase: STORY_DEVELOPED_AWAITING_AUDIT
+last_artifact: T-5-impl-log.md
 last_modified: 2026-05-12
-next_action: "Ready package complete (03-arch.md + 03-arch-be.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml). 23 validators / 5 tickets / all Sonnet eligible. Next: /dev-team session 4 continuation picks up T-1 → T-5 secuencial autonomous per outcome §7.5.2 D7=B."
+next_action: "Build phase done (tests-passing). Awaiting orchestrator → auditor-backend (independent verdict). luana-platform commits on main. AISALESHT impl-logs committed to development."
 ratified_by_chris: true                        # ★ Session 4 pre-auth — outcome §7.5.2 D7=B + §7.1 scope decisions ★
 spawned_at: 2026-05-09
 spawned_by: /pm
