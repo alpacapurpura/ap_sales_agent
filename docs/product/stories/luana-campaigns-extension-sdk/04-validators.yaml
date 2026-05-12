@@ -1,0 +1,373 @@
+---
+story_id: luana-campaigns-extension-sdk
+schema_version: 4
+last_modified: 2026-05-12
+drafted_by: /architect-orchestrator (claude-opus-4-7)
+total_validators: 26
+authority: 01-spec.md §6 + outcome §7.5 + checkpoint binding_decisions + Story 7 04-validators precedent
+---
+
+# 04-validators.yaml — luana-campaigns-extension-sdk
+# Order: workspace → SDK foundation → SDK critical EPs (Opus) → SDK backlog EPs → TS mirror → campaigns lift → test-brand smoke → docs → arch fitness → downstream regression → finalization.
+
+non_functional:
+  - id: V-NF-1
+    name: "uv sync --all-packages succeeds (26 Python workspace members + apps/test-brand path added)"
+    description: "Per Story 7 baseline 23 + Story 8 NEW 3 packages. Workspace pyproject.toml alphabetical."
+    command: |
+      cd ~/luana-platform && uv sync --all-packages 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-1, T-17]
+
+  - id: V-NF-2
+    name: "All 3 NEW Python packages + 1 NEW TS package declare version 0.0.8-alpha"
+    command: |
+      cd ~/luana-platform
+      test -f core/luana-core-campaigns/pyproject.toml || { echo "MISSING campaigns pyproject"; exit 1; }
+      test -f core/luana-core-extension-sdk/pyproject.toml || { echo "MISSING sdk pyproject"; exit 1; }
+      test -f apps/test-brand/pyproject.toml || { echo "MISSING test-brand pyproject"; exit 1; }
+      test -f core/@luana/extension-sdk/package.json || { echo "MISSING TS package.json"; exit 1; }
+      grep -q 'version = "0.0.8-alpha"' core/luana-core-campaigns/pyproject.toml || { echo "WRONG VERSION campaigns"; exit 1; }
+      grep -q 'version = "0.0.8-alpha"' core/luana-core-extension-sdk/pyproject.toml || { echo "WRONG VERSION sdk"; exit 1; }
+      grep -q 'version = "0.0.8-alpha"' apps/test-brand/pyproject.toml || { echo "WRONG VERSION test-brand"; exit 1; }
+      grep -q '"version": "0.0.8-alpha"' core/@luana/extension-sdk/package.json || { echo "WRONG VERSION TS"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-2, T-8, T-9, T-14]
+
+  - id: V-NF-3
+    name: "Workspace declares 3 NEW Python packages in [tool.uv.sources] alphabetical"
+    command: |
+      cd ~/luana-platform
+      grep -q '^luana-core-campaigns = { workspace = true }' pyproject.toml || { echo "NOT IN sources campaigns"; exit 1; }
+      grep -q '^luana-core-extension-sdk = { workspace = true }' pyproject.toml || { echo "NOT IN sources sdk"; exit 1; }
+      grep -q '^test-brand = { workspace = true }' pyproject.toml || { echo "NOT IN sources test-brand"; exit 1; }
+      grep -q '"core/luana-core-campaigns"' pyproject.toml || { echo "NOT IN members campaigns"; exit 1; }
+      grep -q '"core/luana-core-extension-sdk"' pyproject.toml || { echo "NOT IN members sdk"; exit 1; }
+      grep -q '"apps/test-brand"' pyproject.toml || { echo "NOT IN members test-brand"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-1]
+
+  - id: V-NF-4
+    name: "AISALESHT campaigns module + tests NOT modified by Story 8 (cardinal V-NF-4 outcome §7.3)"
+    description: "Per outcome §7.3 lift mode MUST NOT. backend/src/modules/campaigns/ + backend/tests/modules/campaigns/ READ-ONLY."
+    command: |
+      cd /home/chris/AISALESHT
+      BASE_SHA=$(grep -oP 'base_sha:\s*\K[a-f0-9]+' docs/product/stories/luana-campaigns-extension-sdk/checkpoint.md 2>/dev/null || git rev-parse HEAD)
+      DIFF=$(git diff "$BASE_SHA" HEAD --name-only 2>/dev/null | grep -E '^(backend/src/modules/campaigns|backend/tests/modules/campaigns)/' || true)
+      if [ -n "$DIFF" ]; then echo "AISALESHT CAMPAIGNS FILES MODIFIED:"; echo "$DIFF"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-NF-5
+    name: "No publishConfig / .releaserc / release.yml in any NEW package (Story 9 deferral)"
+    command: |
+      cd ~/luana-platform
+      OFFENDERS=$(grep -l 'publishConfig' \
+          core/luana-core-campaigns/pyproject.toml \
+          core/luana-core-extension-sdk/pyproject.toml \
+          apps/test-brand/pyproject.toml \
+          core/@luana/extension-sdk/package.json 2>/dev/null || true)
+      if [ -n "$OFFENDERS" ]; then echo "Found publishConfig: $OFFENDERS"; exit 1; fi
+      FOUND_R=$(find . -name '.releaserc*' -not -path './node_modules/*' -not -path './.git/*' 2>/dev/null || true)
+      FOUND_W=$(find .github/workflows -maxdepth 2 -type f \( -name 'release*' -o -name 'publish*' \) 2>/dev/null || true)
+      if [ -n "$FOUND_R" ] || [ -n "$FOUND_W" ]; then echo "Found publish artifacts: $FOUND_R $FOUND_W"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+functional:
+  - id: V-F-campaigns-1
+    name: "luana-core-campaigns per-package pytest GREEN (42 test files lifted verbatim, coverage ≥ 43%)"
+    description: "AISALESHT 43% baseline preserved. Per-package isolated run."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-campaigns/tests/ -x -q --tb=short 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-9, T-10, T-11, T-12, T-13]
+
+  - id: V-F-campaigns-2
+    name: "Campaigns import paths migrated (zero `from src.modules.campaigns` in lifted files)"
+    command: |
+      cd ~/luana-platform
+      LEAKS=$(grep -rln 'from src\.modules\.campaigns' core/luana-core-campaigns/ 2>/dev/null || true)
+      if [ -n "$LEAKS" ]; then echo "FAIL — leaked imports:"; echo "$LEAKS"; exit 1; fi
+      LEAKS_SHARED=$(grep -rln 'from src\.shared\|from src\.core\|from src\.modules\.' core/luana-core-campaigns/ 2>/dev/null || true)
+      if [ -n "$LEAKS_SHARED" ]; then echo "FAIL — leaked src imports:"; echo "$LEAKS_SHARED"; exit 1; fi
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-10, T-11, T-12, T-13]
+
+  - id: V-F-sdk-1
+    name: "ExtensionPointRegistry exposes exactly 18 register methods (EP-1..EP-18)"
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      from luana_core_extension_sdk import ExtensionPointRegistry
+      methods = [
+          'field_override', 'offer_preset_pack_register',
+          'sales_agent_tool_register', 'copilot_workflow_register',
+          'scheduling_booking_policy_register',
+          'sidebar_routes_register', 'extractor_register',
+          'channel_adapter_register', 'metric_register',
+          'landing_template_register', 'campaign_template_register',
+          'asset_template_register', 'sales_agent_guardrail_register',
+          'copilot_kb_pack_register', 'crm_lifecycle_stage_register',
+          'iam_signup_handler', 'tenant_plan_tier_register',
+          'onboarding_wizard_steps_register',
+      ]
+      missing = [m for m in methods if not hasattr(ExtensionPointRegistry, m)]
+      assert not missing, f'Missing methods: {missing}'
+      assert len(methods) == 18
+      print('18 EP register methods exposed OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-5, T-7]
+
+  - id: V-F-sdk-2
+    name: "EP-1..EP-5 critical executable — invocation returns typed results without exception"
+    description: "Per scenarios B1-B5 verbatim. Unit tests cover happy path + brand isolation."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-extension-sdk/tests/unit/test_ep1_through_ep5.py -v --tb=short 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-5]
+
+  - id: V-F-sdk-3
+    name: "EP-6..EP-18 backlog semantic dispatch raises NotImplementedError graceful"
+    description: "Per scenarios B6-B18. Registration succeeds; dispatch raises with descriptive message."
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-extension-sdk/tests/unit/test_ep6_through_ep18_signature_only.py -v --tb=short 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-7]
+
+  - id: V-F-sdk-4
+    name: "CC-1..CC-5 cross-cutting policy enforcement (5 scenarios C1-C5)"
+    description: |
+      CC-1 per-EP natural pattern (DataClass vs Callable) — verified by ticket review.
+      CC-2 override mode restricted to EP-17 + EP-18 — ValueError on other EPs.
+      CC-3 startup-only — registry.close() locks; subsequent register raises RegistrationClosedError.
+      CC-4 namespace — bare name raises NamespaceViolationError; duplicate raises DuplicateRegistrationError.
+      CC-5 inmutable — no unregister_* method exists (AttributeError on lookup).
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-extension-sdk/tests/unit/test_cross_cutting_policies.py -v --tb=short 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-5, T-7]
+
+  - id: V-F-sdk-5
+    name: "BrandContext frozen dataclass with exactly 9 fields per §7.5.2 D3"
+    description: |
+      Per scenario E1. dataclass_params.frozen=True. 9 fields:
+      tenant_id, brand_slug, plan_tier, locale, feature_flags, tenant_profile_id, vertical_kind, compliance_flags, pii_policy.
+      Mutation attempt raises FrozenInstanceError.
+    command: |
+      cd ~/luana-platform && uv run pytest core/luana-core-extension-sdk/tests/unit/test_brand_context.py -v --tb=short 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-3]
+
+  - id: V-F-ts-1
+    name: "@luana/extension-sdk TS types mirror Python DataClasses (EP-6 + EP-10 + EP-18)"
+    description: |
+      Per OQ-5 resolution. AST parse of core/@luana/extension-sdk/src/models.ts compared against
+      Python dataclasses.fields() for SidebarRouteDef + LandingTemplateDef + WizardStepDef.
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_ts_types_mirror_python_dataclasses.py -v --tb=short 2>&1 | tail -40
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-8, T-17]
+
+  - id: V-F-test-brand-1
+    name: "apps/test-brand smoke pack tests GREEN (10 scenarios D1-D3 + C1-C5 + frozen)"
+    description: |
+      Per scenarios D1-D3 verbatim + C1-C5 + E1.
+      - D1 lifespan registers all 18 EPs
+      - D2 EP-1..EP-5 happy invocation succeeds
+      - D3 EP-6..EP-18 NotImplementedError graceful
+      - C1 duplicate raises DuplicateRegistrationError
+      - C2 bare name raises NamespaceViolationError
+      - C3 post-startup register raises RegistrationClosedError
+      - C4 unregister_* AttributeError
+      - C5 mode='override' restricted to EP-17 + EP-18
+    command: |
+      cd ~/luana-platform && uv run pytest apps/test-brand/tests/test_sdk_smoke.py -v --tb=short 2>&1 | tail -50
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-14, T-15]
+
+  - id: V-F-docs-1
+    name: "docs/extension-points.md ships with §1-§5 complete (CC verbatim + per-vertical examples + recipe + cross-brand learning)"
+    description: |
+      Per scenarios D4 + F1 + F2.
+      §1 CC-1..CC-5 verbatim from §7.5.1
+      §2 EP-1..EP-5 critical with Vitalia + Comunify + Lupulo examples (per §7.5.2 D5=B)
+      §3 EP-6..EP-18 backlog signatures with per-vertical examples
+      §4 "Recipe: Build a vertical agent on top of luana-core" (Vitalia treatment-agent worked example per §7.5.4)
+      §4 contains "NO EP-19" literal string (case-insensitive)
+      §5 Cross-brand learning principle (§7.5.6)
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_docs_extension_points_completeness.py -v --tb=short 2>&1 | tail -30
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-16, T-17]
+
+  - id: V-F-x-1
+    name: "Cross-package Python smoke (Story 8 + EP-1..EP-5 executable + zero-dep SDK)"
+    description: "Verifies imports + EP-1..EP-5 happy path + adapter wiring None passes through."
+    command: |
+      cd ~/luana-platform && uv run python -c "
+      # Story 8 SDK
+      from luana_core_extension_sdk import ExtensionPointRegistry, BrandContext
+      from luana_core_extension_sdk.exceptions import (
+          DuplicateRegistrationError, NamespaceViolationError, RegistrationClosedError,
+      )
+      from luana_core_extension_sdk.models import (
+          FieldOverride, FieldDef, PresetPack, ToolDef, WorkflowDef, BookingPolicy,
+          BookingResult, SidebarRouteDef, ExtractorDef, ChannelAdapterDef, MetricDef,
+          LandingTemplateDef, CampaignTemplateDef, CampaignStepDef, AssetTemplateDef,
+          GuardrailDef, GuardrailResult, KbPackDef, LifecycleStageDef, SignupResult,
+          PlanTierDef, WizardStepDef,
+      )
+      # luana-core-campaigns import smoke
+      from luana_core_campaigns.domain.campaign import Campaign
+      from luana_core_campaigns.application.services.campaign_service import CampaignService
+      # apps/test-brand smoke
+      from test_brand.extensions import register_all
+      from test_brand.main import app, lifespan
+      # SDK zero-dep verify
+      import sys
+      sdk_mod = sys.modules['luana_core_extension_sdk']
+      assert sdk_mod is not None
+      # Frozen BrandContext check
+      import dataclasses
+      assert BrandContext.__dataclass_params__.frozen is True
+      print('Story 8 cross-package imports OK')
+      "
+    must_pass: true
+    addressed_by_tickets: [T-17]
+
+  - id: V-F-x-2
+    name: "Aggregate pytest entire luana-platform (26 Python packages Stories 2-8) GREEN"
+    description: "Same waiver pattern Story 7 V-F-x-2 — conftest collision tolerated, per-package GREEN."
+    command: |
+      cd ~/luana-platform && uv run pytest core/ apps/ -x -q --tb=short --ignore=core/src \
+          --ignore=core/luana-core-copilot/tests/test_streaming_integration.py \
+          --ignore=core/luana-core-sales-agent/tests/eval_simulator/ \
+          --ignore=core/luana-core-sales-agent/tests/agentic_evals/ 2>&1 | tail -50
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-17]
+
+visual: []  # No UI runtime changes Story 8 (TS package is type-only export, no React runtime).
+
+agentic_eval:
+  - id: V-AG-3-story-6
+    name: "Story 6 copilot 5 registries golden snapshot continues GREEN (frozen contract preservation)"
+    description: "EP-4 wrapper does NOT mutate Story 6 WorkflowRegistry / ExtractorRegistry / ModuleRegistry / SuggestionRegistry / ToolRegistry. V-AG-3 Story 6 byte-stable."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_story6_registries_byte_stable.py -v --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-6, T-17]
+
+  - id: V-AG-3-story-7
+    name: "Story 7 sales-agent ToolRegistry golden snapshot continues GREEN"
+    description: "EP-3 wrapper does NOT mutate Story 7 ToolRegistry. V-AG-3 Story 7 byte-stable."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_sales_agent_protected_surfaces_intact.py -v --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-6, T-17]
+
+  - id: V-AG-new-story-8
+    name: "EP-3 + EP-4 read-only adapters expose ONLY public methods (no private dispatch / mutation access)"
+    description: |
+      Per scenario edge case 7.1. AST parse of _adapters.py — no attribute access starting with _dispatch / _mutate / _internal_.
+      Adapters call only register_*_from_extension public method on inner registry.
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_ep3_ep4_wrappers_read_only.py -v --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-6, T-17]
+
+  - id: V-AG-no-ep19
+    name: "NO EP-19 vertical_agent_register method in ExtensionPointRegistry (§7.5.4 enforcement)"
+    description: "Vertical agents are brand apps NOT core extension points. No method with vertical_agent_register pattern."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_no_ep19_method_in_registry.py -v --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-17]
+
+  - id: V-AG-namespace-allowlist
+    name: "CC-4 namespace — brand_slug allowlist strictly enforced (5 brands only)"
+    description: "Bare name raises NamespaceViolationError. Unknown brand_slug raises NamespaceViolationError. Valid brand prefix succeeds."
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_brand_slug_namespace_allowlist.py -v --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-5, T-17]
+
+  - id: V-AG-cc5-no-unregister
+    name: "CC-5 inmutable — registry exposes zero unregister_* methods (AttributeError on lookup)"
+    command: |
+      cd ~/luana-platform && uv run pytest core/tests/architecture/test_no_unregister_api.py -v --tb=short 2>&1 | tail -20
+      test ${PIPESTATUS[0]} -eq 0
+    must_pass: true
+    addressed_by_tickets: [T-5, T-17]
+
+documentation:
+  - id: V-D-1
+    name: "luana-core-campaigns + luana-core-extension-sdk + apps/test-brand README.md stubs ship"
+    command: |
+      test -f ~/luana-platform/core/luana-core-campaigns/README.md || { echo "MISSING campaigns README"; exit 1; }
+      test -f ~/luana-platform/core/luana-core-extension-sdk/README.md || { echo "MISSING sdk README"; exit 1; }
+      test -f ~/luana-platform/apps/test-brand/README.md || { echo "MISSING test-brand README"; exit 1; }
+      test -f ~/luana-platform/core/@luana/extension-sdk/README.md || { echo "MISSING TS README"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-2, T-9, T-14]
+
+  - id: V-D-2
+    name: "core/DEFERRED-FILES.md updated with Story 8 entries + anti-duplication.md + R3 SSoT table updated"
+    description: |
+      Story 8 deferrals registered + inventory append:
+      - AppointmentModel stub RE-ALLOWLIST (scheduling deferred post-Story-8)
+      - ProductModel stub RE-ALLOWLIST (catalog deferred post-Story-8)
+      - EP-3+EP-4 adapter wiring real (Stories 11-13)
+      - .claude/rules/anti-duplication.md inventory: Extension SDK row appended
+      - .claude/rules/auditor-downstream-regression.md SSoT table: Story 8 rows appended
+    command: |
+      F=~/luana-platform/core/DEFERRED-FILES.md
+      grep -q "Story 8 deferrals" "$F" || { echo "MISSING Story 8 section"; exit 1; }
+      grep -q "AppointmentModel" "$F" || { echo "MISSING AppointmentModel defer"; exit 1; }
+      grep -q "ProductModel" "$F" || { echo "MISSING ProductModel defer"; exit 1; }
+      grep -q "adapter wiring" "$F" || { echo "MISSING adapter wiring defer"; exit 1; }
+      # anti-duplication.md inventory check
+      grep -q "luana_core_extension_sdk" /home/chris/AISALESHT/.claude/rules/anti-duplication.md || { echo "MISSING anti-duplication.md row"; exit 1; }
+      # R3 SSoT table check
+      grep -q "luana-core-extension-sdk" /home/chris/AISALESHT/.claude/rules/auditor-downstream-regression.md || { echo "MISSING R3 SSoT row"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-18]
+
+  - id: V-D-3
+    name: "docs/extension-points.md content meets §1-§5 + recipe + per-vertical examples (see V-F-docs-1 above for arch test)"
+    description: "Duplicate of V-F-docs-1 routed to documentation category for auditor categorization clarity."
+    command: |
+      test -f ~/luana-platform/docs/extension-points.md || { echo "MISSING docs file"; exit 1; }
+      MD=~/luana-platform/docs/extension-points.md
+      grep -qi "^## 1" "$MD" || grep -qi "^# §1" "$MD" || { echo "MISSING §1 SDK overview"; exit 1; }
+      grep -qi "vitalia" "$MD" || { echo "MISSING Vitalia examples"; exit 1; }
+      grep -qi "comunify" "$MD" || { echo "MISSING Comunify examples"; exit 1; }
+      grep -qi "lupulo" "$MD" || { echo "MISSING Lupulo examples"; exit 1; }
+      grep -qi "no ep-19\|no ep19" "$MD" || { echo "MISSING NO EP-19 statement"; exit 1; }
+      grep -qi "vertical agent\|treatment_agent" "$MD" || { echo "MISSING vertical-agent recipe"; exit 1; }
+      grep -qi "cross-brand learning\|graduate to core" "$MD" || { echo "MISSING cross-brand learning §5"; exit 1; }
+      echo "OK"
+    must_pass: true
+    addressed_by_tickets: [T-16, T-17]

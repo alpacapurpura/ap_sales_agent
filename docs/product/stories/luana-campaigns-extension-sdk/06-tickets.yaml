@@ -1,0 +1,1040 @@
+---
+story_id: luana-campaigns-extension-sdk
+tickets_version: 1
+last_modified: 2026-05-12
+drafted_by: /architect-orchestrator (claude-opus-4-7)
+total_tickets: 18
+authority: 03-arch.md + 03-arch-be.md + 04-validators.yaml + 05-guidelines.md + outcome §7.5 verbatim + checkpoint binding_decisions
+---
+
+# 06-tickets.yaml — luana-campaigns-extension-sdk
+#
+# DAG-ordered. 18 tickets. blocked_by: luana-sales-agent-engine (Story 7) done 2026-05-12.
+# R23 nuance: production_code=false story-level BUT T-5 + T-6 promoted owner=builder-agentic Opus.
+# Foundation: T-1 (workspace) → T-2..T-4 (SDK foundation Sonnet) → T-5 + T-6 (critical EPs Opus) → T-7 (backlog stubs Sonnet) → T-8 (TS Sonnet) → T-9..T-13 (campaigns lift Sonnet) → T-14 + T-15 (test-brand Sonnet) → T-16 (docs Sonnet) → T-17 (arch fitness + integration Sonnet) → T-18 (finalization Sonnet).
+# Sequential within batches. Builder-agentic must wait for foundation before T-5.
+
+tickets:
+
+  - id: T-1
+    title: "Update luana-platform workspace registration for Story 8 — 3 NEW Python packages alphabetical"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 15
+    blocked_by: []
+    blocks: [T-2, T-9, T-14]
+    validators_addressed: [V-NF-1, V-NF-3]
+    files_to_modify:
+      - "~/luana-platform/pyproject.toml"
+    description: |
+      Add `core/luana-core-campaigns` + `core/luana-core-extension-sdk` + `apps/test-brand` to root pyproject.toml.
+      Stories 2-7 packages already registered (23 total). Post-T-1: 26 Python workspace members.
+
+      Per 05-guidelines.md §1.2 alphabetical order MUST hold (V-NF-1 arch fitness enforces).
+
+      Steps:
+      1. Read current `~/luana-platform/pyproject.toml`
+      2. Append `"core/luana-core-campaigns"` to `[tool.uv.workspace] members` (alphabetical position — between luana-core-brand-studio and luana-core-channels)
+      3. Append `"core/luana-core-extension-sdk"` to members (alphabetical position — after luana-core-events, before luana-core-iam)
+      4. Append `"apps/test-brand"` to members (after `core/luana-core-sales-agent` block, before brand apps block)
+      5. Append 3 entries to `[tool.uv.sources]`:
+         ```
+         luana-core-campaigns = { workspace = true }
+         luana-core-extension-sdk = { workspace = true }
+         test-brand = { workspace = true }
+         ```
+      6. Run `cd ~/luana-platform && uv sync --all-packages` — must succeed (packages don't exist yet but workspace declares them — uv ignores until skeleton T-2/T-9/T-14)
+
+      Stage by name. Commit:
+      ```
+      chore(workspace): register Story 8 luana-core-campaigns + luana-core-extension-sdk + apps/test-brand
+      ```
+
+  - id: T-2
+    title: "Create luana-core-extension-sdk package skeleton + pyproject.toml + README"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 15
+    blocked_by: [T-1]
+    blocks: [T-3]
+    validators_addressed: [V-NF-2, V-D-1]
+    files_to_create:
+      - "core/luana-core-extension-sdk/pyproject.toml"
+      - "core/luana-core-extension-sdk/README.md"
+      - "core/luana-core-extension-sdk/src/luana_core_extension_sdk/__init__.py"
+      - "core/luana-core-extension-sdk/tests/__init__.py"
+      - "core/luana-core-extension-sdk/tests/unit/__init__.py"
+      - "core/luana-core-extension-sdk/tests/architecture/__init__.py"
+    description: |
+      Per 05-guidelines.md §1.3 verbatim.
+
+      1. `mkdir -p core/luana-core-extension-sdk/{src/luana_core_extension_sdk,tests/{unit,architecture}}`
+      2. Write `pyproject.toml` zero-dep (no workspace deps — pure contract layer).
+      3. Write `README.md` stub:
+         ```
+         # luana-core-extension-sdk v0.0.8-alpha
+
+         18 extension points formalized contract for the Luana platform.
+
+         - **EP-1..EP-5 critical:** EXECUTABLE (registry stores + dispatch helpers callable from core)
+         - **EP-6..EP-18 backlog:** SIGNATURE-ONLY (registry stores; dispatch raises NotImplementedError)
+         - **Cross-cutting policies CC-1..CC-5:** runtime enforcement (startup-only, namespaced obligatorio, immutable)
+
+         See `docs/extension-points.md` for usage examples + recipe.
+         ```
+      4. Write `src/luana_core_extension_sdk/__init__.py` empty for now (T-5..T-7 populate exports).
+      5. Write `tests/__init__.py` empty + sub-package `__init__.py` files.
+      6. Run `cd ~/luana-platform && uv sync --package luana-core-extension-sdk` — must succeed.
+
+      Commit:
+      ```
+      feat(luana-core-extension-sdk): skeleton + pyproject.toml + README + zero-dep contract layer
+      ```
+
+  - id: T-3
+    title: "Implement BrandContext frozen dataclass (9 fields per §7.5.2 D3) + unit tests"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 30
+    blocked_by: [T-2]
+    blocks: [T-4]
+    validators_addressed: [V-F-sdk-5]
+    files_to_create:
+      - "core/luana-core-extension-sdk/src/luana_core_extension_sdk/brand_context.py"
+      - "core/luana-core-extension-sdk/tests/unit/test_brand_context.py"
+    description: |
+      Per 03-arch-be.md §1.3 step 1 verbatim + 05-guidelines.md §1.4.
+
+      1. **TDD RED first** — write `tests/unit/test_brand_context.py` with assertions:
+         ```python
+         def test_brand_context_frozen():
+             from dataclasses import fields
+             from luana_core_extension_sdk.brand_context import BrandContext
+             assert BrandContext.__dataclass_params__.frozen is True
+
+         def test_brand_context_9_fields():
+             from dataclasses import fields
+             from luana_core_extension_sdk.brand_context import BrandContext
+             names = {f.name for f in fields(BrandContext)}
+             expected = {"tenant_id", "brand_slug", "plan_tier", "locale",
+                         "feature_flags", "tenant_profile_id", "vertical_kind",
+                         "compliance_flags", "pii_policy"}
+             assert names == expected
+
+         def test_brand_context_mutation_raises():
+             from uuid import uuid4
+             from luana_core_extension_sdk.brand_context import BrandContext
+             import dataclasses
+             ctx = BrandContext(
+                 tenant_id=uuid4(), brand_slug="test-brand", plan_tier="free",
+                 locale="es-AR", feature_flags={}, tenant_profile_id=uuid4(),
+                 vertical_kind="marketing", compliance_flags={}, pii_policy="standard",
+             )
+             try:
+                 ctx.tenant_id = uuid4()
+             except dataclasses.FrozenInstanceError:
+                 pass
+             else:
+                 raise AssertionError("Expected FrozenInstanceError")
+
+         def test_brand_context_no_pii_safe_to_log():
+             # All 9 fields are IDs + slugs + flag maps + locale strings — none are PII
+             # Per §7.2 spec — BrandContext can be safely included in trace logs
+             from uuid import uuid4
+             from luana_core_extension_sdk.brand_context import BrandContext
+             ctx = BrandContext(
+                 tenant_id=uuid4(), brand_slug="test-brand", plan_tier="free",
+                 locale="es-AR", feature_flags={}, tenant_profile_id=uuid4(),
+                 vertical_kind="marketing", compliance_flags={}, pii_policy="standard",
+             )
+             # No email / phone / address / DOB attributes
+             import dataclasses
+             field_names = {f.name for f in dataclasses.fields(ctx)}
+             pii_patterns = {"email", "phone", "address", "dob", "birth", "ssn", "card"}
+             leaks = [f for f in field_names for p in pii_patterns if p in f.lower()]
+             assert not leaks
+         ```
+         Run tests → RED (BrandContext doesn't exist yet).
+
+      2. **GREEN** — implement `brand_context.py`:
+         ```python
+         from __future__ import annotations
+         from dataclasses import dataclass
+         from typing import Literal
+         from uuid import UUID
+
+         @dataclass(frozen=True, slots=True, kw_only=True)
+         class BrandContext:
+             """Per-tenant context passed to extension handlers (CC-4 namespace + brand routing).
+
+             Per checkpoint §7.5.2 D3 — 9 fields FROZEN at v0.1.0. Future optional fields
+             opcionales agregables sin breaking bump. Handler that uses only a subset of
+             fields MUST continue working when new optional fields are appended.
+
+             NO PII fields — safe to log. tenant_id + tenant_profile_id are opaque UUIDs.
+             """
+             tenant_id: UUID
+             brand_slug: Literal["nicolify", "vitalia", "comunify", "lupulo", "test-brand"]
+             plan_tier: str
+             locale: str
+             feature_flags: dict[str, bool]
+             tenant_profile_id: UUID
+             vertical_kind: Literal["marketing", "medical", "creator-economy", "gastronomy"]
+             compliance_flags: dict[str, bool]
+             pii_policy: Literal["standard", "medical", "creator", "gastronomy"]
+         ```
+
+      3. Re-run tests → GREEN.
+
+      Commit:
+      ```
+      feat(luana-core-extension-sdk): BrandContext frozen dataclass 9 fields per §7.5.2 D3
+      ```
+
+  - id: T-4
+    title: "Implement exceptions.py (3 types) + models.py (18 DataClasses) + protocols.py (Protocol interfaces) + unit tests"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 45
+    blocked_by: [T-3]
+    blocks: [T-5]
+    validators_addressed: [V-F-sdk-1]
+    files_to_create:
+      - "core/luana-core-extension-sdk/src/luana_core_extension_sdk/exceptions.py"
+      - "core/luana-core-extension-sdk/src/luana_core_extension_sdk/models.py"
+      - "core/luana-core-extension-sdk/src/luana_core_extension_sdk/protocols.py"
+      - "core/luana-core-extension-sdk/tests/unit/test_exceptions.py"
+      - "core/luana-core-extension-sdk/tests/unit/test_models.py"
+    description: |
+      Per 03-arch-be.md §1.3 steps 2+3+5 verbatim + 05-guidelines.md §1.4.
+
+      1. **TDD RED first** — `tests/unit/test_exceptions.py` + `test_models.py`:
+         - exceptions.py: assert 3 exception types exist + inherit ExtensionSDKError base
+         - models.py: assert 18 DataClass models exist (per §1.3 step 3) + all frozen + slots
+
+      2. **GREEN** — write `exceptions.py` per 03-arch-be.md §1.3 step 2 verbatim.
+
+      3. **GREEN** — write `models.py` per 03-arch-be.md §1.3 step 3 verbatim. **18 DataClasses:**
+         FieldOverride, FieldDef, PresetPack, ToolDef, WorkflowDef, BookingPolicy, BookingResult,
+         SidebarRouteDef, ExtractorDef, ChannelAdapterDef, MetricDef, LandingTemplateDef,
+         CampaignStepDef, CampaignTemplateDef, AssetTemplateDef, GuardrailDef, GuardrailResult,
+         KbPackDef, LifecycleStageDef, SignupResult, PlanTierDef, WizardStepDef.
+         All `@dataclass(frozen=True, slots=True, kw_only=True)`.
+
+      4. **GREEN** — write `protocols.py` per 03-arch-be.md §1.3 step 5 verbatim. 3 Protocols:
+         FieldOverrideHandler, SignupHandler, GuardrailCheck. All `@runtime_checkable`.
+
+      5. Update `__init__.py` to export new symbols.
+
+      6. Re-run tests → GREEN.
+
+      Commit:
+      ```
+      feat(luana-core-extension-sdk): exceptions + 18 DataClass models + Protocol interfaces
+      ```
+
+  - id: T-5
+    title: "★ R23 OPUS REQUIRED ★ ExtensionPointRegistry critical EP-1..EP-5 EXECUTABLE + CC-1..CC-5 runtime enforcement + unit tests"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: false
+    estimated_time_minutes: 90
+    blocked_by: [T-4]
+    blocks: [T-6, T-7]
+    validators_addressed: [V-F-sdk-1, V-F-sdk-2, V-F-sdk-4, V-AG-namespace-allowlist, V-AG-cc5-no-unregister]
+    files_to_create:
+      - "core/luana-core-extension-sdk/src/luana_core_extension_sdk/extension_points.py"
+      - "core/luana-core-extension-sdk/tests/unit/test_registry_surface.py"
+      - "core/luana-core-extension-sdk/tests/unit/test_ep1_through_ep5.py"
+      - "core/luana-core-extension-sdk/tests/unit/test_cross_cutting_policies.py"
+    description: |
+      **★ R23 TRIGGER — Opus REQUIRED ★**
+
+      Per 03-arch.md §2.2 — T-5 + T-6 touch agentic-adjacent surface (Stories 6+7 frozen registries
+      semantically). While SDK code itself doesn't execute LLM calls, the **semantic correctness**
+      requires Opus-level discipline — V-AG-3 Story 6 + Story 7 golden snapshots must continue GREEN.
+
+      Per 03-arch-be.md §1.3 step 4 verbatim + 05-guidelines.md §1.5.
+
+      1. **TDD RED first — write 3 test files**:
+         - `test_registry_surface.py` — assert 18 register methods exposed (V-F-sdk-1)
+         - `test_ep1_through_ep5.py` — scenarios B1-B5 per spec §5.2 (V-F-sdk-2)
+         - `test_cross_cutting_policies.py` — scenarios C1-C5 per spec §5.4 (V-F-sdk-4)
+
+      2. **GREEN** — implement `extension_points.py` per 03-arch-be.md §1.3 step 4 VERBATIM. Key sections:
+
+         a. Constants (top of file):
+            - `_EP_IDS = tuple(f"EP-{i}" for i in range(1, 19))`
+            - `_OVERRIDE_PERMITTED_EPS = frozenset({"EP-17", "EP-18"})` (CC-2)
+            - `_ALLOWED_BRAND_SLUGS = frozenset({"nicolify", "vitalia", "comunify", "lupulo", "test-brand"})` (CC-4)
+            - `_BACKLOG_EPS = frozenset({"EP-6", ..., "EP-18"})`
+
+         b. `_Registration` private dataclass (ep_id, name, brand_slug, payload, mode)
+
+         c. `ExtensionPointRegistry.__init__` accepts:
+            - `sales_agent_tool_registry_adapter: Optional[Any] = None`
+            - `copilot_workflow_registry_adapter: Optional[Any] = None`
+            - Initializes `self._registrations: dict[str, list[_Registration]] = {ep: [] for ep in _EP_IDS}`
+            - `self._closed: bool = False`
+
+         d. `close()` method — sets `_closed = True` (CC-3 lock)
+
+         e. Internal enforcement helpers:
+            - `_enforce_open(ep_id, name)` — raises RegistrationClosedError if `_closed`
+            - `_enforce_namespace(name, ep_id)` — parses `name.split(".", 1)`; first part must be in _ALLOWED_BRAND_SLUGS + non-empty second part; else raises NamespaceViolationError with accepted list
+            - `_enforce_unique(ep_id, name, mode)` — append mode + same name found → raises DuplicateRegistrationError; override mode bypasses
+            - `_enforce_mode(ep_id, mode)` — override mode on EP-1..EP-16 → raises ValueError; valid modes only "append"/"override"
+            - `_register(ep_id, name, payload, mode)` — composes all enforcements + stores _Registration
+
+         f. EP-1..EP-5 EXECUTABLE methods (per 03-arch-be.md §1.3 step 4):
+            - `field_override(handler, *, name, mode='append')` + `resolve_field_override(field, ctx) -> Optional[FieldOverride]` (first non-None wins by registration order)
+            - `offer_preset_pack_register(pack, *, mode='append')` + `list_offer_preset_packs(ctx) -> list[PresetPack]` (filter by applies_to_brand)
+            - `sales_agent_tool_register(tool, *, mode='append')` + `get_sales_agent_tool(name) -> Optional[ToolDef]` (lookup by name)
+              - **adapter delegation:** if `self._sales_agent_tool_adapter is not None` → call `adapter.register_extension_tool(tool)` (T-6 implements adapter)
+            - `copilot_workflow_register(workflow, *, mode='append')` + `get_copilot_workflow(name) -> Optional[WorkflowDef]` (idem)
+              - **adapter delegation:** if `self._copilot_workflow_adapter is not None` → call `adapter.register_extension_workflow(workflow)`
+            - `scheduling_booking_policy_register(policy, *, mode='append')` + `get_booking_policy(name) -> Optional[BookingPolicy]`
+
+         g. `get_all(ep_id) -> list[_Registration]` introspection helper (used by tests)
+
+      3. **Wait for adapter** — T-6 will implement `_adapters.py`. T-5 only references `Optional[Any]` adapter args. EP-3+EP-4 method bodies invoke adapter when not None.
+
+      4. Update `__init__.py` to export `ExtensionPointRegistry`.
+
+      5. Re-run all tests → GREEN.
+
+      6. Verify CC-5 no unregister (smoke):
+         ```python
+         from luana_core_extension_sdk import ExtensionPointRegistry
+         r = ExtensionPointRegistry()
+         assert not any(m.startswith("unregister") for m in dir(r))
+         ```
+
+      Commit:
+      ```
+      feat(luana-core-extension-sdk): ExtensionPointRegistry critical EP-1..EP-5 EXECUTABLE + CC-1..CC-5 runtime enforcement
+      ```
+
+  - id: T-6
+    title: "★ R23 OPUS REQUIRED ★ _adapters.py — EP-3+EP-4 read-only wrappers for Stories 6+7 frozen registries + unit tests"
+    owner: builder-agentic
+    owner_eligibility: [opus]
+    production_code: false
+    estimated_time_minutes: 60
+    blocked_by: [T-5]
+    blocks: [T-7]
+    validators_addressed: [V-AG-new-story-8, V-AG-3-story-6, V-AG-3-story-7]
+    files_to_create:
+      - "core/luana-core-extension-sdk/src/luana_core_extension_sdk/_adapters.py"
+      - "core/luana-core-extension-sdk/tests/unit/test_adapters_read_only.py"
+    description: |
+      **★ R23 TRIGGER — Opus REQUIRED ★**
+
+      Per 03-arch-be.md §1.4 verbatim + 05-guidelines.md §1.6 + §8 critical adapter wiring decision.
+
+      **CRITICAL:** Adapter classes WRAP Stories 6+7 frozen registries READ-ONLY. NO private surface access.
+      V-AG-3 Story 6 + Story 7 golden snapshots MUST continue GREEN.
+
+      1. **Pre-implementation audit grep (Step 0):**
+         ```bash
+         grep -rn "register_tool_from_extension" ~/luana-platform/core/luana-core-sales-agent/
+         grep -rn "register_workflow_from_extension" ~/luana-platform/core/luana-core-copilot/
+         ```
+         - If methods EXIST → adapter delegates normally
+         - If methods DON'T EXIST (likely current state) → adapter raises NotImplementedError gracefully when invoked
+
+      2. **TDD RED first** — `tests/unit/test_adapters_read_only.py`:
+         ```python
+         def test_sales_agent_adapter_read_only_no_private_access():
+             """V-AG-new-story-8 — AST parse forbids private attr access."""
+             import ast
+             from pathlib import Path
+             adapter_file = Path("src/luana_core_extension_sdk/_adapters.py")
+             src = adapter_file.read_text()
+             tree = ast.parse(src)
+             forbidden_prefixes = ("_dispatch", "_mutate", "_internal_", "_private_")
+             for node in ast.walk(tree):
+                 if isinstance(node, ast.Attribute):
+                     for prefix in forbidden_prefixes:
+                         assert not node.attr.startswith(prefix), \
+                             f"Adapter touches private surface: ._inner.{node.attr} ({prefix})"
+
+         def test_sales_agent_adapter_raises_not_implemented_on_missing_method():
+             """Adapter graceful when inner registry lacks register_*_from_extension."""
+             from luana_core_extension_sdk._adapters import _SalesAgentToolRegistryAdapter
+             from luana_core_extension_sdk.models import ToolDef
+             class FakeRegistry:
+                 pass  # no register_tool_from_extension
+             adapter = _SalesAgentToolRegistryAdapter(FakeRegistry())
+             tool = ToolDef(name="vitalia.test", description="x", input_schema={}, handler=lambda: None)
+             try:
+                 adapter.register_extension_tool(tool)
+             except NotImplementedError as e:
+                 assert "Story 7 ToolRegistry lacks" in str(e)
+             else:
+                 raise AssertionError("Expected NotImplementedError")
+
+         def test_copilot_adapter_raises_not_implemented_on_missing_method():
+             """Idem for WorkflowRegistry."""
+             from luana_core_extension_sdk._adapters import _CopilotWorkflowRegistryAdapter
+             from luana_core_extension_sdk.models import WorkflowDef
+             class FakeRegistry:
+                 pass
+             adapter = _CopilotWorkflowRegistryAdapter(FakeRegistry())
+             wf = WorkflowDef(name="vitalia.test", description="x", steps=())
+             try:
+                 adapter.register_extension_workflow(wf)
+             except NotImplementedError as e:
+                 assert "Story 6 WorkflowRegistry lacks" in str(e)
+             else:
+                 raise AssertionError("Expected NotImplementedError")
+
+         def test_adapters_used_only_via_register_extension_public_methods():
+             """No method named _dispatch / _mutate / _internal_ on adapter classes."""
+             from luana_core_extension_sdk._adapters import (
+                 _SalesAgentToolRegistryAdapter, _CopilotWorkflowRegistryAdapter,
+             )
+             for cls in [_SalesAgentToolRegistryAdapter, _CopilotWorkflowRegistryAdapter]:
+                 methods = [m for m in dir(cls) if not m.startswith("_") or m.startswith("__")]
+                 forbidden_in_methods = [m for m in methods if any(
+                     m.startswith(p) for p in ("dispatch", "mutate", "internal")
+                 )]
+                 assert not forbidden_in_methods, f"{cls.__name__} exposes forbidden: {forbidden_in_methods}"
+         ```
+
+      3. **GREEN** — implement `_adapters.py` per 03-arch-be.md §1.4 verbatim:
+         ```python
+         from __future__ import annotations
+         from typing import Any
+
+         from luana_core_extension_sdk.models import ToolDef, WorkflowDef
+
+
+         class _SalesAgentToolRegistryAdapter:
+             """Wraps luana_core_sales_agent.application.tools.registry.ToolRegistry.
+
+             READ-ONLY delegation. NEVER calls private dispatch / state-mutation methods.
+             Story 7 V-AG-3 golden snapshot test fails build if adapter touches private surface.
+             """
+
+             def __init__(self, tool_registry: Any) -> None:
+                 self._inner = tool_registry
+
+             def register_extension_tool(self, tool: ToolDef) -> None:
+                 """Delegate to Story 7 ToolRegistry public register API.
+
+                 NOTE: Story 7 ToolRegistry MUST expose `register_tool_from_extension` public method.
+                 If absent, raise NotImplementedError — Stories 11-13 wire when adding public surface.
+                 """
+                 if not hasattr(self._inner, "register_tool_from_extension"):
+                     raise NotImplementedError(
+                         "Story 7 ToolRegistry lacks public `register_tool_from_extension` method. "
+                         "Story 8 EP-3 wrapper requires this surface. Stories 11-13 brand bootstraps add."
+                     )
+                 self._inner.register_tool_from_extension(
+                     name=tool.name,
+                     handler=tool.handler,
+                     description=tool.description,
+                     input_schema=tool.input_schema,
+                     tool_groups=tool.tool_groups,
+                 )
+
+
+         class _CopilotWorkflowRegistryAdapter:
+             """Wraps luana_core_copilot.application.workflows.engine.WorkflowRegistry.
+
+             READ-ONLY delegation. Same invariants as ToolRegistryAdapter.
+             """
+
+             def __init__(self, workflow_registry: Any) -> None:
+                 self._inner = workflow_registry
+
+             def register_extension_workflow(self, workflow: WorkflowDef) -> None:
+                 if not hasattr(self._inner, "register_workflow_from_extension"):
+                     raise NotImplementedError(
+                         "Story 6 WorkflowRegistry lacks public `register_workflow_from_extension` method. "
+                         "Story 8 EP-4 wrapper requires this surface. Stories 11-13 brand bootstraps add."
+                     )
+                 self._inner.register_workflow_from_extension(
+                     name=workflow.name,
+                     steps=workflow.steps,
+                     description=workflow.description,
+                     trigger_event=workflow.trigger_event,
+                 )
+         ```
+
+      4. Re-run tests → GREEN.
+
+      5. **Verify Story 6 + Story 7 frozen registries V-AG-3 still GREEN:**
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story6_registries_byte_stable.py core/tests/architecture/test_sales_agent_protected_surfaces_intact.py -v
+         ```
+
+      Commit:
+      ```
+      feat(luana-core-extension-sdk): EP-3+EP-4 read-only adapter pattern wraps Stories 6+7 byte-stable
+      ```
+
+  - id: T-7
+    title: "ExtensionPointRegistry EP-6..EP-18 backlog signature-only stubs + dispatch raises NotImplementedError + unit tests"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 60
+    blocked_by: [T-6]
+    blocks: [T-14, T-17]
+    validators_addressed: [V-F-sdk-1, V-F-sdk-3, V-F-sdk-4]
+    files_to_create:
+      - "core/luana-core-extension-sdk/tests/unit/test_ep6_through_ep18_signature_only.py"
+    files_to_modify:
+      - "core/luana-core-extension-sdk/src/luana_core_extension_sdk/extension_points.py"
+    description: |
+      Per 03-arch-be.md §1.3 step 4 (EP-6..EP-18 section) + 05-guidelines.md §1.7.
+
+      1. **TDD RED first** — write `test_ep6_through_ep18_signature_only.py` per spec scenarios B6-B18 verbatim:
+         - 13 test_ep{n}_register_succeeds tests (registration stores record)
+         - 13 test_ep{n}_dispatch_raises_not_implemented tests (semantic dispatch raises NotImplementedError with descriptive message)
+
+      2. **GREEN** — extend `extension_points.py` adding 13 `register_*` methods + 13 `dispatch_*` methods per 03-arch-be.md §1.3 step 4 EP-6..EP-18 section verbatim.
+
+         Per-EP methods:
+         - EP-6: sidebar_routes_register(route, *, mode='append') + get_sidebar_routes(ctx) → NotImplementedError
+         - EP-7: extractor_register(extractor, *, mode='append') + dispatch_extractor(name, ctx) → NotImplementedError
+         - EP-8: channel_adapter_register(adapter, *, mode='append') + dispatch_channel_adapter(channel_slug, ctx) → NotImplementedError
+         - EP-9: metric_register(metric, *, mode='append') + dispatch_metric(name, ctx) → NotImplementedError
+         - EP-10: landing_template_register(template, *, mode='append') + dispatch_landing_template(template_id, ctx) → NotImplementedError
+         - EP-11: campaign_template_register(template, *, mode='append') + dispatch_campaign_template(template_id, ctx) → NotImplementedError
+         - EP-12: asset_template_register(template, *, mode='append') + dispatch_asset_template(template_id, ctx) → NotImplementedError
+         - EP-13: sales_agent_guardrail_register(guardrail, *, mode='append') + dispatch_guardrail(name, message, ctx, *, phase) → NotImplementedError
+         - EP-14: copilot_kb_pack_register(pack, *, mode='append') + dispatch_kb_pack(pack_id, ctx) → NotImplementedError
+         - EP-15: crm_lifecycle_stage_register(stage, *, mode='append') + dispatch_lifecycle_transition(stage_id, ctx) → NotImplementedError
+         - EP-16: iam_signup_handler(handler, *, name, mode='append') + dispatch_signup(clerk_user, ctx) → NotImplementedError
+         - EP-17: tenant_plan_tier_register(tier, *, mode='append') + dispatch_plan_tiers(ctx) → NotImplementedError. **mode='override' permitted.**
+         - EP-18: onboarding_wizard_steps_register(step, *, mode='append') + dispatch_wizard_steps(ctx) → NotImplementedError. **mode='override' permitted.**
+
+         Each dispatch_* raises NotImplementedError with message:
+         ```
+         f"EP-X foo_register is signature-only in v0.1.0; semantic dispatch deferred v0.2.x"
+         ```
+
+      3. Re-run tests → GREEN.
+
+      4. Verify V-F-sdk-1 still passes (18 methods exposed) + V-F-sdk-3 all 13 dispatch raise NotImplementedError + V-F-sdk-4 CC-2 mode enforcement works on EP-17/EP-18.
+
+      Commit:
+      ```
+      feat(luana-core-extension-sdk): EP-6..EP-18 backlog signature-only stubs raise NotImplementedError
+      ```
+
+  - id: T-8
+    title: "@luana/extension-sdk TS type mirror (EP-6 + EP-10 + EP-18 — FE-mirror partial scope)"
+    owner: builder-frontend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 30
+    blocked_by: [T-4]
+    blocks: [T-17]
+    validators_addressed: [V-NF-2, V-F-ts-1, V-D-1]
+    files_to_create:
+      - "core/@luana/extension-sdk/package.json"
+      - "core/@luana/extension-sdk/tsconfig.json"
+      - "core/@luana/extension-sdk/README.md"
+      - "core/@luana/extension-sdk/src/index.ts"
+      - "core/@luana/extension-sdk/src/brand-context.ts"
+      - "core/@luana/extension-sdk/src/models.ts"
+    description: |
+      Per 03-arch-be.md §3.4 + 05-guidelines.md §1.8 verbatim.
+
+      1. `mkdir -p core/@luana/extension-sdk/src`
+      2. Write `package.json` per §1.8 — version 0.0.8-alpha, type-only deps.
+      3. Write `tsconfig.json` extending parent.
+      4. Write `README.md` stub: "Luana extension SDK — TypeScript type mirror v0.0.8-alpha. FE-mirror partial scope: EP-6 SidebarRouteDef + EP-10 LandingTemplateDef + EP-18 WizardStepDef. NO runtime registry FE-side."
+      5. Write `src/brand-context.ts` per §1.8 verbatim (camelCase TS mirror of Python snake_case BrandContext 9 fields).
+      6. Write `src/models.ts` per §1.8 verbatim (3 TS interfaces: SidebarRouteDef + LandingTemplateDef + WizardStepDef).
+      7. Write `src/index.ts` exports.
+      8. Verify pnpm picks up:
+         ```bash
+         cd ~/luana-platform && pnpm list -r --json 2>/dev/null | grep '@luana/extension-sdk'
+         ```
+      9. Verify TS compiles:
+         ```bash
+         cd ~/luana-platform/core/@luana/extension-sdk && npx tsc --noEmit
+         ```
+
+      Commit:
+      ```
+      feat(@luana/extension-sdk): TS type mirror EP-6+EP-10+EP-18 (FE-mirror partial scope)
+      ```
+
+  - id: T-9
+    title: "Create luana-core-campaigns package skeleton + pyproject.toml + README"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: true
+    estimated_time_minutes: 15
+    blocked_by: [T-1]
+    blocks: [T-10]
+    validators_addressed: [V-NF-2, V-D-1]
+    files_to_create:
+      - "core/luana-core-campaigns/pyproject.toml"
+      - "core/luana-core-campaigns/README.md"
+      - "core/luana-core-campaigns/src/luana_core_campaigns/__init__.py"
+      - "core/luana-core-campaigns/tests/__init__.py"
+    description: |
+      Per 03-arch-be.md §3.6 + 05-guidelines.md §1.1 verbatim.
+
+      1. `mkdir -p core/luana-core-campaigns/{src/luana_core_campaigns,tests}`
+      2. Write `pyproject.toml` per 03-arch-be.md §3.6 (6 workspace deps: luana-core-platform + iam + observability + idempotency + channels + events).
+      3. Write `README.md` stub: pkg name, version 0.0.8-alpha, lift origin (backend/src/modules/campaigns/), DDD layers, key exports.
+      4. Write `src/luana_core_campaigns/__init__.py` empty (T-10..T-13 populate).
+      5. Write `tests/__init__.py` empty.
+      6. Run `cd ~/luana-platform && uv sync --package luana-core-campaigns` — must succeed.
+
+      Commit:
+      ```
+      feat(luana-core-campaigns): skeleton + pyproject.toml + README
+      ```
+
+  - id: T-10
+    title: "Lift campaigns domain layer (12 src + 7 test files: campaign + segment + audit_log + events + repositories + enums + ...)"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-9]
+    blocks: [T-11]
+    validators_addressed: [V-NF-2, V-F-campaigns-2]
+    files_to_create:
+      - "core/luana-core-campaigns/src/luana_core_campaigns/domain/{__init__,campaign,campaign_step,campaign_task,campaign_template,segment,segment_filter,audit_log,channel_router,enums,events,repositories}.py"
+      - "core/luana-core-campaigns/tests/domain/{__init__,test_campaign_entity,test_campaign_fsm,test_campaign_step_dag,test_campaign_task,test_events,test_segment,test_segment_filter_dsl}.py"
+    description: |
+      LIFT VERBATIM per 05-guidelines.md §1.1 + §1.9 + §3.3 mechanical recipe.
+
+      1. `cp -r /home/chris/AISALESHT/backend/src/modules/campaigns/domain core/luana-core-campaigns/src/luana_core_campaigns/`
+      2. `cp -r /home/chris/AISALESHT/backend/tests/modules/campaigns/domain core/luana-core-campaigns/tests/`
+      3. Apply sed per §1.9.
+      4. Run isolated:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-campaigns/tests/domain/ -x -q --tb=short
+         ```
+      5. Verify zero leaks:
+         ```bash
+         grep -rn 'from src\.modules\|from src\.shared\|from src\.core' core/luana-core-campaigns/src/luana_core_campaigns/domain/ core/luana-core-campaigns/tests/domain/
+         # → expected empty
+         ```
+      6. Commit.
+
+      Commit:
+      ```
+      feat(luana-core-campaigns): lift campaigns domain layer (12 src + 7 test files)
+      ```
+
+  - id: T-11
+    title: "Lift campaigns infrastructure layer (29 src files: channels + repositories + resilience + models + links + external)"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-10]
+    blocks: [T-12]
+    validators_addressed: [V-NF-2, V-F-campaigns-2]
+    files_to_create:
+      - "core/luana-core-campaigns/src/luana_core_campaigns/infrastructure/{__init__,channels/{__init__,telegram,shared,registry,errors},repositories/{__init__,audit_log_repo_impl,campaign_repository_impl,campaign_step_repository_impl,campaign_task_repository_impl,campaign_template_repository_impl,segment_repository_impl,segment_snapshot_repository_impl},resilience/{__init__,circuit_breaker,errors},models/{__init__,campaign_audit_model,campaign_model,campaign_step_model,campaign_task_model,campaign_template_model,segment_model,segment_snapshot_model},links/{__init__,campaigns_lookup_impl},external/{__init__,sales_agent_adapter}}.py"
+      - "core/luana-core-campaigns/tests/infrastructure/{__init__,channels/{__init__,test_shared_locale_real,test_telegram_resolve_real},external/{__init__,test_sales_agent_adapter},test_audit_log_repo,test_campaign_task_repository_lookup,test_channel_router_registry,test_circuit_breaker,test_telegram_channel_router}.py"
+    description: |
+      LIFT VERBATIM per 05-guidelines.md §1.1 + §1.9.
+
+      1. `cp -r backend/src/modules/campaigns/infrastructure core/luana-core-campaigns/src/luana_core_campaigns/`
+      2. `cp -r backend/tests/modules/campaigns/infrastructure core/luana-core-campaigns/tests/`
+      3. Apply sed.
+      4. Run isolated.
+      5. Verify zero leaks.
+      6. Commit.
+
+      Commit:
+      ```
+      feat(luana-core-campaigns): lift campaigns infrastructure layer (29 files)
+      ```
+
+  - id: T-12
+    title: "Lift campaigns application layer (21 src files: dtos + ports + services + segment_filter_evaluator) + observability/persistence/models/llm_call_model"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: true
+    estimated_time_minutes: 60
+    blocked_by: [T-11]
+    blocks: [T-13]
+    validators_addressed: [V-NF-2, V-F-campaigns-2]
+    files_to_create:
+      - "core/luana-core-campaigns/src/luana_core_campaigns/application/{__init__,dtos/{__init__,audit_log_dtos,campaign_dtos,campaign_step_dtos,campaign_template_dtos,pagination,segment_dtos},ports/{__init__,lead_query_port},services/{__init__,audit_log_service,cache,campaign_read_adapter,campaign_service,campaign_stats_service,campaign_template_service,orchestrator,segment_service,_event_bridge},segment_filter_evaluator}.py"
+      - "core/luana-core-campaigns/src/luana_core_campaigns/observability/{__init__,persistence/{__init__,models/{__init__,llm_call_model}}}.py"
+      - "core/luana-core-campaigns/tests/application/{__init__,test_audit_log_service,test_campaign_service,test_campaign_template_service,test_orchestrator,test_orchestrator_idempotency,test_segment_filter_evaluator,test_segment_service}.py"
+      - "core/luana-core-campaigns/tests/test_observability_registration.py"
+      - "core/luana-core-campaigns/tests/test_segment_create_static_with_lead_ids.py"
+    description: |
+      LIFT VERBATIM per 05-guidelines.md §1.1 + §1.9.
+
+      1. `cp -r backend/src/modules/campaigns/{application,observability} core/luana-core-campaigns/src/luana_core_campaigns/`
+      2. `cp -r backend/tests/modules/campaigns/application core/luana-core-campaigns/tests/`
+      3. `cp backend/tests/modules/campaigns/{test_observability_registration,test_segment_create_static_with_lead_ids}.py core/luana-core-campaigns/tests/`
+      4. Apply sed.
+      5. Run isolated.
+      6. Verify zero leaks.
+      7. Commit.
+
+      Commit:
+      ```
+      feat(luana-core-campaigns): lift campaigns application layer (21 files) + observability
+      ```
+
+  - id: T-13
+    title: "Lift campaigns api + workers layers (13 src files: routers + _dependencies + workers including scheduler_tick) + integration tests"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: true
+    estimated_time_minutes: 45
+    blocked_by: [T-12]
+    blocks: [T-17]
+    validators_addressed: [V-NF-2, V-F-campaigns-1, V-F-campaigns-2]
+    files_to_create:
+      - "core/luana-core-campaigns/src/luana_core_campaigns/api/{__init__,_async_session,_dependencies,_service_factories,routers/{__init__,campaigns_router,segments_router,templates_router}}.py"
+      - "core/luana-core-campaigns/src/luana_core_campaigns/workers/{__init__,audit_retention_task,execution_task,scheduler_tick,segment_refresh_tick}.py"
+      - "core/luana-core-campaigns/tests/api/{__init__,test_campaigns_api,test_campaigns_launch_real,test_campaigns_stats_endpoint,test_segments_integration}.py"
+      - "core/luana-core-campaigns/tests/integration/{__init__,test_e2e_telegram_campaign_smoke}.py"
+      - "core/luana-core-campaigns/tests/workers/{__init__,test_audit_retention_task,test_execution_task,test_scheduler_tick,test_segment_refresh_tick}.py"
+    description: |
+      LIFT VERBATIM per 05-guidelines.md §1.1 + §1.9.
+
+      1. `cp -r backend/src/modules/campaigns/{api,workers} core/luana-core-campaigns/src/luana_core_campaigns/`
+      2. `cp -r backend/tests/modules/campaigns/{api,workers,integration} core/luana-core-campaigns/tests/`
+      3. Apply sed.
+      4. Run isolated full campaigns suite:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/luana-core-campaigns/tests/ -x -q --tb=short
+         ```
+         Target: 42 test files GREEN. Coverage ≥ 43% baseline.
+      5. Verify zero leaks across entire package:
+         ```bash
+         grep -rn 'from src\.modules\|from src\.shared\|from src\.core' core/luana-core-campaigns/
+         # → expected empty
+         ```
+      6. Verify FastAPI app integration with `redirect_slashes=False` invariant preserved (per backend-ddd.md).
+      7. Commit.
+
+      Commit:
+      ```
+      feat(luana-core-campaigns): lift campaigns api + workers layers (13 files) + integration tests GREEN
+      ```
+
+  - id: T-14
+    title: "apps/test-brand FastAPI app + lifespan event + register_all (5 executable + 13 stubs per §7.5.2 D6=A)"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 45
+    blocked_by: [T-1, T-7]
+    blocks: [T-15]
+    validators_addressed: [V-NF-2, V-D-1]
+    files_to_create:
+      - "apps/test-brand/pyproject.toml"
+      - "apps/test-brand/README.md"
+      - "apps/test-brand/src/test_brand/__init__.py"
+      - "apps/test-brand/src/test_brand/extensions.py"
+      - "apps/test-brand/src/test_brand/main.py"
+      - "apps/test-brand/tests/__init__.py"
+    description: |
+      Per 03-arch-be.md §3.3 + §3.7 + 05-guidelines.md §1.10 verbatim.
+
+      1. `mkdir -p apps/test-brand/{src/test_brand,tests}`
+      2. Write `pyproject.toml` per 03-arch-be.md §3.7 (deps: fastapi + luana-core-extension-sdk).
+      3. Write `README.md` stub: "Test brand: SDK smoke validation, NOT a deployable product."
+      4. Write `src/test_brand/__init__.py` empty.
+      5. Write `src/test_brand/main.py` per 05-guidelines.md §1.10 (FastAPI lifespan + `redirect_slashes=False`).
+      6. Write `src/test_brand/extensions.py` per 05-guidelines.md §1.10 verbatim (register_all with 18 handlers: 5 executable + 13 stubs).
+         - All names use `test-brand.` prefix (CC-4 namespace)
+         - EP-1..EP-5 executable (real lambdas/handlers)
+         - EP-6..EP-18 stubs (DataClasses populated but not semantically dispatched)
+      7. Write `tests/__init__.py` empty.
+      8. Run `cd ~/luana-platform && uv sync --package test-brand` — must succeed.
+
+      Commit:
+      ```
+      feat(apps/test-brand): FastAPI lifespan + 18 register_all handlers (5 executable + 13 stubs)
+      ```
+
+  - id: T-15
+    title: "apps/test-brand smoke tests — 10 scenarios D1-D3 + C1-C5 + frozen ctx GREEN"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 45
+    blocked_by: [T-14]
+    blocks: [T-17]
+    validators_addressed: [V-F-test-brand-1, V-F-sdk-2, V-F-sdk-3, V-F-sdk-4]
+    files_to_create:
+      - "apps/test-brand/tests/test_sdk_smoke.py"
+    description: |
+      Per 01-spec §3.4.3 + §5.5 + §5.4 verbatim. 10 smoke scenarios.
+
+      1. Write `tests/test_sdk_smoke.py` with scenarios:
+         - **D1** `test_lifespan_registers_all_18_eps` — FastAPI app startup; verify 18 registrations succeed + registry._closed is True
+         - **D2** `test_ep1_to_ep5_executable` — invoke EP-1..EP-5 happy path; 5 typed results return without exception
+         - **D3** `test_ep6_to_ep18_not_implemented_graceful` — semantic dispatch raises NotImplementedError with descriptive message
+         - **C1** `test_duplicate_registration_raises` — second register_* same name → DuplicateRegistrationError
+         - **C2** `test_namespace_violation_raises` — register with bare name (no brand prefix) → NamespaceViolationError
+         - **C3** `test_post_startup_registration_raises` — registry.close() then register_* → RegistrationClosedError
+         - **C4** `test_no_unregister_method_exists` — getattr(registry, 'unregister_field_override') → AttributeError
+         - **C5a** `test_override_mode_restricted_to_ep17_ep18` — register EP-1 with mode='override' → ValueError
+         - **C5b** `test_override_mode_permitted_on_ep17_ep18` — register EP-17 + EP-18 with mode='override' succeeds
+         - **E1** `test_brand_context_frozen_no_pii` — BrandContext attempt mutation raises FrozenInstanceError + no PII field names
+
+      2. Run:
+         ```bash
+         cd ~/luana-platform && uv run pytest apps/test-brand/tests/test_sdk_smoke.py -v --tb=short
+         ```
+         Target: 10 GREEN.
+
+      3. Commit.
+
+      Commit:
+      ```
+      test(apps/test-brand): smoke pack 10 scenarios D1-D3 + C1-C5 + frozen ctx GREEN
+      ```
+
+  - id: T-16
+    title: "docs/extension-points.md §1-§5 complete + vertical-agent-recipe + per-vertical examples (Vitalia + Comunify + Lupulo)"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 60
+    blocked_by: [T-7]
+    blocks: [T-17]
+    validators_addressed: [V-F-docs-1, V-D-3]
+    files_to_create:
+      - "docs/extension-points.md"
+    description: |
+      Per 01-spec §3.5 + §7.5.4 + §7.5.6 verbatim + 05-guidelines.md §1.11.
+
+      **Path:** `~/luana-platform/docs/extension-points.md`
+
+      **Spanish neutro LatAm** (per `.claude/rules/spanish-text.md`) — tuteo only, NO voseo. Pre-commit hook validates.
+
+      **Required sections (V-F-docs-1 arch fitness enforces presence):**
+
+      §1 **SDK overview + design principles** — narrative cement of CC-1..CC-5 verbatim from outcome §7.5.1:
+      - CC-1 Signature pattern per-EP natural (DataClass / Callable per natural fit)
+      - CC-2 Default append + override case-by-case (mode flag, EP-17 + EP-18 only)
+      - CC-3 Startup-only registration universal
+      - CC-4 Strict raise on duplicate + namespaced obligatorio (brand_slug prefix)
+      - CC-5 Inmutable post-startup (no unregister_*)
+
+      §2 **EP-1..EP-5 critical with per-vertical examples** — for each EP:
+      - Python signature
+      - TypeScript mirror if applicable
+      - **Vitalia example** (medical) — e.g., EP-3 `vitalia.medical_consent_request` tool definition
+      - **Comunify example** (creator-economy) — e.g., EP-2 `comunify.creator_offer_pack` preset pack
+      - **Lupulo example** (gastronomy) — e.g., EP-5 `lupulo.table_capacity_policy` booking policy
+      - Code snippet showing FastAPI lifespan registration
+
+      §3 **EP-6..EP-18 backlog signatures with per-vertical examples** — per-vertical examples + "signature-only v0.1.0, semantic dispatch deferred v0.2.x" footer note.
+
+      §4 **Recipe: Build a vertical agent on top of luana-core** (Vitalia treatment-agent worked example):
+      - **MUST contain literal string "NO EP-19"** (case-insensitive — V-F-docs-1 enforces)
+      - **MUST contain pattern statement**: "Vertical agent ES un APP del brand, NO un EP del core."
+      - Code skeleton `apps/vitalia/agents/treatment_agent/` consuming:
+        - luana-core-observability subclass (VitaliaTreatmentCallbackHandler + VitaliaTreatmentObservabilityContext)
+        - luana-core-scheduling (job queue + reminders pre/post-session)
+        - luana-core-channels via EP-8 (`vitalia.treatment_whatsapp_adapter` registration)
+        - luana-core-marketing-kb via EP-14 (tenant_scope='both' — medical-protocols brand-scope + clínica internal-KB tenant-scope)
+        - luana-core-prompt-cache slot composer (slot 5 BRAND_VOICE via D-T3 BrandVoicePort Story 7)
+        - luana-core-extension-sdk for tool (EP-3) + guardrail (EP-13) registration
+
+      §5 **Cross-brand learning principle** (§7.5.6 verbatim):
+      - Brand A invents feature → /pm evaluates if generalizable → if yes, lift to core → brands B/C/D consume via SDK
+      - NEVER cross-brand direct import
+      - Example: Vitalia treatment-agent → /pm promotes to `luana-core-engagement-scheduler` → Comunify + Lupulo consume
+
+      Commit:
+      ```
+      docs(luana-platform): docs/extension-points.md §1-§5 + vertical-agent-recipe + per-vertical examples
+      ```
+
+  - id: T-17
+    title: "12 NEW arch fitness tests Story 8 + integration smoke + downstream regression R3"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 90
+    blocked_by: [T-6, T-8, T-13, T-15, T-16]
+    blocks: [T-18]
+    validators_addressed: [V-NF-1, V-NF-4, V-NF-5, V-F-sdk-1, V-F-sdk-5, V-F-ts-1, V-F-docs-1, V-F-x-1, V-F-x-2, V-AG-3-story-6, V-AG-3-story-7, V-AG-new-story-8, V-AG-no-ep19, V-AG-namespace-allowlist, V-AG-cc5-no-unregister]
+    files_to_create:
+      - "core/tests/architecture/test_workspace_members_alphabetical_story8.py"
+      - "core/tests/architecture/test_aisalesht_campaigns_untouched_story8.py"
+      - "core/tests/architecture/test_no_publish_config_story8.py"
+      - "core/tests/architecture/test_registry_surface.py"
+      - "core/tests/architecture/test_brand_context_frozen_9_fields.py"
+      - "core/tests/architecture/test_ep3_ep4_wrappers_read_only.py"
+      - "core/tests/architecture/test_ts_types_mirror_python_dataclasses.py"
+      - "core/tests/architecture/test_docs_extension_points_completeness.py"
+      - "core/tests/architecture/test_no_ep19_method_in_registry.py"
+      - "core/tests/architecture/test_brand_slug_namespace_allowlist.py"
+      - "core/tests/architecture/test_no_unregister_api.py"
+      - "core/tests/architecture/test_extension_sdk_zero_workspace_deps.py"
+    description: |
+      Per 03-arch-be.md §7 verbatim. 12 NEW arch fitness tests cementing Story 8 cardinal invariants.
+
+      1. **test_workspace_members_alphabetical_story8.py** — extends Story 7 template — verifies 26 Python members alphabetical post-Story-8.
+
+      2. **test_aisalesht_campaigns_untouched_story8.py** — cardinal V-NF-4. git diff verify zero campaigns module touches.
+
+      3. **test_no_publish_config_story8.py** — V-NF-5/6/7. grep no publishConfig in new pyprojects.
+
+      4. **test_registry_surface.py** — V-F-sdk-1. 18 register methods exposed.
+
+      5. **test_brand_context_frozen_9_fields.py** — V-F-sdk-5. dataclasses.fields() check.
+
+      6. **test_ep3_ep4_wrappers_read_only.py** — V-AG-new-story-8. AST parse _adapters.py forbidden private attr access.
+
+      7. **test_ts_types_mirror_python_dataclasses.py** — V-F-ts-1. Parse `core/@luana/extension-sdk/src/models.ts` + Python `dataclasses.fields()` to compare 3 mirror types (SidebarRouteDef + LandingTemplateDef + WizardStepDef) field-by-field. Handle snake_case ↔ camelCase conversion.
+
+      8. **test_docs_extension_points_completeness.py** — V-F-docs-1. Parse MD headers; verify §1-§5 + recipe section + per-vertical examples (vitalia + comunify + lupulo) + "NO EP-19" literal string (case-insensitive).
+
+      9. **test_no_ep19_method_in_registry.py** — V-AG-no-ep19. ExtensionPointRegistry has zero methods matching `vertical_agent_register|ep19|ep_19`.
+
+      10. **test_brand_slug_namespace_allowlist.py** — V-AG-namespace-allowlist. Bare name raises + unknown brand raises + valid succeeds.
+
+      11. **test_no_unregister_api.py** — V-AG-cc5-no-unregister. ExtensionPointRegistry class has zero methods starting with `unregister_`.
+
+      12. **test_extension_sdk_zero_workspace_deps.py** — verify `luana-core-extension-sdk/pyproject.toml` `dependencies = []`. SDK must stay zero-dep contract layer.
+
+      13. After writing tests, run aggregate suite:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story8_*.py core/tests/architecture/test_workspace_members_alphabetical_story8.py core/tests/architecture/test_aisalesht_campaigns_untouched_story8.py core/tests/architecture/test_no_publish_config_story8.py core/tests/architecture/test_registry_surface.py core/tests/architecture/test_brand_context_frozen_9_fields.py core/tests/architecture/test_ep3_ep4_wrappers_read_only.py core/tests/architecture/test_ts_types_mirror_python_dataclasses.py core/tests/architecture/test_docs_extension_points_completeness.py core/tests/architecture/test_no_ep19_method_in_registry.py core/tests/architecture/test_brand_slug_namespace_allowlist.py core/tests/architecture/test_no_unregister_api.py core/tests/architecture/test_extension_sdk_zero_workspace_deps.py -v --tb=short
+         ```
+
+      14. Verify Stories 6 + 7 V-AG-3 golden snapshots still GREEN:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/tests/architecture/test_story6_*.py core/tests/architecture/test_sales_agent_protected_surfaces_intact.py core/tests/architecture/test_story7_*.py -v --tb=short
+         ```
+
+      15. **R3 downstream regression scope verification** — aggregate workspace pytest:
+         ```bash
+         cd ~/luana-platform && uv run pytest core/ apps/ -x -q --tb=short --ignore=core/src \
+             --ignore=core/luana-core-copilot/tests/test_streaming_integration.py \
+             --ignore=core/luana-core-sales-agent/tests/eval_simulator/ \
+             --ignore=core/luana-core-sales-agent/tests/agentic_evals/
+         ```
+         Target: ALL Stories 1-7 packages GREEN post Story 8 (V-D-1) + Story 8 NEW packages GREEN.
+
+      16. Cross-package smoke V-F-x-1:
+         ```bash
+         cd ~/luana-platform && uv run python -c "<smoke per V-F-x-1 validator>"
+         ```
+
+      Commit:
+      ```
+      test(arch): Story 8 12 NEW arch fitness tests (V-NF + V-AG-new-story-8 + V-F-ts + V-F-docs) + R3 regression GREEN
+      ```
+
+  - id: T-18
+    title: "Finalization — lint + format + AISALESHT untouched + DEFERRED-FILES + anti-duplication.md + R3 SSoT updates"
+    owner: builder-backend
+    owner_eligibility: [sonnet, opus]
+    production_code: false
+    estimated_time_minutes: 45
+    blocked_by: [T-17]
+    blocks: []
+    validators_addressed: [V-NF-4, V-NF-5, V-NF-5, V-D-2]
+    files_to_modify:
+      - "~/luana-platform/core/DEFERRED-FILES.md"
+      - "/home/chris/AISALESHT/.claude/rules/anti-duplication.md"
+      - "/home/chris/AISALESHT/.claude/rules/auditor-downstream-regression.md"
+    description: |
+      Final cleanup + ratchet updates.
+
+      1. **Lint + format ALL Story 8 packages:**
+         ```bash
+         cd ~/luana-platform && uv run ruff check core/luana-core-campaigns core/luana-core-extension-sdk apps/test-brand
+         cd ~/luana-platform && uv run ruff format --check core/luana-core-campaigns core/luana-core-extension-sdk apps/test-brand
+         ```
+         Fix any lint errors.
+
+      2. **TS lint** (if any tsconfig configured for ESLint):
+         ```bash
+         cd ~/luana-platform/core/@luana/extension-sdk && npx tsc --noEmit
+         ```
+
+      3. **AISALESHT untouched verification** (cardinal V-NF-4):
+         ```bash
+         cd /home/chris/AISALESHT
+         git diff $BASE_SHA HEAD --name-only -- \
+             backend/src/modules/campaigns/ \
+             backend/tests/modules/campaigns/
+         # → expected: empty
+         ```
+         If any AISALESHT campaigns file modified → REVERT. Story 8 only touches `~/luana-platform/` + `.claude/rules/` + `docs/product/stories/luana-campaigns-extension-sdk/`.
+
+      4. **Update `~/luana-platform/core/DEFERRED-FILES.md`** — append Story 8 section per V-D-2:
+         ```markdown
+         ## Story 8 deferrals (2026-05-12)
+
+         Story 8 (`luana-campaigns-extension-sdk`) lifted 3 new packages (luana-core-campaigns +
+         luana-core-extension-sdk + apps/test-brand + @luana/extension-sdk TS mirror).
+
+         ### Re-allowlisted (stay deferred — scheduling lift post-Story-8)
+
+         | Item | Reason |
+         |---|---|
+         | AppointmentModel stub in 4 conftest.py files | Scheduling module NOT lifted in Story 8 — deferred per OQ-2 |
+         | ProductModel / _ProductStub stubs in 4 conftest.py files | Catalog/product module NOT lifted — deferred |
+
+         ### NEW Story 8 deferrals
+
+         | Item | Target | Reason |
+         |---|---|---|
+         | EP-3 adapter real wiring (luana-core-sales-agent ToolRegistry public `register_tool_from_extension` method) | Stories 11-13 brand bootstraps | Adapter raises NotImplementedError gracefully when surface absent. Test-brand pack injects None. |
+         | EP-4 adapter real wiring (luana-core-copilot WorkflowRegistry public `register_workflow_from_extension` method) | Stories 11-13 brand bootstraps | Idem |
+         | EP-6..EP-18 semantic implementations | v0.2.x | Signatures-only per §7.5.2 D1=B. Registration succeeds; dispatch raises NotImplementedError. |
+         | apps/test-brand deployable infra | None (test app only) | Not for prod |
+         ```
+
+      5. **Update `/home/chris/AISALESHT/.claude/rules/anti-duplication.md`** — append row to shared abstractions inventory:
+         ```markdown
+         | Extension SDK / ExtensionPointRegistry / BrandContext / 18 EP DataClass models | `luana_core_extension_sdk.*` (Story 8) | Brand apps (Stories 11-13 + nicolify Story 10) — brand-namespaced registration only, NO cross-brand consumption |
+         ```
+
+      6. **Update `/home/chris/AISALESHT/.claude/rules/auditor-downstream-regression.md`** — append Story 8 surface rows to SSoT table per 03-arch-be.md §8:
+         ```markdown
+         | `core/luana-core-campaigns/src/luana_core_campaigns/**` | `core/luana-core-campaigns/tests/` | Story 8 lifted campaigns engine |
+         | `core/luana-core-extension-sdk/src/luana_core_extension_sdk/**` | `core/luana-core-extension-sdk/tests/` + `apps/test-brand/tests/test_sdk_smoke.py` | Story 8 SDK + smoke pack downstream |
+         | `apps/test-brand/src/test_brand/**` | `apps/test-brand/tests/test_sdk_smoke.py` | Story 8 test brand smoke |
+         | `core/@luana/extension-sdk/src/**` | (Stories 11-13 brand FE apps when they consume) | Story 8 TS mirror |
+         ```
+
+      7. **Capture base_sha for V-NF-4 verification:**
+         ```bash
+         cd /home/chris/AISALESHT
+         BASE_SHA=$(git rev-parse HEAD)
+         # Update checkpoint.md frontmatter with base_sha
+         ```
+
+      8. **Final aggregate verification:**
+         ```bash
+         cd ~/luana-platform && uv run ruff check . 2>&1 | tail -5
+         cd ~/luana-platform && uv run pytest core/ apps/ -x -q --tb=short --ignore=core/src \
+             --ignore=core/luana-core-copilot/tests/test_streaming_integration.py \
+             --ignore=core/luana-core-sales-agent/tests/eval_simulator/ \
+             --ignore=core/luana-core-sales-agent/tests/agentic_evals/ 2>&1 | tail -10
+         ```
+
+      9. Commit:
+         ```
+         chore(luana-platform): Story 8 lint + AISALESHT untouched verified + DEFERRED-FILES + anti-duplication.md + R3 SSoT updates
+         ```
+
+      10. **Story state transition:** developing → developed (per checkpoint.md update).

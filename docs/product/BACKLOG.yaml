@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T12:31:45+00:00
+# Generated at: 2026-05-12T12:51:05+00:00
 
-generated_at: '2026-05-12T12:31:45+00:00'
+generated_at: '2026-05-12T12:51:05+00:00'
 caps:
   refining_max: 3
   refined_max: 5

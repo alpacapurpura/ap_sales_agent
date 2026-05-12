@@ -1,11 +1,11 @@
 ---
 story_id: luana-campaigns-extension-sdk
 outcome: luana-platform-migration
-state: refined
-phase: SPEC_RATIFIED
-last_artifact: 01-spec.md
+state: ready
+phase: ARCH_DONE
+last_artifact: 06-tickets.yaml
 last_modified: 2026-05-12
-next_action: "/architect orchestrator Opus spawns to produce ready package (03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml)"
+next_action: "/dev-team picks T-1 — autonomous build batches. T-5+T-6 Opus (frozen registries wrappers), T-1..T-4 + T-7..T-18 Sonnet eligible"
 ratified_by_chris: true                         # ★ Session 4 ratification 2026-05-12 — Chris delegated `toma tú todas las decisiones` ★
 spawned_at: 2026-05-09
 spawned_by: /pm
@@ -90,3 +90,4 @@ halt_criteria_session_4:
 - 2026-05-12: Story 7 done — Story 8 unblocked
 - 2026-05-12: Session 4 Phase 0 — Chris ratified scope=B (EP-1..5 + EP-6..18 signatures-only). Chris delegated remaining 6 decisions + 13 backlog EP signatures + 5 CC policies to /pm. Decisions cementadas en outcome §7.5. State parked → refining. Next: spawn /po Opus for 01-spec.md draft.
 - 2026-05-12: /po Opus drafted 01-spec.md (1047 lines, 22 Gherkin scenarios, 14 explicit out-of-scope, 5 open Qs for architect, 3 exception types, BrandContext frozen 9-field per §7.5.2 D3). Per §7.5.2 D7=B Chris pre-auth secuencial autonomous, state refining → refined. Next: spawn architect-orchestrator Opus for ready package.
+- 2026-05-12: architect-orchestrator Opus emitted ready package — 03-arch.md (325 lines) + 03-arch-be.md (1387 lines) + 04-validators.yaml (26 validators: 5 V-NF + 12 V-F + 6 V-AG + 3 V-D) + 05-guidelines.md (858 lines) + 06-tickets.yaml (18 tickets DAG-ordered, T-5+T-6 Opus required for Stories 6+7 frozen registries wrappers, T-1..T-4 + T-7..T-18 Sonnet eligible). 5 open Qs resolved architect-bounded (26 Python + 7 TS workspace members post-Story-8, scheduling NOT lifted Story 8, EP-3/EP-4 read-only adapter graceful NotImplementedError, BrandContext.feature_flags opaque dict, TS hand-maintained alpha). State refined → ready. Next: /dev-team autonomous build.
