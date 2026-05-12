@@ -1,13 +1,14 @@
 ---
 story_id: luana-copilot-engine
 outcome: luana-platform-migration
-state: developing
-phase: building_T1_to_T21
-last_artifact: T-15-result.md
+state: developed
+phase: all_19_tickets_green
+last_artifact: T-21-result.md
 last_modified: 2026-05-11
 dev_team_started_at: 2026-05-11
-last_completed_batch: "Batch 5 T-15 finalize: T-15 (4c98bfe — evals/+utils/+aggregate GREEN — 1603 PASS / 25 SKIP / 0 FAIL / 0 ERR + 33/33 anchors + zero src.modules.* leaks + local prompt_loader override per M8 + 25 DAG-deferred tests skip-annotated by bucket A/B/C/misc). Cumulative T-1..T-15 done (15 of 21). luana-core-copilot package COMPLETE pre-T-16."
-next_action: "builder-agentic Opus spawn T-16 (UNLIFT Stories 2-5 copilot_provider/ — 22 src + 4 tests + offer_ai.py — 30 files total). Will unlock 16 of 25 SKIP from Bucket A. Then T-17 (D-T2 stub cleanup) → T-18 (integration) → T-19..T-21 (arch fitness + cement + finalize)."
+dev_team_developed_at: 2026-05-11
+last_completed_batch: "Batch 6 T-19+T-20+T-21 — arch fitness + finalization. T-19 (9a7a0df — brand-agnostic + no-forward-module-imports arch fitness). T-20 (eaa1446 — D-T1+D-T2+D-T6 cement 6 NEW arch fitness V-AG-3..V-AG-8 + entry-points wiring across 8 pyprojects). T-21 (3d4f872 — DEFERRED-FILES.md Story 6 section + README polish + ruff per-file-ignores pyproject + ~230 file ruff --fix idempotent cleanup). All V-NF-4..V-NF-7 + V-D-1 + V-D-2 GREEN. 1640 pytest collected luana-core-copilot. ZERO AISALESHT copilot/ modifications across 21 tickets."
+next_action: "auditor-agentic Opus spawn — C1-C5 categories verification + 8 NEW arch fitness gates (V-AG-1..V-AG-8 from core/tests/architecture/) independent verdict. Cumulative tool-time ~14h Opus across 6 batches per outcome §7.2 budget."
 unparked_at: 2026-05-11
 unparked_reason: "Story 5 luana-brand-offer-studios done 2026-05-11. DAG sequencing allows Story 6."
 ratified_by_chris: true  # Session 3 pre-auth 2026-05-11 (outcome §7.2 extension + R23)
@@ -60,6 +61,8 @@ new_arch_fitness_tests: 8  # V-AG-1..V-AG-8 in core/tests/architecture/
 ---
 
 ## Bitácora
+
+- 2026-05-11 (Batch 6 close — T-19+T-20+T-21 finalization): Story 6 DEVELOPED. **19 of 21 tickets DONE**; T-17 R26-deferred to Story 7 per `.claude/skills/sales-agent-expert` §3 forbidden-touch (MessageModel = sales_agent territory). Commits: T-19 `9a7a0df` (brand-agnostic + no-forward-module-imports arch fitness 2 NEW), T-20 `eaa1446` (D-T1+D-T2+D-T6 cement 6 NEW arch fitness V-AG-3..V-AG-8 + entry-points wiring 8 pyprojects), T-21 `3d4f872` (DEFERRED-FILES.md Story 6 section ~83 lines + README polish ~96 line diff + ruff per-file-ignores pyproject +20 lines + ~230 file ruff --fix idempotent cleanup). Validators: V-NF-4 (AISALESHT untouched: `git diff HEAD~30..HEAD backend/src/modules/copilot/ backend/tests/modules/copilot/` = empty) + V-NF-5 (no publishConfig) + V-NF-6 (no release/publish workflows) + V-NF-7 (ruff GREEN baseline) + V-D-1 (README complete) + V-D-2 (DEFERRED-FILES complete) all GREEN. Tests: 1640 collected luana-core-copilot (T-15 baseline 1603 + arch fitness/integration adds). Cumulative across 6 batches: T-1..T-21 (minus T-17) — ~14h Opus tool-time per outcome §7.2 budget. Anchor count: 33 unique `[COPILOT-*]` in `luana_core_copilot/` proper + 3 from business modules' `copilot_provider/` = 36 total (V-AG-8 cement). Code lifted: 33k LOC (largest module). UNLIFTED Stories 2-5: 30 files (T-16 commit `ca3cd18` — 8 packages' copilot_provider/ + 4 cross-coupling tests + offer_ai.py). NEW deferrals: Story 7 (sales_agent — MessageModel + ChatOrchestrator wiring + `_event_types()` lazy import), Story 8 (scheduling — AppointmentModel + ProductModel stubs), Story 10 (nicolify shell — 8 Streamlit admin pages). Reserved: EP-1..EP-5 SDK Story 8 + BrandVoicePort Story 7. Process drift discovered: T-17 architect spec premise mismatched reality (MessageModel ownership), R26 repro mandate triggered deferral — documented in T-17-impl-log.md + DEFERRED-FILES.md. Opus 6-batch pattern across the 14h tool-time enabled context refresh boundaries (B1=foundation, B2=infra repos/persisters/channels, B3=orchestrator/tools, B4=router/services/observability, B5=evals/utils/aggregate, B6=arch+finalize). Next: auditor-agentic Opus spawn — C1-C5 + 8 NEW arch fitness gates (V-AG-1..V-AG-8) independent verdict.
 
 - 2026-05-11 (Batch 5 close — T-15 finalize): T-15 committed luana-platform main 4c98bfe. **luana-core-copilot package COMPLETE pre-T-16**: 1603 PASS / 25 SKIP / 0 FAIL / 0 ERR aggregate. Anchor count 33/33 (T-15 target; T-16 brings 3 more for total 36 from business modules' copilot_provider/). Zero src.modules.* leaks. Two NEW NON-LIFT adaptations on copilot package (within scope): (1) `__init__.py` anchor restoration (`[COPILOT-REDESIGN-2026-04]` missing from T-2 skeleton), (2) local `prompt_loader` singleton override in `infrastructure/prompts/base.py` to point at package-local templates (M8 extend-not-replace — shared `PromptLoader` class re-used; AISALESHT-relic default `templates_dir` bypassed). 25 SKIP categorized by bucket: A-T16-UNLIFT(16) + B-migrations(3) + C-workers.settings(4) + misc(2). Process drift: anchor count diff (32 vs 33 vs 36) resolved per spawn directive — 33 in copilot/ proper, 3 more arrive with T-16 UNLIFT. Next: T-16 UNLIFT (90min, 30 files).
 
