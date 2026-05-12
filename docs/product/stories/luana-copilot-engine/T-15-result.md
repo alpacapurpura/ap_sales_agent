@@ -8,7 +8,7 @@ owner: builder-agentic (Opus 4.7)
 production_code: true
 validators: [V-NF-2, V-F-py-1]
 luana_commit_sha: 4c98bfe
-aisalesht_commit_sha: pending  # filled at AISALESHT docs commit
+aisalesht_commit_sha: 58f5ace5
 ---
 
 ## Outcome
