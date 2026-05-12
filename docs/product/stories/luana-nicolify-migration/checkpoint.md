@@ -1,11 +1,11 @@
 ---
 story_id: luana-nicolify-migration
 outcome: luana-platform-migration
-state: refined                                   # 2026-05-12 Session 5 Phase 1 — Chris ratified 01-spec.md + Halt Trigger #11 added to §7.6.2
-phase: PHASE_1_SPEC_RATIFIED_PHASE_1B_ARCHITECT
-last_artifact: 01-spec.md
+state: ready                                     # 2026-05-12 Session 5 Phase 1B — architect-orchestrator emitted 5 files ready package (2 spawns Part 1+2)
+phase: PHASE_1B_DONE_READY_FOR_PHASE_2_BUILD
+last_artifact: 06-tickets.yaml
 last_modified: 2026-05-12
-next_action: "architect-orchestrator Opus spawn — emit ready package 5 files (03-arch.md consolidado + 03-arch-be.md + 04-validators.yaml executable + 05-guidelines.md + 06-tickets.yaml sharded per blast-radius)"
+next_action: "Chris ratification check-in before Phase 2 build spawns — review ready package summary + decide proceed or adjust. T-1 baseline Sonnet next."
 ratified_by_chris: true                          # 2026-05-12 — 10 business decisions §7.6 cemented Session 5 Phase 0
 spawned_at: 2026-05-09
 spawned_by: /pm
@@ -56,3 +56,4 @@ Detail completo: `docs/product/outcomes/luana-platform-migration.md` § 7.6
 - **2026-05-12**: Story 9 closed DONE. Story 10 unblocked but ratified_by_chris=false
 - **2026-05-12 Session 5 Phase 0**: /pm spawned. Chris ratified 10 business decisions §7.6. Transition state=parked → refining. /po next.
 - **2026-05-12 Session 5 Phase 1**: /po Opus emitted 01-spec.md (1304 líneas, 9 features × 4 escenarios = 36 Gherkin scenarios). Chris ratified spec + accepted NEW Halt Trigger #11 (test mock missing path). Outcome §7.6.2 updated. Transition state=refining → refined. architect-orchestrator next.
+- **2026-05-12 Session 5 Phase 1B**: architect-orchestrator Opus emitted ready package en 2 spawns (Part 1 = 03-arch + 03-arch-be + 05-guidelines; Part 2 = 04-validators + 06-tickets). Total 5 files: 03-arch.md (639 líneas) + 03-arch-be.md (862 líneas) + 04-validators.yaml (59 validators across 4 cat, 36 scenarios covered) + 05-guidelines.md (535 líneas) + 06-tickets.yaml (14 tickets T-1..T-14 sharded Z1 strategy ≤2 paralelo Wave 1). 10 Opus-mandatory tickets + 4 Sonnet-OK. Transition state=refined → ready. Brief Chris check-in pre-Phase 2 build.

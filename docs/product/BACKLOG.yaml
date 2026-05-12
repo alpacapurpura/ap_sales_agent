@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T22:25:09+00:00
+# Generated at: 2026-05-12T22:48:25+00:00
 
-generated_at: '2026-05-12T22:25:09+00:00'
+generated_at: '2026-05-12T22:48:25+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -213,23 +213,23 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
-  refined:
+  refined: []
+  ready:
   - id: luana-nicolify-migration
     kind: story
-    state: refined
+    state: ready
     title: luana-nicolify-migration
     tags: []
     last_touched: 2026-05-12
     extra:
       outcome: luana-platform-migration
-      phase: PHASE_1_SPEC_RATIFIED_PHASE_1B_ARCHITECT
-      next_action: architect-orchestrator Opus spawn — emit ready package 5 files (03-arch.md consolidado + 03-arch-be.md
-        + 04-validators.yaml executable + 05-guidelines.md + 06-tickets.yaml sharded per blast-radius)
+      phase: PHASE_1B_DONE_READY_FOR_PHASE_2_BUILD
+      next_action: Chris ratification check-in before Phase 2 build spawns — review ready package summary + decide proceed
+        or adjust. T-1 baseline Sonnet next.
       blocked_by:
       - luana-v0-1-0-publish
       priority_override: null
       audit_iterations: 0
-  ready:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready

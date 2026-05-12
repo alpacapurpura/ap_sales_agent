@@ -1,0 +1,720 @@
+# 04-validators.yaml — Story 10 luana-nicolify-migration
+# Owner: /architect Part 2 spawn (2026-05-12)
+# Schema: v4 — 4 categories: non_functional / functional / visual / agentic_eval
+#
+# Story 10 is MECHANICAL migration (imports rewrite + workspace move + DB consolidation + /pm SSoT).
+# Zero business logic changes → agentic_eval category is N/A (sales_agent + copilot runtime preserved byte-stable).
+#
+# 36 Gherkin scenarios (9 features × 4 each) covered. Halt triggers §7.6.2 cited per validator detecting them.
+#
+# Convention:
+#   - Pre-Wave 3 (before FE git mv): paths reference /home/chris/AISALESHT/...
+#   - Post-Wave 3 (after T-8 + T-13): paths reference /home/chris/luana-platform/...
+#   - Validators that span both phases use ${REPO_ROOT} placeholder — /dev-team substitutes via env.
+
+---
+story_id: luana-nicolify-migration
+schema_version: v4
+generated_at: 2026-05-12T18:00Z
+generated_by: /architect (Opus 4.7)
+cite_spec: docs/product/stories/luana-nicolify-migration/01-spec.md §5 (36 Gherkin scenarios)
+cite_halt_triggers: docs/product/outcomes/luana-platform-migration.md §7.6.2 (11 triggers)
+cite_success_criteria: docs/product/outcomes/luana-platform-migration.md §7.6.3
+agentic_eval_applicability: |
+  N/A Story 10 — no agentic surface changes, only mechanical refactor.
+  Brand voice + sales_agent runtime preserved verbatim via package lift (imports rewrite only).
+  PersonalityProfile.system_instruction byte-stable per Decisión 9B + sales-agent-expert §3 NO TOUCH.
+  Future Story 14 brand-voice-elevation natural home for agentic regression.
+
+validators:
+
+  # ═══════════════════════════════════════════════════════════════
+  # NON-FUNCTIONAL — code quality, arch fitness, security
+  # Apply: EVERY rewrite ticket + final delta gate
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: V-NF-1
+    category: non_functional
+    type: pytest
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/ -x -q --override-ini='addopts='"
+    must_pass: true
+    timeout_sec: 180
+    description: "BE arch fitness cumulative — preserves 16 existing gates GREEN post each rewrite ticket (T-2..T-7). DDD boundaries, API contracts, conventions, naming, SQLA 2.0, copilot anchors cap 36/36, 22 frozen ratchet, FieldContract baselines, ETL contract, preset catalog completeness 187+. Halt Trigger #1 if any allowlist must grow."
+    cite_scenarios: [Feature 1 cumulative]
+    halt_triggers: [1]
+
+  - id: V-NF-2
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache && .venv/bin/ruff format --check src/ tests/"
+    must_pass: true
+    timeout_sec: 90
+    description: "Ruff 70+ rules + format check on AISALESHT BE codebase (pre-Wave-3) — 0 errors. Post-Wave-3 switches to luana-platform/nicolify/backend (T-N final delta check)."
+    cite_scenarios: []
+
+  - id: V-NF-3
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT/frontend && npx tsc --noEmit && npx eslint src/ --cache --cache-location .eslintcache --max-warnings=0"
+    must_pass: true
+    timeout_sec: 120
+    description: "FE TypeScript strict + ESLint 60+ rules — 0 errors. Pre-Wave-3 (AISALESHT path). Post-T-8 switches to luana-platform/nicolify/frontend."
+    cite_scenarios: [Feature 2 happy 2.1]
+
+  - id: V-NF-4
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT/frontend && npx vitest run src/__tests__/architecture/ --reporter=default"
+    must_pass: true
+    timeout_sec: 90
+    description: "FE arch fitness 10 tests preserved — FSD-Lite boundaries, design tokens, ratchet allowlists shrink-only. Post-T-8 switches to luana-platform path."
+    cite_scenarios: [Feature 2 cumulative]
+
+  - id: V-NF-5
+    category: non_functional
+    type: pytest
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/test_no_legacy_src_paths.py -v"
+    must_pass: true
+    timeout_sec: 60
+    description: "NEW Story 10 arch fitness — asserts `grep -rn 'from src\\.' <BE source>` returns 0 cumulative post all rewrite tickets. Blocks regression of legacy imports re-introduced. Created by T-1."
+    cite_scenarios: [Feature 1 happy 1.1, Feature 1 edge 1.3]
+    halt_triggers: [1]
+
+  - id: V-NF-6
+    category: non_functional
+    type: pytest
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/test_no_legacy_src_mock_paths.py -v"
+    must_pass: true
+    timeout_sec: 60
+    description: "NEW Story 10 arch fitness — asserts `grep -rn 'patch.*[\"\\\\']src\\.' <BE tests>` returns 0 cumulative. Detects stale test mocks (Feature 1 Scenario 1.4 silent regression risk). Created by T-1."
+    cite_scenarios: [Feature 1 adversarial 1.4]
+    halt_triggers: [11]
+
+  - id: V-NF-7
+    category: non_functional
+    type: pytest
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/test_consolidated_migration_idempotent.py -v"
+    must_pass: true
+    timeout_sec: 60
+    description: "NEW Story 10 arch fitness — parses alembic/versions/001_initial_snapshot.py raw SQL, asserts ALL DDL uses `IF NOT EXISTS` / `IF EXISTS` / `DO $$ EXCEPTION WHEN duplicate_object` (per backend-migrations.md). Created by T-1; populated by T-10."
+    cite_scenarios: [Feature 3 edge 3.3]
+
+  - id: V-NF-8
+    category: non_functional
+    type: pytest
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/test_delta_zero_enforcement.py -v"
+    must_pass: true
+    timeout_sec: 60
+    description: "NEW Story 10 arch fitness — parses baseline-{be,fe}-tests.json vs final, asserts new_failures = []. Created by T-1; run by T-N final delta check."
+    cite_scenarios: [Feature 4 happy 4.2, Feature 4 adversarial 4.4]
+    halt_triggers: [10]
+
+  - id: V-NF-9
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/python scripts/codemod_be_imports.py --dry-run --self-check"
+    must_pass: true
+    timeout_sec: 30
+    description: "Codemod script self-test — verifies libcst codemod script lintable + idempotent (re-running on already-rewritten files = no-op). T-1 produces the script; subsequent T-2..T-7 tickets execute it."
+    cite_scenarios: [Feature 1 happy 1.1]
+
+  - id: V-NF-10
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT/frontend && npx jscodeshift --dry --print -t scripts/codemod_fe_imports.ts src/ 2>&1 | head -20"
+    must_pass: true
+    timeout_sec: 60
+    description: "FE codemod script dry-run self-test — verifies jscodeshift transformer parseable + idempotent. T-1 produces the script; T-8 executes it."
+    cite_scenarios: [Feature 2 happy 2.1]
+
+  - id: V-NF-11
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pip-audit --strict --disable-pip 2>&1 | tail -20"
+    must_pass: true
+    timeout_sec: 90
+    description: "BE Python deps security audit — no high/critical CVEs introduced. Pre-Wave-3 (AISALESHT venv); post-Wave-3 luana-platform `uv pip-audit` equivalent."
+    cite_scenarios: []
+
+  - id: V-NF-12
+    category: non_functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT/frontend && npm audit --audit-level=high --json 2>/dev/null | jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 60
+    description: "FE npm audit — 0 high/critical. Pre-Wave-3 (AISALESHT); post-Wave-3 luana-platform pnpm audit."
+    cite_scenarios: []
+
+  - id: V-NF-13
+    category: non_functional
+    type: shell
+    cmd: "test -f /home/chris/AISALESHT/scripts/codemod_be_imports.py && test -f /home/chris/AISALESHT/scripts/codemod_fe_imports.ts && test -f /home/chris/AISALESHT/scripts/test_delta_check.py && echo 'all codemod + delta scripts exist'"
+    must_pass: true
+    timeout_sec: 5
+    description: "T-1 deliverable existence check — 3 NEW scripts committed before any rewrite ticket spawns. /dev-team blocks T-2 spawn if T-1 incomplete."
+    cite_scenarios: [Feature 4 happy 4.1]
+
+  # ═══════════════════════════════════════════════════════════════
+  # FUNCTIONAL — Gherkin scenarios (happy + negative + edge + adversarial)
+  # 36 scenarios from 01-spec.md §5 — cite ID per validator
+  # ═══════════════════════════════════════════════════════════════
+
+  # Feature 1 — BE imports rewrite -----------------------------------
+
+  - id: V-F-1
+    category: functional
+    type: shell
+    cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/modules/brand/ /home/chris/AISALESHT/backend/src/modules/offer/ | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 1 Scenario 1.1 grader — post T-2, no legacy `from src.` imports remain in brand + offer."
+    cite_scenarios: [F1.S1.1]
+
+  - id: V-F-2
+    category: functional
+    type: shell
+    cmd: "grep -rn 'patch.*[\"\\\\']src\\.' /home/chris/AISALESHT/backend/tests/modules/brand/ /home/chris/AISALESHT/backend/tests/modules/offer/ | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 1 Scenario 1.4 grader — post T-2, no stale `patch('src.X')` mocks remain in brand + offer tests."
+    cite_scenarios: [F1.S1.4]
+    halt_triggers: [11]
+
+  - id: V-F-3
+    category: functional
+    type: pytest
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/brand/ tests/modules/offer/ -v --tb=short"
+    must_pass: true
+    timeout_sec: 300
+    description: "Feature 1 Scenario 1.1 grader — brand + offer module tests GREEN delta=0 post rewrite."
+    cite_scenarios: [F1.S1.1, F1.S1.3]
+
+  - id: V-F-4
+    category: functional
+    type: pytest
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/copilot/ -v --tb=short"
+    must_pass: true
+    timeout_sec: 300
+    description: "T-5 grader — copilot tests GREEN post rewrite. Verifies 22 frozen ratchet + anchor cap 36/36 preserved + module_registry convention works."
+    cite_scenarios: [F1.S1.1 (copilot variant)]
+    halt_triggers: [1, 2]
+
+  - id: V-F-5
+    category: functional
+    type: pytest
+    cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/modules/sales_agent/ -v --tb=no 2>&1 | tail -10"
+    must_pass: true
+    timeout_sec: 600
+    description: "T-6 grader — sales_agent tests run. Baseline = 40 pre-existing failures (Decisión 9B). Final FAILED count must match baseline (NOT regressed beyond). §3 NO TOUCH surfaces byte-equal except imports."
+    cite_scenarios: [F1.S1.1 (sales_agent variant)]
+    halt_triggers: [10]
+
+  - id: V-F-6
+    category: functional
+    type: shell
+    cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/shared/ 2>/dev/null | grep -v 'src/shared/workers' | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 10
+    description: "T-7 grader — shared/* fully rewritten (all 11 subsystems except workers DEFERRED Story 10b)."
+    cite_scenarios: [F1.S1.1 (shared variant)]
+    halt_triggers: [1]
+
+  - id: V-F-7
+    category: functional
+    type: shell
+    cmd: "grep -rn 'patch.*[\"\\\\']src\\.' /home/chris/AISALESHT/backend/tests/ | grep -v '/admin/' | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 15
+    description: "Cumulative — entire backend/tests/ (excluding admin DEFERRED) has 0 stale `patch('src.')` mocks. Halt Trigger #11 if encountered mid-Wave."
+    cite_scenarios: [F1.S1.4]
+    halt_triggers: [11]
+
+  - id: V-F-8
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT/backend && grep -rh '\\[COPILOT-' src/modules/copilot/ 2>/dev/null | sort -u | wc -l | grep -E '^36$'"
+    must_pass: true
+    timeout_sec: 10
+    description: "T-5 grader — copilot anchors cap 36/36 preserved byte-stable post import rewrite (copilot-expert SSoT)."
+    cite_scenarios: [F1.S1.1 (copilot variant)]
+    halt_triggers: [1]
+
+  - id: V-F-9
+    category: functional
+    type: shell
+    cmd: "git diff src/modules/sales_agent/api/closer_studio.py src/modules/sales_agent/infrastructure/external/smart_debounce_runner.py src/modules/sales_agent/infrastructure/external/output_manager.py 2>/dev/null | grep -E '^[+-]' | grep -vE '^[+-]from|^[+-]import|^[+-]{3}' | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 15
+    description: "T-6 grader — §3 NO TOUCH surfaces preserved byte-stable. Only import statement diffs allowed (sales-agent-expert §3: closer_studio, SmartBufferService, OutputManager). Zero non-import semantic changes."
+    cite_scenarios: [F1.S1.1 (sales_agent variant)]
+    halt_triggers: [1]
+
+  # Feature 2 — FE imports rewrite + workspace move -------------------
+
+  - id: V-F-10
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx tsc --noEmit"
+    must_pass: true
+    timeout_sec: 180
+    description: "Feature 2 Scenario 2.1 grader — post T-8, TypeScript strict GREEN on luana-platform nested FE workspace."
+    cite_scenarios: [F2.S2.1, F2.S2.2, F2.S2.4]
+    halt_triggers: [1]
+
+  - id: V-F-11
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx eslint src/ --cache --max-warnings=0"
+    must_pass: true
+    timeout_sec: 90
+    description: "Feature 2 Scenario 2.1 grader — ESLint 0 errors post workspace move + import rewrite."
+    cite_scenarios: [F2.S2.1]
+
+  - id: V-F-12
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx vitest run --reporter=default --coverage 2>&1 | tail -5"
+    must_pass: true
+    timeout_sec: 180
+    description: "Feature 2 Scenario 2.1 grader — Vitest unit suite delta=0 vs baseline; FE coverage threshold 20% all categories preserved."
+    cite_scenarios: [F2.S2.1]
+
+  - id: V-F-13
+    category: functional
+    type: shell
+    cmd: "grep -rn 'from \"@/' /home/chris/luana-platform/nicolify/frontend/src/ | grep -vE '@/app/|@/features/|@/stores/|@/components/shared/' | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 2 Scenario 2.1 grader — no legacy `@/components/ui|@/lib/api|@/lib/format|@/hooks|@/lib/zod-schemas|@/lib/tokens` imports remain. Allowed locals: @/app, @/features, @/stores, @/components/shared (Nicolify-specific per 03-arch §2 Feature 2 mapping)."
+    cite_scenarios: [F2.S2.1]
+
+  - id: V-F-14
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/luana-platform && pnpm list -r '@luana/ui-kit' --json 2>/dev/null | jq -e '.[] | select(.name == \"@luana/nicolify-web\") | .dependencies.\"@luana/ui-kit\".version' | grep -E 'link:|workspace:'"
+    must_pass: true
+    timeout_sec: 30
+    description: "Feature 2 Scenario 2.1 grader — pnpm workspace symlinks resolve `@luana/ui-kit` to workspace local path (not registry-pinned during dev)."
+    cite_scenarios: [F2.S2.1]
+
+  - id: V-F-15
+    category: functional
+    type: shell
+    cmd: "curl -sIL https://dev-app.nicolify.com/ -o /dev/null -w '%{http_code}\\n' | grep -E '^(200|3[0-9]{2})$'"
+    must_pass: true
+    timeout_sec: 30
+    description: "Feature 2 Scenario 2.3 grader — post Vercel reconfig + CF tunnel preserved, dev-app.nicolify.com resolves HTTP 200 or 3xx redirect to signin."
+    cite_scenarios: [F2.S2.3]
+    halt_triggers: [3, 4]
+
+  # Feature 3 — Fresh nicolify_dev DB + alembic consolidation ---------
+
+  - id: V-F-16
+    category: functional
+    type: shell
+    cmd: "docker exec nicolify_postgres_dev psql -U postgres -lqt | cut -d '|' -f 1 | grep -qw nicolify_dev"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 3 Scenario 3.1 grader — nicolify_dev DB exists post T-10 creation."
+    cite_scenarios: [F3.S3.1]
+
+  - id: V-F-17
+    category: functional
+    type: shell
+    cmd: "docker exec nicolify_postgres_dev psql -U postgres -d nicolify_dev -c 'SELECT version_num FROM alembic_version;' 2>&1 | grep -E '001_initial_snapshot'"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 3 Scenario 3.1 grader — alembic head reports `001_initial_snapshot` post T-10 consolidated migration apply."
+    cite_scenarios: [F3.S3.1]
+
+  - id: V-F-18
+    category: functional
+    type: shell
+    cmd: "diff <(docker exec visionarias_postgres_dev pg_dump --schema-only -U postgres visionarias_logs 2>/dev/null | grep -E '^CREATE TABLE|^ALTER TABLE.*FOREIGN KEY|^CREATE INDEX' | sort -u) <(docker exec nicolify_postgres_dev pg_dump --schema-only -U postgres nicolify_dev | grep -E '^CREATE TABLE|^ALTER TABLE.*FOREIGN KEY|^CREATE INDEX' | sort -u) | wc -l | awk '{if ($1 <= 20) exit 0; else exit 1}'"
+    must_pass: true
+    timeout_sec: 60
+    description: "Feature 3 Scenario 3.1 grader — schema diff between AISALESHT pg_dump and nicolify_dev consolidated ≤ 20 lines (cosmetic: ordering, comments). >20 lines structural drift → halt Trigger #5."
+    cite_scenarios: [F3.S3.1, F3.S3.2]
+    halt_triggers: [5]
+
+  - id: V-F-19
+    category: functional
+    type: shell
+    cmd: "HASH1=$(docker exec nicolify_postgres_dev pg_dump --schema-only -U postgres nicolify_dev | sha256sum | cut -d' ' -f1); docker exec nicolify_postgres_dev bash -c 'cd /app && alembic upgrade head' && HASH2=$(docker exec nicolify_postgres_dev pg_dump --schema-only -U postgres nicolify_dev | sha256sum | cut -d' ' -f1); test \"$HASH1\" = \"$HASH2\""
+    must_pass: true
+    timeout_sec: 90
+    description: "Feature 3 Scenario 3.3 grader — idempotency stress test. Re-running `alembic upgrade head` on already-up-to-date DB does NOT modify schema (IF NOT EXISTS pattern works)."
+    cite_scenarios: [F3.S3.3]
+
+  - id: V-F-20
+    category: functional
+    type: shell
+    cmd: "DATABASE_URL=postgresql://postgres@localhost:5433/nicolify_dev cd /home/chris/luana-platform/nicolify/backend && uv run pytest -x -q --tb=no 2>&1 | tail -5"
+    must_pass: true
+    timeout_sec: 600
+    description: "Feature 3 Scenario 3.1 grader — full BE pytest GREEN against nicolify_dev, delta=0 vs T-1 baseline."
+    cite_scenarios: [F3.S3.1]
+
+  - id: V-F-21
+    category: functional
+    type: shell
+    cmd: "if [ -f /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/T-11-result.md ]; then SMOKE_TS=$(grep 'smoke_green_at:' /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/T-11-result.md 2>/dev/null | awk '{print $2}' | head -1); if [ -n \"$SMOKE_TS\" ]; then NOW=$(date -u +%s); DELTA=$((NOW - $(date -d \"$SMOKE_TS\" +%s))); test $DELTA -ge 86400; else exit 1; fi; else exit 1; fi"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 3 Scenario 3.4 grader — pre-DROP precondition: 24h soak elapsed since T-11 smoke green timestamp. Sub-agent BLOCKS DROP if not elapsed."
+    cite_scenarios: [F3.S3.4, F8.S8.2]
+
+  # Feature 4 — Test parity baseline + delta=0 ------------------------
+
+  - id: V-F-22
+    category: functional
+    type: shell
+    cmd: "test -f /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/baseline-be-tests.json && test -f /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/baseline-fe-tests.json && jq -e '.summary.failed' /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/baseline-be-tests.json"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 4 Scenario 4.1 grader — T-1 committed both baseline JSON files (BE + FE) with parseable .summary.failed counter."
+    cite_scenarios: [F4.S4.1]
+
+  - id: V-F-23
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/luana-platform && python scripts/test_delta_check.py /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/baseline-be-tests.json /tmp/final-be-tests.json --max-new-failures=0"
+    must_pass: true
+    timeout_sec: 30
+    description: "Feature 4 Scenario 4.2 grader — T-N final delta check BE. New failures = 0 vs baseline. 40 sales_agent pre-existing remain in baseline AND final (Decisión 9B)."
+    cite_scenarios: [F4.S4.2, F4.S4.4]
+    halt_triggers: [10]
+
+  - id: V-F-24
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/luana-platform && python scripts/test_delta_check.py /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/baseline-fe-tests.json /tmp/final-fe-tests.json --max-new-failures=0"
+    must_pass: true
+    timeout_sec: 30
+    description: "Feature 4 Scenario 4.2 grader — T-N final delta check FE. New failures = 0 vs baseline."
+    cite_scenarios: [F4.S4.2]
+    halt_triggers: [10]
+
+  - id: V-F-25
+    category: functional
+    type: shell
+    cmd: "test -f /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/DEFERRED-FAILURES-STORY-10.md && grep -E '^\\- tests/modules/sales_agent' /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/DEFERRED-FAILURES-STORY-10.md | wc -l | awk '{if ($1 >= 40) exit 0; else exit 1}'"
+    must_pass: true
+    timeout_sec: 10
+    description: "T-N final grader — DEFERRED-FAILURES-STORY-10.md exists with ≥40 sales_agent failure paths listed (Decisión 9B → Story 14)."
+    cite_scenarios: [F4.S4.2]
+
+  # Feature 5 — Playwright smoke E2E ----------------------------------
+
+  - id: V-F-26
+    category: functional
+    type: playwright
+    cmd: "cd /home/chris/luana-platform/nicolify/frontend && E2E_BASE_URL=https://dev-app.nicolify.com npx playwright test --project=smoke chris-journey-e2e.spec.ts --reporter=line"
+    must_pass: true
+    timeout_sec: 600
+    description: "Feature 5 Scenario 5.1 grader — Chris journey E2E (9 steps signup→brand→offer→sales-agent→cards→signout) GREEN. Native WSL execution (NEVER `make e2e*` Docker). Embedded sub-assertions for Scenarios 5.2 + 5.3 + 5.4."
+    cite_scenarios: [F5.S5.1, F5.S5.2]
+
+  - id: V-F-27
+    category: functional
+    type: shell
+    cmd: "docker exec nicolify_postgres_dev psql -U postgres -d nicolify_dev -t -c \"SELECT COUNT(*) FROM copilot_llm_call WHERE tenant_id IN (SELECT id FROM tenants WHERE slug LIKE 'e2e-test-%') AND cost_usd > 0;\" | awk '{if ($1 >= 1) exit 0; else exit 1}'"
+    must_pass: true
+    timeout_sec: 30
+    description: "Feature 5 Scenario 5.3 grader — post-smoke DB query asserts ≥1 row in copilot_llm_call with cost_usd > 0 (no NULL — Story PI-12 S1 T-1.bis cost regression guard preserved)."
+    cite_scenarios: [F5.S5.3]
+
+  - id: V-F-28
+    category: functional
+    type: shell
+    cmd: "grep -rE 'tenant_isolation|cross_leak' /home/chris/luana-platform/nicolify/frontend/e2e/specs/smoke/chris-journey-e2e.spec.ts | wc -l | awk '{if ($1 >= 1) exit 0; else exit 1}'"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 5 Scenario 5.4 grader — smoke spec contains adversarial tenant isolation cross-leak assertion (T1 cannot see T2 offers)."
+    cite_scenarios: [F5.S5.4]
+
+  - id: V-F-29
+    category: functional
+    type: shell
+    cmd: "test -f /home/chris/luana-platform/nicolify/frontend/playwright/.clerk/user.json && find /home/chris/luana-platform/nicolify/frontend/playwright/.clerk/user.json -newer /home/chris/luana-platform/nicolify/frontend/playwright.config.ts -print | grep -q user.json"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 5 Scenario 5.2 grader — Clerk auth fixture exists at new path post FE workspace move + fresh (auto-regen per playwright-expert freshness gate)."
+    cite_scenarios: [F5.S5.2]
+    halt_triggers: [4]
+
+  # Feature 6 — CI parity root ----------------------------------------
+
+  - id: V-F-30
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/luana-platform && make ci-parity"
+    must_pass: true
+    timeout_sec: 1200
+    description: "Feature 6 Scenario 6.1 grader — `make ci-parity` from luana-platform root GREEN cross-brand. Currently BRANDS := nicolify (Stories 11-13 append vitalia/comunify/lupulo)."
+    cite_scenarios: [F6.S6.1, F6.S6.2]
+    halt_triggers: [6]
+
+  - id: V-F-31
+    category: functional
+    type: shell
+    cmd: "grep -qE '^ci-parity(:|-nicolify)' /home/chris/luana-platform/Makefile && grep -qE 'BRANDS' /home/chris/luana-platform/Makefile"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 6 Scenario 6.3 grader — Makefile uses cross-brand pattern with BRANDS variable. Future Stories 11-13 inherit by appending brand to BRANDS."
+    cite_scenarios: [F6.S6.3]
+
+  - id: V-F-32
+    category: functional
+    type: shell
+    cmd: "test -f /home/chris/luana-platform/.husky/pre-push && grep -q ci-parity /home/chris/luana-platform/.husky/pre-push"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 6 Scenario 6.4 grader — pre-push hook invokes ci-parity. Bypass protection at server-side CI level (Husky --no-verify NOT respected for ci-parity step)."
+    cite_scenarios: [F6.S6.4]
+
+  # Feature 7 — /pm SSoT atomic migration -----------------------------
+
+  - id: V-F-33
+    category: functional
+    type: shell
+    cmd: "test ! -d /home/chris/AISALESHT/docs/product && test -d /home/chris/luana-platform/docs/product && test -f /home/chris/luana-platform/docs/product/BACKLOG.md"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 7 Scenario 7.1 grader — post T-13, AISALESHT/docs/product removed AND luana-platform/docs/product populated (atomic Phase 4 mv)."
+    cite_scenarios: [F7.S7.1]
+
+  - id: V-F-34
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/luana-platform && python scripts/generate_backlog.py --check && python scripts/reconcile_capabilities.py --check"
+    must_pass: true
+    timeout_sec: 60
+    description: "Feature 7 Scenario 7.1 grader — post T-13, generate_backlog.py (R33) + reconcile_capabilities.py (R32) GREEN from new location."
+    cite_scenarios: [F7.S7.1]
+    halt_triggers: [8]
+
+  - id: V-F-35
+    category: functional
+    type: shell
+    cmd: "grep -rn '/home/chris/AISALESHT/docs/product' /home/chris/luana-platform/scripts/ /home/chris/luana-platform/.claude/ 2>/dev/null | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 15
+    description: "Feature 7 Scenario 7.2 grader — Halt Decisión 4A — no hardcoded /home/chris/AISALESHT/docs/product paths in luana-platform scripts/rules post-move."
+    cite_scenarios: [F7.S7.2]
+    halt_triggers: [1]
+
+  - id: V-F-36
+    category: functional
+    type: shell
+    cmd: "gh repo view alpacapurpura/luana-platform --json visibility --jq .visibility | grep -E '^\"PRIVATE\"$|^PRIVATE$'"
+    must_pass: true
+    timeout_sec: 15
+    description: "Feature 7 Scenario 7.4 grader — luana-platform repo is PRIVATE (verifies no /pm SSoT content leaked to public repo)."
+    cite_scenarios: [F7.S7.4]
+
+  # Feature 8 — AISALESHT archive + DB drop ---------------------------
+
+  - id: V-F-37
+    category: functional
+    type: shell
+    cmd: "gh api repos/alpacapurpura/AISALESHT --jq .archived | grep -E '^true$'"
+    must_pass: true
+    timeout_sec: 15
+    description: "Feature 8 Scenario 8.1 grader — GitHub API confirms AISALESHT repo archived (read-only state)."
+    cite_scenarios: [F8.S8.1]
+
+  - id: V-F-38
+    category: functional
+    type: shell
+    cmd: "git status --short | wc -l | grep -E '^0$'"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 8 Scenario 8.3 grader — pre-archive verify AISALESHT working tree clean. Halt Trigger #8 if uncommitted changes."
+    cite_scenarios: [F8.S8.3]
+    halt_triggers: [8]
+
+  - id: V-F-39
+    category: functional
+    type: shell
+    cmd: "(docker exec visionarias_postgres_dev psql -U postgres -lqt 2>/dev/null | cut -d '|' -f 1 | grep -qw visionarias_logs); test $? -ne 0"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 8 Scenario 8.2 grader — post 24h soak + Chris ratify, visionarias_logs DB dropped (DB no longer exists)."
+    cite_scenarios: [F8.S8.2]
+
+  # Feature 9 — Story 10 archive at luana-platform --------------------
+
+  - id: V-F-40
+    category: functional
+    type: shell
+    cmd: "test -f /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/checkpoint.md && grep -E 'state:\\s*done' /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/checkpoint.md"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 9 Scenario 9.1 grader — Story 10 archived at luana-platform with checkpoint state=done."
+    cite_scenarios: [F9.S9.1]
+
+  - id: V-F-41
+    category: functional
+    type: shell
+    cmd: "grep -E 'stories_done.*10/14' /home/chris/luana-platform/docs/product/outcomes/luana-platform-migration.md"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 9 Scenario 9.1 grader — outcome counter stories_done = 10/14 post Story 10 merge."
+    cite_scenarios: [F9.S9.1]
+
+  - id: V-F-42
+    category: functional
+    type: shell
+    cmd: "test -f /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/HANDOFF-STORY-10B.md && grep -qE '## Scope' /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/HANDOFF-STORY-10B.md && grep -qE '## Inherited decisions' /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/HANDOFF-STORY-10B.md"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 9 Scenario 9.3 grader — HANDOFF-STORY-10B.md emitted T-14 closure with required sections (Scope + Inherited decisions per Decisión 10A)."
+    cite_scenarios: [F9.S9.3]
+
+  - id: V-F-43
+    category: functional
+    type: shell
+    cmd: "test ! -d /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration && test ! -d /home/chris/AISALESHT/docs/archive/2026/stories/luana-nicolify-migration"
+    must_pass: true
+    timeout_sec: 5
+    description: "Feature 9 Scenario 9.2 grader — Story 10 NOT accessible at AISALESHT paths (only valid at luana-platform/docs/archive/...)."
+    cite_scenarios: [F9.S9.2]
+
+  - id: V-F-44
+    category: functional
+    type: shell
+    cmd: "cd /home/chris/AISALESHT && git log --oneline -5 | grep -qE 'closure|chore.*pre-archive|Story 10'"
+    must_pass: true
+    timeout_sec: 10
+    description: "Feature 9 Scenario 9.4 grader — AISALESHT final state has closure commits pre-archive (development branch clean + closure narrative)."
+    cite_scenarios: [F9.S9.4]
+
+  # ═══════════════════════════════════════════════════════════════
+  # VISUAL — Playwright screenshot diffs
+  # Apply: Story 10 IS mechanical refactor BUT FE workspace move + Vercel reconfig can
+  #        surface CSS class name drift / Tailwind purge issues / hydration mismatches.
+  #        Screenshot diff catches layout shifts on 5 critical surfaces.
+  # ═══════════════════════════════════════════════════════════════
+
+  - id: V-V-1
+    category: visual
+    type: playwright
+    cmd: "cd /home/chris/luana-platform/nicolify/frontend && E2E_BASE_URL=https://dev-app.nicolify.com npx playwright test e2e/specs/visual/story-10-screenshot-diffs.spec.ts --reporter=line"
+    must_pass: true
+    timeout_sec: 300
+    description: "Visual fidelity — 5 critical surfaces screenshot diff baseline (pre-migration AISALESHT) vs final (post-migration luana-platform): signup page, brand-studio main, offer-studio main, copilot conversation panel, dashboard landing. Threshold: layout shifts <1% pixel diff. Catches Tailwind purge issues + design-token resolution drift via @luana/design-tokens import. Spec authored T-11."
+    cite_scenarios: [F2.S2.1, F2.S2.4]
+
+  - id: V-V-2
+    category: visual
+    type: shell
+    cmd: "cd /home/chris/luana-platform/nicolify/frontend && ls e2e/specs/visual/baselines/story-10-*.png 2>/dev/null | wc -l | awk '{if ($1 >= 5) exit 0; else exit 1}'"
+    must_pass: true
+    timeout_sec: 5
+    description: "Visual baselines exist — 5 baseline screenshots (signup/brand-studio/offer-studio/copilot/dashboard) committed in e2e/specs/visual/baselines/. T-1 captures from AISALESHT pre-migration; T-11 spec compares post-migration final."
+    cite_scenarios: [F2.S2.1]
+
+  # ═══════════════════════════════════════════════════════════════
+  # AGENTIC EVAL — N/A Story 10 (mechanical migration only)
+  # ═══════════════════════════════════════════════════════════════
+  # No agentic_eval validators.
+  # Rationale: Story 10 is pure import rewrite + workspace move + DB consolidation.
+  # - copilot runtime byte-stable (anchors cap 36/36 + 22 frozen ratchet enforced V-F-4 + V-F-8)
+  # - sales_agent runtime byte-stable (§3 NO TOUCH preserved V-F-9; 40 pre-existing failures DEFERRED Story 14 per Decisión 9B)
+  # - PersonalityProfile.system_instruction compilation unchanged (brand-expert verified)
+  # - LangGraph state schemas + reducers preserved (Story 6+7 frozen — tessl__langgraph)
+  # - LiteLLM proxy + cost_recorder canonicalization preserved (V-F-27 cost regression guard)
+  # Future Story 14 brand-voice-elevation re-introduces full agentic eval suite (pass^k + voice fidelity + adversarial).
+
+# ═══════════════════════════════════════════════════════════════
+# Scenario coverage matrix — 36 Gherkin scenarios → validators
+# ═══════════════════════════════════════════════════════════════
+
+scenario_coverage:
+  # Feature 1 — BE imports rewrite
+  - { scenario_id: F1.S1.1, validators: [V-F-1, V-F-3, V-F-4, V-F-6, V-F-8, V-NF-1, V-NF-5] }
+  - { scenario_id: F1.S1.2, validators: [V-NF-1, V-NF-5] }           # halt trigger #1 negative — verified via V-NF-5 grep
+  - { scenario_id: F1.S1.3, validators: [V-F-3] }                     # cross-module ports rewrite
+  - { scenario_id: F1.S1.4, validators: [V-F-2, V-F-7, V-NF-6] }      # adversarial test mock stale
+
+  # Feature 2 — FE imports + workspace
+  - { scenario_id: F2.S2.1, validators: [V-F-10, V-F-11, V-F-12, V-F-13, V-F-14, V-NF-3, V-NF-4, V-NF-10, V-V-1, V-V-2] }
+  - { scenario_id: F2.S2.2, validators: [V-F-10] }                    # negative — TS error halt
+  - { scenario_id: F2.S2.3, validators: [V-F-15] }                    # Vercel + CF tunnel
+  - { scenario_id: F2.S2.4, validators: [V-F-10, V-V-1] }             # adversarial shadcn drift
+
+  # Feature 3 — Fresh DB + alembic consolidation
+  - { scenario_id: F3.S3.1, validators: [V-F-16, V-F-17, V-F-18, V-F-20] }
+  - { scenario_id: F3.S3.2, validators: [V-F-18] }                    # negative drift halt
+  - { scenario_id: F3.S3.3, validators: [V-F-19, V-NF-7] }            # edge idempotency
+  - { scenario_id: F3.S3.4, validators: [V-F-21, V-F-39] }            # adversarial premature drop
+
+  # Feature 4 — Test parity + delta=0
+  - { scenario_id: F4.S4.1, validators: [V-F-22, V-NF-13] }
+  - { scenario_id: F4.S4.2, validators: [V-F-23, V-F-24, V-F-25, V-NF-8] }
+  - { scenario_id: F4.S4.3, validators: [V-NF-8] }                    # fix-on-discovery — audit trail
+  - { scenario_id: F4.S4.4, validators: [V-F-23, V-F-24, V-NF-8] }    # adversarial new failure
+
+  # Feature 5 — Smoke E2E
+  - { scenario_id: F5.S5.1, validators: [V-F-26] }
+  - { scenario_id: F5.S5.2, validators: [V-F-26, V-F-29] }            # Clerk auth fixture
+  - { scenario_id: F5.S5.3, validators: [V-F-26, V-F-27] }            # cost regression guard
+  - { scenario_id: F5.S5.4, validators: [V-F-26, V-F-28] }            # adversarial cross-leak
+
+  # Feature 6 — CI parity
+  - { scenario_id: F6.S6.1, validators: [V-F-30, V-F-31] }
+  - { scenario_id: F6.S6.2, validators: [V-F-30] }                    # negative env divergence
+  - { scenario_id: F6.S6.3, validators: [V-F-31] }                    # edge cross-brand extensible
+  - { scenario_id: F6.S6.4, validators: [V-F-32] }                    # adversarial bypass blocked
+
+  # Feature 7 — /pm SSoT atomic
+  - { scenario_id: F7.S7.1, validators: [V-F-33, V-F-34] }
+  - { scenario_id: F7.S7.2, validators: [V-F-35] }                    # negative hardcoded paths
+  - { scenario_id: F7.S7.3, validators: [V-F-34] }                    # edge rollback if scripts fail
+  - { scenario_id: F7.S7.4, validators: [V-F-36] }                    # adversarial repo visibility
+
+  # Feature 8 — AISALESHT archive + DB drop
+  - { scenario_id: F8.S8.1, validators: [V-F-37] }
+  - { scenario_id: F8.S8.2, validators: [V-F-21, V-F-39] }            # post-soak DB drop
+  - { scenario_id: F8.S8.3, validators: [V-F-38] }                    # edge clean tree pre-archive
+  - { scenario_id: F8.S8.4, validators: [V-F-37] }                    # adversarial archived state preserves history
+
+  # Feature 9 — Story 10 archive
+  - { scenario_id: F9.S9.1, validators: [V-F-40, V-F-41] }
+  - { scenario_id: F9.S9.2, validators: [V-F-43] }                    # edge no AISALESHT path
+  - { scenario_id: F9.S9.3, validators: [V-F-42] }                    # edge HANDOFF-STORY-10B emitted
+  - { scenario_id: F9.S9.4, validators: [V-F-44] }                    # adversarial final state pre-archive
+
+# ═══════════════════════════════════════════════════════════════
+# Halt trigger → validator reverse index (audit trail aid)
+# ═══════════════════════════════════════════════════════════════
+
+halt_trigger_coverage:
+  1: [V-NF-1, V-NF-5, V-F-4, V-F-6, V-F-8, V-F-9, V-F-10, V-F-35]   # coupling oculto / missing symbol / NO NEW LAYER
+  2: [V-F-4]                                                          # Wave violation cross-group
+  3: [V-F-15]                                                         # Vercel reconfig surprise
+  4: [V-F-15, V-F-29]                                                 # CF tunnel + Clerk fixture path
+  5: [V-F-18]                                                         # alembic schema drift
+  6: [V-F-30]                                                         # ci-parity env divergence
+  7: []                                                               # release-please orthogonal — N/A Story 10
+  8: [V-F-34, V-F-38]                                                 # monorepo state inesperado + AISALESHT uncommitted
+  9: []                                                               # cost cap soft check-in (audit trail metric, not validator)
+  10: [V-F-5, V-F-23, V-F-24, V-NF-8]                                 # auditor + 2 iter fail
+  11: [V-NF-6, V-F-2, V-F-7]                                          # test mock missing luana-core equivalent
+
+# ═══════════════════════════════════════════════════════════════
+# Iteration policy
+# ═══════════════════════════════════════════════════════════════
+
+iteration:
+  max_iterations: 10
+  on_fail: |
+    Identify failing validator. Apply targeted fix per ticket scope. Re-run failing validator only.
+    Fix-on-discovery cap 5min trivial (Decisión 5B). Scope expansion → defer DEFERRED-FAILURES + halt-and-ask.
+  on_all_pass: |
+    Mark ticket state developing→developed. Append iteration_log to T-{n}-impl-log.md.
+    /dev-team advances to next ticket per 06-tickets.yaml.
+  on_cap_reached: |
+    Halt Trigger #10 — auditor + 2 auto-fix iter all fail. STOP, escalate Chris.
+    NO 3rd iter sin Chris ratify. checkpoint state=blocked.

@@ -1,0 +1,1414 @@
+# 06-tickets.yaml — Story 10 luana-nicolify-migration
+# Owner: /architect Part 2 spawn (2026-05-12)
+# 14 tickets per 03-arch.md §3 Wave sequence (T-1 baseline → T-14 closure)
+#
+# Conventions (R6+R8+R23+R26):
+#   - decisions_applicable: cite §7.6 binding decisions (Decisión 1A..10A) per ticket
+#   - production_code: false for ALL Story 10 tickets — pure mechanical migration (codemod scripts + alembic snapshot + git mv + Makefile)
+#     EXCEPTION rationale: codemod scripts ARE production code IF they live in luana-platform/scripts/ post-merge,
+#     BUT for /dev-team owner_eligibility R23 routing: Story 10 sub-agents do NOT modify runtime business logic.
+#     Schema-mirror exception backend-ddd.md §exception applies to T-5+T-6 (Opus required for agentic surfaces regardless).
+#   - repro_verified: false — Story 10 is planned migration, NOT hot-fix (R26 N/A per spec §7 constraints heredados)
+#   - Cap paralelización ≤ 2 simultaneous agents (Decisión 1A — NOT 3)
+#   - Opus mayoritario crítico: T-2..T-10 + T-13 = Opus 4.7. Sonnet: T-1, T-11, T-12, T-14.
+#
+# Wave 1 paralelo strategy chosen: Z1 (BE business modules brand+offer vs landing-batch concurrently — same risk profile)
+#   Justification: BE/BE pair shares mechanical codemod template, libcst safety, identical lint/test gates.
+#   FE alone Wave 3 has clearer isolation (Vercel reconfig + workspace move = distinct blast radius).
+
+---
+story_id: luana-nicolify-migration
+generated_at: 2026-05-12T18:30Z
+generated_by: /architect (Opus 4.7)
+total_tickets: 14
+estimated_total_hours: 40-44
+parallelization_cap: 2
+opus_priority: [T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-13]
+session_5_cost_cap_usd: 5000
+session_5_cost_check_ins_usd: [4000, 4500, 5000]
+cite_arch: docs/product/stories/luana-nicolify-migration/03-arch.md §3 Wave sequence
+cite_arch_be: docs/product/stories/luana-nicolify-migration/03-arch-be.md §2 codemod mapping
+cite_spec: docs/product/stories/luana-nicolify-migration/01-spec.md §5 (36 Gherkin)
+cite_guidelines: docs/product/stories/luana-nicolify-migration/05-guidelines.md
+cite_halt_triggers: docs/product/outcomes/luana-platform-migration.md §7.6.2 (11 triggers)
+
+# ── Summary ─────────────────────────────────────────────────────
+summary:
+  - { id: T-1,  title: "Baseline capture + codemod scripts + new arch fitness tests", wave_position: 0, owner: sonnet,        blocked_by: [],                    blocks: [T-2, T-3, T-4, T-5, T-6, T-7, T-8] }
+  - { id: T-2,  title: "BE imports rewrite — brand + offer (Wave 1A)",                 wave_position: 1, owner: opus,          blocked_by: [T-1],                 blocks: [T-N-final],                          parallelizable_with: [T-3] }
+  - { id: T-3,  title: "BE imports rewrite — landing/assets/connections/scheduling/iam/crm/commercial_calendar (Wave 1B sharded)", wave_position: 1, owner: opus, blocked_by: [T-1], blocks: [T-N-final], parallelizable_with: [T-2] }
+  - { id: T-4,  title: "BE imports rewrite — analytics/campaigns/social_proof/tenant_*/advertising/social_media (Wave 1C sharded)", wave_position: 1, owner: opus, blocked_by: [T-1, T-3], blocks: [T-N-final] }
+  - { id: T-5,  title: "BE imports rewrite — copilot (Wave 2 agentic R23)",            wave_position: 2, owner: opus,          blocked_by: [T-4],                 blocks: [T-7],                                parallelizable_with: [T-6] }
+  - { id: T-6,  title: "BE imports rewrite — sales_agent (Wave 2 agentic R23)",        wave_position: 2, owner: opus,          blocked_by: [T-4],                 blocks: [T-7],                                parallelizable_with: [T-5] }
+  - { id: T-7,  title: "BE imports rewrite — shared/* cross-cutting (Wave 2 sharded 11 subsystems)", wave_position: 2, owner: opus, blocked_by: [T-5, T-6],       blocks: [T-8, T-10] }
+  - { id: T-8,  title: "FE git mv + workspace registration + jscodeshift imports rewrite", wave_position: 3, owner: opus,      blocked_by: [T-7],                 blocks: [T-9, T-11] }
+  - { id: T-9,  title: "Vercel reconfig + CF tunnel verify",                            wave_position: 3, owner: opus,          blocked_by: [T-8],                 blocks: [T-11] }
+  - { id: T-10, title: "Fresh nicolify_dev DB + alembic snapshot consolidation",        wave_position: 3, owner: opus,          blocked_by: [T-7],                 blocks: [T-N-final],                          parallelizable_with: [T-8] }
+  - { id: T-11, title: "Playwright smoke E2E + visual screenshot diffs",                wave_position: 4, owner: sonnet,        blocked_by: [T-9, T-10],           blocks: [T-13, T-14] }
+  - { id: T-12, title: "Make ci-parity root migration + pre-push hook update",          wave_position: 4, owner: sonnet,        blocked_by: [T-9, T-10],           blocks: [T-13],                               parallelizable_with: [T-11] }
+  - { id: T-13, title: "/pm SSoT atomic git mv (Phase 4 merge)",                        wave_position: 5, owner: opus,          blocked_by: [T-11, T-12],          blocks: [T-14] }
+  - { id: T-14, title: "AISALESHT archive + DB drop + Story 10 archive at luana-platform", wave_position: 5, owner: sonnet,    blocked_by: [T-13],                blocks: [] }
+
+# ── Detail (one entry per ticket) ───────────────────────────────
+
+tickets:
+  - $ref: "#/T1"
+  - $ref: "#/T2"
+  - $ref: "#/T3"
+  - $ref: "#/T4"
+  - $ref: "#/T5"
+  - $ref: "#/T6"
+  - $ref: "#/T7"
+  - $ref: "#/T8"
+  - $ref: "#/T9"
+  - $ref: "#/T10"
+  - $ref: "#/T11"
+  - $ref: "#/T12"
+  - $ref: "#/T13"
+  - $ref: "#/T14"
+
+# ════════════════════════════════════════════════════════════════
+T1:
+  id: T-1
+  title: "Baseline capture (pytest --json-report BE + vitest --reporter=json FE) + codemod scripts + 4 new arch fitness tests"
+  type: tooling
+  surface: BE
+  wave_position: 0
+  production_code: false                      # Scripts + tests + audit-trail JSON — no runtime business code
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                      # Multi-file scaffold + libcst familiarity needed
+    claude_sonnet: true                       # PREFERRED — mechanical TDD
+    claude_opus_required: false
+  priority: 1                                  # FIRST ticket — blocks ALL others
+  estimate_hours: 2
+  estimated_cost_usd_range: [150, 250]
+  estimated_duration_minutes: 90-120
+  parallelizable_with: []
+  decisions_applicable: [D5, D1, D10]          # D5=fix-on-discovery cap delta=0 / D1=full big-bang scope / D10=Sesión 5 pre-auth
+  halt_triggers_applicable: []                 # T-1 is pre-rewrite — no halts possible
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 4 (Test parity baseline)"
+    arch_doc: "../03-arch.md §3 Wave sequence + §0.4 NEW arch tests"
+    arch_be_doc: "../03-arch-be.md §1 + §2 (codemod script structure)"
+    guidelines: "../05-guidelines.md §1.3 + §3.2"
+    rules: [".claude/rules/tdd-mandatory.md", ".claude/rules/backend-quality.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    Bootstrap ticket — captures pre-migration baseline AND produces codemod tooling for subsequent rewrites.
+    /dev-team REFUSES to spawn T-2..T-7 until T-1 closed `done` with all deliverables verified.
+
+    Steps:
+    1. `cd /home/chris/AISALESHT/backend && .venv/bin/pytest --json-report --json-report-file=docs/product/stories/luana-nicolify-migration/baseline-be-tests.json --tb=short`
+       Capture summary: BE N pass / M fail / K skip. M includes 40 sales_agent pre-existing failures (Decisión 9B).
+    2. `cd /home/chris/AISALESHT/frontend && npx vitest run --reporter=json --outputFile=../docs/product/stories/luana-nicolify-migration/baseline-fe-tests.json`
+    3. Capture pre-migration visual baselines (5 surfaces) via Playwright screenshots — commit to e2e/specs/visual/baselines/.
+    4. Author `scripts/codemod_be_imports.py` per 03-arch-be.md §2.1 (libcst MAPPING dict with all 18 modules + 11 shared subsystems + Nicolify-local stay-local entries for scheduling/advertising/social_media).
+       Self-check: `python scripts/codemod_be_imports.py --dry-run --self-check` runs idempotent on sample file.
+    5. Author `scripts/codemod_fe_imports.ts` (jscodeshift transformer per 03-arch.md §2 Feature 2 mapping).
+    6. Author `scripts/test_delta_check.py` (parses pytest/vitest JSON, computes new_failures = []).
+    7. Author 4 NEW arch fitness tests in `backend/tests/architecture/`:
+       - `test_no_legacy_src_paths.py` — grep `from src.` cumulative = 0 post Story 10
+       - `test_no_legacy_src_mock_paths.py` — grep `patch('src.')` cumulative = 0 post Story 10
+       - `test_consolidated_migration_idempotent.py` — parses `001_initial_snapshot.py` raw SQL, asserts IF NOT EXISTS pattern
+       - `test_delta_zero_enforcement.py` — parses baseline JSON files, asserts new_failures = []
+    8. Commit baseline JSONs + scripts + arch tests + visual baselines in audit-trail single commit.
+
+  blast_radius:
+    files_affected_count: 12
+    paths:
+      - /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/baseline-be-tests.json
+      - /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/baseline-fe-tests.json
+      - /home/chris/AISALESHT/scripts/codemod_be_imports.py
+      - /home/chris/AISALESHT/scripts/codemod_fe_imports.ts
+      - /home/chris/AISALESHT/scripts/test_delta_check.py
+      - /home/chris/AISALESHT/backend/tests/architecture/test_no_legacy_src_paths.py
+      - /home/chris/AISALESHT/backend/tests/architecture/test_no_legacy_src_mock_paths.py
+      - /home/chris/AISALESHT/backend/tests/architecture/test_consolidated_migration_idempotent.py
+      - /home/chris/AISALESHT/backend/tests/architecture/test_delta_zero_enforcement.py
+      - /home/chris/AISALESHT/frontend/e2e/specs/visual/baselines/story-10-signup.png
+      - /home/chris/AISALESHT/frontend/e2e/specs/visual/baselines/story-10-brand-studio.png
+      - /home/chris/AISALESHT/frontend/e2e/specs/visual/baselines/story-10-{offer-studio,copilot,dashboard}.png
+  deliverables:
+    - "baseline-be-tests.json + baseline-fe-tests.json committed audit trail"
+    - "scripts/codemod_be_imports.py (libcst, MAPPING dict complete per 03-arch-be.md §2.1)"
+    - "scripts/codemod_fe_imports.ts (jscodeshift, per FE mapping)"
+    - "scripts/test_delta_check.py (parses pytest/vitest JSON --max-new-failures=0)"
+    - "backend/tests/architecture/test_no_legacy_src_paths.py"
+    - "backend/tests/architecture/test_no_legacy_src_mock_paths.py"
+    - "backend/tests/architecture/test_consolidated_migration_idempotent.py"
+    - "backend/tests/architecture/test_delta_zero_enforcement.py"
+    - "5 visual baseline PNGs in e2e/specs/visual/baselines/"
+    - "T-1-result.md summary with exact BE/FE pass/fail/skip counters"
+  validators_referenced: [V-NF-1, V-NF-2, V-NF-9, V-NF-10, V-NF-13, V-F-22, V-V-2]
+  out_of_scope:
+    - "Any production code modification (T-1 = tooling + audit trail only)"
+    - "Running codemod scripts (deferred T-2..T-8)"
+  acceptance:
+    - { id: A1, description: "baseline-be-tests.json + baseline-fe-tests.json exist + parseable .summary.failed", verifier: { type: shell, cmd: "test -f baseline-be-tests.json && jq -e '.summary.failed' baseline-be-tests.json" } }
+    - { id: A2, description: "scripts/codemod_be_imports.py self-check dry-run passes", verifier: { type: shell, cmd: "python scripts/codemod_be_imports.py --dry-run --self-check" } }
+    - { id: A3, description: "4 new arch fitness tests exist + collectable (skip GREEN by default — will populate post-rewrite)", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/architecture/test_no_legacy_src_paths.py tests/architecture/test_no_legacy_src_mock_paths.py tests/architecture/test_consolidated_migration_idempotent.py tests/architecture/test_delta_zero_enforcement.py --collect-only -q" } }
+    - { id: A4, description: "Existing arch fitness GREEN (no regression from new files)", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q" } }
+  quality_gates:
+    - "All BE arch fitness GREEN cumulative (V-NF-1)"
+    - "Codemod scripts lintable (V-NF-9, V-NF-10)"
+    - "T-1 commit body cites D5+D1+D10 honored"
+  depends_on: []
+  blocks: ["T-2", "T-3", "T-4", "T-5", "T-6", "T-7", "T-8", "T-N-final"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T2:
+  id: T-2
+  title: "BE imports rewrite — brand + offer (Wave 1A)"
+  type: backend
+  surface: BE
+  wave_position: 1
+  production_code: false                      # Mechanical imports rewrite — zero business logic change (Decisión 1A scope clarification)
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false                      # Opus per Chris framing: brand+offer cross-cuts shared/agent_observability via PersonalityProfile; anti-duplication risk
+    claude_opus_required: true                # Opus 4.7 mandatory — guidelines §0 opus_priority
+  priority: 1
+  estimate_hours: 3
+  estimated_cost_usd_range: [500, 750]
+  estimated_duration_minutes: 150-180
+  parallelizable_with: [T-3]                  # Z1 strategy — BE business modules same risk profile, can pair ≤2 cap
+  decisions_applicable: [D1, D5, D9]           # D1=big-bang scope / D5=fix-on-discovery 5min / D9=defer 40 sales_agent (N/A here but cumulative tracking)
+  halt_triggers_applicable: [1, 2, 11]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 1 Scenarios 1.1-1.4"
+    arch_doc: "../03-arch.md §2 Feature 1 + §3 Wave 1"
+    arch_be_doc: "../03-arch-be.md §1.1 + §2.2 (T-2 execution sequence)"
+    guidelines: "../05-guidelines.md §1.1 (imports rewrite) + §1.5 (skills) + §3.1 (files in scope)"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/backend-ddd.md", ".claude/rules/tdd-mandatory.md", ".claude/rules/spanish-text.md"]
+    domain_skills: ["backend-expert", "brand-expert", "offer-expert"]
+    codemod_script: "scripts/codemod_be_imports.py (produced T-1)"
+  description: |
+    Rewrite all `from src.modules.brand.X` → `from luana_core_brand_studio.X` AND
+    `from src.modules.offer.X` → `from luana_core_offer_studio.X` across:
+    - `backend/src/modules/brand/**/*.py` (~48 files)
+    - `backend/src/modules/offer/**/*.py` (~74 files)
+    - `backend/tests/modules/brand/**/*.py` (test mocks — same commit)
+    - `backend/tests/modules/offer/**/*.py` (test mocks — same commit)
+
+    Execution sequence per 03-arch-be.md §2.2 T-2 block:
+    ```bash
+    cd /home/chris/AISALESHT/backend
+    python scripts/codemod_be_imports.py --package=brand --apply
+    python scripts/codemod_be_imports.py --package=offer --apply
+    python scripts/codemod_be_imports.py --tests-only --pattern="tests/modules/brand/" --apply
+    python scripts/codemod_be_imports.py --tests-only --pattern="tests/modules/offer/" --apply
+
+    # Verify
+    grep -rn "from src\." src/modules/brand/ src/modules/offer/ | wc -l  # → 0
+    grep -rn "patch.*['\"]src\." tests/modules/brand/ tests/modules/offer/ | wc -l  # → 0
+    .venv/bin/pytest tests/modules/brand/ tests/modules/offer/ -v --tb=short
+    .venv/bin/pytest tests/architecture/test_no_legacy_src_paths.py tests/architecture/test_no_legacy_src_mock_paths.py -v
+    ```
+
+    Halt Trigger workflows:
+    - #1 (missing symbol): if `luana_core_brand_studio.X` doesn't export Y → halt + escalate Chris
+    - #11 (test mock missing): if test mocks `patch("src.shared.Z.W")` where W has no luana-core equivalent → halt + Trigger #11 workflow per 03-arch-be.md §6
+
+    NO TOUCH:
+    - Business logic in brand_service.py / offer_service.py / etc. — only import statements
+    - Pydantic DTOs / domain entities semantic — no field changes
+    - `_CATALOG_VERSION` in offer presets (no preset changes Story 10)
+    - Baseline tests (test_brand_editable_fields_baseline.py etc.) — descriptions unchanged
+
+  blast_radius:
+    files_affected_count: 122
+    paths:
+      - /home/chris/AISALESHT/backend/src/modules/brand/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/offer/**/*.py
+      - /home/chris/AISALESHT/backend/tests/modules/brand/**/*.py
+      - /home/chris/AISALESHT/backend/tests/modules/offer/**/*.py
+  deliverables:
+    - "brand module 48 files rewritten + test mocks"
+    - "offer module 74 files rewritten + test mocks"
+    - "0 `from src.` imports remaining in brand+offer (V-F-1)"
+    - "0 stale `patch('src.')` mocks in brand+offer tests (V-F-2)"
+    - "T-2-impl-log.md with codemod outputs + Halt invocations (if any) + Chris ratify timestamps"
+    - "T-2-result.md summary: files modified, tests pass count, delta vs baseline"
+  validators_referenced: [V-NF-1, V-NF-2, V-NF-5, V-NF-6, V-F-1, V-F-2, V-F-3]
+  out_of_scope:
+    - "T-3 + T-4 modules (landing/assets/connections/etc. — separate tickets)"
+    - "shared/* subsystems (T-7)"
+    - "FE imports (T-8)"
+    - "Any business logic refactor"
+  acceptance:
+    - { id: A1, description: "grep `from src.` brand + offer = 0", verifier: { type: shell, cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/modules/brand/ /home/chris/AISALESHT/backend/src/modules/offer/ | wc -l | grep -E '^0$'" } }
+    - { id: A2, description: "grep `patch('src.')` brand + offer tests = 0", verifier: { type: shell, cmd: "grep -rn 'patch.*[\"\\\\'']src\\.' /home/chris/AISALESHT/backend/tests/modules/brand/ /home/chris/AISALESHT/backend/tests/modules/offer/ | wc -l | grep -E '^0$'" } }
+    - { id: A3, description: "pytest brand + offer GREEN", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/modules/brand/ tests/modules/offer/ -v --tb=short" } }
+    - { id: A4, description: "Arch fitness GREEN (preserves 36/36 anchors, ratchet 22, FieldContract baselines)", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q" } }
+  quality_gates:
+    - "V-F-1, V-F-2, V-F-3 GREEN"
+    - "Commit body cites D1+D5+D9 honored"
+    - "Single commit: brand+offer prod + tests rewrite (no scope expansion)"
+  depends_on: ["T-1"]
+  blocks: ["T-N-final"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T3:
+  id: T-3
+  title: "BE imports rewrite — landing/assets/connections/scheduling/iam/crm/commercial_calendar (Wave 1B sharded)"
+  type: backend
+  surface: BE
+  wave_position: 1
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                      # Codemod orchestration multi-module sharded
+    claude_sonnet: false                      # Opus per Chris framing critical imports rewrite cross-module risk
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 3
+  estimated_cost_usd_range: [500, 750]
+  estimated_duration_minutes: 150-180
+  parallelizable_with: [T-2]                  # Z1 — same Wave 1, same risk profile
+  decisions_applicable: [D1, D5]
+  halt_triggers_applicable: [1, 2, 11]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 1 + §3.1 inventory"
+    arch_doc: "../03-arch.md §3 Wave 1"
+    arch_be_doc: "../03-arch-be.md §1.1 (modules inventory)"
+    guidelines: "../05-guidelines.md §3.1 (BE business modules)"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/backend-ddd.md"]
+    domain_skills: ["backend-expert"]
+    codemod_script: "scripts/codemod_be_imports.py"
+  description: |
+    Rewrite imports across 7 non-agentic BE business modules (sharded). Per 03-arch-be.md §1.1 inventory:
+    - landing (12 files) → luana_core_landing
+    - assets (16 files) → luana_core_assets
+    - connections (43 files) → luana_core_connections
+    - scheduling (13 files) → nicolify_backend.modules.scheduling (NICOLIFY-LOCAL — Phase 0 Option A)
+    - iam (16 files) → luana_core_iam
+    - crm (41 files) → luana_core_crm
+    - commercial_calendar (6 files) → luana_core_commercial_calendar
+
+    Total ~147 files + corresponding test mocks rewrite.
+
+    Execution per module (≤2 paralelo capped at /dev-team orchestrator level — T-3 runs sequentially within ticket, but can pair with T-2 cross-ticket):
+    ```bash
+    for pkg in landing assets connections scheduling iam crm commercial_calendar; do
+      python scripts/codemod_be_imports.py --package=$pkg --apply
+      python scripts/codemod_be_imports.py --tests-only --pattern="tests/modules/$pkg/" --apply
+    done
+    grep -rn "from src\." src/modules/{landing,assets,connections,scheduling,iam,crm,commercial_calendar}/ | wc -l  # → 0
+    .venv/bin/pytest tests/modules/{landing,assets,connections,scheduling,iam,crm,commercial_calendar}/ -v --tb=short
+    ```
+
+    NICOLIFY-LOCAL note: `scheduling/` does NOT map to luana_core_scheduling (not in 26 packages per
+    03-arch-be.md §1.1 Phase 0 Option A). Rewrite to `nicolify_backend.modules.scheduling` namespace.
+    Architect Phase 0 verifies final import root naming.
+
+  blast_radius:
+    files_affected_count: 294
+    paths:
+      - /home/chris/AISALESHT/backend/src/modules/landing/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/assets/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/connections/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/scheduling/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/iam/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/crm/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/commercial_calendar/**/*.py
+      - /home/chris/AISALESHT/backend/tests/modules/{landing,assets,connections,scheduling,iam,crm,commercial_calendar}/**/*.py
+  deliverables:
+    - "7 modules rewritten + test mocks"
+    - "scheduling rewritten to NICOLIFY-LOCAL namespace per Phase 0 Option A"
+    - "T-3-impl-log.md + T-3-result.md"
+  validators_referenced: [V-NF-1, V-NF-2, V-NF-5, V-NF-6, V-F-3]
+  out_of_scope:
+    - "advertising/social_media (T-4)"
+    - "analytics (T-4)"
+    - "agentic modules copilot/sales_agent (T-5/T-6)"
+  acceptance:
+    - { id: A1, description: "grep `from src.` 7 modules = 0", verifier: { type: shell, cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/modules/{landing,assets,connections,scheduling,iam,crm,commercial_calendar}/ 2>/dev/null | wc -l | grep -E '^0$'" } }
+    - { id: A2, description: "pytest 7 modules GREEN", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/modules/{landing,assets,connections,scheduling,iam,crm,commercial_calendar}/ -v --tb=short" } }
+    - { id: A3, description: "Arch fitness GREEN cumulative", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/architecture/ -x -q" } }
+  quality_gates:
+    - "V-F-3 cumulative GREEN"
+    - "Commit body cites D1+D5 honored + scheduling NICOLIFY-LOCAL rationale"
+  depends_on: ["T-1"]
+  blocks: ["T-4", "T-N-final"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T4:
+  id: T-4
+  title: "BE imports rewrite — analytics/campaigns/social_proof/tenant_profile/tenant_domains/advertising/social_media (Wave 1C sharded)"
+  type: backend
+  surface: BE
+  wave_position: 1
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true                # Analytics ETL contract critical — metrics-expert verifies post-rewrite
+  priority: 1
+  estimate_hours: 3
+  estimated_cost_usd_range: [500, 750]
+  estimated_duration_minutes: 150-180
+  parallelizable_with: []                     # Runs after T-3 sequentially to avoid 3-way cap violation
+  decisions_applicable: [D1, D5]
+  halt_triggers_applicable: [1, 2, 11]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 1"
+    arch_doc: "../03-arch.md §3 Wave 1"
+    arch_be_doc: "../03-arch-be.md §1.1"
+    guidelines: "../05-guidelines.md §3.1"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/etl-extraction-contract.md", ".claude/rules/analytics-metrics.md"]
+    domain_skills: ["backend-expert", "metrics-expert"]
+  description: |
+    Rewrite imports across 7 remaining BE business modules:
+    - analytics (91 files) → luana_core_analytics_engine    # CRITICAL: ETL contract surface
+    - campaigns (55 files) → luana_core_campaigns
+    - social_proof (31 files) → luana_core_social_proof
+    - tenant_profile (7 files) → luana_core_tenant_profile
+    - tenant_domains (9 files) → luana_core_tenant_domains
+    - advertising (15 files) → nicolify_backend.modules.advertising (NICOLIFY-LOCAL Phase 0 Option A)
+    - social_media (0 files — empty scaffold __init__.py only) → NO-OP or DELETE scaffold per Phase 0 verify
+
+    Total ~208 files + test mocks.
+
+    POST-RIRE VERIFY (analytics-specific):
+    ```bash
+    # ETL contract regen check (no-op if no provider modifications)
+    cd backend && make extraction-contract --check
+    .venv/bin/pytest tests/architecture/test_extraction_contract.py -x -q
+    ```
+
+    If `make extraction-contract` reports drift → halt Trigger #1 (architect verifies migration touches NO providers — if so, regen contract).
+
+  blast_radius:
+    files_affected_count: 208
+    paths:
+      - /home/chris/AISALESHT/backend/src/modules/analytics/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/campaigns/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/social_proof/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/tenant_profile/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/tenant_domains/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/advertising/**/*.py
+      - /home/chris/AISALESHT/backend/src/modules/social_media/**/*.py
+      - /home/chris/AISALESHT/backend/tests/modules/{analytics,campaigns,social_proof,tenant_profile,tenant_domains,advertising,social_media}/**/*.py
+  deliverables:
+    - "7 modules rewritten + test mocks"
+    - "ETL contract regen verified GREEN"
+    - "T-4-impl-log.md + T-4-result.md"
+  validators_referenced: [V-NF-1, V-NF-5, V-NF-6, V-F-3]
+  out_of_scope:
+    - "agentic modules (T-5/T-6)"
+    - "shared/* (T-7)"
+  acceptance:
+    - { id: A1, description: "grep `from src.` 7 modules = 0", verifier: { type: shell, cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/modules/{analytics,campaigns,social_proof,tenant_profile,tenant_domains,advertising,social_media}/ 2>/dev/null | wc -l | grep -E '^0$'" } }
+    - { id: A2, description: "pytest 7 modules + ETL contract arch test GREEN", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/modules/{analytics,campaigns,social_proof,tenant_profile,tenant_domains,advertising,social_media}/ tests/architecture/test_extraction_contract.py -v --tb=short" } }
+    - { id: A3, description: "make extraction-contract --check GREEN (no drift)", verifier: { type: shell, cmd: "cd backend && make extraction-contract --check" } }
+  quality_gates:
+    - "V-F-3 cumulative GREEN"
+    - "ETL contract preserved (no provider/pipeline changes Story 10)"
+  depends_on: ["T-1", "T-3"]
+  blocks: ["T-5", "T-6", "T-N-final"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T5:
+  id: T-5
+  title: "BE imports rewrite — copilot (Wave 2 AGENTIC R23 Opus mandatory)"
+  type: agentic
+  surface: AGENTIC
+  wave_position: 2
+  production_code: false                      # Mechanical imports rewrite (NOT agentic logic change). R23 still flags Opus due to surface AGENTIC + criticality.
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                      # ⛔ AGENTIC surface
+    claude_sonnet: false                      # ⛔ AGENTIC surface — Opus per Chris framing
+    claude_opus_required: true                # ✅ Opus 4.7 MANDATORY (R23 + anchors cap 36/36 + ratchet 22 frozen invariant preservation)
+  priority: 1
+  estimate_hours: 4
+  estimated_cost_usd_range: [700, 1000]
+  estimated_duration_minutes: 180-240
+  parallelizable_with: [T-6]                  # Wave 2 ≤2 cap — copilot + sales_agent same Wave, independent surfaces
+  decisions_applicable: [D1, D5]
+  halt_triggers_applicable: [1, 2, 11]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 1"
+    arch_doc: "../03-arch.md §3 Wave 2 + §5 risk #7 (module_registry convention)"
+    arch_be_doc: "../03-arch-be.md §2.2 T-5 execution sequence + §4.2 convention verify"
+    guidelines: "../05-guidelines.md §1.5 (T-5 skills) + §2.2 (FORBIDDEN — touch anchors/ratchet)"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/copilot-resilience.md", ".claude/rules/copilot-observability.md", ".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["copilot-expert", "backend-expert"]
+    tessl_skills: ["tessl__langgraph", "tessl__fastapi"]
+  description: |
+    Rewrite `from src.modules.copilot.X` → `from luana_core_copilot.X` across:
+    - `backend/src/modules/copilot/**/*.py` (~150 files)
+    - `backend/tests/modules/copilot/**/*.py` (test mocks)
+
+    CRITICAL invariants preserved (V-F-4, V-F-8):
+    - `[COPILOT-*]` anchor cap 36/36 byte-stable (copilot-expert SSoT cementado F11)
+    - 22 frozen `copilot → módulo` ratchet (test_no_new_copilot_module_imports.py)
+    - module_registry discovery convention works post rename (luana_core_X.copilot_provider:provider)
+    - System prompt slot order F8 §5.2 byte-stable
+    - SSE v2 protocol unchanged
+
+    PHASE 0 VERIFY (architect pre-spawn — 03-arch-be.md §4.2):
+    ```bash
+    # Verify Story 6 luana-core-copilot preserved convention
+    grep -n "copilot_provider" /home/chris/luana-platform/core/luana-core-copilot/src/luana_core_copilot/registry/module_registry.py | head -10
+    # Expected: _discover_providers() iterates luana_core_X.copilot_provider per convention
+    ```
+
+    NO TOUCH:
+    - Domain entities + ports (copilot/domain/*) semantic — only import statements
+    - Tool registry + ROUTE_TOOL_MAP — preserved byte-stable
+    - Subagents tools=[] explicit — preserved
+    - Anti-duplication: NEVER create mirror `observability/recording/{turn_envelope,callback_handler,cost_*}` (consume shared via subclass — see V-NF-1 + anti-duplication.md cardinal §0)
+
+  blast_radius:
+    files_affected_count: 175
+    paths:
+      - /home/chris/AISALESHT/backend/src/modules/copilot/**/*.py
+      - /home/chris/AISALESHT/backend/tests/modules/copilot/**/*.py
+  deliverables:
+    - "copilot module 150 files rewritten + test mocks"
+    - "Anchor cap preserved 36/36 (V-F-8)"
+    - "22 frozen ratchet preserved (V-F-4 via test_no_new_copilot_module_imports.py)"
+    - "module_registry convention verified post rename"
+    - "T-5-impl-log.md + T-5-result.md"
+  validators_referenced: [V-NF-1, V-NF-5, V-NF-6, V-F-4, V-F-8]
+  out_of_scope:
+    - "sales_agent (T-6)"
+    - "shared/* (T-7)"
+    - "Business logic in copilot modules"
+    - "Anti-duplication mirror creation (FORBIDDEN per cardinal §0)"
+  acceptance:
+    - { id: A1, description: "grep `from src.` copilot = 0", verifier: { type: shell, cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/modules/copilot/ | wc -l | grep -E '^0$'" } }
+    - { id: A2, description: "Anchor cap 36/36 preserved", verifier: { type: shell, cmd: "grep -rh '\\[COPILOT-' /home/chris/AISALESHT/backend/src/modules/copilot/ | sort -u | wc -l | grep -E '^36$'" } }
+    - { id: A3, description: "22 frozen ratchet preserved", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/architecture/test_no_new_copilot_module_imports.py tests/architecture/test_copilot_anchors.py tests/architecture/test_copilot_provider_compliance.py -v" } }
+    - { id: A4, description: "pytest copilot module GREEN", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/modules/copilot/ -v --tb=short" } }
+  quality_gates:
+    - "V-F-4, V-F-8 GREEN"
+    - "Commit body cites D1+D5 + anti-duplication §0 honored (zero mirrors created)"
+  depends_on: ["T-1", "T-4"]
+  blocks: ["T-7"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T6:
+  id: T-6
+  title: "BE imports rewrite — sales_agent (Wave 2 AGENTIC R23 Opus mandatory)"
+  type: agentic
+  surface: AGENTIC
+  wave_position: 2
+  production_code: false                      # Mechanical imports rewrite. R23 flags Opus mandatory.
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                      # ⛔
+    claude_sonnet: false                      # ⛔
+    claude_opus_required: true                # ✅ Opus 4.7 MANDATORY (R23 + §3 NO TOUCH surface preservation + 40 failures Decisión 9B)
+  priority: 1
+  estimate_hours: 4
+  estimated_cost_usd_range: [700, 1000]
+  estimated_duration_minutes: 180-240
+  parallelizable_with: [T-5]                  # Wave 2 ≤2 cap
+  decisions_applicable: [D1, D5, D9]           # D9 = 40 sales_agent failures DEFERRED — match baseline
+  halt_triggers_applicable: [1, 2, 11]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 1"
+    arch_doc: "../03-arch.md §3 Wave 2 + §5 risk #8 (BaseAgentCallbackHandler subclass)"
+    arch_be_doc: "../03-arch-be.md §2.2 T-6 execution sequence"
+    guidelines: "../05-guidelines.md §1.5 (T-6 skills) + §2.2 (FORBIDDEN — §3 NO TOUCH) + §3.6 (§3 paths)"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/sales-agent-brand-voice.md", ".claude/rules/spanish-text.md"]
+    domain_skills: ["sales-agent-expert", "backend-expert"]
+    tessl_skills: ["tessl__langgraph", "tessl__graceful-degradation"]
+  description: |
+    Rewrite `from src.modules.sales_agent.X` → `from luana_core_sales_agent.X` across:
+    - `backend/src/modules/sales_agent/**/*.py` (~104 files)
+    - `backend/tests/modules/sales_agent/**/*.py` (test mocks)
+
+    CRITICAL invariants preserved (V-F-5, V-F-9):
+    - **§3 NO TOUCH (sales-agent-expert SSoT — 9 surfaces):**
+      - Closer Studio API + WS
+      - SmartBufferService (smart_debounce_runner.py)
+      - OutputManager.process_response chunking
+      - enrollment_* end-to-end
+      - agent_state_checkpoints schema
+      - webhook adapters Telegram/WhatsApp/IG
+      - follow_up_engine cadence math
+      - PromptVersionModel
+      - tool_call_dedup.py
+
+      T-6 ALLOWED on these files: ONLY import statement rewrites (`from src.X` → `from luana_core_X`). NO method body changes. NO new methods. NO refactor. V-F-9 grader verifies via `git diff` filter to `^[+-]` non-import lines = 0.
+
+    - **40 pre-existing failures DEFERRED Story 14 (Decisión 9B):** baseline T-1 captures M failed including these 40. T-6 + T-N final match baseline (NOT regressed). DEFERRED-FAILURES-STORY-10.md generated T-N with paths.
+    - **BaseAgentCallbackHandler subclass:** `SalesAgentCallbackHandler` consumes `luana_core_observability.recording.base_callback_handler` — verify subclass inheritance preserved post rewrite.
+    - **PersonalityProfile.system_instruction** byte-stable (compiler v2 SSoT voice).
+
+    NO TOUCH (HARD):
+    - PersonalityProfile compile output
+    - Channel registry consumption (uses luana_core_channels post T-7)
+    - Anti-duplication: NEVER mirror shared/agent_observability — sales-agent-expert §0 cardinal
+
+  blast_radius:
+    files_affected_count: 145
+    paths:
+      - /home/chris/AISALESHT/backend/src/modules/sales_agent/**/*.py
+      - /home/chris/AISALESHT/backend/tests/modules/sales_agent/**/*.py
+  deliverables:
+    - "sales_agent module 104 files rewritten + test mocks"
+    - "§3 NO TOUCH surfaces byte-equal except imports (V-F-9)"
+    - "40 pre-existing failures preserved (match baseline)"
+    - "T-6-impl-log.md + T-6-result.md"
+  validators_referenced: [V-NF-1, V-NF-5, V-NF-6, V-F-5, V-F-9]
+  out_of_scope:
+    - "Fixing 40 pre-existing failures (DEFERRED Story 14 brand-voice-elevation)"
+    - "copilot (T-5)"
+    - "shared/* (T-7)"
+    - "PersonalityProfile content / system_instruction compilation"
+  acceptance:
+    - { id: A1, description: "grep `from src.` sales_agent = 0", verifier: { type: shell, cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/modules/sales_agent/ | wc -l | grep -E '^0$'" } }
+    - { id: A2, description: "§3 NO TOUCH preserved (non-import diff = 0)", verifier: { type: shell, cmd: "git diff HEAD~1 -- src/modules/sales_agent/api/closer_studio.py src/modules/sales_agent/infrastructure/external/smart_debounce_runner.py src/modules/sales_agent/infrastructure/external/output_manager.py | grep -E '^[+-]' | grep -vE '^[+-]from|^[+-]import|^[+-]{3}' | wc -l | grep -E '^0$'" } }
+    - { id: A3, description: "Failed count matches baseline (40 preserved)", verifier: { type: shell, cmd: "FINAL=$(.venv/bin/pytest tests/modules/sales_agent/ --tb=no 2>&1 | grep -E 'failed' | awk '{print $1}' | head -1); BASELINE=$(jq -r '.summary.failed_in_sales_agent // 40' baseline-be-tests.json); test \"$FINAL\" = \"$BASELINE\" || test \"$FINAL\" -le \"$BASELINE\"" } }
+  quality_gates:
+    - "V-F-5, V-F-9 GREEN"
+    - "Commit body cites D1+D5+D9 honored + §3 NO TOUCH inventory"
+  depends_on: ["T-1", "T-4"]
+  blocks: ["T-7"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T7:
+  id: T-7
+  title: "BE imports rewrite — shared/* cross-cutting (Wave 2 11 subsystems sharded)"
+  type: backend
+  surface: BE
+  wave_position: 2
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false                      # Opus per Chris framing — anti-duplication cardinal + cross-coupling risk + auditor-downstream-regression R3 scope
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 6
+  estimated_cost_usd_range: [1000, 1500]
+  estimated_duration_minutes: 300-360
+  parallelizable_with: []                     # Runs sequentially after T-5+T-6 to validate shared abstractions consumers post agentic rewrite
+  decisions_applicable: [D1, D5]
+  halt_triggers_applicable: [1, 2, 8, 11]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 1 + §3.1.2 shared inventory"
+    arch_doc: "../03-arch.md §3 Wave 2 + §5 risks #6+#7+#8"
+    arch_be_doc: "../03-arch-be.md §1.2 shared inventory + §2.2 T-7 sub-shard order"
+    guidelines: "../05-guidelines.md §1.5 (anti-duplication skills) + §2.2 (FORBIDDEN — workers DEFERRED)"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/backend-ddd.md", ".claude/rules/auditor-downstream-regression.md"]
+    domain_skills: ["backend-expert", "copilot-expert", "sales-agent-expert"]
+  description: |
+    Sharded rewrite of 11 shared subsystems per 03-arch-be.md §2.2 T-7 sub-shard order (lowest blast radius first):
+    1. shared/idempotency/ (3 files) → luana_core_idempotency
+    2. shared/compliance/ (11 files) → luana_core_compliance
+    3. shared/billing/ (17 files) → luana_core_billing
+    4. shared/domain/ (3 files — locale VO) → luana_core_platform.domain.locale
+    5. shared/application/extraction/ (6 files) → luana_core_extraction
+    6. shared/domain_events/ + shared/events/ (7 files) → luana_core_events (consolidated)
+    7. shared/infrastructure/llm/ (22 files) → luana_core_llm
+    8. shared/agent_observability/ (18 files) → luana_core_observability (+ luana_core_channels for channels/)
+    9. shared/api/ + shared/application/ residual → luana_core_platform
+    10. shared/links/ports/ (22 files) → per-consumer package re-export (luana_core_X.links.ports.X per OWNING module)
+    11. shared/workers/ → DEFERRED Story 10b — HALT Trigger #1 if encountered
+
+    Sub-shard execution (≤2 paralelo via /dev-team but T-7 sequential internal):
+    ```bash
+    for sub in idempotency compliance billing domain extraction events llm agent_observability platform_residual links_ports; do
+      python scripts/codemod_be_imports.py --shared=$sub --apply
+    done
+    grep -rn "from src\." src/shared/ 2>/dev/null | grep -v "src/shared/workers" | wc -l  # → 0
+    .venv/bin/pytest tests/shared/ tests/architecture/ -v --tb=short
+    ```
+
+    CRITICAL anti-duplication §0 enforcement (auditor C4 R3 downstream regression):
+    - NEVER create mirror `modules/{copilot,sales_agent}/observability/recording/{turn_envelope,callback_handler,cost_*}` — these CONSUME shared via subclass per anti-duplication.md cardinal §0
+    - SalesAgentCallbackHandler, CopilotCallbackHandler, SalesAgentObservabilityContext, etc. INHERIT from luana_core_observability base classes — preserve inheritance chain post rewrite
+
+    R3 downstream regression scope cumulative:
+    - shared/agent_observability/ modified → re-run tests/modules/copilot/observability/ + tests/modules/sales_agent/observability/
+    - shared/infrastructure/llm/ modified → re-run all consumer module tests
+    - shared/billing/ + shared/compliance/ → re-run sales_agent + campaigns + copilot
+
+  blast_radius:
+    files_affected_count: 134
+    paths:
+      - /home/chris/AISALESHT/backend/src/shared/idempotency/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/compliance/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/billing/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/domain/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/application/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/domain_events/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/events/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/infrastructure/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/agent_observability/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/api/**/*.py
+      - /home/chris/AISALESHT/backend/src/shared/links/**/*.py
+      - /home/chris/AISALESHT/backend/tests/shared/**/*.py
+      - /home/chris/AISALESHT/backend/tests/architecture/**/*.py    # auditor downstream regression scope updates
+  deliverables:
+    - "11 shared subsystems rewritten (workers DEFERRED — halt if encountered)"
+    - "Anti-duplication §0 enforced: zero mirrors in modules/observability/recording/"
+    - "R3 downstream regression cumulative GREEN (auditor C4)"
+    - "T-7-impl-log.md + T-7-result.md"
+  validators_referenced: [V-NF-1, V-NF-5, V-NF-6, V-F-6]
+  out_of_scope:
+    - "shared/workers/ (DEFERRED Story 10b)"
+    - "Module-internal observability code (preserved subclass inheritance)"
+  acceptance:
+    - { id: A1, description: "grep `from src.` shared (excluding workers) = 0", verifier: { type: shell, cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/shared/ 2>/dev/null | grep -v 'src/shared/workers' | wc -l | grep -E '^0$'" } }
+    - { id: A2, description: "pytest shared + arch fitness + downstream regression GREEN", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/shared/ tests/architecture/ tests/modules/copilot/observability/ tests/modules/sales_agent/observability/ -v --tb=short" } }
+    - { id: A3, description: "Anti-duplication §0: zero new mirror files in modules/{copilot,sales_agent}/observability/recording/", verifier: { type: shell, cmd: "find /home/chris/AISALESHT/backend/src/modules/{copilot,sales_agent}/observability/recording/ -name 'turn_envelope.py' -o -name 'callback_handler.py' 2>/dev/null | wc -l | awk '{if ($1 <= 4) exit 0; else exit 1}'" } }
+  quality_gates:
+    - "V-F-6 GREEN cumulative"
+    - "Auditor C4 downstream regression GREEN"
+    - "Commit body cites D1+D5 + anti-duplication §0 inventory verified"
+  depends_on: ["T-1", "T-5", "T-6"]
+  blocks: ["T-8", "T-10"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T8:
+  id: T-8
+  title: "FE git mv + workspace registration + jscodeshift imports rewrite"
+  type: frontend
+  surface: FE
+  wave_position: 3
+  production_code: false                      # Mechanical move + rewrite
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false                      # Opus per Chris framing — Vercel reconfig + workspace nesting non-trivial blast radius
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 4
+  estimated_cost_usd_range: [700, 1000]
+  estimated_duration_minutes: 180-240
+  parallelizable_with: [T-10]                 # FE move + DB consolidation independent surfaces, both Wave 3, ≤2 cap OK
+  decisions_applicable: [D6, D1]               # D6 = FE workspace member luana-platform monorepo
+  halt_triggers_applicable: [1, 3, 4, 8]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 2 Scenarios 2.1-2.4"
+    arch_doc: "../03-arch.md §2 Feature 2 + §7 Phase 0 Q3+Q4"
+    arch_be_doc: "../03-arch-be.md §7.2 (nicolify/frontend package.json) + §7.3 pnpm-workspace.yaml"
+    guidelines: "../05-guidelines.md §1.1 (FE codemod) + §2.2 (FE forbidden)"
+    rules: [".claude/rules/frontend-fsd.md", ".claude/rules/frontend-quality.md", ".claude/rules/parallel-safety.md"]
+    domain_skills: ["frontend-expert"]
+    codemod_script: "scripts/codemod_fe_imports.ts (produced T-1)"
+  description: |
+    3-step FE migration:
+
+    **Step 1 — git mv across repos (Phase 0 Q7 resolved hybrid):**
+    ```bash
+    mkdir -p /home/chris/luana-platform/nicolify/frontend/
+    rsync -a /home/chris/AISALESHT/frontend/ /home/chris/luana-platform/nicolify/frontend/
+    rm -rf /home/chris/AISALESHT/frontend/
+    # Document move in commit narrative; git log --follow preserves traceability post hybrid mv
+    ```
+
+    **Step 2 — Workspace registration:**
+    - Update `luana-platform/pnpm-workspace.yaml` add `nicolify/frontend` member
+    - Update `nicolify/frontend/package.json`:
+      ```json
+      {
+        "name": "@luana/nicolify-web",
+        "dependencies": {
+          "@luana/api-client": "workspace:*",
+          "@luana/ui-kit": "workspace:*",
+          "@luana/format": "workspace:*",
+          "@luana/hooks": "workspace:*",
+          "@luana/schemas": "workspace:*",
+          "@luana/design-tokens": "workspace:*"
+        }
+      }
+      ```
+    - `cd /home/chris/luana-platform && pnpm install` → workspace symlinks resolve
+
+    **Step 3 — jscodeshift imports rewrite:**
+    ```bash
+    cd /home/chris/luana-platform/nicolify/frontend
+    npx jscodeshift -t /home/chris/AISALESHT/scripts/codemod_fe_imports.ts src/
+    ```
+
+    MAPPING (03-arch.md §2 Feature 2):
+    | From `@/...` | To `@luana/...` |
+    |---|---|
+    | `@/components/ui/X` | `@luana/ui-kit/X` |
+    | `@/lib/api/fetchClient` | `@luana/api-client` |
+    | `@/lib/format` | `@luana/format` |
+    | `@/hooks/useTenantLocale` | `@luana/hooks` |
+    | `@/lib/zod-schemas/X` | `@luana/schemas` |
+    | `@/lib/tokens/X` | `@luana/design-tokens/X` |
+
+    STAY LOCAL (no rewrite — Nicolify-specific):
+    - `@/app/...` (Next.js routes)
+    - `@/features/...` (Nicolify business)
+    - `@/stores/...` (Nicolify Zustand)
+    - `@/components/shared/...` (Nicolify layouts)
+
+    Halt Triggers:
+    - #1 (missing symbol): @/lib/legacy-helper not in luana — halt + scenario 2.2 resolution
+    - #4 (Clerk fixture path): playwright/.clerk/user.json missing post move — halt + scenario 5.2
+
+  blast_radius:
+    files_affected_count: 850
+    paths:
+      - /home/chris/AISALESHT/frontend/                          # ENTIRE dir → git mv
+      - /home/chris/luana-platform/nicolify/frontend/             # NEW destination
+      - /home/chris/luana-platform/nicolify/frontend/src/**/*.{ts,tsx}    # ~847 files import rewrite
+      - /home/chris/luana-platform/nicolify/frontend/package.json
+      - /home/chris/luana-platform/pnpm-workspace.yaml
+  deliverables:
+    - "git mv AISALESHT/frontend/ → luana-platform/nicolify/frontend/"
+    - "pnpm-workspace.yaml updated + package.json deps @luana/*"
+    - "jscodeshift rewrite executed — 0 @/components/ui|@/lib/api|@/lib/format|@/hooks|@/lib/zod-schemas|@/lib/tokens remain"
+    - "pnpm install workspace symlinks resolve"
+    - "TS compile + ESLint + Vitest GREEN delta=0 vs baseline"
+    - "T-8-impl-log.md + T-8-result.md"
+  validators_referenced: [V-NF-3, V-NF-4, V-NF-10, V-F-10, V-F-11, V-F-12, V-F-13, V-F-14]
+  out_of_scope:
+    - "Vercel reconfig (T-9)"
+    - "Smoke E2E (T-11)"
+    - "BE migration (Waves 1+2 done)"
+  acceptance:
+    - { id: A1, description: "TS compile GREEN", verifier: { type: shell, cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx tsc --noEmit" } }
+    - { id: A2, description: "ESLint GREEN", verifier: { type: shell, cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx eslint src/ --cache --max-warnings=0" } }
+    - { id: A3, description: "Vitest delta=0", verifier: { type: shell, cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx vitest run --reporter=default" } }
+    - { id: A4, description: "0 legacy @/ai paths (allowing Nicolify-local app/features/stores/shared)", verifier: { type: shell, cmd: "grep -rn 'from \"@/' /home/chris/luana-platform/nicolify/frontend/src/ | grep -vE '@/app/|@/features/|@/stores/|@/components/shared/' | wc -l | grep -E '^0$'" } }
+    - { id: A5, description: "Workspace symlink resolves", verifier: { type: shell, cmd: "cd /home/chris/luana-platform && pnpm list -r '@luana/ui-kit' --json 2>/dev/null | jq -e '.[] | select(.name == \"@luana/nicolify-web\") | .dependencies.\"@luana/ui-kit\".version' | grep -E 'link:|workspace:'" } }
+  quality_gates:
+    - "V-NF-3, V-NF-4, V-F-10..V-F-14 GREEN"
+    - "Commit body cites D6+D1 honored + Phase 0 Q3 nested choice"
+  depends_on: ["T-1", "T-7"]
+  blocks: ["T-9", "T-11"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T9:
+  id: T-9
+  title: "Vercel reconfig + CF tunnel verify"
+  type: frontend
+  surface: FE
+  wave_position: 3
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false                      # Opus per Chris framing — Halt Triggers #3 + #4 high-stakes + Chris manual UI steps coordination
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 2
+  estimated_cost_usd_range: [300, 500]
+  estimated_duration_minutes: 90-120          # Mostly Chris UI manual; Claude documents + verifies
+  parallelizable_with: []
+  decisions_applicable: [D6]
+  halt_triggers_applicable: [3, 4]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 2 Scenario 2.3"
+    arch_doc: "../03-arch.md §2 Feature 2 + §7 Phase 0 Q4+Q5"
+    guidelines: "../05-guidelines.md §1.5 (T-9 chrome-devtools-verify)"
+    rules: [".claude/rules/git-safety.md"]
+    domain_skills: ["frontend-expert", "chrome-devtools-verify"]
+  description: |
+    Vercel project reconfig + CF tunnel re-mapping verification.
+
+    **Steps (Chris executes UI; Claude documents + verifies post-each-step):**
+    1. Vercel Settings → Git → Connected repo: switch from AISALESHT → alpacapurpura/luana-platform
+    2. Vercel Settings → Build & Development:
+       - Root directory: `nicolify/frontend`
+       - Install command: `pnpm install --filter @luana/nicolify-web... --frozen-lockfile`
+       - Build command: `pnpm --filter @luana/nicolify-web build`
+    3. Vercel Settings → Environment Variables: verify all preserved (Clerk keys, DB URLs, LiteLLM proxy)
+    4. CF tunnel `dev-app.nicolify.com`: re-point to new Vercel preview URL (Chris cloudflared config)
+    5. Verify: `curl -sIL https://dev-app.nicolify.com/ -o /dev/null -w '%{http_code}\\n'` → 200 or 3xx
+
+    HALT Triggers:
+    - #3 Vercel reconfig surface unexpected issue → document verbatim + escalate
+    - #4 CF tunnel mapping rompe → document + escalate
+
+    chrome-devtools-verify skill optional invoke post-reconfig for live verification.
+
+  blast_radius:
+    files_affected_count: 0                      # External infra config only (Vercel UI + CF tunnel)
+    paths:
+      - (External — Vercel Settings + CF cloudflared config)
+  deliverables:
+    - "Vercel project switched to alpacapurpura/luana-platform + new root dir + build commands"
+    - "All env vars preserved verified"
+    - "CF tunnel re-mapped to new Vercel deployment URL"
+    - "curl returns 200/3xx"
+    - "T-9-impl-log.md documenting Chris's UI steps + verification curl outputs"
+  validators_referenced: [V-F-15]
+  out_of_scope:
+    - "Smoke E2E (T-11)"
+    - "FE imports rewrite (T-8 done)"
+  acceptance:
+    - { id: A1, description: "dev-app.nicolify.com resolves 200/3xx", verifier: { type: shell, cmd: "curl -sIL https://dev-app.nicolify.com/ -o /dev/null -w '%{http_code}' | grep -E '^(200|3[0-9]{2})$'" } }
+    - { id: A2, description: "Vercel deployment GREEN from luana-platform", verifier: { type: manual, description: "Chris verifies Vercel dashboard shows successful build" } }
+  quality_gates:
+    - "V-F-15 GREEN"
+    - "Audit trail captures Chris UI step timestamps"
+  depends_on: ["T-8"]
+  blocks: ["T-11"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T10:
+  id: T-10
+  title: "Fresh nicolify_dev DB + alembic snapshot consolidation"
+  type: backend
+  surface: BE
+  wave_position: 3
+  production_code: false                      # Migration file consolidation (schema reference snapshot, NOT runtime business code)
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false                      # Opus per Chris framing — Halt Trigger #5 schema drift critical risk; backend-migrations.md raw SQL precision
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 4
+  estimated_cost_usd_range: [700, 1000]
+  estimated_duration_minutes: 180-240
+  parallelizable_with: [T-8]                  # Wave 3 ≤2 cap — DB + FE independent
+  decisions_applicable: [D2]                   # D2 = fresh nicolify DB + alembic snapshot consolidation
+  halt_triggers_applicable: [5, 8]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 3 Scenarios 3.1-3.4"
+    arch_doc: "../03-arch.md §2 Feature 3 + §7 Phase 0 Q2"
+    arch_be_doc: "../03-arch-be.md §3 (alembic consolidation strategy — hybrid Phase 0 spike)"
+    guidelines: "../05-guidelines.md §2.2 FORBIDDEN (alembic anti-patterns)"
+    rules: [".claude/rules/backend-migrations.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    Hybrid Phase 0 spike (03-arch-be.md §3) — pg_dump + alembic autogenerate diff resolution → consolidated `001_initial_snapshot.py`.
+
+    **Step 1 — Capture current schema state:**
+    ```bash
+    docker exec visionarias_postgres_dev pg_dump --schema-only -U postgres visionarias_logs > /tmp/aisaleshT_schema.sql
+    ```
+
+    **Step 2 — Generate model-driven schema (alembic autogenerate on empty DB):**
+    ```bash
+    psql -U postgres -c "CREATE DATABASE _autogen_test;"
+    DATABASE_URL=postgresql://postgres@localhost:5432/_autogen_test .venv/bin/alembic revision --autogenerate -m "models_inferred_baseline"
+    psql -U postgres -c "DROP DATABASE _autogen_test;"
+    ```
+
+    **Step 3 — Diff for drift detection:**
+    ```bash
+    diff /tmp/pg_dump_ddl.txt /tmp/autogen_ddl.txt > /tmp/schema_drift.diff
+    wc -l /tmp/schema_drift.diff   # → ≤ 20 lines acceptable cosmetic; >20 → Halt Trigger #5
+    ```
+
+    **Step 4 — Drift resolution per Halt Trigger #5** (03-arch-be.md §3.1):
+    - Column nullable mismatch → Chris ratifies (A/B/C)
+    - Index missing in DB → include in snapshot
+    - Default mismatch → Chris ratifies
+
+    **Step 5 — Write consolidated `001_initial_snapshot.py`** (raw SQL `IF NOT EXISTS` per backend-migrations.md — see 03-arch-be.md §3.2 template).
+
+    **Step 6 — Fresh DB workflow (03-arch-be.md §3.3):**
+    ```bash
+    # Parallel container nicolify_postgres_dev on port 5433 during transition
+    docker compose -f /home/chris/luana-platform/docker-compose.dev.yml up -d nicolify_postgres_dev
+    docker exec nicolify_postgres_dev pg_isready -U postgres
+    cd /home/chris/luana-platform/nicolify/backend
+    DATABASE_URL=postgresql://postgres@localhost:5433/nicolify_dev uv run alembic upgrade head
+    DATABASE_URL=postgresql://postgres@localhost:5433/nicolify_dev uv run alembic current   # → 001_initial_snapshot (head)
+    ```
+
+    **Step 7 — Schema verification + idempotency stress test (Scenario 3.3):**
+    ```bash
+    docker exec nicolify_postgres_dev pg_dump --schema-only -U postgres nicolify_dev > /tmp/nicolify_schema.sql
+    diff /tmp/aisaleshT_schema.sql /tmp/nicolify_schema.sql > /tmp/schema_final_diff.txt
+    HASH1=$(docker exec nicolify_postgres_dev pg_dump --schema-only -U postgres nicolify_dev | sha256sum)
+    DATABASE_URL=postgresql://postgres@localhost:5433/nicolify_dev uv run alembic upgrade head   # second run no-op
+    HASH2=$(docker exec nicolify_postgres_dev pg_dump --schema-only -U postgres nicolify_dev | sha256sum)
+    test "$HASH1" = "$HASH2"
+    ```
+
+    **Step 8 — Run BE pytest against nicolify_dev (delta=0 vs T-1 baseline):**
+    ```bash
+    DATABASE_URL=postgresql://postgres@localhost:5433/nicolify_dev uv run pytest -x -q --tb=short
+    ```
+
+  blast_radius:
+    files_affected_count: 3
+    paths:
+      - /home/chris/luana-platform/nicolify/backend/alembic/versions/001_initial_snapshot.py
+      - /home/chris/luana-platform/docker-compose.dev.yml                                          # adds nicolify_postgres_dev container
+      - /home/chris/luana-platform/nicolify/backend/.env / .env.example                            # POSTGRES_DB=nicolify_dev
+  deliverables:
+    - "001_initial_snapshot.py raw SQL IF NOT EXISTS pattern"
+    - "Phase 0 spike diff resolution captured in T-10-impl-log.md (drift table + Chris ratify per row)"
+    - "nicolify_postgres_dev container parallel, nicolify_dev DB created + at head"
+    - "Schema diff vs AISALESHT cosmetic only (≤20 lines)"
+    - "Idempotency stress test GREEN (sha256 equal before+after second upgrade)"
+    - "BE pytest delta=0 against nicolify_dev"
+  validators_referenced: [V-NF-7, V-F-16, V-F-17, V-F-18, V-F-19, V-F-20]
+  out_of_scope:
+    - "AISALESHT DB drop (T-14 — post 24h soak)"
+    - "Production DB migration (Story 10 = dev env only; prod isolated per outcome §7.5.5)"
+  acceptance:
+    - { id: A1, description: "nicolify_dev exists + alembic head 001_initial_snapshot", verifier: { type: shell, cmd: "docker exec nicolify_postgres_dev psql -U postgres -d nicolify_dev -c 'SELECT version_num FROM alembic_version;' | grep 001_initial_snapshot" } }
+    - { id: A2, description: "Schema diff ≤ 20 lines", verifier: { type: shell, cmd: "diff <(docker exec visionarias_postgres_dev pg_dump --schema-only -U postgres visionarias_logs | grep -E '^CREATE TABLE|^ALTER TABLE.*FOREIGN KEY|^CREATE INDEX' | sort -u) <(docker exec nicolify_postgres_dev pg_dump --schema-only -U postgres nicolify_dev | grep -E '^CREATE TABLE|^ALTER TABLE.*FOREIGN KEY|^CREATE INDEX' | sort -u) | wc -l | awk '{if ($1 <= 20) exit 0; else exit 1}'" } }
+    - { id: A3, description: "Idempotency sha256 equal", verifier: { type: shell, cmd: "see Step 7 in description" } }
+    - { id: A4, description: "Consolidated migration uses IF NOT EXISTS pattern", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/architecture/test_consolidated_migration_idempotent.py -v" } }
+    - { id: A5, description: "pytest delta=0 against nicolify_dev", verifier: { type: shell, cmd: "see Step 8" } }
+  quality_gates:
+    - "V-NF-7, V-F-16..V-F-20 GREEN"
+    - "Halt Trigger #5 resolutions (if any) documented + Chris ratified"
+    - "Commit body cites D2 honored + Phase 0 hybrid resolution"
+  depends_on: ["T-1", "T-7"]
+  blocks: ["T-N-final"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T11:
+  id: T-11
+  title: "Playwright smoke E2E + visual screenshot diffs (Chris journey end-to-end)"
+  type: tests
+  surface: FE
+  wave_position: 4
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true                       # PREFERRED — mechanical Playwright spec following playwright-expert template
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 3
+  estimated_cost_usd_range: [300, 500]
+  estimated_duration_minutes: 150-180
+  parallelizable_with: [T-12]                 # Wave 4 ≤2 cap — both Sonnet, independent
+  decisions_applicable: [D6]
+  halt_triggers_applicable: [4]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 5 Scenarios 5.1-5.4"
+    arch_doc: "../03-arch.md §2 Feature 5"
+    guidelines: "../05-guidelines.md §1.5 (T-11 playwright-expert SSoT) + §2.2 e2e-testing.md native WSL"
+    rules: [".claude/rules/e2e-testing.md"]
+    domain_skills: ["playwright-expert", "frontend-expert"]
+  description: |
+    Author smoke E2E spec covering 9-step Chris journey + cost regression guard + tenant isolation cross-leak adversarial + visual screenshot diffs (5 surfaces).
+
+    **9-step Chris journey (Scenario 5.1):**
+    1. Navigate `dev-app.nicolify.com` (Vercel + CF tunnel)
+    2. Signup new tenant (Clerk testing token via auth.fixture)
+    3. Dashboard land
+    4. Brand Studio → fill basics (name, voice tone)
+    5. Offer Studio → create offer (basic preset)
+    6. Sales Agent → start conversation (LLM call via luana_core_sales_agent + luana_core_llm)
+    7. Verify conversation response (within 30s timeout)
+    8. Verify cards rendered (copilot via luana_core_copilot)
+    9. Sign out
+
+    **Cost regression guard (Scenario 5.3):** post-test DB query `SELECT cost_usd FROM copilot_llm_call WHERE tenant_id = <test> AND cost_usd > 0` → ≥ 1 (no NULL — Story PI-12 S1 T-1.bis lesson).
+
+    **Tenant cross-leak adversarial (Scenario 5.4):** T1 + T2 created. T2 sees ONLY Offer B (own), NOT Offer A (T1's). Network panel inspection.
+
+    **Clerk auth fixture (Scenario 5.2):** path `nicolify/frontend/playwright/.clerk/user.json` — freshness gate auto-regen.
+
+    **Visual baselines diff (V-V-1):**
+    Compare 5 surfaces (signup/brand-studio/offer-studio/copilot/dashboard) vs T-1 baselines in `e2e/specs/visual/baselines/`. Threshold: layout shift <1% pixel diff. Spec authored in `e2e/specs/visual/story-10-screenshot-diffs.spec.ts`.
+
+    **Native WSL execution (e2e-testing.md):**
+    ```bash
+    cd /home/chris/luana-platform/nicolify/frontend
+    E2E_BASE_URL=https://dev-app.nicolify.com npx playwright test --project=smoke chris-journey-e2e.spec.ts
+    # NEVER `make e2e*` Docker (crashes WSL2 OOM)
+    ```
+
+    Record T-11-result.md `smoke_green_at: <ISO8601 timestamp>` for T-14 24h soak verification (V-F-21 reads this timestamp).
+
+  blast_radius:
+    files_affected_count: 3
+    paths:
+      - /home/chris/luana-platform/nicolify/frontend/e2e/specs/smoke/chris-journey-e2e.spec.ts
+      - /home/chris/luana-platform/nicolify/frontend/e2e/specs/visual/story-10-screenshot-diffs.spec.ts
+      - /home/chris/luana-platform/nicolify/frontend/e2e/specs/visual/baselines/                  # T-1 baselines reused for comparison
+  deliverables:
+    - "chris-journey-e2e.spec.ts with 9-step journey + cost regression + tenant cross-leak"
+    - "story-10-screenshot-diffs.spec.ts with 5-surface visual diff"
+    - "smoke GREEN + screenshot diffs <1% layout shift"
+    - "T-11-result.md with `smoke_green_at: <timestamp>` for T-14 24h soak"
+  validators_referenced: [V-F-26, V-F-27, V-F-28, V-F-29, V-V-1, V-V-2]
+  out_of_scope:
+    - "ci-parity migration (T-12)"
+    - "Production E2E (Story 10 dev only)"
+  acceptance:
+    - { id: A1, description: "Smoke spec exists + GREEN native WSL", verifier: { type: playwright, cmd: "cd /home/chris/luana-platform/nicolify/frontend && E2E_BASE_URL=https://dev-app.nicolify.com npx playwright test --project=smoke chris-journey-e2e.spec.ts --reporter=line" } }
+    - { id: A2, description: "Visual diff <1%", verifier: { type: playwright, cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx playwright test e2e/specs/visual/story-10-screenshot-diffs.spec.ts --reporter=line" } }
+    - { id: A3, description: "Cost regression guard GREEN", verifier: { type: shell, cmd: "see V-F-27 in 04-validators.yaml" } }
+    - { id: A4, description: "T-11-result.md has smoke_green_at timestamp", verifier: { type: shell, cmd: "grep -E '^smoke_green_at:' /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/T-11-result.md" } }
+  quality_gates:
+    - "V-F-26..V-F-29 + V-V-1 GREEN"
+    - "Native WSL execution verified (no Docker)"
+  depends_on: ["T-9", "T-10"]
+  blocks: ["T-13", "T-14"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T12:
+  id: T-12
+  title: "Make ci-parity root migration + pre-push hook update"
+  type: tooling
+  surface: BE
+  wave_position: 4
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                      # Mostly OK but small enough — Sonnet preferred
+    claude_sonnet: true                       # PREFERRED — Makefile + bash scripts mechanical
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 2
+  estimated_cost_usd_range: [200, 300]
+  estimated_duration_minutes: 90-120
+  parallelizable_with: [T-11]                 # Wave 4 ≤2 cap
+  decisions_applicable: [D8]                   # D8 = ci-parity root cross-brand
+  halt_triggers_applicable: [6]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 6 Scenarios 6.1-6.4"
+    arch_doc: "../03-arch.md §2 Feature 6"
+    guidelines: "../05-guidelines.md §3.1 (ci-parity paths)"
+    rules: [".claude/rules/git-safety.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    Migrate `make ci-parity` from `AISALESHT/Makefile` → `luana-platform/Makefile` (root) with cross-brand pattern.
+
+    **Step 1 — Author root Makefile target:**
+    ```makefile
+    # luana-platform/Makefile
+    BRANDS := nicolify
+    # Future Stories 11-13 append: BRANDS := nicolify vitalia comunify lupulo
+
+    ci-parity: $(BRANDS:%=ci-parity-%)
+    	@echo "✓ ci-parity all brands GREEN"
+
+    ci-parity-nicolify:
+    	bash scripts/ci-parity.sh --brand=nicolify
+    ```
+
+    **Step 2 — Migrate script with --brand= flag:**
+    ```bash
+    # Source: /home/chris/AISALESHT/scripts/ci-parity.sh
+    # Target: /home/chris/luana-platform/scripts/ci-parity.sh (with --brand=<slug> flag)
+    # Internally:
+    cd ${ROOT}/${BRAND}/backend && uv run ruff check && uv run pytest tests/architecture/ && uv run pytest --cov=...
+    cd ${ROOT}/${BRAND}/frontend && pnpm exec tsc --noEmit && pnpm exec eslint && pnpm exec vitest run --coverage
+    ```
+
+    **Step 3 — Update pre-push hook:**
+    - Source: `/home/chris/AISALESHT/scripts/git-hooks/pre-push`
+    - Target: `/home/chris/luana-platform/.husky/pre-push` (Husky symlinks `.git/hooks/pre-push`)
+    - Update paths to invoke `make ci-parity` from luana-platform root
+
+    **Step 4 — Verify GREEN:**
+    ```bash
+    cd /home/chris/luana-platform && make ci-parity
+    ```
+
+    Halt Trigger #6 if env divergence (TZ, locale, env var) — diagnose + Chris ratify fix.
+
+  blast_radius:
+    files_affected_count: 4
+    paths:
+      - /home/chris/luana-platform/Makefile
+      - /home/chris/luana-platform/scripts/ci-parity.sh
+      - /home/chris/luana-platform/.husky/pre-push
+      - /home/chris/AISALESHT/Makefile                                # Mark ci-parity deprecated comment OR remove (T-14 cleanup)
+  deliverables:
+    - "Makefile root with BRANDS pattern + ci-parity-nicolify target"
+    - "scripts/ci-parity.sh with --brand= flag"
+    - ".husky/pre-push hook updated"
+    - "make ci-parity GREEN from luana-platform root"
+    - "T-12-impl-log.md + T-12-result.md"
+  validators_referenced: [V-F-30, V-F-31, V-F-32]
+  out_of_scope:
+    - "Smoke E2E (T-11)"
+    - "/pm SSoT migration (T-13)"
+  acceptance:
+    - { id: A1, description: "make ci-parity GREEN", verifier: { type: shell, cmd: "cd /home/chris/luana-platform && make ci-parity" } }
+    - { id: A2, description: "Makefile uses BRANDS pattern", verifier: { type: shell, cmd: "grep -qE 'BRANDS' /home/chris/luana-platform/Makefile && grep -qE '^ci-parity(:|-nicolify)' /home/chris/luana-platform/Makefile" } }
+    - { id: A3, description: "Pre-push hook invokes ci-parity", verifier: { type: shell, cmd: "grep -q ci-parity /home/chris/luana-platform/.husky/pre-push" } }
+  quality_gates:
+    - "V-F-30, V-F-31, V-F-32 GREEN"
+    - "Commit body cites D8 honored"
+  depends_on: ["T-9", "T-10"]
+  blocks: ["T-13"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T13:
+  id: T-13
+  title: "/pm SSoT atomic git mv (Phase 4 merge)"
+  type: tooling
+  surface: BE
+  wave_position: 5
+  production_code: false                      # Mechanical mv + path updates — but Chris framing flags Opus mandatory due to high blast radius + halt-and-ask Decisión 4A
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false                      # Opus per Chris framing — "muy cuidadoso" Decisión 4A hardcoded path discovery
+    claude_opus_required: true
+  priority: 1
+  estimate_hours: 2
+  estimated_cost_usd_range: [400, 600]
+  estimated_duration_minutes: 90-120
+  parallelizable_with: []
+  decisions_applicable: [D4]                   # D4 = /pm SSoT atómico git mv Phase 4 + halt si hardcoded paths
+  halt_triggers_applicable: [1, 8]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 7 Scenarios 7.1-7.4"
+    arch_doc: "../03-arch.md §2 Feature 7 + §7 Phase 0 Q7"
+    arch_be_doc: "../03-arch-be.md §5 (T-13 sequence + hardcoded path audit)"
+    guidelines: "../05-guidelines.md §1.5 (T-13 skills) + §2.2 (/pm forbidden)"
+    rules: [".claude/rules/git-safety.md", ".claude/rules/parallel-safety.md"]
+    domain_skills: ["backend-expert", "pm"]
+  description: |
+    Atomic Phase 4 merge — `git mv docs/product/` AISALESHT → luana-platform + migrate scripts + update pre-commit hooks paths.
+
+    **Sequence per 03-arch-be.md §5:**
+
+    1. **Snapshot pre-move audit:**
+       ```bash
+       cd /home/chris/AISALESHT
+       tar czf /tmp/pre-move-snapshot.tar.gz docs/product/ scripts/git-hooks/ scripts/generate_backlog.py scripts/reconcile_capabilities.py scripts/emit_process_metric.py scripts/_pii_patterns.py 2>/dev/null
+       ```
+
+    2. **Verify scripts pre-move:**
+       ```bash
+       python scripts/generate_backlog.py --dry-run
+       python scripts/reconcile_capabilities.py --check
+       ```
+
+    3. **Hardcoded path audit (Decisión 4A Halt):**
+       ```bash
+       grep -rn "/home/chris/AISALESHT/docs/product" /home/chris/AISALESHT/scripts/ /home/chris/AISALESHT/.claude/ /home/chris/AISALESHT/backend/tests/ /home/chris/AISALESHT/backend/src/ 2>/dev/null
+       ```
+       If ≥1 result → halt + escalate Chris with file:line + proposed mitigation (relative path / pathlib.Path / env var).
+
+    4. **git mv across repos (hybrid Phase 0 Q7):**
+       ```bash
+       mkdir -p /home/chris/luana-platform/docs/product/
+       rsync -a /home/chris/AISALESHT/docs/product/ /home/chris/luana-platform/docs/product/
+       rm -rf /home/chris/AISALESHT/docs/product/
+       mv /home/chris/AISALESHT/scripts/generate_backlog.py /home/chris/luana-platform/scripts/
+       mv /home/chris/AISALESHT/scripts/reconcile_capabilities.py /home/chris/luana-platform/scripts/
+       mv /home/chris/AISALESHT/scripts/emit_process_metric.py /home/chris/luana-platform/scripts/
+       mv /home/chris/AISALESHT/scripts/_pii_patterns.py /home/chris/luana-platform/scripts/   # verify if lifted to luana-core
+       mkdir -p /home/chris/luana-platform/tests/scripts/
+       mv /home/chris/AISALESHT/backend/tests/scripts/* /home/chris/luana-platform/tests/scripts/ 2>/dev/null
+       ```
+
+    5. **Update pre-commit hooks paths (Sections 4-9 — 03-arch-be.md §5 Step 4):**
+       - Section 4 downstream regression freshness gate
+       - Section 5 voseo
+       - Section 6 backlog freshness
+       - Section 7 ruff venv path
+       - Sections 8-9 PII patterns
+
+    6. **Post-move verify scripts:**
+       ```bash
+       cd /home/chris/luana-platform
+       python scripts/generate_backlog.py --check
+       python scripts/reconcile_capabilities.py --check
+       ```
+
+    7. **Test pre-commit hook fires (dummy commit):** touch BACKLOG.md, stage, dry-run commit, restore.
+
+    8. **Commits:**
+       ```bash
+       git commit -m "chore(pm-ssot): migrate to luana-platform — closure pre-archive Story 10 Feature 7"
+       cd /home/chris/luana-platform && git commit -m "feat(pm-ssot): receive /pm SSoT from AISALESHT — Phase 4 merge Story 10 Feature 7"
+       ```
+
+    Halt Triggers:
+    - #1 hardcoded path discovered → escalate
+    - #8 monorepo state inesperado (uncommitted) → escalate
+
+  blast_radius:
+    files_affected_count: 200                 # docs/product/ entire tree + scripts + tests + hooks
+    paths:
+      - /home/chris/AISALESHT/docs/product/                          # REMOVED
+      - /home/chris/luana-platform/docs/product/                      # POPULATED
+      - /home/chris/AISALESHT/scripts/{generate_backlog,reconcile_capabilities,emit_process_metric,_pii_patterns}.py   # MOVED
+      - /home/chris/luana-platform/scripts/{generate_backlog,reconcile_capabilities,emit_process_metric,_pii_patterns}.py   # NEW
+      - /home/chris/AISALESHT/backend/tests/scripts/                 # MOVED to luana-platform/tests/scripts/
+      - /home/chris/AISALESHT/scripts/git-hooks/                     # MOVED to luana-platform/scripts/git-hooks/
+  deliverables:
+    - "docs/product/ atomic mv AISALESHT → luana-platform"
+    - "Scripts migrated + paths updated"
+    - "Pre-commit hooks paths updated Sections 4-9"
+    - "Scripts GREEN from new location"
+    - "Repo visibility verified PRIVATE (V-F-36)"
+    - "T-13-impl-log.md with hardcoded path audit results + Chris ratify (if Halt #1 invoked)"
+  validators_referenced: [V-F-33, V-F-34, V-F-35, V-F-36]
+  out_of_scope:
+    - "Story 10 archive at luana-platform location (T-14)"
+    - "AISALESHT archive (T-14)"
+  acceptance:
+    - { id: A1, description: "AISALESHT/docs/product removed + luana-platform/docs/product populated", verifier: { type: shell, cmd: "test ! -d /home/chris/AISALESHT/docs/product && test -d /home/chris/luana-platform/docs/product && test -f /home/chris/luana-platform/docs/product/BACKLOG.md" } }
+    - { id: A2, description: "Scripts GREEN post-move", verifier: { type: shell, cmd: "cd /home/chris/luana-platform && python scripts/generate_backlog.py --check && python scripts/reconcile_capabilities.py --check" } }
+    - { id: A3, description: "0 hardcoded /home/chris/AISALESHT/docs/product paths", verifier: { type: shell, cmd: "grep -rn '/home/chris/AISALESHT/docs/product' /home/chris/luana-platform/scripts/ /home/chris/luana-platform/.claude/ 2>/dev/null | wc -l | grep -E '^0$'" } }
+    - { id: A4, description: "Repo PRIVATE (no leak)", verifier: { type: shell, cmd: "gh repo view alpacapurpura/luana-platform --json visibility --jq .visibility | grep -qiE 'private'" } }
+  quality_gates:
+    - "V-F-33..V-F-36 GREEN"
+    - "Commit body cites D4 honored + hardcoded path audit result"
+    - "Snapshot tarball /tmp/pre-move-snapshot.tar.gz exists pre-move (audit trail)"
+  depends_on: ["T-11", "T-12"]
+  blocks: ["T-14"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T14:
+  id: T-14
+  title: "AISALESHT archive + DB drop + Story 10 archive at luana-platform"
+  type: tooling
+  surface: BE
+  wave_position: 5
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true                       # PREFERRED — GitHub API + psql + git mv mechanical closure
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 2
+  estimated_cost_usd_range: [200, 400]
+  estimated_duration_minutes: 90-120
+  parallelizable_with: []                     # Final closure — sequential
+  decisions_applicable: [D3, D2, D9, D10]      # D3=archive AISALESHT / D2=DB drop post soak / D9=DEFERRED-FAILURES doc / D10=HANDOFF-STORY-10B
+  halt_triggers_applicable: [8]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md §5 Feature 8 + Feature 9"
+    arch_doc: "../03-arch.md §2 Feature 8 + Feature 9 + §3 Wave 5"
+    arch_be_doc: "../03-arch-be.md §3.4 AISALESHT DB drop sequence"
+    guidelines: "../05-guidelines.md §1.5 (T-14 git-manager + pm skills) + §3.1 (T-14 paths) + §4 (auditor C6 final checklist)"
+    rules: [".claude/rules/git-safety.md"]
+    domain_skills: ["git-manager", "pm", "backend-expert"]
+  description: |
+    Final closure ticket — 5 sub-steps mechanical:
+
+    **Step 1 — Pre-archive verify AISALESHT clean tree (Scenario 8.3):**
+    ```bash
+    cd /home/chris/AISALESHT && git status --short    # → empty
+    # Halt Trigger #8 if uncommitted
+    ```
+
+    **Step 2 — DEFERRED-FAILURES-STORY-10.md generation:**
+    Author file at `luana-platform/docs/product/stories/luana-nicolify-migration/DEFERRED-FAILURES-STORY-10.md` with:
+    - 40 sales_agent pre-existing failure paths (Decisión 9B → Story 14 brand-voice-elevation natural home)
+    - Halt Trigger #11 invocations (if any during T-2..T-7) with strategy chosen (A/B/C) + Chris ratify timestamps
+    - Story 14 ticket queue for lifts deferred
+
+    **Step 3 — HANDOFF-STORY-10B.md generation (Decisión 10A):**
+    Author file with sections:
+    - Scope Story 10b (Streamlit admin migration + workers/ETL deferred)
+    - Inherited decisions from §7.6 (10 binding apply forward)
+    - Open decisions to re-ratify per session
+    - Estimated complexity + ticket count
+    - DEFERRED-FAILURES-STORY-10.md cross-reference
+
+    **Step 4 — AISALESHT archive (Scenario 8.1):**
+    Chris manual UI OR `gh api`:
+    ```bash
+    gh api repos/alpacapurpura/AISALESHT --method PATCH -f archived=true
+    # Verify
+    gh api repos/alpacapurpura/AISALESHT --jq .archived   # → true
+    ```
+
+    **Step 5 — 24h soak verification + DB drop (Scenario 3.4 + 8.2):**
+    ```bash
+    # Verify preconditions (V-F-21 check):
+    SMOKE_TS=$(grep 'smoke_green_at:' luana-platform/docs/product/stories/luana-nicolify-migration/T-11-result.md | awk '{print $2}')
+    NOW=$(date -u +%s)
+    DELTA=$((NOW - $(date -d "$SMOKE_TS" +%s)))
+    test $DELTA -ge 86400 || { echo "SOAK NOT ELAPSED — defer drop"; exit 1; }
+
+    # Drop
+    docker exec visionarias_postgres_dev psql -U postgres -c "DROP DATABASE visionarias_logs;"
+    docker compose -f /home/chris/AISALESHT/docker-compose.dev.yml down
+    ```
+
+    **Step 6 — Story 10 archive at luana-platform location (Feature 9 Scenario 9.1):**
+    ```bash
+    cd /home/chris/luana-platform
+    git mv docs/product/stories/luana-nicolify-migration/ docs/archive/2026/stories/luana-nicolify-migration/
+    python scripts/generate_backlog.py    # regen BACKLOG reflects Story 10 done + outcome stories_done 10/14
+    python scripts/reconcile_capabilities.py
+    # Author 07-merge.md per /pm skill template
+    git add docs/archive/2026/stories/luana-nicolify-migration/ docs/product/BACKLOG.md docs/product/outcomes/luana-platform-migration.md docs/product/capabilities/luana-core/brand-consumer-migration.yaml
+    git commit -m "feat(luana-platform-migration): close Story 10 luana-nicolify-migration DONE + archive"
+    ```
+
+    **Step 7 — AISALESHT skeleton README (Phase 0 Q6):**
+    Author `AISALESHT/README.md` skeleton pointing to luana-platform with migration notice + dates + links.
+
+    **Step 8 — Audit trail T-14-impl-log.md:**
+    Records all timestamps + Chris ratify markers + final commit SHAs.
+
+  blast_radius:
+    files_affected_count: 7
+    paths:
+      - /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/DEFERRED-FAILURES-STORY-10.md    # NEW (moves to archive)
+      - /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/HANDOFF-STORY-10B.md             # NEW (moves to archive)
+      - /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/07-merge.md                       # NEW
+      - /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/                              # MOVED dest
+      - /home/chris/luana-platform/docs/product/BACKLOG.md                                                          # regen
+      - /home/chris/luana-platform/docs/product/outcomes/luana-platform-migration.md                                # update stories_done 10/14
+      - /home/chris/luana-platform/docs/product/capabilities/luana-core/brand-consumer-migration.yaml               # status=done
+      - /home/chris/AISALESHT/README.md                                                                              # skeleton
+  deliverables:
+    - "AISALESHT clean tree verified pre-archive"
+    - "DEFERRED-FAILURES-STORY-10.md with 40 paths + Trigger #11 lifts"
+    - "HANDOFF-STORY-10B.md with scope + inherited decisions + open per-session"
+    - "AISALESHT GitHub repo archived (read-only)"
+    - "24h soak verified + visionarias_logs DROP DATABASE"
+    - "Story 10 archive at luana-platform/docs/archive/2026/stories/"
+    - "07-merge.md authored"
+    - "BACKLOG + outcome + capability YAML regen"
+    - "AISALESHT skeleton README"
+    - "T-14-impl-log.md audit trail"
+  validators_referenced: [V-F-21, V-F-25, V-F-37, V-F-38, V-F-39, V-F-40, V-F-41, V-F-42, V-F-43, V-F-44]
+  out_of_scope:
+    - "Story 10b scope (deferred — handoff doc captures)"
+    - "Stories 11-14 (separate stories)"
+  acceptance:
+    - { id: A1, description: "AISALESHT archived", verifier: { type: shell, cmd: "gh api repos/alpacapurpura/AISALESHT --jq .archived | grep -qE '^true$'" } }
+    - { id: A2, description: "visionarias_logs DB dropped", verifier: { type: shell, cmd: "! docker exec visionarias_postgres_dev psql -U postgres -lqt 2>/dev/null | cut -d '|' -f 1 | grep -qw visionarias_logs" } }
+    - { id: A3, description: "Story 10 archived at luana-platform", verifier: { type: shell, cmd: "test -f /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/checkpoint.md && grep -E 'state:\\s*done' /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/checkpoint.md" } }
+    - { id: A4, description: "BACKLOG reflects stories_done 10/14", verifier: { type: shell, cmd: "grep -E 'stories_done.*10/14' /home/chris/luana-platform/docs/product/outcomes/luana-platform-migration.md" } }
+    - { id: A5, description: "DEFERRED-FAILURES + HANDOFF docs exist", verifier: { type: shell, cmd: "test -f /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/DEFERRED-FAILURES-STORY-10.md && test -f /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/HANDOFF-STORY-10B.md" } }
+    - { id: A6, description: "Story 10 NOT at AISALESHT paths", verifier: { type: shell, cmd: "test ! -d /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration && test ! -d /home/chris/AISALESHT/docs/archive/2026/stories/luana-nicolify-migration" } }
+    - { id: A7, description: "24h soak verified before DB drop", verifier: { type: shell, cmd: "see V-F-21 in 04-validators.yaml" } }
+  quality_gates:
+    - "V-F-21, V-F-25, V-F-37..V-F-44 GREEN"
+    - "Commit body cites D3+D2+D9+D10 honored"
+    - "All Halt Triggers (if any) Chris-ratified timestamps captured"
+  depends_on: ["T-13"]
+  blocks: []
+  assigned_to: null
