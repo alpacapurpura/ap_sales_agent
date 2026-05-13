@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-13T22:47:31+00:00
+# Generated at: 2026-05-13T23:39:23+00:00
 
-generated_at: '2026-05-13T22:47:31+00:00'
+generated_at: '2026-05-13T23:39:23+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -213,7 +213,22 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
-  refined: []
+  refined:
+  - id: luana-vitalia-bootstrap
+    kind: story
+    state: refined
+    title: luana-vitalia-bootstrap
+    tags: []
+    last_touched: 2026-05-13
+    extra:
+      outcome: luana-platform-migration
+      phase: SPEC_RATIFIED
+      next_action: 'Sesion 2: /ux-agentico drafts 02-design-agentic.md (vertical-medical conversational flows) + /architect
+        orchestrator → 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml ready package. State refined →
+        ready.'
+      blocked_by: []
+      priority_override: null
+      audit_iterations: 0
   ready:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
@@ -292,7 +307,7 @@ buckets:
     state: developing
     title: luana-platform-migration
     tags: []
-    last_touched: 2026-05-16
+    last_touched: 2026-05-13
     extra:
       story_ids: []
       why_now: null
@@ -481,20 +496,6 @@ buckets:
       outcome: luana-platform-migration
       phase: null
       next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 11, 12, 14
-      blocked_by:
-      - luana-nicolify-migration
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-vitalia-bootstrap
-    kind: story
-    state: parked
-    title: luana-vitalia-bootstrap
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 12-14
       blocked_by:
       - luana-nicolify-migration
       priority_override: null
