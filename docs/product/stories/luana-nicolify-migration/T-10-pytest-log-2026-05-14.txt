@@ -1,0 +1,1738 @@
+........................................................................ [  0%]
+........................................................................ [  1%]
+................ssss.................................................... [  2%]
+........................................................................ [  2%]
+........................................................................ [  3%]
+...............FF....................................................... [  4%]
+..................................F..................................... [  4%]
+......EEEEEEEEEEEEEEEE.................................................. [  5%]
+........................................................................ [  6%]
+........................................................................ [  7%]
+........................................................................ [  7%]
+........................................................................ [  8%]
+........................................................................ [  9%]
+.............FFFFFF..................................................... [  9%]
+........................................................................ [ 10%]
+.................FF...F..F..........F..F................................ [ 11%]
+........................................................................ [ 12%]
+........................................................................ [ 12%]
+........................................................................ [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+........................................................................ [ 16%]
+........................................................................ [ 16%]
+........................................................................ [ 17%]
+.....................sssssss...................................s........ [ 18%]
+........................................................................ [ 19%]
+........................................................................ [ 19%]
+.............................sss...sss..........sss....................s [ 20%]
+.............F.......................................................... [ 21%]
+.........................s..............................FFFFF........... [ 21%]
+..............F.............FFFFFFFFFFFFF............................... [ 22%]
+........................................................................ [ 23%]
+........................................................................ [ 24%]
+.................................FFFFFF................................. [ 24%]
+........................................................................ [ 25%]
+............................................................FFFFFFFFFFFF [ 26%]
+FFFFFF.................................................................. [ 26%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 28%]
+...FFFFFFFFFFFFFFFF..................................................... [ 29%]
+........................................................................ [ 30%]
+........................................................................ [ 31%]
+........................................................................ [ 31%]
+........................................................................ [ 32%]
+........................................................................ [ 33%]
+........................................................................ [ 33%]
+........................................................................ [ 34%]
+........................................................................ [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 38%]
+........................................................................ [ 38%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+..................FFFFFFFFFFFFFFFFFFFFFFFF......FFFFFFFF................ [ 42%]
+................................................FFFFFF.................. [ 43%]
+..............................................................ssss...... [ 43%]
+..........................F............................................. [ 44%]
+........................................................................ [ 45%]
+........................................................................ [ 45%]
+........................................FFFFF........................... [ 46%]
+..................................+++++++++++++++++++++++++++++++++++ Timeout ++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~ Stack of asyncio_0 (128114029795008) ~~~~~~~~~~~~~~~~~~~~~
+  File "/usr/lib/python3.12/threading.py", line 1030, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 140, in run
+    return _run_old_run_func()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 133, in _run_old_run_func
+    return old_run_func(self, *a[1:], **kw)
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 92, in _worker
+    work_item.run()
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 179, in wrapped_fn
+    return fn(*args, **kwargs)
+  File "/usr/lib/python3.12/socket.py", line 963, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+~~~~~~~~~~ Stack of sentry.profiler.ThreadScheduler (128113857164992) ~~~~~~~~~~
+  File "/usr/lib/python3.12/threading.py", line 1030, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 140, in run
+    return _run_old_run_func()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 133, in _run_old_run_func
+    return old_run_func(self, *a[1:], **kw)
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/profiler/transaction_profiler.py", line 718, in run
+    thread_sleep(self.interval - elapsed)
+~~~~~~~~~~~~ Stack of sentry-sdk.BackgroundWorker (128114579470016) ~~~~~~~~~~~~
+  File "/usr/lib/python3.12/threading.py", line 1030, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 140, in run
+    return _run_old_run_func()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 133, in _run_old_run_func
+    return old_run_func(self, *a[1:], **kw)
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/worker.py", line 120, in _target
+    callback = self._queue.get()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/_queue.py", line 242, in get
+    self.not_empty.wait()
+  File "/usr/lib/python3.12/threading.py", line 355, in wait
+    waiter.acquire()
+~~~~~~~~~~~~~~~~ Stack of Thread-4 (_thread) (128114566665920) ~~~~~~~~~~~~~~~~~
+  File "/usr/lib/python3.12/threading.py", line 1030, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 140, in run
+    return _run_old_run_func()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 133, in _run_old_run_func
+    return old_run_func(self, *a[1:], **kw)
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/sessions.py", line 209, in _thread
+    running = not self.__shutdown_requested.wait(self.flush_interval)
+  File "/usr/lib/python3.12/threading.py", line 655, in wait
+    signaled = self._cond.wait(timeout)
+  File "/usr/lib/python3.12/threading.py", line 359, in wait
+    gotit = waiter.acquire(True, timeout)
+~~~~~~~~~~~~~~~~~~ Stack of sentry.monitor (128114666702528) ~~~~~~~~~~~~~~~~~~~
+  File "/usr/lib/python3.12/threading.py", line 1030, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 140, in run
+    return _run_old_run_func()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 133, in _run_old_run_func
+    return old_run_func(self, *a[1:], **kw)
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/monitor.py", line 57, in _thread
+    time.sleep(self.interval)
+~~~~~~~~~~~~~~~ Stack of Thread-2 (run_server) (128115079640768) ~~~~~~~~~~~~~~~
+  File "/usr/lib/python3.12/threading.py", line 1030, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/pytest_rerunfailures.py", line 466, in run_server
+    conn, _ = self.sock.accept()
+  File "/usr/lib/python3.12/socket.py", line 295, in accept
+    fd, addr = self._accept()
+~~~~~~~~~~~~~~~~~~~~~ Stack of Thread-1 (128115228538560) ~~~~~~~~~~~~~~~~~~~~~~
+  File "/usr/lib/python3.12/threading.py", line 1030, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/posthog/consumer.py", line 63, in run
+    self.upload()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/posthog/consumer.py", line 74, in upload
+    batch = self.next()
+  File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/posthog/consumer.py", line 109, in next
+    item = queue.get(block=True, timeout=self.flush_interval - elapsed)
+  File "/usr/lib/python3.12/queue.py", line 180, in get
+    self.not_empty.wait(remaining)
+  File "/usr/lib/python3.12/threading.py", line 359, in wait
+    gotit = waiter.acquire(True, timeout)
++++++++++++++++++++++++++++++++++++ Timeout ++++++++++++++++++++++++++++++++++++
+F.....................................................................FF [ 47%]
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF..................................... [ 48%]
+.....................F..FFFF.F.......................................... [ 49%]
+........................................................................ [ 49%]
+....................................................FFFFFFF............. [ 50%]
+........................................................................ [ 51%]
+...................................F.....FF................s........s... [ 51%]
+....................s.s................................................. [ 52%]
+........................................................................ [ 53%]
+........................................................................ [ 54%]
+...................................F..F..F.FF........................... [ 54%]
+........................................FFFFFFFF........................ [ 55%]
+........................................................................ [ 56%]
+........................................................................ [ 56%]
+........................................................................ [ 57%]
+....................................................F...FF..F...F.F..... [ 58%]
+........................................................................ [ 58%]
+........................................................................ [ 59%]
+........................................................................ [ 60%]
+........................................................................ [ 61%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+......................................ssssssssssssssssssssssssssssss.... [ 63%]
+.......................sss.............................................. [ 64%]
+.....................................FFFFFFF............................ [ 65%]
+........................................................................ [ 66%]
+..................................................FFFFFFFF.............. [ 66%]
+........................................................................ [ 67%]
+.................................F...................................... [ 68%]
+........................................................................ [ 68%]
+.................................................................s...... [ 69%]
+........................................................................ [ 70%]
+......ssssssssssssssssssssss............................................ [ 70%]
+........................................................................ [ 71%]
+...............ss....................................................... [ 72%]
+........................................................................ [ 73%]
+........................................................................ [ 73%]
+......................................................s................. [ 74%]
+....................FFFFFFFFFF.......................................... [ 75%]
+........................................................................ [ 75%]
+..............................FFFFFF.................................... [ 76%]
+........................................................................ [ 77%]
+.................F....................................................ss [ 78%]
+sss..sss.ssssss.ssssssssssssss...........FE...FEFE...FE................. [ 78%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+........................................................................ [ 80%]
+........................................................................ [ 81%]
+...............................E..E.E...EEEEEEEEEEEEE................... [ 82%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+...........................................s............................ [ 84%]
+........................................................................ [ 85%]
+F....................................................................... [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+........................................................................ [ 87%]
+........................................................................ [ 88%]
+....F.................................................................ss [ 89%]
+.s...................................................................... [ 90%]
+........................................................................ [ 90%]
+........................................................................ [ 91%]
+...................sssssssssssssssss.................................... [ 92%]
+........................................................................ [ 92%]
+........................................................................ [ 93%]
+...............................ss....................................... [ 94%]
+........................................................................ [ 94%]
+........................................................................ [ 95%]
+......F.........................FsFFF.F.....F.FF........................ [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 97%]
+........................................................................ [ 98%]
+........................................................................ [ 99%]
+........................................................................ [ 99%]
+...........                                                              [100%]Running teardown with pytest sessionfinish...
+
+=============================== warnings summary ===============================
+../../core/luana-core-platform/src/luana_core_platform/core/config.py:9
+  /home/chris/luana-platform/core/luana-core-platform/src/luana_core_platform/core/config.py:9: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Settings(BaseSettings):
+
+../../core/luana-core-offer-studio/src/luana_core_offer_studio/api/product_mappings.py:27
+  /home/chris/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/api/product_mappings.py:27: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProductMappingOut(BaseModel):
+
+../../core/luana-core-offer-studio/src/luana_core_offer_studio/api/product_mappings.py:54
+  /home/chris/luana-platform/core/luana-core-offer-studio/src/luana_core_offer_studio/api/product_mappings.py:54: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CreateProductMappingOut(BaseModel):
+
+../../../AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/client.py:282
+  /home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/client.py:282: DeprecationWarning: The `enable_tracing` parameter is deprecated. Please use `traces_sample_rate` instead.
+    super(_Client, self).__init__(options=get_options(*args, **kwargs))
+
+src/main.py:266
+  /home/chris/luana-platform/nicolify/backend/src/main.py:266: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+../../../AISALESHT/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py:4599
+../../../AISALESHT/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py:4599
+../../../AISALESHT/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py:4599
+../../../AISALESHT/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py:4599
+../../../AISALESHT/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py:4599
+../../../AISALESHT/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py:4599
+  /home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py:4599: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+src/main.py:334
+  /home/chris/luana-platform/nicolify/backend/src/main.py:334: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+src/main.py:356
+  /home/chris/luana-platform/nicolify/backend/src/main.py:356: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+src/main.py:394
+  /home/chris/luana-platform/nicolify/backend/src/main.py:394: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+src/main.py:429
+  /home/chris/luana-platform/nicolify/backend/src/main.py:429: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+
+src/main.py:437
+  /home/chris/luana-platform/nicolify/backend/src/main.py:437: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+
+../../../AISALESHT/backend/.venv/lib/python3.12/site-packages/starlette/routing.py:656
+  /home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/starlette/routing.py:656: PytestCollectionWarning: cannot collect 'testimonials_router' because it is not a function.
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+
+../../core/luana-core-social-proof/src/luana_core_social_proof/domain/enums.py:14
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/domain/enums.py:14: PytestCollectionWarning: cannot collect test class 'TestimonialMediaType' because it has a __init__ constructor (from: tests/modules/social_proof/integration/test_repositories.py)
+    class TestimonialMediaType(StrEnum):
+
+../../core/luana-core-social-proof/src/luana_core_social_proof/domain/testimonial.py:14
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/domain/testimonial.py:14: PytestCollectionWarning: cannot collect test class 'Testimonial' because it has a __init__ constructor (from: tests/modules/social_proof/integration/test_repositories.py)
+    class Testimonial(BaseEntity):
+
+../../core/luana-core-social-proof/src/luana_core_social_proof/infrastructure/repositories/testimonial_repository.py:26
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/infrastructure/repositories/testimonial_repository.py:26: PytestCollectionWarning: cannot collect test class 'TestimonialRepository' because it has a __init__ constructor (from: tests/modules/social_proof/integration/test_repositories.py)
+    class TestimonialRepository:
+
+../../core/luana-core-social-proof/src/luana_core_social_proof/domain/enums.py:14
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/domain/enums.py:14: PytestCollectionWarning: cannot collect test class 'TestimonialMediaType' because it has a __init__ constructor (from: tests/modules/social_proof/unit/test_domain_entities.py)
+    class TestimonialMediaType(StrEnum):
+
+../../core/luana-core-social-proof/src/luana_core_social_proof/domain/testimonial.py:14
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/domain/testimonial.py:14: PytestCollectionWarning: cannot collect test class 'Testimonial' because it has a __init__ constructor (from: tests/modules/social_proof/unit/test_domain_entities.py)
+    class Testimonial(BaseEntity):
+
+tests/modules/copilot/test_streaming_safety.py: 5 warnings
+tests/modules/copilot/test_sse_v2_events.py: 5 warnings
+tests/modules/sales_agent/scheduling/test_scheduler_webhook_dedup.py: 1 warning
+tests/modules/copilot/test_streaming_integration.py: 7 warnings
+tests/modules/copilot/test_streaming_timeout.py: 5 warnings
+tests/modules/copilot/test_routing_parallel.py: 2 warnings
+tests/modules/copilot/api/test_suggestions_endpoint_integration.py: 2 warnings
+tests/modules/brand/test_personality_api.py: 6 warnings
+  /home/chris/luana-platform/core/luana-core-events/src/luana_core_events/outbox/application/event_bus_adapter.py:151: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    LegacyEventBus.publish(event, session=session)
+
+tests/modules/connections/test_meta_adapter.py::TestMetaAdapterParsePages::test_returns_empty_on_failed_pages_response
+tests/modules/analytics/test_etl_pipeline.py::TestETLPipelinePartialSuccess::test_partial_success_when_failures_and_metrics
+tests/modules/analytics/test_etl_pipeline.py::TestETLPipelineEmptyExtraction::test_zero_metrics_still_invalidates_cache
+tests/modules/analytics/test_etl_pipeline.py::TestETLPipelineHappyPath::test_run_creates_extraction_run_with_success
+tests/shared/domain_events/test_event_bus_adapter_infers_module.py::TestInferModuleFromCaller::test_infers_sales_agent_from_frame
+  /usr/lib/python3.12/unittest/mock.py:2188: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    def __init__(self, name, parent):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/modules/connections/test_meta_adapter.py::TestMetaAdapterGetTokenPermissions::test_returns_empty_on_api_failure
+  /usr/lib/python3.12/unittest/mock.py:2188: RuntimeWarning: coroutine 'AsyncClient.get' was never awaited
+    def __init__(self, name, parent):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/modules/analytics/test_etl_service.py::TestETLServiceMultiStageExtraction::test_run_all_providers_extracts_all_stages_for_mailerlite
+tests/modules/analytics/test_etl_service.py::TestETLServiceMultiStageExtraction::test_run_all_providers_extracts_all_stages_for_mailerlite
+tests/modules/analytics/test_etl_service.py::TestETLServiceMultiStageExtraction::test_run_extraction_iterates_provider_stages_for_mailerlite
+tests/modules/analytics/test_etl_service.py::TestETLServiceMultiStageExtraction::test_run_extraction_iterates_provider_stages_for_mailerlite
+tests/modules/analytics/test_etl_service.py::TestETLServiceMultiStageExtraction::test_run_extraction_uses_default_stage_for_unlisted_provider
+tests/modules/analytics/test_etl_pipeline.py::TestETLPipelineFailure::test_run_marks_failed_on_connection_revoked
+tests/modules/analytics/test_etl_pipeline.py::TestETLPipelineFailure::test_run_marks_failed_and_rolls_back_on_provider_error
+  /home/chris/luana-platform/core/luana-core-analytics-engine/src/luana_core_analytics_engine/infrastructure/etl/pipeline.py:342: DeprecationWarning: sentry_sdk.push_scope is deprecated and will be removed in the next major version. Please consult our migration guide to learn how to migrate to the new API: https://docs.sentry.io/platforms/python/migration/1.x-to-2.x#scope-pushing
+    with sentry_sdk.push_scope() as scope:
+
+tests/modules/analytics/test_etl_service.py::TestETLServiceMultiStageExtraction::test_run_extraction_iterates_provider_stages_for_mailerlite
+  /usr/lib/python3.12/unittest/mock.py:404: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    def __init__(self, /, *args, **kwargs):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/modules/iam/test_user_repository.py::TestUserRepositoryCreate::test_duplicate_email_raises
+tests/modules/sales_agent/scheduling/test_scheduler_webhook_dedup.py::test_valid_signature_parses_and_dedupes_replay
+tests/modules/iam/test_tenant_repository.py::TestTenantRepositoryCreate::test_duplicate_slug_raises
+tests/modules/sales_agent/api/test_payment_webhooks.py::test_replay_returns_duplicate
+tests/modules/iam/test_tenant_router.py::TestCreateTenant::test_duplicate_slug_returns_400
+tests/modules/crm/test_referral_service.py::TestExtractShopifyCodes::test_skip_duplicate_code
+tests/modules/crm/test_referral_service.py::TestExtractShopifyCodes::test_import_shopify_codes
+tests/modules/iam/test_tenant_service.py::TestTenantServiceCreateTenant::test_create_tenant_slug_conflict_returns_error
+  /home/chris/luana-platform/nicolify/backend/tests/conftest.py:333: SAWarning: transaction already deassociated from connection
+    transaction.rollback()
+
+tests/shared/compliance/test_country_block_policy.py::TestPhonePrefixLookup::test_mexico_prefix
+  tests/shared/compliance/test_country_block_policy.py:98: PytestWarning: The test <Function test_mexico_prefix> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_mexico_prefix(self) -> None:
+
+tests/shared/compliance/test_country_block_policy.py::TestPhonePrefixLookup::test_longer_prefix_wins_over_shorter
+  tests/shared/compliance/test_country_block_policy.py:113: PytestWarning: The test <Function test_longer_prefix_wins_over_shorter> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_longer_prefix_wins_over_shorter(self) -> None:
+
+tests/shared/compliance/test_country_block_policy.py::TestPhonePrefixLookup::test_peru_prefix
+  tests/shared/compliance/test_country_block_policy.py:101: PytestWarning: The test <Function test_peru_prefix> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_peru_prefix(self) -> None:
+
+tests/shared/compliance/test_country_block_policy.py::TestPhonePrefixLookup::test_no_plus_sign_returns_none
+  tests/shared/compliance/test_country_block_policy.py:107: PytestWarning: The test <Function test_no_plus_sign_returns_none> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_no_plus_sign_returns_none(self) -> None:
+
+tests/shared/compliance/test_country_block_policy.py::TestPhonePrefixLookup::test_cuba_prefix
+  tests/shared/compliance/test_country_block_policy.py:95: PytestWarning: The test <Function test_cuba_prefix> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_cuba_prefix(self) -> None:
+
+tests/shared/compliance/test_country_block_policy.py::TestPhonePrefixLookup::test_unknown_prefix_returns_none
+  tests/shared/compliance/test_country_block_policy.py:104: PytestWarning: The test <Function test_unknown_prefix_returns_none> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_unknown_prefix_returns_none(self) -> None:
+
+tests/shared/compliance/test_country_block_policy.py::TestPhonePrefixLookup::test_strips_spaces
+  tests/shared/compliance/test_country_block_policy.py:110: PytestWarning: The test <Function test_strips_spaces> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_strips_spaces(self) -> None:
+
+tests/modules/scheduling/test_event_type_service.py::TestDeleteEventType::test_delete_removes_from_list
+tests/modules/scheduling/test_event_type_service.py::TestGetEventType::test_get_by_id_returns_correct_entity
+tests/modules/scheduling/test_event_type_service.py::TestGetEventType::test_get_by_slug
+tests/modules/scheduling/test_event_type_service.py::TestCreateEventType::test_create_persists_and_returns_entity
+tests/modules/scheduling/test_event_type_service.py::TestCreateEventType::test_slug_uniqueness_auto_suffix
+tests/modules/scheduling/test_event_type_service.py::TestCreateEventType::test_slug_uniqueness_auto_suffix
+tests/modules/scheduling/test_event_type_service.py::TestUpdateEventType::test_update_title_and_duration
+  /home/chris/luana-platform/nicolify/backend/src/modules/scheduling/application/services/event_type_service.py:119: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    event_types.append(event_type.dict())
+
+tests/architecture/test_grader_writes_eval_only_bucket.py::test_no_forbidden_table_literal_in_executable_code[copilot_llm_call]
+  /usr/lib/python3.12/ast.py:52: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/shared/agent_observability/channels/test_format_for_channel.py::TestEscapeMarkdownV2::test_escapes_special_chars[!]
+  /home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-229 (_connection_worker_thread)
+  
+  Traceback (most recent call last):
+    File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/aiosqlite/core.py", line 66, in _connection_worker_thread
+      future.get_loop().call_soon_threadsafe(set_result, future, result)
+    File "/usr/lib/python3.12/asyncio/base_events.py", line 840, in call_soon_threadsafe
+      self._check_closed()
+    File "/usr/lib/python3.12/asyncio/base_events.py", line 541, in _check_closed
+      raise RuntimeError('Event loop is closed')
+  RuntimeError: Event loop is closed
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 140, in run
+      return _run_old_run_func()
+             ^^^^^^^^^^^^^^^^^^^
+    File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 135, in _run_old_run_func
+      reraise(*_capture_exception())
+    File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/utils.py", line 1784, in reraise
+      raise value
+    File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/sentry_sdk/integrations/threading.py", line 133, in _run_old_run_func
+      return old_run_func(self, *a[1:], **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/aiosqlite/core.py", line 75, in _connection_worker_thread
+      future.get_loop().call_soon_threadsafe(set_exception, future, e)
+    File "/usr/lib/python3.12/asyncio/base_events.py", line 840, in call_soon_threadsafe
+      self._check_closed()
+    File "/usr/lib/python3.12/asyncio/base_events.py", line 541, in _check_closed
+      raise RuntimeError('Event loop is closed')
+  RuntimeError: Event loop is closed
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/modules/scheduling/test_availability_service.py: 10 warnings
+tests/modules/scheduling/test_availability_service_extended.py: 14 warnings
+  /home/chris/luana-platform/nicolify/backend/src/modules/scheduling/application/services/availability_service.py:173: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    schedules.append(schedule.dict())
+
+tests/modules/analytics/test_meta_provider.py::TestMetaAds::test_happy_path
+  /home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/pydantic/main.py:250: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/modules/campaigns/workers/test_audit_retention_task.py::test_retention_days_safety_clamp_min
+  tests/modules/campaigns/workers/test_audit_retention_task.py:206: PytestWarning: The test <Function test_retention_days_safety_clamp_min> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_retention_days_safety_clamp_min(monkeypatch: pytest.MonkeyPatch) -> None:
+
+tests/modules/campaigns/workers/test_audit_retention_task.py::test_retention_days_default_is_90
+  tests/modules/campaigns/workers/test_audit_retention_task.py:194: PytestWarning: The test <Function test_retention_days_default_is_90> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_retention_days_default_is_90(monkeypatch: pytest.MonkeyPatch) -> None:
+
+tests/modules/campaigns/workers/test_audit_retention_task.py::test_retention_days_safety_clamp_max
+  tests/modules/campaigns/workers/test_audit_retention_task.py:212: PytestWarning: The test <Function test_retention_days_safety_clamp_max> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_retention_days_safety_clamp_max(monkeypatch: pytest.MonkeyPatch) -> None:
+
+tests/modules/campaigns/workers/test_audit_retention_task.py::test_retention_days_env_override
+  tests/modules/campaigns/workers/test_audit_retention_task.py:200: PytestWarning: The test <Function test_retention_days_env_override> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    def test_retention_days_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
+
+tests/modules/social_proof/integration/test_api.py: 10 warnings
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/application/services/testimonial_service.py:51: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    EventBus.publish(
+
+tests/modules/social_proof/integration/test_api.py::TestPlacementsAPI::test_add_link_to_offer_surface
+tests/modules/social_proof/integration/test_api.py::TestForSurfaceResolver::test_include_brand_merges_brand_and_offer
+tests/modules/social_proof/integration/test_api.py::TestForSurfaceResolver::test_include_brand_merges_brand_and_offer
+tests/modules/social_proof/integration/test_api.py::TestForSurfaceResolver::test_returns_placed_items_grouped_by_kind
+tests/modules/social_proof/integration/test_api.py::TestForSurfaceResolver::test_returns_placed_items_grouped_by_kind
+tests/modules/social_proof/integration/test_api.py::TestCascadeDeletion::test_soft_delete_testimonial_cascades_to_placements
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/application/services/placement_service.py:59: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    EventBus.publish(
+
+tests/modules/social_proof/integration/test_api.py::TestPlacementsAPI::test_add_link_to_offer_surface
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/application/services/placement_service.py:94: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    EventBus.publish(
+
+tests/modules/social_proof/integration/test_api.py::TestPlacementsAPI::test_add_link_to_offer_surface
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/application/services/placement_service.py:76: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    EventBus.publish(
+
+tests/modules/social_proof/integration/test_api.py::TestTeamAPI::test_create_and_get
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/application/services/team_service.py:51: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    EventBus.publish(
+
+tests/modules/social_proof/integration/test_api.py::TestTestimonialAPI::test_create_list_get_patch_delete
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/application/services/testimonial_service.py:66: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    EventBus.publish(
+
+tests/modules/social_proof/integration/test_api.py::TestTestimonialAPI::test_create_list_get_patch_delete
+tests/modules/social_proof/integration/test_api.py::TestCascadeDeletion::test_soft_delete_testimonial_cascades_to_placements
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/application/services/testimonial_service.py:90: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    EventBus.publish(
+
+tests/modules/social_proof/integration/test_api.py::TestForSurfaceResolver::test_returns_placed_items_grouped_by_kind
+tests/modules/social_proof/integration/test_api.py::TestAuthorityAPI::test_create_and_get
+  /home/chris/luana-platform/core/luana-core-social-proof/src/luana_core_social_proof/application/services/authority_service.py:55: DeprecationWarning: EventBus.publish called when outbox cutover active. Migrate emitter to EventBusAdapter or wrap with magic comment '# arch-bypass: testing legacy capability'.
+    EventBus.publish(
+
+tests/modules/copilot/test_media_upload.py::test_upload_delegates_to_assets_service
+  /usr/lib/python3.12/asyncio/base_events.py:712: RuntimeWarning: coroutine 'Connection._cancel' was never awaited
+    self._ready.clear()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/modules/copilot/api/test_telegram_webhook_secret_header.py::test_webhook_accepts_dash_form_header_telegram_real_world
+  /home/chris/AISALESHT/backend/.venv/lib/python3.12/site-packages/fastapi/routing.py:324: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    return await dependant.call(**values)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/shared/compliance/test_waba_24h_policy.py::TestWABA24hPolicy::test_naive_datetime_treated_as_utc
+  /home/chris/luana-platform/nicolify/backend/tests/shared/compliance/test_waba_24h_policy.py:74: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    naive = dt.datetime.utcnow() - dt.timedelta(hours=5)  # noqa: DTZ003 — intentional test
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+Test tests/integration/test_brand_connection.py was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/integration/test_brand_conne
+ction.py', 8, 'Skipped: luana_core_landing.brand sub-module not yet 
+implemented')
+Test 
+tests/fixtures/eval/tenants/test_dialect_catalog.py::test_catalog_contains_all_a
+rchetype_dialects was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_d
+ialect_catalog.py', 45, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_dialect_catalog.py::test_invalid_dialect_code_r
+aises was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_d
+ialect_catalog.py', 75, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_dialect_catalog.py::test_each_entry_has_require
+d_fields was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_d
+ialect_catalog.py', 65, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_dialect_catalog.py::test_catalog_has_min_13_ent
+ries was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_d
+ialect_catalog.py', 36, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_4_categories_detected
+_on_adversarial_fixtures was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+eed_pii_scanner.py', 62, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_whitelist_skips_known
+_public_urls was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+eed_pii_scanner.py', 113, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_4_categories_detected
+_on_adversarial_fixtures was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+eed_pii_scanner.py', 62, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_4_categories_detected
+_on_adversarial_fixtures was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+eed_pii_scanner.py', 62, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_whitelist_skips_synth
+etic_fixtures_in_sample_exchanges was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+eed_pii_scanner.py', 148, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_no_pii_in_committed_s
+eeds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+eed_pii_scanner.py', 90, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_seed_pii_scanner.py::test_4_categories_detected
+_on_adversarial_fixtures was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+eed_pii_scanner.py', 62, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/architecture/test_extraction_contract.py::test_generated_markdown_is_up_to
+_date was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/architecture/test_extraction
+_contract.py', 259, 'Skipped: 
+/home/chris/luana-platform/nicolify/docs/etl/extraction-contract.md not present 
+(docs/ not mounted in this environment)')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestBookEventType::test_retur
+ns_404_for_unknown_tenant was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 383, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestBookEventType::test_retur
+ns_404_for_unknown_event_type was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 395, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestBookEventType::test_retur
+ns_200_with_mocked_booking was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 407, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestGetEventTypeSlots::test_r
+eturns_slots_for_valid_event was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 348, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestGetEventTypeSlots::test_r
+eturns_404_for_unknown_event was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 340, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestGetEventTypeSlots::test_r
+eturns_404_for_unknown_tenant was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 332, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestResolveEventTypeBySlug::t
+est_returns_404_for_unknown_event_slug was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 298, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestResolveEventTypeBySlug::t
+est_returns_200_for_valid_event_type was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 303, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/modules/scheduling/test_public_links_api.py::TestResolveEventTypeBySlug::t
+est_returns_404_for_unknown_tenant_slug was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_publ
+ic_links_api.py', 293, 'Skipped: Bug en production source: 
+public_links.py:172,202,230 usa `select(Tenant)` (Pydantic domain entity) en 
+lugar de `select(TenantModel)` (SQLAlchemy model). Resulta en 
+sqlalchemy.exc.ArgumentError → 500 en lugar de 404. PR-2 es tests-only; fix de 
+source va en PR separado. TODO: Arreglar select(Tenant) → select(TenantModel) en
+resolve_event_type, get_event_type_slots, book_event_type en public_links.py.')
+Test 
+tests/scripts/test_promote_golden.py::TestE2ESmoke::test_generate_and_promote_cy
+cle was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/scripts/test_promote_golden.
+py', 821, 'Skipped: E2E smoke requiere --run-evals (costo LLM ~$0.15). Activar: 
+RUN_EVALS=1 pytest ...')
+Test 
+tests/scripts/test_generate_golden_candidates.py::TestReproducibilitySmoke::test
+_same_seed_produces_same_simulation_id was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/scripts/test_generate_golden
+_candidates.py', 593, 'Skipped: Smoke de reproducibilidad real requiere 
+--run-evals (costo LLM ~$0.15). Activar: RUN_EVALS=1 pytest ...')
+Test 
+tests/modules/offer/test_offer_extraction_service.py::TestOfferExtractionService
+ExtractAll::test_extract_all_uses_text_when_no_url was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/offer/test_offer_ext
+raction_service.py', 163, 'Skipped: Orchestration moved to 
+OfferExtractionOrchestrator (2026-04-23). Delegation verified in 
+test_offer_extraction_service_delegates.py. Per-wave save invariant verified in 
+test_extraction_orchestrator_per_wave_save.py. These tests patched 
+service-internal WebCrawler/_run_section which no longer live here.')
+Test 
+tests/modules/offer/test_offer_extraction_service.py::TestOfferExtractionService
+ExtractAll::test_extract_all_persists_results_per_wave was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/offer/test_offer_ext
+raction_service.py', 186, 'Skipped: Orchestration moved to 
+OfferExtractionOrchestrator (2026-04-23). Delegation verified in 
+test_offer_extraction_service_delegates.py. Per-wave save invariant verified in 
+test_extraction_orchestrator_per_wave_save.py. These tests patched 
+service-internal WebCrawler/_run_section which no longer live here.')
+Test 
+tests/modules/offer/test_offer_extraction_service.py::TestOfferExtractionService
+ExtractAll::test_extract_all_uses_correct_archetype was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/offer/test_offer_ext
+raction_service.py', 213, 'Skipped: Orchestration moved to 
+OfferExtractionOrchestrator (2026-04-23). Delegation verified in 
+test_offer_extraction_service_delegates.py. Per-wave save invariant verified in 
+test_extraction_orchestrator_per_wave_save.py. These tests patched 
+service-internal WebCrawler/_run_section which no longer live here.')
+Test 
+tests/modules/offer/test_offer_extraction_service.py::TestOfferExtractionService
+ExtractAll::test_extract_all_calls_crawler_with_url was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/offer/test_offer_ext
+raction_service.py', 124, 'Skipped: Orchestration moved to 
+OfferExtractionOrchestrator (2026-04-23). Delegation verified in 
+test_offer_extraction_service_delegates.py. Per-wave save invariant verified in 
+test_extraction_orchestrator_per_wave_save.py. These tests patched 
+service-internal WebCrawler/_run_section which no longer live here.')
+Test 
+tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_sales_agent_e
+ntrypoint_is_async_callable was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/te
+st_eval_runner_fixtures.py', 241, 'Skipped: eval markers require --run-evals 
+flag')
+Test 
+tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_trajectory_sp
+y_captures_first_specialist_and_tool_calls was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/te
+st_eval_runner_fixtures.py', 622, 'Skipped: eval markers require --run-evals 
+flag')
+Test 
+tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_sales_agent_e
+ntrypoint_invocation_returns_state was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/te
+st_eval_runner_fixtures.py', 257, 'Skipped: eval markers require --run-evals 
+flag')
+Test 
+tests/agentic_evals/sales_agent/test_eval_runner_fixtures.py::test_visionarias_t
+enant_session_returns_required_keys was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/te
+st_eval_runner_fixtures.py', 224, 'Skipped: eval markers require --run-evals 
+flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_realism_smoke.py::test_yaml_has_min_nonnull_fie
+lds was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_r
+ealism_smoke.py', 38, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/modules/crm/test_customer_service.py::TestCustomerRepositoryFindByTrait::t
+est_find_by_ig_username was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/crm/test_customer_se
+rvice.py', 280, 'Skipped: jsonb_extract_path_text is PostgreSQL-only')
+Test 
+tests/modules/crm/test_customer_service.py::TestCustomerRepositoryFindByTrait::t
+est_find_by_trait_tenant_isolation was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/crm/test_customer_se
+rvice.py', 308, 'Skipped: jsonb_extract_path_text is PostgreSQL-only')
+Test 
+tests/modules/crm/test_customer_service.py::TestCustomerRepositoryFindByTrait::t
+est_find_by_trait_returns_none was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/crm/test_customer_se
+rvice.py', 298, 'Skipped: jsonb_extract_path_text is PostgreSQL-only')
+Test 
+tests/integration/test_ga4_live.py::test_run_report_returns_real_session_data 
+was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/integration/test_ga4_live.py
+', 35, 'Skipped: GA4 credentials not set (need GOOGLE_CLIENT_ID, 
+GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN)')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_dialect_code_per_archetype_matc
+hes_table was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 69, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_pricing_currency_pen_for_all 
+was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 133, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_offer_ladder_no_lead_magnet_emi
+ts_warning_proceeds_load was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 82, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_buyer_personas_count_3_per_tena
+nt was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 119, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_buyer_personas_count_3_per_tena
+nt was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 119, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_buyer_personas_count_3_per_tena
+nt was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 119, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_loader_raises_on_missing_archet
+ype_slug was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 36, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_dialect_code_per_archetype_matc
+hes_table was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 69, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_buyer_personas_count_3_per_tena
+nt was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 119, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_loads_all_5_archetype_slugs was
+skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 47, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_pricing_currency_pen_for_all 
+was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 133, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_loads_all_5_archetype_slugs was
+skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 47, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_buyer_personas_count_3_per_tena
+nt was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 119, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_pricing_currency_pen_for_all 
+was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 133, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_loads_all_5_archetype_slugs was
+skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 47, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_loads_all_5_archetype_slugs was
+skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 47, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_dialect_code_per_archetype_matc
+hes_table was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 69, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_loads_all_5_archetype_slugs was
+skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 47, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_dialect_code_per_archetype_matc
+hes_table was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 69, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_pricing_currency_pen_for_all 
+was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 133, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_dialect_code_per_archetype_matc
+hes_table was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 69, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_loader.py::test_pricing_currency_pen_for_all 
+was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_l
+oader.py', 133, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/quality/golden/test_voice_fidelity_outbound.py::test_voice_fidelity_outbou
+nd_3_turns_above_threshold was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/quality/golden/test_voice_fi
+delity_outbound.py', 75, 'Skipped: Skipped by default — set RUN_LLM_JUDGE=1 to 
+run the real voice fidelity grader. Pattern matches 
+tests/quality/golden/test_golden_conversations_semantic.py + 
+tests/quality/sales_agent_goldens/test_sales_agent_judge.py (cost guard).')
+Test 
+tests/quality/golden/test_voice_fidelity_outbound.py::test_voice_fidelity_thresh
+old_env_loaded was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/quality/golden/test_voice_fi
+delity_outbound.py', 65, 'Skipped: Skipped by default — set RUN_LLM_JUDGE=1 to 
+run the real voice fidelity grader. Pattern matches 
+tests/quality/golden/test_golden_conversations_semantic.py + 
+tests/quality/sales_agent_goldens/test_sales_agent_judge.py (cost guard).')
+Test 
+tests/architecture/test_goldens_cost_bucket_invariant.py::TestGoldensCostBucketI
+nvariant::test_generation_writes_only_to_eval_bucket was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/architecture/test_goldens_co
+st_bucket_invariant.py', 82, 'Skipped: Cost-bucket invariant verification 
+requiere EVAL_GOLDENS_COST_BUCKET_VERIFY=1 (CI nightly opt-in — costo LLM ~$0.22
+por ejecución). Activar: EVAL_GOLDENS_COST_BUCKET_VERIFY=1 pytest ...')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_dual_llm
+_e2e_per_archetype was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 185, 'Skipped: eval markers require 
+--run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[0-tenant_clinica_dental] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_nurture_
+multi_question_realistic was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 1193, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[0-tenant_agencia_automatizacion_ia] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_dual_llm
+_e2e_per_archetype was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 185, 'Skipped: eval markers require 
+--run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[2-tenant_agencia_automatizacion_ia] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_dual_llm
+_e2e_per_archetype was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 185, 'Skipped: eval markers require 
+--run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_suite_co
+st_total_cap was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 312, 'Skipped: eval markers require 
+--run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[1-tenant_coach_lat] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[2-tenant_medicina_estetica] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_nurture_
+multi_question_realistic was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 1193, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_dual_llm
+_e2e_per_archetype was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 185, 'Skipped: eval markers require 
+--run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[1-tenant_clinica_dental] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[0-tenant_coach_lat] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[0-tenant_medicina_estetica] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[2-tenant_agencia_growth_video] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[1-tenant_medicina_estetica] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_nurture_
+multi_question_realistic was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 1193, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[0-tenant_agencia_growth_video] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[2-tenant_coach_lat] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_nurture_
+multi_question_realistic was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 1193, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_nurture_
+multi_question_realistic was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 1193, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_no_syste
+m_prompt_leak_subcase_b was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 648, 'Skipped: eval markers require 
+--run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[1-tenant_agencia_automatizacion_ia] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_eval_met
+adata_extended_persona_kind was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 773, 'Skipped: eval markers require 
+--run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_dual_llm
+_e2e_per_archetype was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 185, 'Skipped: eval markers require 
+--run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[2-tenant_clinica_dental] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/agentic_evals/sales_agent/simulator/test_simulator_smoke.py::test_qualifie
+s_out_unqualified_lead[1-tenant_agencia_growth_video] was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_simulator_smoke.py', 991, "Skipped: requires ['qualify_lead', 
+'tag_lead_status'] — separate sales_agent toolkit story (per 
+docs/product/stories/sales-agent-personas-instrumented-runtime/05-guidelines.md 
+§ 'Sales_agent toolkit dependency')")
+Test 
+tests/modules/copilot/api/test_suggestions_endpoint_integration.py::TestSuggesti
+onsIntegration::test_e2e_real_engine_real_offer_provider was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/copilot/api/test_sug
+gestions_endpoint_integration.py', 24, 'Skipped: Pre-existing test bug — missing
+get_db dependency override, triggers real Postgres connection. Exposed post 
+Story 10 big-bang (was previously masked). Deferred to Story 14 
+brand-voice-elevation.')
+Test 
+tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_smoke_multi_laye
+r was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/te
+st_eval_runner_smoke.py', 165, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_degraded_output_
+caught was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/te
+st_eval_runner_smoke.py', 387, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/agentic_evals/sales_agent/test_eval_runner_smoke.py::test_no_cross_tenant_
+leak was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/te
+st_eval_runner_smoke.py', 490, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_personality_profile_y
+aml_validates_sub_models was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 70, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_offer_ladder_yaml_has
+_offers_list was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 96, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_personality_profile_y
+aml_validates_sub_models was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 70, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_offer_ladder_yaml_has
+_offers_list was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 96, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_offer_ladder_yaml_has
+_offers_list was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 96, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_brand_yaml_validates_
+against_brand_settings was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 57, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_brand_yaml_validates_
+against_brand_settings was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 57, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_personality_profile_y
+aml_validates_sub_models was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 70, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_personality_profile_y
+aml_validates_sub_models was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 70, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_offer_ladder_yaml_has
+_offers_list was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 96, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_brand_yaml_validates_
+against_brand_settings was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 57, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_brand_yaml_validates_
+against_brand_settings was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 57, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_loader_raises_on_miss
+ing_required_field was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 109, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_personality_profile_y
+aml_validates_sub_models was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 70, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_brand_yaml_validates_
+against_brand_settings was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 57, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/fixtures/eval/tenants/test_schema_alignment.py::test_offer_ladder_yaml_has
+_offers_list was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/fixtures/eval/tenants/test_s
+chema_alignment.py', 96, 'Skipped: eval markers require --run-evals flag')
+Test 
+tests/architecture/test_no_resumen_deprecated_references.py::test_no_resumen_dep
+recated_references was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/architecture/test_no_resumen
+_deprecated_references.py', 50, 'Skipped: frontend/src not present — skipping FE
+arch scan')
+Test 
+tests/modules/scheduling/test_availability_service_extended.py::TestGetEventType
+Slots::test_get_event_type_slots_with_availability_id was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_avai
+lability_service_extended.py', 524, 'Skipped: Dead code: 
+availability_service.py:361 references `event_type.availability_id` but 
+EventType domain model (shared/domain/schemas/scheduling.py) does NOT have that 
+field. Tests will raise AttributeError at runtime. TODO: Either add 
+`availability_id: str | None = None` to EventType schema or remove the branch 
+from get_event_type_slots. Track as tech debt.')
+Test 
+tests/modules/scheduling/test_availability_service_extended.py::TestGetEventType
+Slots::test_get_event_type_slots_without_availability_id was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/modules/scheduling/test_avai
+lability_service_extended.py', 553, 'Skipped: Dead code: 
+availability_service.py:361 references `event_type.availability_id` but 
+EventType domain model (shared/domain/schemas/scheduling.py) does NOT have that 
+field. Without availability_id, AttributeError is raised before reaching the 
+fallback path. TODO: Either add `availability_id: str | None = None` to 
+EventType schema or remove the branch from get_event_type_slots. Track as tech 
+debt.')
+Test 
+tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_adversar
+ial_persona_no_system_leak was skipped. Reason: 
+('/home/chris/luana-platform/nicolify/backend/tests/agentic_evals/sales_agent/si
+mulator/test_personas_loader.py', 571, 'Skipped: eval markers require 
+--run-evals flag')
+=========================== short test summary info ============================
+FAILED tests/architecture/test_no_legacy_src_paths.py::test_no_legacy_src_imports_in_nicolify_backend
+FAILED tests/architecture/test_no_legacy_src_paths.py::test_no_bare_src_imports_in_nicolify_backend
+FAILED tests/agentic_evals/sales_agent/test_goldens_schema.py::test_actor_profile_id_exists_in_story_c_yamls
+FAILED tests/scripts/test_emit_process_metric.py::test_appends_multiple_records_in_order
+FAILED tests/scripts/test_emit_process_metric.py::test_rejects_invalid_phase
+FAILED tests/scripts/test_emit_process_metric.py::test_creates_parent_directory
+FAILED tests/scripts/test_emit_process_metric.py::test_appends_record_with_required_fields
+FAILED tests/scripts/test_emit_process_metric.py::test_truncates_long_note - ...
+FAILED tests/scripts/test_emit_process_metric.py::test_full_payload_with_all_fields
+FAILED tests/architecture/test_eval_simulator_observability_invariants.py::TestTenantIsolation::test_migration_trace_event_tenant_id_not_null
+FAILED tests/architecture/test_eval_simulator_observability_invariants.py::TestTenantIsolation::test_migration_llm_call_tenant_id_not_null
+FAILED tests/architecture/test_eval_simulator_observability_invariants.py::TestEvalMetadataJsonbColumn::test_migration_llm_call_eval_metadata_not_null
+FAILED tests/architecture/test_eval_simulator_observability_invariants.py::TestEvalMetadataJsonbColumn::test_migration_trace_event_eval_metadata_not_null
+FAILED tests/architecture/test_eval_simulator_observability_invariants.py::TestTimestampColumnsTimezoneAware::test_migration_uses_timestamptz_for_started_at
+FAILED tests/architecture/test_eval_simulator_observability_invariants.py::TestTimestampColumnsTimezoneAware::test_migration_uses_timestamptz_for_created_at
+FAILED tests/scripts/test_promote_golden.py::TestPromoteRefusesCrashedSimulation::test_error_message_mentions_crash_reason
+FAILED tests/migrations/test_116_litellm_db_marker.py::test_migration_116_revision_metadata
+FAILED tests/migrations/test_116_litellm_db_marker.py::test_migration_116_upgrade_idempotent_when_db_exists
+FAILED tests/migrations/test_116_litellm_db_marker.py::test_migration_116_upgrade_creates_database
+FAILED tests/migrations/test_116_litellm_db_marker.py::test_migration_116_upgrade_propagates_unknown_errors
+FAILED tests/migrations/test_116_litellm_db_marker.py::test_migration_116_downgrade_is_no_op
+FAILED tests/architecture/test_consolidated_migration_idempotent.py::test_snapshot_ddl_is_idempotent
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestDowngradeIsIdempotent::test_downgrade_uses_drop_if_exists
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestTenantBillingConfigTable::test_required_columns_and_defaults
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestTenantBillingConfigTable::test_create_table_idempotent
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestMigrationFileExists::test_revision_id_and_down_revision
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestMigrationFileExists::test_file_present
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestModelPricingSnapshotTable::test_required_columns
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestModelPricingSnapshotTable::test_lookup_index
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestModelPricingSnapshotTable::test_partial_unique_index_for_active
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestModelPricingSnapshotTable::test_create_table_idempotent
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestCopilotLlmCallTable::test_indexes
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestCopilotLlmCallTable::test_generated_columns
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestCopilotLlmCallTable::test_required_columns
+FAILED tests/modules/copilot/observability/test_migration_schema.py::TestCopilotLlmCallTable::test_create_table_idempotent
+FAILED tests/migrations/test_118_seed.py::test_migration_118_upgrade_idempotent_noop_on_second_run
+FAILED tests/migrations/test_118_seed.py::test_migration_118_downgrade_is_no_op
+FAILED tests/migrations/test_118_seed.py::test_migration_118_seeds_all_six_roles
+FAILED tests/migrations/test_118_seed.py::test_migration_118_revision_metadata
+FAILED tests/migrations/test_118_seed.py::test_migration_118_actor_is_system_migration
+FAILED tests/migrations/test_118_seed.py::test_migration_118_seed_inserts_are_conditional
+FAILED tests/scripts/test_reconcile_capabilities.py::test_ratified_treated_as_pre_build
+FAILED tests/scripts/test_reconcile_capabilities.py::test_derive_status_table[statuses3-in-progress]
+FAILED tests/scripts/test_reconcile_capabilities.py::test_derive_status_table[statuses2-planned]
+FAILED tests/scripts/test_reconcile_capabilities.py::test_drift_check_exits_1_no_write
+FAILED tests/scripts/test_reconcile_capabilities.py::test_mixed_live_and_ratified_is_in_progress
+FAILED tests/scripts/test_reconcile_capabilities.py::test_empty_story_ids_skips_capability
+FAILED tests/scripts/test_reconcile_capabilities.py::test_derive_status_table[statuses4-in-progress]
+FAILED tests/scripts/test_reconcile_capabilities.py::test_derive_status_table[statuses0-live]
+FAILED tests/scripts/test_reconcile_capabilities.py::test_story_with_leading_comment_block_parses
+FAILED tests/scripts/test_reconcile_capabilities.py::test_all_deprecated_derives_deprecated
+FAILED tests/scripts/test_reconcile_capabilities.py::test_fix_mode_rewrites_status_and_counts
+FAILED tests/scripts/test_reconcile_capabilities.py::test_all_planned_derives_planned
+FAILED tests/scripts/test_reconcile_capabilities.py::test_derive_status_table[statuses7-planned]
+FAILED tests/scripts/test_reconcile_capabilities.py::test_derive_status_table[statuses1-planned]
+FAILED tests/scripts/test_reconcile_capabilities.py::test_no_drift_returns_ok
+FAILED tests/scripts/test_reconcile_capabilities.py::test_missing_story_file_reported_in_check
+FAILED tests/scripts/test_reconcile_capabilities.py::test_derive_status_table[statuses6-live]
+FAILED tests/scripts/test_reconcile_capabilities.py::test_derive_status_table[statuses5-deprecated]
+FAILED tests/scripts/test_validate_session_close.py::test_missing_backlog_warns
+FAILED tests/scripts/test_validate_session_close.py::test_cap_violation_reported_with_count[refined-cap 5]
+FAILED tests/scripts/test_validate_session_close.py::test_cap_violation_reported_with_count[ready-cap 5]
+FAILED tests/scripts/test_validate_session_close.py::test_cap_violation_reported_with_count[developing-cap 3]
+FAILED tests/scripts/test_validate_session_close.py::test_cap_violation_reported_with_count[reviewing-cap 2]
+FAILED tests/scripts/test_validate_session_close.py::test_legacy_exempt_stories_dont_count
+FAILED tests/scripts/test_validate_session_close.py::test_uncommitted_wip_warns
+FAILED tests/scripts/test_validate_session_close.py::test_outcomes_dont_count_toward_cap
+FAILED tests/scripts/test_validate_session_close.py::test_refining_cap_exceeded_blocks
+FAILED tests/scripts/test_validate_session_close.py::test_cap_violation_reported_with_count[developed-cap 10]
+FAILED tests/scripts/test_validate_session_close.py::test_cap_violation_reported_with_count[refining-cap 3]
+FAILED tests/scripts/test_validate_session_close.py::test_quiet_mode_suppresses_warn_output
+FAILED tests/scripts/test_validate_session_close.py::test_developing_cap_exceeded_blocks
+FAILED tests/scripts/test_validate_session_close.py::test_clean_repo_returns_0
+FAILED tests/scripts/test_validate_session_close.py::test_reviewing_cap_exceeded_blocks
+FAILED tests/scripts/test_validate_session_close.py::test_ready_cap_exceeded_blocks
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeIdempotency::test_upgrade_sql_uses_if_not_exists_for_indexes
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeIdempotency::test_double_upgrade_does_not_raise
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeIdempotency::test_upgrade_sql_uses_if_not_exists_for_tables
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestRevisionMetadata::test_revision_id
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestRevisionMetadata::test_down_revision
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestDowngrade::test_downgrade_drops_synthetic_tenants_table
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestDowngrade::test_downgrade_drops_trace_event_table
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestDowngrade::test_downgrade_uses_cascade
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestDowngrade::test_downgrade_drops_llm_call_table
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestDowngrade::test_downgrade_drops_exactly_three_tables
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_llm_call_has_tenant_id
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_llm_call_has_started_at_timestamptz
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_llm_call_lead_id_nullable
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_llm_call_cost_usd_nullable
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_llm_call_has_eval_metadata_jsonb
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_trace_event_has_eval_metadata_jsonb
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_synthetic_tenants_has_deleted_at
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_trace_event_has_tenant_id
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_synthetic_tenants_has_archetype_slug
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeSchemaShape::test_trace_event_has_created_at_timestamptz
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesTables::test_creates_exactly_three_tables
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesTables::test_creates_eval_simulator_llm_call
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesTables::test_creates_eval_synthetic_tenants
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesTables::test_creates_eval_simulator_trace_event
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesIndexes::test_creates_llm_call_sim_id_index
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesIndexes::test_creates_llm_call_turn_index
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesIndexes::test_creates_trace_event_sim_id_index
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesIndexes::test_creates_exactly_seven_indexes
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesIndexes::test_creates_synthetic_tenants_slug_index
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesIndexes::test_creates_llm_call_tenant_day_index
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesIndexes::test_creates_trace_event_tenant_turn_index
+FAILED tests/migrations/test_extend_eval_simulator_observability.py::TestUpgradeCreatesIndexes::test_creates_llm_call_run_id_index
+FAILED tests/migrations/test_119_llm_eval_gate.py::test_migration_119_downgrade_no_op
+FAILED tests/migrations/test_119_llm_eval_gate.py::test_migration_119_default_thresholds_per_role
+FAILED tests/migrations/test_119_llm_eval_gate.py::test_migration_119_creates_both_tables
+FAILED tests/migrations/test_119_llm_eval_gate.py::test_migration_119_seeds_use_on_conflict_do_nothing
+FAILED tests/migrations/test_119_llm_eval_gate.py::test_migration_119_seeds_six_thresholds
+FAILED tests/migrations/test_119_llm_eval_gate.py::test_migration_119_revision_metadata
+FAILED tests/modules/sales_agent/test_output_manager_uses_registry.py::TestOutputManagerArchInvariant::test_imports_get_channel_format
+FAILED tests/modules/sales_agent/test_chat_flow_integration.py::TestChatFlowIntegration::test_state_persists_across_turns
+FAILED tests/modules/sales_agent/test_chat_flow_integration.py::TestChatFlowIntegration::test_buying_signal_increments_score
+FAILED tests/modules/sales_agent/test_chat_flow_integration.py::TestChatFlowIntegration::test_qualification_data_extracted
+FAILED tests/modules/sales_agent/test_chat_flow_integration.py::TestChatFlowIntegration::test_tool_request_routes_to_tool_executor
+FAILED tests/modules/sales_agent/test_chat_flow_integration.py::TestChatFlowIntegration::test_new_user_routes_to_qualifier
+FAILED tests/agentic_evals/sales_agent/simulator/test_runner_unit.py::test_db_session_propagated_to_agent_bridge_via_contextvar
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[idea-idea]
+FAILED tests/scripts/test_generate_backlog.py::test_idea_in_pool_appears_in_idea_bucket
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_phase_mapping_to_macro_state[AUDIT_T1_APPROVED-in-progress-reviewing]
+FAILED tests/scripts/test_generate_backlog.py::test_v4_state_refined_appears_in_refined_bucket
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[building-developing]
+FAILED tests/scripts/test_generate_backlog.py::test_mermaid_kanban_block_present_in_md
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_validated_idea_coerced_to_refining
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[developing-developing]
+FAILED tests/scripts/test_generate_backlog.py::test_check_mode_returns_0_when_fresh
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[parked-parked]
+FAILED tests/scripts/test_generate_backlog.py::test_capability_rollup_aggregates_per_module
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[reviewing-reviewing]
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_phase_mapping_to_macro_state[BUILD_T2-blocked-parked]
+FAILED tests/scripts/test_generate_backlog.py::test_active_story_with_state_ready_appears_in_ready_bucket
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_phase_mapping_to_macro_state[ARCH_DONE-in-progress-ready]
+FAILED tests/scripts/test_generate_backlog.py::test_check_mode_returns_1_when_drift
+FAILED tests/scripts/test_generate_backlog.py::test_refining_cap_warning_when_exceeded
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[done-done]
+FAILED tests/scripts/test_generate_backlog.py::test_developing_cap_warning_when_exceeded
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_phase_mapping_to_macro_state[PO_SPEC-in-progress-refining]
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[refining-refining]
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_phase_mapping_to_macro_state[PM_DRAFT-pending-refining]
+FAILED tests/scripts/test_generate_backlog.py::test_roadmap_section_present_in_md
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[review-reviewing]
+FAILED tests/scripts/test_generate_backlog.py::test_outcome_with_metadata_appears
+FAILED tests/scripts/test_generate_backlog.py::test_capabilities_snapshot_present_in_md
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[ready-ready]
+FAILED tests/scripts/test_generate_backlog.py::test_empty_repo_generates_minimal_backlog
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[refined-refined]
+FAILED tests/scripts/test_generate_backlog.py::test_v4_state_reviewing_appears_in_reviewing_bucket
+FAILED tests/scripts/test_generate_backlog.py::test_v4_state_refining_appears_in_refining_bucket
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[validated-refining]
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_phase_mapping_to_macro_state[DONE-done-done]
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_state_coercion_v3_to_v4[developed-developed]
+FAILED tests/scripts/test_generate_backlog.py::test_legacy_phase_mapping_to_macro_state[BUILD_T1-in-progress-developing]
+FAILED tests/scripts/test_generate_backlog.py::test_idempotent_regeneration
+FAILED tests/scripts/test_generate_backlog.py::test_v4_state_developed_appears_in_developed_bucket
+FAILED tests/scripts/test_skill_sales_agent_audit.py::test_skill_has_new_canonical_sections
+FAILED tests/scripts/test_skill_sales_agent_audit.py::test_shared_observability_consumers_documented
+FAILED tests/scripts/test_skill_sales_agent_audit.py::test_impl_log_has_required_sections
+FAILED tests/scripts/test_skill_sales_agent_audit.py::test_skill_paths_resolve_or_have_obsolete_marker
+FAILED tests/scripts/test_skill_sales_agent_audit.py::test_skill_files_parseable_as_utf8
+FAILED tests/scripts/test_skill_sales_agent_audit.py::test_utility_verdicts_cover_all_skill_sections
+FAILED tests/migrations/test_117_llm_role_binding.py::test_migration_117_upgrade_creates_both_tables
+FAILED tests/migrations/test_117_llm_role_binding.py::test_migration_117_upgrade_idempotent_noop_on_second_run
+FAILED tests/migrations/test_117_llm_role_binding.py::test_migration_117_revision_metadata
+FAILED tests/migrations/test_117_llm_role_binding.py::test_migration_117_check_constraints_present
+FAILED tests/migrations/test_117_llm_role_binding.py::test_migration_117_hot_path_index_created
+FAILED tests/migrations/test_117_llm_role_binding.py::test_migration_117_partial_unique_index_uses_coalesce
+FAILED tests/migrations/test_117_llm_role_binding.py::test_migration_117_downgrade_is_no_op
+FAILED tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_alembic_drop_column_idempotent
+FAILED tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_migration_revision_metadata
+FAILED tests/modules/iam/test_t6c_drop_tenant_api_keys.py::test_migration_downgrade_adds_columns_back
+FAILED tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py::test_migration_downgrade_no_op
+FAILED tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py::test_migration_backup_precedes_update
+FAILED tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py::test_post_migration_zero_non_null
+FAILED tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py::test_migration_revision_metadata
+FAILED tests/modules/iam/test_t6a_deprecate_tenant_api_keys.py::test_migration_idempotent_backup_via_drop_if_exists
+FAILED tests/modules/copilot/observability/reporting/test_mv_aggregation.py::TestMigrationFile::test_file_present
+FAILED tests/modules/copilot/observability/reporting/test_mv_aggregation.py::TestMigrationFile::test_revision_id_and_down_revision
+FAILED tests/modules/copilot/observability/reporting/test_mv_aggregation.py::TestMaterializedView::test_aggregates_present
+FAILED tests/modules/copilot/observability/reporting/test_mv_aggregation.py::TestMaterializedView::test_error_count_uses_filter_clause
+FAILED tests/modules/copilot/observability/reporting/test_mv_aggregation.py::TestMaterializedView::test_unique_index_for_concurrent_refresh
+FAILED tests/modules/copilot/observability/reporting/test_mv_aggregation.py::TestMaterializedView::test_grouped_by_tenant_day_model_provider_role
+FAILED tests/modules/copilot/observability/reporting/test_mv_aggregation.py::TestMaterializedView::test_create_mv_is_idempotent
+FAILED tests/modules/copilot/observability/reporting/test_mv_aggregation.py::TestMaterializedView::test_downgrade_drops_mv
+FAILED tests/architecture/test_personas_yaml_completeness.py::test_legacy_directory_exists
+FAILED tests/architecture/test_personas_yaml_completeness.py::test_legacy_files_names_match_expected
+FAILED tests/architecture/test_personas_yaml_completeness.py::test_archetype_aware_directory_exists
+FAILED tests/architecture/test_personas_yaml_completeness.py::test_archetype_aware_count_is_15
+FAILED tests/architecture/test_personas_yaml_completeness.py::test_legacy_count_is_5
+FAILED tests/architecture/test_personas_yaml_completeness.py::test_each_tenant_has_happy_nurture_unqualified_personas
+FAILED tests/modules/copilot/observability/reporting/test_compute_cycle_start.py::TestComputeCycleStartFunction::test_function_uses_create_or_replace
+FAILED tests/modules/copilot/observability/reporting/test_compute_cycle_start.py::TestComputeCycleStartFunction::test_function_is_immutable
+FAILED tests/modules/copilot/observability/reporting/test_compute_cycle_start.py::TestComputeCycleStartFunction::test_downgrade_drops_function
+FAILED tests/modules/copilot/observability/reporting/test_compute_cycle_start.py::TestComputeCycleStartFunction::test_function_falls_back_to_anchor_25
+FAILED tests/modules/copilot/observability/reporting/test_compute_cycle_start.py::TestComputeCycleStartFunction::test_function_signature
+FAILED tests/modules/copilot/observability/reporting/test_compute_cycle_start.py::TestMigrationFile::test_revision_id_and_down_revision
+FAILED tests/modules/copilot/observability/reporting/test_compute_cycle_start.py::TestMigrationFile::test_file_present
+FAILED tests/architecture/test_campaign_task_idx_workers.py::TestCampaignTaskWorkerQueueIndex::test_idempotency_unique_constraint_exists
+FAILED tests/architecture/test_campaign_task_idx_workers.py::TestCampaignTaskWorkerQueueIndex::test_idempotency_constraint_covers_correct_columns
+FAILED tests/architecture/test_campaign_task_idx_workers.py::TestCampaignTaskWorkerQueueIndex::test_worker_queue_index_has_where_clause
+FAILED tests/architecture/test_campaign_task_idx_workers.py::TestCampaignTaskWorkerQueueIndex::test_six_tables_created
+FAILED tests/architecture/test_campaign_task_idx_workers.py::TestCampaignTaskWorkerQueueIndex::test_migration_down_revision_chains_correctly
+FAILED tests/architecture/test_campaign_task_idx_workers.py::TestCampaignTaskWorkerQueueIndex::test_worker_queue_index_column_order
+FAILED tests/architecture/test_campaign_task_idx_workers.py::TestCampaignTaskWorkerQueueIndex::test_migration_revision_is_correct
+FAILED tests/architecture/test_campaign_task_idx_workers.py::TestCampaignTaskWorkerQueueIndex::test_worker_queue_partial_index_exists
+FAILED tests/agentic_evals/sales_agent/test_goldens_coverage.py::test_all_cells_covered
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_repairs_kimi_rows
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_revision_metadata
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_downgrade_restores_backup
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_upgrade_statement_order
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_backup_table_preserves_original_state
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_downgrade_uses_backup_source
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_no_mistagged_rows_post_migration
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_repairs_qwen_rows
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_upgrade_creates_backup_idempotently
+FAILED tests/migrations/test_t3_pricing_snapshot_repair.py::test_migration_122_repairs_deepseek_rows
+FAILED tests/scripts/test_extract_baseline_metrics.py::test_skips_user_results_without_agent_metadata
+FAILED tests/scripts/test_extract_baseline_metrics.py::test_extracts_subagent_metrics_with_tool_stats
+FAILED tests/scripts/test_extract_baseline_metrics.py::test_extracts_main_session_metrics
+FAILED tests/scripts/test_extract_baseline_metrics.py::test_summary_only_skips_output_write
+FAILED tests/scripts/test_extract_baseline_metrics.py::test_filters_by_date_range
+FAILED tests/scripts/test_extract_baseline_metrics.py::test_handles_malformed_lines
+FAILED tests/agentic_evals/sales_agent/grader/test_judge_registry_unit.py::test_litellm_proxy_routing_only
+FAILED src/tests/test_telegram_flow.py::TestStep4AuditLogging::test_log_and_retrieve_message
+FAILED src/tests/test_telegram_flow.py::TestStep3LeadCreation::test_duplicate_lead_returns_existing
+FAILED src/tests/test_telegram_flow.py::TestStep3LeadCreation::test_create_lead_for_new_customer
+FAILED src/tests/test_telegram_flow.py::TestStep5FullFlowIntegration::test_complete_pre_agent_flow
+FAILED tests/architecture/test_grader_public_api_surface.py::test_no_internal_symbols_leaked_on_grader
+FAILED tests/architecture/test_workflow_compliance.py::test_migration_071_idempotent_and_preserves_procedure_state
+FAILED tests/architecture/test_copilot_telegram_separation.py::test_copilot_channel_links_no_cross_module_fk
+FAILED tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_missing_persona_kind_for_known_slug_raises_filenotfound
+FAILED tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_dialect_matches_archetype_dialect_map_strict
+FAILED tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_metadata_persona_gym_axes_valid
+FAILED tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_loader_lru_cache_returns_same_instance
+FAILED tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_metadata_bloom_stages_valid
+FAILED tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_loader_resolves_nurture_for_5_tenants
+FAILED tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_loader_resolves_unqualified_for_5_tenants
+FAILED tests/agentic_evals/sales_agent/simulator/test_personas_loader.py::test_load_5_archetype_aware
+ERROR tests/scripts/test_pre_commit_hook.py::test_section_8_seed_pii_still_works_post_lift
+ERROR tests/scripts/test_pre_commit_hook.py::test_clean_python_passes - FileN...
+ERROR tests/scripts/test_pre_commit_hook.py::test_voseo_in_python_string_blocks
+ERROR tests/scripts/test_pre_commit_hook.py::test_voseo_allowed_marker_with_reason_passes
+ERROR tests/scripts/test_pre_commit_hook.py::test_modules_path_not_subject_to_r3_gate
+ERROR tests/scripts/test_pre_commit_hook.py::test_new_shared_file_with_na_marker_passes
+ERROR tests/scripts/test_pre_commit_hook.py::test_voseo_excludes_goldens_path
+ERROR tests/scripts/test_pre_commit_hook.py::test_new_shared_file_listed_in_tabla_passes
+ERROR tests/scripts/test_pre_commit_hook.py::test_blocks_pii_in_goldens - Fil...
+ERROR tests/scripts/test_pre_commit_hook.py::test_ruff_violation_blocks_via_staged_content
+ERROR tests/scripts/test_pre_commit_hook.py::test_modification_of_existing_shared_file_passes
+ERROR tests/scripts/test_pre_commit_hook.py::test_format_violation_blocks - F...
+ERROR tests/scripts/test_pre_commit_hook.py::test_new_shared_file_without_ssot_entry_blocks
+ERROR tests/scripts/test_pre_commit_hook.py::test_blocks_pii_in_seed_tenants
+ERROR tests/scripts/test_pre_commit_hook.py::test_voseo_allowed_marker_em_dash_passes
+ERROR tests/scripts/test_pre_commit_hook.py::test_nested_tests_subtree_under_shared_excluded_from_r3
+ERROR src/tests/test_telegram_flow.py::TestStep4AuditLogging::test_log_and_retrieve_message
+ERROR src/tests/test_telegram_flow.py::TestStep3LeadCreation::test_duplicate_lead_returns_existing
+ERROR src/tests/test_telegram_flow.py::TestStep3LeadCreation::test_create_lead_for_new_customer
+ERROR src/tests/test_telegram_flow.py::TestStep5FullFlowIntegration::test_complete_pre_agent_flow
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestAdditionalPropertiesForbidden::test_fe_additional_properties_false[StageFilterParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestAdditionalPropertiesForbidden::test_fe_additional_properties_false[ChannelOverviewParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestAdditionalPropertiesForbidden::test_fe_additional_properties_false[TriggerEtlRefreshParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestSchemaExportExists::test_fe_schemas_are_objects
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestSchemaExportExists::test_all_three_schemas_exported
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestFieldNamesAlignment::test_be_fields_present_in_fe[ChannelOverviewParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestFieldNamesAlignment::test_fe_fields_present_in_be[TriggerEtlRefreshParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestFieldNamesAlignment::test_fe_fields_present_in_be[StageFilterParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestFieldNamesAlignment::test_be_fields_present_in_fe[StageFilterParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestFieldNamesAlignment::test_be_fields_present_in_fe[TriggerEtlRefreshParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestFieldNamesAlignment::test_fe_fields_present_in_be[ChannelOverviewParams]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestEnumValueAlignment::test_enum_values_match[StageFilterParams-channel]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestEnumValueAlignment::test_enum_values_match[TriggerEtlRefreshParams-channel]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestEnumValueAlignment::test_enum_values_match[ChannelOverviewParams-channel]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestEnumValueAlignment::test_enum_values_match[StageFilterParams-stage]
+ERROR tests/architecture/test_be_fe_schema_alignment_growth_studio.py::TestEnumValueAlignment::test_enum_values_match[StageFilterParams-period]
+240 failed, 9779 passed, 143 skipped, 12 deselected, 149 warnings, 36 errors in 542.39s (0:09:02)
+Sentry is attempting to send 1 pending events
+Waiting up to 2 seconds
+Press Ctrl-C to quit

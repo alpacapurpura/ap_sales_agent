@@ -1523,3 +1523,62 @@ T14:
   depends_on: ["T-13"]
   blocks: []
   assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T15:
+  id: T-15
+  title: "Post-consolidation test pruning (T-10 H8 ratification follow-up)"
+  type: backend
+  surface: BE
+  wave_position: 4
+  production_code: false
+  state: draft
+  origin: "T-10 H8 halt Sesion 9 — Chris ratified Option C (defer to T-15) 2026-05-14/15"
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true                     # Mechanical test cleanup, no production logic
+    claude_opus_required: false
+  priority: 3
+  estimate_hours: 3
+  estimated_cost_usd_range: [200, 400]
+  parallelizable_with: [T-12, T-13]
+  decisions_applicable: [D2]
+  halt_triggers_applicable: [8]
+  inputs:
+    impl_log: "../T-10-impl-log.md § Failure categorization (240 fails Cat 1+2+4)"
+  description: |
+    T-10 consolidated 131 alembic migrations to single 001_initial_snapshot.py. This deleted
+    130 prior migration files, breaking 87 tests (Cat 1) that read those files via path/AST
+    introspection. Additionally 121 tests (Cat 2) resolve REPO_ROOT to AISALESHT layout and
+    fail when run from luana-platform/nicolify/backend/. ~85 additional tests (Cat 4) need
+    triage — likely matview refresh state + integration LLM mocks.
+
+    Cat 1 — Migration file introspection tests (87 fails) DELETE or MIGRATE to assert
+    against 001_initial_snapshot.py. Cat 2 — REPO_ROOT path resolution tests (121 fails) —
+    .gitignore patch (Strategy A recommended). Cat 4 — Functional triage (~85 fails) —
+    matview refresh + LLM integration deferred to Story 14 + IAM migration ripple (Cat 1).
+
+  blast_radius:
+    files_affected_count: 18
+    paths:
+      - /home/chris/luana-platform/nicolify/backend/tests/migrations/
+      - /home/chris/luana-platform/nicolify/backend/tests/architecture/test_campaign_task_idx_workers.py
+      - /home/chris/luana-platform/nicolify/backend/.gitignore
+      - /home/chris/luana-platform/nicolify/backend/alembic/versions/001_initial_snapshot.py
+      - /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/DEFERRED-FAILURES-STORY-10.md
+  deliverables:
+    - "Cat 1 87 migration-introspection tests resolved (delete or migrate)"
+    - "Cat 2 121 REPO_ROOT tests excluded via .gitignore"
+    - "Cat 4 matview state resolved (REFRESH MATERIALIZED VIEW or skip pattern)"
+    - "Cat 4 sales_agent residue documented + deferred to Story 14"
+    - "pytest delta ≤ 30 fail (Cat 3 deferred remnant only)"
+  acceptance:
+    - { id: A1, description: "Cat 1 87 migration-introspection tests resolved" }
+    - { id: A2, description: "Cat 2 121 REPO_ROOT tests excluded via .gitignore" }
+    - { id: A3, description: "Full pytest delta ≤ 30 fails (Cat 3 deferred remnant)" }
+  quality_gates:
+    - "T-10 GREEN ratified (A1-A4 cement)"
+    - "Story 14 Cat 3 deferred set preserved"
+  depends_on: ["T-10"]
+  blocks: []
+  assigned_to: null
