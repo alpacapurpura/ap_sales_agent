@@ -11,10 +11,10 @@ automatically via the registry.
 
 from __future__ import annotations
 
-from src.modules.campaigns.observability.persistence.models.llm_call_model import (
+from luana_core_campaigns.observability.persistence.models.llm_call_model import (
     CampaignLlmCallModel,
 )
-from src.shared.agent_observability.registry import (
+from luana_core_observability.registry import (
     AgentObservabilitySpec,
     register_agent_observability,
 )

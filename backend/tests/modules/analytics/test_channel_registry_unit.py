@@ -9,12 +9,12 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.modules.analytics.application.services.channel_registry import (
+from luana_core_analytics_engine.application.services.channel_registry import (
     STAGE_CHANNEL_MAP,
     ChannelRegistry,
     get_stage_channels,
 )
-from src.modules.analytics.domain.ports import ConnectionCredentials
+from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
 
 class TestStageChannelMapStructure:

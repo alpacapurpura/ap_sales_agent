@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
-from src.modules.offer.infrastructure.models.offer_extraction_trace_model import (
+from luana_core_offer_studio.infrastructure.models.offer_extraction_trace_model import (
     OfferExtractionTrace,
 )
 

@@ -13,10 +13,10 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.modules.campaigns.domain.repositories import SegmentRepository
-from src.modules.campaigns.domain.segment import Segment
-from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
-from src.modules.campaigns.infrastructure.models.segment_model import SegmentModel
+from luana_core_campaigns.domain.repositories import SegmentRepository
+from luana_core_campaigns.domain.segment import Segment
+from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
+from luana_core_campaigns.infrastructure.models.segment_model import SegmentModel
 
 logger = structlog.get_logger()
 

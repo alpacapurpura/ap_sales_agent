@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.copilot.api.knowledge import router
+from luana_core_copilot.api.knowledge import router
 
 
 def _client() -> TestClient:

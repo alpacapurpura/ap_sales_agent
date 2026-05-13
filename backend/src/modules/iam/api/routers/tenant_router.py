@@ -3,11 +3,10 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from luana_core_iam.application.services.tenant_service import TenantService
+from luana_core_iam.domain.tenant import Tenant
+from luana_core_platform.core.database import get_db
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.application.services.tenant_service import TenantService
-from src.modules.iam.domain.tenant import Tenant
 
 router = APIRouter()
 

@@ -13,10 +13,9 @@ from uuid import UUID
 
 import httpx
 import structlog
+from luana_core_crm.infrastructure.models.customer_model import CustomerProfileModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
 
 logger = structlog.get_logger()
 
@@ -103,7 +102,7 @@ class InstagramProfileEnricher:
         username: str,
     ) -> None:
         """If a ManyChat-created profile exists with same username, merge it."""
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 

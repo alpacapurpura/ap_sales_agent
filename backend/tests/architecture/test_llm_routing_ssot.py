@@ -218,7 +218,7 @@ def test_no_legacy_adapter_imports() -> None:
     assert not violations, (
         "Forbidden imports of legacy adapter modules deleted in T-4 "
         f"({', '.join(LEGACY_ADAPTER_MODULES)}). Use LiteLLMService from "
-        "src.shared.infrastructure.llm.providers.litellm instead.\n"
+        "luana_core_llm.providers.litellm instead.\n"
         "See: docs/domains/llm-routing.md\n"
         "Violations:\n  - " + "\n  - ".join(violations)
     )
@@ -256,7 +256,7 @@ def test_settings_has_no_litellm_proxy_enabled_attr() -> None:
     3. Anti-flip-audit Steps 1-4 compliance for the flag flip (test mocks
        audited, both flag values run, commit body documents migration).
     """
-    from src.core.config import Settings
+    from luana_core_platform.core.config import Settings
 
     assert "LITELLM_PROXY_ENABLED" not in Settings.model_fields, (
         "Settings.LITELLM_PROXY_ENABLED must remain deleted post-T-5. "

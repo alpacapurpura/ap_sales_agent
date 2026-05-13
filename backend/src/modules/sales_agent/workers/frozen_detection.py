@@ -8,12 +8,11 @@ import contextlib
 import logging
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select
-
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
+from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
+from sqlalchemy import func, select
 
 logger = logging.getLogger(__name__)
 

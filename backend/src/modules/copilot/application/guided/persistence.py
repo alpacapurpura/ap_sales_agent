@@ -15,14 +15,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import text
-
-from src.core.database import SessionLocal
-from src.modules.copilot.application.guided.state import (
+from luana_core_copilot.application.guided.state import (
     GuidedState,
     load_guided_state,
     merge_guided_state,
 )
+from luana_core_platform.core.database import SessionLocal
+from sqlalchemy import text
 
 if TYPE_CHECKING:
     from uuid import UUID

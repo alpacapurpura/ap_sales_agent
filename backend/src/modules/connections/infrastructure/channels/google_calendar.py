@@ -9,12 +9,11 @@ from typing import Any
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
-
-from src.core.config import settings
-from src.modules.connections.infrastructure.marketing_connectors.base import (
+from luana_core_connections.infrastructure.marketing_connectors.base import (
     BaseConnector,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.core.config import settings
+from luana_core_platform.domain.datetime_utils import utc_now
 
 # Allow OAuth scope to change (e.g. if user granted extra scopes previously)
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"

@@ -6,11 +6,11 @@ import uuid
 
 import pytest
 
-from src.modules.copilot.application.tools.ask_tenant_data.executor import (
+from luana_core_copilot.application.tools.ask_tenant_data.executor import (
     NoAccessorError,
     execute_plan,
 )
-from src.modules.copilot.domain.ports import DataQueryPlan, DataQueryResult
+from luana_core_copilot.domain.ports import DataQueryPlan, DataQueryResult
 
 TENANT = uuid.UUID("e0eee0ee-0000-4000-8000-000000000001")
 

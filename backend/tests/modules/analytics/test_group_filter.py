@@ -4,13 +4,13 @@ Validates that the _filter_groups helper correctly filters the response
 to include only requested groups. Pure unit tests -- no DB required.
 """
 
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     AttractionDetailDTO,
     ChannelMetricDTO,
     MetricValueDTO,
     TrafficGroupDTO,
 )
-from src.modules.analytics.application.dto.capture_dto import (
+from luana_core_analytics_engine.application.dto.capture_dto import (
     CaptureDetailDTO,
     CaptureHeaderKpisDTO,
     MiniFunnelDTO,
@@ -45,7 +45,7 @@ class TestFilterGroupsHelper:
         Required fields get an empty group (totals={}, channels=[])
         instead of None.
         """
-        from src.modules.analytics.api.metrics import _filter_groups
+        from luana_core_analytics_engine.api.metrics import _filter_groups
 
         dto = AttractionDetailDTO(
             organic_social=_make_group(2),
@@ -66,7 +66,7 @@ class TestFilterGroupsHelper:
 
     def test_filter_preserves_metadata(self):
         """_filter_groups preserves period, last_updated, and other non-group fields."""
-        from src.modules.analytics.api.metrics import _filter_groups
+        from luana_core_analytics_engine.api.metrics import _filter_groups
 
         dto = AttractionDetailDTO(
             organic_social=_make_group(2),
@@ -82,7 +82,7 @@ class TestFilterGroupsHelper:
 
     def test_filter_with_all_groups_keeps_all(self):
         """When all groups are requested, nothing is filtered."""
-        from src.modules.analytics.api.metrics import _filter_groups
+        from luana_core_analytics_engine.api.metrics import _filter_groups
 
         dto = AttractionDetailDTO(
             organic_social=_make_group(1),
@@ -101,7 +101,7 @@ class TestFilterGroupsHelper:
 
     def test_filter_with_invalid_groups_empties_all(self):
         """Invalid group keys cause all groups to be emptied."""
-        from src.modules.analytics.api.metrics import _filter_groups
+        from luana_core_analytics_engine.api.metrics import _filter_groups
 
         dto = AttractionDetailDTO(
             organic_social=_make_group(1),
@@ -118,7 +118,7 @@ class TestFilterGroupsHelper:
 
     def test_filter_works_with_capture_dto(self):
         """_filter_groups works with CaptureDetailDTO."""
-        from src.modules.analytics.api.metrics import _filter_groups
+        from luana_core_analytics_engine.api.metrics import _filter_groups
 
         dto = CaptureDetailDTO(
             header_kpis=CaptureHeaderKpisDTO(total_leads=500, conversion_rate=5.0),
@@ -143,7 +143,7 @@ class TestFilterGroupsHelper:
 
     def test_filter_returns_same_dto_type(self):
         """_filter_groups returns the same DTO type."""
-        from src.modules.analytics.api.metrics import _filter_groups
+        from luana_core_analytics_engine.api.metrics import _filter_groups
 
         dto = AttractionDetailDTO(
             organic_social=_make_group(1),
@@ -162,7 +162,7 @@ class TestEndpointGroupFilterWiring:
         """The attraction endpoint signature includes groups parameter."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics)
         # The attraction endpoint should have groups in its signature
@@ -173,7 +173,7 @@ class TestEndpointGroupFilterWiring:
         """The capture endpoint signature includes groups parameter."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics.get_capture_metrics)
         assert "groups" in source
@@ -182,7 +182,7 @@ class TestEndpointGroupFilterWiring:
         """The nurturing endpoint signature includes groups parameter."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics.get_nurturing_metrics)
         assert "groups" in source
@@ -191,7 +191,7 @@ class TestEndpointGroupFilterWiring:
         """The opportunity endpoint signature includes groups parameter."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics.get_opportunity_metrics)
         assert "groups" in source

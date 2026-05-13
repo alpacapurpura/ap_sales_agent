@@ -21,21 +21,20 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import structlog
-
-from src.modules.sales_agent.domain.events import (
+from luana_core_observability.recording.sanitization import sanitize_payload
+from luana_core_sales_agent.domain.events import (
     LeadQualifiedEvent,
     ObjectionHandledEvent,
     StageTransitionedEvent,
     ToolLoopDetectedEvent,
 )
-from src.modules.sales_agent.infrastructure.db.database import SessionLocal
-from src.modules.sales_agent.observability.persistence.trace_event_repository import (
+from luana_core_sales_agent.infrastructure.db.database import SessionLocal
+from luana_core_sales_agent.observability.persistence.trace_event_repository import (
     SalesAgentTraceEventRepository,
 )
-from src.shared.agent_observability.recording.sanitization import sanitize_payload
 
 if TYPE_CHECKING:
-    from src.modules.sales_agent.application.event_bus import EventBus
+    from luana_core_sales_agent.application.event_bus import EventBus
 
 logger = structlog.get_logger()
 

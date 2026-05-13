@@ -157,7 +157,12 @@ class TestSalesAgentEnvelopeInheritance:
     def test_envelope_module_imports_base_from_shared(self) -> None:
         env_path = REPO / "src" / "modules" / "sales_agent" / "observability" / "recording" / "turn_envelope.py"
         src = _read(env_path)
-        assert "from src.shared.agent_observability.recording.turn_envelope import" in src, (
+        # Accept both legacy src.shared path and new luana_core_observability path
+        # (post-luana-nicolify migration Story 10 P1-prepared codemod).
+        assert (
+            "from src.shared.agent_observability.recording.turn_envelope import" in src
+            or "from luana_core_observability.recording.turn_envelope import" in src
+        ), (
             "SalesAgentObservabilityContext MUST inherit from the shared base — "
             "no parallel lifecycle implementation in sales_agent."
         )

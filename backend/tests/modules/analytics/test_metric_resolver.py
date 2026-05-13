@@ -11,7 +11,7 @@ from datetime import date
 
 import pytest
 
-from src.modules.analytics.domain.metric_resolver import MetricResolver
+from luana_core_analytics_engine.domain.metric_resolver import MetricResolver
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -435,7 +435,7 @@ class TestResolveDailyFetchMetrics:
 
     def test_derived_cpc_includes_components(self) -> None:
         """CPC time series should trigger fetching spend and clicks."""
-        from src.modules.analytics.application.services.channel_dashboard_service import (
+        from luana_core_analytics_engine.application.services.channel_dashboard_service import (
             ChannelDashboardService,
         )
 
@@ -447,7 +447,7 @@ class TestResolveDailyFetchMetrics:
 
     def test_weighted_avg_cpm_includes_components(self) -> None:
         """CPM time series should trigger fetching spend and impressions."""
-        from src.modules.analytics.application.services.channel_dashboard_service import (
+        from luana_core_analytics_engine.application.services.channel_dashboard_service import (
             ChannelDashboardService,
         )
 
@@ -458,7 +458,7 @@ class TestResolveDailyFetchMetrics:
 
     def test_additive_metric_no_extra_components(self) -> None:
         """Additive metrics (spend) should not add extra component metrics."""
-        from src.modules.analytics.application.services.channel_dashboard_service import (
+        from luana_core_analytics_engine.application.services.channel_dashboard_service import (
             ChannelDashboardService,
         )
 
@@ -472,7 +472,7 @@ class TestResolveDailyFetchMetrics:
 
     def test_meta_ads_full_timeseries_config(self) -> None:
         """Full meta-ads timeseries config should include all component metrics."""
-        from src.modules.analytics.application.services.channel_dashboard_service import (
+        from luana_core_analytics_engine.application.services.channel_dashboard_service import (
             ChannelDashboardService,
         )
 

@@ -36,13 +36,13 @@ def db(db_engine):
 
 def _build_ctx(db, *, lead_id=None, channel_type="telegram"):
     """Build a sales_agent context bound to an in-memory session."""
-    from src.modules.sales_agent.observability.persistence.llm_call_repository import (
+    from luana_core_sales_agent.observability.persistence.llm_call_repository import (
         SalesAgentLlmCallRepository,
     )
-    from src.modules.sales_agent.observability.persistence.trace_event_repository import (
+    from luana_core_sales_agent.observability.persistence.trace_event_repository import (
         SalesAgentTraceEventRepository,
     )
-    from src.modules.sales_agent.observability.recording.turn_envelope import (
+    from luana_core_sales_agent.observability.recording.turn_envelope import (
         SalesAgentObservabilityContext,
     )
 
@@ -66,10 +66,10 @@ def _build_ctx(db, *, lead_id=None, channel_type="telegram"):
 
 class TestInheritanceContract:
     def test_extends_base(self) -> None:
-        from src.modules.sales_agent.observability.recording.turn_envelope import (
+        from luana_core_sales_agent.observability.recording.turn_envelope import (
             SalesAgentObservabilityContext,
         )
-        from src.shared.agent_observability.recording.turn_envelope import (
+        from luana_core_observability.recording.turn_envelope import (
             BaseObservabilityContext,
         )
 
@@ -77,7 +77,7 @@ class TestInheritanceContract:
 
     def test_does_not_redefine_locked_methods(self) -> None:
         """Lifecycle owned by base — subclass MUST NOT shadow."""
-        from src.modules.sales_agent.observability.recording.turn_envelope import (
+        from luana_core_sales_agent.observability.recording.turn_envelope import (
             SalesAgentObservabilityContext,
         )
 
@@ -97,10 +97,10 @@ class TestInheritanceContract:
         assert not overridden, f"Sales subclass overrides locked methods: {overridden}"
 
     def test_observe_turn_resolves_to_base(self) -> None:
-        from src.modules.sales_agent.observability.recording.turn_envelope import (
+        from luana_core_sales_agent.observability.recording.turn_envelope import (
             SalesAgentObservabilityContext,
         )
-        from src.shared.agent_observability.recording.turn_envelope import (
+        from luana_core_observability.recording.turn_envelope import (
             BaseObservabilityContext,
         )
 
@@ -112,7 +112,7 @@ class TestInheritanceContract:
 class TestPersistsAgentSpecificFields:
     @pytest.mark.asyncio
     async def test_turn_start_row_has_lead_id_and_channel_type(self, db) -> None:
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
 
@@ -138,7 +138,7 @@ class TestPersistsAgentSpecificFields:
 
 class TestAggregateTargetsSalesAgentModel:
     def test_aggregate_totals_targets_sales_agent_llm_call_model(self, db) -> None:
-        from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+        from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
             SalesAgentLlmCallModel,
         )
 
@@ -186,7 +186,7 @@ class TestAggregateTargetsSalesAgentModel:
 class TestLegacyCompatReturnsEmpty:
     def test_legacy_compat_keys_returns_empty(self) -> None:
         """Sales_agent has no JSONB consumer → empty dict."""
-        from src.modules.sales_agent.observability.recording.turn_envelope import (
+        from luana_core_sales_agent.observability.recording.turn_envelope import (
             SalesAgentObservabilityContext,
         )
 
@@ -208,7 +208,7 @@ class TestLegacyCompatReturnsEmpty:
 class TestObserveTurnLifecycle:
     @pytest.mark.asyncio
     async def test_clean_exit_writes_turn_start_and_end(self, db) -> None:
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
 
@@ -223,7 +223,7 @@ class TestObserveTurnLifecycle:
 
     @pytest.mark.asyncio
     async def test_exception_marks_turn_end_status_error(self, db) -> None:
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
 

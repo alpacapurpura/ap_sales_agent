@@ -13,12 +13,11 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 import structlog
-
-from src.modules.campaigns.application.services._event_bridge import to_domain_event
-from src.modules.campaigns.domain.campaign import Campaign
-from src.modules.campaigns.domain.campaign_step import CampaignStep
-from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType
-from src.modules.campaigns.domain.events import (
+from luana_core_campaigns.application.services._event_bridge import to_domain_event
+from luana_core_campaigns.domain.campaign import Campaign
+from luana_core_campaigns.domain.campaign_step import CampaignStep
+from luana_core_campaigns.domain.enums import CampaignStatus, CampaignType
+from luana_core_campaigns.domain.events import (
     CampaignCanceled,
     CampaignCompleted,
     CampaignCreated,
@@ -28,30 +27,29 @@ from src.modules.campaigns.domain.events import (
     CampaignStepAdded,
     CampaignStepUpdated,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-    from src.modules.campaigns.domain.dtos import CampaignResponse
-
-    from src.modules.campaigns.application.dtos.campaign_dtos import (
+    from luana_core_billing.application.plan_service import PlanService
+    from luana_core_campaigns.application.dtos.campaign_dtos import (
         CampaignCreate,
         CampaignSortBy,
         CampaignUpdate,
     )
-    from src.modules.campaigns.application.dtos.campaign_step_dtos import (
+    from luana_core_campaigns.application.dtos.campaign_step_dtos import (
         CampaignStepCreate,
         CampaignStepUpdate,
     )
-    from src.modules.campaigns.application.dtos.pagination import PaginatedResponse
-    from src.modules.campaigns.application.services.cache import CacheBackend
-    from src.modules.campaigns.domain.repositories import (
+    from luana_core_campaigns.application.dtos.pagination import PaginatedResponse
+    from luana_core_campaigns.application.services.cache import CacheBackend
+    from luana_core_campaigns.domain.dtos import CampaignResponse
+    from luana_core_campaigns.domain.repositories import (
         CampaignRepository,
         CampaignStepRepository,
         SegmentRepository,
     )
-    from src.shared.billing.application.plan_service import PlanService
-    from src.shared.domain_events.outbox.application.outbox_service import OutboxService
+    from luana_core_events.outbox.application.outbox_service import OutboxService
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 
@@ -228,8 +226,8 @@ class CampaignService:
         limit hard-capped at 100 (API layer enforces; service double-checks).
         """
         # Import here to avoid circular at module load
-        from src.modules.campaigns.application.dtos.campaign_dtos import CampaignResponse
-        from src.modules.campaigns.application.dtos.pagination import PaginatedResponse
+        from luana_core_campaigns.application.dtos.campaign_dtos import CampaignResponse
+        from luana_core_campaigns.application.dtos.pagination import PaginatedResponse
 
         if not (1 <= limit <= 100):
             msg = "limit fuera de rango [1, 100]"

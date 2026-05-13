@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.subagent_budget import (
+from luana_core_copilot.application.orchestrator.subagent_budget import (
     DEFAULT_BUDGET,
     SubagentBudget,
     SubagentBudgetError,

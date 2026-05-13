@@ -222,7 +222,7 @@ def test_tenant_model_columns_dropped() -> None:
     ``gemini_api_key`` MUST remain present (architect §2.4 — still
     active).
     """
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
     column_names = {col.name for col in TenantModel.__table__.columns}
 
@@ -255,7 +255,7 @@ def test_pydantic_tenant_fields_dropped() -> None:
 
     ``gemini_api_key`` MUST remain.
     """
-    from src.modules.iam.domain.tenant import Tenant
+    from luana_core_iam.domain.tenant import Tenant
 
     field_names = set(Tenant.model_fields.keys())
 
@@ -276,7 +276,7 @@ def test_pydantic_aisettings_fields_dropped() -> None:
     ``model_dump`` output but present in ``model_fields``). Post-T-6c
     the Field declarations are physically removed.
     """
-    from src.modules.iam.domain.tenant import AISettings
+    from luana_core_iam.domain.tenant import AISettings
 
     field_names = set(AISettings.model_fields.keys())
 
@@ -298,7 +298,7 @@ def test_pydantic_tenant_settings_update_fields_dropped() -> None:
     (default ``extra='ignore'``), preserving backward compatibility
     while preventing silent writes.
     """
-    from src.modules.iam.domain.tenant import TenantSettingsUpdate
+    from luana_core_iam.domain.tenant import TenantSettingsUpdate
 
     field_names = set(TenantSettingsUpdate.model_fields.keys())
 
@@ -335,7 +335,7 @@ def test_repo_no_legacy_col_references() -> None:
 
     ``gemini_api_key`` MUST remain referenced (still active).
     """
-    from src.modules.iam.infrastructure.repositories import tenant_repository
+    from luana_core_iam.infrastructure.repositories import tenant_repository
 
     repo_path = Path(tenant_repository.__file__)
     source = repo_path.read_text(encoding="utf-8")
@@ -405,8 +405,8 @@ def test_factory_extract_tenant_key_method_still_deleted() -> None:
         ``! grep -q 'def _extract_tenant_key' \
           backend/src/shared/infrastructure/llm/factory.py``
     """
-    from src.shared.infrastructure.llm import factory
-    from src.shared.infrastructure.llm.factory import LLMFactory
+    from luana_core_llm import factory
+    from luana_core_llm.factory import LLMFactory
 
     assert not hasattr(LLMFactory, "_extract_tenant_key"), (
         "LLMFactory._extract_tenant_key must remain DELETED post-T-6c "

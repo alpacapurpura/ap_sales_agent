@@ -26,18 +26,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
+from luana_core_platform.domain.enums import IdentityType
+from luana_core_platform.domain.events import CHANNEL_TYPE_TO_CAPTURE_SLUG
+from luana_core_sales_agent.application.orchestrator.audit_emitter import AuditEmitter
 from sqlalchemy import select
-
-from src.modules.sales_agent.application.orchestrator.audit_emitter import AuditEmitter
-from src.shared.domain.enums import IdentityType
-from src.shared.domain.events import CHANNEL_TYPE_TO_CAPTURE_SLUG
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.domain.messages import IncomingMessage
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.messages import IncomingMessage
 
 # Cross-module facades stay opaque (see audit_emitter.py rationale).
 _CustomerProfile = Any
@@ -100,8 +98,8 @@ class IdentityResolver:
         if not (was_created or not (customer.traits or {}).get("instagram_username")):
             return
         try:
-            from src.shared.links.ports.channel_adapter import create_connection_port
-            from src.shared.links.ports.crm_repos import get_ig_profile_enricher
+            from luana_core_platform.links.ports.channel_adapter import create_connection_port
+            from luana_core_platform.links.ports.crm_repos import get_ig_profile_enricher
 
             connection_port = create_connection_port(db)
             creds = await connection_port.get_credentials(tenant_uuid, "meta")
@@ -134,7 +132,7 @@ class IdentityResolver:
         if not needs_update:
             return
 
-        from src.shared.infrastructure.models.crm import CustomerProfileModel
+        from luana_core_platform.infrastructure.models.crm import CustomerProfileModel
 
         profile_model = (
             db.execute(

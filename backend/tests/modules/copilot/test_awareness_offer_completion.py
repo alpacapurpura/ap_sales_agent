@@ -21,7 +21,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy import text
 
-from src.modules.copilot.application.tools.awareness import _check_offer_completion
+from luana_core_copilot.application.tools.awareness import _check_offer_completion
 
 
 @pytest.fixture

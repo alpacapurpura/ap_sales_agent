@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.modules.connections.api.whatsapp import (
+from luana_core_connections.api.whatsapp import (
     create_whatsapp_session,
     delete_whatsapp_session,
     get_whatsapp_qr,
@@ -42,7 +42,7 @@ def _conn(config=None, is_active=True):
 class TestVerifyWhatsAppWebhook:
     @pytest.mark.asyncio
     async def test_returns_challenge_on_valid_token(self):
-        with patch("src.modules.connections.api.whatsapp.settings") as mock_settings:
+        with patch("luana_core_connections.api.whatsapp.settings") as mock_settings:
             mock_settings.WHATSAPP_VERIFY_TOKEN = "secret_token"
             result = await verify_whatsapp_webhook(
                 mode="subscribe",
@@ -53,7 +53,7 @@ class TestVerifyWhatsAppWebhook:
 
     @pytest.mark.asyncio
     async def test_raises_403_on_wrong_token(self):
-        with patch("src.modules.connections.api.whatsapp.settings") as mock_settings:
+        with patch("luana_core_connections.api.whatsapp.settings") as mock_settings:
             mock_settings.WHATSAPP_VERIFY_TOKEN = "secret_token"
             with pytest.raises(HTTPException) as exc_info:
                 await verify_whatsapp_webhook(
@@ -65,7 +65,7 @@ class TestVerifyWhatsAppWebhook:
 
     @pytest.mark.asyncio
     async def test_raises_403_on_wrong_mode(self):
-        with patch("src.modules.connections.api.whatsapp.settings") as mock_settings:
+        with patch("luana_core_connections.api.whatsapp.settings") as mock_settings:
             mock_settings.WHATSAPP_VERIFY_TOKEN = "secret_token"
             with pytest.raises(HTTPException) as exc_info:
                 await verify_whatsapp_webhook(
@@ -116,7 +116,7 @@ class TestGetWhatsAppStatus:
         evo_conn = _conn(config={"metadata": {"first_name": "Test User"}})
 
         def _get_active(tenant_uuid, channel_type):
-            from src.modules.connections.domain.enums import ChannelType
+            from luana_core_connections.domain.enums import ChannelType
 
             if channel_type == ChannelType.WHATSAPP:
                 return evo_conn
@@ -124,7 +124,7 @@ class TestGetWhatsAppStatus:
 
         repo = _repo(get_active=MagicMock(side_effect=_get_active))
 
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.check_status = AsyncMock(
                 return_value={"exists": True, "state": "open", "data": {"instance": {}}}
             )
@@ -137,7 +137,7 @@ class TestGetWhatsAppStatus:
         evo_conn = _conn()
 
         def _get_active(tenant_uuid, channel_type):
-            from src.modules.connections.domain.enums import ChannelType
+            from luana_core_connections.domain.enums import ChannelType
 
             if channel_type == ChannelType.WHATSAPP:
                 return evo_conn
@@ -145,7 +145,7 @@ class TestGetWhatsAppStatus:
 
         repo = _repo(get_active=MagicMock(side_effect=_get_active))
 
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.check_status = AsyncMock(return_value={"exists": True, "state": "connecting"})
             result = await get_whatsapp_status(TENANT_ID, repo)
 
@@ -156,7 +156,7 @@ class TestGetWhatsAppStatus:
         meta_conn = _conn(config={"metadata": {"phone": "+51999"}})
 
         def _get_active(tenant_uuid, channel_type):
-            from src.modules.connections.domain.enums import ChannelType
+            from luana_core_connections.domain.enums import ChannelType
 
             if channel_type == ChannelType.WHATSAPP_CLOUD:
                 return meta_conn
@@ -185,13 +185,13 @@ class TestCreateWhatsAppSession:
     async def test_creates_evolution_session(self):
         repo = _repo(upsert=MagicMock())
 
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.check_status = AsyncMock(return_value={"exists": False})
             MockChannel.return_value.create_instance = AsyncMock(return_value={"status": 201})
             MockChannel.return_value.configure_webhook = AsyncMock(return_value={"status": 200})
             with (
-                patch("src.modules.connections.api.whatsapp.asyncio.sleep", new_callable=AsyncMock),
-                patch("src.modules.connections.api.whatsapp.settings") as mock_settings,
+                patch("luana_core_connections.api.whatsapp.asyncio.sleep", new_callable=AsyncMock),
+                patch("luana_core_connections.api.whatsapp.settings") as mock_settings,
             ):
                 mock_settings.API_URL = "https://api.example.com"
                 result = await create_whatsapp_session(TENANT_ID, repo, provider="evolution")
@@ -203,14 +203,14 @@ class TestCreateWhatsAppSession:
     async def test_resets_existing_instance_before_creating(self):
         repo = _repo(upsert=MagicMock())
 
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.check_status = AsyncMock(return_value={"exists": True})
             MockChannel.return_value.delete_instance = AsyncMock()
             MockChannel.return_value.create_instance = AsyncMock(return_value={"status": 201})
             MockChannel.return_value.configure_webhook = AsyncMock(return_value={"status": 200})
             with (
-                patch("src.modules.connections.api.whatsapp.asyncio.sleep", new_callable=AsyncMock),
-                patch("src.modules.connections.api.whatsapp.settings") as mock_settings,
+                patch("luana_core_connections.api.whatsapp.asyncio.sleep", new_callable=AsyncMock),
+                patch("luana_core_connections.api.whatsapp.settings") as mock_settings,
             ):
                 mock_settings.API_URL = "https://api.example.com"
                 await create_whatsapp_session(TENANT_ID, repo, provider="evolution")
@@ -221,11 +221,11 @@ class TestCreateWhatsAppSession:
     async def test_raises_500_when_create_fails(self):
         repo = _repo()
 
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.check_status = AsyncMock(return_value={"exists": False})
             MockChannel.return_value.create_instance = AsyncMock(return_value={"status": 500, "text": "server error"})
             with (
-                patch("src.modules.connections.api.whatsapp.asyncio.sleep", new_callable=AsyncMock),
+                patch("luana_core_connections.api.whatsapp.asyncio.sleep", new_callable=AsyncMock),
                 pytest.raises(HTTPException) as exc_info,
             ):
                 await create_whatsapp_session(TENANT_ID, repo, provider="evolution")
@@ -240,7 +240,7 @@ class TestCreateWhatsAppSession:
 class TestGetWhatsAppQR:
     @pytest.mark.asyncio
     async def test_returns_qr_code_from_base64(self):
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.get_qr = AsyncMock(
                 return_value={"status": 200, "data": {"base64": "qr_base64_data"}}
             )
@@ -249,7 +249,7 @@ class TestGetWhatsAppQR:
 
     @pytest.mark.asyncio
     async def test_raises_404_when_instance_not_found(self):
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.get_qr = AsyncMock(return_value={"status": 404})
             with pytest.raises(HTTPException) as exc_info:
                 await get_whatsapp_qr(TENANT_ID)
@@ -257,7 +257,7 @@ class TestGetWhatsAppQR:
 
     @pytest.mark.asyncio
     async def test_raises_500_on_evolution_error(self):
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.get_qr = AsyncMock(return_value={"status": 500, "text": "error"})
             with pytest.raises(HTTPException) as exc_info:
                 await get_whatsapp_qr(TENANT_ID)
@@ -295,7 +295,7 @@ class TestDeleteWhatsAppSession:
             deactivate=MagicMock(),
         )
 
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.logout = AsyncMock()
             MockChannel.return_value.delete_instance = AsyncMock()
             result = await delete_whatsapp_session(TENANT_ID, repo, provider="evolution")
@@ -307,7 +307,7 @@ class TestDeleteWhatsAppSession:
     async def test_evolution_raises_500_on_error(self):
         repo = _repo()
 
-        with patch("src.modules.connections.api.whatsapp.WhatsAppChannel") as MockChannel:
+        with patch("luana_core_connections.api.whatsapp.WhatsAppChannel") as MockChannel:
             MockChannel.return_value.logout = AsyncMock(side_effect=Exception("network error"))
             with pytest.raises(HTTPException) as exc_info:
                 await delete_whatsapp_session(TENANT_ID, repo, provider="evolution")

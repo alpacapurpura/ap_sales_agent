@@ -14,8 +14,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain_events.outbox.domain.outbox_entry import OutboxEntry, OutboxStatus
-from src.shared.domain_events.outbox.infrastructure.repository import OutboxRepositoryImpl
+from luana_core_events.outbox.domain.outbox_entry import OutboxEntry, OutboxStatus
+from luana_core_events.outbox.infrastructure.repository import OutboxRepositoryImpl
 
 
 def _make_entry(payload: dict) -> OutboxEntry:
@@ -75,7 +75,7 @@ class TestOutboxPayloadSanitizationSync:
         mock_session.execute.return_value.rowcount = 1
 
         with patch(
-            "src.shared.domain_events.outbox.infrastructure.repository.sanitize_payload",
+            "luana_core_events.outbox.infrastructure.repository.sanitize_payload",
             return_value={"email": "t***@example.com", "amount": 99.99},
         ) as mock_sanitize:
             repo.append_sync(entry, session=mock_session)
@@ -92,7 +92,7 @@ class TestOutboxPayloadSanitizationSync:
         mock_session.execute.return_value.rowcount = 1
 
         with patch(
-            "src.shared.domain_events.outbox.infrastructure.repository.sanitize_payload",
+            "luana_core_events.outbox.infrastructure.repository.sanitize_payload",
             wraps=lambda p: p,  # pass-through — real behavior
         ) as mock_sanitize:
             repo.append_sync(entry, session=mock_session)
@@ -108,7 +108,7 @@ class TestOutboxPayloadSanitizationSync:
         mock_session.execute.return_value.rowcount = 1
 
         with patch(
-            "src.shared.domain_events.outbox.infrastructure.repository.sanitize_payload",
+            "luana_core_events.outbox.infrastructure.repository.sanitize_payload",
             side_effect=RuntimeError("sanitize crashed"),
         ):
             # Must NOT raise — best-effort contract
@@ -119,7 +119,7 @@ class TestOutboxPayloadSanitizationSync:
 
     def test_phone_in_payload_is_sanitized_via_real_function(self) -> None:
         """Integration: real sanitize_payload masks a phone number in payload."""
-        from src.shared.agent_observability.recording.sanitization import sanitize_payload
+        from luana_core_observability.recording.sanitization import sanitize_payload
 
         payload = {
             "message": "Mi numero es +52 55 1234 5678 para contacto",
@@ -133,7 +133,7 @@ class TestOutboxPayloadSanitizationSync:
 
     def test_email_in_payload_is_sanitized_via_real_function(self) -> None:
         """Integration: real sanitize_payload masks an email address."""
-        from src.shared.agent_observability.recording.sanitization import sanitize_payload
+        from luana_core_observability.recording.sanitization import sanitize_payload
 
         payload = {"lead_email": "maria.garcia@empresa.mx", "offer_id": "offer-999"}
         sanitized = sanitize_payload(payload)
@@ -143,7 +143,7 @@ class TestOutboxPayloadSanitizationSync:
 
     def test_clean_payload_unchanged_via_real_function(self) -> None:
         """Integration: real sanitize_payload leaves clean payload untouched."""
-        from src.shared.agent_observability.recording.sanitization import sanitize_payload
+        from luana_core_observability.recording.sanitization import sanitize_payload
 
         payload = {
             "section": "identity",
@@ -174,7 +174,7 @@ class TestOutboxPayloadSanitizationAsync:
         mock_session.execute = mock_execute
 
         with patch(
-            "src.shared.domain_events.outbox.infrastructure.repository.sanitize_payload",
+            "luana_core_events.outbox.infrastructure.repository.sanitize_payload",
             return_value={"email": "t***@example.com", "amount": 100.0},
         ) as mock_sanitize:
             await repo.append(entry, session=mock_session)
@@ -197,7 +197,7 @@ class TestOutboxPayloadSanitizationAsync:
         mock_session.execute = mock_execute
 
         with patch(
-            "src.shared.domain_events.outbox.infrastructure.repository.sanitize_payload",
+            "luana_core_events.outbox.infrastructure.repository.sanitize_payload",
             side_effect=RuntimeError("crash"),
         ):
             # Must NOT raise

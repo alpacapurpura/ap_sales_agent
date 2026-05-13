@@ -23,18 +23,17 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
-
-from src.modules.sales_agent.application.services.meeting_state_service import (
-    MeetingEntryStatus,
-    MeetingStateService,
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
 )
-from src.shared.domain.events import (
+from luana_core_platform.domain.events import (
     AppointmentEvent,
     BookingMissedEvent,
     DomainEvent,
 )
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
+from luana_core_sales_agent.application.services.meeting_state_service import (
+    MeetingEntryStatus,
+    MeetingStateService,
 )
 
 if TYPE_CHECKING:
@@ -171,7 +170,7 @@ def _pick_entry_to_update(
 def _open_session() -> Session | None:
     """Open a fresh sales_agent session for handler-local writes."""
     try:
-        from src.modules.sales_agent.infrastructure.db.database import SessionLocal
+        from luana_core_sales_agent.infrastructure.db.database import SessionLocal
 
         return SessionLocal()
     except Exception as exc:  # noqa: BLE001

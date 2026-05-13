@@ -7,12 +7,11 @@ import json
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_tenant_id
-from src.modules.copilot.application.procedures.base import Procedure
-from src.modules.copilot.application.procedures.brand_setup import BRAND_SETUP
-from src.modules.copilot.application.procedures.first_setup import FIRST_SETUP
-from src.modules.copilot.application.procedures.offer_creation import OFFER_CREATION
+from luana_core_copilot.application.procedures.base import Procedure
+from luana_core_copilot.application.procedures.brand_setup import BRAND_SETUP
+from luana_core_copilot.application.procedures.first_setup import FIRST_SETUP
+from luana_core_copilot.application.procedures.offer_creation import OFFER_CREATION
+from luana_core_platform.core.context import get_tenant_id
 
 logger = structlog.get_logger()
 

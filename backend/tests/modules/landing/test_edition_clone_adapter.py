@@ -10,10 +10,10 @@ import uuid
 
 from sqlalchemy import select
 
-from src.modules.landing.application.edition_clone_adapter import (
+from luana_core_landing.application.edition_clone_adapter import (
     LandingEditionCloneAdapter,
 )
-from src.modules.landing.infrastructure.models.landing_model import LandingPageModel
+from luana_core_landing.infrastructure.models.landing_model import LandingPageModel
 
 
 def _insert_landing(

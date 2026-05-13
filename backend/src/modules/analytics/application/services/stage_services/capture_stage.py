@@ -6,43 +6,42 @@ grouping into web_infrastructure and ai_agent.
 
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     AvailableChannelsDTO,
     ChannelMetricDTO,
     MetricValueDTO,
     SubSourceDTO,
     TrafficGroupDTO,
 )
-from src.modules.analytics.application.dto.capture_dto import (
+from luana_core_analytics_engine.application.dto.capture_dto import (
     CaptureDetailDTO,
     CaptureHeaderKpisDTO,
     MiniFunnelDTO,
 )
-from src.modules.analytics.application.services.aggregation_helpers import (
+from luana_core_analytics_engine.application.services.aggregation_helpers import (
     compute_channel_totals,
 )
-from src.modules.analytics.application.services.capture_cost_service import (
+from luana_core_analytics_engine.application.services.capture_cost_service import (
     CaptureCostService,
 )
-from src.modules.analytics.application.services.channel_registry import ChannelRegistry
-from src.modules.analytics.application.services.stage_services.constants import (
+from luana_core_analytics_engine.application.services.channel_registry import ChannelRegistry
+from luana_core_analytics_engine.application.services.stage_services.constants import (
     CAPTURE_GROUP_MAP as _CAPTURE_GROUP_MAP,
 )
-from src.modules.analytics.application.services.stage_services.constants import (
+from luana_core_analytics_engine.application.services.stage_services.constants import (
     DISPLAY_NAME_MAP as _DISPLAY_NAME_MAP,
 )
-from src.modules.analytics.domain.period_config import DateRange
-from src.modules.analytics.domain.ports import ConnectionPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.analytics.infrastructure.repositories.capture_repository import (
+from luana_core_analytics_engine.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.ports import ConnectionPort
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_analytics_engine.infrastructure.repositories.capture_repository import (
     CaptureMetricsRepository,
 )
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
-from src.shared.domain.currency import FALLBACK_CURRENCY
+from luana_core_platform.domain.currency import FALLBACK_CURRENCY
+from sqlalchemy.orm import Session
 
 
 class CaptureStageService:
@@ -255,12 +254,11 @@ class CaptureStageService:
 
     def _get_stage0_visitors(self, tenant_id: UUID) -> int:
         """Query aggregated visitor total (reach + sessions) for attraction stage."""
-        from sqlalchemy import func as sa_func
-        from sqlalchemy import select
-
-        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+        from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,
         )
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select
 
         visitor_stmt = select(
             sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0),

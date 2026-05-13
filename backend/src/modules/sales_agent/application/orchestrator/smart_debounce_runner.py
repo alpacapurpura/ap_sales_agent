@@ -24,20 +24,19 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.domain.messages import IncomingMessage
+from luana_core_sales_agent.infrastructure.prompts.semantic import check_is_complete
 from sqlalchemy import select
-
-from src.core.database import SessionLocal
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.modules.sales_agent.infrastructure.prompts.semantic import check_is_complete
-from src.shared.domain.messages import IncomingMessage
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-    from src.modules.sales_agent.infrastructure.external.buffer_service import (
+    from luana_core_platform.infrastructure.channels.base import BaseChannel
+    from luana_core_sales_agent.infrastructure.external.buffer_service import (
         SmartBufferService,
     )
-    from src.shared.infrastructure.channels.base import BaseChannel
 
 logger = structlog.get_logger()
 

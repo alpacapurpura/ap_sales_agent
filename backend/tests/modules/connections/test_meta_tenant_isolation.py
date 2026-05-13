@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.connections.infrastructure.channels.meta import MetaAdapter
+from luana_core_connections.infrastructure.channels.meta import MetaAdapter
 
 
 def _create_adapter_with_mocks(token: str, mock_api_class, mock_session_class):
@@ -31,7 +31,7 @@ def _create_adapter_with_mocks(token: str, mock_api_class, mock_session_class):
     return adapter, mock_api_instance
 
 
-@patch("src.modules.connections.infrastructure.channels.meta.settings")
+@patch("luana_core_connections.infrastructure.channels.meta.settings")
 class TestSequentialTenantIsolation:
     """Two MetaAdapter instances with different tokens return their own tenant's data."""
 
@@ -45,13 +45,13 @@ class TestSequentialTenantIsolation:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
+                "luana_core_connections.infrastructure.channels.meta.FacebookAdsApi",
             ) as mock_api_class,
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
+                "luana_core_connections.infrastructure.channels.meta.FacebookSession",
             ),
             patch(
-                "src.modules.connections.infrastructure.channels.meta.User",
+                "luana_core_connections.infrastructure.channels.meta.User",
             ) as mock_user_class,
         ):
             # Create two adapters with different tokens
@@ -114,7 +114,7 @@ class TestSequentialTenantIsolation:
                 assert "api" in call.kwargs, "User() must be called with api= keyword argument"
 
 
-@patch("src.modules.connections.infrastructure.channels.meta.settings")
+@patch("luana_core_connections.infrastructure.channels.meta.settings")
 class TestConcurrentTenantIsolation:
     """Two MetaAdapter instances running concurrently via asyncio.gather() never cross-contaminate."""
 
@@ -132,13 +132,13 @@ class TestConcurrentTenantIsolation:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
+                "luana_core_connections.infrastructure.channels.meta.FacebookAdsApi",
             ) as mock_api_class,
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
+                "luana_core_connections.infrastructure.channels.meta.FacebookSession",
             ),
             patch(
-                "src.modules.connections.infrastructure.channels.meta.User",
+                "luana_core_connections.infrastructure.channels.meta.User",
             ) as mock_user_class,
         ):
             api_a = MagicMock()
@@ -205,13 +205,13 @@ class TestConcurrentTenantIsolation:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
+                "luana_core_connections.infrastructure.channels.meta.FacebookAdsApi",
             ) as mock_api_class,
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
+                "luana_core_connections.infrastructure.channels.meta.FacebookSession",
             ),
             patch(
-                "src.modules.connections.infrastructure.channels.meta.User",
+                "luana_core_connections.infrastructure.channels.meta.User",
             ) as mock_user_class,
         ):
 

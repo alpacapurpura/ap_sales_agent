@@ -25,29 +25,27 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 import structlog
+from luana_core_campaigns.application.services._event_bridge import to_domain_event
+from luana_core_campaigns.domain.audit_log import AuditEventType
+from luana_core_campaigns.domain.campaign import Campaign
+from luana_core_campaigns.domain.enums import CampaignStatus, TaskStatus
+from luana_core_campaigns.domain.events import CampaignLaunched, CampaignTasksGenerated
+from luana_core_idempotency.application.decorator import idempotent
+from luana_core_platform.domain.datetime_utils import utc_now
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.modules.campaigns.application.services._event_bridge import to_domain_event
-from src.modules.campaigns.domain.audit_log import AuditEventType
-from src.modules.campaigns.domain.campaign import Campaign
-from src.modules.campaigns.domain.enums import CampaignStatus, TaskStatus
-from src.modules.campaigns.domain.events import CampaignLaunched, CampaignTasksGenerated
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.idempotency.application.decorator import idempotent
-
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.modules.campaigns.application.services.audit_log_service import AuditLogService
-    from src.modules.campaigns.application.services.segment_service import SegmentService
-    from src.modules.campaigns.domain.campaign_step import CampaignStep
-    from src.modules.campaigns.domain.campaign_task import CampaignTask
-    from src.modules.campaigns.domain.repositories import (
+    from luana_core_campaigns.application.services.audit_log_service import AuditLogService
+    from luana_core_campaigns.application.services.segment_service import SegmentService
+    from luana_core_campaigns.domain.campaign_step import CampaignStep
+    from luana_core_campaigns.domain.campaign_task import CampaignTask
+    from luana_core_campaigns.domain.repositories import (
         CampaignRepository,
         CampaignStepRepository,
         CampaignTaskRepository,
     )
-    from src.shared.domain_events.outbox.application.outbox_service import OutboxService
+    from luana_core_events.outbox.application.outbox_service import OutboxService
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 
@@ -232,7 +230,7 @@ class CampaignOrchestrator:
         now = utc_now()
         tasks: list[CampaignTask] = []
         if lead_ids and root_steps:
-            from src.modules.campaigns.domain.campaign_task import CampaignTask
+            from luana_core_campaigns.domain.campaign_task import CampaignTask
 
             for step in root_steps:
                 delay_minutes: int = step.step_config.get("delay_minutes", 0)

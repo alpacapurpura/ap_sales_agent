@@ -13,13 +13,13 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.copilot.domain.voice import TranscriptionResult
-from src.modules.iam.api.dependencies import get_current_user, get_db, get_tenant_context
+from luana_core_copilot.domain.voice import TranscriptionResult
+from luana_core_iam.api.dependencies import get_current_user, get_db, get_tenant_context
 
 
 def _build_voice_app() -> tuple[FastAPI, MagicMock]:
     """Build a test app with the voice router."""
-    from src.modules.copilot.api.voice import router
+    from luana_core_copilot.api.voice import router
 
     app = FastAPI()
     tenant_id = uuid4()
@@ -33,8 +33,8 @@ def _build_voice_app() -> tuple[FastAPI, MagicMock]:
     return app, mock_db
 
 
-@patch("src.modules.copilot.api.voice.AssetsService")
-@patch("src.modules.copilot.api.voice.WhisperTranscriber")
+@patch("luana_core_copilot.api.voice.AssetsService")
+@patch("luana_core_copilot.api.voice.WhisperTranscriber")
 def test_voice_upload_and_transcribe_returns_audio_block(
     mock_transcriber_cls: MagicMock,
     mock_assets_cls: MagicMock,
@@ -83,8 +83,8 @@ def test_voice_upload_and_transcribe_returns_audio_block(
     assert "asset_id" in block
 
 
-@patch("src.modules.copilot.api.voice.AssetsService")
-@patch("src.modules.copilot.api.voice.WhisperTranscriber")
+@patch("luana_core_copilot.api.voice.AssetsService")
+@patch("luana_core_copilot.api.voice.WhisperTranscriber")
 def test_voice_upload_stt_fails_transcript_is_empty_string(
     mock_transcriber_cls: MagicMock,
     mock_assets_cls: MagicMock,
@@ -137,7 +137,7 @@ def test_legacy_transcribe_endpoint_still_works() -> None:
     /upload-and-transcribe queda como follow-up PR. Este test garantiza
     que el contrato de deprecación (410 + header) se mantiene estable.
     """
-    from src.modules.copilot.api.voice import router
+    from luana_core_copilot.api.voice import router
 
     app = FastAPI()
     tenant_id = uuid4()

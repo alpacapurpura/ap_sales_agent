@@ -13,7 +13,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def reset_engine():
     """Reset singleton between tests."""
-    from src.modules.copilot.application.suggestions.registry import _reset_for_tests
+    from luana_core_copilot.application.suggestions.registry import _reset_for_tests
 
     _reset_for_tests()
     yield
@@ -23,7 +23,7 @@ def reset_engine():
 class TestRegistryWith4Providers:
     def test_get_default_engine_registers_4_providers(self) -> None:
         """After bootstrap, engine has exactly 4 providers."""
-        from src.modules.copilot.application.suggestions.registry import get_default_engine
+        from luana_core_copilot.application.suggestions.registry import get_default_engine
 
         engine = get_default_engine()
         assert len(engine._providers) == 4, (
@@ -32,7 +32,7 @@ class TestRegistryWith4Providers:
 
     def test_get_default_engine_registers_in_stable_order(self) -> None:
         """Providers registered in order: offer → brand → sales_agent → copilot."""
-        from src.modules.copilot.application.suggestions.registry import get_default_engine
+        from luana_core_copilot.application.suggestions.registry import get_default_engine
 
         engine = get_default_engine()
         ids = [p.provider_id for p in engine._providers]
@@ -42,7 +42,7 @@ class TestRegistryWith4Providers:
 
     def test_get_default_engine_idempotent(self) -> None:
         """Second call returns same engine instance."""
-        from src.modules.copilot.application.suggestions.registry import get_default_engine
+        from luana_core_copilot.application.suggestions.registry import get_default_engine
 
         engine1 = get_default_engine()
         engine2 = get_default_engine()
@@ -50,7 +50,7 @@ class TestRegistryWith4Providers:
 
     def test_get_default_engine_provider_ids_unique(self) -> None:
         """All provider_ids in the engine are unique."""
-        from src.modules.copilot.application.suggestions.registry import get_default_engine
+        from luana_core_copilot.application.suggestions.registry import get_default_engine
 
         engine = get_default_engine()
         ids = [p.provider_id for p in engine._providers]

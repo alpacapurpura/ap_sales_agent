@@ -11,12 +11,12 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import SaleStage, SaleStatus
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.enums import SaleStage, SaleStatus
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
     JourneyEventModel,
 )
-from src.modules.crm.infrastructure.models.sale_model import SaleModel
+from luana_core_crm.infrastructure.models.sale_model import SaleModel
 from tests.modules.offer.conftest import TENANT_A, create_product_model
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

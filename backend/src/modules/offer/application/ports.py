@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, BinaryIO
 # Re-exported here so offer-internal code has a single import origin
 # while the actual contract lives in shared/links (DDD-clean). See
 # ``shared/links/ports/edition_landing_clone.py``.
-from src.shared.links.ports.edition_landing_clone import (
+from luana_core_platform.links.ports.edition_landing_clone import (
     IEditionLandingClonePort,
     LandingRef,
 )
@@ -20,15 +20,15 @@ from src.shared.links.ports.edition_landing_clone import (
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.offer.domain.assets import OfferAsset
-    from src.modules.offer.domain.enums import (
+    from luana_core_offer_studio.domain.assets import OfferAsset
+    from luana_core_offer_studio.domain.enums import (
         AssetSource,
         AssetType,
         KnowledgeSourceType,
     )
-    from src.modules.offer.domain.knowledge_source import KnowledgeSource
-    from src.modules.offer.domain.offer import Offer
-    from src.modules.offer.domain.offer_ai_schemas import (
+    from luana_core_offer_studio.domain.knowledge_source import KnowledgeSource
+    from luana_core_offer_studio.domain.offer import Offer
+    from luana_core_offer_studio.domain.offer_ai_schemas import (
         PsychologyGenerationRequest,
         PsychologyGenerationResponse,
     )

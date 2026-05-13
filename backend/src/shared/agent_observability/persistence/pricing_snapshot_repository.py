@@ -11,11 +11,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import or_, select, update
-
-from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
+from luana_core_observability.persistence.models.pricing_snapshot_model import (
     ModelPricingSnapshotModel,
 )
+from sqlalchemy import or_, select, update
 
 if TYPE_CHECKING:
     import datetime as dt

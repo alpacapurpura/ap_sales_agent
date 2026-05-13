@@ -10,7 +10,7 @@ from collections import OrderedDict
 from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
-from src.modules.analytics.application.dto.timeseries_dto import (
+from luana_core_analytics_engine.application.dto.timeseries_dto import (
     ChannelInfoDTO,
     StageTimeSeriesDTO,
     TimeSeriesPointDTO,
@@ -19,10 +19,9 @@ from src.modules.analytics.application.dto.timeseries_dto import (
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_analytics_engine.domain.ports import ConnectionPort
+    from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
     from sqlalchemy.orm import Session
-
-    from src.modules.analytics.domain.ports import ConnectionPort
-    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 # Suggested hex colors per channel slug (frontend may override)
 _CHANNEL_COLORS: dict[str, str] = {
@@ -116,12 +115,11 @@ class TimeseriesStageService:
         now: date,
     ) -> list:
         """Query official_metrics for the current period."""
-        from sqlalchemy import func as sa_f
-        from sqlalchemy import select as sa_select
-
-        from src.modules.analytics.infrastructure.models.official_metrics_model import (
+        from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
             OfficialMetricModel,
         )
+        from sqlalchemy import func as sa_f
+        from sqlalchemy import select as sa_select
 
         m = OfficialMetricModel
         stmt = (
@@ -147,12 +145,11 @@ class TimeseriesStageService:
         start_date: date,
     ) -> dict[str, float] | None:
         """Query previous period totals for delta% calculation."""
-        from sqlalchemy import func as sa_f
-        from sqlalchemy import select as sa_select
-
-        from src.modules.analytics.infrastructure.models.official_metrics_model import (
+        from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
             OfficialMetricModel,
         )
+        from sqlalchemy import func as sa_f
+        from sqlalchemy import select as sa_select
 
         m = OfficialMetricModel
         prev_stmt = (
@@ -178,7 +175,7 @@ class TimeseriesStageService:
         granularity: str = "daily",
     ) -> StageTimeSeriesDTO:
         """Return time-series data for a funnel stage, grouped by channel and date."""
-        from src.modules.analytics.application.services.channel_registry import (
+        from luana_core_analytics_engine.application.services.channel_registry import (
             get_stage_channels,
         )
 

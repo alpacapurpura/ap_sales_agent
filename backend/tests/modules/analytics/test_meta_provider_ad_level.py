@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.modules.analytics.infrastructure.providers.meta_provider import MetaProvider
+from luana_core_analytics_engine.infrastructure.providers.meta_provider import MetaProvider
 
 
 def _ok_response(data: list) -> MagicMock:

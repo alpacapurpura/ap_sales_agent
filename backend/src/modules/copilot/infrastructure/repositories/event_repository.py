@@ -4,10 +4,9 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import structlog
+from luana_core_copilot.infrastructure.models.event_model import CopilotEventModel
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
-
-from src.modules.copilot.infrastructure.models.event_model import CopilotEventModel
 
 logger = structlog.get_logger()
 

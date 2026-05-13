@@ -14,7 +14,7 @@ def _run(coro):
 
 
 def _make_svc(cache=None, db=None):
-    from src.modules.analytics.application.services.stage_services.overview_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
         StageOverviewService,
     )
 
@@ -337,12 +337,12 @@ class TestExtractChannelList:
 
 
 class TestPickHeadlineKpi:
-    from src.modules.analytics.application.services.stage_services.overview_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
         StageOverviewService,
     )
 
     def test_no_metrics_returns_none(self):
-        from src.modules.analytics.application.services.stage_services.overview_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
             StageOverviewService,
         )
 
@@ -350,7 +350,7 @@ class TestPickHeadlineKpi:
         assert result is None
 
     def test_non_list_metrics_returns_none(self):
-        from src.modules.analytics.application.services.stage_services.overview_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
             StageOverviewService,
         )
 
@@ -358,7 +358,7 @@ class TestPickHeadlineKpi:
         assert result is None
 
     def test_priority_match_returned(self):
-        from src.modules.analytics.application.services.stage_services.overview_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
             StageOverviewService,
         )
 
@@ -373,7 +373,7 @@ class TestPickHeadlineKpi:
         assert result.value == 3000.0
 
     def test_no_priority_match_uses_first(self):
-        from src.modules.analytics.application.services.stage_services.overview_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
             StageOverviewService,
         )
 

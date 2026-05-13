@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.connections.infrastructure.channels.meta import MetaAdapter
+from luana_core_connections.infrastructure.channels.meta import MetaAdapter
 
 
 class TestApiVersionConstant:
@@ -29,7 +29,7 @@ class TestApiVersionConstant:
 class TestAuthorizationUrlVersion:
     """get_authorization_url() must use API_VERSION in the OAuth URL."""
 
-    @patch("src.modules.connections.infrastructure.channels.meta.settings")
+    @patch("luana_core_connections.infrastructure.channels.meta.settings")
     def test_authorization_url_contains_v24(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
         mock_settings.META_APP_SECRET = "test_app_secret"
@@ -45,7 +45,7 @@ class TestAuthorizationUrlVersion:
 class TestExchangeCodeVersion:
     """exchange_code() must construct URLs with API_VERSION constant."""
 
-    @patch("src.modules.connections.infrastructure.channels.meta.settings")
+    @patch("luana_core_connections.infrastructure.channels.meta.settings")
     @pytest.mark.asyncio
     async def test_exchange_code_uses_v24_in_url(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
@@ -79,7 +79,7 @@ class TestExchangeCodeVersion:
 class TestGetBusinessAssetsVersion:
     """get_business_assets() must construct URLs with API_VERSION constant."""
 
-    @patch("src.modules.connections.infrastructure.channels.meta.settings")
+    @patch("luana_core_connections.infrastructure.channels.meta.settings")
     @pytest.mark.asyncio
     async def test_get_business_assets_uses_v24_in_url(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
@@ -114,18 +114,18 @@ class TestGetBusinessAssetsVersion:
 class TestInitApiNotSingleton:
     """_init_api() must NOT call FacebookAdsApi.init() — uses per-instance API."""
 
-    @patch("src.modules.connections.infrastructure.channels.meta.settings")
+    @patch("luana_core_connections.infrastructure.channels.meta.settings")
     def test_init_api_does_not_call_global_init(self, mock_settings):
         """FacebookAdsApi.init() must never be called."""
         mock_settings.META_APP_ID = "test_app_id"
         mock_settings.META_APP_SECRET = "test_app_secret"
 
         with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
+            "luana_core_connections.infrastructure.channels.meta.FacebookAdsApi",
         ) as mock_api_class:
             mock_session = MagicMock()
             with patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
+                "luana_core_connections.infrastructure.channels.meta.FacebookSession",
                 return_value=mock_session,
             ):
                 MetaAdapter(
@@ -137,21 +137,21 @@ class TestInitApiNotSingleton:
                 # FacebookAdsApi.init() must NOT have been called
                 mock_api_class.init.assert_not_called()
 
-    @patch("src.modules.connections.infrastructure.channels.meta.settings")
+    @patch("luana_core_connections.infrastructure.channels.meta.settings")
     def test_init_api_creates_per_instance_api(self, mock_settings):
         """_init_api() must create FacebookAdsApi via FacebookSession and store as _api_instance."""
         mock_settings.META_APP_ID = "test_app_id"
         mock_settings.META_APP_SECRET = "test_app_secret"
 
         with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
+            "luana_core_connections.infrastructure.channels.meta.FacebookAdsApi",
         ) as mock_api_class:
             mock_session = MagicMock()
             mock_api_instance = MagicMock()
             mock_api_class.return_value = mock_api_instance
 
             with patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
+                "luana_core_connections.infrastructure.channels.meta.FacebookSession",
                 return_value=mock_session,
             ):
                 adapter = MetaAdapter(
@@ -168,18 +168,18 @@ class TestInitApiNotSingleton:
                 )
                 assert adapter._api_instance == mock_api_instance
 
-    @patch("src.modules.connections.infrastructure.channels.meta.settings")
+    @patch("luana_core_connections.infrastructure.channels.meta.settings")
     def test_init_api_does_not_set_default_api(self, mock_settings):
         """_init_api() must NOT call FacebookAdsApi.set_default_api()."""
         mock_settings.META_APP_ID = "test_app_id"
         mock_settings.META_APP_SECRET = "test_app_secret"
 
         with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
+            "luana_core_connections.infrastructure.channels.meta.FacebookAdsApi",
         ) as mock_api_class:
             mock_session = MagicMock()
             with patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
+                "luana_core_connections.infrastructure.channels.meta.FacebookSession",
                 return_value=mock_session,
             ):
                 MetaAdapter(
@@ -194,7 +194,7 @@ class TestInitApiNotSingleton:
 class TestGetUserProfileExplicitApi:
     """get_user_profile() must pass api=self._api_instance to User()."""
 
-    @patch("src.modules.connections.infrastructure.channels.meta.settings")
+    @patch("luana_core_connections.infrastructure.channels.meta.settings")
     @pytest.mark.asyncio
     async def test_get_user_profile_passes_explicit_api(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
@@ -205,13 +205,13 @@ class TestGetUserProfileExplicitApi:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
+                "luana_core_connections.infrastructure.channels.meta.FacebookAdsApi",
             ) as mock_api_class,
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
+                "luana_core_connections.infrastructure.channels.meta.FacebookSession",
             ),
             patch(
-                "src.modules.connections.infrastructure.channels.meta.User",
+                "luana_core_connections.infrastructure.channels.meta.User",
             ) as mock_user_class,
         ):
             mock_api_class.return_value = mock_api_instance

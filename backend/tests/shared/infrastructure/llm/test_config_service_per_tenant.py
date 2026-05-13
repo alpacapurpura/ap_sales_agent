@@ -18,8 +18,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.core.enums import ModelRole
-from src.shared.infrastructure.llm.application.config_service import (
+from luana_core_platform.core.enums import ModelRole
+from luana_core_llm.application.config_service import (
     LLMConfigService,
     reset_llm_config_service,
 )
@@ -44,7 +44,7 @@ async def test_resolve_no_tenant_skips_growthbook() -> None:
 @pytest.mark.asyncio
 async def test_resolve_with_tenant_disabled_growthbook_falls_through() -> None:
     """GrowthBook disabled (empty API_HOST) → falls through to global."""
-    from src.core.config import settings
+    from luana_core_platform.core.config import settings
 
     # Defaults are empty strings — service short-circuits.
     assert settings.GROWTHBOOK_API_HOST == ""
@@ -66,7 +66,7 @@ async def test_per_tenant_override_returns_none_when_no_growthbook() -> None:
 @pytest.mark.asyncio
 async def test_per_tenant_override_returns_none_on_growthbook_error() -> None:
     """When GrowthBook configured but fails → graceful degradation."""
-    from src.core.config import settings
+    from luana_core_platform.core.config import settings
 
     service = LLMConfigService(session_factory=None)
     with (
@@ -81,7 +81,7 @@ async def test_per_tenant_override_returns_none_on_growthbook_error() -> None:
 @pytest.mark.asyncio
 async def test_settings_growthbook_fields_present() -> None:
     """Settings has GROWTHBOOK_API_HOST + GROWTHBOOK_CLIENT_KEY fields."""
-    from src.core.config import settings
+    from luana_core_platform.core.config import settings
 
     assert hasattr(settings, "GROWTHBOOK_API_HOST")
     assert hasattr(settings, "GROWTHBOOK_CLIENT_KEY")

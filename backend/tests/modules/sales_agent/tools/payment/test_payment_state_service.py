@@ -15,9 +15,9 @@ LEAD_ID = uuid.UUID("bbbb9002-0000-0000-0000-000000000001")
 
 @pytest.fixture
 def populated_db(db):
-    from src.modules.crm.infrastructure.models.lead_model import LeadModel
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+    from luana_core_crm.infrastructure.models.lead_model import LeadModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
         AgentStateCheckpointModel,
     )
 
@@ -40,7 +40,7 @@ def populated_db(db):
 
 
 def test_payment_state_service_importable() -> None:
-    from src.modules.sales_agent.application.services.payment_state_service import (
+    from luana_core_sales_agent.application.services.payment_state_service import (
         PaymentEntry,
         PaymentEntryStatus,
         PaymentStateService,
@@ -50,10 +50,10 @@ def test_payment_state_service_importable() -> None:
 def test_append_link_creates_entry(populated_db) -> None:
     import datetime as dt
 
-    from src.modules.sales_agent.application.services.payment_state_service import (
+    from luana_core_sales_agent.application.services.payment_state_service import (
         PaymentStateService,
     )
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PaymentLinkOutput,
     )
 
@@ -75,10 +75,10 @@ def test_append_link_creates_entry(populated_db) -> None:
 def test_find_pending_link_returns_existing(populated_db) -> None:
     import datetime as dt
 
-    from src.modules.sales_agent.application.services.payment_state_service import (
+    from luana_core_sales_agent.application.services.payment_state_service import (
         PaymentStateService,
     )
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PaymentLinkOutput,
     )
 
@@ -103,11 +103,11 @@ def test_find_pending_link_returns_existing(populated_db) -> None:
 def test_update_status_by_external_id(populated_db) -> None:
     import datetime as dt
 
-    from src.modules.sales_agent.application.services.payment_state_service import (
+    from luana_core_sales_agent.application.services.payment_state_service import (
         PaymentEntryStatus,
         PaymentStateService,
     )
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PaymentLinkOutput,
     )
 

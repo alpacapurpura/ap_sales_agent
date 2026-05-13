@@ -26,7 +26,7 @@ _LIGHTHOUSE_TEXT = (
 
 @pytest.fixture(autouse=True)
 def _reset_provider_discovery():
-    from src.modules.copilot.application.discovery import reset_discovery
+    from luana_core_copilot.application.discovery import reset_discovery
 
     reset_discovery()
     yield
@@ -42,15 +42,15 @@ def _stub_db_helpers(monkeypatch):
     the DB (no Postgres in unit tests).
     """
     monkeypatch.setattr(
-        "src.modules.copilot.application.orchestrator.graph._get_completion_snapshot",
+        "luana_core_copilot.application.orchestrator.graph._get_completion_snapshot",
         lambda _tenant_id: "",
     )
     monkeypatch.setattr(
-        "src.modules.copilot.application.orchestrator.graph._get_behavior_summary",
+        "luana_core_copilot.application.orchestrator.graph._get_behavior_summary",
         lambda _tenant_id, _user_id: "",
     )
     monkeypatch.setattr(
-        "src.modules.copilot.domain.schema_introspection.format_all_editable_catalogs_markdown",
+        "luana_core_copilot.domain.schema_introspection.format_all_editable_catalogs_markdown",
         lambda: "",
     )
 
@@ -58,7 +58,7 @@ def _stub_db_helpers(monkeypatch):
 @pytest.fixture
 def stub_summary(monkeypatch):
     """Patch ``BrandSummaryProvider.summary`` to return our canned text."""
-    from src.modules.brand.copilot_provider import summary as summary_mod
+    from luana_core_brand_studio.copilot_provider import summary as summary_mod
 
     async def _stub_summary(self, *, tenant_id):
         return _LIGHTHOUSE_TEXT
@@ -83,10 +83,10 @@ def base_state():
 
 
 def test_lighthouse_present_on_offer_studio(stub_summary, base_state) -> None:
-    from src.modules.copilot.application.orchestrator.graph import (
+    from luana_core_copilot.application.orchestrator.graph import (
         build_system_prompt,
     )
-    from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+    from luana_core_copilot.application.orchestrator.system_prompt_layout import (
         CACHE_BOUNDARY_MARKER,
     )
 
@@ -107,7 +107,7 @@ def test_lighthouse_present_on_offer_studio(stub_summary, base_state) -> None:
 
 
 def test_lighthouse_absent_on_brand_studio(stub_summary, base_state) -> None:
-    from src.modules.copilot.application.orchestrator.graph import (
+    from luana_core_copilot.application.orchestrator.graph import (
         build_system_prompt,
     )
 
@@ -117,8 +117,8 @@ def test_lighthouse_absent_on_brand_studio(stub_summary, base_state) -> None:
 
 
 def test_lighthouse_absent_when_summary_missing(monkeypatch, base_state) -> None:
-    from src.modules.brand.copilot_provider import summary as summary_mod
-    from src.modules.copilot.application.orchestrator.graph import (
+    from luana_core_brand_studio.copilot_provider import summary as summary_mod
+    from luana_core_copilot.application.orchestrator.graph import (
         build_system_prompt,
     )
 
@@ -134,7 +134,7 @@ def test_lighthouse_absent_when_summary_missing(monkeypatch, base_state) -> None
 
 def test_deep_agent_suffix_stays_at_tail(stub_summary, base_state) -> None:
     """The F2 deep-agent suffix must remain after ALL injected fragments."""
-    from src.modules.copilot.application.orchestrator.deep_agent import (
+    from luana_core_copilot.application.orchestrator.deep_agent import (
         _DEEP_AGENT_SUFFIX_ES,
         _build_combined_system_prompt,
     )
@@ -148,7 +148,7 @@ def test_deep_agent_suffix_stays_at_tail(stub_summary, base_state) -> None:
 
 
 def test_no_route_means_no_lighthouse(stub_summary, base_state) -> None:
-    from src.modules.copilot.application.orchestrator.graph import (
+    from luana_core_copilot.application.orchestrator.graph import (
         build_system_prompt,
     )
 

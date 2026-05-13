@@ -11,7 +11,7 @@ import pytest
 
 def test_payment_gateway_provider_protocol_importable() -> None:
     """Protocol + registry must be importable from the payment providers module."""
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PAYMENT_PROVIDERS,
         PaymentGatewayProvider,
         PaymentLinkOutput,
@@ -23,7 +23,7 @@ def test_payment_gateway_provider_protocol_importable() -> None:
 
 def test_payment_providers_registry_not_empty() -> None:
     """At least one concrete provider must be registered (MP + Stripe)."""
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PAYMENT_PROVIDERS,
     )
 
@@ -31,7 +31,7 @@ def test_payment_providers_registry_not_empty() -> None:
 
 
 def test_mercadopago_provider_registered() -> None:
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PAYMENT_PROVIDERS,
     )
 
@@ -39,7 +39,7 @@ def test_mercadopago_provider_registered() -> None:
 
 
 def test_stripe_provider_registered() -> None:
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PAYMENT_PROVIDERS,
     )
 
@@ -48,7 +48,7 @@ def test_stripe_provider_registered() -> None:
 
 def test_every_registered_provider_is_runtime_checkable() -> None:
     """Each impl in PAYMENT_PROVIDERS must satisfy the Protocol at runtime."""
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PAYMENT_PROVIDERS,
         PaymentGatewayProvider,
     )
@@ -68,7 +68,7 @@ def test_every_registered_provider_is_runtime_checkable() -> None:
 def test_payment_link_output_is_frozen_dataclass() -> None:
     import dataclasses
 
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PaymentLinkOutput,
     )
 
@@ -79,7 +79,7 @@ def test_payment_link_output_is_frozen_dataclass() -> None:
 
 
 def test_payment_status_enum_has_expected_values() -> None:
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PaymentStatusEnum,
     )
 
@@ -89,7 +89,7 @@ def test_payment_status_enum_has_expected_values() -> None:
 
 
 def test_webhook_provider_protocol_importable() -> None:
-    from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+    from luana_core_sales_agent.application.tools.payment.webhook_providers import (
         PAYMENT_WEBHOOK_PROVIDERS,
         PaymentWebhookProvider,
         register_payment_webhook_provider,
@@ -98,7 +98,7 @@ def test_webhook_provider_protocol_importable() -> None:
 
 def test_mercadopago_webhook_signature_verify() -> None:
     """MP verify_signature must return False for invalid signature."""
-    from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+    from luana_core_sales_agent.application.tools.payment.webhook_providers import (
         MercadoPagoWebhookProvider,
     )
 
@@ -113,7 +113,7 @@ def test_mercadopago_webhook_signature_verify() -> None:
 
 def test_stripe_webhook_signature_verify() -> None:
     """Stripe verify_signature must return False for invalid signature."""
-    from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+    from luana_core_sales_agent.application.tools.payment.webhook_providers import (
         StripeWebhookProvider,
     )
 

@@ -101,7 +101,7 @@ class EventBus:
         # Best-effort deprecation warning (try/except: must not break caller).
         # Emits only when outbox flag is ON and caller is outside internal paths.
         try:
-            from src.core.config import settings as _settings  # local import avoids circular
+            from luana_core_platform.core.config import settings as _settings  # local import avoids circular
 
             outbox_flags_on = (
                 getattr(_settings, "USE_OUTBOX_PATTERN_SALES_AGENT", False)

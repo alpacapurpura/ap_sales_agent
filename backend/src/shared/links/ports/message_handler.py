@@ -14,10 +14,9 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from fastapi import BackgroundTasks
+    from luana_core_platform.domain.messages import IncomingMessage
+    from luana_core_platform.infrastructure.channels.base import BaseChannel
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.messages import IncomingMessage
-    from src.shared.infrastructure.channels.base import BaseChannel
 
 
 class MessageHandlerPort(ABC):

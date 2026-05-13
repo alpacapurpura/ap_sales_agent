@@ -4,21 +4,20 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
 
 # DDD exception (intentional): copilot is explicitly allowed to be imported by
 # any module — it's an infra-like orchestrator (see backend-ddd.md rule).
-from src.modules.copilot.application.services.offer_psychology_service import (
+from luana_core_copilot.application.services.offer_psychology_service import (
     CopilotOfferPsychologyService,
 )
-from src.modules.iam.api.dependencies import get_tenant_context
-from src.modules.offer.application.offer_generator import OfferGeneratorService
-from src.modules.offer.domain.offer_ai_schemas import (
+from luana_core_iam.api.dependencies import get_tenant_context
+from luana_core_offer_studio.application.offer_generator import OfferGeneratorService
+from luana_core_offer_studio.domain.offer_ai_schemas import (
     PsychologyGenerationRequest,
     PsychologyGenerationResponse,
 )
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

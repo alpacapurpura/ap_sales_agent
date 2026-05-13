@@ -3,17 +3,16 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.brand.api.dto.extraction import ExtractRequest
-from src.modules.brand.domain.identity import BrandVisuals
-from src.modules.copilot.api.dto import BrandExtractResponse
-from src.modules.copilot.application.services.brand_ai_actions_service import (
+from luana_core_brand_studio.api.dto.extraction import ExtractRequest
+from luana_core_brand_studio.domain.identity import BrandVisuals
+from luana_core_copilot.api.dto import BrandExtractResponse
+from luana_core_copilot.application.services.brand_ai_actions_service import (
     CopilotBrandAIActionsService,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

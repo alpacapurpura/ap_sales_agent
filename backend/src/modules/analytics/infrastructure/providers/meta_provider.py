@@ -18,10 +18,9 @@ from typing import TYPE_CHECKING
 
 import httpx
 import structlog
-
-from src.modules.analytics.application.config import ETLConfig
-from src.modules.analytics.domain.extraction_result import ExtractionResult
-from src.modules.analytics.infrastructure.providers.base import (
+from luana_core_analytics_engine.application.config import ETLConfig
+from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+from luana_core_analytics_engine.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )

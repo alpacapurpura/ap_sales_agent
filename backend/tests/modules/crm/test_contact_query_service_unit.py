@@ -26,13 +26,13 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 from src.modules.crm.application.services.contact_query_service import (
     ContactQueryService,
 )
-from src.shared.domain.base_entity import Base
-from src.shared.domain.enums import LifecycleStage
-from src.shared.infrastructure.models.crm import (
+from luana_core_platform.domain.base_entity import Base
+from luana_core_platform.domain.enums import LifecycleStage
+from luana_core_platform.infrastructure.models.crm import (
     CustomerProfileModel,
     LeadModel,
 )

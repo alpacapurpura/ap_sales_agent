@@ -10,7 +10,7 @@ current_dir = Path(__file__).resolve().parent
 backend_dir = (current_dir / "../../").resolve()
 sys.path.append(str(backend_dir))
 
-from src.core.database import engine
+from luana_core_platform.core.database import engine
 
 
 def migrate() -> None:

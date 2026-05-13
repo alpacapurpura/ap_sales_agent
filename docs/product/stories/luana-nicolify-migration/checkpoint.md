@@ -1,11 +1,11 @@
 ---
 story_id: luana-nicolify-migration
 outcome: luana-platform-migration
-state: developing                                 # 2026-05-12 Session 5 closed Phase 2 paused — R1 audit strategy ratified Chris
-phase: PHASE_2_PAUSED_R1_AUDIT_READY_FOR_SESSION_6
-last_artifact: SESSION-6-HANDOFF.md
-last_modified: 2026-05-12
-next_action: "Session 6 bootstrap: read SESSION-6-HANDOFF.md → spawn Phase A audit Opus → T-1.7-lift-audit-report.md → Chris ratifies fix plan → Phase C apply fixes → drop stash + resume T-2..T-7."
+state: developing                                 # 2026-05-13 Session 7 HALT R14 H6 — A1-A5 GREEN, A6 +18 NEW failures > R8 cap
+phase: FASE_3_HALTED_R14_H6_AWAITING_CHRIS_RATIFICATION
+last_artifact: SESSION-7-HALT-2026-05-13.md
+last_modified: 2026-05-13
+next_action: "Chris ratifies Option A (codemod aug) / B (expand Decisión 9 deferred) / C (hybrid — RECOMMENDED) / D (rollback). Recommendation Option C: split 13 eval-deferred + 5 NOT-deferred targeted codemod aug ~$200-400 next session."
 ratified_by_chris: true                          # 2026-05-12 — 10 business decisions §7.6 cemented Session 5 Phase 0
 spawned_at: 2026-05-09
 spawned_by: /pm
@@ -59,3 +59,4 @@ Detail completo: `docs/product/outcomes/luana-platform-migration.md` § 7.6
 - **2026-05-12 Session 5 Phase 1B**: architect-orchestrator Opus emitted ready package en 2 spawns (Part 1 = 03-arch + 03-arch-be + 05-guidelines; Part 2 = 04-validators + 06-tickets). Total 5 files: 03-arch.md (639 líneas) + 03-arch-be.md (862 líneas) + 04-validators.yaml (59 validators across 4 cat, 36 scenarios covered) + 05-guidelines.md (535 líneas) + 06-tickets.yaml (14 tickets T-1..T-14 sharded Z1 strategy ≤2 paralelo Wave 1). 10 Opus-mandatory tickets + 4 Sonnet-OK. Transition state=refined → ready. Brief Chris check-in pre-Phase 2 build.
 - **2026-05-12 Session 5 Phase 2 (paused mid-Wave-1A)**: T-1 baseline ✓ done (commit `623b4872`). T-1.5 luana-core editable install ✓ done (`039f4f8e`). T-1.6 codemod MAPPING audit fix ✓ done (`340fd350`). T-2 brand+offer rewrite halted 3 times (Trigger #1 mitigated T-1.5, Trigger #11 false positive mitigated T-1.6, third attempt cut off mid-work post-codemod-apply — builder discovered "4 remaining re-exports needed" indicating lift Stories 1-9 incomplete symbol parity). 226 files modified WIP stashed (`stash@{0}: WIP-T-2-third-attempt-cutoff-need-re-exports`). Transition state=ready → developing (Phase 2 active but paused). Cumulative Session 5 cost ~$2100. Halt-and-ask Chris: R1 proactive lift audit (recommended) | R2 whack-a-mole continuation | R3 accept partial.
 - **2026-05-12 Session 5 close**: Chris ratified R1 (proactive lift audit). SESSION-6-HANDOFF.md generated with full Phase A audit prompt + Phase B-F sequence. Session 6 bootstrap-ready. Final commit `dce1eec2` Session 5 halt + R1 handoff staged for next commit.
+- **2026-05-13 Session 7 autonomous (Chris sleeping)**: Pattern P1-prepared executed Fase 0-3. Fase 0 stashes @{1}+@{2} dropped (R10). Fase 1 T-1.10 runtime audit Opus emitted (`T-1.10-runtime-audit-2026-05-13.md`) — 5 collision classes confirmed (A/C/D/F/G), 83 DELETE + 9 PRESERVE, R4/R5 thresholds satisfied. Fase 2 codemod augmentation Sonnet (`scripts/codemod_be_imports.py`) — DELETE_FILES + PRESERVE_FILES + EXCLUDE_PATHS + --delete-aisealsht-models + --all-modules + self-check 8/8 GREEN. Fase 3 atomic big-bang Opus — 1629 file rewrites + 83 model deletes applied cleanly. R13 acceptance A1-A5 GREEN (collect-only 10183/10195, grep src 71 expected, class Base 0, smoke 10/10, arch fitness 1069 pass). A6 FAIL: 26 fail vs 8 baseline = +18 NEW, exceeds R8 cap of 5. Builder agent died mid-Step-5; /pm completed verification. Sample failure (`test_route_tool_mapping`) revealed codemod gap on test-side dynamic mock provider registration via `src.modules.X` namespace. R14 H6 → HALT. Cumulative S5+S6+S7 ~$6100-6600 (over $5000 soft cap, under $10000 hard). T-8/T-10 skipped per R12 gate. Tree committed + pushed for Chris remote review. Stash@{0} preserved as fallback (R10 — drop on Fase 4 GREEN, Fase 4 skipped).

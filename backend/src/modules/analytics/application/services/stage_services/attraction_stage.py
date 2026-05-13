@@ -8,34 +8,33 @@ from collections import defaultdict
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     AttractionDetailDTO,
     AvailableChannelsDTO,
     ChannelMetricDTO,
     MetricValueDTO,
     TrafficGroupDTO,
 )
-from src.modules.analytics.application.services.aggregation_helpers import (
+from luana_core_analytics_engine.application.services.aggregation_helpers import (
     compute_channel_totals,
 )
-from src.modules.analytics.application.services.channel_registry import ChannelRegistry
-from src.modules.analytics.application.services.stage_services.constants import (
+from luana_core_analytics_engine.application.services.channel_registry import ChannelRegistry
+from luana_core_analytics_engine.application.services.stage_services.constants import (
     ATTRACTION_GROUP_MAP as _GROUP_MAP,
 )
-from src.modules.analytics.application.services.stage_services.constants import (
+from luana_core_analytics_engine.application.services.stage_services.constants import (
     DISPLAY_NAME_MAP as _DISPLAY_NAME_MAP,
 )
-from src.modules.analytics.application.services.stage_services.constants import (
+from luana_core_analytics_engine.application.services.stage_services.constants import (
     ERROR_MESSAGES as _ERROR_MESSAGES,
 )
-from src.modules.analytics.domain.period_config import DateRange
-from src.modules.analytics.domain.ports import ConnectionPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+from luana_core_analytics_engine.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.ports import ConnectionPort
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
+from sqlalchemy.orm import Session
 
 
 def _enrich_with_derived_metrics(
@@ -216,7 +215,7 @@ class AttractionStageService:
             agg_by_slug[agg.channel_slug].append(agg)
 
         # 4. Get extraction run status for stale detection
-        from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository import (
             ExtractionRunRepository,
         )
 

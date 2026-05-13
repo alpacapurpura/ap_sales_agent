@@ -3,11 +3,11 @@
 from typing import Any
 from uuid import UUID
 
-from src.modules.crm.domain.enums import IdentityType
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.enums import IdentityType
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerProfileModel as CustomerProfile,
 )
-from src.modules.crm.infrastructure.repositories.customer_repository import (
+from luana_core_crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
 )
 

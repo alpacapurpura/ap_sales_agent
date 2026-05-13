@@ -5,13 +5,13 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.domain.launch_edition import (
     EditionStatus,
     LaunchEdition,
     LaunchEditionCreate,
     LaunchEditionUpdate,
 )
-from src.modules.offer.domain.offer import PricingStructure
+from luana_core_offer_studio.domain.offer import PricingStructure
 
 
 class TestEditionStatus:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.sales_agent.copilot_provider.provider import SalesAgentCopilotProvider
+from luana_core_sales_agent.copilot_provider.provider import SalesAgentCopilotProvider
 
 provider: SalesAgentCopilotProvider = SalesAgentCopilotProvider()
 

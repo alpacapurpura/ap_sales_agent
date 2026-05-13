@@ -4,13 +4,11 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.sales_agent.api.dto.audit import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_platform.infrastructure.models.crm import LeadModel
+from luana_core_sales_agent.api.dto.audit import (
     AuditLeadDetail,
     AuditLeadListItem,
     AuditLeadSummary,
@@ -20,11 +18,12 @@ from src.modules.sales_agent.api.dto.audit import (
     TimelineEvent,
     TraceDetail,
 )
-from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+from luana_core_sales_agent.infrastructure.memory.audit_repository import (
     AuditRepository,
 )
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
-from src.shared.infrastructure.models.crm import LeadModel
+from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

@@ -11,7 +11,7 @@ import pytest
 
 
 def _ctx(route: str | None = "offer-studio"):
-    from src.modules.copilot.domain.suggestion import SuggestionContext
+    from luana_core_copilot.domain.suggestion import SuggestionContext
 
     return SuggestionContext(
         tenant_id=uuid4(),
@@ -23,7 +23,7 @@ def _ctx(route: str | None = "offer-studio"):
 
 def _make_suggestions(*labels_and_confidences):
     """Return list of Suggestion objects from (label, confidence) pairs."""
-    from src.modules.copilot.domain.suggestion import Suggestion
+    from luana_core_copilot.domain.suggestion import Suggestion
 
     return [
         Suggestion(label=label, prompt=label, confidence=conf, source_module="test")
@@ -32,7 +32,7 @@ def _make_suggestions(*labels_and_confidences):
 
 
 def _make_provider(pid, routes, suggestions_or_exc):
-    from src.modules.copilot.domain.suggestion import SuggestionContext, Suggestion
+    from luana_core_copilot.domain.suggestion import SuggestionContext, Suggestion
 
     class _Stub:
         @property
@@ -57,7 +57,7 @@ def _make_provider(pid, routes, suggestions_or_exc):
 
 class TestEngineScoreRanking:
     def test_results_sorted_confidence_desc(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine(max_total=10)
         low = _make_suggestions(("Low", 0.2), ("Mid", 0.5))
@@ -72,7 +72,7 @@ class TestEngineScoreRanking:
         assert confidences == sorted(confidences, reverse=True)
 
     def test_max_total_cap_respected(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine(max_total=2)
         suggestions = _make_suggestions(("A", 0.9), ("B", 0.8), ("C", 0.7))
@@ -82,14 +82,14 @@ class TestEngineScoreRanking:
         assert len(results) <= 2
 
     def test_max_per_provider_cap_respected(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine(max_total=10, max_per_provider=2)
         suggestions = _make_suggestions(("A", 0.9), ("B", 0.8), ("C", 0.7))
 
         call_args = {}
 
-        from src.modules.copilot.domain.suggestion import SuggestionContext, Suggestion
+        from luana_core_copilot.domain.suggestion import SuggestionContext, Suggestion
 
         class _CountingProvider:
             @property
@@ -113,7 +113,7 @@ class TestEngineScoreRanking:
         assert call_args["max_per_provider"] == 2
 
     def test_route_filter_skips_non_matching(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine()
         brand_only = _make_suggestions(("Brand chip", 0.9))
@@ -123,7 +123,7 @@ class TestEngineScoreRanking:
         assert results == []
 
     def test_route_filter_matches_prefix(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine()
         offer_chip = _make_suggestions(("Offer chip", 0.9))
@@ -138,7 +138,7 @@ class TestEngineScoreRanking:
         assert len(results2) == 1
 
     def test_no_route_filter_always_active(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine()
         universal = _make_suggestions(("Universal", 0.5))
@@ -151,7 +151,7 @@ class TestEngineScoreRanking:
         assert len(results2) == 1
 
     def test_provider_exception_is_swallowed(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine()
         engine.register(_make_provider("bad", (), RuntimeError("boom")))
@@ -164,7 +164,7 @@ class TestEngineScoreRanking:
         assert "bad" not in breakdown
 
     def test_breakdown_counts_per_provider(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine(max_total=10)
         engine.register(_make_provider("a", (), _make_suggestions(("A1", 0.9), ("A2", 0.8))))
@@ -182,7 +182,7 @@ class TestEngineScoreRanking:
         assert breakdown == {"a": 2, "b": 1}
 
     def test_latency_ms_is_non_negative(self) -> None:
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
         engine = SuggestionEngine()
         _, _, latency = engine.get_suggestions(_ctx())
@@ -192,8 +192,8 @@ class TestEngineScoreRanking:
 class TestProviderPriority:
     def test_tie_break_uses_provider_priority_desc(self) -> None:
         """Q3 decision: tie-break confidence DESC → provider_priority DESC → registration order."""
-        from src.modules.copilot.application.suggestions.engine import SuggestionEngine
-        from src.modules.copilot.domain.suggestion import Suggestion, SuggestionContext
+        from luana_core_copilot.application.suggestions.engine import SuggestionEngine
+        from luana_core_copilot.domain.suggestion import Suggestion, SuggestionContext
 
         engine = SuggestionEngine(max_total=10)
 

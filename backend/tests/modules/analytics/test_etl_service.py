@@ -36,13 +36,13 @@ def _make_run_model(run_id=None):
 
 
 def _make_extraction_result(*metrics):
-    from src.modules.analytics.domain.extraction_result import ExtractionResult
+    from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
 
     return ExtractionResult(metrics=list(metrics))
 
 
 def _make_extracted_metric(**overrides):
-    from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+    from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
     defaults = {
         "provider": "mailerlite",
@@ -60,14 +60,14 @@ class TestETLServiceMultiStageExtraction:
     """run_extraction must iterate all stages in PROVIDER_STAGES."""
 
     @patch(
-        "src.modules.analytics.application.services.etl_service.get_provider",
+        "luana_core_analytics_engine.application.services.etl_service.get_provider",
     )
     def test_run_extraction_iterates_provider_stages_for_mailerlite(
         self,
         mock_get_provider,
     ):
         """Mailerlite extraction must call pipeline.run for BOTH capture and nurture."""
-        from src.modules.analytics.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
 
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "mailerlite"
@@ -103,14 +103,14 @@ class TestETLServiceMultiStageExtraction:
         assert "nurture" in stages_called, f"Expected 'nurture' stage but got: {stages_called}"
 
     @patch(
-        "src.modules.analytics.application.services.etl_service.get_provider",
+        "luana_core_analytics_engine.application.services.etl_service.get_provider",
     )
     def test_run_extraction_uses_default_stage_for_unlisted_provider(
         self,
         mock_get_provider,
     ):
         """Providers NOT in PROVIDER_STAGES use the default stage (attraction)."""
-        from src.modules.analytics.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
 
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
@@ -142,14 +142,14 @@ class TestETLServiceMultiStageExtraction:
         assert extract_calls[0].kwargs.get("stage") == "attraction"
 
     @patch(
-        "src.modules.analytics.application.services.etl_service.get_provider",
+        "luana_core_analytics_engine.application.services.etl_service.get_provider",
     )
     def test_run_all_providers_extracts_all_stages_for_mailerlite(
         self,
         mock_get_provider,
     ):
         """run_all_providers must extract all stages for multi-stage providers."""
-        from src.modules.analytics.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
 
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "mailerlite"
@@ -194,7 +194,7 @@ class TestETLServiceMultiStageExtraction:
 
 def _make_service(*, connection_port=None, cache=None, db=None):
     """Construct ETLService with mocked dependencies."""
-    from src.modules.analytics.application.services.etl_service import ETLService
+    from luana_core_analytics_engine.application.services.etl_service import ETLService
 
     _db = db or MagicMock()
     _port = connection_port or AsyncMock()
@@ -211,7 +211,7 @@ def _make_connection(channel_type="meta"):
 
 
 def _make_period_extraction_result(metrics=None):
-    from src.modules.analytics.domain.extraction_result import ExtractionResult
+    from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
 
     return ExtractionResult(metrics=metrics or [])
 
@@ -226,8 +226,8 @@ class TestETLServiceGetPeriodConfig:
 
     def test_returns_default_config_when_tenant_not_found(self):
         """When tenant row missing, returns TenantPeriodConfig with defaults."""
-        from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.domain.period_config import TenantPeriodConfig
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
 
         mock_db = MagicMock()
         mock_db.execute.return_value.scalar_one_or_none.return_value = None
@@ -240,8 +240,8 @@ class TestETLServiceGetPeriodConfig:
 
     def test_returns_tenant_config_from_db(self):
         """When tenant exists, maps weekly_start_day/fiscal columns."""
-        from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.domain.period_config import TenantPeriodConfig
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
 
         mock_tenant = MagicMock()
         mock_tenant.weekly_start_day = 1
@@ -267,7 +267,7 @@ class TestETLServiceGetPeriodConfig:
 class TestETLServiceRunAllProvidersErrors:
     """run_all_providers continues after unregistered/exception providers."""
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
     def test_skips_unregistered_provider_and_continues(self, mock_get_provider):
         """ValueError from get_provider -> skips that provider, keeps going."""
         mock_get_provider.side_effect = ValueError("Provider not registered")
@@ -311,7 +311,7 @@ class TestETLServiceRunPeriodExtraction:
 
         assert results == []
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
     def test_skips_provider_without_period_extraction(self, mock_get_provider):
         """Provider.has_period_extraction() == False -> skip."""
         mock_provider = MagicMock()
@@ -325,7 +325,7 @@ class TestETLServiceRunPeriodExtraction:
 
         assert results == []
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
     def test_skips_already_extracted_period(self, mock_get_provider):
         """Period already in period_metrics -> status=skipped, reason=already_extracted."""
         mock_provider = MagicMock()
@@ -338,7 +338,7 @@ class TestETLServiceRunPeriodExtraction:
         period_start = date(2026, 3, 3)
         # Lazy import path: patch at the source module
         with patch(
-            "src.modules.analytics.infrastructure.repositories.period_metrics_repository.PeriodMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository.PeriodMetricsRepository"
         ) as MockRepo:
             mock_period_repo = MagicMock()
             mock_period_repo.get_existing_periods.return_value = {period_start}
@@ -350,7 +350,7 @@ class TestETLServiceRunPeriodExtraction:
         assert results[0]["status"] == "skipped"
         assert results[0]["reason"] == "already_extracted"
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
     def test_runs_pipeline_for_eligible_provider(self, mock_get_provider):
         """Eligible provider (period_extraction + not extracted) -> pipeline.run called."""
         mock_provider = MagicMock()
@@ -366,9 +366,11 @@ class TestETLServiceRunPeriodExtraction:
         # Both are lazy imports inside the method — patch at source module level
         with (
             patch(
-                "src.modules.analytics.infrastructure.repositories.period_metrics_repository.PeriodMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository.PeriodMetricsRepository"
             ) as MockPeriodRepo,
-            patch("src.modules.analytics.infrastructure.etl.period_pipeline.PeriodExtractionPipeline") as MockPipeline,
+            patch(
+                "luana_core_analytics_engine.infrastructure.etl.period_pipeline.PeriodExtractionPipeline"
+            ) as MockPipeline,
         ):
             mock_period_repo = MagicMock()
             mock_period_repo.get_existing_periods.return_value = set()
@@ -384,7 +386,7 @@ class TestETLServiceRunPeriodExtraction:
         assert results[0]["status"] == "success"
         mock_pipeline_instance.run.assert_called_once()
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
     def test_skips_when_provider_not_registered(self, mock_get_provider):
         """ValueError from get_provider -> connection skipped silently."""
         mock_get_provider.side_effect = ValueError("Not registered")
@@ -412,7 +414,7 @@ class TestETLServiceSyncIgDm:
 
         # Lazy import inside method — patch at source module
         with patch(
-            "src.modules.analytics.application.services.ig_dm_sync_service.InstagramDMSyncService"
+            "luana_core_analytics_engine.application.services.ig_dm_sync_service.InstagramDMSyncService"
         ) as MockSyncSvc:
             mock_instance = AsyncMock()
             mock_instance.sync.return_value = expected_result
@@ -432,7 +434,7 @@ class TestETLServiceSyncIgDm:
 class TestETLServiceTryPeriodExtraction:
     """_try_period_extraction is non-fatal: exceptions silenced."""
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
     def test_no_op_when_provider_lacks_period_extraction(self, mock_get_provider):
         """Provider.has_period_extraction() == False -> early return, no pipeline."""
         mock_provider = MagicMock()
@@ -443,11 +445,13 @@ class TestETLServiceTryPeriodExtraction:
         mock_run_repo = MagicMock()
 
         # Lazy import — patch at source module
-        with patch("src.modules.analytics.infrastructure.etl.period_pipeline.PeriodExtractionPipeline") as MockPipeline:
+        with patch(
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.PeriodExtractionPipeline"
+        ) as MockPipeline:
             _run(svc._try_period_extraction(TENANT_ID, "meta", date(2026, 3, 1), date(2026, 3, 14), mock_run_repo))
             MockPipeline.assert_not_called()
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
     def test_runs_period_pipeline_when_supported(self, mock_get_provider):
         """Provider supports period extraction -> PeriodExtractionPipeline.run called."""
         mock_provider = MagicMock()
@@ -460,9 +464,11 @@ class TestETLServiceTryPeriodExtraction:
         # Lazy imports — patch at source modules
         with (
             patch(
-                "src.modules.analytics.infrastructure.repositories.period_metrics_repository.PeriodMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository.PeriodMetricsRepository"
             ),
-            patch("src.modules.analytics.infrastructure.etl.period_pipeline.PeriodExtractionPipeline") as MockPipeline,
+            patch(
+                "luana_core_analytics_engine.infrastructure.etl.period_pipeline.PeriodExtractionPipeline"
+            ) as MockPipeline,
         ):
             mock_pipeline_instance = AsyncMock()
             MockPipeline.return_value = mock_pipeline_instance
@@ -471,7 +477,7 @@ class TestETLServiceTryPeriodExtraction:
 
         mock_pipeline_instance.run.assert_called_once()
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
     def test_exception_is_silenced(self, mock_get_provider):
         """Any exception in _try_period_extraction is caught and logged, not re-raised."""
         mock_get_provider.side_effect = RuntimeError("Registry error")
@@ -492,7 +498,7 @@ class TestETLServiceParseShopifyDatetime:
     """_parse_shopify_datetime converts Shopify ISO strings."""
 
     def test_parses_valid_iso_string(self):
-        from src.modules.analytics.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
 
         result = ETLService._parse_shopify_datetime("2026-03-10T14:30:00")
 
@@ -502,14 +508,14 @@ class TestETLServiceParseShopifyDatetime:
         assert result.day == 10
 
     def test_returns_none_for_empty_string(self):
-        from src.modules.analytics.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
 
         result = ETLService._parse_shopify_datetime("")
 
         assert result is None
 
     def test_returns_none_for_invalid_format(self):
-        from src.modules.analytics.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
 
         result = ETLService._parse_shopify_datetime("not-a-date")
 
@@ -524,12 +530,12 @@ class TestETLServiceParseShopifyDatetime:
 class TestETLServiceStageTransformUpsertAggregate:
     """_stage_transform_upsert_aggregate: stage → transform → upsert → aggregate."""
 
-    @patch("src.modules.analytics.application.services.etl_service.compute_aggregations")
-    @patch("src.modules.analytics.application.services.etl_service.transform_staging_to_official")
+    @patch("luana_core_analytics_engine.application.services.etl_service.compute_aggregations")
+    @patch("luana_core_analytics_engine.application.services.etl_service.transform_staging_to_official")
     def test_calls_pipeline_in_order(self, mock_transform, mock_compute):
         """staging_repo.bulk_insert → transform → upsert → compute_aggs."""
-        from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
         run_id = uuid.uuid4()
         mock_transform.return_value = [
@@ -580,13 +586,13 @@ class TestETLServiceStageTransformUpsertAggregate:
         mock_official_repo.upsert_from_staging.assert_called_once()
         mock_compute.assert_called_once()
 
-    @patch("src.modules.analytics.application.services.etl_service.compute_aggregations")
-    @patch("src.modules.analytics.application.services.etl_service.transform_staging_to_official")
-    @patch("src.modules.analytics.application.services.etl_service.MetricAggregationRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.compute_aggregations")
+    @patch("luana_core_analytics_engine.application.services.etl_service.transform_staging_to_official")
+    @patch("luana_core_analytics_engine.application.services.etl_service.MetricAggregationRepository")
     def test_calls_replace_aggregations_when_aggs_exist(self, mock_agg_repo_cls, mock_transform, mock_compute):
         """When compute_aggregations returns data, replace_aggregations is called per channel."""
-        from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
         run_id = uuid.uuid4()
         mock_transform.return_value = []
@@ -633,12 +639,12 @@ class TestETLServiceStageTransformUpsertAggregate:
 class TestETLServiceRunInitialLoad:
     """run_initial_load: gap detection, extract, stage, aggregate."""
 
-    @patch("src.modules.analytics.application.services.etl_service.OfficialMetricsRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.OfficialMetricsRepository")
     def test_returns_early_when_all_days_already_loaded(self, mock_official_repo_cls):
         """No missing days -> return immediately without extraction."""
         from datetime import timedelta
 
-        from src.shared.domain.datetime_utils import utc_today
+        from luana_core_platform.domain.datetime_utils import utc_today
 
         svc, _mock_db, port, _cache = _make_service()
 
@@ -655,19 +661,19 @@ class TestETLServiceRunInitialLoad:
         assert result["skipped"] == len(all_days)
         port.get_credentials.assert_not_called()
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
-    @patch("src.modules.analytics.application.services.etl_service.OfficialMetricsRepository")
-    @patch("src.modules.analytics.application.services.etl_service.StagingMetricsRepository")
-    @patch("src.modules.analytics.application.services.etl_service.ExtractionRunRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.OfficialMetricsRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.StagingMetricsRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.ExtractionRunRepository")
     def test_extracts_missing_days_and_returns_loaded_count(
         self, mock_run_repo_cls, mock_staging_repo_cls, mock_official_repo_cls, mock_get_provider
     ):
         """When missing days exist, extracts, stages, and returns loaded count."""
         from datetime import timedelta
 
-        from src.modules.analytics.domain.extraction_result import ExtractionResult
-        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
-        from src.shared.domain.datetime_utils import utc_today
+        from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+        from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
+        from luana_core_platform.domain.datetime_utils import utc_today
 
         today = utc_today()
         start_date = today - timedelta(days=5)
@@ -719,11 +725,11 @@ class TestETLServiceRunInitialLoad:
         svc._stage_transform_upsert_aggregate.assert_called_once()
         cache.invalidate_tenant.assert_called_once_with(str(TENANT_ID))
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
-    @patch("src.modules.analytics.application.services.etl_service.OfficialMetricsRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.OfficialMetricsRepository")
     def test_returns_early_when_zero_metrics_extracted(self, mock_official_repo_cls, mock_get_provider):
         """Provider returns 0 metrics for missing days -> early return."""
-        from src.modules.analytics.domain.extraction_result import ExtractionResult
+        from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
 
         existing = set()  # no existing days = all missing
 
@@ -742,19 +748,19 @@ class TestETLServiceRunInitialLoad:
 
         assert result["loaded"] == 0
 
-    @patch("src.modules.analytics.application.services.etl_service.get_provider")
-    @patch("src.modules.analytics.application.services.etl_service.OfficialMetricsRepository")
-    @patch("src.modules.analytics.application.services.etl_service.StagingMetricsRepository")
-    @patch("src.modules.analytics.application.services.etl_service.ExtractionRunRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.get_provider")
+    @patch("luana_core_analytics_engine.application.services.etl_service.OfficialMetricsRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.StagingMetricsRepository")
+    @patch("luana_core_analytics_engine.application.services.etl_service.ExtractionRunRepository")
     def test_calls_progress_callback(
         self, mock_run_repo_cls, mock_staging_repo_cls, mock_official_repo_cls, mock_get_provider
     ):
         """progress_callback is called with correct phases."""
         from datetime import timedelta
 
-        from src.modules.analytics.domain.extraction_result import ExtractionResult
-        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
-        from src.shared.domain.datetime_utils import utc_today
+        from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+        from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
+        from luana_core_platform.domain.datetime_utils import utc_today
 
         today = utc_today()
         missing_day = today - timedelta(days=2)
@@ -816,11 +822,11 @@ class TestETLServiceRunSyncAll:
 
         with (
             patch(
-                "src.modules.analytics.application.services.etl_service.CHANNEL_TYPE_TO_PROVIDERS",
+                "luana_core_analytics_engine.application.services.etl_service.CHANNEL_TYPE_TO_PROVIDERS",
                 {},
             ),
             patch(
-                "src.modules.analytics.application.services.etl_service.PROVIDER_REGISTRY",
+                "luana_core_analytics_engine.application.services.etl_service.PROVIDER_REGISTRY",
                 {},
             ),
         ):
@@ -842,14 +848,16 @@ class TestETLServiceRunSyncAll:
 
         with (
             patch(
-                "src.modules.analytics.application.services.etl_service.CHANNEL_TYPE_TO_PROVIDERS",
+                "luana_core_analytics_engine.application.services.etl_service.CHANNEL_TYPE_TO_PROVIDERS",
                 {"meta": {"meta"}},
             ),
             patch(
-                "src.modules.analytics.application.services.etl_service.PROVIDER_REGISTRY",
+                "luana_core_analytics_engine.application.services.etl_service.PROVIDER_REGISTRY",
                 {"meta": MagicMock()},
             ),
-            patch("src.modules.analytics.application.services.etl_service.ExtractionRunRepository") as MockRunRepo,
+            patch(
+                "luana_core_analytics_engine.application.services.etl_service.ExtractionRunRepository"
+            ) as MockRunRepo,
         ):
             MockRunRepo.return_value.get_latest.return_value = recent_run
 
@@ -865,14 +873,16 @@ class TestETLServiceRunSyncAll:
 
         with (
             patch(
-                "src.modules.analytics.application.services.etl_service.CHANNEL_TYPE_TO_PROVIDERS",
+                "luana_core_analytics_engine.application.services.etl_service.CHANNEL_TYPE_TO_PROVIDERS",
                 {"meta": {"meta"}},
             ),
             patch(
-                "src.modules.analytics.application.services.etl_service.PROVIDER_REGISTRY",
+                "luana_core_analytics_engine.application.services.etl_service.PROVIDER_REGISTRY",
                 {"meta": MagicMock()},
             ),
-            patch("src.modules.analytics.application.services.etl_service.ExtractionRunRepository") as MockRunRepo,
+            patch(
+                "luana_core_analytics_engine.application.services.etl_service.ExtractionRunRepository"
+            ) as MockRunRepo,
         ):
             # No cooldown (no recent run)
             MockRunRepo.return_value.get_latest.return_value = None

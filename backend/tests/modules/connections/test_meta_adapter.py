@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from src.modules.connections.infrastructure.channels.meta import (
+from luana_core_connections.infrastructure.channels.meta import (
     MetaAdapter,
     _fetch_pixels,
     _fetch_wabas,
@@ -220,7 +220,7 @@ class TestFetchWhatsappAccounts:
 
 class TestMetaAdapterInit:
     def test_init_without_token(self):
-        with patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"
             mock_settings.META_CONFIG_ID = None
@@ -230,9 +230,9 @@ class TestMetaAdapterInit:
 
     def test_init_with_token_calls_init_api(self):
         with (
-            patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings,
-            patch("src.modules.connections.infrastructure.channels.meta.FacebookSession") as MockSession,
-            patch("src.modules.connections.infrastructure.channels.meta.FacebookAdsApi") as MockApi,
+            patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.meta.FacebookSession") as MockSession,
+            patch("luana_core_connections.infrastructure.channels.meta.FacebookAdsApi") as MockApi,
         ):
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"
@@ -245,7 +245,7 @@ class TestMetaAdapterInit:
 
 class TestMetaAdapterGetAuthorizationUrl:
     def test_returns_url_with_state(self):
-        with patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"
             mock_settings.META_CONFIG_ID = None
@@ -256,7 +256,7 @@ class TestMetaAdapterGetAuthorizationUrl:
         assert "client_id=app123" in url
 
     def test_adds_config_id_when_configured(self):
-        with patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"
             mock_settings.META_CONFIG_ID = "cfg_123"
@@ -266,7 +266,7 @@ class TestMetaAdapterGetAuthorizationUrl:
         assert "config_id=cfg_123" in url
 
     def test_uses_provided_state(self):
-        with patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"
             mock_settings.META_CONFIG_ID = None
@@ -276,7 +276,7 @@ class TestMetaAdapterGetAuthorizationUrl:
         assert state == "meta_existing"
 
     def test_adds_meta_prefix_to_non_meta_state(self):
-        with patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"
             mock_settings.META_CONFIG_ID = None
@@ -302,7 +302,7 @@ class TestMetaAdapterExchangeCode:
             return long_tok_resp
 
         with (
-            patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.META_APP_ID = "app123"
@@ -323,7 +323,7 @@ class TestMetaAdapterExchangeCode:
         fail.raise_for_status = MagicMock(side_effect=httpx.HTTPStatusError("bad", request=MagicMock(), response=fail))
 
         with (
-            patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.META_APP_ID = "app123"
@@ -352,7 +352,7 @@ class TestMetaAdapterExchangeCode:
             raise RuntimeError(msg)
 
         with (
-            patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.META_APP_ID = "app123"
@@ -380,7 +380,7 @@ class TestMetaAdapterGetTokenPermissions:
             }
         )
         with (
-            patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.META_APP_ID = "app123"
@@ -401,7 +401,7 @@ class TestMetaAdapterGetTokenPermissions:
     async def test_returns_empty_on_api_failure(self):
         fail = _fail_resp(400)
         with (
-            patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.META_APP_ID = "app123"
@@ -421,7 +421,7 @@ class TestMetaAdapterGetTokenPermissions:
 class TestMetaAdapterGetBusinessAssets:
     @pytest.mark.asyncio
     async def test_raises_when_no_token(self):
-        with patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"
             mock_settings.META_CONFIG_ID = None
@@ -453,10 +453,10 @@ class TestMetaAdapterGetBusinessAssets:
             return _ok_resp({"data": []})
 
         with (
-            patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
-            patch("src.modules.connections.infrastructure.channels.meta.FacebookSession"),
-            patch("src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"),
+            patch("luana_core_connections.infrastructure.channels.meta.FacebookSession"),
+            patch("luana_core_connections.infrastructure.channels.meta.FacebookAdsApi"),
         ):
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"
@@ -480,9 +480,9 @@ class TestMetaAdapterParsePages:
     async def test_returns_empty_on_failed_pages_response(self):
         fail = _fail_resp(401)
         with (
-            patch("src.modules.connections.infrastructure.channels.meta.settings") as mock_settings,
-            patch("src.modules.connections.infrastructure.channels.meta.FacebookSession"),
-            patch("src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"),
+            patch("luana_core_connections.infrastructure.channels.meta.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.meta.FacebookSession"),
+            patch("luana_core_connections.infrastructure.channels.meta.FacebookAdsApi"),
         ):
             mock_settings.META_APP_ID = "app123"
             mock_settings.META_APP_SECRET = "secret"

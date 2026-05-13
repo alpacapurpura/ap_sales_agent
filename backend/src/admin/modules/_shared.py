@@ -3,9 +3,8 @@
 from uuid import UUID
 
 import streamlit as st
-
-from src.core.database import SessionLocal
-from src.modules.iam.application.services.tenant_service import TenantService
+from luana_core_iam.application.services.tenant_service import TenantService
+from luana_core_platform.core.database import SessionLocal
 
 # ── Tooltips centralizados ─────────────────────────────────────────────
 TOOLTIPS = {

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.modules.copilot.application.orchestrator.conversational_questioning import (
+from luana_core_copilot.application.orchestrator.conversational_questioning import (
     next_question,
 )
 

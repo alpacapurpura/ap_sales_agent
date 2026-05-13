@@ -30,7 +30,7 @@ class TestMetricsCacheGet:
 
     def test_returns_parsed_json_on_cache_hit(self):
         """Cache hit: Redis returns JSON string -> parsed dict."""
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
 
@@ -48,7 +48,7 @@ class TestMetricsCacheGet:
 
     def test_returns_none_on_cache_miss(self):
         """Cache miss: Redis returns None -> None."""
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
 
@@ -62,7 +62,7 @@ class TestMetricsCacheGet:
 
     def test_returns_none_when_redis_down(self):
         """Redis ConnectionError -> None (silent fallback, no raise)."""
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
 
@@ -80,7 +80,7 @@ class TestMetricsCacheSet:
 
     def test_stores_data_with_ttl(self):
         """set() calls redis.setex with 300s TTL and JSON-serialized data."""
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
 
@@ -98,7 +98,7 @@ class TestMetricsCacheSet:
 
     def test_silently_fails_when_redis_down(self):
         """set() with Redis error -> no exception raised."""
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
 
@@ -116,7 +116,7 @@ class TestMetricsCacheInvalidate:
 
     def test_deletes_matching_keys(self):
         """invalidate_tenant() scans and deletes all metrics:{tenant}:* keys."""
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
 
@@ -135,7 +135,7 @@ class TestMetricsCacheInvalidate:
 
     def test_does_nothing_when_no_keys_found(self):
         """invalidate_tenant() with no matching keys -> no delete call."""
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
 
@@ -149,7 +149,7 @@ class TestMetricsCacheInvalidate:
 
     def test_silently_fails_when_redis_down(self):
         """invalidate_tenant() with Redis error -> no exception."""
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
 

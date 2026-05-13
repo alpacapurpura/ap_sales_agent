@@ -5,12 +5,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select, update
-
-from src.modules.copilot.infrastructure.models.mutation_journal_model import (
+from luana_core_copilot.infrastructure.models.mutation_journal_model import (
     MutationJournalModel,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
+from sqlalchemy import select, update
 
 if TYPE_CHECKING:
     from uuid import UUID

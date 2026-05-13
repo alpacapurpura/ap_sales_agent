@@ -4,10 +4,9 @@ import json
 
 import structlog
 from langchain_core.tools import tool
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
 from sqlalchemy import text
-
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
 
 logger = structlog.get_logger()
 

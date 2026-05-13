@@ -12,7 +12,7 @@ Mirror of ``backend/tests/architecture/test_system_prompt_order.py`` (F8 copilot
 
 from __future__ import annotations
 
-from src.modules.sales_agent.application.prompts.compose import (
+from luana_core_sales_agent.application.prompts.compose import (
     CACHEABLE_FRAGMENTS,
     PROMPT_FRAGMENT_ORDER,
     VOLATILE_FRAGMENTS,

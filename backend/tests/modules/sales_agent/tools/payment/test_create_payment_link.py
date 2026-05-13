@@ -18,9 +18,9 @@ OFFER_ID = uuid.UUID("cccc9000-0000-0000-0000-000000000001")
 
 @pytest.fixture
 def populated_db(db):
-    from src.modules.crm.infrastructure.models.lead_model import LeadModel
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+    from luana_core_crm.infrastructure.models.lead_model import LeadModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
         AgentStateCheckpointModel,
     )
 
@@ -56,7 +56,7 @@ def _build_state(**extra) -> dict:
 
 
 def _mock_provider():
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PaymentLinkOutput,
         PaymentStatusEnum,
     )
@@ -77,13 +77,13 @@ def _mock_provider():
 
 
 def test_create_payment_link_returns_url(populated_db) -> None:
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_create_payment_link,
     )
 
     state = _build_state()
     with patch(
-        "src.modules.sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
+        "luana_core_sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
         return_value=_mock_provider(),
     ):
         result = tool_create_payment_link(state, populated_db)
@@ -96,7 +96,7 @@ def test_create_payment_link_returns_url(populated_db) -> None:
 
 def test_create_payment_link_currency_from_offer_ssot(populated_db) -> None:
     """Currency MUST come from offer, not inferred from provider."""
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_create_payment_link,
     )
 
@@ -105,7 +105,7 @@ def test_create_payment_link_currency_from_offer_ssot(populated_db) -> None:
 
     mock_provider = _mock_provider()
     with patch(
-        "src.modules.sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
+        "luana_core_sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
         return_value=mock_provider,
     ):
         result = tool_create_payment_link(state, populated_db)
@@ -119,14 +119,14 @@ def test_create_payment_link_currency_from_offer_ssot(populated_db) -> None:
 
 def test_create_payment_link_idempotent_same_turn(populated_db) -> None:
     """Re-firing tool within same turn reuses the PENDING link."""
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_create_payment_link,
     )
 
     state = _build_state()
     mock_provider = _mock_provider()
     with patch(
-        "src.modules.sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
+        "luana_core_sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
         return_value=mock_provider,
     ):
         first = tool_create_payment_link(state, populated_db)
@@ -140,7 +140,7 @@ def test_create_payment_link_idempotent_same_turn(populated_db) -> None:
 
 
 def test_create_payment_link_missing_amount_returns_error(populated_db) -> None:
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_create_payment_link,
     )
 
@@ -148,7 +148,7 @@ def test_create_payment_link_missing_amount_returns_error(populated_db) -> None:
     state["active_product"]["pricing_amount"] = None
 
     with patch(
-        "src.modules.sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
+        "luana_core_sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
         return_value=_mock_provider(),
     ):
         result = tool_create_payment_link(state, populated_db)
@@ -157,7 +157,7 @@ def test_create_payment_link_missing_amount_returns_error(populated_db) -> None:
 
 
 def test_create_payment_link_no_db() -> None:
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_create_payment_link,
     )
 
@@ -167,14 +167,14 @@ def test_create_payment_link_no_db() -> None:
 
 def test_create_payment_link_metadata_includes_lead_and_offer(populated_db) -> None:
     """Metadata sent to provider must include tenant_id, lead_id, offer_id."""
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_create_payment_link,
     )
 
     state = _build_state()
     mock_provider = _mock_provider()
     with patch(
-        "src.modules.sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
+        "luana_core_sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
         return_value=mock_provider,
     ):
         tool_create_payment_link(state, populated_db)

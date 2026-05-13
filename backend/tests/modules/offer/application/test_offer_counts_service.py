@@ -12,7 +12,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.application.services.offer_counts_service import (
+from luana_core_offer_studio.application.services.offer_counts_service import (
     OfferCountsService,
 )
 

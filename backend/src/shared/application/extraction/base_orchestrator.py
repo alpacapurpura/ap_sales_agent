@@ -23,8 +23,7 @@ import asyncio
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 import structlog
-
-from src.shared.application.progress_emitter import (
+from luana_core_platform.application.progress_emitter import (
     emit_progress,
     fields_from_model,
     supports_rich_progress,

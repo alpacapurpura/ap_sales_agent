@@ -45,10 +45,10 @@ def test_sales_agent_callback_handler_snapshot(monkeypatch: pytest.MonkeyPatch) 
     """Sales handler emits the canonical row sequence for the canonical events."""
     freeze_handler_clock(
         monkeypatch,
-        "src.modules.sales_agent.observability.recording.callback_handler",
+        "luana_core_sales_agent.observability.recording.callback_handler",
     )
 
-    from src.modules.sales_agent.observability.recording.callback_handler import (
+    from luana_core_sales_agent.observability.recording.callback_handler import (
         SalesAgentCallbackHandler,
     )
 
@@ -72,7 +72,7 @@ def test_sales_agent_callback_handler_snapshot(monkeypatch: pytest.MonkeyPatch) 
     # span_id is a fresh uuid4 — replace with deterministic placeholder when
     # capturing so byte-equal comparison works.
     monkeypatch.setattr(
-        "src.shared.agent_observability.recording.base_callback_handler.uuid4",
+        "luana_core_observability.recording.base_callback_handler.uuid4",
         _deterministic_span_id_factory(),
     )
 
@@ -89,10 +89,10 @@ def test_copilot_callback_handler_snapshot(monkeypatch: pytest.MonkeyPatch) -> N
     """Copilot handler emits the canonical row sequence for the canonical events."""
     freeze_handler_clock(
         monkeypatch,
-        "src.modules.copilot.observability.recording.callback_handler",
+        "luana_core_copilot.observability.recording.callback_handler",
     )
 
-    from src.modules.copilot.observability.recording.callback_handler import (
+    from luana_core_copilot.observability.recording.callback_handler import (
         ObservabilityCallbackHandler,
     )
 
@@ -112,7 +112,7 @@ def test_copilot_callback_handler_snapshot(monkeypatch: pytest.MonkeyPatch) -> N
     )
 
     monkeypatch.setattr(
-        "src.shared.agent_observability.recording.base_callback_handler.uuid4",
+        "luana_core_observability.recording.base_callback_handler.uuid4",
         _deterministic_span_id_factory(),
     )
 

@@ -3,13 +3,12 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select, update
-from sqlalchemy.orm import Session
-
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
-from src.shared.domain.datetime_utils import utc_now
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
 
 
 class StateRepository:

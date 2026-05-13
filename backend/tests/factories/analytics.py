@@ -5,16 +5,16 @@ from datetime import date, datetime, timezone
 
 import factory
 
-from src.modules.analytics.infrastructure.models.extraction_run_model import (
+from luana_core_analytics_engine.infrastructure.models.extraction_run_model import (
     ExtractionRunModel,
 )
-from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (
     MetricAggregationModel,
 )
-from src.modules.analytics.infrastructure.models.official_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
     OfficialMetricModel,
 )
-from src.modules.analytics.infrastructure.models.period_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.period_metrics_model import (
     PeriodMetricModel,
 )
 

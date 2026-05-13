@@ -15,14 +15,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, HTTPException, Query
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.format_catalog import get_formats_suitable_for
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 from pydantic import BaseModel, ConfigDict
 
-from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.format_catalog import get_formats_suitable_for
-from src.shared.domain.expert_business_type import ExpertBusinessType
-
 if TYPE_CHECKING:
-    from src.modules.offer.domain.format_catalog import FormatMetadata
+    from luana_core_offer_studio.domain.format_catalog import FormatMetadata
 
 router = APIRouter()
 

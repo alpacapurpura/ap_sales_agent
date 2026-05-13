@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from src.modules.tenant_profile.domain.tenant_profile import RATE_LIMIT_WINDOW, TenantProfile
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_tenant_profile.domain.tenant_profile import RATE_LIMIT_WINDOW, TenantProfile
+from luana_core_platform.domain.datetime_utils import utc_now
 from tests.modules.tenant_profile.conftest import OTHER_TENANT_ID, TENANT_ID, TYPE_A, TYPE_B
 
 
@@ -36,7 +36,7 @@ class TestGetOrNone:
 
     def test_does_not_create_row(self, repo, db) -> None:
         repo.get_or_none(TENANT_ID)
-        from src.modules.tenant_profile.infrastructure.models.tenant_profile_model import (
+        from luana_core_tenant_profile.infrastructure.models.tenant_profile_model import (
             TenantProfileModel,
         )
 
@@ -56,7 +56,7 @@ class TestGetOrInit:
 
     def test_does_not_persist_until_save(self, repo, db) -> None:
         repo.get_or_init(TENANT_ID)
-        from src.modules.tenant_profile.infrastructure.models.tenant_profile_model import (
+        from luana_core_tenant_profile.infrastructure.models.tenant_profile_model import (
             TenantProfileModel,
         )
 
@@ -185,7 +185,7 @@ class TestLegacyDataHandling:
     """
 
     def test_unknown_slug_in_db_is_dropped(self, repo, db) -> None:
-        from src.modules.tenant_profile.infrastructure.models.tenant_profile_model import (
+        from luana_core_tenant_profile.infrastructure.models.tenant_profile_model import (
             TenantProfileModel,
         )
 

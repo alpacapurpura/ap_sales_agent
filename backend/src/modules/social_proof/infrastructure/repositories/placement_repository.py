@@ -5,21 +5,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from pydantic import ValidationError
-from sqlalchemy import select
-
-from src.modules.social_proof.domain.placement import Placement
-from src.modules.social_proof.infrastructure.models.placement_model import (
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_social_proof.domain.placement import Placement
+from luana_core_social_proof.infrastructure.models.placement_model import (
     PlacementModel,
 )
-from src.shared.domain.datetime_utils import utc_now
+from pydantic import ValidationError
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_social_proof.domain.enums import SourceTable, SurfaceType
     from sqlalchemy.orm import Session
-
-    from src.modules.social_proof.domain.enums import SourceTable, SurfaceType
 
 logger = structlog.get_logger()
 

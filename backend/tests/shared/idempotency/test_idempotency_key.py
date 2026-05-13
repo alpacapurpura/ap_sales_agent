@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.idempotency.domain.key import IdempotencyKey
+from luana_core_idempotency.domain.key import IdempotencyKey
 
 
 class TestIdempotencyKey:

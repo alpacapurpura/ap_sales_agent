@@ -33,7 +33,7 @@ def _mute_trace_node_writes(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     fake_session = MagicMock()
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.monitoring.tracing.SessionLocal",
+        "luana_core_sales_agent.infrastructure.monitoring.tracing.SessionLocal",
         lambda: fake_session,
     )
 
@@ -47,14 +47,14 @@ def _mute_trace_node_writes(monkeypatch: pytest.MonkeyPatch) -> None:
         def close(self) -> None: ...
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.monitoring.tracing.AuditRepository",
+        "luana_core_sales_agent.infrastructure.monitoring.tracing.AuditRepository",
         _NullRepo,
     )
 
 
 class TestNoTracker:
     def test_executor_runs_tool_when_tracker_absent(self) -> None:
-        from src.modules.sales_agent.application.agents.sales.nodes import node_tool_executor
+        from luana_core_sales_agent.application.agents.sales.nodes import node_tool_executor
 
         called = {}
 
@@ -66,7 +66,7 @@ class TestNoTracker:
         state = _build_state(pending={"tool": "my_tool", "args": {"k": "v"}}, tracker=None)
 
         with patch(
-            "src.modules.sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
+            "luana_core_sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
             registry,
         ):
             out = node_tool_executor(state)
@@ -79,8 +79,8 @@ class TestNoTracker:
 
 class TestWithTracker:
     def test_warn_augments_tool_message(self) -> None:
-        from src.modules.sales_agent.application.agents.sales.nodes import node_tool_executor
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+        from luana_core_sales_agent.application.agents.sales.nodes import node_tool_executor
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
             ToolCallDedupTracker,
         )
 
@@ -93,7 +93,7 @@ class TestWithTracker:
         state = _build_state(pending={"tool": "my_tool", "args": {"k": "v"}}, tracker=tracker)
 
         with patch(
-            "src.modules.sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
+            "luana_core_sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
             registry,
         ):
             out = node_tool_executor(state)
@@ -104,8 +104,8 @@ class TestWithTracker:
         assert "my_tool" in out["messages"][0]["content"]
 
     def test_hard_limit_aborts_with_error_message(self) -> None:
-        from src.modules.sales_agent.application.agents.sales.nodes import node_tool_executor
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+        from luana_core_sales_agent.application.agents.sales.nodes import node_tool_executor
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
             ToolCallDedupTracker,
         )
 
@@ -117,7 +117,7 @@ class TestWithTracker:
         state = _build_state(pending={"tool": "loopy", "args": {}}, tracker=tracker)
 
         with patch(
-            "src.modules.sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
+            "luana_core_sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
             registry,
         ):
             out = node_tool_executor(state)

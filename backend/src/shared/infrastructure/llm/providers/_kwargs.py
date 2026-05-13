@@ -44,7 +44,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+    from luana_core_llm.providers._chat_model_resolver import (
         ChatModelSpec,
     )
 

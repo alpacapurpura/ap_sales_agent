@@ -7,14 +7,13 @@ Completion is checked dynamically via schema_introspection — no hardcoded fiel
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.core.database import SessionLocal
-from src.modules.copilot.domain.module_registry import ModuleDescriptor, get_module_registry
-from src.modules.copilot.domain.schema_introspection import (
+from luana_core_copilot.domain.module_registry import ModuleDescriptor, get_module_registry
+from luana_core_copilot.domain.schema_introspection import (
     check_section_completion,
     get_model_sections,
 )
+from luana_core_platform.core.database import SessionLocal
+from sqlalchemy.orm import Session
 
 
 @dataclass

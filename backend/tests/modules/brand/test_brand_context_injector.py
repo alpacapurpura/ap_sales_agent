@@ -7,11 +7,11 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.brand.copilot_provider.context_inject import (
+from luana_core_brand_studio.copilot_provider.context_inject import (
     BrandContextInjector,
     _route_in_allowlist,
 )
-from src.modules.brand.copilot_provider.summary import BrandSummaryProvider
+from luana_core_brand_studio.copilot_provider.summary import BrandSummaryProvider
 
 
 class _StubSummary(BrandSummaryProvider):

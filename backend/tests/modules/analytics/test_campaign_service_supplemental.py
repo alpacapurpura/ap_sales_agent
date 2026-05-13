@@ -7,7 +7,7 @@ TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
 
 def _make_svc():
-    from src.modules.analytics.application.services.campaign_service import CampaignService
+    from luana_core_analytics_engine.application.services.campaign_service import CampaignService
 
     db = MagicMock()
     return CampaignService(db), db
@@ -45,7 +45,7 @@ class TestGetOverview:
 
         db.execute.side_effect = side_effect
 
-        from src.modules.analytics.application.services.campaign_service import CampaignService
+        from luana_core_analytics_engine.application.services.campaign_service import CampaignService
 
         return CampaignService(db)
 

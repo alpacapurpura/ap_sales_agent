@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.modules.brand.application.extraction_service import (
+from luana_core_brand_studio.application.extraction_service import (
     _HIGH_KEYWORDS,
     _SKIP_PATTERNS,
     PROFILE_FAST,
@@ -13,7 +13,7 @@ from src.modules.brand.application.extraction_service import (
     BrandTestimonialsExtraction,
     _summarize_settings,
 )
-from src.modules.brand.domain import (
+from luana_core_brand_studio.domain import (
     BrandIdentity,
     BrandPositioning,
     BrandSettings,

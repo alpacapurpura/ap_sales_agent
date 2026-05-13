@@ -9,9 +9,9 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.copilot.api.conversations import router
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_platform.core.database import get_db
+from luana_core_copilot.api.conversations import router
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
 
 
 def _build_client(tenant_id):
@@ -49,7 +49,7 @@ class TestApplyMutationsContract:
         client, _uid, _db = _build_client(tenant_id)
 
         with patch(
-            "src.modules.copilot.api.conversations.ConversationRepository",
+            "luana_core_copilot.api.conversations.ConversationRepository",
         ) as mock_repo_cls:
             mock_repo = MagicMock()
             mock_repo.get_by_id.return_value = None
@@ -105,10 +105,10 @@ class TestApplyMutationsHappyPath:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
             ) as mock_repo_cls,
             patch(
-                "src.modules.copilot.api.conversations.MutationApplyService",
+                "luana_core_copilot.api.conversations.MutationApplyService",
             ) as mock_svc_cls,
         ):
             mock_repo = MagicMock()
@@ -160,10 +160,10 @@ class TestApplyMutationsHappyPath:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
             ) as mock_repo_cls,
             patch(
-                "src.modules.copilot.api.conversations.MutationApplyService",
+                "luana_core_copilot.api.conversations.MutationApplyService",
             ) as mock_svc_cls,
         ):
             mock_repo = MagicMock()
@@ -216,10 +216,10 @@ class TestApplyMutationsIdempotency:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
             ) as mock_repo_cls,
             patch(
-                "src.modules.copilot.api.conversations.MutationApplyService",
+                "luana_core_copilot.api.conversations.MutationApplyService",
             ) as mock_svc_cls,
         ):
             mock_repo = MagicMock()

@@ -11,13 +11,13 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.application.services.lifecycle_service import LifecycleService
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+from luana_core_crm.application.services.lifecycle_service import LifecycleService
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import CustomerProfileModel
+from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
-from src.shared.domain.events import DomainEvent
+from luana_core_platform.domain.events import DomainEvent
 
 SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 

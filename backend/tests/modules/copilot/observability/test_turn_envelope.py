@@ -37,11 +37,11 @@ def db(db_engine):
 
 def _build_context(db):
     """Helper that wires the new envelope to an in-memory SQLite session."""
-    from src.modules.copilot.observability.persistence.llm_call_repository import LlmCallRepository
-    from src.modules.copilot.observability.persistence.trace_event_repository import (
+    from luana_core_copilot.observability.persistence.llm_call_repository import LlmCallRepository
+    from luana_core_copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
-    from src.modules.copilot.observability.recording.turn_envelope import ObservabilityContext
+    from luana_core_copilot.observability.recording.turn_envelope import ObservabilityContext
 
     pricing_resolver = MagicMock()
     fx_resolver = MagicMock()
@@ -76,7 +76,7 @@ class TestEnvelopePublicAPI:
 class TestEnvelopeLifecycle:
     @pytest.mark.asyncio
     async def test_aenter_writes_turn_start(self, db) -> None:
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -93,10 +93,10 @@ class TestEnvelopeLifecycle:
 
     @pytest.mark.asyncio
     async def test_aexit_writes_turn_end_with_totals(self, db) -> None:
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 
@@ -145,7 +145,7 @@ class TestEnvelopeLifecycle:
 
     @pytest.mark.asyncio
     async def test_aexit_writes_turn_end_with_error_status_on_exception(self, db) -> None:
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -173,7 +173,7 @@ class TestEnvelopeLifecycle:
         path then writes ``status='error'`` plus the kind + message into
         the turn_end ``data`` payload.
         """
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -202,7 +202,7 @@ class TestEnvelopeLifecycle:
     async def test_set_turn_error_takes_precedence_over_clean_exit(self, db) -> None:
         """Even when the body returns normally, an explicit set_turn_error
         flag must override the default ``ok`` status."""
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 

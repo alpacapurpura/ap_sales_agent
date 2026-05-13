@@ -7,11 +7,11 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.models.channel_connection_model import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )
-from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
+from luana_core_connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
 )
 

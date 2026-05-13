@@ -9,12 +9,11 @@ import uuid
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import case, func, select, text
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.infrastructure.models.period_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.period_metrics_model import (
     PeriodMetricModel,
 )
+from sqlalchemy import case, func, select, text
+from sqlalchemy.orm import Session
 
 
 class PeriodMetricsRepository:

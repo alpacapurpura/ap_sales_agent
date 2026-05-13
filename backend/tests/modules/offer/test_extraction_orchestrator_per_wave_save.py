@@ -25,10 +25,10 @@ from uuid import UUID
 
 import pytest
 
-from src.modules.offer.application.offer_extraction_orchestrator import (
+from luana_core_offer_studio.application.offer_extraction_orchestrator import (
     OfferExtractionOrchestrator,
 )
-from src.modules.offer.domain.offer import (
+from luana_core_offer_studio.domain.offer import (
     OfferClosingUpdate,
     OfferDetailsUpdate,
     OfferPricingUpdate,

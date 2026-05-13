@@ -8,15 +8,15 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.modules.tenant_profile.domain.tenant_profile import (
+from luana_core_tenant_profile.domain.tenant_profile import (
     RATE_LIMIT_WINDOW,
     TenantProfile,
 )
-from src.modules.tenant_profile.infrastructure.repositories.tenant_profile_repository import (
+from luana_core_tenant_profile.infrastructure.repositories.tenant_profile_repository import (
     SqlTenantProfileRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 # Canonical tenant IDs for these tests (complementary to modules/conftest.py).
 TENANT_ID = uuid.UUID("a1a10000-0000-0000-0000-000000000001")

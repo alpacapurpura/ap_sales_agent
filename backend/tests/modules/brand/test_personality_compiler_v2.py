@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.brand.domain.personality import (
+from luana_core_brand_studio.domain.personality import (
     PERSONALITY_PRESETS,
     DimensionContract,
     DimensionLevel,

@@ -7,17 +7,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.routing_policy import (
+from luana_core_copilot.domain.routing_policy import (
     ClassifierType,
     RoutingDecision,
     RoutingPolicy,
 )
+from luana_core_platform.core.enums import ModelRole
+from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
-    from src.modules.copilot.application.router.classifiers.base import IntentClassifier
+    from luana_core_copilot.application.router.classifiers.base import IntentClassifier
 
 RoutingMode = Literal["chat", "procedure"]
 

@@ -10,20 +10,20 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from src.core.context import set_tenant_id
-from src.modules.copilot.application.data_access import (
+from luana_core_platform.core.context import set_tenant_id
+from luana_core_copilot.application.data_access import (
     ConversationDataAccessProvider,
 )
-from src.modules.copilot.application.tools.ask_tenant_data.tool import (
+from luana_core_copilot.application.tools.ask_tenant_data.tool import (
     _ask_tenant_data_impl,
 )
-from src.modules.copilot.infrastructure.cache.data_query_cache import DataQueryCache
-from src.modules.copilot.infrastructure.models.conversation_model import (
+from luana_core_copilot.infrastructure.cache.data_query_cache import DataQueryCache
+from luana_core_copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
 )
-from src.modules.crm.copilot_provider.data_access import CrmDataAccessProvider
-from src.modules.offer.copilot_provider.data_access import OfferDataAccessProvider
-from src.shared.infrastructure.models.crm import LeadModel
+from luana_core_crm.copilot_provider.data_access import CrmDataAccessProvider
+from luana_core_offer_studio.copilot_provider.data_access import OfferDataAccessProvider
+from luana_core_platform.infrastructure.models.crm import LeadModel
 from tests.modules.offer.conftest import create_product_model
 
 if TYPE_CHECKING:

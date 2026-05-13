@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.copilot.domain.ports import DataQueryPlan
-from src.modules.crm.copilot_provider.data_access import CrmDataAccessProvider
-from src.shared.infrastructure.models.crm import LeadModel
+from luana_core_copilot.domain.ports import DataQueryPlan
+from luana_core_crm.copilot_provider.data_access import CrmDataAccessProvider
+from luana_core_platform.infrastructure.models.crm import LeadModel
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

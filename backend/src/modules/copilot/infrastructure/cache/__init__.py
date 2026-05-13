@@ -3,7 +3,7 @@
 Lightweight Redis-backed caches used by transversal tools (F5 +).
 """
 
-from src.modules.copilot.infrastructure.cache.data_query_cache import (
+from luana_core_copilot.infrastructure.cache.data_query_cache import (
     DataQueryCache,
     make_cache_key,
 )

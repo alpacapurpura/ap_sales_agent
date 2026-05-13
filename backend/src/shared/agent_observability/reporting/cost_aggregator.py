@@ -22,9 +22,8 @@ from uuid import UUID
 from sqlalchemy import case, func, select
 
 if TYPE_CHECKING:
+    from luana_core_platform.domain.base_entity import Base
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.base_entity import Base
 
 
 # ── DTOs ────────────────────────────────────────────────────────────────
@@ -453,7 +452,7 @@ class CrossAgentCostAggregator:
 
     def __init__(self, db: Session) -> None:
         """Bind to a session and instantiate one aggregator per agent."""
-        from src.shared.agent_observability.registry import (
+        from luana_core_observability.registry import (
             agent_observability_registry,
         )
 

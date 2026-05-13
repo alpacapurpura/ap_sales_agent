@@ -5,14 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.copilot.domain.offer_fields import PERSISTABLE_FIELDS
-from src.modules.offer.domain.offer import (
+from luana_core_copilot.domain.offer_fields import PERSISTABLE_FIELDS
+from luana_core_offer_studio.domain.offer import (
     DeliverableItem,
     ObjectionItem,
     PricingStructure,
 )
-from src.modules.offer.infrastructure.repositories.offer_repository import (
+from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
 

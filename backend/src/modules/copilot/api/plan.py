@@ -8,15 +8,14 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.datetime_utils import utc_now
 from pydantic import BaseModel
 
 # Runtime imports — required at runtime for FastAPI's Annotated[X, Depends(f)] resolver.
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
-from src.modules.iam.domain.user import User
-from src.shared.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger()
 

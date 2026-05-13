@@ -9,16 +9,16 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from src.modules.sales_agent.infrastructure.db.database import SessionLocal
-from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+from luana_core_sales_agent.infrastructure.db.database import SessionLocal
+from luana_core_sales_agent.infrastructure.memory.audit_repository import (
     AuditRepository,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from src.modules.sales_agent.application.orchestrator.state import AgentState
-    from src.modules.sales_agent.infrastructure.models.agent_trace_model import AgentTrace
+    from luana_core_sales_agent.application.orchestrator.state import AgentState
+    from luana_core_sales_agent.infrastructure.models.agent_trace_model import AgentTrace
 
 logger = logging.getLogger(__name__)
 

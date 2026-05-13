@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from src.modules.analytics.infrastructure.repositories.campaign_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.campaign_repository import (
     CampaignRepository,
 )
 

@@ -8,28 +8,28 @@ class TestSalesMetricsRepository:
     """SalesMetricsRepository uses SQLAlchemy 2.0 syntax."""
 
     def test_repository_class_exists(self):
-        from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository import (
             SalesMetricsRepository,
         )
 
         assert SalesMetricsRepository is not None
 
     def test_repository_has_get_sales_summary(self):
-        from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository import (
             SalesMetricsRepository,
         )
 
         assert hasattr(SalesMetricsRepository, "get_sales_summary")
 
     def test_repository_has_get_total_conversion_customers(self):
-        from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository import (
             SalesMetricsRepository,
         )
 
         assert hasattr(SalesMetricsRepository, "get_total_conversion_customers")
 
     def test_repository_has_get_total_sql_count(self):
-        from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository import (
             SalesMetricsRepository,
         )
 
@@ -39,7 +39,7 @@ class TestSalesMetricsRepository:
         """SalesMetricsRepository must use select() not db.query()."""
         import inspect
 
-        from src.modules.analytics.infrastructure.repositories import (
+        from luana_core_analytics_engine.infrastructure.repositories import (
             sales_metrics_repository,
         )
 
@@ -52,7 +52,7 @@ class TestSalesEndpoint:
     """GET /metrics/sales endpoint wiring tests."""
 
     def test_sales_stage_service_has_get_metrics(self):
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             SalesStageService,
         )
 
@@ -62,7 +62,7 @@ class TestSalesEndpoint:
         """MetricsService __init__ accepts offer_port parameter."""
         import inspect
 
-        from src.modules.analytics.application.services.metrics_service import (
+        from luana_core_analytics_engine.application.services.metrics_service import (
             MetricsService,
         )
 
@@ -73,7 +73,7 @@ class TestSalesEndpoint:
         """metrics.py imports SalesDetailDTO for response_model."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics)
         assert "SalesDetailDTO" in source
@@ -83,7 +83,7 @@ class TestSalesEndpoint:
         """Analytics module must NOT import from offer.domain."""
         import inspect
 
-        from src.modules.analytics.application.services import metrics_service
+        from luana_core_analytics_engine.application.services import metrics_service
 
         source = inspect.getsource(metrics_service)
         assert "from src.modules.offer.domain" not in source

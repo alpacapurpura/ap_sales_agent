@@ -30,27 +30,27 @@ from uuid import UUID
 import altair as alt
 import pandas as pd
 import streamlit as st
+from luana_core_observability.registry import (
+    agent_observability_registry,
+    get_spec,
+)
+from luana_core_observability.reporting.billing_cycle_service import (
+    BillingCycleService,
+)
+from luana_core_observability.reporting.cost_aggregator import (
+    CostAggregator,
+    CrossAgentCostAggregator,
+)
+from luana_core_platform.core.database import SessionLocal
 
 from src.admin.modules._shared import (
     get_tenant_name,
     get_tenant_options,
     render_agent_kind_selector,
 )
-from src.core.database import SessionLocal
-from src.shared.agent_observability.registry import (
-    agent_observability_registry,
-    get_spec,
-)
-from src.shared.agent_observability.reporting.billing_cycle_service import (
-    BillingCycleService,
-)
-from src.shared.agent_observability.reporting.cost_aggregator import (
-    CostAggregator,
-    CrossAgentCostAggregator,
-)
 
 if TYPE_CHECKING:
-    from src.shared.agent_observability.reporting.cost_aggregator import (
+    from luana_core_observability.reporting.cost_aggregator import (
         ModelCostRow,
         TenantCostRow,
     )

@@ -28,10 +28,9 @@ import time
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.core.config import settings
-from src.core.enums import AIProvider, ModelRole
-from src.shared.infrastructure.llm.domain.resolved import ResolvedModel
+from luana_core_llm.domain.resolved import ResolvedModel
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.enums import AIProvider, ModelRole
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -127,7 +126,7 @@ class LLMConfigService:
             return self._resolve_from_env(role)
 
         try:
-            from src.shared.infrastructure.llm.infrastructure.role_binding_repository import (
+            from luana_core_llm.infrastructure.role_binding_repository import (
                 SqlAlchemyLLMRoleBindingRepository,
             )
 

@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.graph import (
+from luana_core_copilot.application.orchestrator.graph import (
     _compute_field_completion,
     _compute_pending_field_paths,
 )
@@ -50,10 +50,10 @@ def patched_session_and_registry() -> Any:
     session_mock.close = MagicMock()
     with (
         patch(
-            "src.modules.copilot.application.orchestrator.graph.get_module_registry",
+            "luana_core_copilot.application.orchestrator.graph.get_module_registry",
         ) as reg_mock,
         patch(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             return_value=session_mock,
         ),
     ):
@@ -166,7 +166,7 @@ def test_descriptor_without_repo_marks_everything_empty() -> None:
     registry = MagicMock()
     registry.get.return_value = descriptor
     with patch(
-        "src.modules.copilot.application.orchestrator.graph.get_module_registry",
+        "luana_core_copilot.application.orchestrator.graph.get_module_registry",
         return_value=registry,
     ):
         filled, empty = _compute_field_completion(

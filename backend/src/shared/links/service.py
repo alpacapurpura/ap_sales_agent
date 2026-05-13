@@ -7,12 +7,11 @@ import uuid
 from typing import Any
 
 import structlog
+from luana_core_iam.domain.tenant import Tenant
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.links.models import ShareableLink
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.modules.iam.domain.tenant import Tenant
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.links.models import ShareableLink
 
 logger = structlog.get_logger()
 

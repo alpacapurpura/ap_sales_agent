@@ -4,9 +4,16 @@ from typing import Annotated, Literal, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_locale
+from luana_core_iam.domain.user import User
+from luana_core_offer_studio.application.services.offer_read_port_impl import (
+    OfferReadPortImpl,
+)
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.locale import TenantLocale
+from luana_core_platform.domain.ports import OfferReadDTO, OfferReadPort
 from sqlalchemy.orm import Session
 
-from src.core.database import get_db
 from src.modules.advertising.application.dto.association_dto import (
     ApplySuggestionItemDTO,
     AssociationCreateDTO,
@@ -41,13 +48,6 @@ from src.modules.advertising.infrastructure.models.ad_offer_association_model im
 from src.modules.advertising.infrastructure.repositories.association_repository import (
     AssociationRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_locale
-from src.modules.iam.domain.user import User
-from src.modules.offer.application.services.offer_read_port_impl import (
-    OfferReadPortImpl,
-)
-from src.shared.domain.locale import TenantLocale
-from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 
 router = APIRouter(prefix="/advertising", tags=["Advertising"])
 

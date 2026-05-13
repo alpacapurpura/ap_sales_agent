@@ -14,7 +14,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.orm import sessionmaker
 
-from src.shared.domain.events import DomainEvent, EventBus
+from luana_core_platform.domain.events import DomainEvent, EventBus
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def _isolated_event_bus():
 
 class TestRegisterSubscribers:
     def test_register_is_idempotent(self, db) -> None:
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
 
@@ -52,10 +52,10 @@ class TestRegisterSubscribers:
             assert len(names) == len(handlers)
 
     def test_card_emitted_persists_trace_event(self, db) -> None:
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
 
@@ -74,7 +74,7 @@ class TestRegisterSubscribers:
             ),
         )
         db.flush()
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -84,7 +84,7 @@ class TestRegisterSubscribers:
 
     def test_handler_failure_does_not_propagate(self, db) -> None:
         """EventBus already isolates handler exceptions; verify our factory plays nice."""
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
 

@@ -11,7 +11,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from src.modules.copilot.domain.message_blocks import (
+from luana_core_copilot.domain.message_blocks import (
     BLOCK_TYPES,
     AudioBlock,
     CardBlock,

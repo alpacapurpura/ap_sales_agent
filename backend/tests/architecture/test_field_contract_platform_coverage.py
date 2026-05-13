@@ -13,22 +13,22 @@ refs: docs/refactors/field-contract-platform/DESIGN.md
 
 from __future__ import annotations
 
-from src.modules.brand.domain.aggregates import BrandSettings
-from src.modules.brand.domain.buyer_persona import BuyerPersona
-from src.modules.brand.domain.buyer_persona_field_contract import (
+from luana_core_brand_studio.domain.aggregates import BrandSettings
+from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
+from luana_core_brand_studio.domain.buyer_persona_field_contract import (
     BUYER_PERSONA_DICT_SUBKEYS,
     BUYER_PERSONA_FIELD_CONTRACTS,
     BUYER_PERSONA_IGNORE_PATHS,
     BUYER_PERSONA_SECTION_MAP,
 )
-from src.modules.brand.domain.field_contract import (
+from luana_core_brand_studio.domain.field_contract import (
     BRAND_COMPOSABLE_FIELDS,
     BRAND_FIELD_CONTRACTS,
     BRAND_IGNORE_PATHS,
     BRAND_SECTION_MAP,
 )
-from src.modules.copilot.domain.offer_fields import PERSISTABLE_FIELDS
-from src.modules.offer.domain.details import (
+from luana_core_copilot.domain.offer_fields import PERSISTABLE_FIELDS
+from luana_core_offer_studio.domain.details import (
     EventDetails,
     PlatformDetails,
     ProductDetails,
@@ -36,13 +36,13 @@ from src.modules.offer.domain.details import (
     ServiceDetails,
     SubscriptionDetails,
 )
-from src.modules.offer.domain.field_contract import (
+from luana_core_offer_studio.domain.field_contract import (
     OFFER_FIELD_CONTRACTS,
     OFFER_IGNORE_PATHS,
     OFFER_SECTION_MAP,
 )
-from src.modules.offer.domain.offer import Offer
-from src.shared.domain.field_contract import FieldStatus
+from luana_core_offer_studio.domain.offer import Offer
+from luana_core_platform.domain.field_contract import FieldStatus
 
 # Modules that have migrated to the platform. Tests here apply only to
 # migrated modules — non-migrated catalogs follow the legacy pattern.
@@ -206,7 +206,7 @@ class TestEditableFieldsSubsetOfFieldContract:
     """
 
     def test_offer_editable_fields_paths_in_field_contract(self) -> None:
-        from src.shared.links.ports.editable_fields import get_catalog
+        from luana_core_platform.links.ports.editable_fields import get_catalog
 
         contract_paths = {c.path for c in OFFER_FIELD_CONTRACTS}
         editable_paths = {f.path for f in get_catalog("offer")}
@@ -219,7 +219,7 @@ class TestEditableFieldsSubsetOfFieldContract:
 
     def test_offer_editable_fields_only_active_can_propose(self) -> None:
         """Catalog only emits ACTIVE + can_propose=True contracts."""
-        from src.shared.links.ports.editable_fields import get_catalog
+        from luana_core_platform.links.ports.editable_fields import get_catalog
 
         active_proposable = {c.path for c in OFFER_FIELD_CONTRACTS if c.can_propose and c.status == FieldStatus.ACTIVE}
         editable_paths = {f.path for f in get_catalog("offer")}

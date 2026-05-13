@@ -4,7 +4,7 @@ Concrete providers (Meta, Google, TikTok, etc.) register themselves here.
 The ETL pipeline uses get_provider() to resolve the correct adapter at runtime.
 """
 
-from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
+from luana_core_analytics_engine.infrastructure.providers.base import BaseMetricsProvider
 
 # Maps provider name strings (e.g. "meta", "google_analytics") to provider classes
 PROVIDER_REGISTRY: dict[str, type[BaseMetricsProvider]] = {}
@@ -48,37 +48,37 @@ def _register_all() -> None:
     Uses late-binding imports to avoid circular imports and ensure
     providers are registered at module import time.
     """
-    from src.modules.analytics.infrastructure.providers.crm_internal_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.crm_internal_provider import (
         CRMInternalProvider,
     )
-    from src.modules.analytics.infrastructure.providers.google_ads_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.google_ads_provider import (
         GoogleAdsProvider,
     )
-    from src.modules.analytics.infrastructure.providers.google_analytics_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.google_analytics_provider import (
         GoogleAnalyticsProvider,
     )
-    from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
         MailerLiteProvider,
     )
-    from src.modules.analytics.infrastructure.providers.manychat_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.manychat_provider import (
         ManyChatProvider,
     )
-    from src.modules.analytics.infrastructure.providers.meta_pixel_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.meta_pixel_provider import (
         MetaPixelProvider,
     )
-    from src.modules.analytics.infrastructure.providers.meta_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.meta_provider import (
         MetaProvider,
     )
-    from src.modules.analytics.infrastructure.providers.search_console_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.search_console_provider import (
         SearchConsoleProvider,
     )
-    from src.modules.analytics.infrastructure.providers.shopify_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.shopify_provider import (
         ShopifyProvider,
     )
-    from src.modules.analytics.infrastructure.providers.tiktok_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.tiktok_provider import (
         TikTokProvider,
     )
-    from src.modules.analytics.infrastructure.providers.youtube_provider import (
+    from luana_core_analytics_engine.infrastructure.providers.youtube_provider import (
         YouTubeProvider,
     )
 

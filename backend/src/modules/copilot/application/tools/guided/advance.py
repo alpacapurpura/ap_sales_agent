@@ -17,16 +17,15 @@ import json
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_conversation_id, get_tenant_id
-from src.core.database import SessionLocal
-from src.modules.copilot.application.guided.block_generator import (
+from luana_core_copilot.application.guided.block_generator import (
     build_blocks,
     next_block_after,
 )
-from src.modules.copilot.application.guided.persistence import read_state, write_state
-from src.modules.copilot.application.guided.question_hint import build_question_hint
-from src.modules.copilot.application.guided.state_reader import read_entity_state
+from luana_core_copilot.application.guided.persistence import read_state, write_state
+from luana_core_copilot.application.guided.question_hint import build_question_hint
+from luana_core_copilot.application.guided.state_reader import read_entity_state
+from luana_core_platform.core.context import get_conversation_id, get_tenant_id
+from luana_core_platform.core.database import SessionLocal
 
 logger = structlog.get_logger()
 

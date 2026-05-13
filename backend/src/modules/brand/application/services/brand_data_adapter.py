@@ -9,20 +9,20 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
-from src.modules.brand.api.personality import PersonalityProfileDTO
-from src.modules.brand.infrastructure.repositories.avatar_repository import (
+from luana_core_brand_studio.api.personality import PersonalityProfileDTO
+from luana_core_brand_studio.infrastructure.repositories.avatar_repository import (
     AvatarRepository,
 )
-from src.modules.brand.infrastructure.repositories.brand_repository import (
+from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
-from src.modules.brand.infrastructure.repositories.buyer_persona_repository import (
+from luana_core_brand_studio.infrastructure.repositories.buyer_persona_repository import (
     BuyerPersonaRepository,
 )
-from src.modules.brand.infrastructure.repositories.personality_repository import (
+from luana_core_brand_studio.infrastructure.repositories.personality_repository import (
     PersonalityProfileRepository,
 )
-from src.shared.links.ports.brand import BrandDataPort, BrandKnowledgeDTO
+from luana_core_platform.links.ports.brand import BrandDataPort, BrandKnowledgeDTO
 
 
 class BrandDataAdapter(BrandDataPort):

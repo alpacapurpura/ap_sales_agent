@@ -14,7 +14,7 @@ import uuid
 import pytest
 from pydantic import ValidationError
 
-from src.modules.iam.domain.tenant import (
+from luana_core_iam.domain.tenant import (
     AISettings,
     GeneralSettings,
     GeneralSettingsUpdate,
@@ -23,8 +23,8 @@ from src.modules.iam.domain.tenant import (
     TenantSettingsUpdate,
     WebhookSettings,
 )
-from src.modules.iam.domain.tracking_config import TrackingConfig
-from src.modules.iam.domain.user import SystemUserProfile, TeamMemberCreate, User
+from luana_core_iam.domain.tracking_config import TrackingConfig
+from luana_core_iam.domain.user import SystemUserProfile, TeamMemberCreate, User
 
 
 class TestTenant:

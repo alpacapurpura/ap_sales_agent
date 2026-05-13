@@ -6,16 +6,12 @@ from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.connections.api.dto.calendar import (
+from luana_core_connections.api.dto.calendar import (
     BookMeetingRequest,
     CalendarStatusResponse,
     CreateBookingLinkRequest,
 )
-from src.modules.connections.api.dto.common import (
+from luana_core_connections.api.dto.common import (
     AppointmentItem,
     BookingLinkResponse,
     BookMeetingResponse,
@@ -23,25 +19,28 @@ from src.modules.connections.api.dto.common import (
     PersonalizedLinkResponse,
     SlotsResponse,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.channels.google_calendar import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.channels.google_calendar import (
     GoogleCalendarAdapter,
 )
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.shared.domain.schemas.scheduling import AvailabilitySchedule, ScheduleUpdate
-from src.shared.links.models import ShareableLink
-from src.shared.links.ports.domain_lookup import create_domain_lookup
-from src.shared.links.ports.lead_resolution import verify_lead_exists
-from src.shared.links.ports.scheduling import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.schemas.scheduling import AvailabilitySchedule, ScheduleUpdate
+from luana_core_platform.links.models import ShareableLink
+from luana_core_platform.links.ports.domain_lookup import create_domain_lookup
+from luana_core_platform.links.ports.lead_resolution import verify_lead_exists
+from luana_core_platform.links.ports.scheduling import (
     create_personalized_booking_link,
     get_availability_service,
     get_booking_base_url,
 )
-from src.shared.links.service import LinkService
+from luana_core_platform.links.service import LinkService
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["calendar"])
 logger = structlog.get_logger()

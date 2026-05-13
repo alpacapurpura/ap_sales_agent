@@ -26,22 +26,22 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.modules.campaigns.application.dtos.segment_dtos import SegmentCreate, SegmentResponse
-from src.modules.campaigns.application.services.segment_service import (
+from luana_core_campaigns.application.dtos.segment_dtos import SegmentCreate, SegmentResponse
+from luana_core_campaigns.application.services.segment_service import (
     SegmentLeadOwnershipError,
     SegmentService,
 )
-from src.modules.campaigns.domain.enums import SegmentType
-from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
-from src.modules.campaigns.infrastructure.models.segment_model import SegmentModel
-from src.modules.campaigns.infrastructure.repositories.segment_repository_impl import (
+from luana_core_campaigns.domain.enums import SegmentType
+from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
+from luana_core_campaigns.infrastructure.models.segment_model import SegmentModel
+from luana_core_campaigns.infrastructure.repositories.segment_repository_impl import (
     SegmentRepositoryImpl,
 )
-from src.modules.campaigns.infrastructure.repositories.segment_snapshot_repository_impl import (
+from luana_core_campaigns.infrastructure.repositories.segment_snapshot_repository_impl import (
     SegmentSnapshotRepositoryImpl,
 )
-from src.shared.domain.base_entity import Base
-from src.shared.infrastructure.models.crm import LeadModel
+from luana_core_platform.domain.base_entity import Base
+from luana_core_platform.infrastructure.models.crm import LeadModel
 
 # ── Constantes ─────────────────────────────────────────────────────────────────
 

@@ -12,7 +12,7 @@ Covers:
 import uuid
 from datetime import date
 
-from src.modules.commercial_calendar.application.calendar_event_service import (
+from luana_core_commercial_calendar.application.calendar_event_service import (
     CalendarEventService,
 )
 

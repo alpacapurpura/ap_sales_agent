@@ -20,22 +20,21 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import structlog
-
-from src.modules.offer.domain.events import (
+from luana_core_offer_studio.domain.events import (
     LandingGenerationRequested,
     LandingPublished,
     LandingRegenerationRequested,
     LandingUnpublished,
 )
-from src.modules.offer.domain.exceptions import LandingNotReadyError
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_offer_studio.domain.exceptions import LandingNotReadyError
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.offer.application.offer_service import OfferService
-    from src.modules.offer.application.ports import ILandingGenerationRepository
-    from src.modules.offer.application.services.offer_completion_service import (
+    from luana_core_offer_studio.application.offer_service import OfferService
+    from luana_core_offer_studio.application.ports import ILandingGenerationRepository
+    from luana_core_offer_studio.application.services.offer_completion_service import (
         OfferCompletionService,
     )
 

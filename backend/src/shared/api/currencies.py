@@ -8,9 +8,8 @@ endpoints. Front-end pickers bind to this instead of hardcoding codes.
 from __future__ import annotations
 
 from fastapi import APIRouter
+from luana_core_platform.domain.currency_catalog import CURRENCY_CATALOG, CurrencyMetadata
 from pydantic import BaseModel, ConfigDict
-
-from src.shared.domain.currency_catalog import CURRENCY_CATALOG, CurrencyMetadata
 
 router = APIRouter()
 

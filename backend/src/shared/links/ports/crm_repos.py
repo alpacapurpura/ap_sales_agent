@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 def get_customer_repository(db: Session) -> object:
     """Return a CustomerRepository instance for the given session."""
-    from src.modules.crm.infrastructure.repositories.customer_repository import (
+    from luana_core_crm.infrastructure.repositories.customer_repository import (
         CustomerRepository,
     )
 
@@ -29,7 +29,7 @@ def get_customer_repository(db: Session) -> object:
 
 def get_journey_event_repository(db: Session) -> object:
     """Return a JourneyEventRepository instance for the given session."""
-    from src.modules.crm.infrastructure.repositories.customer_repository import (
+    from luana_core_crm.infrastructure.repositories.customer_repository import (
         JourneyEventRepository,
     )
 
@@ -38,7 +38,7 @@ def get_journey_event_repository(db: Session) -> object:
 
 def get_lead_metrics_repository(db: Session) -> object:
     """Return a LeadRepository instance for the given session."""
-    from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
+    from luana_core_crm.infrastructure.repositories.lead_metrics_repository import (
         LeadRepository,
     )
 
@@ -47,15 +47,15 @@ def get_lead_metrics_repository(db: Session) -> object:
 
 def get_customer_service(db: Session) -> object:
     """Return a CustomerService instance for the given session."""
-    from src.modules.crm.application.services.customer_service import CustomerService
+    from luana_core_crm.application.services.customer_service import CustomerService
 
     return CustomerService(db)
 
 
 def get_identity_service(db: Session) -> object:
     """Return an IdentityService instance (wraps CustomerRepository internally)."""
-    from src.modules.crm.application.services.identity_service import IdentityService
-    from src.modules.crm.infrastructure.repositories.customer_repository import (
+    from luana_core_crm.application.services.identity_service import IdentityService
+    from luana_core_crm.infrastructure.repositories.customer_repository import (
         CustomerRepository,
     )
 
@@ -64,7 +64,7 @@ def get_identity_service(db: Session) -> object:
 
 def get_ig_profile_enricher(db: Session) -> object:
     """Return an InstagramProfileEnricher instance for the given session."""
-    from src.modules.crm.application.services.ig_profile_enricher import (
+    from luana_core_crm.application.services.ig_profile_enricher import (
         InstagramProfileEnricher,
     )
 
@@ -73,7 +73,7 @@ def get_ig_profile_enricher(db: Session) -> object:
 
 def get_lifecycle_service(db: Session) -> object:
     """Return a LifecycleService instance for the given session."""
-    from src.modules.crm.application.services.lifecycle_service import LifecycleService
+    from luana_core_crm.application.services.lifecycle_service import LifecycleService
 
     return LifecycleService(db)
 
@@ -86,9 +86,8 @@ def get_lead_telegram_id(db: Session, tenant_id: UUID, lead_id: UUID) -> str | N
     Returns None if the lead doesn't exist, belongs to a different tenant, or has
     no telegram_id set.
     """
+    from luana_core_platform.infrastructure.models.crm import LeadModel
     from sqlalchemy import select
-
-    from src.shared.infrastructure.models.crm import LeadModel
 
     row = db.execute(
         select(LeadModel.telegram_id).where(
@@ -111,9 +110,8 @@ async def get_lead_telegram_id_async(
     Returns None if the lead doesn't exist, belongs to a different tenant, or has
     no telegram_id set.
     """
+    from luana_core_platform.infrastructure.models.crm import LeadModel
     from sqlalchemy import select
-
-    from src.shared.infrastructure.models.crm import LeadModel
 
     result = await session.execute(
         select(LeadModel.telegram_id).where(

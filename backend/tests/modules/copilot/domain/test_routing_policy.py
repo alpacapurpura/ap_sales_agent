@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.routing_policy import (
+from luana_core_platform.core.enums import ModelRole
+from luana_core_copilot.domain.routing_policy import (
     DEFAULT_ROUTING_POLICY,
     ClassifierType,
     RoutingPolicy,

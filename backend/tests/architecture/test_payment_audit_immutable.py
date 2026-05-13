@@ -67,7 +67,7 @@ def test_no_update_on_payment_grant_audit() -> None:
 
 def test_payment_grant_audit_model_has_no_updated_at() -> None:
     """Append-only table should NOT have updated_at column."""
-    from src.modules.sales_agent.infrastructure.models.payment_grant_audit_model import (
+    from luana_core_sales_agent.infrastructure.models.payment_grant_audit_model import (
         PaymentGrantAuditModel,
     )
 
@@ -99,7 +99,7 @@ def test_no_hardcoded_payment_provider_in_tools() -> None:
 
 def test_payment_webhook_provider_strategy_arch() -> None:
     """Each impl in PAYMENT_WEBHOOK_PROVIDERS must set provider_id class attribute."""
-    from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+    from luana_core_sales_agent.application.tools.payment.webhook_providers import (
         PAYMENT_WEBHOOK_PROVIDERS,
     )
 

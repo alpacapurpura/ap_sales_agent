@@ -25,11 +25,11 @@ from typing import TYPE_CHECKING
 from cachetools import TTLCache
 
 if TYPE_CHECKING:
-    from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
-        ModelPricingSnapshotModel,
-    )
-    from src.shared.billing.infrastructure.pricing_snapshot_repo_async import (
+    from luana_core_billing.infrastructure.pricing_snapshot_repo_async import (
         PricingSnapshotRepoAsync,
+    )
+    from luana_core_observability.persistence.models.pricing_snapshot_model import (
+        ModelPricingSnapshotModel,
     )
 
 _cache: TTLCache[tuple[str, str], ModelPricingSnapshotModel | None] = TTLCache(

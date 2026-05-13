@@ -6,11 +6,10 @@ from typing import TYPE_CHECKING
 
 import redis
 import structlog
+from luana_core_platform.core.config import settings
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
-
-from src.core.config import settings
 
 if TYPE_CHECKING:
     from collections.abc import Generator

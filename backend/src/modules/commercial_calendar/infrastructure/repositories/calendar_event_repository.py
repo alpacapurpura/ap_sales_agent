@@ -3,13 +3,12 @@
 from datetime import UTC, date, datetime
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.modules.commercial_calendar.domain.calendar_event import CalendarEvent
-from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
+from luana_core_commercial_calendar.domain.calendar_event import CalendarEvent
+from luana_core_commercial_calendar.infrastructure.models.calendar_event_model import (
     CalendarEventModel,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 
 class CalendarEventRepository:

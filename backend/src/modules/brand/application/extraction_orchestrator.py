@@ -12,9 +12,7 @@ import time
 from typing import TYPE_CHECKING, Literal
 
 import structlog
-from pydantic import BaseModel, Field
-
-from src.modules.brand.domain import (
+from luana_core_brand_studio.domain import (
     BrandAuthorityItem,
     BrandContact,
     BrandIdentity,
@@ -28,17 +26,18 @@ from src.modules.brand.domain import (
     CommunicationAssets,
     KeyFigure,
 )
-from src.shared.application.extraction.base_orchestrator import (
+from luana_core_extraction.base_orchestrator import (
     BaseExtractionOrchestrator,
 )
-from src.shared.application.progress_emitter import emit_progress
+from luana_core_platform.application.progress_emitter import emit_progress
+from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from uuid import UUID
 
-    from src.modules.brand.application.extraction_service import BrandExtractionService
-    from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
+    from luana_core_brand_studio.application.extraction_service import BrandExtractionService
+    from luana_core_brand_studio.application.extraction_trace import ExtractionTraceCollector
 
 logger = structlog.get_logger()
 
@@ -526,7 +525,7 @@ class ExtractionOrchestrator(BaseExtractionOrchestrator):
         extraction — the legacy BrandSettings snapshot is the authoritative
         fallback until the legacy fields are removed.
         """
-        from src.shared.links.ports.social_proof import (
+        from luana_core_platform.links.ports.social_proof import (
             sync_authority_items_from_extraction,
             sync_team_members_from_extraction,
             sync_testimonials_from_extraction,

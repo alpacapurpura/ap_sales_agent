@@ -2,7 +2,7 @@
 
 from uuid import uuid4
 
-from src.modules.brand.domain.buyer_persona import BuyerPersona
+from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
 
 
 def test_create_buyer_persona() -> None:

@@ -4,14 +4,13 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_landing.api.schemas import RegenerateBlockRequest, RegenerateBlockResponse
+from luana_core_landing.application.landing_service import LandingService
+from luana_core_landing.domain.landing_page import LandingPage
+from luana_core_platform.core.database import get_db
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.landing.api.schemas import RegenerateBlockRequest, RegenerateBlockResponse
-from src.modules.landing.application.landing_service import LandingService
-from src.modules.landing.domain.landing_page import LandingPage
 
 router = APIRouter()
 

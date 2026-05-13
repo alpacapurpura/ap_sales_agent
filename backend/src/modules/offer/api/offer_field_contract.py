@@ -11,12 +11,11 @@ catalog endpoints (archetypes/variant-structures/type-presets).
 from __future__ import annotations
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict
-
-from src.modules.offer.domain.field_contract import (
+from luana_core_offer_studio.domain.field_contract import (
     FIELD_CONTRACT_SNAPSHOT,
 )
-from src.shared.domain.field_contract import FieldContract
+from luana_core_platform.domain.field_contract import FieldContract
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
 

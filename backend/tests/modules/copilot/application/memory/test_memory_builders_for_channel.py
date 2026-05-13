@@ -6,13 +6,13 @@ legacy preserved for tests.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.memory.context_window_builder import (
+from luana_core_copilot.application.memory.context_window_builder import (
     ContextWindowBuilder,
 )
-from src.modules.copilot.application.memory.rolling_summarizer import (
+from luana_core_copilot.application.memory.rolling_summarizer import (
     RollingSummarizer,
 )
-from src.modules.copilot.domain.context_window import (
+from luana_core_copilot.domain.context_window import (
     DEFAULT_CONTEXT_WINDOW_CONFIG,
     TELEGRAM_CONTEXT_WINDOW_CONFIG,
 )

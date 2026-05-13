@@ -36,9 +36,9 @@ See ``docs/refactors/field-contract-platform/DESIGN.md`` and
 
 from __future__ import annotations
 
-from src.modules.brand.domain.buyer_persona import BuyerPersona
-from src.shared.domain.field_contract import FieldContractOverride as Override
-from src.shared.domain.field_contract import (
+from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
+from luana_core_platform.domain.field_contract import FieldContractOverride as Override
+from luana_core_platform.domain.field_contract import (
     derive_contracts_from_pydantic,
     register_module_contracts,
 )

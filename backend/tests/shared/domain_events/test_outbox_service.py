@@ -7,8 +7,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain_events.outbox.application.outbox_service import OutboxService
-from src.shared.domain_events.outbox.domain.event import DomainEvent
+from luana_core_events.outbox.application.outbox_service import OutboxService
+from luana_core_events.outbox.domain.event import DomainEvent
 
 
 class TestOutboxServiceEnqueueSync:

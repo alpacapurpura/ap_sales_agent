@@ -21,11 +21,10 @@ import time
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.shared.domain_events.outbox.infrastructure.repository import OutboxRepositoryImpl
+from luana_core_events.outbox.infrastructure.repository import OutboxRepositoryImpl
 
 if TYPE_CHECKING:
-    from src.shared.domain_events.outbox.domain.outbox_entry import OutboxEntry
+    from luana_core_events.outbox.domain.outbox_entry import OutboxEntry
 
 logger = structlog.get_logger(__name__)
 
@@ -41,7 +40,7 @@ async def dispatch_outbox(ctx: dict[str, Any]) -> None:
     Args:
         ctx: ARQ worker context dict with ``db_factory`` async session factory.
     """
-    from src.shared.domain.events import EventBus as LegacyEventBus
+    from luana_core_platform.domain.events import EventBus as LegacyEventBus
 
     # Support both ARQ-style ctx (has db_factory) and test injection (has session)
     db_factory = ctx.get("db_factory")
@@ -97,7 +96,7 @@ async def dispatch_outbox(ctx: dict[str, Any]) -> None:
 
 def _entry_to_event(entry: OutboxEntry) -> Any:  # noqa: ANN401
     """Reconstruct a DomainEvent from an OutboxEntry for in-memory dispatch."""
-    from src.shared.domain_events.outbox.domain.event import DomainEvent
+    from luana_core_events.outbox.domain.event import DomainEvent
 
     return DomainEvent(
         event_name=entry.event_name,

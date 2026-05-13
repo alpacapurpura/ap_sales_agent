@@ -12,19 +12,19 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.campaigns.application.dtos.segment_dtos import (
+from luana_core_campaigns.application.dtos.segment_dtos import (
     SegmentCreate,
     SegmentUpdate,
 )
-from src.modules.campaigns.application.services.cache import SimpleTTLCache
-from src.modules.campaigns.application.services.segment_service import (
+from luana_core_campaigns.application.services.cache import SimpleTTLCache
+from luana_core_campaigns.application.services.segment_service import (
     SegmentDuplicateNameError,
     SegmentNotFoundError,
     SegmentService,
 )
-from src.modules.campaigns.domain.enums import SegmentType
-from src.modules.campaigns.domain.segment import Segment, SegmentSnapshot
-from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
+from luana_core_campaigns.domain.enums import SegmentType
+from luana_core_campaigns.domain.segment import Segment, SegmentSnapshot
+from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
 
 pytestmark = pytest.mark.asyncio
 
@@ -97,7 +97,7 @@ class TestSegmentServiceCreate:
             filter_dsl=_make_filter(),
         )
         with patch(
-            "src.modules.campaigns.application.services.segment_service.utc_now",
+            "luana_core_campaigns.application.services.segment_service.utc_now",
             return_value=_NOW,
         ):
             seg = await svc.create(TENANT, dto, session=session)

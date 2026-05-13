@@ -26,34 +26,32 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 import structlog
-
-from src.modules.campaigns.domain.channel_router import ChannelRouter, ChannelSendResult
-from src.modules.campaigns.infrastructure.channels.errors import (
+from luana_core_campaigns.domain.channel_router import ChannelRouter, ChannelSendResult
+from luana_core_campaigns.infrastructure.channels.errors import (
     ChannelComplianceBlocked,
     ChannelFatalError,
     ChannelRateLimitedError,
     ChannelRetryableError,
     ChannelTenantRateExceeded,
 )
-from src.modules.campaigns.infrastructure.channels.shared import (
+from luana_core_campaigns.infrastructure.channels.shared import (
     ChannelDispatchResult,
     format_message_for_tenant_locale,
 )
-from src.modules.campaigns.infrastructure.resilience.circuit_breaker import (
+from luana_core_campaigns.infrastructure.resilience.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerConfig,
 )
-from src.shared.links.ports.crm_repos import get_lead_telegram_id_async
+from luana_core_platform.links.ports.crm_repos import get_lead_telegram_id_async
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from uuid import UUID
 
+    from luana_core_billing.application.rate_limiter import OutboundRateLimiter
+    from luana_core_compliance.application.compliance_service import ComplianceService
+    from luana_core_idempotency.application.service import IdempotencyService
     from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.shared.billing.application.rate_limiter import OutboundRateLimiter
-    from src.shared.compliance.application.compliance_service import ComplianceService
-    from src.shared.idempotency.application.service import IdempotencyService
 
 logger = structlog.get_logger(__name__)
 
@@ -255,7 +253,7 @@ class TelegramChannelRouter(ChannelRouter):
     ) -> ChannelDispatchResult:
         """Wrap HTTP dispatch with idempotency dedup and circuit breaker."""
         if self._idempotency_service is not None:
-            from src.shared.idempotency.domain.key import IdempotencyKey
+            from luana_core_idempotency.domain.key import IdempotencyKey
 
             idem_key = IdempotencyKey(
                 namespace="telegram:send",

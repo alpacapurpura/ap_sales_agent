@@ -10,9 +10,8 @@ from datetime import date
 from uuid import UUID
 
 import httpx
-
-from src.modules.analytics.domain.extraction_result import ExtractionResult
-from src.modules.analytics.infrastructure.providers.base import (
+from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+from luana_core_analytics_engine.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )

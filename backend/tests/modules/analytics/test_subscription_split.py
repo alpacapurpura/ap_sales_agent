@@ -9,7 +9,7 @@ class TestSubscriptionLabels:
     """get_subscription_labels returns correct labels by pricing_type and offer_type."""
 
     def test_subscription_type_labels(self):
-        from src.modules.analytics.application.dto.sales_dto import (
+        from luana_core_analytics_engine.application.dto.sales_dto import (
             get_subscription_labels,
         )
 
@@ -21,7 +21,7 @@ class TestSubscriptionLabels:
         assert labels["renewal_label"] == "renovaciones"
 
     def test_payment_plan_labels(self):
-        from src.modules.analytics.application.dto.sales_dto import (
+        from luana_core_analytics_engine.application.dto.sales_dto import (
             get_subscription_labels,
         )
 
@@ -31,7 +31,7 @@ class TestSubscriptionLabels:
         assert labels["renewal_label"] == "cuotas cobradas"
 
     def test_one_time_returns_none(self):
-        from src.modules.analytics.application.dto.sales_dto import (
+        from luana_core_analytics_engine.application.dto.sales_dto import (
             get_subscription_labels,
         )
 
@@ -39,7 +39,7 @@ class TestSubscriptionLabels:
 
     def test_recurring_service_labels(self):
         """Recurring service types (monthly_retainer, etc.) use 'contratos' labels."""
-        from src.modules.analytics.application.dto.sales_dto import (
+        from luana_core_analytics_engine.application.dto.sales_dto import (
             get_subscription_labels,
         )
 
@@ -48,7 +48,7 @@ class TestSubscriptionLabels:
         assert "contratos" in labels["new_label"]
 
     def test_productized_service_labels(self):
-        from src.modules.analytics.application.dto.sales_dto import (
+        from luana_core_analytics_engine.application.dto.sales_dto import (
             get_subscription_labels,
         )
 

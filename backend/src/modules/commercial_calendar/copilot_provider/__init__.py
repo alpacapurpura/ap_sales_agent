@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.commercial_calendar.copilot_provider.provider import (
+from luana_core_commercial_calendar.copilot_provider.provider import (
     CommercialCalendarCopilotProvider,
 )
 

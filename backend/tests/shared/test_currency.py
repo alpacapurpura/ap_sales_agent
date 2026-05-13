@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.shared.domain.currency import (
+from luana_core_platform.domain.currency import (
     EXCHANGE_RATES_TO_USD,
     SUPPORTED_CURRENCIES,
     AggregatedMoneyDisplay,

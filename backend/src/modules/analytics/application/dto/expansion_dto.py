@@ -9,10 +9,9 @@ Provides the data contract for GET /metrics/expansion endpoint:
 Reuses MiniFunnelDTO from capture_dto and BottleneckDTO from opportunity_dto.
 """
 
+from luana_core_analytics_engine.application.dto.capture_dto import MiniFunnelDTO
+from luana_core_analytics_engine.application.dto.opportunity_dto import BottleneckDTO
 from pydantic import BaseModel
-
-from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
-from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
 
 
 class ExpansionOfferDTO(BaseModel):

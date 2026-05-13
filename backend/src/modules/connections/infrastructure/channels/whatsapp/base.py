@@ -5,8 +5,7 @@ from typing import Any
 
 import httpx
 import structlog
-
-from src.shared.domain.messages import IncomingMessage, OutgoingMessage
+from luana_core_platform.domain.messages import IncomingMessage, OutgoingMessage
 
 from .interface import WhatsAppProvider
 

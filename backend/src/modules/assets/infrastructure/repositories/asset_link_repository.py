@@ -6,11 +6,10 @@ import uuid
 from typing import TYPE_CHECKING
 
 import structlog
+from luana_core_assets.domain.entity import AssetLink
+from luana_core_assets.infrastructure.models.asset_link_model import AssetLinkModel
+from luana_core_platform.domain.datetime_utils import utc_now
 from sqlalchemy import select
-
-from src.modules.assets.domain.entity import AssetLink
-from src.modules.assets.infrastructure.models.asset_link_model import AssetLinkModel
-from src.shared.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from uuid import UUID

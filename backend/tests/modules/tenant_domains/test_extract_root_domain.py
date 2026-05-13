@@ -1,6 +1,6 @@
 """Tests for DomainService._extract_root_domain static method — pure function, no DB."""
 
-from src.modules.tenant_domains.application.domain_service import DomainService
+from luana_core_tenant_domains.application.domain_service import DomainService
 
 
 class TestExtractRootDomain:

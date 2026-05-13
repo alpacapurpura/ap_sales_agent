@@ -94,7 +94,7 @@ def test_budget_guard_references_mv_refresh_log() -> None:
 
 def test_budget_guard_injects_mv_refresh_log_repo() -> None:
     """BudgetGuard.__init__ must accept mv_refresh_log_repo parameter."""
-    from src.shared.billing.application.budget_guard import BudgetGuard
+    from luana_core_billing.application.budget_guard import BudgetGuard
 
     sig = inspect.signature(BudgetGuard.__init__)
     param_names = list(sig.parameters.keys())
@@ -106,7 +106,7 @@ def test_budget_guard_injects_mv_refresh_log_repo() -> None:
 
 def test_budget_guard_has_is_mv_stale_method() -> None:
     """BudgetGuard must have _is_mv_stale() method for MV freshness probing."""
-    from src.shared.billing.application.budget_guard import BudgetGuard
+    from luana_core_billing.application.budget_guard import BudgetGuard
 
     assert hasattr(BudgetGuard, "_is_mv_stale"), "BudgetGuard must have _is_mv_stale() method (PM Q4 probe method)."
 
@@ -148,7 +148,7 @@ def test_is_mv_stale_calls_get_last_refresh() -> None:
 
 def test_mv_name_constant_references_correct_mv() -> None:
     """MV_NAME constant in BudgetGuard must reference mv_daily_llm_cost_per_tenant_v2."""
-    from src.shared.billing.application.budget_guard import MV_NAME
+    from luana_core_billing.application.budget_guard import MV_NAME
 
     assert MV_NAME == "mv_daily_llm_cost_per_tenant_v2", (
         f"MV_NAME must be 'mv_daily_llm_cost_per_tenant_v2', got {MV_NAME!r}. "

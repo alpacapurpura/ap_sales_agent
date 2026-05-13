@@ -17,8 +17,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.shared.domain.events import PaymentReceivedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_platform.domain.events import PaymentReceivedEvent
+from luana_core_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
 )
 
@@ -44,7 +44,7 @@ class TestOutboxCutoverFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
+                "luana_core_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
                 return_value=mock_outbox,
             ),
         ):
@@ -63,7 +63,7 @@ class TestOutboxCutoverFlagOn:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
@@ -82,12 +82,12 @@ class TestOutboxCutoverFlagOn:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
+                "luana_core_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
                 return_value=mock_outbox,
             ),
         ):
@@ -106,7 +106,7 @@ class TestOutboxCutoverFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
+                "luana_core_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
                 return_value=mock_outbox,
             ),
         ):
@@ -121,7 +121,7 @@ class TestSalesAgentFlagIsOn:
 
     def test_use_outbox_pattern_sales_agent_is_true(self) -> None:
         """settings.USE_OUTBOX_PATTERN_SALES_AGENT must be True after PR-6 Sub-B."""
-        from src.core.config import settings
+        from luana_core_platform.core.config import settings
 
         assert settings.USE_OUTBOX_PATTERN_SALES_AGENT is True, (
             "USE_OUTBOX_PATTERN_SALES_AGENT should be True after PR-6 Sub-B cutover."

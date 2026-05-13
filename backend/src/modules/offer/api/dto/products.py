@@ -3,9 +3,8 @@
 import uuid
 from typing import Any
 
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferStatus, OfferValueLevel
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-from src.modules.offer.domain.enums import OfferArchetype, OfferStatus, OfferValueLevel
 
 
 class ProductResponse(BaseModel):

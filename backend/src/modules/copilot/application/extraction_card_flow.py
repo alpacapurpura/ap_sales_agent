@@ -24,13 +24,12 @@ from __future__ import annotations
 from uuid import UUID, uuid4
 
 import structlog
-
-from src.core.database import redis_client
-from src.modules.copilot.domain.events import CardEmitted
-from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+from luana_core_copilot.domain.events import CardEmitted
+from luana_core_copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
-from src.shared.domain.events import DomainEvent, EventBus
+from luana_core_platform.core.database import redis_client
+from luana_core_platform.domain.events import DomainEvent, EventBus
 
 logger = structlog.get_logger(__name__)
 
@@ -248,7 +247,7 @@ def emit_extraction_summary_card(
 
 def _build_card_message(*, card_kind: str, payload: dict) -> dict:
     """Build a persisted assistant message dict containing a CardBlock (v2 shape)."""
-    from src.shared.domain.datetime_utils import utc_now
+    from luana_core_platform.domain.datetime_utils import utc_now
 
     block_id = str(uuid4())
     message_id = str(uuid4())
@@ -311,7 +310,7 @@ def handle_section_completed(event: DomainEvent) -> None:
     tenant_uuid, conv_uuid = ids
 
     try:
-        from src.core.database import SessionLocal
+        from luana_core_platform.core.database import SessionLocal
 
         db = SessionLocal()
         try:
@@ -359,10 +358,10 @@ def handle_job_completed(event: DomainEvent) -> None:
     tenant_uuid, conv_uuid = ids
 
     try:
-        from src.core.database import SessionLocal
-        from src.modules.copilot.application.extraction.active_job_persistence import (
+        from luana_core_copilot.application.extraction.active_job_persistence import (
             write_active_job,
         )
+        from luana_core_platform.core.database import SessionLocal
 
         db = SessionLocal()
         try:

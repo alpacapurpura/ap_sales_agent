@@ -26,8 +26,7 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
-
-from src.core.database import SessionLocal
+from luana_core_platform.core.database import SessionLocal
 
 # Billing table names (string constants — no cross-module ORM import from shared.billing)
 _PLAN_TABLE = "plan_config"

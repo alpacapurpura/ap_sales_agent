@@ -4,17 +4,16 @@ import json
 import re
 
 import structlog
-
-from src.core.enums import ModelRole
-from src.modules.brand.application.agents.style_analyzer.prompts import (
+from luana_core_brand_studio.application.agents.style_analyzer.prompts import (
     ARCHITECT_PROMPT,
     JANITOR_PROMPT,
     PERSONALITY_PSYCHOLOGIST_PROMPT,
     PSYCHOLOGIST_PROMPT,
     SIMULATOR_PROMPT,
 )
-from src.modules.brand.application.agents.style_analyzer.state import OnboardingState
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_brand_studio.application.agents.style_analyzer.state import OnboardingState
+from luana_core_llm.factory import LLMFactory
+from luana_core_platform.core.enums import ModelRole
 
 logger = structlog.get_logger()
 
@@ -266,7 +265,7 @@ def node_architect(state: OnboardingState) -> dict[str, str]:
     # ---------------------------------------------------------------
     if state.get("personality_dimensions"):
         try:
-            from src.modules.brand.domain.personality import (
+            from luana_core_brand_studio.domain.personality import (
                 LinguisticPatterns,
                 PersonalityCompiler,
                 PersonalityDimensions,
@@ -378,7 +377,7 @@ def node_parser(state: OnboardingState) -> dict:
     raw_input = state.get("raw_input", "")
 
     try:
-        from src.modules.brand.infrastructure.parsers.base import detect_and_parse
+        from luana_core_brand_studio.infrastructure.parsers.base import detect_and_parse
 
         messages = detect_and_parse(raw_input)
         parsed_dicts = [

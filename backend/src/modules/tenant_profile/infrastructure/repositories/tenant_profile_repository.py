@@ -16,15 +16,14 @@ from datetime import UTC
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.tenant_profile.domain.repository import TenantProfileRepository
-from src.modules.tenant_profile.domain.tenant_profile import TenantProfile
-from src.modules.tenant_profile.infrastructure.models.tenant_profile_model import (
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
+from luana_core_tenant_profile.domain.repository import TenantProfileRepository
+from luana_core_tenant_profile.domain.tenant_profile import TenantProfile
+from luana_core_tenant_profile.infrastructure.models.tenant_profile_model import (
     TenantProfileModel,
 )
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from datetime import datetime

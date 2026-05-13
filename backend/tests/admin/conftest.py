@@ -93,27 +93,27 @@ def _stub_tenant_service() -> Callable[..., MagicMock]:
 def _mock_admin_dependencies(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """Replace DB, Qdrant and repositories used by admin modules with stubs."""
     # 1) Session factory — any `SessionLocal()` call returns our stub session.
-    monkeypatch.setattr("src.core.database.SessionLocal", _stub_session)
+    monkeypatch.setattr("luana_core_platform.core.database.SessionLocal", _stub_session)
 
     # 2) Tenant service (used by `_shared.get_tenant_options`).
     monkeypatch.setattr(
-        "src.modules.iam.application.services.tenant_service.TenantService",
+        "luana_core_iam.application.services.tenant_service.TenantService",
         _stub_tenant_service(),
     )
 
     # 3) Copilot repos (instantiated inside render_*).
     monkeypatch.setattr(
-        "src.modules.copilot.infrastructure.repositories.event_repository.CopilotEventRepository",
+        "luana_core_copilot.infrastructure.repositories.event_repository.CopilotEventRepository",
         lambda *_a, **_kw: _stub_event_repo(),
     )
     monkeypatch.setattr(
-        "src.modules.copilot.infrastructure.repositories.conversation_repository.ConversationRepository",
+        "luana_core_copilot.infrastructure.repositories.conversation_repository.ConversationRepository",
         lambda *_a, **_kw: _stub_conversation_repo(),
     )
 
     # 4) Qdrant marketing KB store — avoid network calls.
     monkeypatch.setattr(
-        "src.modules.copilot.infrastructure.qdrant.marketing_kb_store.MarketingKbStore",
+        "luana_core_copilot.infrastructure.qdrant.marketing_kb_store.MarketingKbStore",
         lambda *_a, **_kw: _stub_marketing_kb_store(),
     )
 

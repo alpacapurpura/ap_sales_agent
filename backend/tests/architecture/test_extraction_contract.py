@@ -30,13 +30,13 @@ from pathlib import Path
 
 import pytest
 
-from src.modules.analytics.domain.extraction_contract import (
+from luana_core_analytics_engine.domain.extraction_contract import (
     EXTRACTION_CONTRACTS,
     WORKER_SCHEDULE_DOC,
     ProviderContract,
 )
-from src.modules.analytics.domain.metric_catalog import METRIC_CATALOG
-from src.modules.analytics.infrastructure.providers.registry import PROVIDER_REGISTRY
+from luana_core_analytics_engine.domain.metric_catalog import METRIC_CATALOG
+from luana_core_analytics_engine.infrastructure.providers.registry import PROVIDER_REGISTRY
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 GENERATED_DOC_PATH = REPO_ROOT / "docs" / "etl" / "extraction-contract.md"
@@ -206,16 +206,16 @@ def test_catalog_providers_exist_in_contract() -> None:
 
 
 _TASK_FUNCTION_LOCATIONS = {
-    "run_tick_scheduler": "src.modules.analytics.workers.scheduler",
-    "run_tenant_extraction": "src.modules.analytics.workers.tasks",
-    "run_campaign_sync": "src.modules.analytics.workers.tasks",
-    "run_period_extraction": "src.modules.analytics.workers.tasks",
-    "run_initial_load": "src.modules.analytics.workers.tasks",
-    "run_mailerlite_etl_sync": "src.modules.analytics.workers.tasks",
-    "run_inactivity_detection": "src.modules.analytics.workers.tasks",
-    "run_frozen_detection": "src.modules.sales_agent.workers.frozen_detection",
-    "cleanup_old_events": "src.modules.copilot.application.services.event_cleanup",
-    "poll_domain_verification": "src.modules.tenant_domains.workers.tasks",
+    "run_tick_scheduler": "luana_core_analytics_engine.workers.scheduler",
+    "run_tenant_extraction": "luana_core_analytics_engine.workers.tasks",
+    "run_campaign_sync": "luana_core_analytics_engine.workers.tasks",
+    "run_period_extraction": "luana_core_analytics_engine.workers.tasks",
+    "run_initial_load": "luana_core_analytics_engine.workers.tasks",
+    "run_mailerlite_etl_sync": "luana_core_analytics_engine.workers.tasks",
+    "run_inactivity_detection": "luana_core_analytics_engine.workers.tasks",
+    "run_frozen_detection": "luana_core_sales_agent.workers.frozen_detection",
+    "cleanup_old_events": "luana_core_copilot.application.services.event_cleanup",
+    "poll_domain_verification": "luana_core_tenant_domains.workers.tasks",
 }
 
 

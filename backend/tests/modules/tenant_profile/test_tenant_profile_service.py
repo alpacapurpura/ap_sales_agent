@@ -12,16 +12,16 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.tenant_profile.application.services.tenant_profile_service import (
+from luana_core_tenant_profile.application.services.tenant_profile_service import (
     TenantProfileService,
 )
-from src.modules.tenant_profile.domain.exceptions import BusinessTypesChangeRateLimitedError
-from src.modules.tenant_profile.domain.tenant_profile import (
+from luana_core_tenant_profile.domain.exceptions import BusinessTypesChangeRateLimitedError
+from luana_core_tenant_profile.domain.tenant_profile import (
     RATE_LIMIT_WINDOW,
     TenantProfile,
 )
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 TYPE_A = ExpertBusinessType.ACADEMIA_INFOPRODUCTOR
 TYPE_B = ExpertBusinessType.AGENCIA_FREELANCE

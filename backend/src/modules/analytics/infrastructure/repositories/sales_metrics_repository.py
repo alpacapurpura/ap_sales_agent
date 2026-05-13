@@ -8,11 +8,10 @@ from datetime import datetime
 from typing import NamedTuple
 from uuid import UUID
 
+from luana_core_platform.domain.enums import SaleStage, SaleStatus
+from luana_core_platform.infrastructure.models.crm import SaleModel
 from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import Session
-
-from src.shared.domain.enums import SaleStage, SaleStatus
-from src.shared.infrastructure.models.crm import SaleModel
 
 
 class SaleAggregation(NamedTuple):
@@ -93,8 +92,8 @@ class SalesMetricsRepository:
 
         Uses lifecycle_transitions to count profiles that entered SQL stage.
         """
-        from src.shared.domain.enums import LifecycleStage
-        from src.shared.infrastructure.models.crm import LifecycleTransitionModel
+        from luana_core_platform.domain.enums import LifecycleStage
+        from luana_core_platform.infrastructure.models.crm import LifecycleTransitionModel
 
         stmt = select(func.count(distinct(LifecycleTransitionModel.profile_id))).where(
             LifecycleTransitionModel.tenant_id == tenant_id,

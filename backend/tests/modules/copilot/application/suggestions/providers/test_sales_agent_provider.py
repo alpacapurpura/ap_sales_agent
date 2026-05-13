@@ -27,7 +27,7 @@ _TENANT = uuid4()
 
 
 def _ctx(route: str | None = "sales", tenant_id=None):
-    from src.modules.copilot.domain.suggestion import SuggestionContext
+    from luana_core_copilot.domain.suggestion import SuggestionContext
 
     return SuggestionContext(
         tenant_id=tenant_id or _TENANT,
@@ -61,7 +61,7 @@ def _mock_sa_port(
     enrollments_by_status = enrollments_by_status or {}
 
     def _list_by_status(tenant_id, statuses):
-        from src.shared.links.ports.sales_agent import EnrollmentSummaryDTO
+        from luana_core_platform.links.ports.sales_agent import EnrollmentSummaryDTO
 
         result = []
         for status in statuses:
@@ -85,7 +85,7 @@ def _mock_sa_port(
 
 
 def _mock_brand_port(personality_present: bool = True) -> MagicMock:
-    from src.shared.links.ports.brand import BrandKnowledgeDTO
+    from luana_core_platform.links.ports.brand import BrandKnowledgeDTO
 
     port = MagicMock()
     port.get_brand_knowledge.return_value = BrandKnowledgeDTO(
@@ -101,7 +101,7 @@ def _mock_brand_port(personality_present: bool = True) -> MagicMock:
 class TestSalesAgentProviderMetadata:
     def test_sales_provider_metadata(self) -> None:
         """provider_id, provider_priority, applies_to_routes contract."""
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -114,7 +114,7 @@ class TestSalesAgentProviderMetadata:
 class TestSalesAgentProviderRules:
     def test_sales_provider_no_leads_7d_emits_chip(self) -> None:
         """count_leads_since(7d) == 0 → 'Sin leads esta semana' chip."""
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -122,15 +122,15 @@ class TestSalesAgentProviderRules:
         brand_port = _mock_brand_port(personality_present=True)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
                 return_value=sa_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
                 return_value=brand_port,
             ),
         ):
@@ -144,7 +144,7 @@ class TestSalesAgentProviderRules:
 
     def test_sales_provider_inactive_24h_with_old_leads_emits_reactivation_chip(self) -> None:
         """active_24h=0 + leads_30d>0 → reactivation chip."""
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -152,15 +152,15 @@ class TestSalesAgentProviderRules:
         brand_port = _mock_brand_port(personality_present=True)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
                 return_value=sa_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
                 return_value=brand_port,
             ),
         ):
@@ -174,7 +174,7 @@ class TestSalesAgentProviderRules:
 
     def test_sales_provider_no_personality_profile_emits_voice_chip(self) -> None:
         """personality_present=False → 'Configura la voz del sales agent' chip."""
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -182,15 +182,15 @@ class TestSalesAgentProviderRules:
         brand_port = _mock_brand_port(personality_present=False)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
                 return_value=sa_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
                 return_value=brand_port,
             ),
         ):
@@ -202,7 +202,7 @@ class TestSalesAgentProviderRules:
 
     def test_sales_provider_pending_payments_emits_chip(self) -> None:
         """PAYMENT_PENDING enrollments >24h old → cobros chip."""
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -218,15 +218,15 @@ class TestSalesAgentProviderRules:
         brand_port = _mock_brand_port(personality_present=True)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
                 return_value=sa_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
                 return_value=brand_port,
             ),
         ):
@@ -240,7 +240,7 @@ class TestSalesAgentProviderRules:
 
     def test_sales_provider_waitlist_no_active_edition_emits_chip(self) -> None:
         """Waitlist enrollments + no active edition → lista espera chip."""
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -254,15 +254,15 @@ class TestSalesAgentProviderRules:
         brand_port = _mock_brand_port(personality_present=True)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
                 return_value=sa_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
                 return_value=brand_port,
             ),
         ):
@@ -282,7 +282,7 @@ class TestSalesAgentProviderRules:
         fail. User sees "Sin leads esta semana" whether port outage OR
         genuine zero leads — same actionable message.
         """
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -294,15 +294,15 @@ class TestSalesAgentProviderRules:
         brand_port = _mock_brand_port()
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
                 return_value=sa_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
                 return_value=brand_port,
             ),
         ):
@@ -317,7 +317,7 @@ class TestSalesAgentProviderRules:
 
     def test_sales_provider_tenant_isolation(self) -> None:
         """Provider passes tenant_id from ctx — no cross-tenant leak."""
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -326,15 +326,15 @@ class TestSalesAgentProviderRules:
         brand_port = _mock_brand_port(personality_present=True)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
                 return_value=sa_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
                 return_value=brand_port,
             ),
         ):
@@ -349,7 +349,7 @@ class TestSalesAgentProviderRules:
 class TestSalesAgentProviderSpanishNeutro:
     def test_no_voseo_in_chip_labels_and_prompts(self) -> None:
         """All chip labels/prompts respect Spanish neutro LatAm."""
-        from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        from luana_core_copilot.application.suggestions.providers.sales_agent import (
             SalesAgentSuggestionProvider,
         )
 
@@ -359,15 +359,15 @@ class TestSalesAgentProviderSpanishNeutro:
         brand_port = _mock_brand_port(personality_present=False)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_sales_agent_observability_port",
                 return_value=sa_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.sales_agent.create_brand_data_port",
                 return_value=brand_port,
             ),
         ):

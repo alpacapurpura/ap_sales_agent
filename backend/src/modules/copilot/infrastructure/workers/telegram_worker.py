@@ -12,23 +12,22 @@ import asyncio
 from typing import Any
 
 import structlog
-
-from src.modules.copilot.api._dependencies import copilot_async_session_factory
-from src.modules.copilot.api.dto import ClientContextDTO
-from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
-from src.modules.copilot.application.services.telegram_link_service import (
+from luana_core_channels.format_for_channel import (
+    format_for_channel_impl,
+)
+from luana_core_copilot.api._dependencies import copilot_async_session_factory
+from luana_core_copilot.api.dto import ClientContextDTO
+from luana_core_copilot.application.orchestrator.chat import CopilotOrchestrator
+from luana_core_copilot.application.services.telegram_link_service import (
     consume_link_token,
     resolve_chat_id_to_tenant_user,
     touch_last_seen,
 )
-from src.modules.copilot.infrastructure.channels.telegram_bot import (
+from luana_core_copilot.infrastructure.channels.telegram_bot import (
     CopilotTelegramBot,
 )
-from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+from luana_core_copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
-)
-from src.shared.agent_observability.channels.format_for_channel import (
-    format_for_channel_impl,
 )
 
 _LOGGER = structlog.get_logger(__name__)
@@ -162,7 +161,7 @@ async def process_copilot_telegram_turn(  # noqa: C901, PLR0911, PLR0912, PLR091
         #     (AsyncSession) is already complete here. Per dependency-
         #     isolation iron rule (tessl__graceful-degradation), each
         #     external call below has its own try/except + fallback.
-        from src.core.database import SessionLocal
+        from luana_core_platform.core.database import SessionLocal
 
         sync_db = SessionLocal()
         try:
@@ -291,7 +290,7 @@ def _build_onboarding_url() -> str:
     the unauthenticated chat belongs to). User must auth in-app first
     to see their Telegram settings.
     """
-    from src.core.config import settings
+    from luana_core_platform.core.config import settings
 
     base = settings.FRONTEND_URL.rstrip("/")
     return f"{base}/settings/copilot/telegram"

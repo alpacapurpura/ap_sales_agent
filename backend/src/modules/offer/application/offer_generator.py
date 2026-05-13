@@ -2,8 +2,8 @@
 
 from uuid import UUID
 
-from src.modules.offer.application.ports import PsychologyGeneratorPort
-from src.modules.offer.domain.offer_ai_schemas import (
+from luana_core_offer_studio.application.ports import PsychologyGeneratorPort
+from luana_core_offer_studio.domain.offer_ai_schemas import (
     PsychologyGenerationRequest,
     PsychologyGenerationResponse,
 )

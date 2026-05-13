@@ -18,16 +18,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.modules.copilot.application.discovery import (
+from luana_core_copilot.application.discovery import (
     discover_providers,
     health,
     reset_discovery,
 )
-from src.modules.copilot.domain.module_registry import (
+from luana_core_copilot.domain.module_registry import (
     get_module_registry,
     reset_module_registry_cache,
 )
-from src.modules.copilot.domain.ports import CopilotProvider
+from luana_core_copilot.domain.ports import CopilotProvider
 
 _MODULES_BASE = Path(__file__).resolve().parents[2] / "src" / "modules"
 

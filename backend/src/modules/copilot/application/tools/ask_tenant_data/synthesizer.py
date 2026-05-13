@@ -20,15 +20,14 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
-
-from src.core.enums import ModelRole
-from src.shared.agent_observability.channels.format import (
+from luana_core_channels.format import (
     SUPPORTED_CHANNELS,
     get_channel_format,
 )
+from luana_core_platform.core.enums import ModelRole
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.ports import DataQueryPlan, DataQueryResult
+    from luana_core_copilot.domain.ports import DataQueryPlan, DataQueryResult
 
 logger = structlog.get_logger()
 
@@ -100,7 +99,7 @@ async def synthesize_answer(
         return _empty_window_reply(plan, channel)
 
     if llm is None:
-        from src.shared.infrastructure.llm.factory import LLMFactory
+        from luana_core_llm.factory import LLMFactory
 
         llm = LLMFactory.get_service().get_client(ModelRole.FAST)
         llm = llm.bind(temperature=0.2)
@@ -119,7 +118,7 @@ async def synthesize_answer(
 
     messages = [SystemMessage(content=system), HumanMessage(content=user)]
     try:
-        from src.modules.copilot.application.orchestrator.stream_filters import (
+        from luana_core_copilot.application.orchestrator.stream_filters import (
             INTERNAL_LLM_CONFIG,
         )
 

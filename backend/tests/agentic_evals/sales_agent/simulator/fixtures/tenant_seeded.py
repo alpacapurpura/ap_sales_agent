@@ -39,7 +39,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 from tests.fixtures.eval.tenants.loader import (
     ARCHETYPE_SLUGS,
     TenantContext,
@@ -159,7 +159,7 @@ def _upsert_tenant(
     Currency: derivada de ``ctx.pricing.currency`` (NO hardcoded 'USD'
     per ``.claude/rules/currency-handling.md``).
     """
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
     tenant = db.execute(
         select(TenantModel).where(TenantModel.id == tenant_id),
@@ -213,13 +213,13 @@ def _upsert_personality_profile(
     Returns:
         UUID del PersonalityProfileModel upserted.
     """
-    from src.modules.brand.domain.personality import (
+    from luana_core_brand_studio.domain.personality import (
         LinguisticPatterns,
         PersonalityCompiler,
         PersonalityDimensions,
         SampleExchange,
     )
-    from src.modules.brand.infrastructure.models.personality_model import (
+    from luana_core_brand_studio.infrastructure.models.personality_model import (
         PersonalityProfileModel,
     )
 
@@ -300,7 +300,7 @@ def _upsert_offers(
     Returns:
         Lista de offer UUIDs insertados/actualizados.
     """
-    from src.modules.offer.infrastructure.models.product_model import ProductModel
+    from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
 
     offers_raw: list[dict[str, Any]] = ctx.offer_ladder.raw.get("offers", [])
     currency: str = ctx.pricing.get("currency", "PEN")
@@ -390,7 +390,7 @@ def _upsert_buyer_personas(
     Returns:
         Lista de buyer_persona UUIDs insertados/actualizados.
     """
-    from src.modules.brand.infrastructure.models.buyer_persona_model import (
+    from luana_core_brand_studio.infrastructure.models.buyer_persona_model import (
         BuyerPersonaModel,
     )
 
@@ -497,7 +497,7 @@ def _upsert_synthetic_lead(
     Returns:
         UUID del lead sintético (== :func:`eval_synthetic_lead_id`).
     """
-    from src.shared.infrastructure.models.crm import LeadModel
+    from luana_core_platform.infrastructure.models.crm import LeadModel
 
     lead_id = eval_synthetic_lead_id(tenant_id)
 
@@ -672,7 +672,7 @@ def eval_tenant_seeded() -> Any:
         - Soft-delete teardown: ``eval_synthetic_tenants.deleted_at = utc_now()``.
         - No depende de ``visionarias_tenant_session`` — abre sesión propia.
     """
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     db: Session = SessionLocal()
     seeded_ids: list[UUID] = []

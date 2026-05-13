@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.agent_observability.channels.format import (
+from luana_core_channels.format import (
     CHANNEL_FORMATS,
     SUPPORTED_CHANNELS,
     ChannelFormat,

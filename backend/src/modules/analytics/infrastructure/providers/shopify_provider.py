@@ -15,13 +15,12 @@ from datetime import date, datetime
 from uuid import UUID
 
 import httpx
-
-from src.modules.analytics.domain.extraction_result import ExtractionResult
-from src.modules.analytics.infrastructure.providers.base import (
+from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+from luana_core_analytics_engine.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.shared.domain.currency import FALLBACK_CURRENCY
+from luana_core_platform.domain.currency import FALLBACK_CURRENCY
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +100,7 @@ class ShopifyProvider(BaseMetricsProvider):
         customer_counts = Counter(customer_ids)
         repeat_count = sum(1 for c in customer_counts.values() if c > 1)
 
-        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+        from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
         metrics = [
             ExtractedMetric(

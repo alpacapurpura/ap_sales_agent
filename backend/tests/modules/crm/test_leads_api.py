@@ -60,7 +60,7 @@ def _get_fake_user_other_tenant() -> _FakeUserOtherTenant:
 async def client() -> AsyncClient:  # type: ignore[override]
     """AsyncClient pointed at the FastAPI app with auth overridden."""
     from src.main import app
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     app.dependency_overrides[get_current_user] = _get_fake_user
 
@@ -87,7 +87,7 @@ def _make_lead_domain(
     telegram_id: str | None = "tg-123",
 ) -> Any:
     """Build a real Lead domain object for response serialization."""
-    from src.modules.crm.domain.lead import Lead, UserProfile
+    from luana_core_crm.domain.lead import Lead, UserProfile
 
     return Lead(
         id=lead_id or LEAD_ID,
@@ -151,18 +151,18 @@ class TestGetLead:
     @pytest.mark.asyncio
     async def test_get_existing_lead(self, client: AsyncClient) -> None:
         """Valid lead_id → 200 + lead data."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_lead = _make_lead_domain()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.lead_service.LeadService.get_lead",
+                "luana_core_crm.application.services.lead_service.LeadService.get_lead",
                 return_value=mock_lead,
             ),
         ):
@@ -186,17 +186,17 @@ class TestGetLead:
     @pytest.mark.asyncio
     async def test_get_lead_not_found(self, client: AsyncClient) -> None:
         """Lead does not exist → 404."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.lead_service.LeadService.get_lead",
+                "luana_core_crm.application.services.lead_service.LeadService.get_lead",
                 return_value=None,
             ),
         ):
@@ -213,19 +213,19 @@ class TestGetLead:
     @pytest.mark.asyncio
     async def test_get_lead_tenant_isolation(self, client: AsyncClient) -> None:
         """Lead belongs to different tenant → 404."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
-        from src.modules.iam.api.dependencies import get_current_user
+        from luana_core_iam.api.dependencies import get_current_user
 
         mock_session = _make_mock_session()
         mock_lead = _make_lead_domain(tenant_id=OTHER_TENANT_ID)
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.lead_service.LeadService.get_lead",
+                "luana_core_crm.application.services.lead_service.LeadService.get_lead",
                 return_value=mock_lead,
             ),
         ):

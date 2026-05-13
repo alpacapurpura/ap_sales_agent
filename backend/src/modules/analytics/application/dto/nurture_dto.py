@@ -4,13 +4,12 @@ Reuses TrafficGroupDTO and AvailableChannelsDTO from attraction_dto
 and MiniFunnelDTO from capture_dto to maintain a consistent API shape.
 """
 
-from pydantic import BaseModel
-
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     AvailableChannelsDTO,
     TrafficGroupDTO,
 )
-from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
+from luana_core_analytics_engine.application.dto.capture_dto import MiniFunnelDTO
+from pydantic import BaseModel
 
 
 class NurtureHeaderKpisDTO(BaseModel):

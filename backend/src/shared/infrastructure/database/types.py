@@ -3,11 +3,10 @@
 import json
 from typing import Any
 
+from luana_core_platform.core.security import decrypt_string, encrypt_string, get_encryption_key
 from sqlalchemy import Dialect
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import TypeDecorator
-
-from src.core.security import decrypt_string, encrypt_string, get_encryption_key
 
 
 class EncryptedJSON(TypeDecorator):

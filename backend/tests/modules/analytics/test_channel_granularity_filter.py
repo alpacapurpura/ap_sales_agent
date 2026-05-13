@@ -16,10 +16,10 @@ from uuid import UUID
 
 import pytest
 
-from src.modules.analytics.infrastructure.models.official_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
     OfficialMetricModel,
 )
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
 

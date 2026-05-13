@@ -4,7 +4,7 @@ Steps correspond to BrandSettings.model_fields sections, validated
 dynamically via schema_introspection (never hardcoded).
 """
 
-from src.modules.copilot.application.procedures.base import Procedure, ProcedureStep
+from luana_core_copilot.application.procedures.base import Procedure, ProcedureStep
 
 BRAND_SETUP = Procedure(
     procedure_id="brand_setup",

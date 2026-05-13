@@ -10,8 +10,8 @@ catalog already has: every archetype must have at least one entry.
 
 from __future__ import annotations
 
-from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.format_catalog import FORMAT_CATALOG
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.format_catalog import FORMAT_CATALOG
 
 
 def test_every_archetype_has_at_least_one_format() -> None:

@@ -76,7 +76,7 @@ def create_sales_agent_observability_port(db: Session) -> SalesAgentObservabilit
     (copilot suggestion providers) only depend on ``shared/links/ports``
     and the F1 ratchet ``copilot -> sales_agent`` stays at zero entries.
     """
-    from src.modules.sales_agent.application.services.observability_adapter import (
+    from luana_core_sales_agent.application.services.observability_adapter import (
         SalesAgentObservabilityAdapter,
     )
 

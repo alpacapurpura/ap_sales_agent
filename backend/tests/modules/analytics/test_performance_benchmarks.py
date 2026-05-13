@@ -11,13 +11,13 @@ import time
 import uuid
 from datetime import date, timedelta
 
-from src.modules.analytics.application.dto.summary_dto import (
+from luana_core_analytics_engine.application.dto.summary_dto import (
     BowtiesSummaryDTO,
     StageSummaryKpiDTO,
 )
-from src.modules.analytics.domain.metric_catalog import METRIC_CATALOG
-from src.modules.analytics.domain.period_config import TenantPeriodConfig
-from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
+from luana_core_analytics_engine.domain.metric_catalog import METRIC_CATALOG
+from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
+from luana_core_analytics_engine.infrastructure.etl.aggregations import compute_aggregations
 
 # ---------------------------------------------------------------------------
 # Helpers

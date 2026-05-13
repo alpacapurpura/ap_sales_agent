@@ -20,7 +20,7 @@ def _modules_root() -> Path:
 class TestModuleRegistryStructure:
     def test_all_registered_modules_have_real_directories(self):
         """Each module_id in the registry corresponds to an existing directory."""
-        from src.modules.copilot.domain.module_registry import get_module_registry
+        from luana_core_copilot.domain.module_registry import get_module_registry
 
         registry = get_module_registry()
         modules_root = _modules_root()
@@ -33,7 +33,7 @@ class TestModuleRegistryStructure:
 
     def test_all_descriptors_have_required_fields(self):
         """Each descriptor has non-empty module_id, label, description, route_prefix."""
-        from src.modules.copilot.domain.module_registry import get_module_registry
+        from luana_core_copilot.domain.module_registry import get_module_registry
 
         registry = get_module_registry()
         for module_id, descriptor in registry.items():
@@ -44,7 +44,7 @@ class TestModuleRegistryStructure:
 
     def test_known_core_modules_are_present(self):
         """brand, offer, crm, analytics, commercial_calendar and landing are registered."""
-        from src.modules.copilot.domain.module_registry import get_module_registry
+        from luana_core_copilot.domain.module_registry import get_module_registry
 
         registry = get_module_registry()
         expected = {
@@ -60,7 +60,7 @@ class TestModuleRegistryStructure:
 
     def test_registry_is_singleton(self):
         """Repeated calls return the same object (no rebuild)."""
-        from src.modules.copilot.domain.module_registry import get_module_registry
+        from luana_core_copilot.domain.module_registry import get_module_registry
 
         first = get_module_registry()
         second = get_module_registry()

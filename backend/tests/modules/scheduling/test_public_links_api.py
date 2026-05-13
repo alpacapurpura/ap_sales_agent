@@ -28,7 +28,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
-from src.core.database import get_db
+from luana_core_platform.core.database import get_db
 
 TENANT_ID = uuid.UUID("cccc0000-0000-0000-0000-000000000001")
 TENANT_SLUG = "test-public-tenant"
@@ -137,7 +137,7 @@ class TestResolveLink:
 
     def test_returns_200_for_valid_link(self, client: TestClient, db):
         """Mock LinkService para retornar link válido."""
-        from src.shared.links.service import LinkService
+        from luana_core_platform.links.service import LinkService
 
         mock_link = MagicMock()
         mock_link.target_type = "booking"
@@ -160,7 +160,7 @@ class TestResolveLink:
 
     def test_returns_404_when_tenant_not_found(self, client: TestClient, db):
         """Si link válido pero tenant no encontrado, retorna 404."""
-        from src.shared.links.service import LinkService
+        from luana_core_platform.links.service import LinkService
 
         mock_link = MagicMock()
         mock_link.target_type = "booking"
@@ -184,7 +184,7 @@ class TestGetPublicSlots:
 
     def test_returns_404_for_invalid_link(self, client: TestClient):
         """Link inválido o no es booking → 404."""
-        from src.shared.links.service import LinkService
+        from luana_core_platform.links.service import LinkService
 
         with patch.object(LinkService, "resolve_link", return_value=None):
             resp = client.get(
@@ -196,7 +196,7 @@ class TestGetPublicSlots:
 
     def test_returns_slots_for_valid_link(self, client: TestClient, db):
         """Link válido de tipo booking → retorna slots."""
-        from src.shared.links.service import LinkService
+        from luana_core_platform.links.service import LinkService
         from src.modules.scheduling.application.services.availability_service import AvailabilityService
 
         mock_link = MagicMock()
@@ -448,7 +448,7 @@ class TestPublicBookMeeting:
     """POST /scheduling/public/{token}/book."""
 
     def test_returns_404_for_invalid_token(self, client: TestClient):
-        from src.shared.links.service import LinkService
+        from luana_core_platform.links.service import LinkService
 
         with patch.object(LinkService, "resolve_link", return_value=None):
             resp = client.post(
@@ -463,7 +463,7 @@ class TestPublicBookMeeting:
         assert resp.status_code == 404
 
     def test_returns_404_for_non_booking_link(self, client: TestClient):
-        from src.shared.links.service import LinkService
+        from luana_core_platform.links.service import LinkService
 
         mock_link = MagicMock()
         mock_link.target_type = "other_type"
@@ -481,7 +481,7 @@ class TestPublicBookMeeting:
         assert resp.status_code == 404
 
     def test_returns_200_with_mocked_booking(self, client: TestClient):
-        from src.shared.links.service import LinkService
+        from luana_core_platform.links.service import LinkService
         from src.modules.scheduling.application.services.availability_service import AvailabilityService
 
         mock_link = MagicMock()

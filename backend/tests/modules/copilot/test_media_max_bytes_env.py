@@ -15,9 +15,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.copilot.api.media import _get_media_limits, router
-from src.modules.copilot.application.services.limits_resolver import EffectiveLimits
-from src.modules.iam.api.dependencies import get_current_user, get_db
+from luana_core_copilot.api.media import _get_media_limits, router
+from luana_core_copilot.application.services.limits_resolver import EffectiveLimits
+from luana_core_iam.api.dependencies import get_current_user, get_db
 
 
 def _make_effective_limits(media_max_bytes: int, is_override: bool = False) -> EffectiveLimits:
@@ -47,8 +47,8 @@ def _build_media_client(limits: EffectiveLimits) -> TestClient:
     return TestClient(app, raise_server_exceptions=False)
 
 
-@patch("src.modules.copilot.api.media.check_rate_limit")
-@patch("src.modules.copilot.api.media.AssetsService")
+@patch("luana_core_copilot.api.media.check_rate_limit")
+@patch("luana_core_copilot.api.media.AssetsService")
 def test_upload_11mb_fails_when_env_limit_is_10mb(
     mock_assets_cls: MagicMock,
     mock_rate_limit: MagicMock,
@@ -69,8 +69,8 @@ def test_upload_11mb_fails_when_env_limit_is_10mb(
     assert response.status_code == 413
 
 
-@patch("src.modules.copilot.api.media.check_rate_limit")
-@patch("src.modules.copilot.api.media.AssetsService")
+@patch("luana_core_copilot.api.media.check_rate_limit")
+@patch("luana_core_copilot.api.media.AssetsService")
 def test_upload_30mb_passes_with_50mb_override(
     mock_assets_cls: MagicMock,
     mock_rate_limit: MagicMock,
@@ -94,7 +94,7 @@ def test_upload_30mb_passes_with_50mb_override(
     assert response.status_code == 200
 
 
-@patch("src.modules.copilot.api.media.check_rate_limit")
+@patch("luana_core_copilot.api.media.check_rate_limit")
 def test_empty_file_returns_400(mock_rate_limit: MagicMock) -> None:
     """Empty file returns 400 regardless of limits."""
     mock_rate_limit.return_value = None
@@ -109,10 +109,10 @@ def test_empty_file_returns_400(mock_rate_limit: MagicMock) -> None:
     assert response.status_code == 400
 
 
-@patch("src.modules.copilot.api.media.check_rate_limit")
+@patch("luana_core_copilot.api.media.check_rate_limit")
 def test_media_rate_limit_hit_returns_429(mock_rate_limit: MagicMock) -> None:
     """Rate limit exceeded on media upload returns 429 (Q5: bucket copilot-media-upload)."""
-    from src.core.rate_limit import RateLimitExceeded
+    from luana_core_platform.core.rate_limit import RateLimitExceeded
 
     mock_rate_limit.side_effect = RateLimitExceeded(retry_after=15)
 
@@ -127,7 +127,7 @@ def test_media_rate_limit_hit_returns_429(mock_rate_limit: MagicMock) -> None:
     assert "Retry-After" in response.headers
 
 
-@patch("src.modules.copilot.api.media.check_rate_limit")
+@patch("luana_core_copilot.api.media.check_rate_limit")
 def test_media_and_voice_rate_limit_buckets_are_independent(mock_rate_limit: MagicMock) -> None:
     """Media upload uses scope 'copilot-media-upload', not 'copilot-voice'."""
     mock_rate_limit.return_value = None

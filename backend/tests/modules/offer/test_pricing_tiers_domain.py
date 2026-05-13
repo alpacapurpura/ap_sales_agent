@@ -13,12 +13,12 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.domain.launch_edition import (
     LaunchEdition,
     PricingTier,
     resolve_active_tier,
 )
-from src.modules.offer.domain.offer import PricingStructure
+from luana_core_offer_studio.domain.offer import PricingStructure
 
 
 def _tier(

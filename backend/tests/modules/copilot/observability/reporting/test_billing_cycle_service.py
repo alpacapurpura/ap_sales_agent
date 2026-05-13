@@ -27,7 +27,7 @@ def db(db_engine):
 
 
 def _seed_config(db, tenant_id, anchor: int) -> None:
-    from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
+    from luana_core_observability.persistence.tenant_billing_config_repository import (
         TenantBillingConfigRepository,
     )
 
@@ -43,7 +43,7 @@ def _seed_config(db, tenant_id, anchor: int) -> None:
 
 class TestBillingCycleService:
     def test_compute_window_uses_anchor_25_when_no_config(self, db) -> None:
-        from src.shared.agent_observability.reporting.billing_cycle_service import (
+        from luana_core_observability.reporting.billing_cycle_service import (
             BillingCycleService,
         )
 
@@ -53,7 +53,7 @@ class TestBillingCycleService:
         assert end == dt.date(2026, 5, 25)
 
     def test_compute_window_honours_tenant_anchor(self, db) -> None:
-        from src.shared.agent_observability.reporting.billing_cycle_service import (
+        from luana_core_observability.reporting.billing_cycle_service import (
             BillingCycleService,
         )
 
@@ -66,7 +66,7 @@ class TestBillingCycleService:
         assert end == dt.date(2026, 4, 15)
 
     def test_current_cycle_window_uses_today(self, monkeypatch, db) -> None:
-        from src.shared.agent_observability.reporting import billing_cycle_service
+        from luana_core_observability.reporting import billing_cycle_service
 
         monkeypatch.setattr(
             billing_cycle_service,
@@ -80,7 +80,7 @@ class TestBillingCycleService:
         assert end == dt.date(2026, 5, 25)
 
     def test_previous_cycle_window(self, monkeypatch, db) -> None:
-        from src.shared.agent_observability.reporting import billing_cycle_service
+        from luana_core_observability.reporting import billing_cycle_service
 
         monkeypatch.setattr(
             billing_cycle_service,
@@ -94,7 +94,7 @@ class TestBillingCycleService:
         assert end == dt.date(2026, 4, 25)
 
     def test_resolve_currency_returns_tenant_currency_when_config_present(self, db) -> None:
-        from src.shared.agent_observability.reporting.billing_cycle_service import (
+        from luana_core_observability.reporting.billing_cycle_service import (
             BillingCycleService,
         )
 
@@ -105,7 +105,7 @@ class TestBillingCycleService:
         assert svc.resolve_currency(tenant_id) == "USD"
 
     def test_resolve_currency_defaults_to_usd_when_unconfigured(self, db) -> None:
-        from src.shared.agent_observability.reporting.billing_cycle_service import (
+        from luana_core_observability.reporting.billing_cycle_service import (
             BillingCycleService,
         )
 

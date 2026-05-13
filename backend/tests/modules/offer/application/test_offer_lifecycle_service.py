@@ -13,13 +13,13 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.application.services.offer_lifecycle_service import (
+from luana_core_offer_studio.application.services.offer_lifecycle_service import (
     OfferLifecycleService,
 )
-from src.modules.offer.domain.enums import OfferStatus
-from src.modules.offer.domain.events import OfferStatusChanged
-from src.modules.offer.domain.exceptions import InvalidTransitionError
-from src.modules.offer.domain.lifecycle import (
+from luana_core_offer_studio.domain.enums import OfferStatus
+from luana_core_offer_studio.domain.events import OfferStatusChanged
+from luana_core_offer_studio.domain.exceptions import InvalidTransitionError
+from luana_core_offer_studio.domain.lifecycle import (
     LIFECYCLE_TRANSITIONS,
     OfferLifecycleStatus,
 )

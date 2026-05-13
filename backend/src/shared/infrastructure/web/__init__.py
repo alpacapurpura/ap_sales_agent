@@ -1,6 +1,6 @@
 """Shared web infrastructure — crawlers and HTML parsing utilities."""
 
-from src.shared.infrastructure.web.crawler import (
+from luana_core_platform.infrastructure.web.crawler import (
     WebCrawler,
     extract_css_relevant,
     extract_html_with_styles,

@@ -10,12 +10,12 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.application.orchestrator.state import (
+from luana_core_copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
 
 if TYPE_CHECKING:
-    from src.modules.copilot.application.orchestrator.state import ClientContext
+    from luana_core_copilot.application.orchestrator.state import ClientContext
 
 
 class TestClientContext:

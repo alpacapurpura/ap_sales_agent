@@ -162,10 +162,10 @@ def _patch_bridge_dependencies(
     Returns a handle dict with the patched objects so tests can assert on
     them after invocation.
     """
-    from src.modules.sales_agent.application.orchestrator import (
+    from luana_core_sales_agent.application.orchestrator import (
         graph as graph_mod,
     )
-    from src.modules.sales_agent.application.services import (
+    from luana_core_sales_agent.application.services import (
         knowledge_builder as kb_mod,
     )
     from tests.agentic_evals.sales_agent.simulator._internal import (

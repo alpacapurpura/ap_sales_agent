@@ -7,11 +7,10 @@ from typing import Any
 
 import httpx
 import structlog
-
-from src.core.config import settings
-from src.modules.connections.infrastructure.marketing_connectors.base import (
+from luana_core_connections.infrastructure.marketing_connectors.base import (
     BaseConnector,
 )
+from luana_core_platform.core.config import settings
 
 logger = structlog.get_logger()
 

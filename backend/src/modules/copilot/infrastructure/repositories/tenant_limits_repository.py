@@ -14,17 +14,16 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 import structlog
+from luana_core_copilot.domain.tenant_limits import CopilotTenantLimits
+from luana_core_copilot.infrastructure.models.tenant_limits_audit_model import (
+    CopilotTenantLimitsAuditModel,
+)
+from luana_core_copilot.infrastructure.models.tenant_limits_model import (
+    CopilotTenantLimitsModel,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 from sqlalchemy.orm import Session  # noqa: TC002
-
-from src.modules.copilot.domain.tenant_limits import CopilotTenantLimits
-from src.modules.copilot.infrastructure.models.tenant_limits_audit_model import (
-    CopilotTenantLimitsAuditModel,
-)
-from src.modules.copilot.infrastructure.models.tenant_limits_model import (
-    CopilotTenantLimitsModel,
-)
 
 logger = structlog.get_logger(__name__)
 

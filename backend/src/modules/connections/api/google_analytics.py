@@ -5,15 +5,11 @@ from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.connections.api.dto.common import (
+from luana_core_connections.api.dto.common import (
     ConnectionTestResponse,
     StatusSavedResponse,
 )
-from src.modules.connections.api.dto.google_analytics import (
+from luana_core_connections.api.dto.google_analytics import (
     GA4PropertySummary,
     GoogleAnalyticsCallbackResponse,
     GoogleAnalyticsStatusResponse,
@@ -21,16 +17,19 @@ from src.modules.connections.api.dto.google_analytics import (
     PropertySelectResponse,
     SelectedProperty,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.channels.google_analytics import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.channels.google_analytics import (
     GoogleAnalyticsAdapter,
 )
-from src.modules.connections.infrastructure.models import ChannelConnectionModel
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.infrastructure.models import ChannelConnectionModel
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["google_analytics"])
 logger = structlog.get_logger()

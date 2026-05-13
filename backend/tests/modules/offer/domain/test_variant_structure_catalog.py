@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.offer.domain.enums import VariantStructure
-from src.modules.offer.domain.variant_structure_catalog import (
+from luana_core_offer_studio.domain.enums import VariantStructure
+from luana_core_offer_studio.domain.variant_structure_catalog import (
     VARIANT_STRUCTURE_CATALOG,
     CloneCopyPolicy,
     VariantCardinality,

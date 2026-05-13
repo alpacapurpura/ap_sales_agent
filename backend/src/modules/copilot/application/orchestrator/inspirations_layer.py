@@ -28,8 +28,7 @@ from __future__ import annotations
 from uuid import UUID
 
 import structlog
-
-from src.modules.copilot.application.tools.fetch_url import (
+from luana_core_copilot.application.tools.fetch_url import (
     ACTIVE_INSPIRATIONS_CAP,
 )
 
@@ -87,10 +86,10 @@ def build_inspirations_layer(state: dict) -> str:
         return ""
 
     try:
-        from src.core.database import SessionLocal
-        from src.modules.copilot.infrastructure.repositories.inspiration_repository import (
+        from luana_core_copilot.infrastructure.repositories.inspiration_repository import (
             CopilotInspirationRepository,
         )
+        from luana_core_platform.core.database import SessionLocal
 
         db = SessionLocal()
         try:

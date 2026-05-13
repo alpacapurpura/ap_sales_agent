@@ -11,21 +11,20 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.modules.campaigns.api._dependencies import get_campaigns_async_session
-from src.modules.campaigns.api._service_factories import get_template_service
-from src.modules.campaigns.application.dtos.campaign_dtos import CampaignResponse
-from src.modules.campaigns.application.dtos.campaign_template_dtos import (
+from luana_core_campaigns.api._dependencies import get_campaigns_async_session
+from luana_core_campaigns.api._service_factories import get_template_service
+from luana_core_campaigns.application.dtos.campaign_dtos import CampaignResponse
+from luana_core_campaigns.application.dtos.campaign_template_dtos import (
     CampaignCreateFromTemplate,
     CampaignTemplateResponse,
 )
-from src.modules.campaigns.application.services.campaign_template_service import (
+from luana_core_campaigns.application.services.campaign_template_service import (
     CampaignTemplateNotFoundError,
     CampaignTemplateService,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 

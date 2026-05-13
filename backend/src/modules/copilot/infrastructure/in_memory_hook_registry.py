@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 import structlog
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.hooks.hook_registry import HookHandler
+    from luana_core_copilot.domain.hooks.hook_registry import HookHandler
 
 
 _LOGGER = structlog.get_logger("copilot.hooks")

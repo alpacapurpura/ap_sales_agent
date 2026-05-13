@@ -36,10 +36,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.agent_observability.recording.base_callback_handler import (
+from luana_core_observability.recording.base_callback_handler import (
     BaseAgentCallbackHandler,
 )
-from src.shared.agent_observability.recording.turn_envelope import (
+from luana_core_observability.recording.turn_envelope import (
     BaseObservabilityContext,
 )
 from tests.agentic_evals.sales_agent.simulator._internal.observability import (

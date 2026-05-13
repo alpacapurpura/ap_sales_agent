@@ -8,7 +8,7 @@ import pytest
 # ---------------------------------------------------------------------------
 # api/shopify_compliance.py
 # ---------------------------------------------------------------------------
-from src.modules.connections.api.shopify_compliance import (
+from luana_core_connections.api.shopify_compliance import (
     customers_data_request,
     customers_redact,
     shop_redact,
@@ -71,7 +71,7 @@ class TestShopifyComplianceRoutes:
 # ---------------------------------------------------------------------------
 
 
-from src.modules.connections.api.dependencies.webhook_security import (
+from luana_core_connections.api.dependencies.webhook_security import (
     verify_meta_signature,
     verify_shopify_signature,
 )
@@ -107,7 +107,7 @@ class TestVerifyShopifySignature:
 
         req = _req_shopify(signature="somesig")
 
-        with patch("src.modules.connections.api.dependencies.webhook_security.settings") as mock_settings:
+        with patch("luana_core_connections.api.dependencies.webhook_security.settings") as mock_settings:
             mock_settings.SHOPIFY_API_SECRET = None
             with pytest.raises(HTTPException) as exc_info:
                 await verify_shopify_signature(req)
@@ -119,7 +119,7 @@ class TestVerifyShopifySignature:
 
         req = _req_shopify(signature="invalidsig")
 
-        with patch("src.modules.connections.api.dependencies.webhook_security.settings") as mock_settings:
+        with patch("luana_core_connections.api.dependencies.webhook_security.settings") as mock_settings:
             mock_settings.SHOPIFY_API_SECRET = "mysecret"
             with pytest.raises(HTTPException) as exc_info:
                 await verify_shopify_signature(req)
@@ -138,7 +138,7 @@ class TestVerifyShopifySignature:
 
         req = _req_shopify(signature=sig, body=body)
 
-        with patch("src.modules.connections.api.dependencies.webhook_security.settings") as mock_settings:
+        with patch("luana_core_connections.api.dependencies.webhook_security.settings") as mock_settings:
             mock_settings.SHOPIFY_API_SECRET = secret
             result = await verify_shopify_signature(req)
         assert result is True
@@ -160,7 +160,7 @@ class TestVerifyMetaSignature:
 
         req = _req_meta(signature_header="sha256=abc")
 
-        with patch("src.modules.connections.api.dependencies.webhook_security.settings") as mock_settings:
+        with patch("luana_core_connections.api.dependencies.webhook_security.settings") as mock_settings:
             mock_settings.META_APP_SECRET = None
             with pytest.raises(HTTPException) as exc_info:
                 await verify_meta_signature(req)
@@ -172,7 +172,7 @@ class TestVerifyMetaSignature:
 
         req = _req_meta(signature_header="noprefix=abc")
 
-        with patch("src.modules.connections.api.dependencies.webhook_security.settings") as mock_settings:
+        with patch("luana_core_connections.api.dependencies.webhook_security.settings") as mock_settings:
             mock_settings.META_APP_SECRET = "mysecret"
             with pytest.raises(HTTPException) as exc_info:
                 await verify_meta_signature(req)
@@ -184,7 +184,7 @@ class TestVerifyMetaSignature:
 
         req = _req_meta(signature_header="sha256=badsig")
 
-        with patch("src.modules.connections.api.dependencies.webhook_security.settings") as mock_settings:
+        with patch("luana_core_connections.api.dependencies.webhook_security.settings") as mock_settings:
             mock_settings.META_APP_SECRET = "mysecret"
             with pytest.raises(HTTPException) as exc_info:
                 await verify_meta_signature(req)
@@ -202,7 +202,7 @@ class TestVerifyMetaSignature:
 
         req = _req_meta(signature_header=sig_header, body=body)
 
-        with patch("src.modules.connections.api.dependencies.webhook_security.settings") as mock_settings:
+        with patch("luana_core_connections.api.dependencies.webhook_security.settings") as mock_settings:
             mock_settings.META_APP_SECRET = secret
             result = await verify_meta_signature(req)
         assert result is True
@@ -213,7 +213,7 @@ class TestVerifyMetaSignature:
 # ---------------------------------------------------------------------------
 
 
-from src.modules.connections.copilot_provider.provider import (
+from luana_core_connections.copilot_provider.provider import (
     ConnectionsCopilotProvider,
     _connections_read_fn,
     _connections_repo_factory,
@@ -253,8 +253,8 @@ class TestConnectionsCopilotProvider:
 # ---------------------------------------------------------------------------
 
 
-from src.modules.connections.infrastructure.channels.webhook import WebhookAdapter
-from src.shared.domain.messages import OutgoingMessage
+from luana_core_connections.infrastructure.channels.webhook import WebhookAdapter
+from luana_core_platform.domain.messages import OutgoingMessage
 
 
 class TestWebhookAdapter:

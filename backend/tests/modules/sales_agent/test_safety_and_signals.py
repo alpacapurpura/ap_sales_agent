@@ -3,7 +3,7 @@
 import re
 from unittest.mock import patch
 
-from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
+from luana_core_sales_agent.application.services.semantic_router import SemanticRouter
 
 # ─── Credit-card regex (same pattern used in SafetyLayerService Phase 2) ─────
 

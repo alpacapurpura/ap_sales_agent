@@ -8,7 +8,7 @@ Covers:
 
 from __future__ import annotations
 
-from src.modules.copilot.application.tools.telegram_redirect import (
+from luana_core_copilot.application.tools.telegram_redirect import (
     TELEGRAM_TOOL_UNAVAILABLE_TEMPLATE,
     build_redirect_url,
     render_unavailable_response,

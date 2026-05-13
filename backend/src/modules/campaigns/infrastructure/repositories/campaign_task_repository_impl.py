@@ -11,10 +11,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
+from luana_core_platform.domain.datetime_utils import utc_now
 from sqlalchemy import func, select, text, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-from src.shared.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     import datetime as dt
@@ -23,10 +22,10 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.modules.campaigns.domain.campaign_task import CampaignTask
-from src.modules.campaigns.domain.enums import TaskStatus
-from src.modules.campaigns.domain.repositories import CampaignTaskRepository
-from src.modules.campaigns.infrastructure.models.campaign_task_model import CampaignTaskModel
+from luana_core_campaigns.domain.campaign_task import CampaignTask
+from luana_core_campaigns.domain.enums import TaskStatus
+from luana_core_campaigns.domain.repositories import CampaignTaskRepository
+from luana_core_campaigns.infrastructure.models.campaign_task_model import CampaignTaskModel
 
 logger = structlog.get_logger()
 

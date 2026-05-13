@@ -21,8 +21,8 @@ import json
 from langchain_core.messages import AIMessage
 from sqlalchemy import select
 
-from src.modules.sales_agent.application.quality.judge import SalesAgentJudge
-from src.modules.sales_agent.infrastructure.models.workflow_metric_model import (
+from luana_core_sales_agent.application.quality.judge import SalesAgentJudge
+from luana_core_sales_agent.infrastructure.models.workflow_metric_model import (
     SalesAgentWorkflowMetricModel,
 )
 from src.shared.workers.sales_agent_quality_eval import (
@@ -80,7 +80,7 @@ def test_drift_detection_emits_alert_when_score_drops_more_than_5_pct(db):
     """Previous=4.5 → current=4.0 → drop=11% > 5% → drift_alert=True."""
     from datetime import timedelta
 
-    from src.shared.domain.datetime_utils import utc_now
+    from luana_core_platform.domain.datetime_utils import utc_now
 
     previous_start = utc_now() - timedelta(days=14)
     previous_end = utc_now() - timedelta(days=7)
@@ -122,7 +122,7 @@ def test_drift_detection_silent_when_score_stable(db):
     """Previous=4.0 → current=4.0 → no drift, no alert."""
     from datetime import timedelta
 
-    from src.shared.domain.datetime_utils import utc_now
+    from luana_core_platform.domain.datetime_utils import utc_now
 
     previous_start = utc_now() - timedelta(days=14)
     previous_end = utc_now() - timedelta(days=7)

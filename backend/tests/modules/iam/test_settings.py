@@ -7,10 +7,10 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.api.settings import router
-from src.modules.iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.api.settings import router
+from luana_core_iam.domain.user import User
 
 
 def _make_user(tenant_id: uuid.UUID) -> User:
@@ -185,20 +185,20 @@ class TestProfileSettings:
 
 class TestWebhookSettings:
     def test_get_webhook_returns_200(self, client, seed_tenant):
-        with patch("src.modules.iam.api.settings.app_settings") as mock_cfg:
+        with patch("luana_core_iam.api.settings.app_settings") as mock_cfg:
             mock_cfg.API_DOMAIN = "localhost:8000"
             resp = client.get("/settings/webhook")
         assert resp.status_code == 200
         assert "webhook_url" in resp.json()
 
     def test_get_webhook_missing_api_domain_returns_500(self, client, seed_tenant):
-        with patch("src.modules.iam.api.settings.app_settings") as mock_cfg:
+        with patch("luana_core_iam.api.settings.app_settings") as mock_cfg:
             mock_cfg.API_DOMAIN = None
             resp = client.get("/settings/webhook")
         assert resp.status_code == 500
 
     def test_regenerate_webhook_secret_returns_new_secret(self, client, seed_tenant):
-        with patch("src.modules.iam.api.settings.app_settings") as mock_cfg:
+        with patch("luana_core_iam.api.settings.app_settings") as mock_cfg:
             mock_cfg.API_DOMAIN = "api.example.com"
             resp = client.post("/settings/webhook/regenerate")
         assert resp.status_code == 200
@@ -207,7 +207,7 @@ class TestWebhookSettings:
         assert body["webhook_secret"].startswith("sk_live_")
 
     def test_regenerate_generates_new_secret_each_call(self, client, seed_tenant):
-        with patch("src.modules.iam.api.settings.app_settings") as mock_cfg:
+        with patch("luana_core_iam.api.settings.app_settings") as mock_cfg:
             mock_cfg.API_DOMAIN = "api.example.com"
             first = client.post("/settings/webhook/regenerate").json()["webhook_secret"]
             second = client.post("/settings/webhook/regenerate").json()["webhook_secret"]
@@ -246,8 +246,8 @@ class TestTeamSettings:
 
     def test_create_team_member_limit_exceeded_returns_403(self, client, db, seed_user_tenant_link, tenant_id):
         """Already 1 member, add 2 more to hit limit of 3, then fail."""
-        from src.modules.iam.infrastructure.models.user_model import UserModel
-        from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel
+        from luana_core_iam.infrastructure.models.user_model import UserModel
+        from luana_core_iam.infrastructure.models.user_tenant_model import UserTenantModel
 
         for i in range(2):
             u = UserModel(
@@ -263,7 +263,7 @@ class TestTeamSettings:
             db.add(UserTenantModel(user_id=u.id, tenant_id=tenant_id, role="member"))
         db.commit()
 
-        with patch("src.modules.iam.api.settings.ClerkService") as mock_clerk_cls:
+        with patch("luana_core_iam.api.settings.ClerkService") as mock_clerk_cls:
             mock_clerk_cls.return_value.create_user.return_value = {"id": "new_clerk_id"}
             mock_clerk_cls.return_value.update_user_metadata.return_value = None
             resp = client.post(

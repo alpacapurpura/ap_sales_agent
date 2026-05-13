@@ -107,7 +107,7 @@ def _db_session():  # type: ignore[return]  # pytest generator fixture
     Yields:
         Session — abrir + cerrar en cada test para aislamiento completo.
     """
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     db = SessionLocal()
     try:
@@ -119,7 +119,7 @@ def _db_session():  # type: ignore[return]  # pytest generator fixture
 def _skip_if_no_postgres() -> None:
     """Saltar test si Postgres no está disponible desde WSL nativo."""
     try:
-        from src.core.database import SessionLocal
+        from luana_core_platform.core.database import SessionLocal
 
         db = SessionLocal()
         db.execute(__import__("sqlalchemy").text("SELECT 1"))
@@ -144,11 +144,11 @@ def test_seeds_and_returns_uuid5(_db_session) -> None:  # type: ignore[no-untype
     """
     _skip_if_no_postgres()
 
-    from src.modules.brand.infrastructure.models.personality_model import (
+    from luana_core_brand_studio.infrastructure.models.personality_model import (
         PersonalityProfileModel,
     )
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.offer.infrastructure.models.product_model import ProductModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
     from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_synthetic_tenants import (
         EvalSyntheticTenantModel,
     )
@@ -332,7 +332,7 @@ def test_cross_tenant_isolation(_db_session) -> None:  # type: ignore[no-untyped
     """
     _skip_if_no_postgres()
 
-    from src.modules.offer.infrastructure.models.product_model import ProductModel
+    from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
     from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_synthetic_tenants import (
         EvalSyntheticTenantModel,
     )
@@ -555,7 +555,7 @@ def test_seed_creates_synthetic_lead_for_fk(_db_session) -> None:  # type: ignor
     """
     _skip_if_no_postgres()
 
-    from src.shared.infrastructure.models.crm import LeadModel
+    from luana_core_platform.infrastructure.models.crm import LeadModel
     from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (
         _eval_tenant_id,
         _soft_delete_lookup,
@@ -621,7 +621,7 @@ def test_seed_synthetic_lead_is_idempotent(_db_session) -> None:  # type: ignore
     """
     _skip_if_no_postgres()
 
-    from src.shared.infrastructure.models.crm import LeadModel
+    from luana_core_platform.infrastructure.models.crm import LeadModel
     from tests.agentic_evals.sales_agent.simulator.fixtures.tenant_seeded import (
         _eval_tenant_id,
         _soft_delete_lookup,

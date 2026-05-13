@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+from luana_core_copilot.application.orchestrator.system_prompt_layout import (
     CACHEABLE_FRAGMENTS,
     PROMPT_FRAGMENT_ORDER,
     PromptFragment,
@@ -32,7 +32,7 @@ def test_marketing_kb_hint_after_tools_hint_before_lighthouse() -> None:
 
 def test_compose_renders_marketing_kb_hint_text() -> None:
     """``compose_system_prompt`` should include the F10 hint when slotted."""
-    from src.modules.copilot.application.orchestrator.graph import (
+    from luana_core_copilot.application.orchestrator.graph import (
         _build_marketing_kb_hint_fragment,
     )
 

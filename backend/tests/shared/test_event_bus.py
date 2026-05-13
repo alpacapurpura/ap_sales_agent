@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain.events import DomainEvent, EventBus
+from luana_core_platform.domain.events import DomainEvent, EventBus
 
 
 @pytest.fixture(autouse=True)

@@ -15,12 +15,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     AttractionDetailDTO,
 )
-from src.modules.analytics.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.period_config import DateRange
 
-_ATTRACTION_MODULE = "src.modules.analytics.application.services.stage_services.attraction_stage"
+_ATTRACTION_MODULE = "luana_core_analytics_engine.application.services.stage_services.attraction_stage"
 
 _DEFAULT_RANGE = DateRange(date(2026, 3, 18), date(2026, 4, 16), "last_30_days")
 
@@ -45,7 +45,7 @@ def mock_cache():
 
 @pytest.fixture
 def mock_connection_port():
-    from src.modules.analytics.domain.ports import ConnectionCredentials
+    from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
     port = AsyncMock()
     # Return some connected channels (meta and google_analytics)
@@ -94,7 +94,7 @@ def sample_aggregations():
 
 def _make_service(db, cache=None, connection_port=None):
     """Helper to build AttractionStageService with ETL dependencies."""
-    from src.modules.analytics.application.services.stage_services.attraction_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
         AttractionStageService,
     )
 

@@ -32,19 +32,19 @@ CATALOG_PATH = (
 # ``archetype_catalog_v2`` or a sibling module at the same depth can't
 # sneak in a rename escape hatch.
 FORBIDDEN_IMPORT_PREFIXES: tuple[str, ...] = (
-    "src.modules.offer.domain.archetype_catalog",
-    "src.modules.offer.domain.section_catalog",
-    "src.modules.offer.domain.format_catalog",
-    "src.modules.offer.domain.value_level_catalog",
-    "src.shared.domain.expert_business_type",
+    "luana_core_offer_studio.domain.archetype_catalog",
+    "luana_core_offer_studio.domain.section_catalog",
+    "luana_core_offer_studio.domain.format_catalog",
+    "luana_core_offer_studio.domain.value_level_catalog",
+    "luana_core_platform.domain.expert_business_type",
 )
 
 # These prefixes are explicitly allowed. The catalog legitimately needs
 # the ``VariantStructure`` enum (and nothing else from ``enums.py``) plus
 # standard library modules.
 ALLOWED_OFFER_IMPORT_PREFIXES: tuple[str, ...] = (
-    "src.modules.offer.domain.enums",
-    "src.modules.offer.domain.variant_structure_catalog",  # self-reference, unlikely
+    "luana_core_offer_studio.domain.enums",
+    "luana_core_offer_studio.domain.variant_structure_catalog",  # self-reference, unlikely
 )
 
 
@@ -105,7 +105,7 @@ def test_only_expected_offer_module_imports() -> None:
     unexpected = [
         f"{CATALOG_PATH.name}:{lineno} imports {module!r}"
         for module, lineno in _collect_dotted_imports(tree)
-        if module.startswith("src.modules.offer") and not module.startswith(ALLOWED_OFFER_IMPORT_PREFIXES)
+        if module.startswith("luana_core_offer_studio") and not module.startswith(ALLOWED_OFFER_IMPORT_PREFIXES)
     ]
     assert not unexpected, (
         "``variant_structure_catalog`` imports an offer-module not in the "

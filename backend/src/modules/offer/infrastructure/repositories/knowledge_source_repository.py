@@ -9,18 +9,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func, or_, select
-
-from src.modules.offer.application.ports import IKnowledgeSourceRepository
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.application.ports import IKnowledgeSourceRepository
+from luana_core_offer_studio.domain.enums import (
     KnowledgeSourceStatus,
     KnowledgeSourceType,
 )
-from src.modules.offer.domain.knowledge_source import KnowledgeSource
-from src.modules.offer.infrastructure.models.knowledge_source_model import (
+from luana_core_offer_studio.domain.knowledge_source import KnowledgeSource
+from luana_core_offer_studio.infrastructure.models.knowledge_source_model import (
     KnowledgeSourceModel,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
+from sqlalchemy import func, or_, select
 
 if TYPE_CHECKING:
     from uuid import UUID

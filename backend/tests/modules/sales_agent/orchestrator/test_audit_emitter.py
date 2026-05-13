@@ -15,9 +15,9 @@ from uuid import UUID
 
 import pytest
 
-from src.modules.sales_agent.application.orchestrator.audit_emitter import AuditEmitter
-from src.shared.domain.messages import IncomingMessage
-from src.shared.domain_events.outbox.application.event_bus_adapter import EventBusAdapter
+from luana_core_sales_agent.application.orchestrator.audit_emitter import AuditEmitter
+from luana_core_platform.domain.messages import IncomingMessage
+from luana_core_events.outbox.application.event_bus_adapter import EventBusAdapter
 
 TENANT_ID = UUID("44444444-4444-4444-4444-444444444444")
 CUSTOMER_ID = UUID("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa")
@@ -30,7 +30,7 @@ LEAD_ID = UUID("55555555-5555-5555-5555-555555555555")
 def test_track_message_received_emits_track_event(monkeypatch: pytest.MonkeyPatch) -> None:
     journey_repo = MagicMock()
     monkeypatch.setattr(
-        "src.shared.links.ports.crm_repos.get_journey_event_repository",
+        "luana_core_platform.links.ports.crm_repos.get_journey_event_repository",
         lambda _db: journey_repo,
     )
 
@@ -68,7 +68,7 @@ def test_track_message_received_emits_track_event(monkeypatch: pytest.MonkeyPatc
 def test_track_message_received_omits_message_id_when_missing(monkeypatch: pytest.MonkeyPatch) -> None:
     journey_repo = MagicMock()
     monkeypatch.setattr(
-        "src.shared.links.ports.crm_repos.get_journey_event_repository",
+        "luana_core_platform.links.ports.crm_repos.get_journey_event_repository",
         lambda _db: journey_repo,
     )
     customer = SimpleNamespace(id=CUSTOMER_ID)
@@ -93,7 +93,7 @@ def test_track_message_received_swallows_exception(monkeypatch: pytest.MonkeyPat
         raise RuntimeError(msg)
 
     monkeypatch.setattr(
-        "src.shared.links.ports.crm_repos.get_journey_event_repository",
+        "luana_core_platform.links.ports.crm_repos.get_journey_event_repository",
         _raise,
     )
     customer = SimpleNamespace(id=CUSTOMER_ID)
@@ -127,7 +127,7 @@ def test_publish_lead_captured_publishes_event(monkeypatch: pytest.MonkeyPatch) 
         captured.append((event, session))
 
     monkeypatch.setattr(
-        "src.shared.domain.events.EventBus.publish",
+        "luana_core_platform.domain.events.EventBus.publish",
         staticmethod(_capture_publish),
     )
     monkeypatch.setattr(EventBusAdapter, "_is_outbox_enabled", staticmethod(lambda *_: False))
@@ -164,7 +164,7 @@ async def test_emit_assistant_message_sends_ws_payload(monkeypatch: pytest.Monke
         captured.append((tenant_id, payload))
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.ws_manager.ws_manager.emit",
+        "luana_core_sales_agent.infrastructure.ws_manager.ws_manager.emit",
         _capture_emit,
     )
 
@@ -195,7 +195,7 @@ async def test_emit_assistant_message_truncates_to_200_chars(monkeypatch: pytest
         captured.append(payload)
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.ws_manager.ws_manager.emit",
+        "luana_core_sales_agent.infrastructure.ws_manager.ws_manager.emit",
         _capture_emit,
     )
 
@@ -217,7 +217,7 @@ async def test_emit_assistant_message_swallows_ws_failure(monkeypatch: pytest.Mo
         raise RuntimeError(msg)
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.ws_manager.ws_manager.emit",
+        "luana_core_sales_agent.infrastructure.ws_manager.ws_manager.emit",
         _raise,
     )
     # Must not raise
@@ -240,7 +240,7 @@ async def test_emit_human_mode_message_sends_user_role(monkeypatch: pytest.Monke
         captured.append((tenant_id, payload))
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.ws_manager.ws_manager.emit",
+        "luana_core_sales_agent.infrastructure.ws_manager.ws_manager.emit",
         _capture_emit,
     )
 

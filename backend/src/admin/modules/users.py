@@ -7,14 +7,13 @@ import time
 import pandas as pd
 import streamlit as st
 import structlog
-
-from src.core.database import SessionLocal
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel as Tenant
-from src.modules.iam.infrastructure.models.user_model import UserModel as User
-from src.modules.iam.infrastructure.models.user_tenant_model import (
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel as Tenant
+from luana_core_iam.infrastructure.models.user_model import UserModel as User
+from luana_core_iam.infrastructure.models.user_tenant_model import (
     UserTenantModel as UserTenant,
 )
-from src.shared.infrastructure.external.clerk import ClerkService
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.infrastructure.external.clerk import ClerkService
 
 logger = structlog.get_logger()
 

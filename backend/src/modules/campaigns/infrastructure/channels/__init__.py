@@ -7,7 +7,7 @@ PR-5 PI-1 S2.
 
 from __future__ import annotations
 
-from src.modules.campaigns.infrastructure.channels.errors import (
+from luana_core_campaigns.infrastructure.channels.errors import (
     ChannelComplianceBlocked,
     ChannelError,
     ChannelFatalError,
@@ -15,17 +15,17 @@ from src.modules.campaigns.infrastructure.channels.errors import (
     ChannelRetryableError,
     ChannelTenantRateExceeded,
 )
-from src.modules.campaigns.infrastructure.channels.registry import (
+from luana_core_campaigns.infrastructure.channels.registry import (
     ChannelRouterRegistry,
     channel_router_registry,
     register_default_channels,
 )
-from src.modules.campaigns.infrastructure.channels.shared import (
+from luana_core_campaigns.infrastructure.channels.shared import (
     ChannelDispatchResult,
     format_message_for_tenant_locale,
     telegram_idempotency_key,
 )
-from src.modules.campaigns.infrastructure.channels.telegram import (
+from luana_core_campaigns.infrastructure.channels.telegram import (
     TelegramChannelRouter,
     close_httpx_client,
 )

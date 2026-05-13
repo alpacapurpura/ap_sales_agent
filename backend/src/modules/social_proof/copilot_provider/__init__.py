@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.social_proof.copilot_provider.provider import SocialProofCopilotProvider
+from luana_core_social_proof.copilot_provider.provider import SocialProofCopilotProvider
 
 provider: SocialProofCopilotProvider = SocialProofCopilotProvider()
 

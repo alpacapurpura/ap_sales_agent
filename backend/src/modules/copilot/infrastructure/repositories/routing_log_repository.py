@@ -5,9 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
+from luana_core_copilot.infrastructure.models.routing_log_model import RoutingLogModel
 from sqlalchemy import select
-
-from src.modules.copilot.infrastructure.models.routing_log_model import RoutingLogModel
 
 if TYPE_CHECKING:
     from decimal import Decimal

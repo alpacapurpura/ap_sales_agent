@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from uuid import UUID
+from typing import TYPE_CHECKING
 
+from luana_core_platform.domain.base_entity import BaseEntity
 from pydantic import Field
 
-from src.shared.domain.base_entity import BaseEntity
+if TYPE_CHECKING:
+    from datetime import datetime
+    from uuid import UUID
 
 
 class TeamMember(BaseEntity):

@@ -28,17 +28,17 @@ import re
 
 import pytest
 
-from src.modules.offer.domain.archetype_catalog import ARCHETYPE_CATALOG
-from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
-from src.modules.offer.domain.offer_type_preset_catalog import (
+from luana_core_offer_studio.domain.archetype_catalog import ARCHETYPE_CATALOG
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferValueLevel
+from luana_core_offer_studio.domain.offer_type_preset_catalog import (
     OFFER_TYPE_PRESET_CATALOG,
     QUESTION_REGISTRY,
     PresetFlag,
     resolve_preset_flags,
     resolve_preset_sections,
 )
-from src.modules.offer.domain.section_catalog import SECTION_CATALOG, SectionKey
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_offer_studio.domain.section_catalog import SECTION_CATALOG, SectionKey
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 _BUSINESS_TYPE_SLUG: dict[ExpertBusinessType, str] = {
     ExpertBusinessType.PROFESIONAL_SALUD: "salud",

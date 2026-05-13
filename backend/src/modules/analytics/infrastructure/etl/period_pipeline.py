@@ -11,21 +11,20 @@ from datetime import date
 from uuid import UUID
 
 import structlog
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.cost_type_mapping import get_cost_type
-from src.modules.analytics.domain.enums import ExtractionStatus
-from src.modules.analytics.domain.exceptions import ConnectionRevokedError
-from src.modules.analytics.domain.metric_catalog import get_non_aggregable_for_provider
-from src.modules.analytics.domain.ports import ConnectionPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
-from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+from luana_core_analytics_engine.application.cost_type_mapping import get_cost_type
+from luana_core_analytics_engine.domain.enums import ExtractionStatus
+from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
+from luana_core_analytics_engine.domain.metric_catalog import get_non_aggregable_for_provider
+from luana_core_analytics_engine.domain.ports import ConnectionPort
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_analytics_engine.infrastructure.providers.base import BaseMetricsProvider
+from luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
 )
-from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository import (
     PeriodMetricsRepository,
 )
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger(__name__)
 
@@ -84,11 +83,10 @@ class PeriodExtractionPipeline:
         run_id = run.id
 
         # Transition status PENDING -> RUNNING (metadata already persisted)
-        from sqlalchemy import update
-
-        from src.modules.analytics.infrastructure.models.extraction_run_model import (
+        from luana_core_analytics_engine.infrastructure.models.extraction_run_model import (
             ExtractionRunModel,
         )
+        from sqlalchemy import update
 
         self.db.execute(
             update(ExtractionRunModel)

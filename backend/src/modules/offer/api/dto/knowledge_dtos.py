@@ -6,12 +6,11 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
-
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     KnowledgeSourceStatus,
     KnowledgeSourceType,
 )
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class KnowledgeSourceResponse(BaseModel):

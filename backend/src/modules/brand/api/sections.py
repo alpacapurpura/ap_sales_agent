@@ -10,12 +10,11 @@ refs: docs/refactors/field-contract-ssot/phases/03-section-catalog-dedup/SPEC.md
 from __future__ import annotations
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict
-
-from src.modules.brand.domain.section_catalog import (
+from luana_core_brand_studio.domain.section_catalog import (
     BRAND_SECTION_CATALOG,
     BrandSectionMetadata,
 )
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
 

@@ -17,10 +17,10 @@ import random
 
 import pytest
 
-from src.modules.sales_agent.infrastructure.external.output_manager import (
+from luana_core_sales_agent.infrastructure.external.output_manager import (
     OutputManager,
 )
-from src.shared.agent_observability.channels.format import (
+from luana_core_channels.format import (
     ChannelFormat,
     register_channel,
     reset_registry_for_tests,

@@ -5,14 +5,13 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.social_proof.application.dto.authority_dto import AuthorityResponseDTO
-from src.modules.social_proof.application.dto.team_dto import TeamMemberResponseDTO
-from src.modules.social_proof.application.dto.testimonial_dto import (
+from luana_core_social_proof.application.dto.authority_dto import AuthorityResponseDTO
+from luana_core_social_proof.application.dto.team_dto import TeamMemberResponseDTO
+from luana_core_social_proof.application.dto.testimonial_dto import (
     TestimonialResponseDTO,
 )
-from src.modules.social_proof.domain.enums import SourceTable, SurfaceType
+from luana_core_social_proof.domain.enums import SourceTable, SurfaceType
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PlacementCreateDTO(BaseModel):

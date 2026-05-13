@@ -13,11 +13,11 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
-from src.modules.brand.domain.buyer_persona import BuyerPersona
-from src.modules.brand.infrastructure.models.buyer_persona_model import (
+from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
+from luana_core_brand_studio.infrastructure.models.buyer_persona_model import (
     BuyerPersonaModel,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger()
 

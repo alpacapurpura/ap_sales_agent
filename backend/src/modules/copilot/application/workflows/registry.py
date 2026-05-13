@@ -17,8 +17,8 @@ import structlog
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from src.modules.copilot.domain.ports import CopilotProvider
-    from src.modules.copilot.domain.workflow import Workflow
+    from luana_core_copilot.domain.ports import CopilotProvider
+    from luana_core_copilot.domain.workflow import Workflow
 
 logger = structlog.get_logger(__name__)
 

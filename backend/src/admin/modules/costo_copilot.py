@@ -24,24 +24,24 @@ from uuid import UUID
 import altair as alt
 import pandas as pd
 import streamlit as st
+from luana_core_copilot.observability.persistence.models.llm_call_model import (
+    CopilotLlmCallModel,
+)
+from luana_core_observability.reporting.billing_cycle_service import (
+    BillingCycleService,
+)
+from luana_core_observability.reporting.cost_aggregator import (
+    CostAggregator,
+)
+from luana_core_platform.core.database import SessionLocal
 
 from src.admin.modules._shared import (
     get_tenant_name,
     get_tenant_options,
 )
-from src.core.database import SessionLocal
-from src.modules.copilot.observability.persistence.models.llm_call_model import (
-    CopilotLlmCallModel,
-)
-from src.shared.agent_observability.reporting.billing_cycle_service import (
-    BillingCycleService,
-)
-from src.shared.agent_observability.reporting.cost_aggregator import (
-    CostAggregator,
-)
 
 if TYPE_CHECKING:
-    from src.shared.agent_observability.reporting.cost_aggregator import (
+    from luana_core_observability.reporting.cost_aggregator import (
         ModelCostRow,
         TenantCostRow,
         TenantDetailRow,

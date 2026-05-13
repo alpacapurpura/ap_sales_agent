@@ -2,8 +2,8 @@
 
 from typing import Any
 
-from src.shared.domain.messages import IncomingMessage, OutgoingMessage
-from src.shared.infrastructure.channels.base import BaseChannel
+from luana_core_platform.domain.messages import IncomingMessage, OutgoingMessage
+from luana_core_platform.infrastructure.channels.base import BaseChannel
 
 from .factory import get_whatsapp_provider
 

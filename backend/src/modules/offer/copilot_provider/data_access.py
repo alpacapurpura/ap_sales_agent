@@ -11,19 +11,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.modules.copilot.domain.ports import DataQueryPlan, DataQueryResult
+from luana_core_copilot.domain.ports import DataQueryPlan, DataQueryResult
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
     from uuid import UUID
 
+    from luana_core_offer_studio.domain.offer import Offer
     from sqlalchemy.orm import Session
-
-    from src.modules.offer.domain.offer import Offer
 
 
 def _default_db_factory() -> Session:
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     return SessionLocal()
 
@@ -74,7 +73,7 @@ class OfferDataAccessProvider:
             )
             raise ValueError(msg)
 
-        from src.modules.offer.infrastructure.repositories.offer_repository import (
+        from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
             OfferRepository,
         )
 

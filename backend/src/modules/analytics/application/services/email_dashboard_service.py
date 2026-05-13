@@ -11,17 +11,14 @@ from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
 import structlog
-from pydantic import ValidationError
-from sqlalchemy import String, cast, func, select
-
-from src.modules.analytics.application.dto.channel_dashboard_dto import (
+from luana_core_analytics_engine.application.dto.channel_dashboard_dto import (
     BenchmarkRangeDTO,
     FunnelStepDTO,
     MetricKpiDTO,
     MetricTimeSeriesDTO,
     TimeSeriesDataPointDTO,
 )
-from src.modules.analytics.application.dto.email_dashboard_dto import (
+from luana_core_analytics_engine.application.dto.email_dashboard_dto import (
     ActivityHeatmapCellDTO,
     AutomationStepDTO,
     BounceBreakdownDTO,
@@ -40,18 +37,20 @@ from src.modules.analytics.application.dto.email_dashboard_dto import (
     EmailTypePerformanceDTO,
     EngagementDecayDTO,
 )
-from src.modules.analytics.domain.industry_benchmarks import (
+from luana_core_analytics_engine.domain.industry_benchmarks import (
     IndustryCategory,
     get_benchmarks,
 )
-from src.modules.analytics.domain.metric_catalog import get_metric_def
-from src.modules.analytics.infrastructure.models.official_metrics_model import (
+from luana_core_analytics_engine.domain.metric_catalog import get_metric_def
+from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
     OfficialMetricModel,
 )
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
-from src.shared.domain.datetime_utils import utc_today
+from luana_core_platform.domain.datetime_utils import utc_today
+from pydantic import ValidationError
+from sqlalchemy import String, cast, func, select
 
 if TYPE_CHECKING:
     from uuid import UUID

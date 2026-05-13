@@ -10,8 +10,8 @@ per preset = 30 total) so iteration is cheap. Expand to 30 per preset before
 flipping the CI gate on.
 """
 
-from src.modules.brand.application.voice_fidelity.golden import GOLDEN_PROMPTS
-from src.modules.brand.application.voice_fidelity.grader import (
+from luana_core_brand_studio.application.voice_fidelity.golden import GOLDEN_PROMPTS
+from luana_core_brand_studio.application.voice_fidelity.grader import (
     GraderResult,
     GraderRubric,
     grade_response,

@@ -8,8 +8,8 @@ catalog keeps it out of frontend components and prevents drift.
 
 from __future__ import annotations
 
-from src.modules.offer.domain.enums import OfferValueLevel
-from src.modules.offer.domain.value_level_catalog import (
+from luana_core_offer_studio.domain.enums import OfferValueLevel
+from luana_core_offer_studio.domain.value_level_catalog import (
     VALUE_LEVEL_CATALOG,
     ValueLevelMetadata,
     get_value_level_metadata,

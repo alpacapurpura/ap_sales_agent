@@ -36,12 +36,17 @@ def _parse(source: str) -> ast.AST:
 
 
 def test_detection_works_for_string_patch_target() -> None:
-    """Synthetic: @patch with legacy EventBus.publish FQN is detected as violation."""
+    """Synthetic: @patch with legacy EventBus.publish FQN is detected as violation.
+
+    Post-luana-nicolify migration (Story 10 P1-prepared), test files that mock
+    EventBus.publish use luana_core_platform.domain.events.EventBus.publish
+    (the canonical luana-platform path). The gate must detect this as a legacy mock.
+    """
     source = (
         "import pytest\n"
         "from unittest.mock import patch\n"
         "\n"
-        '@patch("src.shared.domain.events.EventBus.publish")\n'
+        '@patch("luana_core_platform.domain.events.EventBus.publish")\n'
         "def test_something(mock_publish):\n"
         "    pass\n"
     )
@@ -49,7 +54,7 @@ def test_detection_works_for_string_patch_target() -> None:
     targets = _walk_mock_targets(tree)
     legacy_hits = targets & LEGACY_MOCK_TARGETS
 
-    assert legacy_hits == {"src.shared.domain.events.EventBus.publish"}, (
+    assert legacy_hits == {"luana_core_platform.domain.events.EventBus.publish"}, (
         f"Expected detection of legacy mock target, got: {legacy_hits}"
     )
 

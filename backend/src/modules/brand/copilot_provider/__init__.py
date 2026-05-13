@@ -9,7 +9,7 @@ without ``copilot/`` importing the brand package directly.
 
 from __future__ import annotations
 
-from src.modules.brand.copilot_provider.provider import BrandCopilotProvider
+from luana_core_brand_studio.copilot_provider.provider import BrandCopilotProvider
 
 provider: BrandCopilotProvider = BrandCopilotProvider()
 

@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.shared.billing.application.pricing_cache import (
+from luana_core_billing.application.pricing_cache import (
     invalidate_pricing_cache,
     resolve_pricing_cached,
 )
@@ -31,7 +31,7 @@ class TestPricingSnapshotRepoAsync:
     @pytest.mark.asyncio
     async def test_find_active_returns_snapshot(self) -> None:
         """find_active returns the scalar result from DB."""
-        from src.shared.billing.infrastructure.pricing_snapshot_repo_async import (
+        from luana_core_billing.infrastructure.pricing_snapshot_repo_async import (
             PricingSnapshotRepoAsync,
         )
 
@@ -56,7 +56,7 @@ class TestPricingSnapshotRepoAsync:
     @pytest.mark.asyncio
     async def test_find_active_returns_none_when_no_row(self) -> None:
         """find_active returns None when no active snapshot found."""
-        from src.shared.billing.infrastructure.pricing_snapshot_repo_async import (
+        from luana_core_billing.infrastructure.pricing_snapshot_repo_async import (
             PricingSnapshotRepoAsync,
         )
 
@@ -73,7 +73,7 @@ class TestPricingSnapshotRepoAsync:
     @pytest.mark.asyncio
     async def test_find_active_cross_tenant_no_tenant_filter(self) -> None:
         """Query must NOT include a tenant_id filter (cross-tenant reference data)."""
-        from src.shared.billing.infrastructure.pricing_snapshot_repo_async import (
+        from luana_core_billing.infrastructure.pricing_snapshot_repo_async import (
             PricingSnapshotRepoAsync,
         )
         from sqlalchemy import select

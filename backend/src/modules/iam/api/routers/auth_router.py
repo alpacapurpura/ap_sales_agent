@@ -3,13 +3,12 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from luana_core_iam.api.dependencies import get_user_from_token
+from luana_core_iam.api.dto.users import TenantSchema
+from luana_core_iam.application.services.user_service import UserService
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_user_from_token
-from src.modules.iam.api.dto.users import TenantSchema
-from src.modules.iam.application.services.user_service import UserService
-from src.modules.iam.domain.user import User
 
 router = APIRouter()
 

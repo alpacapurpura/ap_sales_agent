@@ -3,8 +3,7 @@
 from typing import TYPE_CHECKING
 
 import sentry_sdk
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 if TYPE_CHECKING:
     from sentry_sdk.integrations import Integration

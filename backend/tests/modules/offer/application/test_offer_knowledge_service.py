@@ -7,15 +7,15 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.application.services.offer_knowledge_service import (
+from luana_core_offer_studio.application.services.offer_knowledge_service import (
     OfferKnowledgeService,
 )
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     KnowledgeSourceStatus,
     KnowledgeSourceType,
 )
-from src.modules.offer.domain.exceptions import KnowledgeSourceNotFoundError
-from src.modules.offer.domain.knowledge_source import KnowledgeSource
+from luana_core_offer_studio.domain.exceptions import KnowledgeSourceNotFoundError
+from luana_core_offer_studio.domain.knowledge_source import KnowledgeSource
 
 
 @pytest.fixture

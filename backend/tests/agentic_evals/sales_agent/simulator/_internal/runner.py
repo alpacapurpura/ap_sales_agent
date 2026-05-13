@@ -234,7 +234,7 @@ def _compute_cost_summary(
         from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_simulator_llm_call import (
             EvalSimulatorLlmCallModel,
         )
-        from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+        from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
             SalesAgentLlmCallModel,
         )
 

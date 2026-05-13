@@ -3,7 +3,7 @@
 from enum import StrEnum
 
 # Re-export shared enums for internal CRM backwards-compatibility
-from src.shared.domain.enums import (  # noqa: F401
+from luana_core_platform.domain.enums import (  # noqa: F401
     AvatarPersona,
     FinancialCapacity,
     IdentityType,

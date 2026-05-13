@@ -12,14 +12,12 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 import structlog
-
-from src.modules.campaigns.domain.audit_log import AuditEventType, AuditLogEvent
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_campaigns.domain.audit_log import AuditEventType, AuditLogEvent
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
+    from luana_core_campaigns.domain.audit_log import AuditLogRepository
     from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.modules.campaigns.domain.audit_log import AuditLogRepository
 
 logger = structlog.get_logger(__name__)
 
@@ -51,7 +49,7 @@ class AuditLogService:
         Caller is responsible for session.commit() (respects caller UoW).
         """
         try:
-            from src.shared.agent_observability.recording.sanitization import sanitize_payload
+            from luana_core_observability.recording.sanitization import sanitize_payload
 
             safe_payload = sanitize_payload(payload or {})
             evt = AuditLogEvent(

@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
-from src.modules.brand.infrastructure.models.extraction_trace_model import (
+from luana_core_brand_studio.infrastructure.models.extraction_trace_model import (
     BrandExtractionTrace,
 )
 

@@ -1,6 +1,6 @@
 """Tests for industry benchmarks domain module."""
 
-from src.modules.analytics.domain.industry_benchmarks import (
+from luana_core_analytics_engine.domain.industry_benchmarks import (
     INDUSTRY_BENCHMARKS,
     IndustryCategory,
     get_benchmarks,

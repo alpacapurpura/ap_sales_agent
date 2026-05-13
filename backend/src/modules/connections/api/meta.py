@@ -5,23 +5,17 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from pydantic import BaseModel as PydanticBaseModel
-from sqlalchemy.orm import Session
-
-from src.core.config import settings
-from src.core.context import set_tenant_id
-from src.core.database import get_db
-from src.modules.connections.api.dependencies import get_message_handler
-from src.modules.connections.api.dependencies.webhook_security import (
+from luana_core_connections.api.dependencies import get_message_handler
+from luana_core_connections.api.dependencies.webhook_security import (
     verify_meta_signature,
 )
-from src.modules.connections.api.dto.common import (
+from luana_core_connections.api.dto.common import (
     ConnectionTestResponse,
     SetPrimaryAssetResponse,
     StatusSavedResponse,
     ToggleAssetResponse,
 )
-from src.modules.connections.api.dto.meta import (
+from luana_core_connections.api.dto.meta import (
     FacebookPageAsset,
     InstagramAccountAsset,
     MetaAdsAccountAsset,
@@ -33,15 +27,20 @@ from src.modules.connections.api.dto.meta import (
     WhatsAppBusinessAsset,
     WhatsAppPhoneNumber,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.channels.instagram import InstagramChannel
-from src.modules.connections.infrastructure.channels.meta import MetaAdapter
-from src.modules.connections.infrastructure.models import ChannelConnectionModel
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.channels.instagram import InstagramChannel
+from luana_core_connections.infrastructure.channels.meta import MetaAdapter
+from luana_core_connections.infrastructure.models import ChannelConnectionModel
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.context import set_tenant_id
+from luana_core_platform.core.database import get_db
+from pydantic import BaseModel as PydanticBaseModel
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["meta"])
 logger = structlog.get_logger()

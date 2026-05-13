@@ -7,8 +7,8 @@ Validates data integrity invariants that should never be broken:
 Pure Python tests: no DB, no async, no mocking required.
 """
 
-from src.modules.analytics.domain.enums import AggregationType, MetricUnit
-from src.modules.analytics.domain.metric_catalog import (
+from luana_core_analytics_engine.domain.enums import AggregationType, MetricUnit
+from luana_core_analytics_engine.domain.metric_catalog import (
     _ADDITIVE,
     _DERIVED,
     _NON_AGGREGABLE,

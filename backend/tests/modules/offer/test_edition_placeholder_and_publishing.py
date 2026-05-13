@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import text
 
-from src.modules.offer.application.launch_edition_service import LaunchEditionService
-from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.domain.enums import OfferArchetype, VariantStructure
-from src.modules.offer.domain.launch_edition import EditionStatus, EditionVisibility
+from luana_core_offer_studio.application.launch_edition_service import LaunchEditionService
+from luana_core_offer_studio.application.offer_service import OfferService
+from luana_core_offer_studio.domain.enums import OfferArchetype, VariantStructure
+from luana_core_offer_studio.domain.launch_edition import EditionStatus, EditionVisibility
 
 if TYPE_CHECKING:
     import uuid

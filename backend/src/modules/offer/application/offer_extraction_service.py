@@ -22,8 +22,7 @@ if TYPE_CHECKING:
     from pydantic import BaseModel
     from sqlalchemy.orm import Session
 
-from src.core.enums import ModelRole
-from src.modules.offer.domain.offer import (
+from luana_core_offer_studio.domain.offer import (
     OfferClosingUpdate,
     OfferDetailsUpdate,
     OfferPricingUpdate,
@@ -32,13 +31,14 @@ from src.modules.offer.domain.offer import (
     OfferStrategyUpdate,
     OfferValueStackUpdate,
 )
-from src.shared.application.ai_action_service import (
+from luana_core_platform.application.ai_action_service import (
     AIActionPolicy,
     AIActionService,
     AIModelPolicy,
 )
-from src.shared.infrastructure.prompts.base import prompt_loader
-from src.shared.infrastructure.web.crawler import truncate_at_page_boundary
+from luana_core_platform.core.enums import ModelRole
+from luana_core_platform.infrastructure.prompts.base import prompt_loader
+from luana_core_platform.infrastructure.web.crawler import truncate_at_page_boundary
 
 logger = structlog.get_logger()
 
@@ -379,7 +379,7 @@ class OfferExtractionService:
         persistence, trace collection, and progress emission. Signature is
         maintained for backward compatibility with existing callers.
         """
-        from src.modules.offer.application.offer_extraction_orchestrator import (
+        from luana_core_offer_studio.application.offer_extraction_orchestrator import (
             OfferExtractionOrchestrator,
         )
 

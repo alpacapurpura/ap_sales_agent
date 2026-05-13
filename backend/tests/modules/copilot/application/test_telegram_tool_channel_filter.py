@@ -5,7 +5,7 @@ Covers D-PI5-023..025: web-only groups filter when channel != "web".
 
 from __future__ import annotations
 
-from src.modules.copilot.application.tools.registry import (
+from luana_core_copilot.application.tools.registry import (
     TOOL_GROUP_META,
     ToolGroupMeta,
     is_group_available_in_channel,

@@ -5,6 +5,6 @@ Re-exported here for backward compatibility — existing analytics code
 imports from this module.
 """
 
-from src.shared.domain.ports import ConnectionRevokedError, TokenRefreshError
+from luana_core_platform.domain.ports import ConnectionRevokedError, TokenRefreshError
 
 __all__ = ["ConnectionRevokedError", "TokenRefreshError"]

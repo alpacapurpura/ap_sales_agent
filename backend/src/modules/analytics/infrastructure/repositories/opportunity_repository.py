@@ -10,14 +10,13 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Float, cast, func, select
-from sqlalchemy.orm import Session
-
-from src.shared.domain.enums import LifecycleStage
-from src.shared.infrastructure.models.crm import (
+from luana_core_platform.domain.enums import LifecycleStage
+from luana_core_platform.infrastructure.models.crm import (
     JourneyEventModel,
     LifecycleTransitionModel,
 )
+from sqlalchemy import Float, cast, func, select
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

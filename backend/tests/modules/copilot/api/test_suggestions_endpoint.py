@@ -18,12 +18,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
 
 
 def _build_client(tenant_id: UUID, user_id: UUID | None = None) -> tuple[TestClient, UUID]:
     """Build TestClient with mocked auth dependencies for suggestions router."""
-    from src.modules.copilot.api.suggestions import router
+    from luana_core_copilot.api.suggestions import router
 
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/copilot")
@@ -43,7 +43,7 @@ class TestSuggestionsHappyPath:
 
     def test_suggestions_happy_path_returns_chips(self) -> None:
         """OfferSuggestionProvider mockeado retorna 3 chips → 200 + length 3 + breakdown."""
-        from src.modules.copilot.domain.suggestion import Suggestion, SuggestionCategory
+        from luana_core_copilot.domain.suggestion import Suggestion, SuggestionCategory
 
         tenant_id = uuid4()
         client, _uid = _build_client(tenant_id)
@@ -61,8 +61,8 @@ class TestSuggestionsHappyPath:
         ]
 
         with (
-            patch("src.modules.copilot.api.suggestions.get_default_engine") as mock_engine_fn,
-            patch("src.modules.copilot.api.suggestions.EventBus"),
+            patch("luana_core_copilot.api.suggestions.get_default_engine") as mock_engine_fn,
+            patch("luana_core_copilot.api.suggestions.EventBus"),
         ):
             mock_engine = MagicMock()
             mock_engine.get_suggestions.return_value = (chips, {"offer": 3}, 5)
@@ -86,8 +86,8 @@ class TestSuggestionsHappyPath:
         client, _uid = _build_client(tenant_id)
 
         with (
-            patch("src.modules.copilot.api.suggestions.get_default_engine") as mock_engine_fn,
-            patch("src.modules.copilot.api.suggestions.EventBus"),
+            patch("luana_core_copilot.api.suggestions.get_default_engine") as mock_engine_fn,
+            patch("luana_core_copilot.api.suggestions.EventBus"),
         ):
             mock_engine = MagicMock()
             mock_engine.get_suggestions.return_value = ([], {}, 2)
@@ -110,9 +110,9 @@ class TestSuggestionsHappyPath:
         client, _uid = _build_client(tenant_id)
 
         with (
-            patch("src.modules.copilot.api.suggestions.get_default_engine") as mock_engine_fn,
-            patch("src.modules.copilot.api.suggestions.EventBus"),
-            patch("src.modules.copilot.api.suggestions.logger") as mock_logger,
+            patch("luana_core_copilot.api.suggestions.get_default_engine") as mock_engine_fn,
+            patch("luana_core_copilot.api.suggestions.EventBus"),
+            patch("luana_core_copilot.api.suggestions.logger") as mock_logger,
         ):
             mock_engine = MagicMock()
             mock_engine.get_suggestions.side_effect = RuntimeError("DB connection failed")
@@ -135,7 +135,7 @@ class TestSuggestionsValidation:
 
     def test_suggestions_missing_tenant_header_returns_401(self) -> None:
         """Sin X-Tenant-ID (tenant_id None) → 401."""
-        from src.modules.copilot.api.suggestions import router
+        from luana_core_copilot.api.suggestions import router
 
         app = FastAPI()
         app.include_router(router, prefix="/api/v1/copilot")
@@ -173,14 +173,14 @@ class TestSuggestionsObservability:
 
     def test_suggestions_emits_shown_event_always(self) -> None:
         """EventBus.publish llamado con SuggestionShown incluso con 0 chips (D-11)."""
-        from src.modules.copilot.domain.events import SuggestionShown
+        from luana_core_copilot.domain.events import SuggestionShown
 
         tenant_id = uuid4()
         client, _uid = _build_client(tenant_id)
 
         with (
-            patch("src.modules.copilot.api.suggestions.get_default_engine") as mock_engine_fn,
-            patch("src.modules.copilot.api.suggestions.EventBus") as mock_bus,
+            patch("luana_core_copilot.api.suggestions.get_default_engine") as mock_engine_fn,
+            patch("luana_core_copilot.api.suggestions.EventBus") as mock_bus,
         ):
             mock_engine = MagicMock()
             mock_engine.get_suggestions.return_value = ([], {}, 3)
@@ -201,7 +201,7 @@ class TestSuggestionsObservability:
 
     def test_suggestions_response_excludes_metadata(self) -> None:
         """Engine retorna chip con metadata → response NO contiene `metadata` (D-6)."""
-        from src.modules.copilot.domain.suggestion import Suggestion, SuggestionCategory
+        from luana_core_copilot.domain.suggestion import Suggestion, SuggestionCategory
 
         tenant_id = uuid4()
         client, _uid = _build_client(tenant_id)
@@ -217,8 +217,8 @@ class TestSuggestionsObservability:
         )
 
         with (
-            patch("src.modules.copilot.api.suggestions.get_default_engine") as mock_engine_fn,
-            patch("src.modules.copilot.api.suggestions.EventBus"),
+            patch("luana_core_copilot.api.suggestions.get_default_engine") as mock_engine_fn,
+            patch("luana_core_copilot.api.suggestions.EventBus"),
         ):
             mock_engine = MagicMock()
             mock_engine.get_suggestions.return_value = ([chip], {"offer": 1}, 4)

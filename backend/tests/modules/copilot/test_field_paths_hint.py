@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.field_paths_hint import build_field_paths_hint
+from luana_core_copilot.domain.field_paths_hint import build_field_paths_hint
 
 
 class TestBuildFieldPathsHint:

@@ -19,14 +19,13 @@ import contextlib
 import datetime as dt
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.application.services.payment_state_service import (
+from luana_core_sales_agent.application.services.payment_state_service import (
     PaymentStateService,
 )
-from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+from luana_core_sales_agent.infrastructure.models.payment_link_model import (
     PaymentLinkModel,
 )
+from sqlalchemy import select
 
 logger = structlog.get_logger()
 

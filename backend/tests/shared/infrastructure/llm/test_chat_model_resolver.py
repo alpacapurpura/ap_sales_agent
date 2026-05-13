@@ -23,14 +23,14 @@ from __future__ import annotations
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 
-from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+from luana_core_llm.providers._chat_model_resolver import (
     ChatBuildContext,
     ChatModelSpec,
     _build_chat_from_spec,
     build_chat_openai,
     build_with_chat_class,
 )
-from src.shared.infrastructure.llm.providers._kwargs import (
+from luana_core_llm.providers._kwargs import (
     normalize_openai_protocol_kwargs,
 )
 

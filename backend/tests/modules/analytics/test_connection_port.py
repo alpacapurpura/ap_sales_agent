@@ -5,7 +5,7 @@ import pytest
 
 class TestConnectionPort:
     def test_cannot_instantiate_abc(self):
-        from src.modules.analytics.domain.ports import ConnectionPort
+        from luana_core_analytics_engine.domain.ports import ConnectionPort
 
         with pytest.raises(TypeError):
             ConnectionPort()
@@ -13,7 +13,7 @@ class TestConnectionPort:
     def test_has_abstract_get_credentials(self):
         import inspect
 
-        from src.modules.analytics.domain.ports import ConnectionPort
+        from luana_core_analytics_engine.domain.ports import ConnectionPort
 
         methods = {
             name
@@ -27,7 +27,7 @@ class TestConnectionPort:
     def test_has_abstract_list_active_connections(self):
         import inspect
 
-        from src.modules.analytics.domain.ports import ConnectionPort
+        from luana_core_analytics_engine.domain.ports import ConnectionPort
 
         methods = {
             name
@@ -46,7 +46,7 @@ class TestConnectionCredentials:
         assert mock_connection_credentials.config["page_id"] == "123456"
 
     def test_fields_required(self):
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         creds = ConnectionCredentials(
             channel_type="telegram",
@@ -58,27 +58,27 @@ class TestConnectionCredentials:
 
 class TestDomainExceptions:
     def test_connection_revoked_is_exception(self):
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+        from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
         exc = ConnectionRevokedError("Token expired")
         assert isinstance(exc, Exception)
         assert str(exc) == "Token expired"
 
     def test_connection_revoked_with_channel_type(self):
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+        from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
         exc = ConnectionRevokedError("Revoked", channel_type="meta")
         assert exc.channel_type == "meta"
 
     def test_token_refresh_failed_is_exception(self):
-        from src.modules.analytics.domain.exceptions import TokenRefreshError
+        from luana_core_analytics_engine.domain.exceptions import TokenRefreshError
 
         exc = TokenRefreshError("Refresh failed")
         assert isinstance(exc, Exception)
         assert str(exc) == "Refresh failed"
 
     def test_token_refresh_failed_with_provider(self):
-        from src.modules.analytics.domain.exceptions import TokenRefreshError
+        from luana_core_analytics_engine.domain.exceptions import TokenRefreshError
 
         exc = TokenRefreshError("Failed", provider="google")
         assert exc.provider == "google"

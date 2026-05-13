@@ -14,19 +14,18 @@ import logging
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import select, update
-from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.domain.scoring import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.domain.scoring import (
     DECAY_CONFIG,
     INACTIVITY_CONFIG,
     SCORING_THRESHOLDS,
 )
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.repositories.lifecycle_repository import (
+from luana_core_crm.infrastructure.models.customer_model import CustomerProfileModel
+from luana_core_crm.infrastructure.repositories.lifecycle_repository import (
     LifecycleRepository,
 )
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

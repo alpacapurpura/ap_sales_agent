@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.copilot.application.orchestrator.output_sanitizer import (
+from luana_core_copilot.application.orchestrator.output_sanitizer import (
     sanitize_assistant_text,
 )
 

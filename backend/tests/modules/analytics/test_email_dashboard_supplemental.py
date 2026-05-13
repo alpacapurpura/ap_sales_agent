@@ -15,7 +15,7 @@ def _run(coro):
 
 
 def _make_svc():
-    from src.modules.analytics.application.services.email_dashboard_service import (
+    from luana_core_analytics_engine.application.services.email_dashboard_service import (
         EmailDashboardService,
     )
 
@@ -214,7 +214,7 @@ class TestGetHealth:
     def test_returns_health_response(self):
         svc = self._svc_with_repo()
         result = _run(svc.get_health(TENANT_ID, "30d"))
-        from src.modules.analytics.application.dto.email_dashboard_dto import EmailHealthResponseDTO
+        from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailHealthResponseDTO
 
         assert isinstance(result, EmailHealthResponseDTO)
 
@@ -299,7 +299,7 @@ class TestGetGrowth:
     def test_returns_growth_response(self):
         svc = self._svc_with_repo()
         result = _run(svc.get_growth(TENANT_ID, "30d"))
-        from src.modules.analytics.application.dto.email_dashboard_dto import EmailGrowthResponseDTO
+        from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailGrowthResponseDTO
 
         assert isinstance(result, EmailGrowthResponseDTO)
 
@@ -437,7 +437,7 @@ class TestGetCampaignList:
 
 class TestGetBestWorstCampaigns:
     def _make_campaign(self, campaign_id, open_rate):
-        from src.modules.analytics.application.dto.email_dashboard_dto import EmailCampaignDTO
+        from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailCampaignDTO
 
         return EmailCampaignDTO(
             campaign_id=campaign_id,
@@ -488,7 +488,7 @@ class TestGetBestWorstCampaigns:
 
 class TestGetCampaigns:
     def _make_campaign(self, cid, ctype, open_rate=20.0, emails_sent=100):
-        from src.modules.analytics.application.dto.email_dashboard_dto import EmailCampaignDTO
+        from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailCampaignDTO
 
         return EmailCampaignDTO(
             campaign_id=cid,
@@ -649,7 +649,7 @@ class TestGetDashboard:
 
     def test_returns_dashboard_dto(self):
         svc = self._svc_with_full_mocks()
-        from src.modules.analytics.application.dto.email_dashboard_dto import EmailDashboardDTO
+        from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailDashboardDTO
 
         result = _run(svc.get_dashboard(TENANT_ID, "30d"))
         assert isinstance(result, EmailDashboardDTO)

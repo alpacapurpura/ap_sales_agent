@@ -29,12 +29,11 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import func, select
-
-from src.modules.sales_agent.infrastructure.models.agent_trace_model import AgentTrace
-from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+from luana_core_sales_agent.infrastructure.models.agent_trace_model import AgentTrace
+from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
     SalesAgentTraceEventModel,
 )
+from sqlalchemy import func, select
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

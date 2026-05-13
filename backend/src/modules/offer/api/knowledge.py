@@ -18,29 +18,28 @@ from fastapi import (
     Query,
     UploadFile,
 )
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.offer.api.dto.knowledge_dtos import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_offer_studio.api.dto.knowledge_dtos import (
     KnowledgeListResponse,
     KnowledgeSourceResponse,
     KnowledgeUrlRequest,
 )
-from src.modules.offer.application.ports import (
+from luana_core_offer_studio.application.ports import (
     IFileStoragePort,
     IRAGIndexerPort,
 )
-from src.modules.offer.application.services.offer_knowledge_service import (
+from luana_core_offer_studio.application.services.offer_knowledge_service import (
     OfferKnowledgeService,
 )
-from src.modules.offer.domain.enums import KnowledgeSourceType
-from src.modules.offer.domain.exceptions import KnowledgeSourceNotFoundError
-from src.modules.offer.domain.knowledge_source import KnowledgeSource
-from src.modules.offer.infrastructure.repositories.knowledge_source_repository import (
+from luana_core_offer_studio.domain.enums import KnowledgeSourceType
+from luana_core_offer_studio.domain.exceptions import KnowledgeSourceNotFoundError
+from luana_core_offer_studio.domain.knowledge_source import KnowledgeSource
+from luana_core_offer_studio.infrastructure.repositories.knowledge_source_repository import (
     KnowledgeSourceRepository,
 )
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

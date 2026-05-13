@@ -5,10 +5,9 @@ from __future__ import annotations
 import io
 
 import structlog
+from luana_core_copilot.domain.voice import TranscriptionResult
+from luana_core_platform.core.config import settings
 from openai import AsyncOpenAI
-
-from src.core.config import settings
-from src.modules.copilot.domain.voice import TranscriptionResult
 
 logger = structlog.get_logger()
 

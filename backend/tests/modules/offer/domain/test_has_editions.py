@@ -9,8 +9,8 @@ ceremony.
 
 import uuid
 
-from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.offer import Offer
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.offer import Offer
 
 TENANT_ID = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 

@@ -4,12 +4,11 @@ from datetime import UTC, datetime, timedelta
 
 import sentry_sdk
 import structlog
-from sentry_sdk.crons import MonitorStatus, capture_checkin
-
-from src.core.database import SessionLocal
-from src.modules.copilot.infrastructure.repositories.event_repository import (
+from luana_core_copilot.infrastructure.repositories.event_repository import (
     CopilotEventRepository,
 )
+from luana_core_platform.core.database import SessionLocal
+from sentry_sdk.crons import MonitorStatus, capture_checkin
 
 logger = structlog.get_logger()
 

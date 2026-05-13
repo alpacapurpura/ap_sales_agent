@@ -29,19 +29,18 @@ from uuid import UUID
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
-from src.modules.assets.application.asset_extraction_service import (
+from luana_core_assets.application.asset_extraction_service import (
     AssetExtractionService,
 )
-from src.modules.assets.domain.enums import ExtractionStatus
-from src.modules.assets.infrastructure.repositories.asset_repository import (
+from luana_core_assets.domain.enums import ExtractionStatus
+from luana_core_assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
 
 if TYPE_CHECKING:
-    from src.modules.assets.domain.entity import Asset
+    from luana_core_assets.domain.entity import Asset
 
 logger = structlog.get_logger()
 

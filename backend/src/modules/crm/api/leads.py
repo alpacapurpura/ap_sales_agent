@@ -5,13 +5,12 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
+from luana_core_crm.application.services.lead_service import LeadService
+from luana_core_crm.domain.lead import Lead
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.crm.application.services.lead_service import LeadService
-from src.modules.crm.domain.lead import Lead
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
 
 router = APIRouter(tags=["leads"])
 logger = structlog.get_logger()

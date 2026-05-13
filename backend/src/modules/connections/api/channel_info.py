@@ -10,20 +10,19 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.shared.links.ports.analytics import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_platform.links.ports.analytics import (
     get_latest_extraction_run_info,
     get_provider_data_range,
 )
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["channel-info"])
 logger = structlog.get_logger()

@@ -29,11 +29,10 @@ from typing import TYPE_CHECKING, Protocol
 from uuid import UUID, uuid4
 
 import structlog
-
-from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
+from luana_core_observability.persistence.models.pricing_snapshot_model import (
     ModelPricingSnapshotModel,
 )
-from src.shared.agent_observability.pricing.aliases import resolve_alias
+from luana_core_observability.pricing.aliases import resolve_alias
 
 if TYPE_CHECKING:
     import datetime as dt

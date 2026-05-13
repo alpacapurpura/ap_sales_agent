@@ -1,8 +1,7 @@
 """DTOs for the voice transcription API."""
 
+from luana_core_copilot.domain.message_blocks import AudioBlock
 from pydantic import BaseModel, ConfigDict
-
-from src.modules.copilot.domain.message_blocks import AudioBlock
 
 
 class TranscriptionResponse(BaseModel):

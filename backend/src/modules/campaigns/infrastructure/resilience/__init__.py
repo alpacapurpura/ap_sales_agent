@@ -7,12 +7,12 @@ Exports:
     CircuitBreakerOpenError — raised on OPEN state (callers catch + mark task failed).
 """
 
-from src.modules.campaigns.infrastructure.resilience.circuit_breaker import (
+from luana_core_campaigns.infrastructure.resilience.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerConfig,
     CircuitState,
 )
-from src.modules.campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
+from luana_core_campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
 
 __all__ = [
     "CircuitBreaker",

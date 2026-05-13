@@ -19,8 +19,8 @@ import re
 
 import pytest
 
-from src.modules.copilot.application.orchestrator import deep_agent
-from src.modules.copilot.application.orchestrator.subagents import (
+from luana_core_copilot.application.orchestrator import deep_agent
+from luana_core_copilot.application.orchestrator.subagents import (
     url_analyzer as url_analyzer_module,
 )
 

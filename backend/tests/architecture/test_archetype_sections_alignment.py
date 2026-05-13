@@ -13,8 +13,8 @@ Related:
 
 from __future__ import annotations
 
-from src.modules.offer.domain.archetype_catalog import ARCHETYPE_CATALOG
-from src.modules.offer.domain.section_catalog import SECTION_CATALOG, SectionScope
+from luana_core_offer_studio.domain.archetype_catalog import ARCHETYPE_CATALOG
+from luana_core_offer_studio.domain.section_catalog import SECTION_CATALOG, SectionScope
 
 
 def test_every_archetype_declares_sections() -> None:

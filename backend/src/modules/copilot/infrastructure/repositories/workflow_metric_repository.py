@@ -15,12 +15,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-from src.modules.copilot.infrastructure.models.workflow_metric_model import (
+from luana_core_copilot.infrastructure.models.workflow_metric_model import (
     WorkflowMetricModel,
 )
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

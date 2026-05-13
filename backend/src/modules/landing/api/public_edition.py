@@ -23,17 +23,16 @@ from uuid import UUID
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import RedirectResponse
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.modules.landing.api.public_landing import PublicLandingResponse
-from src.modules.landing.application.landing_service import LandingService
-from src.modules.landing.infrastructure.repositories.landing_repository import (
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_landing.api.public_landing import PublicLandingResponse
+from luana_core_landing.application.landing_service import LandingService
+from luana_core_landing.infrastructure.repositories.landing_repository import (
     LandingRepository,
 )
-from src.shared.links.ports.offer import get_launch_edition_repository
+from luana_core_platform.core.database import get_db
+from luana_core_platform.links.ports.offer import get_launch_edition_repository
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

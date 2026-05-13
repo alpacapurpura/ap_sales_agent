@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.analytics.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.period_config import DateRange
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 DATE_RANGE = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
@@ -21,7 +21,7 @@ def _run(coro):
 
 
 def _make_nurture_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.nurture_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
         NurtureStageService,
     )
 
@@ -61,10 +61,10 @@ class TestNurtureStageServiceCacheHit:
 
 class TestNurtureStageServiceCacheMiss:
     def _patch_registry(self):
-        return patch("src.modules.analytics.application.services.stage_services.nurture_stage.ChannelRegistry")
+        return patch("luana_core_analytics_engine.application.services.stage_services.nurture_stage.ChannelRegistry")
 
     def _patch_cost(self):
-        return patch("src.modules.analytics.application.services.stage_services.nurture_stage.StageCostService")
+        return patch("luana_core_analytics_engine.application.services.stage_services.nurture_stage.StageCostService")
 
     def test_empty_channels_returns_dto(self):
         svc, _db = _make_nurture_svc()
@@ -78,7 +78,7 @@ class TestNurtureStageServiceCacheMiss:
             cost_svc.get_group_cost_per_mql.return_value = None
 
             with patch(
-                "src.modules.analytics.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
             ) as MockNurtRepo:
                 repo = MockNurtRepo.return_value
                 repo.count_new_mqls.return_value = 0
@@ -87,7 +87,7 @@ class TestNurtureStageServiceCacheMiss:
                 repo.count_followup_events.return_value = {}
 
                 with patch(
-                    "src.modules.analytics.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
+                    "luana_core_analytics_engine.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
                 ) as MockOfficialRepo:
                     official = MockOfficialRepo.return_value
                     official.get_channel_summary.return_value = []
@@ -112,7 +112,7 @@ class TestNurtureStageServiceCacheMiss:
             cost_svc.get_group_cost_per_mql.return_value = None
 
             with patch(
-                "src.modules.analytics.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
             ) as MockNurtRepo:
                 repo = MockNurtRepo.return_value
                 repo.count_new_mqls.return_value = 0
@@ -121,7 +121,7 @@ class TestNurtureStageServiceCacheMiss:
                 repo.count_followup_events.return_value = {}
 
                 with patch(
-                    "src.modules.analytics.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
+                    "luana_core_analytics_engine.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
                 ) as MockOfficialRepo:
                     official = MockOfficialRepo.return_value
                     official.get_channel_summary.return_value = []
@@ -133,7 +133,7 @@ class TestNurtureStageServiceCacheMiss:
 
 class TestNurtureStaticHelpers:
     def test_build_email_nurture_metrics_empty(self):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -143,7 +143,7 @@ class TestNurtureStaticHelpers:
         assert result[0].value == 0.0
 
     def test_build_email_nurture_rates(self):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -152,7 +152,7 @@ class TestNurtureStaticHelpers:
         assert open_rate.value == 30.0
 
     def test_build_ai_sdr_metrics_empty(self):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -161,7 +161,7 @@ class TestNurtureStaticHelpers:
         assert result[0].name == "followups"
 
     def test_build_ai_sdr_response_rate(self):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -170,7 +170,7 @@ class TestNurtureStaticHelpers:
         assert rate.value == 40.0
 
     def test_build_retargeting_metrics_empty(self):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -182,7 +182,7 @@ class TestNurtureStaticHelpers:
 
 
 def _make_opp_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.opportunity_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.opportunity_stage import (
         OpportunityStageService,
     )
 
@@ -240,10 +240,14 @@ class TestOpportunityStageServiceCacheHit:
 
 class TestOpportunityStageServiceCacheMiss:
     def _patch_registry(self):
-        return patch("src.modules.analytics.application.services.stage_services.opportunity_stage.ChannelRegistry")
+        return patch(
+            "luana_core_analytics_engine.application.services.stage_services.opportunity_stage.ChannelRegistry"
+        )
 
     def _patch_cost(self):
-        return patch("src.modules.analytics.application.services.stage_services.opportunity_stage.StageCostService")
+        return patch(
+            "luana_core_analytics_engine.application.services.stage_services.opportunity_stage.StageCostService"
+        )
 
     def test_empty_channels_returns_dto(self):
         svc, _db = _make_opp_svc()
@@ -256,7 +260,7 @@ class TestOpportunityStageServiceCacheMiss:
             cost_svc.get_total_funnel_investment = MagicMock(return_value=(0.0, False))
 
             with patch(
-                "src.modules.analytics.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
             ) as MockOppRepo:
                 repo = MockOppRepo.return_value
                 repo.count_new_sqls.return_value = 0
@@ -281,7 +285,7 @@ class TestOpportunityStageServiceCacheMiss:
             cost_svc.calculate_cost_per_mql.return_value = None
 
             with patch(
-                "src.modules.analytics.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
             ) as MockOppRepo:
                 repo = MockOppRepo.return_value
                 repo.count_new_sqls.return_value = 0
@@ -304,7 +308,7 @@ class TestOpportunityStageServiceCacheMiss:
             cost_svc.calculate_cost_per_mql.return_value = None
 
             with patch(
-                "src.modules.analytics.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
             ) as MockOppRepo:
                 repo = MockOppRepo.return_value
                 repo.count_new_sqls.return_value = 0
@@ -320,7 +324,7 @@ class TestOpportunityStageServiceCacheMiss:
 
 class TestOpportunityStaticHelpers:
     def test_detect_bottlenecks_no_data(self):
-        from src.modules.analytics.application.services.stage_services.opportunity_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.opportunity_stage import (
             OpportunityStageService,
         )
 
@@ -328,7 +332,7 @@ class TestOpportunityStaticHelpers:
         assert result == []
 
     def test_abandoned_cart_warning(self):
-        from src.modules.analytics.application.services.stage_services.opportunity_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.opportunity_stage import (
             OpportunityStageService,
         )
 
@@ -338,7 +342,7 @@ class TestOpportunityStaticHelpers:
         assert any(b.type == "abandoned_cart" and b.severity == "warning" for b in result)
 
     def test_build_slug_metrics_checkout_init(self):
-        from src.modules.analytics.application.services.stage_services.opportunity_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.opportunity_stage import (
             OpportunityStageService,
         )
 
@@ -351,7 +355,7 @@ class TestOpportunityStaticHelpers:
         assert any(m.name == "count" and m.value == 5.0 for m in metrics)
 
     def test_build_slug_metrics_abandoned_cart(self):
-        from src.modules.analytics.application.services.stage_services.opportunity_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.opportunity_stage import (
             OpportunityStageService,
         )
 

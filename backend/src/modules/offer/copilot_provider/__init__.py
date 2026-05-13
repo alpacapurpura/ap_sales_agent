@@ -10,7 +10,7 @@ on every module having one.
 
 from __future__ import annotations
 
-from src.modules.offer.copilot_provider.provider import OfferCopilotProvider
+from luana_core_offer_studio.copilot_provider.provider import OfferCopilotProvider
 
 provider: OfferCopilotProvider = OfferCopilotProvider()
 

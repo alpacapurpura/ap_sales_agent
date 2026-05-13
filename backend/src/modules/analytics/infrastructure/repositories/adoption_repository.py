@@ -12,15 +12,14 @@ All queries use SQLAlchemy 2.0 select() syntax with tenant_id isolation.
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import distinct, func, select
-from sqlalchemy.orm import Session
-
-from src.shared.domain.enums import LifecycleStage, SaleStage, SaleStatus
-from src.shared.infrastructure.models.crm import (
+from luana_core_platform.domain.enums import LifecycleStage, SaleStage, SaleStatus
+from luana_core_platform.infrastructure.models.crm import (
     CustomerProfileModel,
     JourneyEventModel,
     SaleModel,
 )
+from sqlalchemy import distinct, func, select
+from sqlalchemy.orm import Session
 
 # Lifecycle stages that represent post-purchase customers
 _CUSTOMER_STAGES = [

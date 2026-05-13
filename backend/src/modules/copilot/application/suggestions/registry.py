@@ -11,10 +11,10 @@ from __future__ import annotations
 from threading import Lock
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.application.suggestions.engine import SuggestionEngine
+from luana_core_copilot.application.suggestions.engine import SuggestionEngine
 
 if TYPE_CHECKING:
-    from src.modules.copilot.application.suggestions.providers.base import SuggestionProvider
+    from luana_core_copilot.application.suggestions.providers.base import SuggestionProvider
 
 # Container to hold the process-wide engine (avoids ``global`` statement).
 _state: dict[str, SuggestionEngine | None] = {"engine": None}
@@ -47,16 +47,16 @@ def _bootstrap_builtin(engine: SuggestionEngine) -> None:
     Order: offer → brand → sales_agent → copilot.
     Copilot is the lowest-priority transversal fallback.
     """
-    from src.modules.copilot.application.suggestions.providers.brand import (
+    from luana_core_copilot.application.suggestions.providers.brand import (
         BrandSuggestionProvider,
     )
-    from src.modules.copilot.application.suggestions.providers.copilot import (
+    from luana_core_copilot.application.suggestions.providers.copilot import (
         CopilotSuggestionProvider,
     )
-    from src.modules.copilot.application.suggestions.providers.offer import (
+    from luana_core_copilot.application.suggestions.providers.offer import (
         OfferSuggestionProvider,
     )
-    from src.modules.copilot.application.suggestions.providers.sales_agent import (
+    from luana_core_copilot.application.suggestions.providers.sales_agent import (
         SalesAgentSuggestionProvider,
     )
 

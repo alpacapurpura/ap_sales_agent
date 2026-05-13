@@ -42,7 +42,7 @@ import pytest
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 
-from src.shared.infrastructure.llm.providers._response_validation import (
+from luana_core_llm.providers._response_validation import (
     ReasoningBudgetExhaustedError,
     detect_reasoning_budget_exhaustion,
 )
@@ -193,11 +193,11 @@ class TestReasoningReserveInjection:
     def test_non_reasoning_spec_unchanged(self) -> None:
         from langchain_openai import ChatOpenAI
 
-        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+        from luana_core_llm.providers._chat_model_resolver import (
             ChatModelSpec,
             build_chat_openai,
         )
-        from src.shared.infrastructure.llm.providers._kwargs import (
+        from luana_core_llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
 
@@ -214,11 +214,11 @@ class TestReasoningReserveInjection:
     def test_reasoning_spec_adds_reserve(self) -> None:
         from langchain_openai import ChatOpenAI
 
-        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+        from luana_core_llm.providers._chat_model_resolver import (
             ChatModelSpec,
             build_chat_openai,
         )
-        from src.shared.infrastructure.llm.providers._kwargs import (
+        from luana_core_llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
 
@@ -238,11 +238,11 @@ class TestReasoningReserveInjection:
         operators escape-hatch when they have measured the right cap."""
         from langchain_openai import ChatOpenAI
 
-        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+        from luana_core_llm.providers._chat_model_resolver import (
             ChatModelSpec,
             build_chat_openai,
         )
-        from src.shared.infrastructure.llm.providers._kwargs import (
+        from luana_core_llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
 
@@ -263,11 +263,11 @@ class TestReasoningReserveInjection:
         do not surface the concept (e.g. DeepSeek today)."""
         from langchain_openai import ChatOpenAI
 
-        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+        from luana_core_llm.providers._chat_model_resolver import (
             ChatModelSpec,
             build_chat_openai,
         )
-        from src.shared.infrastructure.llm.providers._kwargs import (
+        from luana_core_llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
 
@@ -288,11 +288,11 @@ class TestReasoningReserveInjection:
         provider that doesn't accept it would 400."""
         from langchain_openai import ChatOpenAI
 
-        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+        from luana_core_llm.providers._chat_model_resolver import (
             ChatModelSpec,
             build_chat_openai,
         )
-        from src.shared.infrastructure.llm.providers._kwargs import (
+        from luana_core_llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
 
@@ -310,11 +310,11 @@ class TestReasoningReserveInjection:
     def test_idempotent_with_spec(self) -> None:
         from langchain_openai import ChatOpenAI
 
-        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+        from luana_core_llm.providers._chat_model_resolver import (
             ChatModelSpec,
             build_chat_openai,
         )
-        from src.shared.infrastructure.llm.providers._kwargs import (
+        from luana_core_llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
 

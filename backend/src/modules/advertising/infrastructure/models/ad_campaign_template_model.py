@@ -7,11 +7,10 @@ programmatically.
 
 import uuid
 
+from luana_core_platform.domain.base_entity import Base
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
-
-from src.shared.domain.base_entity import Base
 
 
 class AdCampaignTemplateModel(Base):

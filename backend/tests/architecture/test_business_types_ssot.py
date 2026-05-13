@@ -98,7 +98,7 @@ def test_brand_identity_does_not_declare_business_types() -> None:
     The AST test above covers this, but a direct import verifies at runtime
     that the Pydantic model was rebuilt without the field.
     """
-    from src.modules.brand.domain.identity import BrandIdentity
+    from luana_core_brand_studio.domain.identity import BrandIdentity
 
     assert "business_types" not in BrandIdentity.model_fields, (
         "BrandIdentity.model_fields still contains 'business_types'. "

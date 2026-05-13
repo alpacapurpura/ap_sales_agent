@@ -7,11 +7,11 @@ from typing import Any
 
 import pytest
 
-from src.modules.copilot.application.tools.ask_tenant_data.synthesizer import (
+from luana_core_copilot.application.tools.ask_tenant_data.synthesizer import (
     SUPPORTED_OUTPUT_CHANNELS,
     synthesize_answer,
 )
-from src.modules.copilot.domain.ports import DataQueryPlan, DataQueryResult
+from luana_core_copilot.domain.ports import DataQueryPlan, DataQueryResult
 
 
 @dataclass

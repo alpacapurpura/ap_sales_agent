@@ -100,7 +100,7 @@ def create_edition_landing_clone_port(db: Session) -> IEditionLandingClonePort:
     the API composition root; pass the session the clone service uses
     so both participate in the same transaction.
     """
-    from src.modules.landing.application.edition_clone_adapter import (
+    from luana_core_landing.application.edition_clone_adapter import (
         LandingEditionCloneAdapter,
     )
 

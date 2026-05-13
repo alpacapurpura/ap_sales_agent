@@ -29,17 +29,16 @@ from uuid import UUID
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_conversation_id, get_tenant_id
-from src.modules.copilot.application.tools.url_inspiration_analyzer import (
+from luana_core_copilot.application.tools.url_inspiration_analyzer import (
     InspirationAnalysis,
     analyze,
 )
-from src.modules.copilot.infrastructure.web.trafilatura_client import (
+from luana_core_copilot.infrastructure.web.trafilatura_client import (
     FetchUrlError,
     WebExtractResult,
     fetch_extract,
 )
+from luana_core_platform.core.context import get_conversation_id, get_tenant_id
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -117,7 +116,7 @@ def _success_payload(
 
 def _open_session() -> Session:
     """Lazy import of ``SessionLocal`` so import-time stays light."""
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     return SessionLocal()
 
@@ -134,7 +133,7 @@ async def _load_brand_lighthouse(tenant_id: UUID) -> str | None:
     analyzer falls back to generic criteria.
     """
     try:
-        from src.modules.copilot.application.discovery import (
+        from luana_core_copilot.application.discovery import (
             discover_providers,
         )
 
@@ -259,7 +258,7 @@ async def _fetch_url_impl(  # noqa: PLR0911 — flat early-return guards stay re
     if owns_db:
         db = _open_session()
     try:
-        from src.modules.copilot.infrastructure.repositories.inspiration_repository import (
+        from luana_core_copilot.infrastructure.repositories.inspiration_repository import (
             CopilotInspirationRepository,
         )
 

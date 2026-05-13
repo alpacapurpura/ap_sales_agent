@@ -118,8 +118,8 @@ def _query_top_offer(tenant_id: UUID) -> Any:
     # Lazy imports — keep CLI startup cheap.
     from sqlalchemy import select
 
-    from src.core.database import SessionLocal
-    from src.modules.offer.infrastructure.models.product_model import ProductModel
+    from luana_core_platform.core.database import SessionLocal
+    from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
 
     db = SessionLocal()
     try:

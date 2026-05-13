@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.output_sanitizer import (
+from luana_core_copilot.application.orchestrator.output_sanitizer import (
     correct_voseo_in_text,
     detect_channel_in_user_msg,
     enforce_channel_format_if_needed,
@@ -130,7 +130,7 @@ class TestSanitizerOrchestration:
     JSON strip → voseo correction → channel enforcement."""
 
     def test_signature_accepts_user_msg(self) -> None:
-        from src.modules.copilot.application.orchestrator.output_sanitizer import (
+        from luana_core_copilot.application.orchestrator.output_sanitizer import (
             sanitize_assistant_text,
         )
 
@@ -140,7 +140,7 @@ class TestSanitizerOrchestration:
         assert "puedes" in out
 
     def test_sms_voseo_combo(self) -> None:
-        from src.modules.copilot.application.orchestrator.output_sanitizer import (
+        from luana_core_copilot.application.orchestrator.output_sanitizer import (
             sanitize_assistant_text,
         )
 

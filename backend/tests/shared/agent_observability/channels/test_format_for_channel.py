@@ -10,11 +10,11 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.agent_observability.channels.format import (
+from luana_core_channels.format import (
     escape_markdown_v2,
     reset_registry_for_tests,
 )
-from src.shared.agent_observability.channels.format_for_channel import (
+from luana_core_channels.format_for_channel import (
     format_for_channel_impl,
 )
 

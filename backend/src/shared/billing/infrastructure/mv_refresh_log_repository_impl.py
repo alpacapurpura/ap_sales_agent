@@ -9,12 +9,11 @@ import datetime as dt
 import uuid as uuid_mod
 
 import structlog
+from luana_core_billing.domain.mv_refresh_log import MVRefreshLog, RefreshStatus
+from luana_core_billing.domain.mv_refresh_log_repository import MVRefreshLogRepository
+from luana_core_billing.infrastructure.models.mv_refresh_log_model import MVRefreshLogModel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.shared.billing.domain.mv_refresh_log import MVRefreshLog, RefreshStatus
-from src.shared.billing.domain.mv_refresh_log_repository import MVRefreshLogRepository
-from src.shared.billing.infrastructure.models.mv_refresh_log_model import MVRefreshLogModel
 
 logger = structlog.get_logger(__name__)
 

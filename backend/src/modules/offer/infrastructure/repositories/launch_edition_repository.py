@@ -4,19 +4,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func, select
-
-from src.modules.offer.domain.enums import VariantStructure
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.domain.enums import VariantStructure
+from luana_core_offer_studio.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
     LaunchEdition,
     PricingTier,
 )
-from src.modules.offer.domain.offer import PricingStructure
-from src.modules.offer.infrastructure.models.launch_edition_model import (
+from luana_core_offer_studio.domain.offer import PricingStructure
+from luana_core_offer_studio.infrastructure.models.launch_edition_model import (
     LaunchEditionModel,
 )
+from sqlalchemy import func, select
 
 if TYPE_CHECKING:
     from datetime import datetime

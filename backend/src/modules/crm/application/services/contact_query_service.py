@@ -14,25 +14,24 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID  # noqa: TC003 — UUID used in runtime signatures
 
 import structlog
-from sqlalchemy import Select, func, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002 — used in runtime __init__ signature
-from sqlalchemy.orm import load_only
-
-from src.modules.campaigns.application.dtos.pagination import PaginatedResponse
-from src.modules.crm.api.dto.contacts import (
+from luana_core_campaigns.application.dtos.pagination import PaginatedResponse
+from luana_core_crm.api.dto.contacts import (
     ContactDetail,
     ContactIdentity,
     ContactListItem,
 )
-from src.shared.infrastructure.models.crm import (
+from luana_core_platform.infrastructure.models.crm import (
     CustomerIdentityModel,
     CustomerProfileModel,
     LeadModel,
 )
+from sqlalchemy import Select, func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002 — used in runtime __init__ signature
+from sqlalchemy.orm import load_only
 
 if TYPE_CHECKING:
-    from src.modules.crm.api.dto.contact_filters import ContactFilterParams
-    from src.shared.links.ports.campaigns import CampaignsLookupPort
+    from luana_core_crm.api.dto.contact_filters import ContactFilterParams
+    from luana_core_platform.links.ports.campaigns import CampaignsLookupPort
 
 logger = structlog.get_logger(__name__)
 

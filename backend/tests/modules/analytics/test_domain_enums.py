@@ -3,7 +3,7 @@
 Pure Python tests: no DB, no async, no mocking required.
 """
 
-from src.modules.analytics.domain.enums import (
+from luana_core_analytics_engine.domain.enums import (
     AggregationType,
     CostType,
     ExtractionStatus,

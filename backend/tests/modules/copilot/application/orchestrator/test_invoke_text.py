@@ -22,9 +22,9 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.api.dto import ClientContextDTO
-from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
-from src.modules.copilot.application.orchestrator.invoke_result import (
+from luana_core_copilot.api.dto import ClientContextDTO
+from luana_core_copilot.application.orchestrator.chat import CopilotOrchestrator
+from luana_core_copilot.application.orchestrator.invoke_result import (
     CopilotInvokeResult,
 )
 

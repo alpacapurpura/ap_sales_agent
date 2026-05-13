@@ -29,10 +29,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.core.enums import AIProvider, ModelRole
-from src.modules.sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
+from luana_core_platform.core.enums import AIProvider, ModelRole
+from luana_core_sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
 
-_TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_node"
+_TRACE_PATCH = "luana_core_sales_agent.infrastructure.monitoring.tracing.trace_node"
 
 
 def _noop_trace(name):
@@ -174,14 +174,14 @@ class TestSettingsResolvesProviderPerRole:
         # Patch the typed Settings attribute (env var only triggers re-load
         # at process boot — for runtime tests we override the field
         # directly which is the supported in-process pattern).
-        from src.core.config import settings
+        from luana_core_platform.core.config import settings
 
         monkeypatch.setattr(settings, env_var, provider)
         resolved = settings.get_provider_for_role(role)
         assert resolved is provider
 
     def test_role_falls_back_to_global_when_unset(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from src.core.config import settings
+        from luana_core_platform.core.config import settings
 
         # Force per-role overrides to None and global to a sentinel.
         monkeypatch.setattr(settings, "AI_PROVIDER_AGENT", None)
@@ -210,7 +210,7 @@ class TestReasoningBudgetReserveForReasoningSpec:
     def _reasoning_spec():
         from langchain_openai import ChatOpenAI
 
-        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+        from luana_core_llm.providers._chat_model_resolver import (
             ChatModelSpec,
             build_chat_openai,
         )
@@ -223,7 +223,7 @@ class TestReasoningBudgetReserveForReasoningSpec:
         )
 
     def test_normalizer_inflates_max_tokens_for_reasoning_spec(self) -> None:
-        from src.shared.infrastructure.llm.providers._kwargs import (
+        from luana_core_llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
 
@@ -235,10 +235,10 @@ class TestReasoningBudgetReserveForReasoningSpec:
         assert "max_output_tokens" not in out
 
     def test_normalizer_passthrough_for_non_reasoning_spec(self) -> None:
-        from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+        from luana_core_llm.providers._chat_model_resolver import (
             DEFAULT_OPENAI_SPEC,
         )
-        from src.shared.infrastructure.llm.providers._kwargs import (
+        from luana_core_llm.providers._kwargs import (
             normalize_openai_protocol_kwargs,
         )
 

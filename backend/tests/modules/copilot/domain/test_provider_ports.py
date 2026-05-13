@@ -13,7 +13,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.copilot.domain.ports import (
+from luana_core_copilot.domain.ports import (
     ContextInjector,
     CopilotProvider,
     ModuleData,

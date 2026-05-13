@@ -4,16 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session, joinedload
-
-from src.modules.sales_agent.domain.memory.repository import EpisodicMemoryStore
-from src.modules.sales_agent.infrastructure.models.agent_trace_model import AgentTrace
-from src.modules.sales_agent.infrastructure.models.llm_log_model import LLMLog
-from src.modules.sales_agent.infrastructure.models.message_model import (
+from luana_core_platform.infrastructure.models.crm import LeadModel
+from luana_core_sales_agent.domain.memory.repository import EpisodicMemoryStore
+from luana_core_sales_agent.infrastructure.models.agent_trace_model import AgentTrace
+from luana_core_sales_agent.infrastructure.models.llm_log_model import LLMLog
+from luana_core_sales_agent.infrastructure.models.message_model import (
     MessageModel as Message,
 )
-from src.shared.infrastructure.models.crm import LeadModel
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, joinedload
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -232,10 +231,10 @@ class AuditRepository(EpisodicMemoryStore):
 
         Empty list when no rows — caller falls back to legacy.
         """
-        from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+        from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
             SalesAgentLlmCallModel,
         )
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
 
@@ -301,7 +300,7 @@ class AuditRepository(EpisodicMemoryStore):
         Replaces the legacy ``AgentTrace.output_state`` query in the
         admin sidebar "Ver Último Estado" — preferred during dual-read.
         """
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
 

@@ -206,8 +206,8 @@ def test_telegram_cache_prefix_meets_anthropic_threshold() -> None:
     ``tests/modules/copilot/application/orchestrator/test_telegram_channel_context_fragment.py``
     for the invariance contract. This test only enforces the size floor.
     """
-    from src.modules.copilot.application.memory.token_counter import count_tokens
-    from src.modules.copilot.application.orchestrator.graph import (
+    from luana_core_copilot.application.memory.token_counter import count_tokens
+    from luana_core_copilot.application.orchestrator.graph import (
         _build_telegram_channel_context_fragment,
     )
 

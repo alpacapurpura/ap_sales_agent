@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.campaigns.domain.events import (
+from luana_core_campaigns.domain.events import (
     CampaignCanceled,
     CampaignCompleted,
     CampaignCreated,

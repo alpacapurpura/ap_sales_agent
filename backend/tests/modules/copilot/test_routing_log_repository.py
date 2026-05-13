@@ -6,8 +6,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.infrastructure.models.routing_log_model import RoutingLogModel
-from src.modules.copilot.infrastructure.repositories.routing_log_repository import (
+from luana_core_copilot.infrastructure.models.routing_log_model import RoutingLogModel
+from luana_core_copilot.infrastructure.repositories.routing_log_repository import (
     RoutingLogRepository,
 )
 

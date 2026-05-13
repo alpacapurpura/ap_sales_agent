@@ -6,13 +6,12 @@ from typing import BinaryIO
 from uuid import UUID
 
 from fastapi import BackgroundTasks
-from sqlalchemy.orm import Session
-
-from src.core.config import settings  # Ensure this exists or use relative import
-from src.modules.assets.domain.entity import GalleryImage
-from src.modules.assets.infrastructure.repositories.gallery_repository import (
+from luana_core_assets.domain.entity import GalleryImage
+from luana_core_assets.infrastructure.repositories.gallery_repository import (
     GalleryRepository,
 )
+from luana_core_platform.core.config import settings  # Ensure this exists or use relative import
+from sqlalchemy.orm import Session
 
 
 class GalleryService:

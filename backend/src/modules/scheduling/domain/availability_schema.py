@@ -4,7 +4,7 @@ Canonical definitions live in ``shared/domain/schemas/scheduling.py``.
 This module re-exports them for backward compatibility within the scheduling module.
 """
 
-from src.shared.domain.schemas.scheduling import (
+from luana_core_platform.domain.schemas.scheduling import (
     AvailabilitySchedule,
     DaySchedule,
     ScheduleUpdate,

@@ -4,12 +4,12 @@ import uuid
 
 import pytest
 
-from src.modules.tenant_domains.domain.domain_entity import (
+from luana_core_tenant_domains.domain.domain_entity import (
     DomainStatus,
     DomainType,
     TenantDomain,
 )
-from src.modules.tenant_domains.infrastructure.domain_repository_impl import (
+from luana_core_tenant_domains.infrastructure.domain_repository_impl import (
     DomainRepositoryImpl,
 )
 

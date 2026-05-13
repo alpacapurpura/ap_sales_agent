@@ -20,10 +20,9 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 import structlog
-
-from src.modules.copilot.domain.message import Message
-from src.modules.copilot.domain.message_blocks import TextBlock
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_copilot.domain.message import Message
+from luana_core_copilot.domain.message_blocks import TextBlock
+from luana_core_platform.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger(__name__)
 

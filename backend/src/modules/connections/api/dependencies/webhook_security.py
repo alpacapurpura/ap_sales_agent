@@ -6,8 +6,7 @@ import hmac
 
 import structlog
 from fastapi import HTTPException, Request, status
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 logger = structlog.get_logger()
 

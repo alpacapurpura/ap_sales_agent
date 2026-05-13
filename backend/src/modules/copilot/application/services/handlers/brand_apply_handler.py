@@ -10,8 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.shared.links.ports.brand import create_brand_field_apply_port
+from luana_core_platform.links.ports.brand import create_brand_field_apply_port
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -51,7 +50,7 @@ def register_brand_handler() -> None:
     the copilot services package init so any caller that touches the
     apply service gets the handler for free.
     """
-    from src.modules.copilot.application.services.mutation_apply_service import (
+    from luana_core_copilot.application.services.mutation_apply_service import (
         register_apply_handler,
     )
 

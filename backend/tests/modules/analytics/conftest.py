@@ -24,7 +24,7 @@ def mock_credentials() -> dict:
 @pytest.fixture
 def mock_connection_credentials():
     """ConnectionCredentials instance for testing."""
-    from src.modules.analytics.domain.ports import ConnectionCredentials
+    from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
     return ConnectionCredentials(
         channel_type="meta",
@@ -77,7 +77,7 @@ def mock_cache() -> AsyncMock:
 @pytest.fixture
 def make_extracted_metric():
     """Factory fixture for ExtractedMetric objects."""
-    from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+    from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
     def _factory(**overrides):
         defaults = {
@@ -97,7 +97,7 @@ def make_extracted_metric():
 @pytest.fixture
 def make_extraction_result():
     """Factory fixture for ExtractionResult objects."""
-    from src.modules.analytics.domain.extraction_result import ExtractionResult
+    from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
 
     def _factory(metrics=None, failures=None):
         return ExtractionResult(
@@ -123,7 +123,7 @@ def seed_official_metrics(
     import uuid
     from datetime import date
 
-    from src.modules.analytics.infrastructure.models.official_metrics_model import (
+    from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
         OfficialMetricModel,
     )
 

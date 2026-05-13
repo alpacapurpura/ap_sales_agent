@@ -28,9 +28,9 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.shared.domain.base_entity import Base
-from src.shared.domain.enums import LifecycleStage
-from src.shared.infrastructure.models.crm import (
+from luana_core_platform.domain.base_entity import Base
+from luana_core_platform.domain.enums import LifecycleStage
+from luana_core_platform.infrastructure.models.crm import (
     CustomerIdentityModel,
     CustomerProfileModel,
     LeadModel,
@@ -165,12 +165,12 @@ async def app_with_overrides(db_session: AsyncSession):
     """Setup overrides una sola vez. _fake_user lee X-Tenant-ID header per request."""
     from fastapi import Header
     from src.main import app
-    from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+    from luana_core_campaigns.api._dependencies import get_campaigns_async_session
     from src.modules.crm.api.contacts import _get_contact_query_service
     from src.modules.crm.application.services.contact_query_service import (
         ContactQueryService,
     )
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     class _FakeUser:
         def __init__(self, tenant_id: UUID) -> None:
@@ -498,7 +498,7 @@ async def test_filter_has_campaign_engagement_true_returns_engaged(
     from src.modules.crm.application.services.contact_query_service import (
         ContactQueryService,
     )
-    from src.shared.links.ports.campaigns import CampaignTaskLookupResult
+    from luana_core_platform.links.ports.campaigns import CampaignTaskLookupResult
 
     engaged_profile = _make_profile(TENANT_A, primary_email="engaged@e.com")
     not_engaged_profile = _make_profile(TENANT_A, primary_email="notengaged@e.com")
@@ -548,7 +548,7 @@ async def test_filter_has_campaign_engagement_false_excludes_engaged(
     from src.modules.crm.application.services.contact_query_service import (
         ContactQueryService,
     )
-    from src.shared.links.ports.campaigns import CampaignTaskLookupResult
+    from luana_core_platform.links.ports.campaigns import CampaignTaskLookupResult
 
     engaged_p = _make_profile(TENANT_A, primary_email="eng_excl@e.com")
     clean_p = _make_profile(TENANT_A, primary_email="clean_excl@e.com")
@@ -891,7 +891,7 @@ async def test_response_model_extra_forbid_rejects_unknown_field() -> None:
     """ContactFilterParams con extra="forbid" rechaza campos desconocidos."""
     from pydantic import ValidationError
 
-    from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+    from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
     with pytest.raises(ValidationError):
         ContactFilterParams(unknown_field="value")  # type: ignore[call-arg]

@@ -4,19 +4,18 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.commercial_calendar.api.dto.calendar_events import (
+from luana_core_commercial_calendar.api.dto.calendar_events import (
     CalendarEventCreate,
     CalendarEventResponse,
     CalendarEventUpdate,
 )
-from src.modules.commercial_calendar.application.calendar_event_service import (
+from luana_core_commercial_calendar.application.calendar_event_service import (
     CalendarEventService,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

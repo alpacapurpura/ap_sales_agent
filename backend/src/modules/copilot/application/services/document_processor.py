@@ -26,28 +26,26 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from pydantic import BaseModel, ConfigDict
-
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.extraction_domain_registry import (
+from luana_core_copilot.domain.extraction_domain_registry import (
     get_extraction_config,
 )
-from src.modules.copilot.domain.field_paths_hint import build_field_paths_hint
-from src.shared.application.ai_action_service import (
+from luana_core_copilot.domain.field_paths_hint import build_field_paths_hint
+from luana_core_platform.application.ai_action_service import (
     AIActionPolicy,
     AIModelPolicy,
 )
-from src.shared.infrastructure.files.file_parsing_service import (
+from luana_core_platform.core.enums import ModelRole
+from luana_core_platform.infrastructure.files.file_parsing_service import (
     FileParsingService,
 )
-from src.shared.infrastructure.prompts.base import prompt_loader
+from luana_core_platform.infrastructure.prompts.base import prompt_loader
+from pydantic import BaseModel, ConfigDict
 
 if TYPE_CHECKING:
     from uuid import UUID
 
     from fastapi import UploadFile
-
-    from src.shared.application.ai_action_service import AIActionService
+    from luana_core_platform.application.ai_action_service import AIActionService
 
 logger = structlog.get_logger()
 

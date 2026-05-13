@@ -18,10 +18,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.modules.copilot.api.media import _get_media_limits, router
-from src.modules.copilot.application.services.limits_resolver import EffectiveLimits
-from src.modules.iam.api.dependencies import get_current_user, get_db
-from src.shared.domain.base_entity import Base
+from luana_core_copilot.api.media import _get_media_limits, router
+from luana_core_copilot.application.services.limits_resolver import EffectiveLimits
+from luana_core_iam.api.dependencies import get_current_user, get_db
+from luana_core_platform.domain.base_entity import Base
 
 
 @pytest.fixture(scope="session")
@@ -59,8 +59,8 @@ def _make_limits(media_max_bytes: int = 25 * 1024 * 1024) -> EffectiveLimits:
     )
 
 
-@patch("src.modules.copilot.api.media.check_rate_limit")
-@patch("src.modules.copilot.api.media.AssetsService")
+@patch("luana_core_copilot.api.media.check_rate_limit")
+@patch("luana_core_copilot.api.media.AssetsService")
 def test_media_upload_returns_valid_asset_id(
     mock_assets_cls: MagicMock,
     mock_rate_limit: MagicMock,
@@ -119,8 +119,8 @@ def test_media_upload_returns_valid_asset_id(
     assert data["mime"] == "application/pdf"
 
 
-@patch("src.modules.copilot.api.media.check_rate_limit")
-@patch("src.modules.copilot.api.media.AssetsService")
+@patch("luana_core_copilot.api.media.check_rate_limit")
+@patch("luana_core_copilot.api.media.AssetsService")
 def test_media_upload_response_no_password_or_secrets(
     mock_assets_cls: MagicMock,
     mock_rate_limit: MagicMock,

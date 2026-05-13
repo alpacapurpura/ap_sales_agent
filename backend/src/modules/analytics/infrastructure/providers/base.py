@@ -12,12 +12,11 @@ from uuid import UUID
 
 import sentry_sdk
 import structlog
-from pydantic import BaseModel, Field
-
-from src.modules.analytics.domain.extraction_result import (
+from luana_core_analytics_engine.domain.extraction_result import (
     ExtractionResult,
     SubExtractorFailure,
 )
+from pydantic import BaseModel, Field
 
 logger = structlog.get_logger(__name__)
 

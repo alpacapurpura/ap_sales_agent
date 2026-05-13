@@ -11,12 +11,11 @@ the LLM was rate-limited or a tenant's lighthouse was stuck.
 from __future__ import annotations
 
 import streamlit as st
-
-from src.core.database import SessionLocal
-from src.modules.brand.infrastructure.repositories.brand_summary_repository import (
+from luana_core_brand_studio.infrastructure.repositories.brand_summary_repository import (
     BrandSummaryRepository,
 )
-from src.shared.workers.brand_summary_regen import regen_brand_summary_sync
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.workers.brand_summary_regen import regen_brand_summary_sync
 
 
 def _render_table() -> None:

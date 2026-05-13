@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.iam.api.dependencies import get_current_user, get_db
-from src.modules.offer.api.dto.extraction import (
+from luana_core_iam.api.dependencies import get_current_user, get_db
+from luana_core_offer_studio.api.dto.extraction import (
     ExtractFullOfferResponse,
     OfferExtractionStatusResponse,
 )
-from src.modules.offer.api.offer_extraction import router
+from luana_core_offer_studio.api.offer_extraction import router
 
 TENANT_ID = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 OFFER_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
@@ -41,7 +41,7 @@ def _build_app() -> FastAPI:
 class TestExtractFullOfferEndpoint:
     """POST /api/v1/offer/tools/extract-full-offer"""
 
-    @patch("src.modules.offer.api.offer_extraction.redis_client")
+    @patch("luana_core_offer_studio.api.offer_extraction.redis_client")
     def test_returns_202_with_job_id(self, mock_redis):
         app = _build_app()
         mock_redis.setex = MagicMock()
@@ -62,7 +62,7 @@ class TestExtractFullOfferEndpoint:
         assert data["status"] == "queued"
         ExtractFullOfferResponse(**data)
 
-    @patch("src.modules.offer.api.offer_extraction.redis_client")
+    @patch("luana_core_offer_studio.api.offer_extraction.redis_client")
     def test_requires_offer_id(self, mock_redis):
         app = _build_app()
         client = TestClient(app)
@@ -72,7 +72,7 @@ class TestExtractFullOfferEndpoint:
         )
         assert response.status_code == 422  # Missing required field
 
-    @patch("src.modules.offer.api.offer_extraction.redis_client")
+    @patch("luana_core_offer_studio.api.offer_extraction.redis_client")
     def test_requires_at_least_one_source(self, mock_redis):
         app = _build_app()
         client = TestClient(app)
@@ -86,7 +86,7 @@ class TestExtractFullOfferEndpoint:
 class TestOfferExtractionStatusEndpoint:
     """GET /api/v1/offer/tools/extract-full-offer/status/{job_id}"""
 
-    @patch("src.modules.offer.api.offer_extraction.redis_client")
+    @patch("luana_core_offer_studio.api.offer_extraction.redis_client")
     def test_returns_status_from_redis(self, mock_redis):
         app = _build_app()
         job_id = str(uuid.uuid4())
@@ -110,7 +110,7 @@ class TestOfferExtractionStatusEndpoint:
         assert data["progress"] == 50
         OfferExtractionStatusResponse(**data)
 
-    @patch("src.modules.offer.api.offer_extraction.redis_client")
+    @patch("luana_core_offer_studio.api.offer_extraction.redis_client")
     def test_returns_404_for_unknown_job(self, mock_redis):
         app = _build_app()
         job_id = str(uuid.uuid4())
@@ -120,7 +120,7 @@ class TestOfferExtractionStatusEndpoint:
         response = client.get(f"/api/v1/offer/tools/extract-full-offer/status/{job_id}")
         assert response.status_code == 404
 
-    @patch("src.modules.offer.api.offer_extraction.redis_client")
+    @patch("luana_core_offer_studio.api.offer_extraction.redis_client")
     def test_rejects_invalid_job_id(self, mock_redis):
         app = _build_app()
         client = TestClient(app)

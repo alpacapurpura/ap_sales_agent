@@ -3,14 +3,13 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+from luana_core_crm.domain.enums import PaymentMethod, SaleStage, SaleStatus
+from luana_core_crm.domain.events import SaleCompletedEvent
+from luana_core_crm.domain.sale import Sale
+from luana_core_crm.infrastructure.repositories.sale_repository import SaleRepository
+from luana_core_platform.domain.currency import FALLBACK_CURRENCY
+from luana_core_platform.domain.events import EventBus
 from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.enums import PaymentMethod, SaleStage, SaleStatus
-from src.modules.crm.domain.events import SaleCompletedEvent
-from src.modules.crm.domain.sale import Sale
-from src.modules.crm.infrastructure.repositories.sale_repository import SaleRepository
-from src.shared.domain.currency import FALLBACK_CURRENCY
-from src.shared.domain.events import EventBus
 
 
 class SaleService:

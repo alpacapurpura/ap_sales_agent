@@ -4,8 +4,8 @@ import uuid
 
 import pytest
 
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+from luana_core_iam.domain.user import User
+from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
 
 
 class TestUserRepositoryGetById:

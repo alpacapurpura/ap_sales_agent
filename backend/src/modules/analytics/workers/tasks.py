@@ -16,9 +16,8 @@ if TYPE_CHECKING:
 import sentry_sdk
 import structlog
 from arq import Retry
+from luana_core_analytics_engine.application.config import CacheConfig
 from sentry_sdk.crons import MonitorStatus, capture_checkin
-
-from src.modules.analytics.application.config import CacheConfig
 
 logger = structlog.get_logger(__name__)
 
@@ -33,16 +32,15 @@ async def _maybe_enqueue_period_extraction(ctx: dict, db: Session, tenant_id: st
     """
     from datetime import timedelta
 
+    from luana_core_platform.domain.datetime_utils import utc_today
     from sqlalchemy import func, select
-
-    from src.shared.domain.datetime_utils import utc_today
 
     redis = ctx.get("redis")
     if not redis:
         return
 
     try:
-        from src.modules.analytics.infrastructure.models.period_metrics_model import (
+        from luana_core_analytics_engine.infrastructure.models.period_metrics_model import (
             PeriodMetricModel,
         )
 
@@ -103,7 +101,7 @@ async def run_tenant_extraction(
     On transient errors, retries with Fibonacci backoff.
     On ConnectionRevokedError, fails permanently (no retry).
     """
-    from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+    from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
     db_factory = ctx["db_factory"]
     db = db_factory()
@@ -120,11 +118,11 @@ async def run_tenant_extraction(
 
     try:
         # Late imports to avoid circular/missing imports during development
-        from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
-        from src.shared.links.ports.channel_adapter import create_connection_port
+        from luana_core_platform.links.ports.channel_adapter import create_connection_port
 
         redis = ctx.get("redis_cache")
         cache = MetricsCache(redis)
@@ -208,7 +206,7 @@ async def run_initial_load(
     Extracts the last `initial_days` days of data immediately,
     without waiting for the next scheduled cron tick.
     """
-    from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+    from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
     db_factory = ctx["db_factory"]
     db = db_factory()
@@ -216,11 +214,11 @@ async def run_initial_load(
     progress_key = f"initial_load:{tenant_id}:{provider}"
 
     try:
-        from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
-        from src.shared.links.ports.channel_adapter import create_connection_port
+        from luana_core_platform.links.ports.channel_adapter import create_connection_port
 
         cache = MetricsCache(redis)
         connection_port = create_connection_port(db)
@@ -326,11 +324,11 @@ async def run_period_extraction(
     db = db_factory()
 
     try:
-        from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+        from luana_core_analytics_engine.application.services.etl_service import ETLService
+        from luana_core_analytics_engine.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
-        from src.shared.links.ports.channel_adapter import create_connection_port
+        from luana_core_platform.links.ports.channel_adapter import create_connection_port
 
         redis = ctx.get("redis_cache")
         cache = MetricsCache(redis)
@@ -395,22 +393,22 @@ async def run_campaign_sync(
     On transient errors, retries with Fibonacci backoff.
     On ConnectionRevokedError, fails permanently (no retry).
     """
-    from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+    from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
     db_factory = ctx["db_factory"]
     db = db_factory()
 
     try:
-        from src.modules.analytics.infrastructure.providers.meta_campaign_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.meta_campaign_provider import (
             MetaCampaignProvider,
         )
-        from src.modules.analytics.infrastructure.repositories.campaign_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.campaign_repository import (
             CampaignRepository,
         )
-        from src.modules.analytics.infrastructure.sync.campaign_sync_pipeline import (
+        from luana_core_analytics_engine.infrastructure.sync.campaign_sync_pipeline import (
             CampaignSyncPipeline,
         )
-        from src.shared.links.ports.channel_adapter import create_connection_port
+        from luana_core_platform.links.ports.channel_adapter import create_connection_port
 
         connection_port = create_connection_port(db)
         credentials = await connection_port.get_credentials(
@@ -548,7 +546,7 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
 
 def _get_active_mailerlite_connections(db: Session) -> list:
     """Fetch all active Mailerlite connections via shared port."""
-    from src.shared.links.ports.channel_adapter import get_active_connections_by_type
+    from luana_core_platform.links.ports.channel_adapter import get_active_connections_by_type
 
     return get_active_connections_by_type(db, "mailerlite")
 
@@ -570,7 +568,7 @@ async def _sync_mailerlite_tenants(db: Session, connections: list) -> int:
 
 async def _sync_single_tenant(db: Session, conn: object, tenant_id: UUID) -> int:
     """Sync a single tenant's Mailerlite activities. Returns events synced."""
-    from src.shared.links.ports.channel_adapter import create_mailerlite_connector
+    from luana_core_platform.links.ports.channel_adapter import create_mailerlite_connector
 
     api_key = conn.credentials.get("api_key") if conn.credentials else None
     if not api_key:
@@ -590,7 +588,7 @@ async def _sync_single_tenant(db: Session, conn: object, tenant_id: UUID) -> int
 
     activities = await connector.get_recent_campaign_activity(hours=7)
 
-    from src.shared.links.ports.crm_enrichment import sync_mailerlite_email_activities
+    from luana_core_platform.links.ports.crm_enrichment import sync_mailerlite_email_activities
 
     synced = sync_mailerlite_email_activities(db, tenant_id, activities)
     return synced
@@ -609,7 +607,7 @@ async def run_manychat_subscriber_sync(
     db = db_factory()
 
     try:
-        from src.modules.analytics.workers.manychat_sync import (
+        from luana_core_analytics_engine.workers.manychat_sync import (
             sync_manychat_subscribers,
         )
 
@@ -665,7 +663,7 @@ async def run_inactivity_detection(ctx: dict) -> dict:
     )
 
     try:
-        from src.shared.links.ports.crm_enrichment import (
+        from luana_core_platform.links.ports.crm_enrichment import (
             run_crm_inactivity_detection_batch,
         )
 

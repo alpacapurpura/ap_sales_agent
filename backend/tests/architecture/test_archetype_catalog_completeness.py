@@ -7,8 +7,8 @@ fails the build at CI — forcing the author to declare capabilities explicitly.
 
 from __future__ import annotations
 
-from src.modules.offer.domain.archetype_catalog import ARCHETYPE_CATALOG
-from src.modules.offer.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.archetype_catalog import ARCHETYPE_CATALOG
+from luana_core_offer_studio.domain.enums import OfferArchetype
 
 
 def test_every_offer_archetype_has_a_catalog_entry() -> None:

@@ -6,8 +6,7 @@ from typing import BinaryIO
 
 import boto3
 from botocore.client import Config
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 from .base import StorageStrategy
 

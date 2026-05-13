@@ -26,7 +26,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from src.modules.offer.domain.enums import VariantStructure
+from luana_core_offer_studio.domain.enums import VariantStructure
 
 
 class VariantCardinality(StrEnum):

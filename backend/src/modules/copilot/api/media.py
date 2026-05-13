@@ -24,21 +24,20 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
-from sqlalchemy.orm import Session
-
-from src.core.config import settings
-from src.core.database import get_db
-from src.core.rate_limit import check_rate_limit
-from src.modules.assets.application.assets_service import AssetsService
-from src.modules.copilot.api.media_dto import MediaUploadResponse
-from src.modules.copilot.application.services.limits_resolver import (
+from luana_core_assets.application.assets_service import AssetsService
+from luana_core_copilot.api.media_dto import MediaUploadResponse
+from luana_core_copilot.application.services.limits_resolver import (
     CopilotLimitsResolver,
     EffectiveLimits,
 )
-from src.modules.copilot.infrastructure.repositories.tenant_limits_repository import (
+from luana_core_copilot.infrastructure.repositories.tenant_limits_repository import (
     SyncCopilotTenantLimitsRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.database import get_db
+from luana_core_platform.core.rate_limit import check_rate_limit
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

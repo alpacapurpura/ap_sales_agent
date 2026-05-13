@@ -6,9 +6,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
 from src.modules.offer.api.campaigns import router
 
 

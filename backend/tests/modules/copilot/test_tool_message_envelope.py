@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 
-from src.modules.copilot.application.orchestrator.graph import _tool_message_content
+from luana_core_copilot.application.orchestrator.graph import _tool_message_content
 
 
 class TestToolMessageContent:

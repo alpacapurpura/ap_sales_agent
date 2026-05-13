@@ -4,30 +4,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.modules.offer.domain.archetype_catalog import get_capabilities
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.domain.archetype_catalog import get_capabilities
+from luana_core_offer_studio.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
     LaunchEdition,
     PricingTier,
     resolve_active_tier,
 )
-from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
+from luana_core_offer_studio.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
-from src.modules.offer.infrastructure.repositories.offer_repository import (
+from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from datetime import datetime
     from uuid import UUID
 
+    from luana_core_offer_studio.domain.enums import VariantStructure
+    from luana_core_offer_studio.domain.offer import PricingStructure
     from sqlalchemy.orm import Session
-
-    from src.modules.offer.domain.enums import VariantStructure
-    from src.modules.offer.domain.offer import PricingStructure
 
 
 class LaunchEditionService:

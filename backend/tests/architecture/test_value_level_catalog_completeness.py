@@ -7,8 +7,8 @@ orphan entry) fails CI.
 
 from __future__ import annotations
 
-from src.modules.offer.domain.enums import OfferValueLevel
-from src.modules.offer.domain.value_level_catalog import VALUE_LEVEL_CATALOG
+from luana_core_offer_studio.domain.enums import OfferValueLevel
+from luana_core_offer_studio.domain.value_level_catalog import VALUE_LEVEL_CATALOG
 
 
 def test_every_value_level_has_a_catalog_entry() -> None:

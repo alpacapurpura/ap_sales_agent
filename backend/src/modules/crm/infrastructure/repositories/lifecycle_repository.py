@@ -7,13 +7,12 @@ Uses SQLAlchemy 2.0 syntax (select(Model)).
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 
 class LifecycleRepository:

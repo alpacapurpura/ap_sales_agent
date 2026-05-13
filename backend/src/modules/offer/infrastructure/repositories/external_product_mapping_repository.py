@@ -2,12 +2,11 @@
 
 from uuid import UUID
 
-from sqlalchemy import delete, select
-from sqlalchemy.orm import Session
-
-from src.modules.offer.infrastructure.models.external_product_mapping_model import (
+from luana_core_offer_studio.infrastructure.models.external_product_mapping_model import (
     ExternalProductMappingModel,
 )
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
 
 
 class ExternalProductMappingRepository:

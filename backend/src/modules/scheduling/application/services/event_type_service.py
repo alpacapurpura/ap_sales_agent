@@ -4,11 +4,11 @@ import uuid
 from uuid import UUID
 
 import structlog
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.scheduling.domain.event_type_schema import EventType, EventTypeUpdate
 
 logger = structlog.get_logger()

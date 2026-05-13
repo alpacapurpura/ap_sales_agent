@@ -20,12 +20,11 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
+from luana_core_campaigns.domain.enums import SegmentFilterCombinator
+from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
+from luana_core_platform.infrastructure.models.crm import CustomerProfileModel, LeadModel
 from sqlalchemy import ColumnElement, and_, exists, false, or_, select
 from sqlalchemy.sql.elements import ClauseElement  # noqa: F401 — used via ColumnElement
-
-from src.modules.campaigns.domain.enums import SegmentFilterCombinator
-from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
-from src.shared.infrastructure.models.crm import CustomerProfileModel, LeadModel
 
 if TYPE_CHECKING:
     import datetime as dt

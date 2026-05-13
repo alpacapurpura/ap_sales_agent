@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
-from src.shared.agent_observability.recording.sanitization import sanitize_payload
+from luana_core_observability.recording.sanitization import sanitize_payload
 
 if TYPE_CHECKING:
     from uuid import UUID

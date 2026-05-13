@@ -22,7 +22,7 @@ def _d(y: int, m: int, d: int) -> date:
 
 
 def _make_capture_repo() -> tuple:
-    from src.modules.analytics.infrastructure.repositories.capture_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.capture_repository import (
         CaptureMetricsRepository,
     )
 
@@ -119,7 +119,7 @@ class TestCaptureCountConversationsByChannel:
 
 
 def _make_nurture_repo() -> tuple:
-    from src.modules.analytics.infrastructure.repositories.nurture_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.nurture_repository import (
         NurtureMetricsRepository,
     )
 
@@ -212,7 +212,7 @@ class TestNurtureCountEmailEvents:
 
 
 def _make_period_repo() -> tuple:
-    from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository import (
         PeriodMetricsRepository,
     )
 
@@ -348,7 +348,7 @@ class TestPeriodGetExistingPeriods:
 
 
 def _make_official_repo() -> tuple:
-    from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
         OfficialMetricsRepository,
     )
 

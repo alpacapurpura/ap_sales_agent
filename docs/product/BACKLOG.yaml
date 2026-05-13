@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-13T01:58:06+00:00
+# Generated at: 2026-05-13T06:40:17+00:00
 
-generated_at: '2026-05-13T01:58:06+00:00'
+generated_at: '2026-05-13T06:40:17+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -311,12 +311,12 @@ buckets:
     state: developing
     title: luana-nicolify-migration
     tags: []
-    last_touched: 2026-05-12
+    last_touched: 2026-05-13
     extra:
       outcome: luana-platform-migration
-      phase: PHASE_2_PAUSED_R1_AUDIT_READY_FOR_SESSION_6
-      next_action: 'Session 6 bootstrap: read SESSION-6-HANDOFF.md → spawn Phase A audit Opus → T-1.7-lift-audit-report.md
-        → Chris ratifies fix plan → Phase C apply fixes → drop stash + resume T-2..T-7.'
+      phase: FASE_3_HALTED_R14_H6_AWAITING_CHRIS_RATIFICATION
+      next_action: 'Chris ratifies Option A (codemod aug) / B (expand Decisión 9 deferred) / C (hybrid — RECOMMENDED) / D
+        (rollback). Recommendation Option C: split 13 eval-deferred + 5 NOT-deferred targeted codemod aug ~$200-400 next session.'
       blocked_by:
       - luana-v0-1-0-publish
       priority_override: null

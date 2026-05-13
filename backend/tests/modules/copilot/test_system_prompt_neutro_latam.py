@@ -19,16 +19,16 @@ import re
 
 import pytest
 
-from src.modules.copilot.application.tools.ask_tenant_data.synthesizer import (
+from luana_core_copilot.application.tools.ask_tenant_data.synthesizer import (
     _empty_window_reply,
     _unknown_intent_reply,
 )
-from src.shared.workers.brand_summary_regen import _VOSEO_RE
+from luana_core_platform.workers.brand_summary_regen import _VOSEO_RE
 
 
 def _render(template_name: str, **ctx: object) -> str:
     """Render a copilot j2 template via the same loader the orchestrator uses."""
-    from src.modules.copilot.infrastructure.prompts.base import prompt_loader
+    from luana_core_copilot.infrastructure.prompts.base import prompt_loader
 
     return prompt_loader.render(template_name, **ctx)
 
@@ -97,7 +97,7 @@ class TestSynthesizerFallbackStringsAreNeutro:
 
     @pytest.mark.parametrize("channel", ["chat", "whatsapp", "email", "sms"])
     def test_empty_window_reply_has_no_voseo(self, channel: str) -> None:
-        from src.modules.copilot.domain.ports import DataQueryPlan
+        from luana_core_copilot.domain.ports import DataQueryPlan
 
         plan = DataQueryPlan(kind="lead_count", filters={})
         text = _empty_window_reply(plan, channel)

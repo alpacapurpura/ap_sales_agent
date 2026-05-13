@@ -15,16 +15,15 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.tenant_profile.domain.tenant_profile import (
-    BUSINESS_TYPES_MAX,
-    BUSINESS_TYPES_MIN,
-)
-from src.shared.domain.expert_business_type import (
+from luana_core_platform.domain.expert_business_type import (
     EXPERT_BUSINESS_TYPE_CATALOG,
     ExpertBusinessType,
 )
+from luana_core_tenant_profile.domain.tenant_profile import (
+    BUSINESS_TYPES_MAX,
+    BUSINESS_TYPES_MIN,
+)
+from pydantic import BaseModel, ConfigDict, Field
 
 # Type alias — slug strings that correspond to ExpertBusinessType values.
 ExpertBusinessTypeSlug = str
@@ -100,7 +99,7 @@ def profile_to_response(profile: object) -> TenantProfileResponse:
     Accepts ``object`` to avoid importing the domain type in test stubs, but
     at runtime it must be a ``TenantProfile`` instance.
     """
-    from src.modules.tenant_profile.domain.tenant_profile import TenantProfile
+    from luana_core_tenant_profile.domain.tenant_profile import TenantProfile
 
     assert isinstance(profile, TenantProfile)  # noqa: S101 — internal assertion
     return TenantProfileResponse(

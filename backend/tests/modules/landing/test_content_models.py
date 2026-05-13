@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from src.modules.landing.domain.content import (
+from luana_core_landing.domain.content import (
     BrochureContent,
     EventContent,
     FeatureBullet,
@@ -18,7 +18,7 @@ from src.modules.landing.domain.content import (
     TransformerContent,
     VelvetRopeContent,
 )
-from src.modules.landing.domain.enums import LandingPageArchetype, LandingPageFont
+from luana_core_landing.domain.enums import LandingPageArchetype, LandingPageFont
 
 
 class TestSqueezeContent:

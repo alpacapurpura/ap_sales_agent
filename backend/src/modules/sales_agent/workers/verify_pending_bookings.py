@@ -28,24 +28,23 @@ from __future__ import annotations
 import contextlib
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.application.services.meeting_state_service import (
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
+from luana_core_platform.domain.events import BookingMissedEvent
+from luana_core_sales_agent.application.services.meeting_state_service import (
     MeetingEntry,
     MeetingEntryStatus,
     MeetingStateService,
 )
-from src.modules.sales_agent.application.tools.scheduling.providers import (
+from luana_core_sales_agent.application.tools.scheduling.providers import (
     BookingStatusValue,
     InternalSchedulerProvider,
 )
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
-from src.shared.domain.events import BookingMissedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
-)
+from sqlalchemy import select
 
 logger = structlog.get_logger()
 

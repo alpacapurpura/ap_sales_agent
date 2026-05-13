@@ -20,7 +20,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl
 
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldContract,
     FieldStatus,
     FieldType,
@@ -32,7 +32,7 @@ from src.shared.domain.field_contract import (
     get_module_contracts,
     register_module_contracts,
 )
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldContractOverride as Override,
 )
 
@@ -53,8 +53,8 @@ def teardown_module(module: object) -> None:
     once any test (in any order) calls ``get_catalog``. Clearing one
     without the other re-introduces the duplicate.
     """
-    from src.shared.domain.field_contract import _MODULE_CONTRACTS
-    from src.shared.links.ports import editable_fields as _ef
+    from luana_core_platform.domain.field_contract import _MODULE_CONTRACTS
+    from luana_core_platform.links.ports import editable_fields as _ef
 
     for name in _SYNTHETIC_MODULES:
         _MODULE_CONTRACTS.pop(name, None)

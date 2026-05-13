@@ -18,9 +18,9 @@ import structlog
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.tenant_profile.domain.repository import TenantProfileRepository
-    from src.modules.tenant_profile.domain.tenant_profile import TenantProfile
-    from src.shared.domain.expert_business_type import ExpertBusinessType
+    from luana_core_platform.domain.expert_business_type import ExpertBusinessType
+    from luana_core_tenant_profile.domain.repository import TenantProfileRepository
+    from luana_core_tenant_profile.domain.tenant_profile import TenantProfile
 
 logger = structlog.get_logger()
 
@@ -79,7 +79,7 @@ class TenantProfileService:
         Currently logs the event. Future: wire to shared EventBus and WebSocket
         broadcast for cache invalidation (§5 of CONTRACT.md).
         """
-        from src.modules.tenant_profile.domain.events import (
+        from luana_core_tenant_profile.domain.events import (
             BusinessTypesChanged,
             TenantProfileInitialized,
         )

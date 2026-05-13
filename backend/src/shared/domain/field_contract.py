@@ -668,9 +668,9 @@ def _build_contract(
 _MODULE_CONTRACTS: dict[str, tuple[FieldContract, ...]] = {}
 
 _LAZY_REGISTRARS: dict[str, str] = {
-    "offer": "src.modules.offer.domain.field_contract",
-    "brand": "src.modules.brand.domain.field_contract",
-    "buyer_persona": "src.modules.brand.domain.buyer_persona_field_contract",
+    "offer": "luana_core_offer_studio.domain.field_contract",
+    "brand": "luana_core_brand_studio.domain.field_contract",
+    "buyer_persona": "luana_core_brand_studio.domain.buyer_persona_field_contract",
 }
 
 

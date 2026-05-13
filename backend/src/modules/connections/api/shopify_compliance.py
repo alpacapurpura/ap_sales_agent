@@ -4,8 +4,7 @@ from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, Request, status
-
-from src.modules.connections.api.dependencies.webhook_security import (
+from luana_core_connections.api.dependencies.webhook_security import (
     verify_shopify_signature,
 )
 

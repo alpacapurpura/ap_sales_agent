@@ -10,8 +10,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.compliance.application.compliance_service import ComplianceService
-from src.shared.compliance.domain.check_result import CheckResult
+from luana_core_compliance.application.compliance_service import ComplianceService
+from luana_core_compliance.domain.check_result import CheckResult
 
 pytestmark = pytest.mark.asyncio
 

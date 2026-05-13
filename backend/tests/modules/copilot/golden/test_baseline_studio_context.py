@@ -9,7 +9,7 @@ pattern context_injector) both depend on this mapping. Snapshot it now.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.orchestrator.graph import _resolve_studio_context
+from luana_core_copilot.application.orchestrator.graph import _resolve_studio_context
 from tests.modules.copilot.golden.conftest import assert_matches_golden
 
 CANONICAL_ROUTES: tuple[str | None, ...] = (

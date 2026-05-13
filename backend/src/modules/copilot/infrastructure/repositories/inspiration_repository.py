@@ -16,12 +16,11 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import delete, func, select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-from src.modules.copilot.infrastructure.models.inspiration_model import (
+from luana_core_copilot.infrastructure.models.inspiration_model import (
     CopilotInspirationModel,
 )
+from sqlalchemy import delete, func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 if TYPE_CHECKING:
     from uuid import UUID

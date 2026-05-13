@@ -24,7 +24,7 @@ from __future__ import annotations
 
 def test_preserves_deepseek_provider_prefix() -> None:
     """A1 — 'deepseek/deepseek-v4-flash' stored as-is (slashed)."""
-    from src.shared.agent_observability.recording.base_callback_handler import (
+    from luana_core_observability.recording.base_callback_handler import (
         BaseAgentCallbackHandler,
     )
 
@@ -40,7 +40,7 @@ def test_preserves_deepseek_provider_prefix() -> None:
 
 def test_preserves_openai_provider_prefix() -> None:
     """A1 — 'openai/gpt-4o-mini' stored as-is (slashed)."""
-    from src.shared.agent_observability.recording.base_callback_handler import (
+    from luana_core_observability.recording.base_callback_handler import (
         BaseAgentCallbackHandler,
     )
 
@@ -54,7 +54,7 @@ def test_preserves_openai_provider_prefix() -> None:
 
 def test_bare_model_name_unchanged() -> None:
     """Model without slash — preserved as-is, provider falls back via SDK."""
-    from src.shared.agent_observability.recording.base_callback_handler import (
+    from luana_core_observability.recording.base_callback_handler import (
         BaseAgentCallbackHandler,
     )
 
@@ -68,7 +68,7 @@ def test_bare_model_name_unchanged() -> None:
 
 def test_metadata_ls_model_name_preserved_slashed() -> None:
     """Slashed model from LangChain ls_model_name metadata is preserved."""
-    from src.shared.agent_observability.recording.base_callback_handler import (
+    from luana_core_observability.recording.base_callback_handler import (
         BaseAgentCallbackHandler,
     )
 

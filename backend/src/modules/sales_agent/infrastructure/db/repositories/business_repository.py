@@ -4,16 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from luana_core_platform.links.ports.offer import get_product_model_class
 from sqlalchemy import select
-
-from src.shared.links.ports.offer import get_product_model_class
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_offer_studio.infrastructure.models.product_model import ProductModel as Product
     from sqlalchemy.orm import Session
-
-    from src.modules.offer.infrastructure.models.product_model import ProductModel as Product
 
 
 class BusinessRepository:

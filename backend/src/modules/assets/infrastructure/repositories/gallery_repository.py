@@ -2,12 +2,11 @@
 
 from uuid import UUID
 
+from luana_core_assets.domain.entity import GalleryImage
+from luana_core_assets.infrastructure.models.gallery_model import GalleryImageModel
+from luana_core_platform.domain.datetime_utils import utc_now
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.modules.assets.domain.entity import GalleryImage
-from src.modules.assets.infrastructure.models.gallery_model import GalleryImageModel
-from src.shared.domain.datetime_utils import utc_now
 
 
 class GalleryRepository:

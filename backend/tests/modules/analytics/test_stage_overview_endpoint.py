@@ -9,10 +9,10 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.modules.analytics.application.dto.stage_overview_dto import (
+from luana_core_analytics_engine.application.dto.stage_overview_dto import (
     StageOverviewDTO,
 )
-from src.modules.analytics.application.services.stage_services.overview_stage import (
+from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
     StageOverviewService,
 )
 
@@ -426,7 +426,7 @@ class TestEndpointWiring:
         """metrics.py imports StageOverviewDTO."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics)
         assert "StageOverviewDTO" in source
@@ -435,7 +435,7 @@ class TestEndpointWiring:
         """metrics.py imports StageOverviewService."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics)
         assert "StageOverviewService" in source
@@ -444,7 +444,7 @@ class TestEndpointWiring:
         """metrics.py defines a /{stage}/overview route."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics)
         assert "/{stage}/overview" in source
@@ -453,7 +453,7 @@ class TestEndpointWiring:
         """metrics.py defines a FunnelStage enum for validation."""
         import inspect
 
-        from src.modules.analytics.api import metrics
+        from luana_core_analytics_engine.api import metrics
 
         source = inspect.getsource(metrics)
         assert "FunnelStage" in source
@@ -462,7 +462,7 @@ class TestEndpointWiring:
         """FunnelStage enum rejects invalid stage values."""
         import pytest as pt
 
-        from src.modules.analytics.api.metrics import FunnelStage
+        from luana_core_analytics_engine.api.metrics import FunnelStage
 
         with pt.raises(ValueError):
             FunnelStage("nonexistent_stage")

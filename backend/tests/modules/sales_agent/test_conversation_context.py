@@ -14,10 +14,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.sales_agent.application.orchestrator.chat import (
+from luana_core_sales_agent.application.orchestrator.chat import (
     merge_history_with_current,
 )
-from src.modules.sales_agent.application.orchestrator.conversation_pipeline import (
+from luana_core_sales_agent.application.orchestrator.conversation_pipeline import (
     ConversationPipeline,
 )
 

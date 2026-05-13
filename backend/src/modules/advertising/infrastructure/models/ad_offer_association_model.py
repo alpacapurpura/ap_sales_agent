@@ -2,11 +2,10 @@
 
 import uuid
 
+from luana_core_platform.domain.base_entity import Base
 from sqlalchemy import Column, DateTime, Index, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-
-from src.shared.domain.base_entity import Base
 
 
 class AdOfferAssociationModel(Base):

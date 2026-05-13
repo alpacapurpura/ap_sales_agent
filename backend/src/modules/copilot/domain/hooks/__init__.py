@@ -1,6 +1,6 @@
 """Copilot hook plugin domain types (events + registry protocol)."""
 
-from src.modules.copilot.domain.hooks.copilot_events import (
+from luana_core_copilot.domain.hooks.copilot_events import (
     ConversationCreated,
     CopilotEvent,
     MessageReceived,
@@ -13,7 +13,7 @@ from src.modules.copilot.domain.hooks.copilot_events import (
     ProcedureCompleted,
     TierDecided,
 )
-from src.modules.copilot.domain.hooks.hook_registry import (
+from luana_core_copilot.domain.hooks.hook_registry import (
     HookHandler,
     HookRegistry,
 )

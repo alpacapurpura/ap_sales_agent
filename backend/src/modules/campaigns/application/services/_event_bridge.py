@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from src.shared.domain.events import DomainEvent
+from luana_core_platform.domain.events import DomainEvent
 
 
 @dataclass

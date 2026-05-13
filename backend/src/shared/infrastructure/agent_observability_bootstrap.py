@@ -24,7 +24,10 @@ home for the same pattern (see :mod:`model_registry`).
 # Each import triggers the agent's observability __init__ to call
 # register_agent_observability(...).  noqa: F401 — imports are
 # side-effect only.
-from src.modules.campaigns import observability as _campaigns_observability  # noqa: F401
-from src.modules.copilot import observability as _copilot_observability  # noqa: F401
-from src.modules.sales_agent import observability as _sales_agent_observability  # noqa: F401
-from src.modules.sales_agent.observability.eval_simulator import spec as _eval_simulator_observability  # noqa: F401
+from luana_core_campaigns import observability as _campaigns_observability  # noqa: F401
+from luana_core_copilot import observability as _copilot_observability  # noqa: F401
+from luana_core_sales_agent import observability as _sales_agent_observability  # noqa: F401
+
+from src.modules.sales_agent.observability.eval_simulator import (
+    spec as _eval_simulator_observability,  # noqa: F401  # eval_simulator deferred to Luana v0.2.0 — stays Nicolify-local
+)

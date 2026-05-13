@@ -7,13 +7,12 @@ UniqueViolation on re-runs. This mirrors the staging repo pattern.
 import uuid
 from uuid import UUID
 
-from sqlalchemy import text
-from sqlalchemy.orm import Session
-
 # Model import is needed to ensure SQLAlchemy mapper registration
-from src.modules.analytics.infrastructure.models.metric_aggregation_model import (  # noqa: F401
+from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (  # noqa: F401
     MetricAggregationModel,
 )
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 
 class MetricAggregationRepository:

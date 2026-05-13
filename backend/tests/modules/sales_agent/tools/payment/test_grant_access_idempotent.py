@@ -22,12 +22,12 @@ PAYMENT_ID = uuid.UUID("dddd9001-0000-0000-0000-000000000001")
 
 @pytest.fixture
 def populated_db(db):
-    from src.modules.crm.infrastructure.models.lead_model import LeadModel
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+    from luana_core_crm.infrastructure.models.lead_model import LeadModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
         AgentStateCheckpointModel,
     )
-    from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+    from luana_core_sales_agent.infrastructure.models.payment_link_model import (
         PaymentLinkModel,
     )
 
@@ -84,20 +84,20 @@ def _mock_access_provider():
 
 
 def test_grant_access_success_creates_audit_row(populated_db) -> None:
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_grant_access,
     )
-    from src.modules.sales_agent.infrastructure.models.payment_grant_audit_model import (
+    from luana_core_sales_agent.infrastructure.models.payment_grant_audit_model import (
         PaymentGrantAuditModel,
     )
 
     state = _build_state()
     with (
         patch(
-            "src.modules.sales_agent.application.tools.payment.tools.access_provider_for_offer",
+            "luana_core_sales_agent.application.tools.payment.tools.access_provider_for_offer",
             return_value=_mock_access_provider(),
         ),
-        patch("src.shared.domain.events.EventBus.publish"),
+        patch("luana_core_platform.domain.events.EventBus.publish"),
     ):
         result = tool_grant_access(state, populated_db)
 
@@ -119,10 +119,10 @@ def test_grant_access_success_creates_audit_row(populated_db) -> None:
 
 def test_grant_access_idempotent_second_call(populated_db) -> None:
     """2x grant_access → same audit_id, no double delivery."""
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_grant_access,
     )
-    from src.modules.sales_agent.infrastructure.models.payment_grant_audit_model import (
+    from luana_core_sales_agent.infrastructure.models.payment_grant_audit_model import (
         PaymentGrantAuditModel,
     )
 
@@ -130,10 +130,10 @@ def test_grant_access_idempotent_second_call(populated_db) -> None:
     mock_access = _mock_access_provider()
     with (
         patch(
-            "src.modules.sales_agent.application.tools.payment.tools.access_provider_for_offer",
+            "luana_core_sales_agent.application.tools.payment.tools.access_provider_for_offer",
             return_value=mock_access,
         ),
-        patch("src.shared.domain.events.EventBus.publish"),
+        patch("luana_core_platform.domain.events.EventBus.publish"),
     ):
         tool_grant_access(state, populated_db)
         second = tool_grant_access(state, populated_db)
@@ -149,7 +149,7 @@ def test_grant_access_idempotent_second_call(populated_db) -> None:
 
 def test_grant_access_gate_payment_not_paid(populated_db) -> None:
     """grant_access returns {granted: False} when payment status != PAID."""
-    from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+    from luana_core_sales_agent.infrastructure.models.payment_link_model import (
         PaymentLinkModel,
     )
 
@@ -158,7 +158,7 @@ def test_grant_access_gate_payment_not_paid(populated_db) -> None:
     link.status = "pending"
     populated_db.commit()
 
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_grant_access,
     )
 
@@ -171,7 +171,7 @@ def test_grant_access_gate_payment_not_paid(populated_db) -> None:
 
 
 def test_grant_access_payment_not_found_returns_error(populated_db) -> None:
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_grant_access,
     )
 
@@ -182,17 +182,17 @@ def test_grant_access_payment_not_found_returns_error(populated_db) -> None:
 
 def test_grant_access_publishes_event(populated_db) -> None:
     """AccessGrantedEvent must be published on successful grant."""
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_grant_access,
     )
 
     state = _build_state()
     with (
         patch(
-            "src.modules.sales_agent.application.tools.payment.tools.access_provider_for_offer",
+            "luana_core_sales_agent.application.tools.payment.tools.access_provider_for_offer",
             return_value=_mock_access_provider(),
         ),
-        patch("src.shared.domain.events.EventBus.publish") as mock_publish,
+        patch("luana_core_platform.domain.events.EventBus.publish") as mock_publish,
     ):
         tool_grant_access(state, populated_db)
 

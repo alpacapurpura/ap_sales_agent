@@ -17,8 +17,8 @@ def _run(coro):
 
 class TestEnrichWithDerivedMetrics:
     def _enrich(self, metrics, repo=None):
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             _enrich_with_derived_metrics,
         )
 
@@ -30,7 +30,7 @@ class TestEnrichWithDerivedMetrics:
         )
 
     def _m(self, name, value, currency=None):
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
 
         return MetricValueDTO(name=name, value=float(value), currency=currency)
 
@@ -91,7 +91,7 @@ import pytest
 class TestAttractionClassifyError:
     def test_unknown_error_returns_generic_message(self):
         """Line 126: fallback 'Servicio no disponible'."""
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             AttractionStageService,
         )
 
@@ -99,7 +99,7 @@ class TestAttractionClassifyError:
         assert result == "Servicio no disponible"
 
     def test_none_error_returns_none(self):
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             AttractionStageService,
         )
 
@@ -112,7 +112,7 @@ class TestAttractionClassifyError:
 class TestAttractionManyChatChannel:
     def test_manychat_channel_supplements_metrics(self):
         """Lines 258-268: manychat provider_name triggers OfficialMetricsRepository."""
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             AttractionStageService,
         )
 
@@ -136,13 +136,13 @@ class TestAttractionManyChatChannel:
 
         with (
             patch(
-                "src.modules.analytics.application.services.stage_services.attraction_stage.ChannelRegistry"
+                "luana_core_analytics_engine.application.services.stage_services.attraction_stage.ChannelRegistry"
             ) as MockReg,
             patch(
-                "src.modules.analytics.infrastructure.repositories.extraction_run_repository.ExtractionRunRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository.ExtractionRunRepository"
             ) as MockRunRepo,
             patch(
-                "src.modules.analytics.application.services.stage_services.attraction_stage.OfficialMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.attraction_stage.OfficialMetricsRepository"
             ) as MockOfficialRepo,
         ):
             reg = MagicMock()
@@ -158,7 +158,7 @@ class TestAttractionManyChatChannel:
             official_repo.get_channel_metrics.return_value = {"automation_flows": 5}
             MockOfficialRepo.return_value = official_repo
 
-            from src.modules.analytics.domain.period_config import DateRange
+            from luana_core_analytics_engine.domain.period_config import DateRange
 
             dr = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
             result = _run(svc.get_metrics(TENANT_ID, dr))
@@ -172,8 +172,8 @@ class TestAttractionManyChatChannel:
 class TestNurtureSupplementManychat:
     def test_appends_new_metrics(self):
         """Lines 155-165: _supplement_manychat appends missing metrics."""
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -182,7 +182,7 @@ class TestNurtureSupplementManychat:
         metrics = [MetricValueDTO(name="leads", value=5.0)]
 
         with patch(
-            "src.modules.analytics.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo = MagicMock()
             repo.get_channel_metrics.return_value = {"automation_rate": 80.0}
@@ -194,8 +194,8 @@ class TestNurtureSupplementManychat:
         assert "automation_rate" in names
 
     def test_existing_metric_not_duplicated(self):
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -204,7 +204,7 @@ class TestNurtureSupplementManychat:
         metrics = [MetricValueDTO(name="leads", value=5.0)]
 
         with patch(
-            "src.modules.analytics.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo = MagicMock()
             repo.get_channel_metrics.return_value = {"leads": 10}  # already exists
@@ -221,7 +221,7 @@ class TestNurtureSupplementManychat:
 
 class TestNurtureGetMetricsFlow:
     def _setup(self, channel_split=None):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -243,15 +243,17 @@ class TestNurtureGetMetricsFlow:
         channel_split = {"connected": [], "available": []}
 
         with (
-            patch("src.modules.analytics.application.services.stage_services.nurture_stage.ChannelRegistry") as MockReg,
             patch(
-                "src.modules.analytics.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.ChannelRegistry"
+            ) as MockReg,
+            patch(
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
             ) as MockOfficialRepo,
             patch(
-                "src.modules.analytics.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
             ) as MockNurtureRepo,
             patch(
-                "src.modules.analytics.application.services.stage_services.nurture_stage.StageCostService"
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.StageCostService"
             ) as MockCostSvc,
         ):
             reg = MagicMock()
@@ -278,7 +280,7 @@ class TestNurtureGetMetricsFlow:
             MockCostSvc.return_value = cost_svc
             svc._load_nurture_costs = MagicMock(return_value=(0.0, 0.0, 0.0))
 
-            from src.modules.analytics.domain.period_config import DateRange
+            from luana_core_analytics_engine.domain.period_config import DateRange
 
             dr = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
             result = _run(svc.get_metrics(TENANT_ID, dr))
@@ -305,15 +307,17 @@ class TestNurtureGetMetricsFlow:
         }
 
         with (
-            patch("src.modules.analytics.application.services.stage_services.nurture_stage.ChannelRegistry") as MockReg,
             patch(
-                "src.modules.analytics.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.ChannelRegistry"
+            ) as MockReg,
+            patch(
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
             ) as MockOfficialRepo,
             patch(
-                "src.modules.analytics.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
             ) as MockNurtureRepo,
             patch(
-                "src.modules.analytics.application.services.stage_services.nurture_stage.StageCostService"
+                "luana_core_analytics_engine.application.services.stage_services.nurture_stage.StageCostService"
             ) as MockCostSvc,
         ):
             reg = MagicMock()
@@ -341,7 +345,7 @@ class TestNurtureGetMetricsFlow:
             MockCostSvc.return_value = cost_svc
             svc._load_nurture_costs = MagicMock(return_value=(0.0, 0.0, 0.0))
 
-            from src.modules.analytics.domain.period_config import DateRange
+            from luana_core_analytics_engine.domain.period_config import DateRange
 
             dr = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
             result = _run(svc.get_metrics(TENANT_ID, dr))
@@ -355,7 +359,7 @@ class TestNurtureGetMetricsFlow:
 class TestSalesBottlenecksNoSeverity:
     def test_low_cac_ratio_no_bottleneck(self):
         """Line 251: severity=None when cac_ratio below warning threshold."""
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             _build_sales_bottlenecks,
         )
 
@@ -372,7 +376,7 @@ class TestSalesEnrichWithShopify:
     """Direct tests for _enrich_with_shopify method."""
 
     def _setup(self):
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             SalesStageService,
         )
 
@@ -383,7 +387,7 @@ class TestSalesEnrichWithShopify:
         """Lines 327-328: total_rev = shopify_revenue when CRM has no revenue."""
         svc, _db = self._setup()
         with patch(
-            "src.modules.analytics.application.services.stage_services.sales_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.sales_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo = MagicMock()
             repo.get_channel_metrics.return_value = {"revenue": 5000.0, "order_count": 10, "avg_order_value": 500.0}
@@ -416,7 +420,7 @@ class TestSalesEnrichWithShopify:
         currency_row.currency = "PEN"
 
         with patch(
-            "src.modules.analytics.application.services.stage_services.sales_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.sales_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo = MagicMock()
             repo.get_channel_metrics.return_value = {"revenue": 3000.0, "order_count": 5}
@@ -445,7 +449,7 @@ class TestSalesEnrichWithShopify:
         """Lines 330-332: cac computed when new_customers=0 and shopify_order_count>0."""
         svc, _db = self._setup()
         with patch(
-            "src.modules.analytics.application.services.stage_services.sales_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.sales_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo = MagicMock()
             repo.get_channel_metrics.return_value = {"revenue": 5000.0, "order_count": 10}

@@ -16,12 +16,14 @@ Pattern parity: campaigns/observability/__init__.py (PI-1 S0 PR-1 / Alembic 083)
 
 from __future__ import annotations
 
-from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_simulator_llm_call import (
-    EvalSimulatorLlmCallModel,
-)
-from src.shared.agent_observability.registry import (
+from luana_core_observability.registry import (
     AgentObservabilitySpec,
     register_agent_observability,
+)
+
+# deferred Nicolify-local — not yet lifted to luana_core_sales_agent
+from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_simulator_llm_call import (
+    EvalSimulatorLlmCallModel,
 )
 
 register_agent_observability(

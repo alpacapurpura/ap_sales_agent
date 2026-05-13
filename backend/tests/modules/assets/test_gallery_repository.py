@@ -2,8 +2,8 @@
 
 import uuid
 
-from src.modules.assets.domain.entity import GalleryImage
-from src.modules.assets.infrastructure.repositories.gallery_repository import (
+from luana_core_assets.domain.entity import GalleryImage
+from luana_core_assets.infrastructure.repositories.gallery_repository import (
     GalleryRepository,
 )
 

@@ -13,8 +13,7 @@ from typing import Protocol, runtime_checkable
 from uuid import UUID
 
 import structlog
-
-from src.shared.compliance.domain.check_result import CheckResult
+from luana_core_compliance.domain.check_result import CheckResult
 
 logger = structlog.get_logger(__name__)
 

@@ -80,7 +80,7 @@ def create_brand_data_port(db: object) -> BrandDataPort:
 
     Lazy-imports the concrete adapter from brand module.
     """
-    from src.modules.brand.application.services.brand_data_adapter import (
+    from luana_core_brand_studio.application.services.brand_data_adapter import (
         BrandDataAdapter,
     )
 
@@ -93,7 +93,7 @@ def create_brand_field_apply_port(db: object) -> BrandFieldApplyPort:
     Lazy-imports the concrete adapter so callers (copilot) only depend on
     ``shared/links/ports`` and the F1 ratchet stays clean.
     """
-    from src.modules.brand.application.services.brand_field_apply_adapter import (
+    from luana_core_brand_studio.application.services.brand_field_apply_adapter import (
         BrandFieldApplyAdapter,
     )
 

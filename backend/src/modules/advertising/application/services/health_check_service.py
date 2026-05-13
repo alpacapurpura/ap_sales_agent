@@ -15,6 +15,8 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING, ClassVar, Literal, cast
 
+from luana_core_platform.domain.datetime_utils import utc_today
+
 from src.modules.advertising.application.dto.association_dto import AssociationDTO
 from src.modules.advertising.application.dto.health_check_dto import (
     CampaignHealthDTO,
@@ -41,17 +43,16 @@ from src.modules.advertising.infrastructure.repositories.meta_catalog_repository
 from src.modules.advertising.infrastructure.repositories.metrics_repository import (
     MetricsRepository,
 )
-from src.shared.domain.datetime_utils import utc_today
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.domain.ports import OfferReadDTO, OfferReadPort
     from sqlalchemy.orm import Session
 
     from src.modules.advertising.infrastructure.models.ad_offer_association_model import (
         AdOfferAssociationModel,
     )
-    from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 
 ACTIVE_STATUSES = {"ACTIVE", "LIMITED"}
 BROKEN_EXPECTATION_DAYS = 7

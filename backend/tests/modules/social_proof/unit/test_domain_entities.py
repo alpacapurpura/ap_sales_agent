@@ -8,16 +8,16 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from src.modules.social_proof.domain.authority_item import AuthorityItem
-from src.modules.social_proof.domain.enums import (
+from luana_core_social_proof.domain.authority_item import AuthorityItem
+from luana_core_social_proof.domain.enums import (
     AuthorityType,
     SourceTable,
     SurfaceType,
     TestimonialMediaType,
 )
-from src.modules.social_proof.domain.placement import Placement
-from src.modules.social_proof.domain.team_member import TeamMember
-from src.modules.social_proof.domain.testimonial import Testimonial
+from luana_core_social_proof.domain.placement import Placement
+from luana_core_social_proof.domain.team_member import TeamMember
+from luana_core_social_proof.domain.testimonial import Testimonial
 
 
 @pytest.fixture

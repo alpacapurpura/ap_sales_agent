@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.brand.application.services.personality_service import PersonalityService
+from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
 
 @pytest.fixture

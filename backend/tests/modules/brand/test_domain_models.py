@@ -1,6 +1,6 @@
 """Tests for Brand Studio domain models -- Pydantic validation, defaults, migration."""
 
-from src.modules.brand.domain import (
+from luana_core_brand_studio.domain import (
     BrandBenefits,
     BrandContact,
     BrandIdentity,

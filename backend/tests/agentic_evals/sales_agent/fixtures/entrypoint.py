@@ -62,7 +62,7 @@ def create_synthetic_eval_lead(
         Soft delete: caller is responsible for marking ``deleted_at`` at
         teardown if desired (default behavior keeps the lead for audit).
     """
-    from src.shared.infrastructure.models.crm import LeadModel
+    from luana_core_platform.infrastructure.models.crm import LeadModel
 
     lead = LeadModel(
         id=uuid4(),
@@ -122,12 +122,12 @@ def sales_agent_entrypoint(
     db: Session = visionarias_tenant_session["db_session"]
 
     # Lazy imports — keep collection cheap for default suite.
-    from src.modules.sales_agent.application.orchestrator.graph import agent_app
-    from src.modules.sales_agent.application.orchestrator.state import create_initial_state
-    from src.modules.sales_agent.application.services.knowledge_builder import (
+    from luana_core_sales_agent.application.orchestrator.graph import agent_app
+    from luana_core_sales_agent.application.orchestrator.state import create_initial_state
+    from luana_core_sales_agent.application.services.knowledge_builder import (
         TenantKnowledgeBuilder,
     )
-    from src.modules.sales_agent.observability.recording.factory import (
+    from luana_core_sales_agent.observability.recording.factory import (
         build_sales_agent_observability_context,
     )
     from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy

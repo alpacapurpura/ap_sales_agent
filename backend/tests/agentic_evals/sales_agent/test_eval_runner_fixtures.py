@@ -293,7 +293,7 @@ def test_trajectory_spy_subclasses_langchain_native_only() -> None:
     """
     from langchain_core.callbacks import BaseCallbackHandler
 
-    from src.shared.agent_observability.recording.base_callback_handler import (
+    from luana_core_observability.recording.base_callback_handler import (
         BaseAgentCallbackHandler,
     )
     from tests.agentic_evals.sales_agent.runner.trajectory_spy import TrajectorySpy

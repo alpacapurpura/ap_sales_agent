@@ -23,15 +23,16 @@ boundary; the repository writes the delta).
 
 from __future__ import annotations
 
-from datetime import datetime
 from enum import StrEnum
-from typing import Any
-from uuid import UUID
+from typing import TYPE_CHECKING, Any
 
+from luana_core_platform.domain.base_entity import BaseEntity
+from luana_core_platform.domain.datetime_utils import utc_now
 from pydantic import Field, model_validator
 
-from src.shared.domain.base_entity import BaseEntity
-from src.shared.domain.datetime_utils import utc_now
+if TYPE_CHECKING:
+    from datetime import datetime
+    from uuid import UUID
 
 
 class EnrollmentStatus(StrEnum):

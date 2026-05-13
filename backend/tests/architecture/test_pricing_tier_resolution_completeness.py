@@ -47,7 +47,7 @@ class TestPricingTierResolutionCompleteness:
         assert "200_000" in calculator_source or "200000" in calculator_source
 
     def test_calculator_exports_tier_threshold(self) -> None:
-        from src.shared.agent_observability.cost import calculator
+        from luana_core_observability.cost import calculator
 
         assert hasattr(calculator, "TIER_THRESHOLD")
         assert calculator.TIER_THRESHOLD == 200_000

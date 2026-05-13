@@ -24,7 +24,7 @@ class TestAdversarialInputsStageSchema:
 
     def test_path_injection_in_stage_rejected(self) -> None:
         """Path injection '../../etc/passwd' rejected by Literal enum."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             StageFilterParams,
         )
 
@@ -33,7 +33,7 @@ class TestAdversarialInputsStageSchema:
 
     def test_xss_in_stage_rejected(self) -> None:
         """XSS payload '<script>alert(1)</script>' rejected by Literal enum."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             StageFilterParams,
         )
 
@@ -42,7 +42,7 @@ class TestAdversarialInputsStageSchema:
 
     def test_tenant_override_extra_field_rejected(self) -> None:
         """Extra 'tenant_id' field rejected by extra='forbid'."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             StageFilterParams,
         )
 
@@ -51,7 +51,7 @@ class TestAdversarialInputsStageSchema:
 
     def test_prompt_injection_in_period_rejected(self) -> None:
         """Prompt injection in period field rejected by Literal enum."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             StageFilterParams,
         )
 
@@ -60,7 +60,7 @@ class TestAdversarialInputsStageSchema:
 
     def test_invalid_period_value_rejected(self) -> None:
         """Period value not in ['7d', '30d', '90d'] is rejected."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             StageFilterParams,
         )
 
@@ -73,7 +73,7 @@ class TestAdversarialInputsChannelSchema:
 
     def test_path_injection_in_channel_rejected(self) -> None:
         """Path injection in channel slug rejected by Literal enum."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             ChannelOverviewParams,
         )
 
@@ -82,7 +82,7 @@ class TestAdversarialInputsChannelSchema:
 
     def test_xss_in_channel_rejected(self) -> None:
         """XSS payload rejected by Literal enum."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             ChannelOverviewParams,
         )
 
@@ -91,7 +91,7 @@ class TestAdversarialInputsChannelSchema:
 
     def test_tenant_override_rejected(self) -> None:
         """Extra tenant field rejected by extra='forbid'."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             ChannelOverviewParams,
         )
 
@@ -104,7 +104,7 @@ class TestAdversarialInputsEtlSchema:
 
     def test_path_injection_in_channel_rejected(self) -> None:
         """Path injection in channel slug rejected by Literal enum."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             TriggerEtlRefreshParams,
         )
 
@@ -113,7 +113,7 @@ class TestAdversarialInputsEtlSchema:
 
     def test_xss_in_channel_rejected(self) -> None:
         """XSS payload rejected by Literal enum."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             TriggerEtlRefreshParams,
         )
 
@@ -122,7 +122,7 @@ class TestAdversarialInputsEtlSchema:
 
     def test_tenant_override_rejected(self) -> None:
         """Extra field rejected by extra='forbid'."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             TriggerEtlRefreshParams,
         )
 
@@ -130,7 +130,7 @@ class TestAdversarialInputsEtlSchema:
             TriggerEtlRefreshParams(channel="meta-ads", admin="true")  # type: ignore[call-arg]
 
 
-_GET_TENANT_ID = "src.modules.copilot.application.tools.analytics_tools.get_tenant_id"
+_GET_TENANT_ID = "luana_core_copilot.application.tools.analytics_tools.get_tenant_id"
 
 
 class TestToolRuntimeTenantIsolation:
@@ -138,7 +138,7 @@ class TestToolRuntimeTenantIsolation:
 
     def test_get_stage_metrics_no_tenant_returns_structured_error(self) -> None:
         """get_stage_metrics returns structured error when no tenant in context."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -151,7 +151,7 @@ class TestToolRuntimeTenantIsolation:
 
     def test_get_channel_overview_no_tenant_returns_structured_error(self) -> None:
         """get_channel_overview returns structured error when no tenant in context."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_channel_overview,
         )
 
@@ -163,7 +163,7 @@ class TestToolRuntimeTenantIsolation:
 
     def test_trigger_etl_refresh_no_tenant_returns_structured_error(self) -> None:
         """trigger_etl_refresh returns structured error when no tenant in context."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 

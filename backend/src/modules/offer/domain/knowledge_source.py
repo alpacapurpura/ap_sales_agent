@@ -6,17 +6,18 @@ specific offer. Pure Pydantic.
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
-from pydantic import Field
-
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     KnowledgeSourceStatus,
     KnowledgeSourceType,
 )
-from src.shared.domain.base_entity import BaseEntity
+from luana_core_platform.domain.base_entity import BaseEntity
+from pydantic import Field
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class KnowledgeSource(BaseEntity):

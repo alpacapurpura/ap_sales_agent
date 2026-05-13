@@ -10,11 +10,10 @@ from __future__ import annotations
 from typing import Any
 
 import structlog
-
-from src.core.database import SessionLocal
-from src.shared.agent_observability.application.cost_alert_service import (
+from luana_core_observability.application.cost_alert_service import (
     check_cost_alerts,
 )
+from luana_core_platform.core.database import SessionLocal
 
 logger = structlog.get_logger()
 

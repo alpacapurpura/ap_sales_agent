@@ -25,13 +25,12 @@ async def poll_domain_verification(ctx: dict) -> dict:
     Processes domains with status PENDING_VERIFICATION or VERIFYING that were
     created more than 5 minutes ago, to allow Cloudflare propagation time.
     """
-    from sqlalchemy import select
-
-    from src.modules.tenant_domains.application.domain_service import DomainService
-    from src.modules.tenant_domains.domain.domain_entity import DomainStatus
-    from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
+    from luana_core_tenant_domains.application.domain_service import DomainService
+    from luana_core_tenant_domains.domain.domain_entity import DomainStatus
+    from luana_core_tenant_domains.infrastructure.models.tenant_domain_model import (
         TenantDomainModel,
     )
+    from sqlalchemy import select
 
     db_factory = ctx.get("db_factory")
     if db_factory is None:

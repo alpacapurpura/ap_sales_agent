@@ -20,12 +20,12 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.application.services.offer_completion_service import (
+from luana_core_offer_studio.application.services.offer_completion_service import (
     _compute_section_depth,
     _sections_for,
     _validate_section,
 )
-from src.modules.offer.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.enums import OfferArchetype
 
 GOLDEN_PATH = Path(__file__).parent / "fixtures" / "offer_completion_golden.json"
 

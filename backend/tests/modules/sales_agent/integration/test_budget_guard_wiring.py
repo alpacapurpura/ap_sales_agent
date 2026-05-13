@@ -23,14 +23,14 @@ from uuid import UUID
 
 import pytest
 
-from src.modules.sales_agent.application.orchestrator.conversation_pipeline import (
+from luana_core_sales_agent.application.orchestrator.conversation_pipeline import (
     ConversationPipeline,
 )
-from src.modules.sales_agent.application.orchestrator.state import create_initial_state
-from src.shared.billing.application.budget_guard import BudgetGuard
-from src.shared.billing.application.exceptions import BudgetExceeded
-from src.shared.billing.application.llm_guards import BudgetGuardingLLMService
-from src.shared.billing.domain.budget_decision import BudgetDecision
+from luana_core_sales_agent.application.orchestrator.state import create_initial_state
+from luana_core_billing.application.budget_guard import BudgetGuard
+from luana_core_billing.application.exceptions import BudgetExceeded
+from luana_core_billing.application.llm_guards import BudgetGuardingLLMService
+from luana_core_billing.domain.budget_decision import BudgetDecision
 
 TENANT_ID = UUID("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
 
@@ -281,7 +281,7 @@ class TestBudgetGuardWiringViaPipeline:
         return SimpleNamespace(id=UUID("22222222-2222-2222-2222-222222222222"))
 
     def _make_incoming(self) -> object:
-        from src.shared.domain.messages import IncomingMessage
+        from luana_core_platform.domain.messages import IncomingMessage
 
         return IncomingMessage(
             user_id="u1",

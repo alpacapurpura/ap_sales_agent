@@ -37,12 +37,12 @@ pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
 # ── Model imports (ensures SQLite schema creation) ─────────────────────────────
 
-from src.modules.campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
-from src.modules.campaigns.infrastructure.models.campaign_model import CampaignModel
-from src.modules.campaigns.infrastructure.models.campaign_step_model import CampaignStepModel
-from src.modules.campaigns.infrastructure.models.campaign_task_model import CampaignTaskModel
-from src.modules.campaigns.infrastructure.models.segment_model import SegmentModel
-from src.shared.domain.base_entity import Base
+from luana_core_campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
+from luana_core_campaigns.infrastructure.models.campaign_model import CampaignModel
+from luana_core_campaigns.infrastructure.models.campaign_step_model import CampaignStepModel
+from luana_core_campaigns.infrastructure.models.campaign_task_model import CampaignTaskModel
+from luana_core_campaigns.infrastructure.models.segment_model import SegmentModel
+from luana_core_platform.domain.base_entity import Base
 
 
 # ── Engine + session factory ──────────────────────────────────────────────────
@@ -69,7 +69,7 @@ async def session_factory(async_engine):
 @pytest.fixture(autouse=True)
 def reset_channel_registry():
     """Reset singleton registry between tests."""
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     yield
     ChannelRouterRegistry().reset()
@@ -186,9 +186,9 @@ async def test_e2e_schedule_tick_execute_telegram_sent(session_factory) -> None:
 
     # 2. Register a TelegramChannelRouter with mocked httpx client
     import httpx
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
-    from src.modules.campaigns.infrastructure.channels.telegram import TelegramChannelRouter
-    from src.modules.campaigns.infrastructure.resilience.circuit_breaker import (
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.telegram import TelegramChannelRouter
+    from luana_core_campaigns.infrastructure.resilience.circuit_breaker import (
         CircuitBreaker,
         CircuitBreakerConfig,
     )
@@ -227,7 +227,7 @@ async def test_e2e_schedule_tick_execute_telegram_sent(session_factory) -> None:
     registry.register("telegram", router)
 
     # 3. Run execution_task with REAL repos + REAL audit service
-    from src.modules.campaigns.workers.execution_task import run_campaign_execution_task
+    from luana_core_campaigns.workers.execution_task import run_campaign_execution_task
 
     ctx = _make_arq_ctx(session_factory)
     result = await run_campaign_execution_task(ctx, str(task_id))
@@ -302,8 +302,8 @@ async def test_e2e_execution_task_idempotent_already_sent(session_factory) -> No
         await session.commit()
 
     import httpx
-    from src.modules.campaigns.infrastructure.channels.telegram import TelegramChannelRouter
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.telegram import TelegramChannelRouter
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     mock_httpx_client = AsyncMock(spec=httpx.AsyncClient)
     mock_httpx_client.post = AsyncMock()
@@ -317,7 +317,7 @@ async def test_e2e_execution_task_idempotent_already_sent(session_factory) -> No
     )
     ChannelRouterRegistry().register("telegram", router)
 
-    from src.modules.campaigns.workers.execution_task import run_campaign_execution_task
+    from luana_core_campaigns.workers.execution_task import run_campaign_execution_task
 
     ctx = _make_arq_ctx(session_factory)
     result = await run_campaign_execution_task(ctx, str(task_id))
@@ -398,10 +398,10 @@ async def test_e2e_scheduler_tick_enqueues_pending_task(session_factory) -> None
     }
 
     with patch(
-        "src.modules.campaigns.workers.scheduler_tick._build_orchestrator_standalone",
+        "luana_core_campaigns.workers.scheduler_tick._build_orchestrator_standalone",
         return_value=orchestrator_mock,
     ):
-        from src.modules.campaigns.workers.scheduler_tick import run_campaign_scheduler_tick
+        from luana_core_campaigns.workers.scheduler_tick import run_campaign_scheduler_tick
 
         result = await run_campaign_scheduler_tick(ctx)
 

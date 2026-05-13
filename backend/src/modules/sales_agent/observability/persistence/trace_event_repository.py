@@ -13,11 +13,10 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
     SalesAgentTraceEventModel,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

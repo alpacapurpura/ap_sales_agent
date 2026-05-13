@@ -34,7 +34,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.shared.domain.base_entity import Base
+from luana_core_platform.domain.base_entity import Base
 
 # ── Default retention windows ──────────────────────────────────────────
 

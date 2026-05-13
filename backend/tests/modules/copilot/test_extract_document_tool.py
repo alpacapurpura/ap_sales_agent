@@ -14,7 +14,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from src.modules.copilot.application.services.document_processor import (
+from luana_core_copilot.application.services.document_processor import (
     DocumentProcessingResult,
 )
 
@@ -22,7 +22,7 @@ from src.modules.copilot.application.services.document_processor import (
 class TestExtractDocumentToFields:
     def _patch_tenant(self, tenant_id):
         return patch(
-            "src.modules.copilot.application.tools.guided.extract.get_tenant_id",
+            "luana_core_copilot.application.tools.guided.extract.get_tenant_id",
             return_value=tenant_id,
         )
 
@@ -36,15 +36,15 @@ class TestExtractDocumentToFields:
         asset_repo_mock.get_by_id.return_value = asset
 
         return patch(
-            "src.modules.copilot.application.tools.guided.extract.SessionLocal",
+            "luana_core_copilot.application.tools.guided.extract.SessionLocal",
             side_effect=_session_factory,
         ), patch(
-            "src.modules.assets.infrastructure.repositories.asset_repository.AssetRepository",
+            "luana_core_assets.infrastructure.repositories.asset_repository.AssetRepository",
             return_value=asset_repo_mock,
         )
 
     def test_rejects_unsupported_domain(self) -> None:
-        from src.modules.copilot.application.tools.guided.extract import (
+        from luana_core_copilot.application.tools.guided.extract import (
             extract_document_to_fields,
         )
 
@@ -55,7 +55,7 @@ class TestExtractDocumentToFields:
         assert parsed.get("error") == "unsupported_domain"
 
     def test_rejects_bad_asset_id(self) -> None:
-        from src.modules.copilot.application.tools.guided.extract import (
+        from luana_core_copilot.application.tools.guided.extract import (
             extract_document_to_fields,
         )
 
@@ -67,7 +67,7 @@ class TestExtractDocumentToFields:
         assert parsed.get("error") == "bad_asset_id"
 
     def test_returns_error_when_asset_missing(self) -> None:
-        from src.modules.copilot.application.tools.guided.extract import (
+        from luana_core_copilot.application.tools.guided.extract import (
             extract_document_to_fields,
         )
 
@@ -78,11 +78,11 @@ class TestExtractDocumentToFields:
         with (
             self._patch_tenant(uuid4()),
             patch(
-                "src.modules.copilot.application.tools.guided.extract.SessionLocal",
+                "luana_core_copilot.application.tools.guided.extract.SessionLocal",
                 return_value=db_mock,
             ),
             patch(
-                "src.modules.assets.infrastructure.repositories.asset_repository.AssetRepository",
+                "luana_core_assets.infrastructure.repositories.asset_repository.AssetRepository",
                 return_value=asset_repo_mock,
             ),
         ):
@@ -93,7 +93,7 @@ class TestExtractDocumentToFields:
         assert parsed.get("error") == "asset_not_found"
 
     def test_returns_error_when_asset_has_no_text(self) -> None:
-        from src.modules.copilot.application.tools.guided.extract import (
+        from luana_core_copilot.application.tools.guided.extract import (
             extract_document_to_fields,
         )
 
@@ -109,11 +109,11 @@ class TestExtractDocumentToFields:
         with (
             self._patch_tenant(uuid4()),
             patch(
-                "src.modules.copilot.application.tools.guided.extract.SessionLocal",
+                "luana_core_copilot.application.tools.guided.extract.SessionLocal",
                 return_value=db_mock,
             ),
             patch(
-                "src.modules.assets.infrastructure.repositories.asset_repository.AssetRepository",
+                "luana_core_assets.infrastructure.repositories.asset_repository.AssetRepository",
                 return_value=asset_repo_mock,
             ),
         ):
@@ -124,7 +124,7 @@ class TestExtractDocumentToFields:
         assert parsed.get("error") == "asset_not_extracted"
 
     def test_successful_extraction_returns_delta(self) -> None:
-        from src.modules.copilot.application.tools.guided.extract import (
+        from luana_core_copilot.application.tools.guided.extract import (
             extract_document_to_fields,
         )
 
@@ -149,15 +149,15 @@ class TestExtractDocumentToFields:
         with (
             self._patch_tenant(uuid4()),
             patch(
-                "src.modules.copilot.application.tools.guided.extract.SessionLocal",
+                "luana_core_copilot.application.tools.guided.extract.SessionLocal",
                 return_value=db_mock,
             ),
             patch(
-                "src.modules.assets.infrastructure.repositories.asset_repository.AssetRepository",
+                "luana_core_assets.infrastructure.repositories.asset_repository.AssetRepository",
                 return_value=asset_repo_mock,
             ),
             patch(
-                "src.modules.copilot.application.services.document_processor.DocumentProcessor",
+                "luana_core_copilot.application.services.document_processor.DocumentProcessor",
                 return_value=mock_processor,
             ),
         ):
@@ -191,7 +191,7 @@ class TestExtractDocumentToFields:
         now forwards the value verbatim and the FE renderer +
         ``bridge.patchField`` consume it natively.
         """
-        from src.modules.copilot.application.tools.guided.extract import (
+        from luana_core_copilot.application.tools.guided.extract import (
             extract_document_to_fields,
         )
 
@@ -223,15 +223,15 @@ class TestExtractDocumentToFields:
         with (
             self._patch_tenant(uuid4()),
             patch(
-                "src.modules.copilot.application.tools.guided.extract.SessionLocal",
+                "luana_core_copilot.application.tools.guided.extract.SessionLocal",
                 return_value=db_mock,
             ),
             patch(
-                "src.modules.assets.infrastructure.repositories.asset_repository.AssetRepository",
+                "luana_core_assets.infrastructure.repositories.asset_repository.AssetRepository",
                 return_value=asset_repo_mock,
             ),
             patch(
-                "src.modules.copilot.application.services.document_processor.DocumentProcessor",
+                "luana_core_copilot.application.services.document_processor.DocumentProcessor",
                 return_value=mock_processor,
             ),
         ):

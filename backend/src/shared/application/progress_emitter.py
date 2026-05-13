@@ -105,7 +105,7 @@ def fields_from_model(section_slug: str, model: Any) -> list[str]:  # noqa: ANN4
     or a list (treated as a single-item section). Returns ``[]`` for None
     or empty payloads.
     """
-    from src.shared.application.field_diff import filled_fields_by_section
+    from luana_core_platform.application.field_diff import filled_fields_by_section
 
     if model is None:
         return []

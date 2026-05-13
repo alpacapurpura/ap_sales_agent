@@ -9,17 +9,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import and_, func, or_, select
-
-from src.modules.offer.application.ports import IOfferAssetRepository
-from src.modules.offer.domain.assets import OfferAsset
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.application.ports import IOfferAssetRepository
+from luana_core_offer_studio.domain.assets import OfferAsset
+from luana_core_offer_studio.domain.enums import (
     AssetSource,
     AssetStatus,
     AssetType,
 )
-from src.modules.offer.infrastructure.models.offer_asset_model import OfferAssetModel
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_offer_studio.infrastructure.models.offer_asset_model import OfferAssetModel
+from luana_core_platform.domain.datetime_utils import utc_now
+from sqlalchemy import and_, func, or_, select
 
 if TYPE_CHECKING:
     from uuid import UUID

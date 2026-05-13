@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.brand.copilot_provider.summary import BrandSummaryProvider
+from luana_core_brand_studio.copilot_provider.summary import BrandSummaryProvider
 
 if TYPE_CHECKING:
     from uuid import UUID

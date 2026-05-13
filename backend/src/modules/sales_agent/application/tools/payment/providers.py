@@ -221,7 +221,7 @@ class StripePaymentProvider:
 
 # Re-export alias so tests can import PaymentWebhookEvent from this module.
 # Canonical definition lives in webhook_providers.py.
-from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+from luana_core_sales_agent.application.tools.payment.webhook_providers import (
     ParsedPaymentWebhookEvent as PaymentWebhookEvent,  # noqa: F401
 )
 
@@ -249,7 +249,7 @@ def payment_provider_for_tenant(
         return PAYMENT_PROVIDERS[preferred_provider_id]()
 
     try:
-        from src.shared.links.ports.payment_connection import (
+        from luana_core_platform.links.ports.payment_connection import (
             get_payment_connection_provider,
         )
 

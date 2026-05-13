@@ -9,11 +9,10 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
 import structlog
+from luana_core_llm.factory import LLMFactory
+from luana_core_platform.core.enums import ModelRole
 from openai import APIError, RateLimitError
 from pydantic import BaseModel, ValidationError
-
-from src.core.enums import ModelRole
-from src.shared.infrastructure.llm.factory import LLMFactory
 
 if TYPE_CHECKING:
     from uuid import UUID

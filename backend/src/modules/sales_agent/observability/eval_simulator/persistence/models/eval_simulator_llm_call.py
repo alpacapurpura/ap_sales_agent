@@ -20,10 +20,9 @@ from __future__ import annotations
 
 import uuid
 
+from luana_core_platform.domain.base_entity import Base
 from sqlalchemy import CHAR, Column, DateTime, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-
-from src.shared.domain.base_entity import Base
 
 
 class EvalSimulatorLlmCallModel(Base):

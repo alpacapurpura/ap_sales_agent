@@ -6,13 +6,12 @@ from typing import Any
 from uuid import UUID
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.core.enums import PromptSource
+from luana_core_platform.domain.datetime_utils import utc_now
 from sqlalchemy import text
-
-from src.core.config import settings
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
-from src.core.enums import PromptSource
-from src.shared.domain.datetime_utils import utc_now
 
 logger = logging.getLogger(__name__)
 

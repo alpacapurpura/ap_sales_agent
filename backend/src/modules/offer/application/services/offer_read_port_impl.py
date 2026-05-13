@@ -8,11 +8,10 @@ ProductModel directly without crossing DDD boundaries.
 import asyncio
 from uuid import UUID
 
+from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
+from luana_core_platform.domain.ports import OfferReadDTO, OfferReadPort
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.modules.offer.infrastructure.models.product_model import ProductModel
-from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 
 
 class OfferReadPortImpl(OfferReadPort):

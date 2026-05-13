@@ -4,18 +4,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from src.modules.copilot.domain.ports import BaseCopilotProvider, ModuleData
+from luana_core_copilot.domain.ports import BaseCopilotProvider, ModuleData
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.landing.infrastructure.repositories.landing_repository import (
+    from luana_core_landing.infrastructure.repositories.landing_repository import (
         LandingRepository,
     )
 
 
 def _landing_repo_factory(db: object) -> object:
-    from src.modules.landing.infrastructure.repositories.landing_repository import (
+    from luana_core_landing.infrastructure.repositories.landing_repository import (
         LandingRepository,
     )
 

@@ -17,8 +17,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.analytics.application.dto.stage_overview_dto import (
+from luana_core_analytics_engine.application.dto.stage_overview_dto import (
     BottleneckOverviewDTO,
     ChannelOverviewDTO,
     GroupOverviewDTO,
@@ -26,15 +25,14 @@ from src.modules.analytics.application.dto.stage_overview_dto import (
     MiniFunnelOverviewDTO,
     StageOverviewDTO,
 )
-from src.modules.analytics.application.services.stage_services.constants import (
+from luana_core_analytics_engine.application.services.stage_services.constants import (
     STAGE_GROUPS as _STAGE_GROUPS,
 )
 
 if TYPE_CHECKING:
+    from luana_core_analytics_engine.domain.ports import ConnectionPort, OfferReadPort
+    from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
     from sqlalchemy.orm import Session
-
-    from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
-    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 logger = structlog.get_logger()
 
@@ -152,32 +150,32 @@ class StageOverviewService:
         """
         from uuid import UUID
 
-        from src.modules.analytics.application.services.stage_services.adoption_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.adoption_stage import (
             AdoptionStageService,
         )
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             AttractionStageService,
         )
-        from src.modules.analytics.application.services.stage_services.capture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.capture_stage import (
             CaptureStageService,
         )
-        from src.modules.analytics.application.services.stage_services.evangelization_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.evangelization_stage import (
             EvangelizationStageService,
         )
-        from src.modules.analytics.application.services.stage_services.expansion_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.expansion_stage import (
             ExpansionStageService,
         )
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
-        from src.modules.analytics.application.services.stage_services.opportunity_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.opportunity_stage import (
             OpportunityStageService,
         )
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             SalesStageService,
         )
-        from src.modules.analytics.domain.period_config import TenantPeriodConfig
-        from src.shared.domain.datetime_utils import utc_today
+        from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
+        from luana_core_platform.domain.datetime_utils import utc_today
 
         _stage_services: dict[str, type] = {
             "attraction": AttractionStageService,

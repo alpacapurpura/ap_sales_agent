@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from src.shared.links.ports.editable_fields import FieldSpec, get_catalog
+from luana_core_platform.links.ports.editable_fields import FieldSpec, get_catalog
 
 Domain = Literal["brand", "offer", "buyer_persona"]
 

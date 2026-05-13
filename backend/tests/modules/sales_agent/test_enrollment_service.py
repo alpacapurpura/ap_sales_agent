@@ -8,21 +8,21 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.sales_agent.application.services.enrollment_service import (
+from luana_core_sales_agent.application.services.enrollment_service import (
     EnrollmentService,
 )
-from src.modules.sales_agent.domain.enrollment import (
+from luana_core_sales_agent.domain.enrollment import (
     Enrollment,
     EnrollmentCreate,
     EnrollmentStatus,
     PaymentProvider,
 )
-from src.modules.sales_agent.domain.events import (
+from luana_core_sales_agent.domain.events import (
     EnrollmentCreated,
     EnrollmentPaid,
     EnrollmentStatusTransitioned,
 )
-from src.modules.sales_agent.infrastructure.repositories.enrollment_repository import (
+from luana_core_sales_agent.infrastructure.repositories.enrollment_repository import (
     EnrollmentRepository,
 )
 from tests.modules.offer.conftest import create_product_model

@@ -26,7 +26,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from jinja2 import Environment, FileSystemLoader
 
-from src.modules.sales_agent.application.services.style_anchor_retriever import (
+from luana_core_sales_agent.application.services.style_anchor_retriever import (
     StyleAnchorRetriever,
 )
 
@@ -96,7 +96,7 @@ MINIMAL_IDENTITY_CONTEXT: dict[str, Any] = {
 
 def _make_brand_knowledge(brand_data: dict, personality_data: dict | None = None) -> Any:
     """Build a real BrandKnowledgeDTO."""
-    from src.shared.links.ports.brand import BrandKnowledgeDTO
+    from luana_core_platform.links.ports.brand import BrandKnowledgeDTO
 
     return BrandKnowledgeDTO(
         brand_data=brand_data,
@@ -113,20 +113,20 @@ def _patched_builder(brand_knowledge: Any) -> Any:
 
     patches = [
         patch(
-            "src.modules.sales_agent.application.services.knowledge_builder.create_brand_data_port",
+            "luana_core_sales_agent.application.services.knowledge_builder.create_brand_data_port",
             return_value=mock_brand_port,
         ),
         patch(
-            "src.modules.sales_agent.application.services.knowledge_builder.get_offer_repository",
+            "luana_core_sales_agent.application.services.knowledge_builder.get_offer_repository",
         ),
-        patch("src.modules.sales_agent.application.services.knowledge_builder.SemanticRouter"),
+        patch("luana_core_sales_agent.application.services.knowledge_builder.SemanticRouter"),
     ]
     for p in patches:
         started = p.start()
         if hasattr(started, "return_value") and hasattr(started.return_value, "get_all_by_tenant"):
             started.return_value.get_all_by_tenant.return_value = []
 
-    from src.modules.sales_agent.application.services.knowledge_builder import (
+    from luana_core_sales_agent.application.services.knowledge_builder import (
         TenantKnowledgeBuilder,
     )
 

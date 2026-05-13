@@ -41,24 +41,23 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.sales_agent.application.tools.scheduling.webhook_providers import (
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.events import AppointmentEvent
+from luana_core_sales_agent.application.tools.scheduling.webhook_providers import (
     ParsedWebhookEvent,
     UnknownWebhookProviderError,
     WebhookEventType,
     webhook_provider_for,
 )
-from src.modules.sales_agent.infrastructure.models.scheduler_webhook_event_model import (
+from luana_core_sales_agent.infrastructure.models.scheduler_webhook_event_model import (
     SchedulerWebhookEventModel,
 )
-from src.shared.domain.events import AppointmentEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
-)
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

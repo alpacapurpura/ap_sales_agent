@@ -42,8 +42,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Protocol
 
 import structlog
-
-from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+from luana_core_observability.persistence.pricing_snapshot_repository import (
     PricingSnapshotRepository,
 )
 

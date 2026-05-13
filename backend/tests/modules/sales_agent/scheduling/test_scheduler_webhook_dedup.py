@@ -19,8 +19,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.sales_agent.api import scheduler_webhooks
-from src.modules.sales_agent.application.tools.scheduling.webhook_providers import (
+from luana_core_sales_agent.api import scheduler_webhooks
+from luana_core_sales_agent.application.tools.scheduling.webhook_providers import (
     SCHEDULER_WEBHOOK_PROVIDERS,
     ParsedWebhookEvent,
     WebhookEventType,
@@ -68,7 +68,7 @@ def client(db, db_engine):
     app = FastAPI()
     app.include_router(scheduler_webhooks.router, prefix="/api/v1/sales-agent")
 
-    from src.core.database import get_db
+    from luana_core_platform.core.database import get_db
 
     def _override_db():
         yield db

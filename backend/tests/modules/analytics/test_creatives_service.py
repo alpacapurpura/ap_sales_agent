@@ -3,10 +3,10 @@
 from unittest.mock import MagicMock
 from uuid import UUID
 
-from src.modules.analytics.application.dto.campaign_dto import (
+from luana_core_analytics_engine.application.dto.campaign_dto import (
     CreativesOverviewDTO,
 )
-from src.modules.analytics.application.services.campaign_service import (
+from luana_core_analytics_engine.application.services.campaign_service import (
     CampaignService,
 )
 

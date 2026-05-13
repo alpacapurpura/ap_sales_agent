@@ -7,7 +7,7 @@ orphan entry) fails CI.
 
 from __future__ import annotations
 
-from src.shared.domain.expert_business_type import (
+from luana_core_platform.domain.expert_business_type import (
     EXPERT_BUSINESS_TYPE_CATALOG,
     ExpertBusinessType,
 )

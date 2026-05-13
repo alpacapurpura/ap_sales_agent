@@ -13,9 +13,9 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.modules.campaigns.domain.repositories import SegmentSnapshotRepository
-from src.modules.campaigns.domain.segment import SegmentSnapshot
-from src.modules.campaigns.infrastructure.models.segment_snapshot_model import SegmentSnapshotModel
+from luana_core_campaigns.domain.repositories import SegmentSnapshotRepository
+from luana_core_campaigns.domain.segment import SegmentSnapshot
+from luana_core_campaigns.infrastructure.models.segment_snapshot_model import SegmentSnapshotModel
 
 logger = structlog.get_logger()
 

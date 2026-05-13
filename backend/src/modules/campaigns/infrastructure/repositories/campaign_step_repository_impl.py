@@ -13,9 +13,9 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.modules.campaigns.domain.campaign_step import CampaignStep
-from src.modules.campaigns.domain.repositories import CampaignStepRepository
-from src.modules.campaigns.infrastructure.models.campaign_step_model import CampaignStepModel
+from luana_core_campaigns.domain.campaign_step import CampaignStep
+from luana_core_campaigns.domain.repositories import CampaignStepRepository
+from luana_core_campaigns.infrastructure.models.campaign_step_model import CampaignStepModel
 
 logger = structlog.get_logger()
 

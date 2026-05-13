@@ -20,9 +20,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.domain.expert_business_type import ExpertBusinessType
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.expert_business_type import ExpertBusinessType
 
 
 def get_tenant_business_types(
@@ -39,7 +38,7 @@ def get_tenant_business_types(
         Tuple of :class:`ExpertBusinessType` values, or ``()`` when the tenant
         has no declared profile yet (onboarding not completed).
     """
-    from src.modules.tenant_profile.infrastructure.repositories.tenant_profile_repository import (
+    from luana_core_tenant_profile.infrastructure.repositories.tenant_profile_repository import (
         SqlTenantProfileRepository,
     )
 
@@ -61,7 +60,7 @@ def is_tenant_profile_complete(
         ``True`` if ``declared_at`` is set and at least one business_type is
         declared. ``False`` otherwise (new tenant, or incomplete onboarding).
     """
-    from src.modules.tenant_profile.infrastructure.repositories.tenant_profile_repository import (
+    from luana_core_tenant_profile.infrastructure.repositories.tenant_profile_repository import (
         SqlTenantProfileRepository,
     )
 

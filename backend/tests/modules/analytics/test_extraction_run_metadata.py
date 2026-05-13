@@ -12,7 +12,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
 )
 
@@ -69,10 +69,10 @@ def db():
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
-    from src.modules.analytics.infrastructure.models.extraction_run_model import (
+    from luana_core_analytics_engine.infrastructure.models.extraction_run_model import (
         ExtractionRunModel,
     )
-    from src.shared.domain.base_entity import Base
+    from luana_core_platform.domain.base_entity import Base
 
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)

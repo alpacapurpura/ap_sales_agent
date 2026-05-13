@@ -14,8 +14,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from uuid import UUID
 
-    from src.modules.analytics.domain.period_config import TenantPeriodConfig
-    from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+    from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
+    from luana_core_analytics_engine.infrastructure.models.staging_metrics_model import (
         StagingMetricModel,
     )
 
@@ -43,7 +43,7 @@ def transform_staging_to_official(
 
     """
     if period_config is None:
-        from src.modules.analytics.domain.period_config import TenantPeriodConfig
+        from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
 
         period_config = TenantPeriodConfig()
 

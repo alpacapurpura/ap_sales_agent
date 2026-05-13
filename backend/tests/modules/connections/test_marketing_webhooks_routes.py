@@ -13,7 +13,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.modules.connections.api.marketing_webhooks import (
+from luana_core_connections.api.marketing_webhooks import (
     _build_manychat_event_properties,
     _event_to_channel_suffix,
     _event_to_metric_name,
@@ -245,7 +245,7 @@ class TestShopifyWebhook:
         db = _mock_db()
 
         with patch(
-            "src.modules.connections.api.marketing_webhooks._resolve_tenant",
+            "luana_core_connections.api.marketing_webhooks._resolve_tenant",
             new_callable=AsyncMock,
             return_value=TENANT_ID,
         ):
@@ -263,12 +263,12 @@ class TestShopifyWebhook:
 
         with (
             patch(
-                "src.modules.connections.api.marketing_webhooks._resolve_tenant",
+                "luana_core_connections.api.marketing_webhooks._resolve_tenant",
                 new_callable=AsyncMock,
                 return_value=TENANT_ID,
             ),
             patch(
-                "src.modules.connections.api.marketing_webhooks._handle_checkout_created", new_callable=AsyncMock
+                "luana_core_connections.api.marketing_webhooks._handle_checkout_created", new_callable=AsyncMock
             ) as mock_handler,
         ):
             result = await shopify_webhook(req, verified=True, db=db)
@@ -287,12 +287,12 @@ class TestShopifyWebhook:
 
         with (
             patch(
-                "src.modules.connections.api.marketing_webhooks._resolve_tenant",
+                "luana_core_connections.api.marketing_webhooks._resolve_tenant",
                 new_callable=AsyncMock,
                 return_value=TENANT_ID,
             ),
             patch(
-                "src.modules.connections.api.marketing_webhooks._handle_order_created", new_callable=AsyncMock
+                "luana_core_connections.api.marketing_webhooks._handle_order_created", new_callable=AsyncMock
             ) as mock_handler,
         ):
             result = await shopify_webhook(req, verified=True, db=db)
@@ -361,7 +361,7 @@ class TestHandleMailerliteWebhook:
         db = _mock_db()
         db.execute.return_value.scalar_one_or_none.return_value = profile
 
-        with patch("src.shared.links.ports.crm_repos.get_lifecycle_service") as mock_lc:
+        with patch("luana_core_platform.links.ports.crm_repos.get_lifecycle_service") as mock_lc:
             mock_lc.return_value.recalculate_score.return_value = None
             result = await handle_mailerlite_webhook(TENANT_ID, req, db)
 
@@ -383,7 +383,7 @@ class TestHandleMailerliteWebhook:
         db = _mock_db()
         db.execute.return_value.scalar_one_or_none.return_value = profile
 
-        with patch("src.shared.links.ports.crm_repos.get_lifecycle_service") as mock_lc:
+        with patch("luana_core_platform.links.ports.crm_repos.get_lifecycle_service") as mock_lc:
             mock_lc.return_value.recalculate_score.return_value = None
             result = await handle_mailerlite_webhook(TENANT_ID, req, db)
 
@@ -473,7 +473,7 @@ class TestHandleManychatWebhook:
         db.execute.return_value.scalar_one_or_none.return_value = connection
 
         with patch(
-            "src.modules.connections.api.marketing_webhooks._handle_manychat_event", new_callable=AsyncMock
+            "luana_core_connections.api.marketing_webhooks._handle_manychat_event", new_callable=AsyncMock
         ) as mock_handler:
             result = await handle_manychat_webhook(TENANT_ID, req, db)
 

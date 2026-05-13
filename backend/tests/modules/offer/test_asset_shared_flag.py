@@ -17,8 +17,8 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from src.modules.offer.domain.assets import OfferAsset
-from src.modules.offer.domain.enums import AssetSource, AssetStatus, AssetType
+from luana_core_offer_studio.domain.assets import OfferAsset
+from luana_core_offer_studio.domain.enums import AssetSource, AssetStatus, AssetType
 
 
 def _make_asset(**overrides: object) -> OfferAsset:

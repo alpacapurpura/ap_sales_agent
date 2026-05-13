@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from src.modules.sales_agent.domain.enrollment import (
+from luana_core_sales_agent.domain.enrollment import (
     Enrollment,
     EnrollmentStatus,
     PaymentProvider,

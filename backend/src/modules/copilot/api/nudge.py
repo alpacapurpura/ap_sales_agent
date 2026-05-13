@@ -10,16 +10,15 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Query
-from sqlalchemy.orm import Session
-
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
-from src.modules.copilot.api.dto import NudgeContextResponse
-from src.modules.copilot.domain.module_registry import ModuleDescriptor, get_module_registry
-from src.modules.copilot.domain.schema_introspection import (
+from luana_core_copilot.api.dto import NudgeContextResponse
+from luana_core_copilot.domain.module_registry import ModuleDescriptor, get_module_registry
+from luana_core_copilot.domain.schema_introspection import (
     check_section_completion,
     get_model_sections,
 )
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

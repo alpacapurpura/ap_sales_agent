@@ -10,7 +10,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain.events import DomainEvent, EventBus
+from luana_core_platform.domain.events import DomainEvent, EventBus
 
 
 @pytest.fixture(autouse=True)
@@ -26,14 +26,14 @@ class TestSuggestionShownSubscriber:
         """Publish SuggestionShown → row in copilot_trace_event."""
         from sqlalchemy.orm import sessionmaker
 
-        from src.modules.copilot.domain.events import SuggestionShown
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.domain.events import SuggestionShown
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -72,14 +72,14 @@ class TestSuggestionShownSubscriber:
         """Publish SuggestionAccepted → row in copilot_trace_event."""
         from sqlalchemy.orm import sessionmaker
 
-        from src.modules.copilot.domain.events import SuggestionAccepted
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.domain.events import SuggestionAccepted
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -118,8 +118,8 @@ class TestSuggestionShownSubscriber:
 
     def test_db_failure_does_not_propagate_exception(self) -> None:
         """Subscriber best-effort: DB write fails → no exception bubbles out."""
-        from src.modules.copilot.domain.events import SuggestionShown
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.domain.events import SuggestionShown
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
 

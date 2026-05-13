@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.application.observability.judge import (
+from luana_core_copilot.application.observability.judge import (
     DEFAULT_THRESHOLD,
     CopilotJudge,
 )

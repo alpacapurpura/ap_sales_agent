@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from sqlalchemy import Boolean, ColumnElement
     from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.shared.infrastructure.models.crm import LeadModel
+from luana_core_platform.infrastructure.models.crm import LeadModel
 
 logger = structlog.get_logger(__name__)
 

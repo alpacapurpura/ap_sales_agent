@@ -83,7 +83,7 @@ def _base_identity_context(**identity_overrides: Any) -> dict[str, Any]:
 
 
 def _make_brand_knowledge(brand_data: dict) -> MagicMock:
-    from src.shared.links.ports.brand import BrandKnowledgeDTO
+    from luana_core_platform.links.ports.brand import BrandKnowledgeDTO
 
     return BrandKnowledgeDTO(brand_data=brand_data, avatars=[], personality_profile=None)
 
@@ -110,18 +110,18 @@ class TestKnowledgeBuilderLegalFlags:
 
         with (
             patch(
-                "src.modules.sales_agent.application.services.knowledge_builder.create_brand_data_port",
+                "luana_core_sales_agent.application.services.knowledge_builder.create_brand_data_port",
                 return_value=mock_brand_port,
             ),
             patch(
-                "src.modules.sales_agent.application.services.knowledge_builder.get_offer_repository",
+                "luana_core_sales_agent.application.services.knowledge_builder.get_offer_repository",
             ) as mock_offer_repo,
             patch(
-                "src.modules.sales_agent.application.services.knowledge_builder.SemanticRouter",
+                "luana_core_sales_agent.application.services.knowledge_builder.SemanticRouter",
             ),
         ):
             mock_offer_repo.return_value.get_all_by_tenant.return_value = []
-            from src.modules.sales_agent.application.services.knowledge_builder import (
+            from luana_core_sales_agent.application.services.knowledge_builder import (
                 TenantKnowledgeBuilder,
             )
 

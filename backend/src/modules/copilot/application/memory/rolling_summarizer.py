@@ -14,13 +14,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from langchain_core.messages import HumanMessage, SystemMessage
-
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 if TYPE_CHECKING:
     from langchain_core.language_models.chat_models import BaseChatModel
-
-    from src.modules.copilot.domain.ports import LLMMessage
+    from luana_core_copilot.domain.ports import LLMMessage
 
 
 _SUMMARY_SYSTEM_PROMPT = (
@@ -67,7 +65,7 @@ class RollingSummarizer:
         unchanged for test injection. The legacy ``__init__`` path is
         preserved for tests that want a custom cap.
         """
-        from src.modules.copilot.domain.context_window import (
+        from luana_core_copilot.domain.context_window import (
             get_context_window_config,
         )
 
@@ -77,7 +75,7 @@ class RollingSummarizer:
     def _resolve_llm(self) -> BaseChatModel:
         if self._llm is not None:
             return self._llm
-        from src.shared.infrastructure.llm.factory import LLMFactory
+        from luana_core_llm.factory import LLMFactory
 
         client = LLMFactory.get_service().get_client(ModelRole.NANO, temperature=0.0)
         self._llm = client

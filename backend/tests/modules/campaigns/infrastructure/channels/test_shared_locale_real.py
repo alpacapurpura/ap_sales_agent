@@ -17,11 +17,11 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.campaigns.infrastructure.channels.shared import (
+from luana_core_campaigns.infrastructure.channels.shared import (
     _resolve_tenant_locale,
     invalidate_locale_cache,
 )
-from src.shared.domain.locale import TenantLocale
+from luana_core_platform.domain.locale import TenantLocale
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────

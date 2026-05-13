@@ -19,8 +19,8 @@ from __future__ import annotations
 
 import re
 
-from src.modules.copilot.application.discovery import discover_providers
-from src.modules.copilot.application.workflows.registry import collect_workflows
+from luana_core_copilot.application.discovery import discover_providers
+from luana_core_copilot.application.workflows.registry import collect_workflows
 
 # Snake_case identifier shape (alpha + digit + underscore, starts with
 # alpha). Mirrors the dotted-path enforcement in `WorkflowNode.handler_ref`.
@@ -44,7 +44,7 @@ def test_every_declared_workflow_has_valid_id_for_kpi_tracking() -> None:
 
 def test_workflow_metric_has_required_columns() -> None:
     """``copilot_workflow_metric`` must declare the columns the dashboard reads."""
-    from src.modules.copilot.infrastructure.models.workflow_metric_model import (
+    from luana_core_copilot.infrastructure.models.workflow_metric_model import (
         WorkflowMetricModel,
     )
 
@@ -67,7 +67,7 @@ def test_workflow_metric_has_required_columns() -> None:
 
 def test_workflow_metric_uniqueness_constraint() -> None:
     """``(tenant_id, workflow_id, period_start)`` is the natural key — must be unique."""
-    from src.modules.copilot.infrastructure.models.workflow_metric_model import (
+    from luana_core_copilot.infrastructure.models.workflow_metric_model import (
         WorkflowMetricModel,
     )
 

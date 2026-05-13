@@ -19,13 +19,13 @@ from typing import Any
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.conversational_questioning import (
+from luana_core_copilot.application.orchestrator.conversational_questioning import (
     next_question,
 )
-from src.modules.copilot.infrastructure.channels.in_memory_channel import (
+from luana_core_copilot.infrastructure.channels.in_memory_channel import (
     InMemoryConversationalChannel,
 )
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldContract,
     FieldStatus,
     FieldType,

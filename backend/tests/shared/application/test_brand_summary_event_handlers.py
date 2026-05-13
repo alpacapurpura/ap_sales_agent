@@ -7,13 +7,13 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.application.brand_summary_event_handlers import (
+from luana_core_platform.application.brand_summary_event_handlers import (
     _build_job_id,
     _enqueue_regen,
     handle_brand_section_updated,
     register_brand_summary_event_handlers,
 )
-from src.shared.domain.events import BrandSectionUpdatedEvent, EventBus
+from luana_core_platform.domain.events import BrandSectionUpdatedEvent, EventBus
 
 
 @pytest.fixture(autouse=True)
@@ -41,7 +41,7 @@ def test_register_subscribes_handler_idempotently() -> None:
 
 def test_enqueue_regen_passes_dedupe_key_and_debounce(monkeypatch) -> None:
     pool = _StubArqPool()
-    from src.core import arq_pool as arq_pool_mod
+    from luana_core_platform.core import arq_pool as arq_pool_mod
 
     monkeypatch.setattr(arq_pool_mod, "_arq_pool", pool)
 
@@ -61,7 +61,7 @@ def test_enqueue_regen_passes_dedupe_key_and_debounce(monkeypatch) -> None:
 
 
 def test_enqueue_swallows_arq_unavailable(monkeypatch) -> None:
-    from src.core import arq_pool as arq_pool_mod
+    from luana_core_platform.core import arq_pool as arq_pool_mod
 
     monkeypatch.setattr(arq_pool_mod, "_arq_pool", None)
 
@@ -72,7 +72,7 @@ def test_enqueue_swallows_arq_unavailable(monkeypatch) -> None:
 
 def test_handler_dispatches_via_bus(monkeypatch) -> None:
     pool = _StubArqPool()
-    from src.core import arq_pool as arq_pool_mod
+    from luana_core_platform.core import arq_pool as arq_pool_mod
 
     monkeypatch.setattr(arq_pool_mod, "_arq_pool", pool)
 

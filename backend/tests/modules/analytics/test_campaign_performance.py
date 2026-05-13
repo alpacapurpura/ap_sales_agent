@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock
 from uuid import UUID
 
-from src.modules.analytics.application.services.campaign_service import CampaignService
+from luana_core_analytics_engine.application.services.campaign_service import CampaignService
 
 TENANT_ID = UUID("11111111-1111-1111-1111-111111111111")
 

@@ -5,8 +5,7 @@ router.push(), scrollIntoView(), highlight, etc.
 """
 
 from langchain_core.tools import tool
-
-from src.modules.copilot.domain.navigation_map import (
+from luana_core_copilot.domain.navigation_map import (
     find_pages_by_keyword,
     get_all_pages,
 )

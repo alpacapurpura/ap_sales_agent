@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.analytics.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.period_config import DateRange
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 DATE_RANGE = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
@@ -18,7 +18,7 @@ def _run(coro):
 
 
 def _make_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.capture_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.capture_stage import (
         CaptureStageService,
     )
 
@@ -58,17 +58,19 @@ class TestCaptureStageServiceCacheHit:
 
 class TestCaptureStageServiceCacheMiss:
     def _patch_registry(self):
-        return patch("src.modules.analytics.application.services.stage_services.capture_stage.ChannelRegistry")
+        return patch("luana_core_analytics_engine.application.services.stage_services.capture_stage.ChannelRegistry")
 
     def _patch_cost(self):
-        return patch("src.modules.analytics.application.services.stage_services.capture_stage.CaptureCostService")
+        return patch("luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureCostService")
 
     def _patch_capture_repo(self):
-        return patch("src.modules.analytics.application.services.stage_services.capture_stage.CaptureMetricsRepository")
+        return patch(
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureMetricsRepository"
+        )
 
     def _patch_official_repo(self):
         return patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         )
 
     def test_empty_channels_returns_dto(self):
@@ -197,8 +199,8 @@ class TestMergeManyChat:
     """Test static _merge_manychat_into_meta method."""
 
     def test_no_meta_or_mc_no_change(self):
-        from src.modules.analytics.application.dto.attraction_dto import ChannelMetricDTO
-        from src.modules.analytics.application.services.stage_services.capture_stage import (
+        from luana_core_analytics_engine.application.dto.attraction_dto import ChannelMetricDTO
+        from luana_core_analytics_engine.application.services.stage_services.capture_stage import (
             CaptureStageService,
         )
 
@@ -216,8 +218,8 @@ class TestMergeManyChat:
         assert len(channels) == 1
 
     def test_merge_manychat_ig_into_igdm(self):
-        from src.modules.analytics.application.dto.attraction_dto import ChannelMetricDTO
-        from src.modules.analytics.application.services.stage_services.capture_stage import (
+        from luana_core_analytics_engine.application.dto.attraction_dto import ChannelMetricDTO
+        from luana_core_analytics_engine.application.services.stage_services.capture_stage import (
             CaptureStageService,
         )
 
@@ -274,7 +276,7 @@ class TestBuildCaptureChannelDto:
             "provider_name": "mailerlite",
         }
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             MockRepo.return_value.get_channel_metrics.return_value = {}
             dto = svc._build_capture_channel_dto(ch, TENANT_ID, {}, {}, {}, 0, date(2026, 3, 1), date(2026, 3, 31))

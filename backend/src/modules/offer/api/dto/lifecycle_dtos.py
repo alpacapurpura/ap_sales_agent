@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from luana_core_offer_studio.domain.lifecycle import OfferLifecycleStatus
 from pydantic import BaseModel, ConfigDict
-
-from src.modules.offer.domain.lifecycle import OfferLifecycleStatus
 
 
 class OfferStatusChangeRequest(BaseModel):

@@ -4,14 +4,11 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_locale
-from src.modules.iam.domain.user import User
-from src.modules.offer.api.dto.products import ProductCreate, ProductUpdate
-from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.domain.offer import (
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_locale
+from luana_core_iam.domain.user import User
+from luana_core_offer_studio.api.dto.products import ProductCreate, ProductUpdate
+from luana_core_offer_studio.application.offer_service import OfferService
+from luana_core_offer_studio.domain.offer import (
     Offer,
     OfferClosingUpdate,
     OfferDetailsUpdate,
@@ -26,7 +23,9 @@ from src.modules.offer.domain.offer import (
     OfferVisualsUpdate,
     PricingStructure,
 )
-from src.shared.domain.locale import TenantLocale
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.locale import TenantLocale
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

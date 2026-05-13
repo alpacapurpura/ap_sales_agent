@@ -48,8 +48,8 @@ ALLOWED_TARGETS: frozenset[str] = frozenset({"sales_agent", "shared", "core", "i
 # Mirror del exception en ``test_ddd_boundaries.py``.
 _PROVIDER_CONTRACT_PREFIXES: frozenset[str] = frozenset(
     {
-        "src.modules.copilot.domain.ports",
-        "src.modules.copilot.domain.workflow",
+        "luana_core_copilot.domain.ports",
+        "luana_core_copilot.domain.workflow",
     }
 )
 

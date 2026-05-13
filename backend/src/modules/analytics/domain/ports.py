@@ -4,7 +4,7 @@ Canonical location: src.shared.domain.ports
 New code should import directly from src.shared.domain.ports.
 """
 
-from src.shared.domain.ports import (
+from luana_core_platform.domain.ports import (
     ConnectionCredentials,
     ConnectionPort,
     OfferReadDTO,

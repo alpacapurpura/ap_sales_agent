@@ -8,10 +8,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.application.services.landing_generation_service import (
+from luana_core_offer_studio.application.services.landing_generation_service import (
     LandingGenerationService,
 )
-from src.modules.offer.domain.exceptions import LandingNotReadyError
+from luana_core_offer_studio.domain.exceptions import LandingNotReadyError
 
 
 @pytest.fixture

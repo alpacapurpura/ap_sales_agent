@@ -9,12 +9,11 @@ import logging
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.infrastructure.models.channel_cost_model import (
+from luana_core_analytics_engine.infrastructure.models.channel_cost_model import (
     ChannelCostSettingModel,
 )
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +73,7 @@ class StageCostService:
         tiktok-retargeting channels.
         Returns: {'meta-retargeting': 450.0, 'google-retargeting': 200.0, ...}
         """
-        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+        from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,
         )
 
@@ -162,7 +161,7 @@ class StageCostService:
         Stage 2: Nurture costs (retargeting spend + automation tools)
         Stage 3: Opportunity costs (Shopify, scheduling tools -- manual config)
         """
-        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+        from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,
         )
 

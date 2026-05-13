@@ -7,7 +7,7 @@ from datetime import date, datetime, time, timezone
 
 import pytest
 
-from src.modules.analytics.domain.period_config import DateRange, TenantPeriodConfig
+from luana_core_analytics_engine.domain.period_config import DateRange, TenantPeriodConfig
 
 
 class TestWeekBoundariesDefaultMonday:

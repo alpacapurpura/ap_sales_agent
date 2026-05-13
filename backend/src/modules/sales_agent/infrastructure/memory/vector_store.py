@@ -6,12 +6,11 @@ from typing import Any
 
 from fastembed import SparseTextEmbedding
 from flashrank import Ranker, RerankRequest
+from luana_core_llm.factory import LLMFactory
+from luana_core_platform.core.config import settings
+from luana_core_sales_agent.domain.memory.repository import SemanticMemoryStore
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-
-from src.core.config import settings
-from src.modules.sales_agent.domain.memory.repository import SemanticMemoryStore
-from src.shared.infrastructure.llm.factory import LLMFactory
 
 logger = logging.getLogger(__name__)
 

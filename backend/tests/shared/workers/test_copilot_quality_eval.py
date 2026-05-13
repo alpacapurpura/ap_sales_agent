@@ -12,14 +12,14 @@ from uuid import uuid4
 import pytest
 from langchain_core.messages import AIMessage
 
-from src.modules.copilot.application.observability.judge import CopilotJudge
-from src.modules.copilot.infrastructure.models.conversation_model import (
+from luana_core_copilot.application.observability.judge import CopilotJudge
+from luana_core_copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
 )
-from src.modules.copilot.infrastructure.repositories.workflow_metric_repository import (
+from luana_core_copilot.infrastructure.repositories.workflow_metric_repository import (
     WorkflowMetricRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 from src.shared.workers.copilot_quality_eval import (
     NO_WORKFLOW_BUCKET,
     run_weekly_quality_eval,

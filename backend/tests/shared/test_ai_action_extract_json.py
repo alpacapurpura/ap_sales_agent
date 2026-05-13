@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 
-from src.shared.application.ai_action_service import AIActionService
+from luana_core_platform.application.ai_action_service import AIActionService
 
 
 class TestExtractJson:

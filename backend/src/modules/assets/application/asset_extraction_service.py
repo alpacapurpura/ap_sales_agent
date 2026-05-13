@@ -14,21 +14,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.assets.domain.enums import AssetType, ExtractionStatus
-from src.modules.assets.infrastructure.repositories.asset_repository import (
+from luana_core_assets.domain.enums import AssetType, ExtractionStatus
+from luana_core_assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
-from src.modules.assets.infrastructure.storage import get_storage_strategy
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.infrastructure.files.file_parsing_service import FileParsingService
+from luana_core_assets.infrastructure.storage import get_storage_strategy
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.infrastructure.files.file_parsing_service import FileParsingService
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_assets.domain.entity import Asset
     from sqlalchemy.orm import Session
-
-    from src.modules.assets.domain.entity import Asset
 
 logger = structlog.get_logger()
 

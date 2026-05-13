@@ -6,12 +6,13 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, Header, HTTPException
+from luana_core_iam.domain.tenant import Tenant
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.core.database import get_db
+from luana_core_platform.links.service import LinkService
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.core.database import get_db
-from src.modules.iam.domain.tenant import Tenant
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.scheduling.api.dto.public_links import (
     BookingConfirmationResponse,
     BookingLinkResolveResponse,
@@ -27,7 +28,6 @@ from src.modules.scheduling.application.services.event_type_service import (
     EventTypeService,
 )
 from src.modules.scheduling.infrastructure.models.booking_link import BookingLink
-from src.shared.links.service import LinkService
 
 logger = structlog.get_logger()
 

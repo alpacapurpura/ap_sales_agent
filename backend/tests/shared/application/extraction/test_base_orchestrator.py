@@ -13,7 +13,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-from src.shared.application.extraction.base_orchestrator import (
+from luana_core_extraction.base_orchestrator import (
     BaseExtractionOrchestrator,
 )
 

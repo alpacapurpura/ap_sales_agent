@@ -6,16 +6,15 @@ from typing import Any
 from uuid import UUID
 
 import structlog
-from sqlalchemy import String, cast, func, select
-from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.customer import CustomerIdentity, CustomerProfile
-from src.modules.crm.domain.enums import IdentityType, LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.customer import CustomerIdentity, CustomerProfile
+from luana_core_crm.domain.enums import IdentityType, LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerIdentityModel,
     CustomerProfileModel,
     JourneyEventModel,
 )
+from sqlalchemy import String, cast, func, select
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

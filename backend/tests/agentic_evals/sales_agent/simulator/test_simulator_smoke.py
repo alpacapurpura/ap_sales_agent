@@ -116,7 +116,7 @@ def _get_db_session() -> Session | None:
     error path.
     """
     try:
-        from src.core.database import SessionLocal
+        from luana_core_platform.core.database import SessionLocal
 
         db = SessionLocal()
         # Probe connection — if Postgres is down, raise here instead of
@@ -907,7 +907,7 @@ def _sales_agent_toolkit_supports_qualification() -> tuple[bool, str]:
     cite the import error in the skip reason.
     """
     try:
-        from src.modules.sales_agent.application.agents.sales.tools import (
+        from luana_core_sales_agent.application.agents.sales.tools import (
             TOOL_REGISTRY,
         )
     except Exception as exc:  # noqa: BLE001 — defensive; surface import errors as skip reason

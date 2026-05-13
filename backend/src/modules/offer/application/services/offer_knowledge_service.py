@@ -15,23 +15,22 @@ from io import BytesIO
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     KnowledgeSourceStatus,
     KnowledgeSourceType,
 )
-from src.modules.offer.domain.events import (
+from luana_core_offer_studio.domain.events import (
     KnowledgeSourceCreated,
     KnowledgeSourceDeleted,
 )
-from src.modules.offer.domain.exceptions import KnowledgeSourceNotFoundError
-from src.modules.offer.domain.knowledge_source import KnowledgeSource
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_offer_studio.domain.exceptions import KnowledgeSourceNotFoundError
+from luana_core_offer_studio.domain.knowledge_source import KnowledgeSource
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.offer.application.ports import (
+    from luana_core_offer_studio.application.ports import (
         IFileStoragePort,
         IKnowledgeSourceRepository,
         IRAGIndexerPort,

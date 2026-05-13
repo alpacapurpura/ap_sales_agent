@@ -4,12 +4,12 @@ from uuid import uuid4
 import pytest
 from pydantic import BaseModel
 
-from src.shared.application.ai_action_service import (
+from luana_core_platform.application.ai_action_service import (
     AIActionPolicy,
     AIActionService,
     AIModelPolicy,
 )
-from src.shared.infrastructure.llm.providers._response_validation import (
+from luana_core_llm.providers._response_validation import (
     ReasoningBudgetExhaustedError,
 )
 
@@ -25,7 +25,7 @@ def test_run_structured_action_parses_valid_json():
     llm_service.generate_response.return_value = '{"pains":["p1"],"desires":["d1"]}'
 
     with patch(
-        "src.shared.application.ai_action_service.LLMFactory.get_service",
+        "luana_core_platform.application.ai_action_service.LLMFactory.get_service",
         return_value=llm_service,
     ):
         result = service.run_structured_action(
@@ -49,7 +49,7 @@ def test_run_structured_action_retries_until_valid_payload():
     ]
 
     with patch(
-        "src.shared.application.ai_action_service.LLMFactory.get_service",
+        "luana_core_platform.application.ai_action_service.LLMFactory.get_service",
         return_value=llm_service,
     ):
         result = service.run_structured_action(
@@ -72,7 +72,7 @@ def test_run_structured_action_fails_after_all_retries():
 
     with (
         patch(
-            "src.shared.application.ai_action_service.LLMFactory.get_service",
+            "luana_core_platform.application.ai_action_service.LLMFactory.get_service",
             return_value=llm_service,
         ),
         pytest.raises(ValueError, match="respuesta inválida"),
@@ -113,7 +113,7 @@ def test_reasoning_budget_exhaustion_propagates_without_retry():
 
     with (
         patch(
-            "src.shared.application.ai_action_service.LLMFactory.get_service",
+            "luana_core_platform.application.ai_action_service.LLMFactory.get_service",
             return_value=llm_service,
         ),
         pytest.raises(ReasoningBudgetExhaustedError, match="800 reasoning tokens"),
@@ -141,7 +141,7 @@ def test_reasoning_effort_passed_through_when_set():
     llm_service.generate_response.return_value = '{"pains":["p"],"desires":["d"]}'
 
     with patch(
-        "src.shared.application.ai_action_service.LLMFactory.get_service",
+        "luana_core_platform.application.ai_action_service.LLMFactory.get_service",
         return_value=llm_service,
     ):
         service.run_structured_action(
@@ -166,7 +166,7 @@ def test_reasoning_effort_omitted_by_default():
     llm_service.generate_response.return_value = '{"pains":["p"],"desires":["d"]}'
 
     with patch(
-        "src.shared.application.ai_action_service.LLMFactory.get_service",
+        "luana_core_platform.application.ai_action_service.LLMFactory.get_service",
         return_value=llm_service,
     ):
         service.run_structured_action(

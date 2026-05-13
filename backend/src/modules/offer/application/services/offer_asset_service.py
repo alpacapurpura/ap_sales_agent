@@ -14,17 +14,16 @@ from io import BytesIO
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.modules.offer.domain.assets import OfferAsset
-from src.modules.offer.domain.enums import AssetSource, AssetStatus, AssetType
-from src.modules.offer.domain.events import OfferAssetCreated, OfferAssetDeleted
-from src.modules.offer.domain.exceptions import AssetNotFoundError
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_offer_studio.domain.assets import OfferAsset
+from luana_core_offer_studio.domain.enums import AssetSource, AssetStatus, AssetType
+from luana_core_offer_studio.domain.events import OfferAssetCreated, OfferAssetDeleted
+from luana_core_offer_studio.domain.exceptions import AssetNotFoundError
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.offer.application.ports import (
+    from luana_core_offer_studio.application.ports import (
         IFileStoragePort,
         IOfferAssetRepository,
     )

@@ -111,7 +111,7 @@ def get_registered_domains() -> tuple[str, ...]:
     and domains with a FieldContract registry. Empty catalogs (no
     proposable fields) are excluded.
     """
-    from src.shared.domain.field_contract import get_all_modules
+    from luana_core_platform.domain.field_contract import get_all_modules
 
     domains = set(_CATALOGS.keys()) | set(get_all_modules())
     return tuple(sorted(d for d in domains if get_catalog(d)))
@@ -155,7 +155,7 @@ def _derive_from_contracts(domain: str) -> tuple[FieldSpec, ...]:
     enumeration) falls back to ``notes`` (Pydantic ``Field(description=...)``
     populated by the walker).
     """
-    from src.shared.domain.field_contract import (
+    from luana_core_platform.domain.field_contract import (
         FieldStatus,
         get_module_contracts,
     )

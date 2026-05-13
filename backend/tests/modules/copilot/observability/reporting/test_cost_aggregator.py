@@ -17,7 +17,7 @@ from uuid import UUID, uuid4
 import pytest
 from sqlalchemy.orm import sessionmaker
 
-from src.modules.copilot.observability.persistence.models.llm_call_model import (
+from luana_core_copilot.observability.persistence.models.llm_call_model import (
     CopilotLlmCallModel,
 )
 
@@ -85,7 +85,7 @@ def _make_call(
 @pytest.fixture
 def seed(db):
     """Seed two tenants x multiple calls across two days."""
-    from src.modules.copilot.observability.persistence.llm_call_repository import (
+    from luana_core_copilot.observability.persistence.llm_call_repository import (
         LlmCallRepository,
     )
 
@@ -154,7 +154,7 @@ def seed(db):
 
 class TestTenantsSummary:
     def test_returns_one_row_per_tenant_in_window(self, db, seed) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -177,7 +177,7 @@ class TestTenantsSummary:
         assert rows_by_tenant[tenant_b].cost_usd == Decimal("0.0100")
 
     def test_excludes_calls_outside_window(self, db, seed) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -193,7 +193,7 @@ class TestTenantsSummary:
 
 class TestTenantDetail:
     def test_breakdown_by_model_inside_window(self, db, seed) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -220,7 +220,7 @@ class TestTenantDetail:
 
 class TestTopConversations:
     def test_returns_top_conversations_ordered_by_cost(self, db, seed) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -242,7 +242,7 @@ class TestTopConversations:
 
 class TestDailySeries:
     def test_returns_daily_points_for_window(self, db, seed) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -263,7 +263,7 @@ class TestDailySeries:
 class TestEmptyState:
     def test_empty_when_no_data(self, db) -> None:
         """Aggregator returns sane empty defaults for a tenant with no calls."""
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 

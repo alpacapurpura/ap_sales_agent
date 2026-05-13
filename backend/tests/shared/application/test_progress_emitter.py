@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from src.shared.application.progress_emitter import (
+from luana_core_platform.application.progress_emitter import (
     emit_progress,
     fields_from_model,
 )

@@ -35,12 +35,11 @@ import structlog
 if TYPE_CHECKING:
     from collections.abc import Generator
 
+    from luana_core_billing.application.budget_guard import BudgetGuard
+    from luana_core_campaigns.domain.campaign_step import CampaignStep
+    from luana_core_campaigns.domain.campaign_task import CampaignTask
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm import Session
-
-    from src.modules.campaigns.domain.campaign_step import CampaignStep
-    from src.modules.campaigns.domain.campaign_task import CampaignTask
-    from src.shared.billing.application.budget_guard import BudgetGuard
 
 logger = structlog.get_logger(__name__)
 
@@ -67,7 +66,7 @@ class SalesAgentAdapter:
         Uses ``SessionLocal`` from ``src.core.database`` — established
         pattern for sync DB access in this codebase.
         """
-        from src.core.database import SessionLocal
+        from luana_core_platform.core.database import SessionLocal
 
         db: Session = SessionLocal()
         try:
@@ -104,7 +103,7 @@ class SalesAgentAdapter:
         Raises:
             ValueError: step_type mismatch (caller bug).
         """
-        from src.modules.campaigns.domain.enums import StepType
+        from luana_core_campaigns.domain.enums import StepType
 
         if step.step_type != StepType.CALL_SUBAGENT_BRIEF:
             msg = f"SalesAgentAdapter requires CALL_SUBAGENT_BRIEF; got {step.step_type!r}"
@@ -140,8 +139,8 @@ class SalesAgentAdapter:
         )
 
         # Lazy imports — keep DDD boundary clean (campaigns does NOT top-level import sales_agent)
-        from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
-        from src.modules.sales_agent.application.orchestrator.outbound_orchestrator import (
+        from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+        from luana_core_sales_agent.application.orchestrator.outbound_orchestrator import (
             OutboundOrchestrator,
         )
 

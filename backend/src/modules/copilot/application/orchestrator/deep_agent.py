@@ -45,16 +45,15 @@ from typing import TYPE_CHECKING
 
 import structlog
 from deepagents import create_deep_agent
-
-from src.core.enums import ModelRole
-from src.modules.copilot.application.orchestrator.graph import build_system_prompt
-from src.modules.copilot.application.orchestrator.subagents import (
+from luana_core_copilot.application.orchestrator.graph import build_system_prompt
+from luana_core_copilot.application.orchestrator.subagents import (
     AUDIT_INSPECTOR_SUBAGENT,
     DATA_QUERY_SUBAGENT,
     URL_ANALYZER_SUBAGENT,
 )
-from src.modules.copilot.application.tools.registry import get_tools_for_context
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_copilot.application.tools.registry import get_tools_for_context
+from luana_core_llm.factory import LLMFactory
+from luana_core_platform.core.enums import ModelRole
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -62,9 +61,8 @@ if TYPE_CHECKING:
     from langchain_core.language_models import BaseChatModel
     from langchain_core.tools import BaseTool
     from langgraph.graph.state import CompiledStateGraph
-
-    from src.modules.copilot.application.orchestrator.state import CopilotState
-    from src.shared.billing.application.budget_guard import BudgetGuard
+    from luana_core_billing.application.budget_guard import BudgetGuard
+    from luana_core_copilot.application.orchestrator.state import CopilotState
 
 logger = structlog.get_logger()
 
@@ -257,7 +255,7 @@ def build_deep_agent_graph(
         )
 
     if budget_guard is not None and tenant_id is not None:
-        from src.shared.billing.application.llm_guards import BudgetGuardingChatModel
+        from luana_core_billing.application.llm_guards import BudgetGuardingChatModel
 
         # type: ignore[assignment] — BudgetGuardingChatModel proxies BaseChatModel
         # via __getattr__ for transparent .bind_tools / .with_structured_output

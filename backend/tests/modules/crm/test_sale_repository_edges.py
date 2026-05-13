@@ -18,10 +18,10 @@ from uuid import UUID, uuid4
 import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import SaleStatus, SaleStage
-from src.modules.crm.domain.sale import Sale
-from src.modules.crm.infrastructure.repositories.sale_repository import SaleRepository
-from src.shared.infrastructure.models.crm import SaleModel
+from luana_core_crm.domain.enums import SaleStatus, SaleStage
+from luana_core_crm.domain.sale import Sale
+from luana_core_crm.infrastructure.repositories.sale_repository import SaleRepository
+from luana_core_platform.infrastructure.models.crm import SaleModel
 
 TENANT_ID = uuid.UUID("00000000-0000-0000-0001-000000000001")
 NOW = datetime.now(timezone.utc)

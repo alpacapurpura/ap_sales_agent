@@ -23,7 +23,7 @@ from dataclasses import dataclass
 import pytest
 from pydantic import BaseModel
 
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldContract,
     FieldStatus,
     get_module_contracts,
@@ -54,9 +54,9 @@ class _ModuleRegistrySpec:
 
 def _offer_spec() -> _ModuleRegistrySpec:
     """Offer module spec. Always present (Fase 04 pilot)."""
-    from src.modules.offer.domain.field_contract import OFFER_IGNORE_PATHS
-    from src.modules.offer.domain.offer import Offer
-    from src.shared.links.ports.editable_fields import get_paths_for
+    from luana_core_offer_studio.domain.field_contract import OFFER_IGNORE_PATHS
+    from luana_core_offer_studio.domain.offer import Offer
+    from luana_core_platform.links.ports.editable_fields import get_paths_for
 
     return _ModuleRegistrySpec(
         name="offer",
@@ -69,12 +69,12 @@ def _offer_spec() -> _ModuleRegistrySpec:
 
 def _brand_spec() -> _ModuleRegistrySpec:
     """Brand module spec (Fase 06)."""
-    from src.modules.brand.domain.aggregates import BrandSettings
-    from src.modules.brand.domain.field_contract import (
+    from luana_core_brand_studio.domain.aggregates import BrandSettings
+    from luana_core_brand_studio.domain.field_contract import (
         BRAND_COMPOSABLE_FIELDS,
         BRAND_IGNORE_PATHS,
     )
-    from src.shared.links.ports.editable_fields import get_paths_for
+    from luana_core_platform.links.ports.editable_fields import get_paths_for
 
     return _ModuleRegistrySpec(
         name="brand",
@@ -94,12 +94,12 @@ def _buyer_persona_spec() -> _ModuleRegistrySpec:
     composable handles (sub-keys appear in the registry, not the
     parents).
     """
-    from src.modules.brand.domain.buyer_persona import BuyerPersona
-    from src.modules.brand.domain.buyer_persona_field_contract import (
+    from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
+    from luana_core_brand_studio.domain.buyer_persona_field_contract import (
         BUYER_PERSONA_DICT_SUBKEYS,
         BUYER_PERSONA_IGNORE_PATHS,
     )
-    from src.shared.links.ports.editable_fields import get_paths_for
+    from luana_core_platform.links.ports.editable_fields import get_paths_for
 
     return _ModuleRegistrySpec(
         name="buyer_persona",

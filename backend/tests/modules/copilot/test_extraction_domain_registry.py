@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.extraction_domain_registry import (
+from luana_core_copilot.domain.extraction_domain_registry import (
     ExtractionDomainConfig,
     get_extraction_config,
     supported_domains,

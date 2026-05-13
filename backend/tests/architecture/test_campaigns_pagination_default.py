@@ -9,7 +9,7 @@ También verifica que PaginatedResponse tiene los campos requeridos.
 
 from __future__ import annotations
 
-from src.modules.campaigns.application.dtos.pagination import PaginatedResponse
+from luana_core_campaigns.application.dtos.pagination import PaginatedResponse
 
 
 class TestPaginatedResponseShape:

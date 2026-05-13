@@ -12,13 +12,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
-from src.modules.analytics.infrastructure.models.ad_campaign_model import (
+from luana_core_analytics_engine.infrastructure.models.ad_campaign_model import (
     AdCampaignModel,
 )
-from src.modules.analytics.infrastructure.models.ad_model import AdModel
-from src.modules.analytics.infrastructure.models.ad_set_model import AdSetModel
+from luana_core_analytics_engine.infrastructure.models.ad_model import AdModel
+from luana_core_analytics_engine.infrastructure.models.ad_set_model import AdSetModel
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

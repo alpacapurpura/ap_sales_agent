@@ -8,15 +8,16 @@ def render_events_page() -> None:
     """Render the copilot intelligence analytics page."""
     st.title("🧠 Inteligencia Copilot")
 
+    from luana_core_copilot.infrastructure.repositories.event_repository import (
+        CopilotEventRepository,
+    )
+    from luana_core_platform.core.database import SessionLocal
+
     from src.admin.modules._shared import (
         TOOLTIPS,
         get_tenant_name,
         pct_flag,
         render_tenant_selector,
-    )
-    from src.core.database import SessionLocal
-    from src.modules.copilot.infrastructure.repositories.event_repository import (
-        CopilotEventRepository,
     )
 
     # ── Persistent filters ──

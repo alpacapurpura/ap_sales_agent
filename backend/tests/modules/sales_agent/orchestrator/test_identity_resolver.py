@@ -14,11 +14,11 @@ from uuid import UUID
 
 import pytest
 
-from src.modules.sales_agent.application.orchestrator.identity_resolver import (
+from luana_core_sales_agent.application.orchestrator.identity_resolver import (
     IdentityResolver,
 )
-from src.shared.domain.enums import IdentityType
-from src.shared.domain.messages import IncomingMessage
+from luana_core_platform.domain.enums import IdentityType
+from luana_core_platform.domain.messages import IncomingMessage
 
 TENANT_ID = UUID("44444444-4444-4444-4444-444444444444")
 CUSTOMER_ID = UUID("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa")
@@ -95,7 +95,7 @@ async def test_enrich_instagram_profile_swallows_failure(monkeypatch: pytest.Mon
         raise RuntimeError(msg)
 
     monkeypatch.setattr(
-        "src.shared.links.ports.channel_adapter.create_connection_port",
+        "luana_core_platform.links.ports.channel_adapter.create_connection_port",
         _raise,
     )
     customer = SimpleNamespace(traits={}, id=CUSTOMER_ID)
@@ -177,16 +177,16 @@ async def test_process_customer_lifecycle_publishes_event_for_new_customer(
     captured_journey: list = []
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.publish_lead_captured",
+        "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.publish_lead_captured",
         staticmethod(lambda *args, **kwargs: captured_events.append((args, kwargs))),
     )
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.track_message_received",
+        "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.track_message_received",
         staticmethod(lambda *args, **kwargs: captured_journey.append((args, kwargs))),
     )
     # Suppress trait merge ORM
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.identity_resolver.IdentityResolver.update_customer_traits",
+        "luana_core_sales_agent.application.orchestrator.identity_resolver.IdentityResolver.update_customer_traits",
         staticmethod(lambda *_a, **_kw: None),
     )
 
@@ -214,15 +214,15 @@ async def test_process_customer_lifecycle_skips_publish_for_existing_customer(
     captured_events: list = []
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.publish_lead_captured",
+        "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.publish_lead_captured",
         staticmethod(lambda *args, **kwargs: captured_events.append((args, kwargs))),
     )
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.track_message_received",
+        "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.track_message_received",
         staticmethod(lambda *_a, **_kw: None),
     )
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.identity_resolver.IdentityResolver.update_customer_traits",
+        "luana_core_sales_agent.application.orchestrator.identity_resolver.IdentityResolver.update_customer_traits",
         staticmethod(lambda *_a, **_kw: None),
     )
 

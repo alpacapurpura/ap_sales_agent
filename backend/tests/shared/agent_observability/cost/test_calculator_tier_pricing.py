@@ -36,7 +36,7 @@ class _Snap:
 
 class TestTierResolutionInput:
     def test_no_tier_when_input_below_threshold(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap(input_cost_per_token_above_200k_tokens=Decimal("0.000004"))
         cost = calculate_cost(
@@ -49,7 +49,7 @@ class TestTierResolutionInput:
         assert cost == Decimal("0.000003") * 150_000
 
     def test_input_tier_splits_at_200k(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap(input_cost_per_token_above_200k_tokens=Decimal("0.000004"))
         cost = calculate_cost(
@@ -63,7 +63,7 @@ class TestTierResolutionInput:
         assert cost == expected
 
     def test_input_tier_at_exact_threshold_uses_base_rate(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap(input_cost_per_token_above_200k_tokens=Decimal("0.000004"))
         cost = calculate_cost(
@@ -76,7 +76,7 @@ class TestTierResolutionInput:
         assert cost == Decimal("0.000003") * 200_000
 
     def test_input_tier_resolved_from_raw_payload(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap(
             raw_payload={"input_cost_per_token_above_200k_tokens": "0.000004"},
@@ -92,7 +92,7 @@ class TestTierResolutionInput:
         assert cost == expected
 
     def test_no_tier_when_rate_absent(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap()  # no tier rate, no raw_payload tier
         cost = calculate_cost(
@@ -105,7 +105,7 @@ class TestTierResolutionInput:
         assert cost == Decimal("0.000003") * 300_000
 
     def test_cached_reads_subtracted_before_tier_split(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         # 250k input, 100k cached → 150k uncached → below 200k → no tier.
         snap = _Snap(
@@ -124,7 +124,7 @@ class TestTierResolutionInput:
         assert cost == expected
 
     def test_cached_reads_with_tier_when_uncached_above_threshold(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         # 350k input, 50k cached → 300k uncached → 200k base + 100k tier.
         snap = _Snap(
@@ -144,7 +144,7 @@ class TestTierResolutionInput:
 
 class TestTierResolutionOutput:
     def test_output_tier_splits_at_200k(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap(output_cost_per_token_above_200k_tokens=Decimal("0.000010"))
         cost = calculate_cost(
@@ -158,7 +158,7 @@ class TestTierResolutionOutput:
         assert cost == expected
 
     def test_output_tier_resolved_from_raw_payload(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap(
             raw_payload={"output_cost_per_token_above_200k_tokens": "0.000010"},
@@ -176,7 +176,7 @@ class TestTierResolutionOutput:
 
 class TestTierResolutionCombined:
     def test_input_and_output_tiers_combined(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap(
             input_cost_per_token_above_200k_tokens=Decimal("0.000004"),
@@ -194,7 +194,7 @@ class TestTierResolutionCombined:
         assert cost == input_cost + output_cost
 
     def test_typed_attribute_takes_precedence_over_raw_payload(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = _Snap(
             input_cost_per_token_above_200k_tokens=Decimal("0.000004"),

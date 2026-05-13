@@ -413,7 +413,7 @@ def _build_cost_query(
     """
     # Lazy import — keeps the module loadable in environments where the
     # SQLAlchemy model registry is not yet configured (e.g. linter pass).
-    from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+    from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
         SalesAgentLlmCallModel,
     )
 

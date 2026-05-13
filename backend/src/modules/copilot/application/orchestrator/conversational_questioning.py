@@ -27,7 +27,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldStatus,
     get_module_contracts,
 )
@@ -35,7 +35,7 @@ from src.shared.domain.field_contract import (
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from src.shared.domain.field_contract import FieldContract
+    from luana_core_platform.domain.field_contract import FieldContract
 
 
 __all__ = [

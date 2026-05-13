@@ -4,18 +4,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from src.modules.copilot.domain.ports import BaseCopilotProvider, ModuleData
+from luana_core_copilot.domain.ports import BaseCopilotProvider, ModuleData
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
+    from luana_core_connections.infrastructure.repositories.channel_connection_repository import (
         ChannelConnectionRepository,
     )
 
 
 def _connections_repo_factory(db: object) -> object:
-    from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
+    from luana_core_connections.infrastructure.repositories.channel_connection_repository import (
         ChannelConnectionRepository,
     )
 

@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
-from src.modules.copilot.application.tools.ask_tenant_data.date_parser import (
+from luana_core_copilot.application.tools.ask_tenant_data.date_parser import (
     parse_period,
 )
 

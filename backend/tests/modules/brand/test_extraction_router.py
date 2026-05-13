@@ -5,8 +5,8 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.brand.api.extraction import router
-from src.modules.iam.api.dependencies import get_current_user, get_db
+from luana_core_brand_studio.api.extraction import router
+from luana_core_iam.api.dependencies import get_current_user, get_db
 
 
 def _build_client(tenant_id):
@@ -29,7 +29,7 @@ def test_brand_extract_endpoint_delegates_to_extraction_service():
     client = _build_client(tenant_id)
 
     with patch(
-        "src.modules.brand.api.extraction.BrandExtractionService",
+        "luana_core_brand_studio.api.extraction.BrandExtractionService",
     ) as service_cls:
         service_instance = MagicMock()
         service_instance.extract_visuals_only = AsyncMock(
@@ -53,7 +53,7 @@ def test_brand_extract_full_endpoint_dispatches_arq_job():
     tenant_id = uuid4()
     client = _build_client(tenant_id)
 
-    with patch("src.modules.brand.api.extraction.redis_client") as mock_redis:
+    with patch("luana_core_brand_studio.api.extraction.redis_client") as mock_redis:
         mock_redis.setex = MagicMock(return_value=True)
 
         response = client.post(

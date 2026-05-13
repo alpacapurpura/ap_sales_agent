@@ -15,11 +15,11 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.modules.campaigns.domain.audit_log import AuditEventType, AuditLogEvent
-from src.modules.campaigns.infrastructure.repositories.audit_log_repo_impl import (
+from luana_core_campaigns.domain.audit_log import AuditEventType, AuditLogEvent
+from luana_core_campaigns.infrastructure.repositories.audit_log_repo_impl import (
     AuditLogRepositoryImpl,
 )
-from src.shared.domain.base_entity import Base
+from luana_core_platform.domain.base_entity import Base
 
 # ── Async SQLite in-memory engine ─────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ from src.shared.domain.base_entity import Base
 async def async_engine():
     """Async SQLite in-memory engine with all campaign models registered."""
     # Ensure CampaignAuditModel is registered
-    from src.modules.campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
+    from luana_core_campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
 
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
     async with engine.begin() as conn:

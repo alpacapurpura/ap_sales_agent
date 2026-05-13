@@ -55,13 +55,13 @@ def real_db(db_engine):
 
 
 def _make_context(real_db, *, lead_id=None, channel_type="telegram"):
-    from src.modules.sales_agent.observability.persistence.llm_call_repository import (
+    from luana_core_sales_agent.observability.persistence.llm_call_repository import (
         SalesAgentLlmCallRepository,
     )
-    from src.modules.sales_agent.observability.persistence.trace_event_repository import (
+    from luana_core_sales_agent.observability.persistence.trace_event_repository import (
         SalesAgentTraceEventRepository,
     )
-    from src.modules.sales_agent.observability.recording.turn_envelope import (
+    from luana_core_sales_agent.observability.recording.turn_envelope import (
         SalesAgentObservabilityContext,
     )
 
@@ -90,7 +90,7 @@ class TestRealTracePersistence:
     @pytest.mark.asyncio
     async def test_observe_turn_inserts_turn_start_and_turn_end(self, real_db) -> None:
         """Pre-PR-2 this asserted ZERO rows. Post-PR-2 it asserts >=2."""
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
 
@@ -124,7 +124,7 @@ class TestRealTracePersistence:
 
     @pytest.mark.asyncio
     async def test_observe_turn_marks_status_ok_on_clean_exit(self, real_db) -> None:
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
 
@@ -152,10 +152,10 @@ class TestRealTracePersistence:
         """
         import datetime as dt
 
-        from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+        from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
             SalesAgentLlmCallModel,
         )
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
 

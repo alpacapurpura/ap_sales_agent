@@ -38,18 +38,18 @@ from langchain_openai import OpenAIEmbeddings
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseChatModel
 
-from src.core.config import settings
-from src.core.enums import ModelRole
-from src.shared.infrastructure.llm.base import BaseLLMService
-from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+from luana_core_llm.base import BaseLLMService
+from luana_core_llm.providers._chat_model_resolver import (
     DEFAULT_OPENAI_SPEC,
     ChatBuildContext,
     ChatModelSpec,
     _build_chat_from_spec,
 )
-from src.shared.infrastructure.llm.providers._response_validation import (
+from luana_core_llm.providers._response_validation import (
     detect_reasoning_budget_exhaustion,
 )
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.enums import ModelRole
 
 logger = structlog.get_logger()
 

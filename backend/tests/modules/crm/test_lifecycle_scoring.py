@@ -10,12 +10,12 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
     JourneyEventModel,
 )
-from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
 
@@ -86,7 +86,7 @@ class TestRecalculateScore:
 
     def test_recalculate_score_sums_event_weights(self, db: Session, tenant_id):
         """page_view(1) + email_opened(2) + form_submitted(5) = 8.0"""
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -107,7 +107,7 @@ class TestRecalculateScore:
 
     def test_customer_stage_exempt(self, db: Session, tenant_id):
         """CUSTOMER profile score not recalculated -- returns current score."""
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -135,7 +135,7 @@ class TestThresholdTransitions:
 
     def test_threshold_transition_subscriber_to_lead(self, db: Session, tenant_id):
         """Score crosses 10 -> SUBSCRIBER to LEAD."""
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -151,7 +151,7 @@ class TestThresholdTransitions:
 
     def test_threshold_transition_lead_to_mql(self, db: Session, tenant_id):
         """Score crosses 40 -> LEAD to MQL."""
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -172,7 +172,7 @@ class TestThresholdTransitions:
 
     def test_threshold_transition_mql_to_sql(self, db: Session, tenant_id):
         """Score crosses 70 -> MQL to SQL."""
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -193,7 +193,7 @@ class TestThresholdTransitions:
 
     def test_stage_skipping(self, db: Session, tenant_id):
         """Score jumps from 5 to 75 -> goes directly SUBSCRIBER to SQL."""
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -214,7 +214,7 @@ class TestThresholdTransitions:
 
     def test_backward_transition(self, db: Session, tenant_id):
         """Score drops below threshold -> stage moves back."""
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -239,7 +239,7 @@ class TestAuditTrail:
     """Every stage transition is recorded in lifecycle_transitions."""
 
     def test_transition_creates_audit_record(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -274,7 +274,7 @@ class TestFitScore:
     """Fit score applied once from profile traits."""
 
     def test_fit_score_applied_once(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 
@@ -309,7 +309,7 @@ class TestJourneyEventWriteHook:
     recalculate_score automatically and updates last_activity_at."""
 
     def test_journey_event_write_triggers_recalculation(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 
@@ -327,7 +327,7 @@ class TestJourneyEventWriteHook:
         assert profile.lead_score == 5.0  # form_submitted weight
 
     def test_journey_event_write_updates_last_activity_at(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 
@@ -351,7 +351,7 @@ class TestJourneyEventWriteHook:
         tenant_id,
     ):
         """Write enough high-weight events to cross LEAD threshold (>=10)."""
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 

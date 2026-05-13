@@ -1,6 +1,6 @@
 """Models package."""
 
-from src.modules.connections.infrastructure.models.channel_connection_model import (
+from luana_core_connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )
 

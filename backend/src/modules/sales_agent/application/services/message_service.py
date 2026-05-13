@@ -2,13 +2,12 @@
 
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.sales_agent.domain.enums import MessageSender
-from src.modules.sales_agent.domain.message import Message
-from src.modules.sales_agent.infrastructure.repositories.message_repository import (
+from luana_core_sales_agent.domain.enums import MessageSender
+from luana_core_sales_agent.domain.message import Message
+from luana_core_sales_agent.infrastructure.repositories.message_repository import (
     MessageRepository,
 )
+from sqlalchemy.orm import Session
 
 
 class MessageService:

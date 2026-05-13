@@ -8,12 +8,11 @@ that clients use as cache key.
 from __future__ import annotations
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict
-
-from src.modules.offer.domain.value_level_catalog import (
+from luana_core_offer_studio.domain.value_level_catalog import (
     VALUE_LEVEL_CATALOG,
     ValueLevelMetadata,
 )
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
 

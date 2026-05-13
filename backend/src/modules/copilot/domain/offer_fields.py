@@ -13,8 +13,8 @@ exposes it via ``validate_field_path``).
 
 from __future__ import annotations
 
-from src.modules.offer.domain.field_contract import OFFER_FIELD_CONTRACTS
-from src.shared.domain.field_contract import FieldStatus
+from luana_core_offer_studio.domain.field_contract import OFFER_FIELD_CONTRACTS
+from luana_core_platform.domain.field_contract import FieldStatus
 
 
 def _build_persistable_fields() -> set[str]:

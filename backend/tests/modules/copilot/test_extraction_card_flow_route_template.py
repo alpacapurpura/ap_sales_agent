@@ -30,16 +30,16 @@ class TestNavPillRouteTemplate:
 
     def test_uses_nav_route_template_for_offer(self) -> None:
         """When nav_route_template is provided, route uses it with section_slug substituted."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             emit_section_complete_pill,
         )
-        from src.modules.offer.application.extraction_routes import NAV_ROUTE_TEMPLATE
+        from luana_core_offer_studio.application.extraction_routes import NAV_ROUTE_TEMPLATE
 
         appended, repo_mock = self._make_appender()
         with (
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
             patch(
-                "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
+                "luana_core_copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=repo_mock,
             ),
         ):
@@ -73,15 +73,15 @@ class TestNavPillRouteTemplate:
 
     def test_legacy_fallback_when_no_template(self) -> None:
         """When nav_route_template is None, falls back to module-slug route (backward compat)."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             emit_section_complete_pill,
         )
 
         appended, repo_mock = self._make_appender()
         with (
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
             patch(
-                "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
+                "luana_core_copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=repo_mock,
             ),
         ):
@@ -106,16 +106,16 @@ class TestNavPillRouteTemplate:
 
     def test_brand_route_template(self) -> None:
         """Brand nav_route_template produces brand-studio URL without entityId."""
-        from src.modules.brand.application.extraction_routes import NAV_ROUTE_TEMPLATE as BRAND_TPL
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_brand_studio.application.extraction_routes import NAV_ROUTE_TEMPLATE as BRAND_TPL
+        from luana_core_copilot.application.extraction_card_flow import (
             emit_section_complete_pill,
         )
 
         appended, repo_mock = self._make_appender()
         with (
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
             patch(
-                "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
+                "luana_core_copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=repo_mock,
             ),
         ):
@@ -152,16 +152,16 @@ class TestSummaryCardNoBrandStudioFallback:
 
     def test_summary_card_with_no_cta_emits_none(self) -> None:
         """When primary_cta_route=None and no fallback, summary has cta=None."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             emit_extraction_summary_card,
         )
 
         appended, repo_mock = self._make_appender()
         unique_job = str(uuid.uuid4())
         with (
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
             patch(
-                "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
+                "luana_core_copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=repo_mock,
             ),
         ):
@@ -189,10 +189,10 @@ class TestSummaryCardNoBrandStudioFallback:
 
     def test_summary_card_with_offer_cta_not_brand_studio(self) -> None:
         """When primary_cta_route points to offer-studio, it is used as-is."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             emit_extraction_summary_card,
         )
-        from src.modules.offer.application.extraction_routes import primary_cta_route
+        from luana_core_offer_studio.application.extraction_routes import primary_cta_route
 
         offer_id = str(uuid.uuid4())
         cta = primary_cta_route(offer_id, ["identity"])
@@ -200,9 +200,9 @@ class TestSummaryCardNoBrandStudioFallback:
         appended, repo_mock = self._make_appender()
         unique_job = str(uuid.uuid4())
         with (
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
             patch(
-                "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
+                "luana_core_copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=repo_mock,
             ),
         ):

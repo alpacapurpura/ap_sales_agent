@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from src.core.enums import AIProvider
+from luana_core_platform.core.enums import AIProvider
 
 ResolveSource = Literal["db_binding", "env_fallback", "cache_hit"]
 

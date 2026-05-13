@@ -4,12 +4,12 @@ import json
 
 import pytest
 
-from src.modules.brand.infrastructure.parsers.base import detect_and_parse
-from src.modules.brand.infrastructure.parsers.instagram_parser import (
+from luana_core_brand_studio.infrastructure.parsers.base import detect_and_parse
+from luana_core_brand_studio.infrastructure.parsers.instagram_parser import (
     InstagramParser,
 )
-from src.modules.brand.infrastructure.parsers.telegram_parser import TelegramParser
-from src.modules.brand.infrastructure.parsers.whatsapp_parser import WhatsAppParser
+from luana_core_brand_studio.infrastructure.parsers.telegram_parser import TelegramParser
+from luana_core_brand_studio.infrastructure.parsers.whatsapp_parser import WhatsAppParser
 
 # ---------------------------------------------------------------------------
 # WhatsApp

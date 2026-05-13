@@ -10,20 +10,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import case, func, literal_column, select
-from sqlalchemy.orm import joinedload
-
-from src.modules.sales_agent.application.services.closer_studio.lead_helpers import (
+from luana_core_platform.infrastructure.models.crm import CustomerProfileModel, LeadModel
+from luana_core_sales_agent.application.services.closer_studio.lead_helpers import (
     get_last_message_preview,
     resolve_avatar,
     resolve_display_name,
     resolve_lifecycle_stage,
 )
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
-from src.shared.infrastructure.models.crm import CustomerProfileModel, LeadModel
+from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
+from sqlalchemy import case, func, literal_column, select
+from sqlalchemy.orm import joinedload
 
 if TYPE_CHECKING:
     from datetime import datetime

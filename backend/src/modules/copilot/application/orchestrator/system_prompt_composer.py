@@ -18,11 +18,11 @@ from typing import TYPE_CHECKING, Any
 from jinja2 import Environment, StrictUndefined
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.ports import CopilotContext
-    from src.modules.copilot.domain.rules.rule_definition import RuleDefinition
-    from src.modules.copilot.domain.rules.rule_registry import RuleRegistry
-    from src.modules.copilot.domain.skills.skill_definition import SkillDefinition
-    from src.modules.copilot.domain.skills.skill_registry import SkillRegistry
+    from luana_core_copilot.domain.ports import CopilotContext
+    from luana_core_copilot.domain.rules.rule_definition import RuleDefinition
+    from luana_core_copilot.domain.rules.rule_registry import RuleRegistry
+    from luana_core_copilot.domain.skills.skill_definition import SkillDefinition
+    from luana_core_copilot.domain.skills.skill_registry import SkillRegistry
 
 
 _BASE_IDENTITY = (

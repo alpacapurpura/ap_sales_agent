@@ -12,9 +12,9 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.customer import CustomerIdentity, CustomerProfile
-from src.modules.crm.domain.enums import IdentityType, LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.customer import CustomerIdentity, CustomerProfile
+from luana_core_crm.domain.enums import IdentityType, LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerIdentityModel,
     CustomerProfileModel,
     JourneyEventModel,
@@ -78,7 +78,7 @@ class TestCustomerRepositoryCreate:
     """CustomerRepository.create persists profile + identities."""
 
     def test_create_profile_with_email_identity(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -110,7 +110,7 @@ class TestCustomerRepositoryCreate:
         assert result.identities[0].value == email
 
     def test_create_profile_preserves_lifecycle_stage(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -139,7 +139,7 @@ class TestCustomerRepositoryFindByIdentity:
     """CustomerRepository.find_by_identity resolves profiles by identity type."""
 
     def test_find_by_email(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -153,7 +153,7 @@ class TestCustomerRepositoryFindByIdentity:
         assert result.id == profile.id
 
     def test_find_by_user_id(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -167,7 +167,7 @@ class TestCustomerRepositoryFindByIdentity:
         assert result.id == profile.id
 
     def test_find_by_phone(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -181,7 +181,7 @@ class TestCustomerRepositoryFindByIdentity:
         assert result.id == profile.id
 
     def test_find_by_identity_returns_none_when_not_found(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -190,7 +190,7 @@ class TestCustomerRepositoryFindByIdentity:
         assert result is None
 
     def test_find_by_identity_tenant_isolation(self, db: Session, tenant_id: uuid.UUID, other_tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -211,7 +211,7 @@ class TestCustomerRepositoryCreateWithIdentity:
     """CustomerRepository.create_with_identity creates profile + identity in one call."""
 
     def test_create_with_email_identity(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -230,7 +230,7 @@ class TestCustomerRepositoryCreateWithIdentity:
         assert result.identities[0].is_primary is True
 
     def test_create_with_lead_source(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -250,7 +250,7 @@ class TestCustomerRepositoryCreateWithIdentity:
         assert model.lead_source_detail == "campaign-summer"
 
     def test_create_with_empty_name(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -279,7 +279,7 @@ class TestCustomerRepositoryFindByTrait:
 
     @pytest.mark.skip(reason="jsonb_extract_path_text is PostgreSQL-only")
     def test_find_by_ig_username(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -297,7 +297,7 @@ class TestCustomerRepositoryFindByTrait:
 
     @pytest.mark.skip(reason="jsonb_extract_path_text is PostgreSQL-only")
     def test_find_by_trait_returns_none(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -307,7 +307,7 @@ class TestCustomerRepositoryFindByTrait:
 
     @pytest.mark.skip(reason="jsonb_extract_path_text is PostgreSQL-only")
     def test_find_by_trait_tenant_isolation(self, db: Session, tenant_id: uuid.UUID, other_tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -331,7 +331,7 @@ class TestCustomerRepositoryMergeProfiles:
     """CustomerRepository.merge_profiles moves identities and events, soft-deletes source."""
 
     def test_merge_moves_identities(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -347,7 +347,7 @@ class TestCustomerRepositoryMergeProfiles:
         assert len(identities) == 2
 
     def test_merge_moves_journey_events(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -371,7 +371,7 @@ class TestCustomerRepositoryMergeProfiles:
         assert len(events) == 1
 
     def test_merge_soft_deletes_source(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -385,7 +385,7 @@ class TestCustomerRepositoryMergeProfiles:
         assert source.is_inactive is True
 
     def test_merge_carries_over_traits(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -409,7 +409,7 @@ class TestCustomerRepositoryCountByStage:
     """CustomerRepository.count_by_stage returns profile counts per lifecycle stage."""
 
     def test_count_subscribers(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -422,7 +422,7 @@ class TestCustomerRepositoryCountByStage:
         assert count == 2
 
     def test_count_empty_stage(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -440,7 +440,7 @@ class TestCustomerRepositoryToDomain:
     """CustomerRepository._to_domain converts model to domain object."""
 
     def test_to_domain_with_identities(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -456,7 +456,7 @@ class TestCustomerRepositoryToDomain:
         assert len(result.identities) == 1
 
     def test_to_domain_defaults_subscriber_stage(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -469,7 +469,7 @@ class TestCustomerRepositoryToDomain:
         assert result.lifecycle_stage == LifecycleStage.SUBSCRIBER
 
     def test_to_domain_defaults_zero_score(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
 
@@ -491,7 +491,7 @@ class TestJourneyEventRepositoryTrackEvent:
     """JourneyEventRepository.track_event persists events and updates last_activity_at."""
 
     def test_track_event_creates_record(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             JourneyEventRepository,
         )
 
@@ -511,7 +511,7 @@ class TestJourneyEventRepositoryTrackEvent:
         assert event.profile_id == profile.id
 
     def test_track_event_updates_last_activity(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             JourneyEventRepository,
         )
 
@@ -530,7 +530,7 @@ class TestJourneyEventRepositoryTrackEvent:
         assert profile.last_activity_at is not None
 
     def test_track_event_with_custom_timestamp(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             JourneyEventRepository,
         )
 
@@ -558,7 +558,7 @@ class TestJourneyEventRepositoryGetUniqueVisitors:
     """JourneyEventRepository.get_unique_visitors counts page_view events."""
 
     def test_count_page_views(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             JourneyEventRepository,
         )
 
@@ -581,7 +581,7 @@ class TestJourneyEventRepositoryGetUniqueVisitors:
         assert count == 3
 
     def test_does_not_count_non_page_view_events(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             JourneyEventRepository,
         )
 
@@ -603,7 +603,7 @@ class TestJourneyEventRepositoryGetUniqueVisitors:
         assert count == 0
 
     def test_returns_zero_on_exception(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
+        from luana_core_crm.infrastructure.repositories.customer_repository import (
             JourneyEventRepository,
         )
 
@@ -622,7 +622,7 @@ class TestCustomerServiceIdentify:
     """CustomerService.identify resolves existing profiles or creates new ones."""
 
     def test_identify_creates_new_profile_with_email(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 
@@ -640,7 +640,7 @@ class TestCustomerServiceIdentify:
         assert result.full_name == "New User"
 
     def test_identify_finds_existing_by_email(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 
@@ -658,7 +658,7 @@ class TestCustomerServiceIdentify:
         assert result.id == profile.id
 
     def test_identify_finds_existing_by_user_id(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 
@@ -675,7 +675,7 @@ class TestCustomerServiceIdentify:
         assert result.id == profile.id
 
     def test_identify_priority_user_id_over_email(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 
@@ -696,7 +696,7 @@ class TestCustomerServiceIdentify:
         assert result.id == profile_b.id
 
     def test_identify_creates_email_identity_on_new_profile(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 
@@ -723,7 +723,7 @@ class TestCustomerServiceTrackEvent:
     """CustomerService.track_event writes journey events and triggers scoring."""
 
     def test_track_event_creates_event_and_recalculates_score(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 
@@ -742,7 +742,7 @@ class TestCustomerServiceTrackEvent:
         assert event.properties == {"campaign": "welcome"}
 
     def test_track_event_with_none_properties(self, db: Session, tenant_id: uuid.UUID):
-        from src.modules.crm.application.services.customer_service import (
+        from luana_core_crm.application.services.customer_service import (
             CustomerService,
         )
 

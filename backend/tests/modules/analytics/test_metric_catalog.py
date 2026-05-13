@@ -3,8 +3,8 @@
 These are pure Python unit tests: no DB, no async, no mocking required.
 """
 
-from src.modules.analytics.domain.enums import AggregationType
-from src.modules.analytics.domain.metric_catalog import (
+from luana_core_analytics_engine.domain.enums import AggregationType
+from luana_core_analytics_engine.domain.metric_catalog import (
     METRIC_CATALOG,
     get_metric_def,
     is_additive,
@@ -91,11 +91,11 @@ def test_key_metric_classifications():
 
 def test_compute_channel_totals_excludes_non_additive():
     """compute_channel_totals must NEVER include NON_AGGREGABLE, WEIGHTED_AVERAGE, or DERIVED metrics."""
-    from src.modules.analytics.application.dto.attraction_dto import (
+    from luana_core_analytics_engine.application.dto.attraction_dto import (
         ChannelMetricDTO,
         MetricValueDTO,
     )
-    from src.modules.analytics.application.services.aggregation_helpers import (
+    from luana_core_analytics_engine.application.services.aggregation_helpers import (
         compute_channel_totals,
     )
 
@@ -141,7 +141,7 @@ def test_compute_channel_totals_excludes_non_additive():
 
 def test_no_duplicate_metric_names():
     """METRIC_CATALOG is built from a list — verify no name appears twice."""
-    from src.modules.analytics.domain.metric_catalog import (
+    from luana_core_analytics_engine.domain.metric_catalog import (
         _ADDITIVE,
         _DERIVED,
         _NON_AGGREGABLE,

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-from src.modules.brand.infrastructure.repositories.personality_repository import (
+from luana_core_brand_studio.infrastructure.repositories.personality_repository import (
     PersonalityProfileRepository,
 )
 from tests.modules.conftest import TENANT_A, TENANT_B

@@ -2,12 +2,11 @@
 
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.iam.api.dto.users import TenantSchema  # Keep DTO for API compatibility
-from src.modules.iam.infrastructure.repositories.user_tenant_repository import (
+from luana_core_iam.api.dto.users import TenantSchema  # Keep DTO for API compatibility
+from luana_core_iam.infrastructure.repositories.user_tenant_repository import (
     UserTenantRepository,
 )
+from sqlalchemy.orm import Session
 
 
 class UserService:

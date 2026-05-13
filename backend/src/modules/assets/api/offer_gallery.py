@@ -13,11 +13,10 @@ from fastapi import (
     HTTPException,
     UploadFile,
 )
+from luana_core_assets.application.assets_service import AssetsService
+from luana_core_assets.domain.schemas import AssetDto
+from luana_core_iam.api.dependencies import get_current_tenant_id, get_db
 from sqlalchemy.orm import Session
-
-from src.modules.assets.application.assets_service import AssetsService
-from src.modules.assets.domain.schemas import AssetDto
-from src.modules.iam.api.dependencies import get_current_tenant_id, get_db
 
 logger = structlog.get_logger()
 router = APIRouter()

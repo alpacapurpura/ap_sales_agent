@@ -5,16 +5,15 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import func as sa_func
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.models.nps_models import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import CustomerProfileModel
+from luana_core_crm.infrastructure.models.nps_models import (
     NpsResponseModel,
     NpsSurveyModel,
 )
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

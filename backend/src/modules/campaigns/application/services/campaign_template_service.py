@@ -10,21 +10,19 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
+from luana_core_campaigns.domain.enums import StepType
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.modules.campaigns.domain.enums import StepType
-
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.modules.campaigns.application.dtos.campaign_template_dtos import (
+    from luana_core_campaigns.application.dtos.campaign_template_dtos import (
         CampaignCreateFromTemplate,
     )
-    from src.modules.campaigns.application.services.cache import CacheBackend
-    from src.modules.campaigns.application.services.campaign_service import CampaignService
-    from src.modules.campaigns.domain.campaign import Campaign
-    from src.modules.campaigns.domain.campaign_template import CampaignTemplate
-    from src.modules.campaigns.domain.repositories import CampaignTemplateRepository
+    from luana_core_campaigns.application.services.cache import CacheBackend
+    from luana_core_campaigns.application.services.campaign_service import CampaignService
+    from luana_core_campaigns.domain.campaign import Campaign
+    from luana_core_campaigns.domain.campaign_template import CampaignTemplate
+    from luana_core_campaigns.domain.repositories import CampaignTemplateRepository
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 
@@ -134,8 +132,8 @@ class CampaignTemplateService:
         """
         from uuid import uuid4
 
-        from src.modules.campaigns.application.dtos.campaign_dtos import CampaignCreate
-        from src.modules.campaigns.application.dtos.campaign_step_dtos import CampaignStepCreate
+        from luana_core_campaigns.application.dtos.campaign_dtos import CampaignCreate
+        from luana_core_campaigns.application.dtos.campaign_step_dtos import CampaignStepCreate
 
         # 1. Load template (raises 404 if not found)
         tpl = await self.get(tenant_id, template_id, session=session)

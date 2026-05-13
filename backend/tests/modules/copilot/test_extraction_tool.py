@@ -20,8 +20,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.core.context import set_tenant_id
-from src.modules.copilot.application.tools.extraction_tools import (
+from luana_core_platform.core.context import set_tenant_id
+from luana_core_copilot.application.tools.extraction_tools import (
     EXTRACTION_TOOLS,
     extract_from_url,
 )
@@ -43,11 +43,11 @@ def mock_arq_pool(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     pool = MagicMock()
     pool.enqueue_job = AsyncMock(return_value=MagicMock(job_id="arq-id"))
     monkeypatch.setattr(
-        "src.modules.copilot.application.tools.extraction_tools.get_arq_pool",
+        "luana_core_copilot.application.tools.extraction_tools.get_arq_pool",
         lambda: pool,
     )
     monkeypatch.setattr(
-        "src.modules.copilot.application.tools.extraction_tools.redis_client",
+        "luana_core_copilot.application.tools.extraction_tools.redis_client",
         MagicMock(setex=MagicMock()),
     )
     return pool
@@ -175,7 +175,7 @@ class TestValidation:
 
     async def test_missing_arq_pool_returns_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "src.modules.copilot.application.tools.extraction_tools.get_arq_pool",
+            "luana_core_copilot.application.tools.extraction_tools.get_arq_pool",
             lambda: None,
         )
         result = await extract_from_url.ainvoke(
@@ -210,7 +210,7 @@ class TestToolRegistration:
         assert "extract_from_url" in names
 
     def test_registry_exposes_extraction_group(self) -> None:
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         assert "extraction" in TOOL_GROUPS
         names = {t.name for t in TOOL_GROUPS["extraction"]}
@@ -224,7 +224,7 @@ class TestToolRegistration:
         ],
     )
     def test_bound_in_brand_and_offer_studio(self, route: str) -> None:
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             get_tool_names_for_route,
         )
 

@@ -6,13 +6,13 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from src.modules.connections.api.shopify import (
+from luana_core_connections.api.shopify import (
     ShopifyExchangeRequest,
     auth_callback,
     exchange_shopify_token,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
 
@@ -44,15 +44,15 @@ async def test_exchange_resuelve_tenant_por_shop_sin_state():
 
     with (
         patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.verify_hmac",
+            "luana_core_connections.api.shopify.ShopifyConnector.verify_hmac",
             return_value=True,
         ),
         patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.exchange_token",
+            "luana_core_connections.api.shopify.ShopifyConnector.exchange_token",
             new=AsyncMock(return_value=("token_permanente", None)),
         ),
         patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+            "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
             new=AsyncMock(return_value=(True, {"domain": "mi-tienda.myshopify.com"})),
         ),
     ):
@@ -79,7 +79,7 @@ async def test_exchange_falla_si_no_hay_tenant_por_shop():
 
     with (
         patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.verify_hmac",
+            "luana_core_connections.api.shopify.ShopifyConnector.verify_hmac",
             return_value=True,
         ),
         pytest.raises(HTTPException) as exc_info,
@@ -103,18 +103,18 @@ async def test_callback_publico_permite_state_ausente():
 
     with (
         patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.verify_hmac",
+            "luana_core_connections.api.shopify.ShopifyConnector.verify_hmac",
             return_value=True,
         ),
         patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.exchange_token",
+            "luana_core_connections.api.shopify.ShopifyConnector.exchange_token",
             new=AsyncMock(return_value=("token_permanente", None)),
         ),
         patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+            "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
             new=AsyncMock(return_value=(True, {"domain": "mi-tienda.myshopify.com"})),
         ),
-        patch("src.modules.connections.api.shopify.settings") as mock_settings,
+        patch("luana_core_connections.api.shopify.settings") as mock_settings,
     ):
         mock_settings.DASHBOARD_DOMAIN = "http://localhost:3000"
         response = await auth_callback(request=request, repo=repo)

@@ -10,11 +10,11 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from src.modules.copilot.application.orchestrator.subagents import (
+from luana_core_copilot.application.orchestrator.subagents import (
     DATA_QUERY_SUBAGENT,
 )
-from src.modules.copilot.application.tools.ask_tenant_data import ask_tenant_data
-from src.modules.copilot.application.tools.registry import (
+from luana_core_copilot.application.tools.ask_tenant_data import ask_tenant_data
+from luana_core_copilot.application.tools.registry import (
     ALWAYS_AVAILABLE_GROUPS,
     TOOL_GROUPS,
 )
@@ -68,8 +68,8 @@ def _imports_in(path: Path) -> set[str]:
 def test_pipeline_does_not_import_mutation_tools() -> None:
     """The deterministic pipeline must NOT import any mutation surface."""
     forbidden = (
-        "src.modules.copilot.application.tools.mutations",
-        "src.modules.copilot.application.tools.extraction_tools",
+        "luana_core_copilot.application.tools.mutations",
+        "luana_core_copilot.application.tools.extraction_tools",
     )
     for py in PIPELINE_DIR.glob("*.py"):
         imports = _imports_in(py)
@@ -88,7 +88,7 @@ def test_pipeline_does_not_import_other_module_repos() -> None:
         imports = _imports_in(py)
         for module_path in imports:
             if module_path.startswith("src.modules.") and not module_path.startswith(
-                "src.modules.copilot",
+                "luana_core_copilot",
             ):
                 msg = (
                     f"{py.name} imports {module_path} directly. Cross-module reads must go through DataAccessProvider."

@@ -1,10 +1,10 @@
 """Tests for Website channel dashboard configuration and benchmarks."""
 
-from src.modules.analytics.application.services.channel_dashboard_service import (
+from luana_core_analytics_engine.application.services.channel_dashboard_service import (
     _CHANNEL_CONFIGS,
     _CHANNEL_NAMES,
 )
-from src.modules.analytics.domain.industry_benchmarks import (
+from luana_core_analytics_engine.domain.industry_benchmarks import (
     IndustryCategory,
     get_benchmarks,
 )

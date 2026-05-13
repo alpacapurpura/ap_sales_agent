@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from src.modules.crm.domain.lead import Lead, UserProfile
-from src.modules.crm.infrastructure.repositories.lead_repository import LeadRepository
+from luana_core_crm.domain.lead import Lead, UserProfile
+from luana_core_crm.infrastructure.repositories.lead_repository import LeadRepository
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -79,10 +79,10 @@ class PipelineService:
 
         Delegates to LifecycleService.force_stage for audit trail and validation.
         """
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
-        from src.modules.crm.domain.enums import LifecycleStage
+        from luana_core_crm.domain.enums import LifecycleStage
 
         stage = LifecycleStage(new_stage)
         svc = LifecycleService(self.db)

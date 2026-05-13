@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.skills.skill_definition import SkillDefinition
+    from luana_core_copilot.domain.skills.skill_definition import SkillDefinition
 
 
 class SkillLoadError(Exception):

@@ -13,13 +13,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.copilot.domain.workflow import (
+from luana_core_copilot.domain.workflow import (
     Workflow,
     WorkflowNode,
     WorkflowTrigger,
 )
+from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -47,17 +46,17 @@ DESIGN_OFFER_FROM_URL = Workflow(
     nodes=(
         WorkflowNode(
             id="extract_url",
-            handler_ref="src.modules.offer.copilot_provider.workflow_handlers:extract_url",
+            handler_ref="luana_core_offer_studio.copilot_provider.workflow_handlers:extract_url",
             next="ask_clarifications",
         ),
         WorkflowNode(
             id="ask_clarifications",
-            handler_ref="src.modules.offer.copilot_provider.workflow_handlers:ask_clarifications",
+            handler_ref="luana_core_offer_studio.copilot_provider.workflow_handlers:ask_clarifications",
             next="propose_offer",
         ),
         WorkflowNode(
             id="propose_offer",
-            handler_ref="src.modules.offer.copilot_provider.workflow_handlers:propose_offer",
+            handler_ref="luana_core_offer_studio.copilot_provider.workflow_handlers:propose_offer",
         ),
     ),
     state_schema=OfferDesignFromUrlState,

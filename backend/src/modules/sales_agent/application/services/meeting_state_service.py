@@ -25,19 +25,17 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+    AgentStateCheckpointModel,
+)
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
-    AgentStateCheckpointModel,
-)
-
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
-
-    from src.modules.sales_agent.application.tools.scheduling.providers import (
+    from luana_core_sales_agent.application.tools.scheduling.providers import (
         BookingLinkOutput,
     )
+    from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

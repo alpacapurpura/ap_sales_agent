@@ -11,7 +11,7 @@ backend_dir = (current_dir / "../../../../").resolve()
 sys.path.append(str(backend_dir))
 
 try:
-    from src.modules.brand.domain.models import BrandSettings
+    from luana_core_brand_studio.domain.models import BrandSettings
 except ImportError as e:
     print(f"ImportError: {e}")
     # Try alternate import if running from root

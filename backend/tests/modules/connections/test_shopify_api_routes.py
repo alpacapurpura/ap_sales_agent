@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.connections.api.shopify import (
+from luana_core_connections.api.shopify import (
     ShopifyAuthUrlRequest,
     ShopifyExchangeRequest,
     _resolve_tenant_id,
@@ -16,7 +16,7 @@ from src.modules.connections.api.shopify import (
     get_shopify_status,
     quick_connect_shopify,
 )
-from src.modules.connections.api.shopify import (
+from luana_core_connections.api.shopify import (
     test_shopify_connection as shopify_test_connection,
 )
 
@@ -123,9 +123,9 @@ class TestGenerateAuthUrl:
         req = ShopifyAuthUrlRequest(shop_url="mystore.myshopify.com")
 
         with (
-            patch("src.modules.connections.api.shopify.settings") as mock_settings,
+            patch("luana_core_connections.api.shopify.settings") as mock_settings,
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.get_auth_url",
+                "luana_core_connections.api.shopify.ShopifyConnector.get_auth_url",
                 return_value="https://mystore.myshopify.com/admin/oauth/authorize?...",
             ) as mock_get,
         ):
@@ -147,9 +147,9 @@ class TestGenerateAuthUrl:
             return "https://shopify.com/auth"
 
         with (
-            patch("src.modules.connections.api.shopify.settings") as mock_settings,
+            patch("luana_core_connections.api.shopify.settings") as mock_settings,
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.get_auth_url", side_effect=_capture_get_auth_url
+                "luana_core_connections.api.shopify.ShopifyConnector.get_auth_url", side_effect=_capture_get_auth_url
             ),
         ):
             mock_settings.DASHBOARD_DOMAIN = "http://localhost:3000"
@@ -172,7 +172,7 @@ class TestExchangeShopifyToken:
         req = ShopifyExchangeRequest(code="code1", shop="test.myshopify.com", hmac="bad")
 
         with (
-            patch("src.modules.connections.api.shopify.ShopifyConnector.verify_hmac", return_value=False),
+            patch("luana_core_connections.api.shopify.ShopifyConnector.verify_hmac", return_value=False),
             pytest.raises(HTTPException) as exc_info,
         ):
             await exchange_shopify_token(req, repo)
@@ -187,9 +187,9 @@ class TestExchangeShopifyToken:
         req = ShopifyExchangeRequest(code="code1", shop="test.myshopify.com", hmac="sig", state=str(TENANT_ID))
 
         with (
-            patch("src.modules.connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
+            patch("luana_core_connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.exchange_token",
+                "luana_core_connections.api.shopify.ShopifyConnector.exchange_token",
                 new_callable=AsyncMock,
                 return_value=(None, "token error"),
             ),
@@ -206,14 +206,14 @@ class TestExchangeShopifyToken:
         req = ShopifyExchangeRequest(code="code1", shop="test.myshopify.com", hmac="sig", state=str(TENANT_ID))
 
         with (
-            patch("src.modules.connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
+            patch("luana_core_connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.exchange_token",
+                "luana_core_connections.api.shopify.ShopifyConnector.exchange_token",
                 new_callable=AsyncMock,
                 return_value=("token", None),
             ),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+                "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
                 new_callable=AsyncMock,
                 return_value=(False, {}),
             ),
@@ -229,14 +229,14 @@ class TestExchangeShopifyToken:
         req = ShopifyExchangeRequest(code="code1", shop="test.myshopify.com", hmac="sig", state=str(TENANT_ID))
 
         with (
-            patch("src.modules.connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
+            patch("luana_core_connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.exchange_token",
+                "luana_core_connections.api.shopify.ShopifyConnector.exchange_token",
                 new_callable=AsyncMock,
                 return_value=("access_token", None),
             ),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+                "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
                 new_callable=AsyncMock,
                 return_value=(True, shop_details),
             ),
@@ -266,7 +266,7 @@ class TestAuthCallback:
         request = self._make_request({"shop": "s.myshopify.com", "code": "c", "hmac": "bad"})
 
         with (
-            patch("src.modules.connections.api.shopify.ShopifyConnector.verify_hmac", return_value=False),
+            patch("luana_core_connections.api.shopify.ShopifyConnector.verify_hmac", return_value=False),
             pytest.raises(HTTPException) as exc_info,
         ):
             await auth_callback(request, repo)
@@ -280,7 +280,7 @@ class TestAuthCallback:
         request = self._make_request({"hmac": "sig"})
 
         with (
-            patch("src.modules.connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
+            patch("luana_core_connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
             pytest.raises(HTTPException) as exc_info,
         ):
             await auth_callback(request, repo)
@@ -296,18 +296,18 @@ class TestAuthCallback:
         )
 
         with (
-            patch("src.modules.connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
+            patch("luana_core_connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.exchange_token",
+                "luana_core_connections.api.shopify.ShopifyConnector.exchange_token",
                 new_callable=AsyncMock,
                 return_value=("token", None),
             ),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+                "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
                 new_callable=AsyncMock,
                 return_value=(True, {"name": "Store"}),
             ),
-            patch("src.modules.connections.api.shopify.settings") as mock_settings,
+            patch("luana_core_connections.api.shopify.settings") as mock_settings,
         ):
             mock_settings.DASHBOARD_DOMAIN = "https://app.nicolify.com"
             result = await auth_callback(request, repo)
@@ -324,18 +324,18 @@ class TestAuthCallback:
         )
 
         with (
-            patch("src.modules.connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
+            patch("luana_core_connections.api.shopify.ShopifyConnector.verify_hmac", return_value=True),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.exchange_token",
+                "luana_core_connections.api.shopify.ShopifyConnector.exchange_token",
                 new_callable=AsyncMock,
                 return_value=("token", None),
             ),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+                "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
                 new_callable=AsyncMock,
                 return_value=(True, {}),
             ),
-            patch("src.modules.connections.api.shopify.settings") as mock_settings,
+            patch("luana_core_connections.api.shopify.settings") as mock_settings,
             pytest.raises(HTTPException) as exc_info,
         ):
             mock_settings.DASHBOARD_DOMAIN = None
@@ -357,12 +357,12 @@ class TestQuickConnectShopify:
 
         with (
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.client_credentials_token",
+                "luana_core_connections.api.shopify.ShopifyConnector.client_credentials_token",
                 new_callable=AsyncMock,
                 return_value=("token", None),
             ),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+                "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
                 new_callable=AsyncMock,
                 return_value=(True, {}),
             ),
@@ -382,7 +382,7 @@ class TestQuickConnectShopify:
 
         with (
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.client_credentials_token",
+                "luana_core_connections.api.shopify.ShopifyConnector.client_credentials_token",
                 new_callable=AsyncMock,
                 return_value=(None, "auth error"),
             ),
@@ -401,12 +401,12 @@ class TestQuickConnectShopify:
 
         with (
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.client_credentials_token",
+                "luana_core_connections.api.shopify.ShopifyConnector.client_credentials_token",
                 new_callable=AsyncMock,
                 return_value=("token", None),
             ),
             patch(
-                "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+                "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
                 new_callable=AsyncMock,
                 return_value=(False, {}),
             ),
@@ -476,7 +476,7 @@ class TestTestShopifyConnection:
         repo.get_active.return_value = conn
 
         with patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+            "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
             new_callable=AsyncMock,
             return_value=(True, {"name": "Store"}),
         ):
@@ -492,7 +492,7 @@ class TestTestShopifyConnection:
         repo.get_active.return_value = conn
 
         with patch(
-            "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
+            "luana_core_connections.api.shopify.ShopifyConnector.verify_connection",
             new_callable=AsyncMock,
             return_value=(False, {"error": "bad token"}),
         ):

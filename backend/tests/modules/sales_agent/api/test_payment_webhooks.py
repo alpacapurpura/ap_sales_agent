@@ -38,7 +38,7 @@ class FakePaymentWebhookProvider:
         return hmac.compare_digest(sig, expected)
 
     def parse_payload(self, payload: dict[str, Any]):
-        from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+        from luana_core_sales_agent.application.tools.payment.webhook_providers import (
             ParsedPaymentWebhookEvent,
             PaymentWebhookEventType,
         )
@@ -57,7 +57,7 @@ class FakePaymentWebhookProvider:
 
 @pytest.fixture(autouse=True)
 def _register_fake_provider(monkeypatch):
-    from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+    from luana_core_sales_agent.application.tools.payment.webhook_providers import (
         PAYMENT_WEBHOOK_PROVIDERS,
         register_payment_webhook_provider,
     )
@@ -71,8 +71,8 @@ def _register_fake_provider(monkeypatch):
 
 @pytest.fixture
 def client(db):
-    from src.core.database import get_db
-    from src.modules.sales_agent.api import payment_webhooks
+    from luana_core_platform.core.database import get_db
+    from luana_core_sales_agent.api import payment_webhooks
 
     app = FastAPI()
     app.include_router(payment_webhooks.router, prefix="/api/v1/sales-agent")
@@ -149,7 +149,7 @@ def test_replay_returns_duplicate(client, db) -> None:
 
 
 def test_webhook_persists_to_dedup_table(client, db) -> None:
-    from src.modules.sales_agent.infrastructure.models.payment_webhook_event_model import (
+    from luana_core_sales_agent.infrastructure.models.payment_webhook_event_model import (
         PaymentWebhookEventModel,
     )
 

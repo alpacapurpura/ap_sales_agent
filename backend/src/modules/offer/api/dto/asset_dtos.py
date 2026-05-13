@@ -10,13 +10,12 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     AssetSource,
     AssetStatus,
     AssetType,
 )
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class OfferAssetResponse(BaseModel):

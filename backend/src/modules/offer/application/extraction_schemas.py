@@ -21,7 +21,7 @@ Wave assignment:
 
 from __future__ import annotations
 
-from src.modules.offer.domain.offer import (
+from luana_core_offer_studio.domain.offer import (
     ObjectionItem,
     OfferClosingUpdate,
     OfferDetailsUpdate,

@@ -4,10 +4,10 @@ import uuid
 
 import pytest
 
-from src.modules.landing.domain.content import LandingPageConfig, SqueezeContent
-from src.modules.landing.domain.enums import LandingPageArchetype
-from src.modules.landing.domain.landing_page import LandingPage
-from src.modules.landing.infrastructure.repositories.landing_repository import (
+from luana_core_landing.domain.content import LandingPageConfig, SqueezeContent
+from luana_core_landing.domain.enums import LandingPageArchetype
+from luana_core_landing.domain.landing_page import LandingPage
+from luana_core_landing.infrastructure.repositories.landing_repository import (
     LandingRepository,
 )
 
@@ -151,7 +151,7 @@ class TestSoftDelete:
 
         from sqlalchemy import select
 
-        from src.modules.landing.infrastructure.models.landing_model import (
+        from luana_core_landing.infrastructure.models.landing_model import (
             LandingPageModel,
         )
 
@@ -173,7 +173,7 @@ class TestSoftDelete:
 
         from sqlalchemy import select
 
-        from src.modules.landing.infrastructure.models.landing_model import (
+        from luana_core_landing.infrastructure.models.landing_model import (
             LandingPageModel,
         )
 
@@ -193,7 +193,7 @@ class TestSoftDelete:
 
         from sqlalchemy import select
 
-        from src.modules.landing.infrastructure.models.landing_model import (
+        from luana_core_landing.infrastructure.models.landing_model import (
             LandingPageModel,
         )
 

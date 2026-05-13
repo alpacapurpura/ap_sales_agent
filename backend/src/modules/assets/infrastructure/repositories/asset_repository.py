@@ -2,12 +2,11 @@
 
 from uuid import UUID
 
+from luana_core_assets.domain.entity import Asset
+from luana_core_assets.infrastructure.models.asset_model import AssetModel
+from luana_core_platform.domain.datetime_utils import utc_now
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.modules.assets.domain.entity import Asset
-from src.modules.assets.infrastructure.models.asset_model import AssetModel
-from src.shared.domain.datetime_utils import utc_now
 
 
 class AssetRepository:

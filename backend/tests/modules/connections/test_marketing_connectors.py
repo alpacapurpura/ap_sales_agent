@@ -4,13 +4,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.connections.infrastructure.marketing_connectors.mailerlite import (
+from luana_core_connections.infrastructure.marketing_connectors.mailerlite import (
     MailerliteConnector,
 )
-from src.modules.connections.infrastructure.marketing_connectors.manychat import (
+from luana_core_connections.infrastructure.marketing_connectors.manychat import (
     ManyChatConnector,
 )
-from src.modules.connections.infrastructure.marketing_connectors.shopify import (
+from luana_core_connections.infrastructure.marketing_connectors.shopify import (
     ShopifyConnector,
 )
 
@@ -30,20 +30,20 @@ def _mock_http(status_code: int, json_data: dict | None = None, text: str = ""):
 
 class TestShopifyGetAuthUrl:
     def test_returns_auth_url_with_domain(self):
-        with patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings:
             mock_settings.SHOPIFY_API_KEY = "test_key"
             url = ShopifyConnector.get_auth_url("mystore.myshopify.com", "state_xyz", "https://example.com/callback")
         assert "mystore.myshopify.com" in url
         assert "state_xyz" in url
 
     def test_appends_myshopify_com_when_missing(self):
-        with patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings:
             mock_settings.SHOPIFY_API_KEY = "test_key"
             url = ShopifyConnector.get_auth_url("mystore", "state", "https://example.com/cb")
         assert "mystore.myshopify.com" in url
 
     def test_strips_https_prefix(self):
-        with patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings:
             mock_settings.SHOPIFY_API_KEY = "test_key"
             url = ShopifyConnector.get_auth_url("https://mystore.myshopify.com/", "state", "https://cb.example.com")
         assert "mystore.myshopify.com" in url
@@ -52,7 +52,7 @@ class TestShopifyGetAuthUrl:
 
 class TestShopifyVerifyHmac:
     def test_returns_false_when_no_hmac(self):
-        with patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings:
+        with patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings:
             mock_settings.SHOPIFY_API_SECRET = "test_secret"
             result = ShopifyConnector.verify_hmac({"shop": "store.myshopify.com"})
         assert result is False
@@ -63,7 +63,7 @@ class TestShopifyExchangeToken:
     async def test_returns_token_on_success(self):
         ok_resp = _mock_http(200, {"access_token": "shpat_abc123"})
         with (
-            patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.SHOPIFY_API_KEY = "k"
@@ -79,7 +79,7 @@ class TestShopifyExchangeToken:
     async def test_returns_error_on_non_200(self):
         fail_resp = _mock_http(400, {}, "invalid code")
         with (
-            patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.SHOPIFY_API_KEY = "k"
@@ -96,7 +96,7 @@ class TestShopifyExchangeToken:
         import httpx
 
         with (
-            patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.SHOPIFY_API_KEY = "k"
@@ -114,7 +114,7 @@ class TestShopifyClientCredentials:
     async def test_returns_token_on_success(self):
         ok_resp = _mock_http(200, {"access_token": "token_cc"})
         with (
-            patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.SHOPIFY_API_KEY = "k"
@@ -129,7 +129,7 @@ class TestShopifyClientCredentials:
     async def test_returns_error_on_failure(self):
         fail_resp = _mock_http(401, {}, "unauthorized")
         with (
-            patch("src.modules.connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.marketing_connectors.shopify.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.SHOPIFY_API_KEY = "k"

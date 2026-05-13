@@ -25,10 +25,10 @@ from uuid import UUID, uuid4
 import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.lead import Lead
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
+from luana_core_crm.domain.lead import Lead
+from luana_core_crm.infrastructure.models.customer_model import CustomerProfileModel
+from luana_core_crm.infrastructure.models.lead_model import LeadModel
+from luana_core_crm.infrastructure.repositories.lead_metrics_repository import (
     LeadRepository,
 )
 

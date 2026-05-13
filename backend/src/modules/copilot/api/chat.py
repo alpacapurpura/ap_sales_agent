@@ -5,15 +5,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from luana_core_copilot.api.dto import CopilotChatRequest
+from luana_core_copilot.application.orchestrator.chat import CopilotOrchestrator
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.context import set_user_id
+from luana_core_platform.core.database import get_db
+from luana_core_platform.core.rate_limit import check_rate_limit
 from sqlalchemy.orm import Session
-
-from src.core.context import set_user_id
-from src.core.database import get_db
-from src.core.rate_limit import check_rate_limit
-from src.modules.copilot.api.dto import CopilotChatRequest
-from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
-from src.modules.iam.domain.user import User
 
 router = APIRouter()
 

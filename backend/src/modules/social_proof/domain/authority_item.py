@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
-from uuid import UUID
+from typing import TYPE_CHECKING
 
+from luana_core_platform.domain.base_entity import BaseEntity
 from pydantic import Field
 
-from src.modules.social_proof.domain.enums import AuthorityType
-from src.shared.domain.base_entity import BaseEntity
+if TYPE_CHECKING:
+    from datetime import date, datetime
+    from uuid import UUID
+
+    from luana_core_social_proof.domain.enums import AuthorityType
 
 
 class AuthorityItem(BaseEntity):

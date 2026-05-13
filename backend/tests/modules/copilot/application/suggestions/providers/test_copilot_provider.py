@@ -31,7 +31,7 @@ def _ctx(
     recent_message_ids=(),
     tenant_id=None,
 ):
-    from src.modules.copilot.domain.suggestion import SuggestionContext
+    from luana_core_copilot.domain.suggestion import SuggestionContext
 
     return SuggestionContext(
         tenant_id=tenant_id or _TENANT,
@@ -44,14 +44,14 @@ def _ctx(
 
 def _mock_module_registry(route_prefixes: list[str] | None = None) -> dict:
     """Return a mock module registry dict."""
-    from src.modules.copilot.domain.module_registry import ModuleDescriptor
+    from luana_core_copilot.domain.module_registry import ModuleDescriptor
 
     prefixes = route_prefixes or ["brand-studio", "offer-studio", "sales", "growth-studio"]
     return {prefix: MagicMock(spec=ModuleDescriptor, route_prefix=prefix) for prefix in prefixes}
 
 
 def _mock_brand_port(brand_data: dict | None = None, personality_present: bool = True) -> MagicMock:
-    from src.shared.links.ports.brand import BrandKnowledgeDTO
+    from luana_core_platform.links.ports.brand import BrandKnowledgeDTO
 
     port = MagicMock()
     port.get_brand_knowledge.return_value = BrandKnowledgeDTO(
@@ -74,7 +74,7 @@ def _mock_offer_repo(offer_count: int = 1) -> MagicMock:
 class TestCopilotProviderMetadata:
     def test_copilot_provider_metadata(self) -> None:
         """provider_id=copilot, priority=5, applies_to_routes=() (always active)."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
@@ -87,7 +87,7 @@ class TestCopilotProviderMetadata:
 class TestCopilotProviderRules:
     def test_copilot_provider_no_conversation_emits_first_chat_chip(self) -> None:
         """conversation_id is None → 'Empieza tu primer chat' chip."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
@@ -96,19 +96,19 @@ class TestCopilotProviderRules:
         offer_repo = _mock_offer_repo(offer_count=1)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_module_registry",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_module_registry",
                 return_value=registry,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.copilot.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.copilot.create_brand_data_port",
                 return_value=brand_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_offer_repository",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_offer_repository",
                 return_value=offer_repo,
             ),
         ):
@@ -122,7 +122,7 @@ class TestCopilotProviderRules:
 
     def test_copilot_provider_empty_conversation_emits_resume_chip(self) -> None:
         """conv_id set + recent_message_ids=() → 'Retoma' chip."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
@@ -132,19 +132,19 @@ class TestCopilotProviderRules:
         conv_id = uuid4()
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_module_registry",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_module_registry",
                 return_value=registry,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.copilot.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.copilot.create_brand_data_port",
                 return_value=brand_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_offer_repository",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_offer_repository",
                 return_value=offer_repo,
             ),
         ):
@@ -158,7 +158,7 @@ class TestCopilotProviderRules:
 
     def test_copilot_provider_no_route_emits_explore_chip(self) -> None:
         """current_route=None → 'Explorar capacidades' chip."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
@@ -167,19 +167,19 @@ class TestCopilotProviderRules:
         offer_repo = _mock_offer_repo(offer_count=1)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_module_registry",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_module_registry",
                 return_value=registry,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.copilot.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.copilot.create_brand_data_port",
                 return_value=brand_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_offer_repository",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_offer_repository",
                 return_value=offer_repo,
             ),
         ):
@@ -194,7 +194,7 @@ class TestCopilotProviderRules:
 
     def test_copilot_provider_unknown_route_emits_navigate_back_chip(self) -> None:
         """route=unknown-x + registry no match → 'Volver' chip."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
@@ -203,19 +203,19 @@ class TestCopilotProviderRules:
         offer_repo = _mock_offer_repo(offer_count=1)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_module_registry",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_module_registry",
                 return_value=registry,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.copilot.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.copilot.create_brand_data_port",
                 return_value=brand_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_offer_repository",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_offer_repository",
                 return_value=offer_repo,
             ),
         ):
@@ -231,7 +231,7 @@ class TestCopilotProviderRules:
 
     def test_copilot_provider_low_setup_emits_onboarding_chip(self) -> None:
         """count_completed_modules <= 1 → 'Completa tu setup' chip."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
@@ -241,19 +241,19 @@ class TestCopilotProviderRules:
         offer_repo = _mock_offer_repo(offer_count=0)  # no offers
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_module_registry",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_module_registry",
                 return_value=registry,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.copilot.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.copilot.create_brand_data_port",
                 return_value=brand_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_offer_repository",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_offer_repository",
                 return_value=offer_repo,
             ),
         ):
@@ -270,25 +270,25 @@ class TestCopilotProviderRules:
 
     def test_copilot_provider_exception_returns_empty_list(self) -> None:
         """Exception in any internal call → returns []."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_module_registry",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_module_registry",
                 side_effect=RuntimeError("registry unavailable"),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.copilot.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.copilot.create_brand_data_port",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_offer_repository",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_offer_repository",
                 return_value=MagicMock(),
             ),
         ):
@@ -299,7 +299,7 @@ class TestCopilotProviderRules:
 
     def test_copilot_provider_tenant_isolation(self) -> None:
         """Every DB read uses ctx.tenant_id — no cross-tenant leak."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
@@ -309,19 +309,19 @@ class TestCopilotProviderRules:
         offer_repo = _mock_offer_repo(offer_count=1)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_module_registry",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_module_registry",
                 return_value=registry,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.copilot.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.copilot.create_brand_data_port",
                 return_value=brand_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_offer_repository",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_offer_repository",
                 return_value=offer_repo,
             ),
         ):
@@ -337,7 +337,7 @@ class TestCopilotProviderRules:
 class TestCopilotProviderSpanishNeutro:
     def test_no_voseo_in_chips(self) -> None:
         """All chip labels/prompts respect Spanish neutro LatAm."""
-        from src.modules.copilot.application.suggestions.providers.copilot import (
+        from luana_core_copilot.application.suggestions.providers.copilot import (
             CopilotSuggestionProvider,
         )
 
@@ -346,19 +346,19 @@ class TestCopilotProviderSpanishNeutro:
         offer_repo = _mock_offer_repo(offer_count=0)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_module_registry",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_module_registry",
                 return_value=registry,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.copilot.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.copilot.create_brand_data_port",
                 return_value=brand_port,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.copilot.get_offer_repository",
+                "luana_core_copilot.application.suggestions.providers.copilot.get_offer_repository",
                 return_value=offer_repo,
             ),
         ):

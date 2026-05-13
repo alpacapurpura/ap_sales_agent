@@ -726,8 +726,8 @@ async def test_db_session_propagated_to_agent_bridge_via_contextvar(
     # Patch the agent_bridge's lazy imports so the bridge does NOT crash
     # downstream after the session is resolved (we only care about whether
     # the resolver returns the injected session).
-    from src.modules.sales_agent.application.orchestrator import graph as graph_mod
-    from src.modules.sales_agent.application.services import (
+    from luana_core_sales_agent.application.orchestrator import graph as graph_mod
+    from luana_core_sales_agent.application.services import (
         knowledge_builder as kb_mod,
     )
     from tests.agentic_evals.sales_agent.simulator._internal import (

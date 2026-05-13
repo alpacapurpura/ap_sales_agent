@@ -15,16 +15,22 @@ def _run(coro):
 
 
 def _make_svc(cache=None):
-    from src.modules.analytics.application.services.metrics_service import MetricsService
+    from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
     db = MagicMock()
     db.execute.return_value.scalar.return_value = 0
     db.execute.return_value.all.return_value = []
 
     with (
-        patch("src.modules.analytics.application.services.metrics_service.get_journey_event_repository") as MockJourney,
-        patch("src.modules.analytics.application.services.metrics_service.get_customer_repository") as MockCustomer,
-        patch("src.modules.analytics.application.services.metrics_service.get_lead_metrics_repository") as MockLead,
+        patch(
+            "luana_core_analytics_engine.application.services.metrics_service.get_journey_event_repository"
+        ) as MockJourney,
+        patch(
+            "luana_core_analytics_engine.application.services.metrics_service.get_customer_repository"
+        ) as MockCustomer,
+        patch(
+            "luana_core_analytics_engine.application.services.metrics_service.get_lead_metrics_repository"
+        ) as MockLead,
     ):
         journey_repo = MagicMock()
         journey_repo.get_unique_visitors.return_value = 0
@@ -146,7 +152,7 @@ class TestGetBowtiesSummary:
         svc.lead_repo.count_total.return_value = 0
 
         with patch(
-            "src.modules.analytics.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
         ) as MockSales:
             MockSales.return_value.get_sales_summary.return_value = []
             result = _run(svc.get_bowtie_summary(TENANT_ID))
@@ -160,7 +166,7 @@ class TestGetBowtiesSummary:
         svc.lead_repo.count_total.return_value = 0
 
         with patch(
-            "src.modules.analytics.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
         ) as MockSales:
             MockSales.return_value.get_sales_summary.return_value = []
             result = _run(svc.get_bowtie_summary(TENANT_ID))
@@ -234,7 +240,7 @@ class TestKpiBuilders:
     def test_build_sales_kpi_no_cache(self):
         svc, _db = _make_svc()
         with patch(
-            "src.modules.analytics.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
         ) as MockSales:
             MockSales.return_value.get_sales_summary.return_value = []
             kpi = svc._build_sales_kpi(TENANT_ID, None)
@@ -262,14 +268,14 @@ class TestKpiBuilders:
         assert kpi.secondary_kpi == 10  # new_customers
 
     def test_build_adoption_kpi_no_cache(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         kpi = MetricsService._build_adoption_kpi(None)
         assert kpi.stage == "adoption"
         assert kpi.main_kpi == 0
 
     def test_build_adoption_kpi_from_cache(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         cache = {
             "header_kpis": {"health_pct": 72.0, "active_customers": 15},
@@ -279,14 +285,14 @@ class TestKpiBuilders:
         assert kpi.main_kpi == 72.0
 
     def test_build_expansion_kpi_no_cache(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         kpi = MetricsService._build_expansion_kpi(None)
         assert kpi.stage == "expansion"
         assert kpi.main_kpi == 0
 
     def test_build_expansion_kpi_from_cache(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         cache = {"header_kpis": {"net_mrr": 3000.0, "churn_rate_pct": 2.5}}
         kpi = MetricsService._build_expansion_kpi(cache)
@@ -339,7 +345,7 @@ class TestGetStageTimeseries:
     def test_no_channels_returns_empty_dto(self):
         svc, _db = _make_svc()
         with patch(
-            "src.modules.analytics.application.services.channel_registry.get_stage_channels",
+            "luana_core_analytics_engine.application.services.channel_registry.get_stage_channels",
             return_value=[],
         ):
             result = _run(svc.get_stage_timeseries(TENANT_ID, "attraction"))
@@ -351,7 +357,7 @@ class TestGetStageTimeseries:
         svc, db = _make_svc()
         db.execute.return_value.all.return_value = []
         with patch(
-            "src.modules.analytics.application.services.channel_registry.get_stage_channels",
+            "luana_core_analytics_engine.application.services.channel_registry.get_stage_channels",
             return_value=[{"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid_social"}],
         ):
             result = _run(svc.get_stage_timeseries(TENANT_ID, "attraction"))
@@ -365,7 +371,7 @@ class TestGetStageTimeseries:
         svc, db = _make_svc(cache=cache)
         db.execute.return_value.all.return_value = []
         with patch(
-            "src.modules.analytics.application.services.channel_registry.get_stage_channels",
+            "luana_core_analytics_engine.application.services.channel_registry.get_stage_channels",
             return_value=[{"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid_social"}],
         ):
             _run(svc.get_stage_timeseries(TENANT_ID, "attraction"))

@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.shared.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
+from luana_core_platform.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
 
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ def test_campaigns_lookup_port_is_abstract() -> None:
     """CampaignsLookupPort debe ser abstracta y no instanciable directamente."""
     import inspect
 
-    from src.shared.links.ports.campaigns import CampaignsLookupPort
+    from luana_core_platform.links.ports.campaigns import CampaignsLookupPort
 
     assert inspect.isabstract(CampaignsLookupPort)
 
@@ -90,7 +90,7 @@ def test_campaigns_lookup_result_attributes() -> None:
 
 def test_create_campaigns_lookup_port_factory_exists() -> None:
     """La factory create_campaigns_lookup_port debe existir en el port."""
-    from src.shared.links.ports.campaigns import create_campaigns_lookup_port
+    from luana_core_platform.links.ports.campaigns import create_campaigns_lookup_port
 
     assert callable(create_campaigns_lookup_port)
 
@@ -114,7 +114,7 @@ async def test_inbound_recognition_happy_path_injects_campaign_id() -> None:
         return ctx
 
     with patch(
-        "src.shared.links.ports.campaigns.create_campaigns_lookup_port",
+        "luana_core_platform.links.ports.campaigns.create_campaigns_lookup_port",
         return_value=port,
     ):
         # Probar el helper lookup directamente
@@ -182,7 +182,7 @@ async def test_inbound_recognition_fail_open_on_exception() -> None:
 
 def test_settings_has_inbound_recognition_window_hours() -> None:
     """Settings debe tener CAMPAIGNS_INBOUND_RECOGNITION_WINDOW_HOURS con default 24."""
-    from src.core.config import Settings
+    from luana_core_platform.core.config import Settings
 
     # Verificar que el campo existe con default 24
     field_info = Settings.model_fields.get("CAMPAIGNS_INBOUND_RECOGNITION_WINDOW_HOURS")
@@ -203,7 +203,7 @@ def test_settings_inbound_window_validates_range() -> None:
 
         try:
             # Re-crear settings con valor inválido
-            from src.core.config import Settings
+            from luana_core_platform.core.config import Settings
 
             # Forzar re-validación con valor fuera de rango
             Settings.model_validate(

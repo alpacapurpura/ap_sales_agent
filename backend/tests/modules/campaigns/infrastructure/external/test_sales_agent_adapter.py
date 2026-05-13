@@ -19,10 +19,10 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.campaigns.domain.campaign_step import CampaignStep
-from src.modules.campaigns.domain.campaign_task import CampaignTask
-from src.modules.campaigns.domain.enums import StepType, TaskStatus
-from src.modules.campaigns.infrastructure.external.sales_agent_adapter import (
+from luana_core_campaigns.domain.campaign_step import CampaignStep
+from luana_core_campaigns.domain.campaign_task import CampaignTask
+from luana_core_campaigns.domain.enums import StepType, TaskStatus
+from luana_core_campaigns.infrastructure.external.sales_agent_adapter import (
     SalesAgentAdapter,
     SalesAgentDispatchResult,
 )
@@ -32,11 +32,11 @@ from src.modules.campaigns.infrastructure.external.sales_agent_adapter import (
 
 _NOW = dt.datetime(2026, 4, 30, 12, 0, 0, tzinfo=dt.timezone.utc)
 
-_REGISTRY_PATH = "src.modules.campaigns.infrastructure.channels.registry.ChannelRouterRegistry"
+_REGISTRY_PATH = "luana_core_campaigns.infrastructure.channels.registry.ChannelRouterRegistry"
 _ORCHESTRATOR_PATH = (
-    "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.OutboundOrchestrator.send_outbound"
+    "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.OutboundOrchestrator.send_outbound"
 )
-_SYNC_DB_PATH = "src.modules.campaigns.infrastructure.external.sales_agent_adapter.SalesAgentAdapter._create_sync_db"
+_SYNC_DB_PATH = "luana_core_campaigns.infrastructure.external.sales_agent_adapter.SalesAgentAdapter._create_sync_db"
 
 
 def _make_task(

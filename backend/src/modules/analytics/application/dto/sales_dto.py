@@ -10,16 +10,15 @@ Provides the complete data contract for GET /metrics/sales endpoint:
 Reuses MiniFunnelDTO from capture_dto and BottleneckDTO from opportunity_dto.
 """
 
-from pydantic import BaseModel
-
-from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
-from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
-from src.shared.domain.currency import (
+from luana_core_analytics_engine.application.dto.capture_dto import MiniFunnelDTO
+from luana_core_analytics_engine.application.dto.opportunity_dto import BottleneckDTO
+from luana_core_platform.domain.currency import (
     EXCHANGE_RATES_TO_USD as DEFAULT_EXCHANGE_RATES,
 )
-from src.shared.domain.currency import (
+from luana_core_platform.domain.currency import (
     convert_to_usd,
 )
+from pydantic import BaseModel
 
 __all__ = ["DEFAULT_EXCHANGE_RATES", "convert_to_usd"]
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import textwrap
 
-from src.modules.copilot.application.services.contextual_chunker import (
+from luana_core_copilot.application.services.contextual_chunker import (
     ChunkingMeta,
     chunk_markdown,
 )

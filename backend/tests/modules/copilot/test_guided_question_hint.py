@@ -6,10 +6,10 @@ ui_action-ready dict for guided advance enrichment.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.guided.question_hint import (
+from luana_core_copilot.application.guided.question_hint import (
     build_question_hint,
 )
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldContract,
     FieldStatus,
     FieldType,

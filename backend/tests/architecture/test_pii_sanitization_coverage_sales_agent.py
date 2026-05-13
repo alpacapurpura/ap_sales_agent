@@ -148,8 +148,13 @@ class TestSanitizationCoverage:
         # (Template Method) — el sales subclass lo hereda sin re-importarlo.
         src = BASE_HANDLER.read_text(encoding="utf-8")
         assert "sanitize_payload" in src, "Base handler debe importar sanitize_payload."
-        assert "from src.shared.agent_observability.recording.sanitization import" in src, (
-            "sanitize_payload debe venir del shared SSoT (no copia local)."
+        # Post Story-10 import rewrite: path migrated to luana_core_observability
+        assert (
+            "from src.shared.agent_observability.recording.sanitization import" in src
+            or "from luana_core_observability.recording.sanitization import" in src
+        ), (
+            "sanitize_payload debe venir del shared SSoT (no copia local). "
+            "Expected either legacy src.shared path or luana_core_observability path."
         )
 
     def test_sanitize_payload_imported_in_subscribers(self) -> None:

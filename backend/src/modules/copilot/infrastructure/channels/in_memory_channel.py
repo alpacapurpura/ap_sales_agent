@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.shared.links.ports.conversational_channel import ConversationalChannelPort
+from luana_core_platform.links.ports.conversational_channel import ConversationalChannelPort
 
 if TYPE_CHECKING:
-    from src.shared.domain.field_contract import FieldContract
+    from luana_core_platform.domain.field_contract import FieldContract
 
 
 __all__ = [

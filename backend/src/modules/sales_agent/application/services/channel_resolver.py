@@ -5,11 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.shared.domain.enums import ChannelType
-from src.shared.domain.messages import OutgoingMessage
-from src.shared.links.ports.calendar import get_channel_connection_data
-from src.shared.links.ports.channel_adapter import (
+from luana_core_platform.domain.enums import ChannelType
+from luana_core_platform.domain.messages import OutgoingMessage
+from luana_core_platform.links.ports.calendar import get_channel_connection_data
+from luana_core_platform.links.ports.channel_adapter import (
     create_instagram_adapter,
     create_telegram_adapter,
     create_whatsapp_adapter,
@@ -18,10 +17,9 @@ from src.shared.links.ports.channel_adapter import (
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_crm.infrastructure.models.lead_model import LeadModel
+    from luana_core_platform.infrastructure.channels.base import BaseChannel
     from sqlalchemy.orm import Session
-
-    from src.modules.crm.infrastructure.models.lead_model import LeadModel
-    from src.shared.infrastructure.channels.base import BaseChannel
 
 logger = structlog.get_logger()
 

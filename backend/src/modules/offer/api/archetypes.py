@@ -14,17 +14,16 @@ global ``section_catalog`` so clients can resolve metadata for any
 from __future__ import annotations
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict
-
-from src.modules.offer.domain.archetype_catalog import (
+from luana_core_offer_studio.domain.archetype_catalog import (
     ARCHETYPE_CATALOG,
     ArchetypeCapabilities,
 )
-from src.modules.offer.domain.section_catalog import (
+from luana_core_offer_studio.domain.section_catalog import (
     SECTION_CATALOG,
     SectionKey,
     SectionMetadata,
 )
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
 

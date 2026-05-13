@@ -8,7 +8,7 @@ from __future__ import annotations
 
 # Re-export everything from the original module so we don't duplicate definitions.
 # This is the canonical location; legacy path re-exports from here.
-from src.shared.domain.events import (
+from luana_core_platform.domain.events import (
     CHANNEL_TYPE_TO_CAPTURE_SLUG,
     AccessGrantedEvent,
     AppointmentEvent,

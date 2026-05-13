@@ -36,16 +36,16 @@ def _make_mock_asset(
 # ── search_assets ─────────────────────────────────────────────────────
 
 
-@patch("src.modules.copilot.application.tools.assets_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.assets_tools._search_assets_query")
-@patch("src.modules.copilot.application.tools.assets_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.assets_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.assets_tools._search_assets_query")
+@patch("luana_core_copilot.application.tools.assets_tools.SessionLocal")
 def test_search_assets_returns_asset_refs(
     mock_session_cls: MagicMock,
     mock_search_query: MagicMock,
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """search_assets returns a JSON list of AssetRef dicts."""
-    from src.modules.copilot.application.tools.assets_tools import search_assets
+    from luana_core_copilot.application.tools.assets_tools import search_assets
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id
@@ -68,12 +68,12 @@ def test_search_assets_returns_asset_refs(
     assert "storage_path" not in data[0]
 
 
-@patch("src.modules.copilot.application.tools.assets_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.assets_tools.get_tenant_id")
 def test_search_assets_without_tenant_returns_error(
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """search_assets returns an error JSON when tenant context is missing."""
-    from src.modules.copilot.application.tools.assets_tools import search_assets
+    from luana_core_copilot.application.tools.assets_tools import search_assets
 
     mock_get_tenant_id.return_value = None
 
@@ -82,16 +82,16 @@ def test_search_assets_without_tenant_returns_error(
     assert "error" in data
 
 
-@patch("src.modules.copilot.application.tools.assets_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.assets_tools._search_assets_query")
-@patch("src.modules.copilot.application.tools.assets_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.assets_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.assets_tools._search_assets_query")
+@patch("luana_core_copilot.application.tools.assets_tools.SessionLocal")
 def test_search_assets_filters_by_kind(
     mock_session_cls: MagicMock,
     mock_search_query: MagicMock,
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """Kind parameter is forwarded to the internal search query."""
-    from src.modules.copilot.application.tools.assets_tools import search_assets
+    from luana_core_copilot.application.tools.assets_tools import search_assets
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id
@@ -112,16 +112,16 @@ def test_search_assets_filters_by_kind(
     assert passed_kind == "image"
 
 
-@patch("src.modules.copilot.application.tools.assets_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.assets_tools._search_assets_query")
-@patch("src.modules.copilot.application.tools.assets_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.assets_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.assets_tools._search_assets_query")
+@patch("luana_core_copilot.application.tools.assets_tools.SessionLocal")
 def test_search_assets_empty_results_returns_empty_list(
     mock_session_cls: MagicMock,
     mock_search_query: MagicMock,
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """When no assets found, returns an empty JSON list."""
-    from src.modules.copilot.application.tools.assets_tools import search_assets
+    from luana_core_copilot.application.tools.assets_tools import search_assets
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id
@@ -148,14 +148,14 @@ def test_search_assets_query_excludes_ephemeral(db, seed_tenant, tenant_id) -> N
     """
     import uuid as _uuid
 
-    from src.modules.assets.domain.enums import (
+    from luana_core_assets.domain.enums import (
         AssetScope,
         AssetStatus,
         AssetType,
         StorageProvider,
     )
-    from src.modules.assets.infrastructure.models.asset_model import AssetModel
-    from src.modules.copilot.application.tools.assets_tools import _search_assets_query
+    from luana_core_assets.infrastructure.models.asset_model import AssetModel
+    from luana_core_copilot.application.tools.assets_tools import _search_assets_query
 
     def _make(scope: str, filename: str) -> None:
         db.add(
@@ -188,16 +188,16 @@ def test_search_assets_query_excludes_ephemeral(db, seed_tenant, tenant_id) -> N
 # ── get_asset ─────────────────────────────────────────────────────────
 
 
-@patch("src.modules.copilot.application.tools.assets_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.assets_tools.AssetRepository")
-@patch("src.modules.copilot.application.tools.assets_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.assets_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.assets_tools.AssetRepository")
+@patch("luana_core_copilot.application.tools.assets_tools.SessionLocal")
 def test_get_asset_returns_ref(
     mock_session_cls: MagicMock,
     mock_repo_cls: MagicMock,
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """get_asset returns an AssetRef JSON for a valid asset_id."""
-    from src.modules.copilot.application.tools.assets_tools import get_asset
+    from luana_core_copilot.application.tools.assets_tools import get_asset
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id
@@ -221,16 +221,16 @@ def test_get_asset_returns_ref(
     assert "kind" in data
 
 
-@patch("src.modules.copilot.application.tools.assets_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.assets_tools.AssetRepository")
-@patch("src.modules.copilot.application.tools.assets_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.assets_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.assets_tools.AssetRepository")
+@patch("luana_core_copilot.application.tools.assets_tools.SessionLocal")
 def test_get_asset_not_found_returns_error_json(
     mock_session_cls: MagicMock,
     mock_repo_cls: MagicMock,
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """get_asset returns error JSON for cross-tenant or missing asset."""
-    from src.modules.copilot.application.tools.assets_tools import get_asset
+    from luana_core_copilot.application.tools.assets_tools import get_asset
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id
@@ -249,12 +249,12 @@ def test_get_asset_not_found_returns_error_json(
     assert data.get("error") == "not_found"
 
 
-@patch("src.modules.copilot.application.tools.assets_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.assets_tools.get_tenant_id")
 def test_get_asset_without_tenant_returns_error(
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """get_asset returns an error JSON when tenant context is missing."""
-    from src.modules.copilot.application.tools.assets_tools import get_asset
+    from luana_core_copilot.application.tools.assets_tools import get_asset
 
     mock_get_tenant_id.return_value = None
 
@@ -263,12 +263,12 @@ def test_get_asset_without_tenant_returns_error(
     assert "error" in data
 
 
-@patch("src.modules.copilot.application.tools.assets_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.assets_tools.get_tenant_id")
 def test_get_asset_invalid_uuid_returns_not_found(
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """Invalid asset_id UUID returns not_found (not a 500)."""
-    from src.modules.copilot.application.tools.assets_tools import get_asset
+    from luana_core_copilot.application.tools.assets_tools import get_asset
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id
@@ -283,7 +283,7 @@ def test_get_asset_invalid_uuid_returns_not_found(
 
 def test_assets_tools_list_exported() -> None:
     """ASSETS_TOOLS list must contain the two tool functions."""
-    from src.modules.copilot.application.tools.assets_tools import (
+    from luana_core_copilot.application.tools.assets_tools import (
         ASSETS_TOOLS,
         get_asset,
         search_assets,

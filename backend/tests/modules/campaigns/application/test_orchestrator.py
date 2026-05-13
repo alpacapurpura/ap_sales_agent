@@ -13,17 +13,17 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.campaigns.application.services.orchestrator import (
+from luana_core_campaigns.application.services.orchestrator import (
     CampaignOrchestrator,
     OrchestratorCampaignNotFoundError,
     OrchestratorCampaignNotLaunchableError,
     OrchestratorMissingStepsError,
     OrchestratorSegmentEmptyError,
 )
-from src.modules.campaigns.domain.campaign import Campaign
-from src.modules.campaigns.domain.campaign_step import CampaignStep
-from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType, StepType
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_campaigns.domain.campaign import Campaign
+from luana_core_campaigns.domain.campaign_step import CampaignStep
+from luana_core_campaigns.domain.enums import CampaignStatus, CampaignType, StepType
+from luana_core_platform.domain.datetime_utils import utc_now
 
 pytestmark = pytest.mark.asyncio
 

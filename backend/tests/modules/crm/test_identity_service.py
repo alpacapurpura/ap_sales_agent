@@ -9,8 +9,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.crm.application.services.identity_service import IdentityService
-from src.modules.crm.domain.enums import IdentityType
+from luana_core_crm.application.services.identity_service import IdentityService
+from luana_core_crm.domain.enums import IdentityType
 
 SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 OTHER_TENANT_ID = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")

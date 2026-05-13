@@ -15,11 +15,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
-from src.modules.tenant_profile.domain.tenant_profile import RATE_LIMIT_WINDOW, TenantProfile
-from src.modules.tenant_profile.infrastructure.repositories.tenant_profile_repository import (
+from luana_core_tenant_profile.domain.tenant_profile import RATE_LIMIT_WINDOW, TenantProfile
+from luana_core_tenant_profile.infrastructure.repositories.tenant_profile_repository import (
     SqlTenantProfileRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 from tests.modules.tenant_profile.conftest import TYPE_A, TYPE_B
 
 
@@ -32,7 +32,7 @@ def client(db_with_override) -> TestClient:
 @pytest.fixture
 def db_with_override(db):
     """Override the FastAPI ``get_db`` dependency to use the test session."""
-    from src.core.database import get_db
+    from luana_core_platform.core.database import get_db
 
     def _override_get_db():
         yield db

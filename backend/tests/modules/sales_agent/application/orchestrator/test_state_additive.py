@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from src.modules.sales_agent.application.orchestrator.state import (
+from luana_core_sales_agent.application.orchestrator.state import (
     AgentState,
     create_initial_state,
 )

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.sales_agent.application.quality.judge import (
+from luana_core_sales_agent.application.quality.judge import (
     DEFAULT_THRESHOLD,
     SalesAgentJudge,
 )

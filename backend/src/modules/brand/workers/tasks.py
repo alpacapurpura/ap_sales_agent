@@ -16,10 +16,10 @@ import traceback
 from datetime import UTC, datetime
 from uuid import UUID
 
-from src.modules.brand.application.extraction_routes import (
+from luana_core_brand_studio.application.extraction_routes import (
     NAV_ROUTE_TEMPLATE,
 )
-from src.modules.brand.application.extraction_routes import (
+from luana_core_brand_studio.application.extraction_routes import (
     primary_cta_route as build_brand_primary_cta_route,
 )
 
@@ -175,7 +175,7 @@ async def run_brand_extraction(
     # Create trace collector for this job
     trace = None
     try:
-        from src.modules.brand.application.extraction_trace import (
+        from luana_core_brand_studio.application.extraction_trace import (
             ExtractionTraceCollector,
         )
 
@@ -193,13 +193,13 @@ async def run_brand_extraction(
         logger.warning("Could not create trace collector: %s", exc)
 
     try:
-        from src.modules.brand.application.extraction_service import (
+        from luana_core_brand_studio.application.extraction_service import (
             BrandExtractionService,
         )
-        from src.modules.brand.infrastructure.repositories.brand_repository import (
+        from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
             BrandRepository,
         )
-        from src.shared.application.field_diff import (
+        from luana_core_platform.application.field_diff import (
             diff_filled_by_section,
         )
 
@@ -335,10 +335,10 @@ def _publish_section_completed_event(
     can build the brand-studio URL without module-specific logic.
     """
     try:
-        from src.shared.domain.events import ExtractionSectionCompletedEvent
-        from src.shared.domain_events.outbox.application.event_bus_adapter import (
+        from luana_core_events.outbox.application.event_bus_adapter import (
             adapter_bus as EventBus,  # noqa: N812
         )
+        from luana_core_platform.domain.events import ExtractionSectionCompletedEvent
 
         EventBus.publish(
             ExtractionSectionCompletedEvent.create(
@@ -386,10 +386,10 @@ def _publish_completion_events(
     if not conversation_id:
         return
     try:
-        from src.shared.domain.events import ExtractionJobCompletedEvent
-        from src.shared.domain_events.outbox.application.event_bus_adapter import (
+        from luana_core_events.outbox.application.event_bus_adapter import (
             adapter_bus as EventBus,  # noqa: N812
         )
+        from luana_core_platform.domain.events import ExtractionJobCompletedEvent
 
         source_ref = url or "documento"
         started_dt = datetime.fromisoformat(started_at)

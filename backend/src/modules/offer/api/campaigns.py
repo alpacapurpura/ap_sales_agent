@@ -11,9 +11,12 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.links.ports.advertising import OfferCampaignsViewDTO
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
 
 # DDD exception (intentional): api/ composition root — this endpoint surfaces
 # campaign performance data from the advertising module as part of the offer view.
@@ -21,10 +24,6 @@ from src.core.database import get_db
 from src.modules.advertising.application.services.offer_campaigns_read_adapter import (
     OfferCampaignsReadAdapter,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.links.ports.advertising import OfferCampaignsViewDTO
 
 router = APIRouter()
 

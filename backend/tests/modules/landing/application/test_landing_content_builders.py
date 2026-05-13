@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.landing.application.landing_content_builders import (
+from luana_core_landing.application.landing_content_builders import (
     _build_brochure_content,
     _build_event_content,
     _build_flash_offer_content,
@@ -23,13 +23,13 @@ from src.modules.landing.application.landing_content_builders import (
     _parse_list,
     _resolve_content,
 )
-from src.modules.landing.domain.content import (
+from luana_core_landing.domain.content import (
     BrochureContent,
     SqueezeContent,
     TransformerContent,
     VelvetRopeContent,
 )
-from src.modules.landing.domain.enums import LandingPageArchetype
+from luana_core_landing.domain.enums import LandingPageArchetype
 
 # ---------------------------------------------------------------------------
 # Helper
@@ -373,7 +373,7 @@ class TestBuildFlashOfferContent:
         content = _build_flash_offer_content(row)
         # If pricing has the expected keys, build succeeds
         if content is not None:
-            from src.modules.landing.domain.content import FlashOfferContent
+            from luana_core_landing.domain.content import FlashOfferContent
 
             assert isinstance(content, FlashOfferContent)
             assert content.original_price == 497.0
@@ -503,7 +503,7 @@ class TestGenerateLandingForOfferTransformerIntegration:
         built from the richer narrative fields (after_state, deliverables) when
         available — the actual archetype may be BROCHURE (default) or TRANSFORMER.
         """
-        from src.modules.landing.application.landing_service import LandingService
+        from luana_core_landing.application.landing_service import LandingService
 
         service = LandingService(db)
         offer_id = uuid.uuid4()
@@ -517,7 +517,7 @@ class TestGenerateLandingForOfferTransformerIntegration:
         assert landing is not None
         assert landing.offer_id == offer_id
         # Content must be a typed content object (not raw dict)
-        from src.modules.landing.domain.content import (
+        from luana_core_landing.domain.content import (
             BrochureContent,
             SqueezeContent,
             TransformerContent,

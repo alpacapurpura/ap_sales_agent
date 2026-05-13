@@ -12,7 +12,7 @@ un flujo guiado.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.tools.registry import get_tools_for_context
+from luana_core_copilot.application.tools.registry import get_tools_for_context
 
 
 class TestGuidedModeIncludesExtractionTools:
@@ -36,7 +36,7 @@ class TestGuidedModeIncludesExtractionTools:
         tools = get_tools_for_context({"guided_mode": True})
         names = {t.name for t in tools}
 
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         for t in TOOL_GROUPS.get("mutation", []):
             assert t.name not in names, f"mutation tool leaked into guided mode: {t.name!r}"
@@ -47,7 +47,7 @@ class TestGuidedModeIncludesExtractionTools:
         """Guard against accidentally dropping the guided group when adding extraction."""
         tools = get_tools_for_context({"guided_mode": True})
         names = {t.name for t in tools}
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         for t in TOOL_GROUPS["guided"]:
             assert t.name in names, f"Missing guided tool: {t.name}"

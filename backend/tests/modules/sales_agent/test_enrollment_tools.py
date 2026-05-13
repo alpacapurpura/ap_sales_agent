@@ -8,15 +8,15 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.offer.domain.enums import VariantStructure
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.domain.enums import VariantStructure
+from luana_core_offer_studio.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
 )
-from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
+from luana_core_offer_studio.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
-from src.modules.sales_agent.application.agents.sales.enrollment_tools import (
+from luana_core_sales_agent.application.agents.sales.enrollment_tools import (
     ENROLLMENT_TOOL_REGISTRY,
     tool_create_enrollment,
     tool_generate_payment_link,
@@ -24,7 +24,7 @@ from src.modules.sales_agent.application.agents.sales.enrollment_tools import (
     tool_list_waitlist,
     tool_promote_waitlist_to_edition,
 )
-from src.modules.sales_agent.domain.enrollment import EnrollmentStatus
+from luana_core_sales_agent.domain.enrollment import EnrollmentStatus
 from tests.modules.offer.conftest import create_product_model
 
 if TYPE_CHECKING:

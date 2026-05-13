@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.analytics.application.dto.channel_dashboard_dto import (
+from luana_core_analytics_engine.application.dto.channel_dashboard_dto import (
     BenchmarkRangeDTO,
     FunnelStepDTO,
     MetricKpiDTO,
     MetricTimeSeriesDTO,
 )
+from pydantic import BaseModel, ConfigDict, Field
 
 # Re-export so callers can import everything from this module
 __all__ = [

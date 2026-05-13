@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.links.ports.editable_fields import (
+from luana_core_platform.links.ports.editable_fields import (
     get_catalog,
     get_paths_for,
     get_registered_domains,

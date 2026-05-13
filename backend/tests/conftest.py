@@ -17,7 +17,7 @@ for mod_name in ("passlib", "passlib.context", "passlib.hash"):
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.types import CHAR, Text, TypeDecorator
 
-from src.shared.domain.base_entity import Base
+from luana_core_platform.domain.base_entity import Base
 
 # Capture ORIGINAL postgresql types BEFORE monkey-patch so Mock subclasses
 # can delegate to native impls when running against real postgres dialect
@@ -120,7 +120,7 @@ def _force_prompt_source_file(monkeypatch):
     Local dev has Docker postgres; CI test image does not. Without this fixture,
     tests that hit prompt_loader.render() fail in CI with connection errors.
     """
-    from src.core.config import PromptSource, settings
+    from luana_core_platform.core.config import PromptSource, settings
 
     monkeypatch.setattr(settings, "PROMPT_SOURCE", PromptSource.FILE)
 
@@ -160,7 +160,7 @@ def _stub_copilot_observability_context(monkeypatch, request):
         ctx.observe_turn = _noop_observe
         return ctx
 
-    from src.modules.copilot.observability.recording.turn_envelope import (
+    from luana_core_copilot.observability.recording.turn_envelope import (
         ObservabilityContext,
     )
 
@@ -177,113 +177,113 @@ def db_engine():
 
     # Import all models to ensure they are registered and relationships can be resolved
     try:
-        from src.modules.brand.infrastructure.models.avatar_model import (
+        from luana_core_brand_studio.infrastructure.models.avatar_model import (
             AvatarModel,
         )
-        from src.modules.brand.infrastructure.models.brand_summary_model import (
+        from luana_core_brand_studio.infrastructure.models.brand_summary_model import (
             BrandSummaryModel,
         )
-        from src.modules.brand.infrastructure.models.buyer_persona_model import (
+        from luana_core_brand_studio.infrastructure.models.buyer_persona_model import (
             BuyerPersonaModel,
         )
-        from src.modules.brand.infrastructure.models.extraction_trace_model import (
+        from luana_core_brand_studio.infrastructure.models.extraction_trace_model import (
             BrandExtractionTrace,
         )
-        from src.modules.brand.infrastructure.models.personality_model import (
+        from luana_core_brand_studio.infrastructure.models.personality_model import (
             PersonalityProfileModel,
         )
-        from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
+        from luana_core_commercial_calendar.infrastructure.models.calendar_event_model import (
             CalendarEventModel,
         )
-        from src.modules.connections.infrastructure.models.channel_connection_model import (
+        from luana_core_connections.infrastructure.models.channel_connection_model import (
             ChannelConnectionModel,
         )
-        from src.modules.copilot.infrastructure.models.conversation_model import (
+        from luana_core_copilot.infrastructure.models.conversation_model import (
             CopilotConversationModel,
         )
-        from src.modules.copilot.infrastructure.models.inspiration_model import (
+        from luana_core_copilot.infrastructure.models.inspiration_model import (
             CopilotInspirationModel,
         )
-        from src.modules.copilot.infrastructure.models.mutation_journal_model import (
+        from luana_core_copilot.infrastructure.models.mutation_journal_model import (
             MutationJournalModel,
         )
-        from src.modules.copilot.infrastructure.models.pinned_memory_model import (
+        from luana_core_copilot.infrastructure.models.pinned_memory_model import (
             CopilotPinnedMemoryModel,
         )
-        from src.modules.copilot.infrastructure.models.routing_log_model import (
+        from luana_core_copilot.infrastructure.models.routing_log_model import (
             RoutingLogModel,
         )
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
-        from src.modules.copilot.infrastructure.models.workflow_metric_model import (
+        from luana_core_copilot.infrastructure.models.workflow_metric_model import (
             WorkflowMetricModel,
         )
-        from src.modules.crm.infrastructure.models.lead_model import (
+        from luana_core_crm.infrastructure.models.lead_model import (
             LeadModel,
         )
-        from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+        from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
             LifecycleTransitionModel,
         )
-        from src.modules.crm.infrastructure.models.nps_models import (
+        from luana_core_crm.infrastructure.models.nps_models import (
             NpsResponseModel,
             NpsSurveyModel,
         )
-        from src.modules.crm.infrastructure.models.referral_code_model import (
+        from luana_core_crm.infrastructure.models.referral_code_model import (
             ReferralCodeModel,
         )
-        from src.modules.crm.infrastructure.models.sale_model import (
+        from luana_core_crm.infrastructure.models.sale_model import (
             SaleModel,
         )
-        from src.modules.iam.infrastructure.models.tenant_model import (
+        from luana_core_iam.infrastructure.models.tenant_model import (
             TenantModel,
         )
-        from src.modules.landing.infrastructure.models.landing_model import (
+        from luana_core_landing.infrastructure.models.landing_model import (
             LandingPageModel,
         )
-        from src.modules.offer.infrastructure.models.knowledge_source_model import (
+        from luana_core_offer_studio.infrastructure.models.knowledge_source_model import (
             KnowledgeSourceModel,
         )
-        from src.modules.offer.infrastructure.models.launch_edition_model import (
+        from luana_core_offer_studio.infrastructure.models.launch_edition_model import (
             LaunchEditionModel,
         )
-        from src.modules.offer.infrastructure.models.offer_asset_model import (
+        from luana_core_offer_studio.infrastructure.models.offer_asset_model import (
             OfferAssetModel,
         )
-        from src.modules.offer.infrastructure.models.product_model import (
+        from luana_core_offer_studio.infrastructure.models.product_model import (
             ProductModel,
         )
-        from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+        from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
             AgentStateCheckpointModel,
         )
-        from src.modules.sales_agent.infrastructure.models.enrollment_model import (
+        from luana_core_sales_agent.infrastructure.models.enrollment_model import (
             EnrollmentModel,
         )
-        from src.modules.sales_agent.infrastructure.models.message_model import (
+        from luana_core_sales_agent.infrastructure.models.message_model import (
             MessageModel,
         )
-        from src.modules.sales_agent.infrastructure.models.payment_grant_audit_model import (
+        from luana_core_sales_agent.infrastructure.models.payment_grant_audit_model import (
             PaymentGrantAuditModel,
         )
-        from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+        from luana_core_sales_agent.infrastructure.models.payment_link_model import (
             PaymentLinkModel,
         )
-        from src.modules.sales_agent.infrastructure.models.payment_webhook_event_model import (
+        from luana_core_sales_agent.infrastructure.models.payment_webhook_event_model import (
             PaymentWebhookEventModel,
         )
-        from src.modules.sales_agent.infrastructure.models.scheduler_webhook_event_model import (
+        from luana_core_sales_agent.infrastructure.models.scheduler_webhook_event_model import (
             SchedulerWebhookEventModel,
         )
-        from src.modules.sales_agent.infrastructure.models.workflow_metric_model import (
+        from luana_core_sales_agent.infrastructure.models.workflow_metric_model import (
             SalesAgentWorkflowMetricModel,
         )
-        from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+        from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
             SalesAgentLlmCallModel,
         )
-        from src.modules.sales_agent.observability.persistence.models.routing_log_model import (
+        from luana_core_sales_agent.observability.persistence.models.routing_log_model import (
             SalesAgentRoutingLogModel,
         )
-        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+        from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
             SalesAgentTraceEventModel,
         )
         from src.modules.scheduling.infrastructure.models.appointment_model import (
@@ -292,22 +292,22 @@ def db_engine():
         from src.modules.scheduling.infrastructure.models.booking_link import (
             BookingLink,
         )
-        from src.modules.social_proof.infrastructure.models import (
+        from luana_core_social_proof.infrastructure.models import (
             AuthorityItemModel,
             PlacementModel,
             TeamMemberModel,
             TestimonialModel,
         )
-        from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
+        from luana_core_tenant_domains.infrastructure.models.tenant_domain_model import (
             TenantDomainModel,
         )
-        from src.modules.tenant_profile.infrastructure.models.tenant_profile_model import (
+        from luana_core_tenant_profile.infrastructure.models.tenant_profile_model import (
             TenantProfileModel,
         )
-        from src.shared.infrastructure.llm.infrastructure.audit_model import (
+        from luana_core_llm.infrastructure.audit_model import (
             LLMConfigAuditModel,
         )
-        from src.shared.infrastructure.llm.infrastructure.role_binding_model import (
+        from luana_core_llm.infrastructure.role_binding_model import (
             LLMRoleBindingModel,
         )
     except ImportError as e:
@@ -369,7 +369,7 @@ def _do_singleton_reset() -> None:
     #    with base_url/api_key from settings at construction time.
     #    Tests that monkeypatch settings need a clean factory to see the
     #    patched values when they call LLMFactory.get_service().
-    from src.shared.infrastructure.llm.factory import LLMFactory
+    from luana_core_llm.factory import LLMFactory
 
     LLMFactory._instance = None  # LLMFactory._instance — reset reason: stale router with prod settings
 
@@ -377,7 +377,7 @@ def _do_singleton_reset() -> None:
     #    SmartBufferService with buffer state. Cross-test → next test reuses
     #    same orchestrator with leaked buffer state + _initialized=True flag.
     try:
-        from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
+        from luana_core_sales_agent.application.orchestrator.chat import ChatOrchestrator
 
         if ChatOrchestrator._instance is not None and hasattr(ChatOrchestrator._instance, "buffer_service"):
             # Clean up buffer_service before drop to prevent background task leak
@@ -391,7 +391,7 @@ def _do_singleton_reset() -> None:
     # 3. SemanticRouter._instance (sales_agent) — routing rules + tenant config
     #    snapshot. Tests with different tenants reuse stale routing rules.
     try:
-        from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
+        from luana_core_sales_agent.application.services.semantic_router import SemanticRouter
 
         SemanticRouter._instance = None  # SemanticRouter._instance — reset reason: tenant-scoped routing rules cached
     except ImportError:
@@ -400,7 +400,7 @@ def _do_singleton_reset() -> None:
     # 4. EventBus._handlers — class-level dict accumulating subscribers.
     #    Origin PI.md § Origen point 2: TestDomainSubscribersRegistration leak
     #    causes handlers from test A to fire in test B (cross-test side effects).
-    from src.shared.domain.events import EventBus
+    from luana_core_platform.domain.events import EventBus
 
     EventBus.clear()  # EventBus._handlers — reset reason: subscriber handler leak cross-test (PI.md § Origen point 2)
 
@@ -408,7 +408,7 @@ def _do_singleton_reset() -> None:
     #    filename. Tests that monkeypatch import structure or run from different
     #    frame contexts get stale module name mappings.
     try:
-        from src.shared.domain_events.outbox.application.event_bus_adapter import (
+        from luana_core_events.outbox.application.event_bus_adapter import (
             _reset_module_inference_cache,
         )
 
@@ -439,7 +439,7 @@ def prime_cost_bridge(call_id: str, cost: "Decimal") -> None:  # noqa: F821 — 
     """
     from decimal import Decimal as _Decimal
 
-    from src.shared.agent_observability.recording.cost_recorder import _stash
+    from luana_core_observability.recording.cost_recorder import _stash
 
     _stash(call_id, _Decimal(str(cost)) if not isinstance(cost, _Decimal) else cost)
 

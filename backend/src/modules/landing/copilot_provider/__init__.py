@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.landing.copilot_provider.provider import LandingCopilotProvider
+from luana_core_landing.copilot_provider.provider import LandingCopilotProvider
 
 provider: LandingCopilotProvider = LandingCopilotProvider()
 

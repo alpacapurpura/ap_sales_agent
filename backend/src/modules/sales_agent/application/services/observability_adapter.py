@@ -17,14 +17,14 @@ if TYPE_CHECKING:
     from datetime import datetime
     from uuid import UUID
 
-from src.modules.sales_agent.infrastructure.models.enrollment_model import (
-    EnrollmentModel,
-)
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
-from src.shared.links.ports.sales_agent import (
+from luana_core_platform.links.ports.sales_agent import (
     EnrollmentSummaryDTO,
     SalesAgentObservabilityPort,
 )
+from luana_core_sales_agent.infrastructure.models.enrollment_model import (
+    EnrollmentModel,
+)
+from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -93,7 +93,7 @@ class SalesAgentObservabilityAdapter(SalesAgentObservabilityPort):
 
     def has_active_edition_for_offer(self, tenant_id: UUID, offer_id: UUID) -> bool:
         """True if the offer has at least one active (non-cancelled, non-draft) edition."""
-        from src.shared.links.ports.offer import get_launch_edition_repository
+        from luana_core_platform.links.ports.offer import get_launch_edition_repository
 
         try:
             repo = get_launch_edition_repository(self._db)

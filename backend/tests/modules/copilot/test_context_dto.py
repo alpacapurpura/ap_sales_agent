@@ -5,7 +5,7 @@ retired on 2026-04-22. Only base context fields remain: the guided-setup
 flag is derived server-side and never sent by the frontend.
 """
 
-from src.modules.copilot.api.dto import ClientContextDTO
+from luana_core_copilot.api.dto import ClientContextDTO
 
 
 class TestClientContextDTO:

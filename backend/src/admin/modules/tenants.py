@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
-
-from src.core.database import SessionLocal
-from src.modules.iam.application.services.tenant_service import TenantService
+from luana_core_iam.application.services.tenant_service import TenantService
+from luana_core_platform.core.database import SessionLocal
 
 
 def get_tenants() -> list:

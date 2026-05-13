@@ -15,7 +15,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.copilot.application.services.telegram_link_service import (
+from luana_core_copilot.application.services.telegram_link_service import (
     _mask_chat_id,
     build_deep_link_url,
     generate_link_token,

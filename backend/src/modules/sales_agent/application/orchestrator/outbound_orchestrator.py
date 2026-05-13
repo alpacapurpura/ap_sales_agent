@@ -36,22 +36,20 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
-
-from src.modules.sales_agent.application.orchestrator.audit_emitter import AuditEmitter
-from src.modules.sales_agent.application.orchestrator.conversation_pipeline import (
+from luana_core_platform.domain.messages import IncomingMessage
+from luana_core_sales_agent.application.orchestrator.audit_emitter import AuditEmitter
+from luana_core_sales_agent.application.orchestrator.conversation_pipeline import (
     ConversationPipeline,
 )
-from src.modules.sales_agent.application.orchestrator.graph import agent_app
-from src.modules.sales_agent.observability.recording.factory import (
+from luana_core_sales_agent.application.orchestrator.graph import agent_app
+from luana_core_sales_agent.observability.recording.factory import (
     build_sales_agent_observability_context,
 )
-from src.shared.domain.messages import IncomingMessage
 
 if TYPE_CHECKING:
+    from luana_core_billing.application.budget_guard import BudgetGuard
+    from luana_core_platform.infrastructure.channels.base import BaseChannel
     from sqlalchemy.orm import Session
-
-    from src.shared.billing.application.budget_guard import BudgetGuard
-    from src.shared.infrastructure.channels.base import BaseChannel
 
 logger = structlog.get_logger(__name__)
 
@@ -113,18 +111,17 @@ class OutboundOrchestrator:
             ``lead_not_found``, ``graph_invocation_failed``,
             ``empty_response``, ``channel_send_failed``).
         """
-        from sqlalchemy import select
-
-        from src.modules.sales_agent.infrastructure.db.repositories.business_repository import (
+        from luana_core_platform.infrastructure.models.crm import LeadModel
+        from luana_core_sales_agent.infrastructure.db.repositories.business_repository import (
             BusinessRepository,
         )
-        from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+        from luana_core_sales_agent.infrastructure.memory.audit_repository import (
             AuditRepository,
         )
-        from src.modules.sales_agent.infrastructure.repositories.state_repository import (
+        from luana_core_sales_agent.infrastructure.repositories.state_repository import (
             StateRepository,
         )
-        from src.shared.infrastructure.models.crm import LeadModel
+        from sqlalchemy import select
 
         # --- Step 1: tenant config ---
         tenant_uuid, tenant_config = ConversationPipeline.fetch_tenant_config(db, str(tenant_id))
@@ -312,7 +309,7 @@ class OutboundOrchestrator:
             )
 
         # Channel send (errors abort turn — user must see send failure)
-        from src.modules.sales_agent.infrastructure.external.output_manager import (
+        from luana_core_sales_agent.infrastructure.external.output_manager import (
             OutputManager,
         )
 

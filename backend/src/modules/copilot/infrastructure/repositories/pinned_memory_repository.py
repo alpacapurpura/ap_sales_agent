@@ -10,13 +10,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import delete, select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-from src.modules.copilot.infrastructure.models.pinned_memory_model import (
+from luana_core_copilot.infrastructure.models.pinned_memory_model import (
     CopilotPinnedMemoryModel,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
+from sqlalchemy import delete, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 if TYPE_CHECKING:
     from uuid import UUID

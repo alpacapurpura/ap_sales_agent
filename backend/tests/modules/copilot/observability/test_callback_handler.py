@@ -52,14 +52,14 @@ def _pricing_snapshot():
 
 def _make_handler(db, *, pricing_snapshot=None, fx_rate=Decimal(1), fx_source="passthrough"):
     """Build a handler with mocked pricing/FX resolvers and the test session."""
-    from src.modules.copilot.observability.persistence.llm_call_repository import LlmCallRepository
-    from src.modules.copilot.observability.persistence.trace_event_repository import (
+    from luana_core_copilot.observability.persistence.llm_call_repository import LlmCallRepository
+    from luana_core_copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
-    from src.modules.copilot.observability.recording.callback_handler import (
+    from luana_core_copilot.observability.recording.callback_handler import (
         ObservabilityCallbackHandler,
     )
-    from src.shared.agent_observability.pricing.resolver import PricingResult
+    from luana_core_observability.pricing.resolver import PricingResult
 
     pricing_resolver = MagicMock()
     pricing_resolver.resolve.return_value = PricingResult(
@@ -108,7 +108,7 @@ def _stash_cost(call_id: str, cost: float, *, model: str = "openai/gpt-4o") -> N
     invoke real LiteLLM must pre-stash via this helper so the LangChain
     handler picks up the cost on ``on_llm_end``.
     """
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
     )
 
@@ -122,7 +122,7 @@ def _stash_cost(call_id: str, cost: float, *, model: str = "openai/gpt-4o") -> N
 
 class TestChatModelLifecycle:
     def test_start_then_end_persists_llm_call_row(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 
@@ -160,7 +160,7 @@ class TestChatModelLifecycle:
         assert row.status == "ok"
 
     def test_end_without_start_is_noop(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 
@@ -174,7 +174,7 @@ class TestChatModelLifecycle:
         assert db.query(CopilotLlmCallModel).count() == 0
 
     def test_chat_model_error_writes_error_row(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 
@@ -197,7 +197,7 @@ class TestChatModelLifecycle:
 
 class TestToolLifecycle:
     def test_tool_start_then_end_persists_trace_event(self, db) -> None:
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -218,7 +218,7 @@ class TestToolLifecycle:
         assert rows[0].status == "ok"
 
     def test_tool_error_writes_error_row(self, db) -> None:
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -240,7 +240,7 @@ class TestToolLifecycle:
 class TestBestEffort:
     def test_db_failure_does_not_propagate(self, db) -> None:
         """Handler must swallow exceptions so a write failure cannot break a turn."""
-        from src.modules.copilot.observability.recording.callback_handler import (
+        from luana_core_copilot.observability.recording.callback_handler import (
             ObservabilityCallbackHandler,
         )
 

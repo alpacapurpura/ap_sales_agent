@@ -25,12 +25,12 @@ current_dir = Path(__file__).resolve().parent
 backend_dir = (current_dir / "../../").resolve()
 sys.path.insert(0, str(backend_dir))
 
-from src.core.config import settings
-from src.core.database import SessionLocal
-from src.modules.assets.infrastructure.models.asset_model import (
+from luana_core_assets.infrastructure.models.asset_model import (
     AssetModel,
 )
-from src.modules.assets.infrastructure.storage.r2 import R2StorageStrategy
+from luana_core_assets.infrastructure.storage.r2 import R2StorageStrategy
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.database import SessionLocal
 
 
 def migrate(dry_run: bool = False) -> None:

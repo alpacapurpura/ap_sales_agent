@@ -39,7 +39,7 @@ class TestCampaignAuditLogRetention:
 
     def test_purge_old_campaigns_audit_is_importable_and_async(self) -> None:
         """purge_old_campaigns_audit is importable and is an async function."""
-        from src.modules.campaigns.workers.audit_retention_task import (
+        from luana_core_campaigns.workers.audit_retention_task import (
             purge_old_campaigns_audit,
         )
 
@@ -49,7 +49,7 @@ class TestCampaignAuditLogRetention:
 
     def test_purge_function_has_ctx_parameter(self) -> None:
         """purge_old_campaigns_audit(ctx) accepts ARQ context as first parameter."""
-        from src.modules.campaigns.workers.audit_retention_task import (
+        from luana_core_campaigns.workers.audit_retention_task import (
             purge_old_campaigns_audit,
         )
 

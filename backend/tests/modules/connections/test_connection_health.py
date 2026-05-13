@@ -15,7 +15,7 @@ class TestEvaluateConnectionHealth:
 
     def test_not_connected_when_none(self) -> None:
         """Returns status 'not_connected' when credentials is None."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         result = evaluate_connection_health(credentials=None, channel_slug="meta")
 
@@ -25,7 +25,7 @@ class TestEvaluateConnectionHealth:
 
     def test_healthy_when_no_expires_at(self) -> None:
         """Returns 'healthy' when credentials exist but no expires_at field."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         creds = {"access_token": "some-token"}
         result = evaluate_connection_health(credentials=creds, channel_slug="meta")
@@ -36,7 +36,7 @@ class TestEvaluateConnectionHealth:
 
     def test_healthy_when_far_from_expiry(self) -> None:
         """Returns 'healthy' when expires_at is more than 7 days away."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         future = datetime.now(timezone.utc) + timedelta(days=30)
         creds = {"access_token": "tok", "expires_at": future.isoformat()}
@@ -51,7 +51,7 @@ class TestEvaluateConnectionHealth:
 
     def test_expiring_soon_within_7_days(self) -> None:
         """Returns 'expiring_soon' when expires_at is within 7 days."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         soon = datetime.now(timezone.utc) + timedelta(days=3)
         creds = {"access_token": "tok", "expires_at": soon.isoformat()}
@@ -62,7 +62,7 @@ class TestEvaluateConnectionHealth:
 
     def test_expired_when_past(self) -> None:
         """Returns 'expired' when expires_at is in the past."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         past = datetime.now(timezone.utc) - timedelta(days=5)
         creds = {"access_token": "tok", "expires_at": past.isoformat()}
@@ -73,7 +73,7 @@ class TestEvaluateConnectionHealth:
 
     def test_healthy_when_invalid_format(self) -> None:
         """Returns 'healthy' when expires_at can't be parsed (graceful fallback)."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         creds = {"access_token": "tok", "expires_at": "not-a-date"}
         result = evaluate_connection_health(credentials=creds, channel_slug="meta")
@@ -83,7 +83,7 @@ class TestEvaluateConnectionHealth:
 
     def test_messages_in_spanish(self) -> None:
         """All messages returned must be in Spanish with correct accents."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         # not_connected
         r1 = evaluate_connection_health(credentials=None, channel_slug="meta")
@@ -114,7 +114,7 @@ class TestEvaluateConnectionHealth:
 
     def test_expiring_soon_boundary_exactly_7_days(self) -> None:
         """At exactly 7 days, should be 'expiring_soon' (<=7 days)."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         boundary = datetime.now(timezone.utc) + timedelta(days=7)
         creds = {"access_token": "tok", "expires_at": boundary.isoformat()}
@@ -124,7 +124,7 @@ class TestEvaluateConnectionHealth:
 
     def test_expired_unix_timestamp(self) -> None:
         """Handles expires_at as a unix timestamp (int/float stored as string)."""
-        from src.modules.connections.api.health import evaluate_connection_health
+        from luana_core_connections.api.health import evaluate_connection_health
 
         past_ts = (datetime.now(timezone.utc) - timedelta(days=1)).timestamp()
         creds = {"access_token": "tok", "expires_at": str(int(past_ts))}
@@ -137,7 +137,7 @@ class TestConnectionHealthResponse:
     """Validates the Pydantic response model shape."""
 
     def test_response_model_fields(self) -> None:
-        from src.modules.connections.api.health import ConnectionHealthResponse
+        from luana_core_connections.api.health import ConnectionHealthResponse
 
         r = ConnectionHealthResponse(
             status="healthy",
@@ -151,7 +151,7 @@ class TestConnectionHealthResponse:
         assert r.message == "Todo bien"
 
     def test_response_model_serialization(self) -> None:
-        from src.modules.connections.api.health import ConnectionHealthResponse
+        from luana_core_connections.api.health import ConnectionHealthResponse
 
         r = ConnectionHealthResponse(
             status="expired",
@@ -168,7 +168,7 @@ class TestConnectionHealthResponse:
 
 class TestParseExpiresAtNaiveDatetime:
     def test_naive_iso_datetime_gets_utc_tzinfo(self):
-        from src.modules.connections.api.health import _parse_expires_at
+        from luana_core_connections.api.health import _parse_expires_at
 
         result = _parse_expires_at("2025-06-01T12:00:00")
         assert result is not None
@@ -190,8 +190,8 @@ class TestGetConnectionHealthRoute:
     async def _call(self, slug, user, db, repo):
         from unittest.mock import patch
 
-        from src.modules.connections.api.health import get_connection_health
-        from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+        from luana_core_connections.api.health import get_connection_health
+        from luana_core_connections.infrastructure.repositories import ChannelConnectionRepository
 
         with (
             patch.object(ChannelConnectionRepository, "__init__", return_value=None),
@@ -207,7 +207,7 @@ class TestGetConnectionHealthRoute:
     async def test_raises_404_for_unknown_slug(self):
         from fastapi import HTTPException
 
-        from src.modules.connections.api.health import get_connection_health
+        from luana_core_connections.api.health import get_connection_health
 
         user = self._user()
         db = MagicMock()
@@ -219,8 +219,8 @@ class TestGetConnectionHealthRoute:
     async def test_not_connected_when_no_connection(self):
         from unittest.mock import patch
 
-        from src.modules.connections.api.health import get_connection_health
-        from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+        from luana_core_connections.api.health import get_connection_health
+        from luana_core_connections.infrastructure.repositories import ChannelConnectionRepository
 
         user = self._user()
         db = MagicMock()
@@ -235,8 +235,8 @@ class TestGetConnectionHealthRoute:
     async def test_not_connected_when_inactive(self):
         from unittest.mock import patch
 
-        from src.modules.connections.api.health import get_connection_health
-        from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+        from luana_core_connections.api.health import get_connection_health
+        from luana_core_connections.infrastructure.repositories import ChannelConnectionRepository
 
         user = self._user()
         db = MagicMock()
@@ -253,8 +253,8 @@ class TestGetConnectionHealthRoute:
     async def test_returns_health_when_active(self):
         from unittest.mock import patch
 
-        from src.modules.connections.api.health import get_connection_health
-        from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+        from luana_core_connections.api.health import get_connection_health
+        from luana_core_connections.infrastructure.repositories import ChannelConnectionRepository
 
         user = self._user()
         db = MagicMock()

@@ -10,15 +10,15 @@ import uuid
 
 import pytest
 
-from src.modules.sales_agent.application.services.meeting_state_service import (
+from luana_core_sales_agent.application.services.meeting_state_service import (
     MeetingEntry,
     MeetingEntryStatus,
     MeetingStateService,
 )
-from src.modules.sales_agent.application.tools.scheduling.providers import (
+from luana_core_sales_agent.application.tools.scheduling.providers import (
     BookingLinkOutput,
 )
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
 

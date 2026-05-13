@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.extraction_section_map import (
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.extraction_section_map import (
     _DETAILS_BY_ARCHETYPE,
     BACKEND_WAVE_TO_FE_SLUGS,
     FE_SECTION_SLUGS,

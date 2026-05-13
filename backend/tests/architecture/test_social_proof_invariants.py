@@ -87,9 +87,9 @@ FORBIDDEN_FRAMEWORK_PREFIXES = (
     "httpx",
     "redis",
     "qdrant_client",
-    "src.modules.social_proof.infrastructure",
-    "src.modules.social_proof.application",
-    "src.modules.social_proof.api",
+    "luana_core_social_proof.infrastructure",
+    "luana_core_social_proof.application",
+    "luana_core_social_proof.api",
 )
 
 
@@ -110,9 +110,9 @@ def test_domain_layer_has_no_framework_or_outer_layer_imports() -> None:
 # ── 3. cross-module boundary ────────────────────────────────────────
 
 ALLOWED_EXTERNAL_MODULES = {
-    "src.core",
+    "luana_core_platform.core",
     "src.shared",
-    "src.modules.iam",
+    "luana_core_iam",
 }
 
 
@@ -123,7 +123,7 @@ def test_social_proof_module_only_consumes_shared_or_iam() -> None:
         for imp in _parse_imports(py):
             if not imp.startswith("src.modules."):
                 continue
-            if imp.startswith("src.modules.social_proof"):
+            if imp.startswith("luana_core_social_proof"):
                 continue
             allowed = any(imp.startswith(prefix) for prefix in ALLOWED_EXTERNAL_MODULES)
             if not allowed:
@@ -138,11 +138,11 @@ def test_social_proof_module_only_consumes_shared_or_iam() -> None:
     ("enum_path", "expected_values"),
     [
         (
-            "src.modules.social_proof.domain.enums.TestimonialMediaType",
+            "luana_core_social_proof.domain.enums.TestimonialMediaType",
             {"text", "video", "audio", "image"},
         ),
         (
-            "src.modules.social_proof.domain.enums.AuthorityType",
+            "luana_core_social_proof.domain.enums.AuthorityType",
             {
                 "certification",
                 "award",
@@ -157,11 +157,11 @@ def test_social_proof_module_only_consumes_shared_or_iam() -> None:
             },
         ),
         (
-            "src.modules.social_proof.domain.enums.SourceTable",
+            "luana_core_social_proof.domain.enums.SourceTable",
             {"testimonial", "authority_item", "team_member"},
         ),
         (
-            "src.modules.social_proof.domain.enums.SurfaceType",
+            "luana_core_social_proof.domain.enums.SurfaceType",
             {
                 "brand_homepage",
                 "offer",

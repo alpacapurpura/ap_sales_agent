@@ -6,9 +6,8 @@ from pathlib import Path
 
 import structlog
 from langchain_core.messages import HumanMessage
-
-from src.core.enums import ModelRole
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_llm.factory import LLMFactory
+from luana_core_platform.core.enums import ModelRole
 
 logger = structlog.get_logger()
 

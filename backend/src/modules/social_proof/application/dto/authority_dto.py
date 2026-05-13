@@ -5,9 +5,8 @@ from __future__ import annotations
 from datetime import date, datetime
 from uuid import UUID
 
+from luana_core_social_proof.domain.enums import AuthorityType
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.social_proof.domain.enums import AuthorityType
 
 
 class AuthorityCreateDTO(BaseModel):

@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 
 @dataclass(frozen=True)

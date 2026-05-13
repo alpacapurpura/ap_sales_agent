@@ -16,12 +16,12 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.campaigns.infrastructure.resilience.circuit_breaker import (
+from luana_core_campaigns.infrastructure.resilience.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerConfig,
     CircuitState,
 )
-from src.modules.campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
+from luana_core_campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
 
 
 # ── Fake Redis ────────────────────────────────────────────────────────────────

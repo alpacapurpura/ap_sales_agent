@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import inspect
 
-from src.modules.sales_agent.application.orchestrator.state import (
+from luana_core_sales_agent.application.orchestrator.state import (
     AgentState,
     create_initial_state,
 )

@@ -7,12 +7,11 @@ to official_metrics after transformation.
 from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import delete, select
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
 
 
 class StagingMetricsRepository:

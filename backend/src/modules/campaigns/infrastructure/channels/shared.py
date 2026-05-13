@@ -135,7 +135,7 @@ def _resolve_tenant_locale(tenant_id: UUID, *, db: Session | None = None) -> obj
     LRU cache (512 entries, 5-min TTL) avoids repeated DB queries for the same
     tenant within a single process lifetime. Thread-safe via Lock.
     """
-    from src.shared.domain.locale import TenantLocale
+    from luana_core_platform.domain.locale import TenantLocale
 
     cache_key = tenant_id
     with _LOCALE_CACHE_LOCK:
@@ -150,9 +150,8 @@ def _resolve_tenant_locale(tenant_id: UUID, *, db: Session | None = None) -> obj
         return result
 
     try:
+        from luana_core_iam.infrastructure.models.tenant_model import TenantModel
         from sqlalchemy import select
-
-        from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
         row = db.execute(select(TenantModel).where(TenantModel.id == tenant_id)).scalar_one_or_none()
 

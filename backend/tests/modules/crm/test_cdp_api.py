@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from src.modules.crm.domain.customer import CustomerProfile
+from luana_core_crm.domain.customer import CustomerProfile
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -47,7 +47,7 @@ def _get_fake_user() -> _FakeUser:
 async def client() -> AsyncClient:  # type: ignore[override]
     """AsyncClient pointed at the FastAPI app with auth overridden."""
     from src.main import app
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     app.dependency_overrides[get_current_user] = _get_fake_user
 
@@ -92,14 +92,14 @@ class TestIdentifyCustomer:
     @pytest.mark.asyncio
     async def test_identify_with_traits_only(self, client: AsyncClient) -> None:
         """Happy path: traits dict → CustomerProfile returned."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_profile = _make_customer_profile()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(
                 mock_session,
                 "__enter__",
@@ -111,7 +111,7 @@ class TestIdentifyCustomer:
                 return_value=False,
             ),
             patch(
-                "src.modules.crm.application.services.customer_service.CustomerService.identify",
+                "luana_core_crm.application.services.customer_service.CustomerService.identify",
                 return_value=mock_profile,
             ),
         ):
@@ -132,18 +132,18 @@ class TestIdentifyCustomer:
     @pytest.mark.asyncio
     async def test_identify_with_user_id(self, client: AsyncClient) -> None:
         """userId in payload → passed as user_id identity."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_profile = _make_customer_profile(full_name="User ID Customer")
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.customer_service.CustomerService.identify",
+                "luana_core_crm.application.services.customer_service.CustomerService.identify",
                 return_value=mock_profile,
             ) as mock_identify,
         ):
@@ -166,18 +166,18 @@ class TestIdentifyCustomer:
     @pytest.mark.asyncio
     async def test_identify_empty_payload(self, client: AsyncClient) -> None:
         """Empty payload → defaults to empty traits and no identities."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_profile = _make_customer_profile()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.customer_service.CustomerService.identify",
+                "luana_core_crm.application.services.customer_service.CustomerService.identify",
                 return_value=mock_profile,
             ) as mock_identify,
         ):

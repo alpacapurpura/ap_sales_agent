@@ -11,9 +11,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from pydantic import BaseModel, ConfigDict
-
-from src.modules.offer.domain.offer_type_preset_catalog import (
+from luana_core_offer_studio.domain.offer_type_preset_catalog import (
     OFFER_TYPE_PRESET_CATALOG,
     QUESTION_REGISTRY,
     ConditionalQuestion,
@@ -28,7 +26,8 @@ from src.modules.offer.domain.offer_type_preset_catalog import (
 # fully defined`` on the first request. The ``# noqa: TC001`` silences
 # the legitimate ruff hint because the import genuinely is not
 # typing-only for this consumer.
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
 

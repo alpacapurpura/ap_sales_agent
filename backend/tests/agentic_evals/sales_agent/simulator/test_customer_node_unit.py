@@ -302,7 +302,7 @@ class TestSemaphoreWrapping:
         mock_service = MagicMock()
         mock_service.get_client = MagicMock(return_value=mock_client)
 
-        from src.shared.infrastructure.llm import factory as factory_mod
+        from luana_core_llm import factory as factory_mod
 
         monkeypatch.setattr(
             factory_mod.LLMFactory,
@@ -358,7 +358,7 @@ class TestCustomerNodeLLMDispatch:
         mock_service = MagicMock()
         mock_service.get_client = MagicMock(return_value=mock_client)
 
-        from src.shared.infrastructure.llm import factory as factory_mod
+        from luana_core_llm import factory as factory_mod
 
         monkeypatch.setattr(
             factory_mod.LLMFactory,
@@ -429,7 +429,7 @@ class TestErrorPath:
         mock_service = MagicMock()
         mock_service.get_client = MagicMock(return_value=mock_client)
 
-        from src.shared.infrastructure.llm import factory as factory_mod
+        from luana_core_llm import factory as factory_mod
 
         monkeypatch.setattr(
             factory_mod.LLMFactory,
@@ -466,14 +466,14 @@ class TestEvalRolesIsolation:
 
     def test_eval_user_simulator_not_in_production_ssot(self) -> None:
         """A3 inline check — production SSoT does NOT carry the eval role."""
-        from src.modules.sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
+        from luana_core_sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
 
         assert "EVAL_USER_SIMULATOR" not in LLM_ROLE_BY_SITE, (
             "EVAL_USER_SIMULATOR must NOT pollute LLM_ROLE_BY_SITE SSoT (decision §2.1 03-arch-agentic.md)"
         )
 
     def test_eval_llm_roles_value_is_model_role_nano(self) -> None:
-        from src.core.enums import ModelRole
+        from luana_core_platform.core.enums import ModelRole
 
         assert EVAL_LLM_ROLES["EVAL_USER_SIMULATOR"] == ModelRole.NANO
 
@@ -510,7 +510,7 @@ def _stub_llm_factory(
     mock_service = MagicMock()
     mock_service.get_client = MagicMock(return_value=mock_client)
 
-    from src.shared.infrastructure.llm import factory as factory_mod
+    from luana_core_llm import factory as factory_mod
 
     monkeypatch.setattr(
         factory_mod.LLMFactory,

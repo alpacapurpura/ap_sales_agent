@@ -47,7 +47,7 @@ def _db_session():
     from sqlalchemy import create_engine
     from sqlalchemy.orm import Session
 
-    from src.core.config import settings
+    from luana_core_platform.core.config import settings
 
     engine = create_engine(settings.database_url.replace("+asyncpg", ""))
     with Session(engine) as session:

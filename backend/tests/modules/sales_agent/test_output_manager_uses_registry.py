@@ -16,9 +16,9 @@ from pathlib import Path
 
 import pytest
 
-from src.modules.sales_agent.infrastructure.external import output_manager as om_module
-from src.modules.sales_agent.infrastructure.external.output_manager import OutputManager
-from src.shared.agent_observability.channels.format import (
+from luana_core_sales_agent.infrastructure.external import output_manager as om_module
+from luana_core_sales_agent.infrastructure.external.output_manager import OutputManager
+from luana_core_channels.format import (
     ChannelFormat,
     register_channel,
     reset_registry_for_tests,
@@ -52,7 +52,7 @@ class TestOutputManagerConsumesRegistry:
         long_paragraph = "palabra " * 100  # ~800 chars
         chunks = OutputManager._parse_response(long_paragraph, channel_type="whatsapp")
         # Resolve the cap via the registry to avoid duplicating the value.
-        from src.shared.agent_observability.channels.format import get_channel_format
+        from luana_core_channels.format import get_channel_format
 
         cap = get_channel_format("whatsapp").chunk_size
         assert cap is not None and cap > 0, "whatsapp baseline must declare chunk_size"
@@ -96,7 +96,7 @@ class TestOutputManagerConsumesRegistry:
             "principal con mentoría grupal y módulos prácticos. " * 20
         )
         chunks = OutputManager._parse_response(text, channel_type="whatsapp")
-        from src.shared.agent_observability.channels.format import get_channel_format
+        from luana_core_channels.format import get_channel_format
 
         cap = get_channel_format("whatsapp").chunk_size or 0
         # Each chunk fits under cap.

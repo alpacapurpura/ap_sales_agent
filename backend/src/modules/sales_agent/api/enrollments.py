@@ -20,12 +20,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi import status as http_status
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.sales_agent.api.dto.enrollments import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_sales_agent.api.dto.enrollments import (
     EnrollmentCreateRequest,
     EnrollmentDTO,
     EnrollmentListResponse,
@@ -34,17 +32,18 @@ from src.modules.sales_agent.api.dto.enrollments import (
     PromoteWaitlistResponse,
     StatusTransitionRequest,
 )
-from src.modules.sales_agent.application.services.enrollment_service import (
+from luana_core_sales_agent.application.services.enrollment_service import (
     EnrollmentService,
 )
-from src.modules.sales_agent.domain.enrollment import (
+from luana_core_sales_agent.domain.enrollment import (
     Enrollment,
     EnrollmentCreate,
     EnrollmentStatus,
 )
-from src.modules.sales_agent.infrastructure.repositories.enrollment_repository import (
+from luana_core_sales_agent.infrastructure.repositories.enrollment_repository import (
     EnrollmentRepository,
 )
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

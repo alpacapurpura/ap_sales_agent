@@ -12,12 +12,12 @@ from typing import TYPE_CHECKING
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.iam.api.dependencies import get_current_user, get_db
-from src.modules.iam.domain.user import User
-from src.modules.social_proof.api.authority import router as authority_router
-from src.modules.social_proof.api.placements import router as placements_router
-from src.modules.social_proof.api.team_members import router as team_router
-from src.modules.social_proof.api.testimonials import router as testimonials_router
+from luana_core_iam.api.dependencies import get_current_user, get_db
+from luana_core_iam.domain.user import User
+from luana_core_social_proof.api.authority import router as authority_router
+from luana_core_social_proof.api.placements import router as placements_router
+from luana_core_social_proof.api.team_members import router as team_router
+from luana_core_social_proof.api.testimonials import router as testimonials_router
 from tests.modules.conftest import TENANT_A, TENANT_B, USER_A
 
 if TYPE_CHECKING:

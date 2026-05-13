@@ -18,26 +18,25 @@ from typing import Any
 from uuid import UUID
 
 import structlog
-from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
-
-from src.modules.sales_agent.application.services.payment_state_service import (
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
+from luana_core_platform.domain.events import AccessGrantedEvent, PaymentLinkCreatedEvent
+from luana_core_sales_agent.application.services.payment_state_service import (
     PaymentEntryStatus,
     PaymentStateService,
 )
-from src.modules.sales_agent.application.tools.payment.providers import (
+from luana_core_sales_agent.application.tools.payment.providers import (
     payment_provider_for_tenant,
 )
-from src.modules.sales_agent.infrastructure.models.payment_grant_audit_model import (
+from luana_core_sales_agent.infrastructure.models.payment_grant_audit_model import (
     PaymentGrantAuditModel,
 )
-from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+from luana_core_sales_agent.infrastructure.models.payment_link_model import (
     PaymentLinkModel,
 )
-from src.shared.domain.events import AccessGrantedEvent, PaymentLinkCreatedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
-)
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 logger = structlog.get_logger()
 

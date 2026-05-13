@@ -16,8 +16,7 @@ from __future__ import annotations
 
 import structlog
 from langchain_core.tools import tool
-
-from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
     ALLOWED_DOMAINS,
     ALLOWED_METHODOLOGIES,
     MarketingKbStore,

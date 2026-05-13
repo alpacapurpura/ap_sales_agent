@@ -13,14 +13,14 @@ from unittest.mock import patch
 
 import pytest
 
-from src.modules.sales_agent.application.agents.sales.tools import TOOL_REGISTRY
-from src.modules.sales_agent.application.tools.registry import (
+from luana_core_sales_agent.application.agents.sales.tools import TOOL_REGISTRY
+from luana_core_sales_agent.application.tools.registry import (
     ALWAYS_AVAILABLE,
     STAGE_TOOL_SCOPE,
     get_tools_for_stage,
     is_tool_available_in_stage,
 )
-from src.modules.sales_agent.application.tools.scheduling.tools import (
+from luana_core_sales_agent.application.tools.scheduling.tools import (
     SCHEDULING_TOOL_REGISTRY,
     tool_create_booking_link,
     tool_verify_booking_status,
@@ -39,9 +39,9 @@ def lead_id() -> uuid.UUID:
 
 @pytest.fixture
 def populated_db(db, tenant_id, lead_id):
-    from src.modules.crm.infrastructure.models.lead_model import LeadModel
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+    from luana_core_crm.infrastructure.models.lead_model import LeadModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
         AgentStateCheckpointModel,
     )
 
@@ -74,7 +74,7 @@ def _build_state(tenant_id: uuid.UUID, lead_id: uuid.UUID, **extra) -> dict:
 
 def test_create_booking_link_returns_url(populated_db, tenant_id, lead_id) -> None:
     state = _build_state(tenant_id, lead_id)
-    with patch("src.shared.links.ports.domain_lookup.create_domain_lookup") as mock_lookup:
+    with patch("luana_core_platform.links.ports.domain_lookup.create_domain_lookup") as mock_lookup:
         mock_lookup.return_value.get_verified_domain.return_value = None
         result = tool_create_booking_link(state, populated_db)
 
@@ -87,7 +87,7 @@ def test_create_booking_link_returns_url(populated_db, tenant_id, lead_id) -> No
 def test_create_booking_link_idempotent_within_window(populated_db, tenant_id, lead_id) -> None:
     """Re-invoking with the same lead+slug returns the same active link."""
     state = _build_state(tenant_id, lead_id)
-    with patch("src.shared.links.ports.domain_lookup.create_domain_lookup") as mock_lookup:
+    with patch("luana_core_platform.links.ports.domain_lookup.create_domain_lookup") as mock_lookup:
         mock_lookup.return_value.get_verified_domain.return_value = None
         first = tool_create_booking_link(state, populated_db)
         second = tool_create_booking_link(state, populated_db)

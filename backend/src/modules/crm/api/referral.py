@@ -4,12 +4,11 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
 
 router = APIRouter(prefix="/referrals", tags=["CRM - Referrals"])
 
@@ -56,7 +55,7 @@ async def list_referral_codes(
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[ReferralCodeResponse]:
     """List all active referral codes for tenant."""
-    from src.modules.crm.application.services.referral_service import ReferralService
+    from luana_core_crm.application.services.referral_service import ReferralService
 
     svc = ReferralService(db)
     codes = svc.get_codes_by_tenant(user.tenant_id, active_only=True)
@@ -83,7 +82,7 @@ async def promote_to_evangelist(
 
     Uses LifecycleService.promote_to_evangelist atomically.
     """
-    from src.modules.crm.application.services.lifecycle_service import LifecycleService
+    from luana_core_crm.application.services.lifecycle_service import LifecycleService
 
     try:
         customer_id = UUID(body.customer_id)
@@ -118,7 +117,7 @@ async def generate_referral_code(
     user: Annotated[User, Depends(get_current_user)],
 ) -> ReferralCodeResponse:
     """Generate referral code for an existing evangelist who doesn't have one yet."""
-    from src.modules.crm.application.services.referral_service import ReferralService
+    from luana_core_crm.application.services.referral_service import ReferralService
 
     try:
         customer_id = UUID(body.customer_id)

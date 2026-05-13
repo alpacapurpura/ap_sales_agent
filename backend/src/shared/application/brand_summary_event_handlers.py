@@ -19,11 +19,10 @@ import asyncio
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.shared.domain.events import EventBus
+from luana_core_platform.domain.events import EventBus
 
 if TYPE_CHECKING:
-    from src.shared.domain.events import DomainEvent
+    from luana_core_platform.domain.events import DomainEvent
 
 logger = structlog.get_logger(__name__)
 
@@ -44,7 +43,7 @@ def _build_job_id(tenant_id: str) -> str:
 
 async def _enqueue_regen(event: DomainEvent) -> None:
     """Async tail — enqueue the regen job."""
-    from src.core.arq_pool import get_arq_pool
+    from luana_core_platform.core.arq_pool import get_arq_pool
 
     pool = get_arq_pool()
     if pool is None:

@@ -48,7 +48,7 @@ def _get_fake_user() -> _FakeUser:
 async def client() -> AsyncClient:  # type: ignore[override]
     """AsyncClient pointed at the FastAPI app with auth overridden."""
     from src.main import app
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     app.dependency_overrides[get_current_user] = _get_fake_user
 
@@ -105,18 +105,18 @@ class TestCreateSurvey:
     @pytest.mark.asyncio
     async def test_create_survey_success(self, client: AsyncClient) -> None:
         """Valid request → 200 + survey with token URL."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_survey = _make_survey()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.create_survey",
+                "luana_core_crm.application.services.nps_service.NpsService.create_survey",
                 return_value=mock_survey,
             ),
         ):
@@ -147,18 +147,18 @@ class TestGetSurvey:
     @pytest.mark.asyncio
     async def test_get_survey_success(self, client: AsyncClient) -> None:
         """Valid token → 200 + survey details."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_survey = _make_survey()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_survey_by_token",
+                "luana_core_crm.application.services.nps_service.NpsService.get_survey_by_token",
                 return_value=mock_survey,
             ),
         ):
@@ -177,17 +177,17 @@ class TestGetSurvey:
     @pytest.mark.asyncio
     async def test_get_survey_not_found(self, client: AsyncClient) -> None:
         """Unknown token → 404."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_survey_by_token",
+                "luana_core_crm.application.services.nps_service.NpsService.get_survey_by_token",
                 return_value=None,
             ),
         ):
@@ -203,18 +203,18 @@ class TestGetSurvey:
     @pytest.mark.asyncio
     async def test_get_survey_expired(self, client: AsyncClient) -> None:
         """Expired survey → 410."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_survey = _make_survey(status="expired")
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_survey_by_token",
+                "luana_core_crm.application.services.nps_service.NpsService.get_survey_by_token",
                 return_value=mock_survey,
             ),
         ):
@@ -230,18 +230,18 @@ class TestGetSurvey:
     @pytest.mark.asyncio
     async def test_get_survey_already_responded(self, client: AsyncClient) -> None:
         """Already responded → 409."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_survey = _make_survey(status="responded")
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_survey_by_token",
+                "luana_core_crm.application.services.nps_service.NpsService.get_survey_by_token",
                 return_value=mock_survey,
             ),
         ):
@@ -266,7 +266,7 @@ class TestSubmitNpsResponse:
     @pytest.mark.asyncio
     async def test_submit_success(self, client: AsyncClient) -> None:
         """Valid score → 200 + confirmation."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -274,15 +274,15 @@ class TestSubmitNpsResponse:
         mock_response = _make_nps_response()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_survey_by_token",
+                "luana_core_crm.application.services.nps_service.NpsService.get_survey_by_token",
                 return_value=mock_survey,
             ),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.submit_response",
+                "luana_core_crm.application.services.nps_service.NpsService.submit_response",
                 return_value=mock_response,
             ),
         ):
@@ -304,18 +304,18 @@ class TestSubmitNpsResponse:
     @pytest.mark.asyncio
     async def test_submit_invalid_score(self, client: AsyncClient) -> None:
         """Score out of range → 400."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_survey = _make_survey()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_survey_by_token",
+                "luana_core_crm.application.services.nps_service.NpsService.get_survey_by_token",
                 return_value=mock_survey,
             ),
         ):
@@ -343,7 +343,7 @@ class TestGetNpsSummary:
     @pytest.mark.asyncio
     async def test_summary_returns_metrics(self, client: AsyncClient) -> None:
         """Happy path → 200 + NPS summary."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -359,11 +359,11 @@ class TestGetNpsSummary:
         }
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_nps_summary",
+                "luana_core_crm.application.services.nps_service.NpsService.get_nps_summary",
                 return_value=summary_data,
             ),
         ):
@@ -391,7 +391,7 @@ class TestGetEvangelistCandidates:
     @pytest.mark.asyncio
     async def test_candidates_returns_list(self, client: AsyncClient) -> None:
         """Happy path → 200 + candidate list."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -405,11 +405,11 @@ class TestGetEvangelistCandidates:
         ]
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_evangelist_candidates",
+                "luana_core_crm.application.services.nps_service.NpsService.get_evangelist_candidates",
                 return_value=candidates,
             ),
         ):
@@ -428,17 +428,17 @@ class TestGetEvangelistCandidates:
     @pytest.mark.asyncio
     async def test_candidates_empty_returns_empty_list(self, client: AsyncClient) -> None:
         """No candidates → empty list."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.nps_service.NpsService.get_evangelist_candidates",
+                "luana_core_crm.application.services.nps_service.NpsService.get_evangelist_candidates",
                 return_value=[],
             ),
         ):

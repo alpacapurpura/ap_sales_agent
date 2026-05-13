@@ -11,11 +11,11 @@ from uuid import UUID
 
 import pytest
 
-from src.modules.analytics.application.services.channel_dashboard_service import (
+from luana_core_analytics_engine.application.services.channel_dashboard_service import (
     ChannelDashboardService,
 )
-from src.modules.analytics.domain.enums import AggregationType
-from src.modules.analytics.domain.metric_catalog import get_metric_def
+from luana_core_analytics_engine.domain.enums import AggregationType
+from luana_core_analytics_engine.domain.metric_catalog import get_metric_def
 
 _TENANT_ID = UUID("11111111-1111-1111-1111-111111111111")
 _CHANNEL = "meta-ads"
@@ -360,7 +360,7 @@ class TestGetBestPeriodMetric:
 
     def test_exact_match_returns_value(self, mock_db):
         """When period_metrics covers the exact date range, return its value."""
-        from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository import (
             PeriodMetricsRepository,
         )
 
@@ -385,7 +385,7 @@ class TestGetBestPeriodMetric:
 
     def test_no_match_returns_none(self, mock_db):
         """When no period_metrics match, return None."""
-        from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository import (
             PeriodMetricsRepository,
         )
 
@@ -407,7 +407,7 @@ class TestGetBestPeriodMetric:
 
     def test_filters_by_tenant_id(self, mock_db):
         """Query must always include tenant_id filter."""
-        from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository import (
             PeriodMetricsRepository,
         )
 

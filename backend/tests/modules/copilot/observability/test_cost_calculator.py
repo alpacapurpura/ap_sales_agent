@@ -23,7 +23,7 @@ def _snapshot(*, input_cost="0.0000025", output_cost="0.000010", cache_read="0.0
 
 class TestCostCalculator:
     def test_basic_call_uses_full_input_pricing(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         cost = calculate_cost(
             input_tokens=1000,
@@ -36,7 +36,7 @@ class TestCostCalculator:
         assert cost == Decimal("0.007500000000")
 
     def test_cached_tokens_priced_at_cache_rate_not_input_rate(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         # Cached reads are subtracted from the full-priced input bucket
         # and re-added at the discounted cache_read rate. So total input
@@ -53,7 +53,7 @@ class TestCostCalculator:
         assert cost == Decimal("0.007250000000")
 
     def test_zero_tokens_zero_cost(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         cost = calculate_cost(
             input_tokens=0,
@@ -65,7 +65,7 @@ class TestCostCalculator:
         assert cost == Decimal(0)
 
     def test_cached_writes_billed_separately(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         snap = MagicMock()
         snap.input_cost_per_token = Decimal("0.000003")
@@ -85,7 +85,7 @@ class TestCostCalculator:
         assert cost == Decimal("0.007125000000")
 
     def test_returns_decimal_not_float(self) -> None:
-        from src.shared.agent_observability.cost.calculator import calculate_cost
+        from luana_core_observability.cost.calculator import calculate_cost
 
         cost = calculate_cost(
             input_tokens=10,

@@ -14,7 +14,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.iam.api.dependencies import get_current_user, get_db, get_tenant_context
+from luana_core_iam.api.dependencies import get_current_user, get_db, get_tenant_context
 
 
 def _fresh_db_mock() -> MagicMock:
@@ -29,7 +29,7 @@ def _fresh_db_mock() -> MagicMock:
 
 def _build_app_with_media_router() -> tuple[FastAPI, MagicMock]:
     """Build a test FastAPI app with the media router and mocked deps."""
-    from src.modules.copilot.api.media import router
+    from luana_core_copilot.api.media import router
 
     app = FastAPI()
     tenant_id = uuid4()
@@ -49,7 +49,7 @@ def _build_app_with_media_router() -> tuple[FastAPI, MagicMock]:
 # ── Happy paths ───────────────────────────────────────────────────────
 
 
-@patch("src.modules.copilot.api.media.AssetsService")
+@patch("luana_core_copilot.api.media.AssetsService")
 def test_upload_image_returns_200(mock_assets_cls: MagicMock) -> None:
     """Image upload delegates to AssetsService and returns asset_id + public_url."""
     fake_asset = SimpleNamespace(
@@ -82,7 +82,7 @@ def test_upload_image_returns_200(mock_assets_cls: MagicMock) -> None:
     assert data["kind"] == "image"
 
 
-@patch("src.modules.copilot.api.media.AssetsService")
+@patch("luana_core_copilot.api.media.AssetsService")
 def test_upload_delegates_to_assets_service(mock_assets_cls: MagicMock) -> None:
     """Verify upload_asset is called with tenant_id from auth context."""
     fake_asset = SimpleNamespace(
@@ -124,7 +124,7 @@ def test_upload_delegates_to_assets_service(mock_assets_cls: MagicMock) -> None:
 
 def test_upload_without_file_returns_422() -> None:
     """POST without a file returns 422."""
-    from src.modules.copilot.api.media import router
+    from luana_core_copilot.api.media import router
 
     app = FastAPI()
     tenant_id = uuid4()
@@ -138,7 +138,7 @@ def test_upload_without_file_returns_422() -> None:
     assert response.status_code == 422
 
 
-@patch("src.modules.copilot.api.media.AssetsService")
+@patch("luana_core_copilot.api.media.AssetsService")
 def test_upload_unsupported_mime_returns_415(mock_assets_cls: MagicMock) -> None:
     """Unsupported MIME type returns 415 Unsupported Media Type."""
     app, _ = _build_app_with_media_router()
@@ -161,7 +161,7 @@ def test_upload_unsupported_mime_returns_415(mock_assets_cls: MagicMock) -> None
 # ── Tenant isolation ──────────────────────────────────────────────────
 
 
-@patch("src.modules.copilot.api.media.AssetsService")
+@patch("luana_core_copilot.api.media.AssetsService")
 def test_upload_passes_tenant_id_to_service(mock_assets_cls: MagicMock) -> None:
     """The tenant_id from auth must be forwarded to AssetsService.upload_asset."""
     expected_tenant_id = uuid4()
@@ -176,7 +176,7 @@ def test_upload_passes_tenant_id_to_service(mock_assets_cls: MagicMock) -> None:
     mock_instance.upload_asset.return_value = fake_asset
     mock_assets_cls.return_value = mock_instance
 
-    from src.modules.copilot.api.media import router
+    from luana_core_copilot.api.media import router
 
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/copilot")

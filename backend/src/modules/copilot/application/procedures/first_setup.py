@@ -3,7 +3,7 @@
 Chains: brand identity → positioning → first offer → first connection.
 """
 
-from src.modules.copilot.application.procedures.base import Procedure, ProcedureStep
+from luana_core_copilot.application.procedures.base import Procedure, ProcedureStep
 
 FIRST_SETUP = Procedure(
     procedure_id="first_setup",

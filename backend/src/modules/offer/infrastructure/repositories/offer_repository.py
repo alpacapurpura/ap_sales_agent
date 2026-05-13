@@ -4,12 +4,9 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
-from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
-from src.modules.offer.infrastructure.models.product_model import ProductModel
-from src.modules.offer.infrastructure.repositories.enum_normalizer import (
+from luana_core_offer_studio.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
+from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
+from luana_core_offer_studio.infrastructure.repositories.enum_normalizer import (
     normalize_archetype,
     normalize_deliverables,
     normalize_delivery_model,
@@ -20,7 +17,9 @@ from src.modules.offer.infrastructure.repositories.enum_normalizer import (
     normalize_status,
     normalize_value_level,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 
 class OfferRepository:
@@ -127,7 +126,7 @@ class OfferRepository:
         # Composable Platform Details (Fase 02 · Block G)
         platform_json = model.platform_details
         if platform_json:
-            from src.modules.offer.domain.details import PlatformDetails
+            from luana_core_offer_studio.domain.details import PlatformDetails
 
             try:
                 offer_data["platform_details"] = PlatformDetails(**platform_json)

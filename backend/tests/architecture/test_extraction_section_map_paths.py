@@ -11,7 +11,7 @@ refs: docs/refactors/field-contract-platform/DESIGN.md
 
 from __future__ import annotations
 
-from src.modules.offer.domain.details import (
+from luana_core_offer_studio.domain.details import (
     EventDetails,
     PlatformDetails,
     ProductDetails,
@@ -19,8 +19,8 @@ from src.modules.offer.domain.details import (
     ServiceDetails,
     SubscriptionDetails,
 )
-from src.modules.offer.domain.field_contract import OFFER_FIELD_CONTRACTS
-from src.modules.offer.domain.offer import Offer
+from luana_core_offer_studio.domain.field_contract import OFFER_FIELD_CONTRACTS
+from luana_core_offer_studio.domain.offer import Offer
 
 
 def _all_known_paths() -> set[str]:

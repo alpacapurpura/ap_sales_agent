@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.ports import (
+from luana_core_copilot.domain.ports import (
     BaseCopilotProvider,
     DataAccessProvider,
     ModuleData,
 )
-from src.modules.crm.copilot_provider.data_access import CrmDataAccessProvider
+from luana_core_crm.copilot_provider.data_access import CrmDataAccessProvider
 
 
 class CrmCopilotProvider(BaseCopilotProvider):

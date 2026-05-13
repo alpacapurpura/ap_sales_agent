@@ -23,7 +23,7 @@ _VOSEO_RE = re.compile(
 
 
 def _ctx(route: str | None = "offer-studio", offers=None, tenant_id=None):
-    from src.modules.copilot.domain.suggestion import SuggestionContext
+    from luana_core_copilot.domain.suggestion import SuggestionContext
 
     return SuggestionContext(
         tenant_id=tenant_id or uuid4(),
@@ -44,7 +44,7 @@ def _mock_reader(offers=None, flags=None, lead_without_core=False):
 
 class TestOfferSuggestionProviderInterface:
     def test_provider_id_is_offer(self) -> None:
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -52,7 +52,7 @@ class TestOfferSuggestionProviderInterface:
         assert p.provider_id == "offer"
 
     def test_applies_to_routes_contains_offer_studio(self) -> None:
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -60,7 +60,7 @@ class TestOfferSuggestionProviderInterface:
         assert "offer-studio" in p.applies_to_routes
 
     def test_provider_priority_is_int(self) -> None:
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -70,7 +70,7 @@ class TestOfferSuggestionProviderInterface:
 
 class TestOfferSuggestionProviderHeuristics:
     def _run_with_mock_reader(self, route, reader):
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -79,11 +79,11 @@ class TestOfferSuggestionProviderHeuristics:
 
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.OfferSuggestionReader",
+                "luana_core_copilot.application.suggestions.providers.offer.OfferSuggestionReader",
                 return_value=reader,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.offer.SessionLocal",
             ),
         ):
             return provider.get_suggestions(ctx)
@@ -95,7 +95,7 @@ class TestOfferSuggestionProviderHeuristics:
         assert any("oferta" in l.lower() or "crea" in l.lower() for l in labels)
 
     def test_high_ticket_flag_yields_pricing_chip(self) -> None:
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -107,11 +107,11 @@ class TestOfferSuggestionProviderHeuristics:
 
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.OfferSuggestionReader",
+                "luana_core_copilot.application.suggestions.providers.offer.OfferSuggestionReader",
                 return_value=reader,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.offer.SessionLocal",
             ),
         ):
             results = provider.get_suggestions(ctx)
@@ -120,7 +120,7 @@ class TestOfferSuggestionProviderHeuristics:
         assert any("pricing" in l or "precio" in l or "nivel" in l or "tier" in l for l in labels)
 
     def test_recurring_billing_flag_yields_subscription_chip(self) -> None:
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -132,11 +132,11 @@ class TestOfferSuggestionProviderHeuristics:
 
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.OfferSuggestionReader",
+                "luana_core_copilot.application.suggestions.providers.offer.OfferSuggestionReader",
                 return_value=reader,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.offer.SessionLocal",
             ),
         ):
             results = provider.get_suggestions(ctx)
@@ -151,7 +151,7 @@ class TestOfferSuggestionProviderHeuristics:
         assert any("core" in l or "vincula" in l or "enlaza" in l for l in labels)
 
     def test_incomplete_field_promise_yields_prompt_chip(self) -> None:
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -168,11 +168,11 @@ class TestOfferSuggestionProviderHeuristics:
 
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.OfferSuggestionReader",
+                "luana_core_copilot.application.suggestions.providers.offer.OfferSuggestionReader",
                 return_value=reader,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.offer.SessionLocal",
             ),
         ):
             results = provider.get_suggestions(ctx_with_field)
@@ -184,7 +184,7 @@ class TestOfferSuggestionProviderHeuristics:
 class TestOfferSuggestionProviderResilience:
     def test_provider_returns_empty_on_db_failure(self) -> None:
         """Mock SessionLocal to raise; provider returns [] + warning (no exception bubbles)."""
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -192,7 +192,7 @@ class TestOfferSuggestionProviderResilience:
         ctx = _ctx("offer-studio")
 
         with patch(
-            "src.modules.copilot.application.suggestions.providers.offer.SessionLocal",
+            "luana_core_copilot.application.suggestions.providers.offer.SessionLocal",
             side_effect=RuntimeError("DB down"),
         ):
             results = provider.get_suggestions(ctx)
@@ -208,7 +208,7 @@ class TestOfferSuggestionProviderResilience:
         reader_a = _mock_reader(offers=[])
         reader_b = _mock_reader(offers=[])  # tenant B has no offers
 
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -217,11 +217,11 @@ class TestOfferSuggestionProviderResilience:
 
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.OfferSuggestionReader",
+                "luana_core_copilot.application.suggestions.providers.offer.OfferSuggestionReader",
                 return_value=reader_a,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.offer.SessionLocal",
             ),
         ):
             results_a = provider.get_suggestions(ctx)
@@ -229,11 +229,11 @@ class TestOfferSuggestionProviderResilience:
         ctx_b = _ctx("offer-studio", tenant_id=tenant_b)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.OfferSuggestionReader",
+                "luana_core_copilot.application.suggestions.providers.offer.OfferSuggestionReader",
                 return_value=reader_b,
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.offer.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.offer.SessionLocal",
             ),
         ):
             results_b = provider.get_suggestions(ctx_b)
@@ -246,7 +246,7 @@ class TestOfferSuggestionProviderResilience:
 class TestNoVoseo:
     def test_all_suggestion_labels_and_prompts_are_neutro(self) -> None:
         """All labels + prompts from OfferSuggestionProvider are voseo-free."""
-        from src.modules.copilot.application.suggestions.providers.offer import (
+        from luana_core_copilot.application.suggestions.providers.offer import (
             OfferSuggestionProvider,
         )
 
@@ -265,11 +265,11 @@ class TestNoVoseo:
         for reader in scenarios:
             with (
                 patch(
-                    "src.modules.copilot.application.suggestions.providers.offer.OfferSuggestionReader",
+                    "luana_core_copilot.application.suggestions.providers.offer.OfferSuggestionReader",
                     return_value=reader,
                 ),
                 patch(
-                    "src.modules.copilot.application.suggestions.providers.offer.SessionLocal",
+                    "luana_core_copilot.application.suggestions.providers.offer.SessionLocal",
                 ),
             ):
                 results = provider.get_suggestions(ctx)

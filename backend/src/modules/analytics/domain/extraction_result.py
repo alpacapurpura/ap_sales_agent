@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+    from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
 
 @dataclass

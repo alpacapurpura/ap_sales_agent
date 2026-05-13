@@ -19,8 +19,8 @@ refs: docs/refactors/field-contract-platform/phases/06-brand-migration/PRE_INVES
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.schema_introspection import validate_field_path
-from src.shared.links.ports.editable_fields import get_catalog
+from luana_core_copilot.domain.schema_introspection import validate_field_path
+from luana_core_platform.links.ports.editable_fields import get_catalog
 
 
 def _brand_catalog():

@@ -25,12 +25,12 @@ Related:
 
 from __future__ import annotations
 
-from src.modules.offer.domain.archetype_catalog import (
+from luana_core_offer_studio.domain.archetype_catalog import (
     ARCHETYPE_CATALOG,
     get_capabilities,
 )
-from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.section_catalog import (
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.section_catalog import (
     SectionKey,
     SectionScope,
     get_section,

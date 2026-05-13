@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from src.shared.links.ports.advertising import (
+from luana_core_platform.links.ports.advertising import (
     AdvertisingReadPort,
     CampaignAggregateKPIsDTO,
     OfferCampaignsViewDTO,

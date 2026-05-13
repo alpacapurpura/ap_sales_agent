@@ -23,23 +23,23 @@ from uuid import uuid4
 import httpx
 import pytest
 
-from src.modules.campaigns.domain.channel_router import ChannelSendResult
-from src.modules.campaigns.infrastructure.channels.errors import (
+from luana_core_campaigns.domain.channel_router import ChannelSendResult
+from luana_core_campaigns.infrastructure.channels.errors import (
     ChannelComplianceBlocked,
     ChannelFatalError,
     ChannelRateLimitedError,
     ChannelRetryableError,
     ChannelTenantRateExceeded,
 )
-from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
-from src.modules.campaigns.infrastructure.channels.telegram import TelegramChannelRouter
-from src.modules.campaigns.infrastructure.resilience.circuit_breaker import (
+from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+from luana_core_campaigns.infrastructure.channels.telegram import TelegramChannelRouter
+from luana_core_campaigns.infrastructure.resilience.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerConfig,
     CircuitState,
 )
-from src.modules.campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
-from src.shared.compliance.domain.check_result import CheckResult
+from luana_core_campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
+from luana_core_compliance.domain.check_result import CheckResult
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -213,7 +213,7 @@ async def test_send_429_raises_channel_rate_limited_error() -> None:
 @pytest.mark.asyncio
 async def test_send_429_increments_circuit_breaker() -> None:
     """HTTP 429 → CB counts the failure (ChannelRateLimitedError is ChannelRetryableError)."""
-    from src.modules.campaigns.infrastructure.channels.errors import ChannelRateLimitedError
+    from luana_core_campaigns.infrastructure.channels.errors import ChannelRateLimitedError
 
     assert issubclass(ChannelRateLimitedError, ChannelRetryableError), (
         "ChannelRateLimitedError must extend ChannelRetryableError so CB counts it"
@@ -299,8 +299,8 @@ async def test_send_idempotency_dedup_no_second_http_call() -> None:
     mock_client.post = _mock_post
 
     # Build real IdempotencyService with in-memory store
-    from src.shared.idempotency.application.service import IdempotencyService
-    from src.shared.idempotency.infrastructure.redis_store import RedisIdempotencyStore
+    from luana_core_idempotency.application.service import IdempotencyService
+    from luana_core_idempotency.infrastructure.redis_store import RedisIdempotencyStore
 
     class _InMemoryRedis:
         def __init__(self) -> None:

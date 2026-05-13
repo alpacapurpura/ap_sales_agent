@@ -8,9 +8,7 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
-from sqlalchemy import text
-
-from src.modules.analytics.application.dto.channel_dashboard_dto import (
+from luana_core_analytics_engine.application.dto.channel_dashboard_dto import (
     AdFunnelDTO,
     BenchmarkRangeDTO,
     ChannelDashboardDTO,
@@ -22,28 +20,28 @@ from src.modules.analytics.application.dto.channel_dashboard_dto import (
     MetricTimeSeriesDTO,
     TimeSeriesDataPointDTO,
 )
-from src.modules.analytics.domain.industry_benchmarks import (
+from luana_core_analytics_engine.domain.industry_benchmarks import (
     FREQUENCY_FATIGUE_THRESHOLD,
     IndustryCategory,
     get_benchmarks,
     normalize_industry,
 )
-from src.modules.analytics.domain.metric_catalog import get_metric_def
-from src.modules.analytics.domain.metric_resolver import ALIAS_MAP, MetricResolver
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+from luana_core_analytics_engine.domain.metric_catalog import get_metric_def
+from luana_core_analytics_engine.domain.metric_resolver import ALIAS_MAP, MetricResolver
+from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
-from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository import (
     PeriodMetricsRepository,
 )
-from src.shared.domain.datetime_utils import utc_today
+from luana_core_platform.domain.datetime_utils import utc_today
+from sqlalchemy import text
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.domain.ports import BrandReadPort
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.ports import BrandReadPort
 
 import structlog
 
@@ -608,7 +606,7 @@ class ChannelDashboardService:
         metrics (spend, clicks, impressions, etc.). This method collects
         all canonical metric names + their components for the DB query.
         """
-        from src.modules.analytics.domain.metric_resolver import (
+        from luana_core_analytics_engine.domain.metric_resolver import (
             _get_formula_components,
         )
 

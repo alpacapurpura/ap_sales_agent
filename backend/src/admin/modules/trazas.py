@@ -15,13 +15,13 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 import streamlit as st
+from luana_core_platform.core.database import SessionLocal
 from sqlalchemy import text
 
 from src.admin.modules._shared import (
     get_tenant_name,
     render_tenant_selector,
 )
-from src.core.database import SessionLocal
 
 if TYPE_CHECKING:
     from uuid import UUID

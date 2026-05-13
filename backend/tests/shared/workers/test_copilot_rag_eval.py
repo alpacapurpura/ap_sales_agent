@@ -10,13 +10,13 @@ import json
 import pytest
 from langchain_core.messages import AIMessage
 
-from src.modules.copilot.application.observability.judge import CopilotJudge
-from src.modules.copilot.application.observability.rag_goldens import (
+from luana_core_copilot.application.observability.judge import CopilotJudge
+from luana_core_copilot.application.observability.rag_goldens import (
     RAG_DIMENSIONS,
     RAG_GOLDENS,
     RagGolden,
 )
-from src.modules.copilot.infrastructure.repositories.workflow_metric_repository import (
+from luana_core_copilot.infrastructure.repositories.workflow_metric_repository import (
     WorkflowMetricRepository,
 )
 from src.shared.workers.copilot_rag_eval import (

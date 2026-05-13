@@ -13,48 +13,46 @@ from uuid import UUID
 
 import sentry_sdk
 import structlog
-
-from src.modules.analytics.application.cost_type_mapping import get_cost_type
-from src.modules.analytics.domain.enums import ExtractionStatus
-from src.modules.analytics.domain.exceptions import ConnectionRevokedError
-from src.modules.analytics.domain.period_config import TenantPeriodConfig
-from src.modules.analytics.infrastructure.etl.aggregations import (
+from luana_core_analytics_engine.application.cost_type_mapping import get_cost_type
+from luana_core_analytics_engine.domain.enums import ExtractionStatus
+from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
+from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
+from luana_core_analytics_engine.infrastructure.etl.aggregations import (
     compute_aggregations,
 )
-from src.modules.analytics.infrastructure.etl.transformers import (
+from luana_core_analytics_engine.infrastructure.etl.transformers import (
     transform_staging_to_official,
 )
-from src.modules.analytics.infrastructure.models.metric_aggregation_model import (  # noqa: F401
+from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (  # noqa: F401
     MetricAggregationModel,
 )
-from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
-from src.modules.analytics.infrastructure.repositories.metric_aggregation_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.metric_aggregation_repository import (
     MetricAggregationRepository,
 )
 
 if TYPE_CHECKING:
     from datetime import date
 
-    from sqlalchemy.orm import Session
-
-    from src.modules.analytics.domain.extraction_result import ExtractionResult
-    from src.modules.analytics.domain.ports import ConnectionPort
-    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-    from src.modules.analytics.infrastructure.models.extraction_run_model import (
+    from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+    from luana_core_analytics_engine.domain.ports import ConnectionPort
+    from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+    from luana_core_analytics_engine.infrastructure.models.extraction_run_model import (
         ExtractionRunModel,
     )
-    from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
-    from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+    from luana_core_analytics_engine.infrastructure.providers.base import BaseMetricsProvider
+    from luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository import (
         ExtractionRunRepository,
     )
-    from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
         OfficialMetricsRepository,
     )
-    from src.modules.analytics.infrastructure.repositories.staging_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.staging_repository import (
         StagingMetricsRepository,
     )
+    from sqlalchemy.orm import Session
 
 logger = structlog.get_logger(__name__)
 

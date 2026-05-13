@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 
-from src.modules.copilot.application.tools.guided.extract import extract_structured
+from luana_core_copilot.application.tools.guided.extract import extract_structured
 
 
 class TestExtractStructuredGlobal:

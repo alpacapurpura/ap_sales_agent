@@ -12,7 +12,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.domain.tenant_limits import CopilotTenantLimits
+from luana_core_copilot.domain.tenant_limits import CopilotTenantLimits
 
 
 def _make_limits(**kwargs: object) -> CopilotTenantLimits:
@@ -66,8 +66,8 @@ def mock_repo_both() -> MagicMock:
 @pytest.mark.asyncio
 async def test_no_override_uses_env_defaults(mock_repo_no_override: MagicMock) -> None:
     """Case (a): no DB row → returns env defaults."""
-    from src.core.config import settings
-    from src.modules.copilot.application.services.limits_resolver import CopilotLimitsResolver
+    from luana_core_platform.core.config import settings
+    from luana_core_copilot.application.services.limits_resolver import CopilotLimitsResolver
 
     resolver = CopilotLimitsResolver(mock_repo_no_override)
     tenant_id = uuid4()
@@ -84,8 +84,8 @@ async def test_no_override_uses_env_defaults(mock_repo_no_override: MagicMock) -
 @pytest.mark.asyncio
 async def test_voice_override_only(mock_repo_voice_only: MagicMock) -> None:
     """Case (b): voice override only → voice uses override, media uses env default."""
-    from src.core.config import settings
-    from src.modules.copilot.application.services.limits_resolver import CopilotLimitsResolver
+    from luana_core_platform.core.config import settings
+    from luana_core_copilot.application.services.limits_resolver import CopilotLimitsResolver
 
     resolver = CopilotLimitsResolver(mock_repo_voice_only)
     effective = await resolver.get_effective(uuid4())
@@ -99,8 +99,8 @@ async def test_voice_override_only(mock_repo_voice_only: MagicMock) -> None:
 @pytest.mark.asyncio
 async def test_media_override_only(mock_repo_media_only: MagicMock) -> None:
     """Case (c): media override only → media uses override, voice uses env default."""
-    from src.core.config import settings
-    from src.modules.copilot.application.services.limits_resolver import CopilotLimitsResolver
+    from luana_core_platform.core.config import settings
+    from luana_core_copilot.application.services.limits_resolver import CopilotLimitsResolver
 
     resolver = CopilotLimitsResolver(mock_repo_media_only)
     effective = await resolver.get_effective(uuid4())
@@ -114,7 +114,7 @@ async def test_media_override_only(mock_repo_media_only: MagicMock) -> None:
 @pytest.mark.asyncio
 async def test_both_overrides(mock_repo_both: MagicMock) -> None:
     """Case (d): both overrides → both use override values."""
-    from src.modules.copilot.application.services.limits_resolver import CopilotLimitsResolver
+    from luana_core_copilot.application.services.limits_resolver import CopilotLimitsResolver
 
     resolver = CopilotLimitsResolver(mock_repo_both)
     effective = await resolver.get_effective(uuid4())
@@ -128,8 +128,8 @@ async def test_both_overrides(mock_repo_both: MagicMock) -> None:
 @pytest.mark.asyncio
 async def test_db_error_falls_back_to_env_defaults() -> None:
     """DB error during get_by_tenant → graceful degradation to env defaults."""
-    from src.core.config import settings
-    from src.modules.copilot.application.services.limits_resolver import CopilotLimitsResolver
+    from luana_core_platform.core.config import settings
+    from luana_core_copilot.application.services.limits_resolver import CopilotLimitsResolver
 
     repo = MagicMock()
     repo.get_by_tenant = AsyncMock(side_effect=Exception("DB connection lost"))

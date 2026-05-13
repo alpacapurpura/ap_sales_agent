@@ -16,10 +16,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
 )
-from src.shared.domain_events.outbox.domain.event import DomainEvent
+from luana_core_events.outbox.domain.event import DomainEvent
 
 
 def _make_brand_section_updated_event() -> DomainEvent:
@@ -62,7 +62,7 @@ class TestBrandOutboxAdapterFlagOff:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),
@@ -84,7 +84,7 @@ class TestBrandOutboxAdapterFlagOff:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),
@@ -104,7 +104,7 @@ class TestBrandOutboxAdapterFlagOff:
         monkeypatch.setattr to assert the flag-off branch contract.
         """
         monkeypatch.setattr(
-            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            "luana_core_events.outbox.application.event_bus_adapter.settings",
             MagicMock(USE_OUTBOX_PATTERN_BRAND=False, USE_OUTBOX_PATTERN_DEFAULT=False),
         )
         result = EventBusAdapter._is_outbox_enabled("brand")
@@ -114,7 +114,7 @@ class TestBrandOutboxAdapterFlagOff:
         """Verify flag OFF via monkeypatch.setattr on settings (pydantic-settings
         loads env at startup; setenv after import does not propagate)."""
         monkeypatch.setattr(
-            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            "luana_core_events.outbox.application.event_bus_adapter.settings",
             MagicMock(USE_OUTBOX_PATTERN_BRAND=False, USE_OUTBOX_PATTERN_DEFAULT=False),
         )
         result = EventBusAdapter._is_outbox_enabled("brand")
@@ -139,7 +139,7 @@ class TestBrandOutboxAdapterFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):
@@ -162,7 +162,7 @@ class TestBrandOutboxAdapterFlagOn:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
@@ -193,7 +193,7 @@ class TestBrandOutboxAdapterFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):
@@ -218,7 +218,7 @@ class TestBrandOutboxAdapterFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):
@@ -240,7 +240,7 @@ class TestBrandSummaryRegenDebounceFlow:
 
     def test_brand_section_updated_subscribers_fire_on_legacy_path(self) -> None:
         """Subscribers on brand_section_updated are called when flag OFF."""
-        from src.shared.domain.events import EventBus as LegacyEventBus
+        from luana_core_platform.domain.events import EventBus as LegacyEventBus
 
         LegacyEventBus.clear()
         received: list[object] = []

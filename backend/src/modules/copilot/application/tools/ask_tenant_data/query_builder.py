@@ -9,15 +9,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.modules.copilot.application.tools.ask_tenant_data.date_parser import (
+from luana_core_copilot.application.tools.ask_tenant_data.date_parser import (
     parse_period,
 )
-from src.modules.copilot.domain.ports import DataQueryPlan
+from luana_core_copilot.domain.ports import DataQueryPlan
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from src.modules.copilot.application.tools.ask_tenant_data.intent_classifier import (
+    from luana_core_copilot.application.tools.ask_tenant_data.intent_classifier import (
         IntentResult,
     )
 

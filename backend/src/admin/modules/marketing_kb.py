@@ -19,12 +19,11 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
-
-from src.modules.copilot.application.services.contextual_chunker import (
+from luana_core_copilot.application.services.contextual_chunker import (
     ChunkingMeta,
     chunk_markdown,
 )
-from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
     ALLOWED_CATEGORIES,
     ALLOWED_DOMAINS,
     ALLOWED_METHODOLOGIES,

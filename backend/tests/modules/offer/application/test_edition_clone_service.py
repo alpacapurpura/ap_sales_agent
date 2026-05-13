@@ -15,20 +15,20 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from src.modules.offer.application.edition_clone_service import (
+from luana_core_offer_studio.application.edition_clone_service import (
     CloneStrategy,
     EditionCloneService,
 )
-from src.modules.offer.application.launch_edition_service import LaunchEditionService
-from src.modules.offer.application.ports import IEditionLandingClonePort, LandingRef
-from src.modules.offer.domain.assets import OfferAsset
-from src.modules.offer.domain.enums import AssetSource, AssetStatus, AssetType
-from src.modules.offer.domain.launch_edition import LaunchEditionCreate
-from src.modules.offer.domain.offer import PricingStructure
-from src.modules.offer.infrastructure.models.launch_edition_model import (
+from luana_core_offer_studio.application.launch_edition_service import LaunchEditionService
+from luana_core_offer_studio.application.ports import IEditionLandingClonePort, LandingRef
+from luana_core_offer_studio.domain.assets import OfferAsset
+from luana_core_offer_studio.domain.enums import AssetSource, AssetStatus, AssetType
+from luana_core_offer_studio.domain.launch_edition import LaunchEditionCreate
+from luana_core_offer_studio.domain.offer import PricingStructure
+from luana_core_offer_studio.infrastructure.models.launch_edition_model import (
     LaunchEditionModel,
 )
-from src.modules.offer.infrastructure.repositories.offer_asset_repository import (
+from luana_core_offer_studio.infrastructure.repositories.offer_asset_repository import (
     OfferAssetRepository,
 )
 from tests.modules.offer.conftest import create_product_model

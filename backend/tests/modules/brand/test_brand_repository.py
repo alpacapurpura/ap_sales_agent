@@ -4,8 +4,8 @@ import uuid
 
 import pytest
 
-from src.modules.brand.domain import BrandIdentity, BrandSettings
-from src.modules.brand.infrastructure.repositories.brand_repository import (
+from luana_core_brand_studio.domain import BrandIdentity, BrandSettings
+from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
 

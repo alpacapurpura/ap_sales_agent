@@ -5,7 +5,7 @@ from datetime import date
 
 import pytest
 
-from src.modules.commercial_calendar.domain.calendar_event import CalendarEvent
+from luana_core_commercial_calendar.domain.calendar_event import CalendarEvent
 
 
 @pytest.fixture

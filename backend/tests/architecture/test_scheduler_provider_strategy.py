@@ -19,11 +19,11 @@ import ast
 import re
 from pathlib import Path
 
-from src.modules.sales_agent.application.tools.scheduling.providers import (
+from luana_core_sales_agent.application.tools.scheduling.providers import (
     SCHEDULER_PROVIDERS,
     SchedulerProvider,
 )
-from src.modules.sales_agent.application.tools.scheduling.webhook_providers import (
+from luana_core_sales_agent.application.tools.scheduling.webhook_providers import (
     SCHEDULER_WEBHOOK_PROVIDERS,
     WebhookProvider,
 )
@@ -97,7 +97,7 @@ def test_webhook_endpoint_uses_registry_resolver() -> None:
 
 def test_internal_provider_registered() -> None:
     """``InternalSchedulerProvider`` must be the registered ``internal`` impl."""
-    from src.modules.sales_agent.application.tools.scheduling.providers import (
+    from luana_core_sales_agent.application.tools.scheduling.providers import (
         InternalSchedulerProvider,
     )
 

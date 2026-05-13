@@ -10,7 +10,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.shared.billing.domain.subscription import TenantSubscription
+from luana_core_billing.domain.subscription import TenantSubscription
 
 
 class TenantSubscriptionRepository(ABC):

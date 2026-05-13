@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from src.modules.landing.domain.content import LandingPageConfig
-from src.modules.offer.domain.offer import Offer
+from luana_core_landing.domain.content import LandingPageConfig
+from luana_core_offer_studio.domain.offer import Offer
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "offer_a96403b5_baseline.json"
 

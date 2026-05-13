@@ -12,8 +12,8 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.modules.connections.api.dto.meta import MetaConfigRequest, ToggleAssetRequest
-from src.modules.connections.api.meta import (
+from luana_core_connections.api.dto.meta import MetaConfigRequest, ToggleAssetRequest
+from luana_core_connections.api.meta import (
     SetPrimaryAssetRequest,
     configure,
     disconnect,
@@ -25,11 +25,11 @@ from src.modules.connections.api.meta import (
     sync_assets,
     toggle_asset,
 )
-from src.modules.connections.api.meta import (
+from luana_core_connections.api.meta import (
     test_connection as meta_test_connection,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.models import ChannelConnectionModel
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.models import ChannelConnectionModel
 
 TENANT_ID = uuid4()
 
@@ -102,7 +102,7 @@ class TestGetAuthUrl:
 
     @pytest.mark.asyncio
     async def test_raises_500_when_meta_not_configured(self):
-        with patch("src.modules.connections.api.meta.settings") as mock_settings:
+        with patch("luana_core_connections.api.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = None
             mock_settings.META_APP_SECRET = None
             with pytest.raises(HTTPException) as exc_info:
@@ -112,8 +112,8 @@ class TestGetAuthUrl:
     @pytest.mark.asyncio
     async def test_returns_url_and_state(self):
         with (
-            patch("src.modules.connections.api.meta.settings") as mock_settings,
-            patch("src.modules.connections.api.meta.MetaAdapter") as MockAdapter,
+            patch("luana_core_connections.api.meta.settings") as mock_settings,
+            patch("luana_core_connections.api.meta.MetaAdapter") as MockAdapter,
         ):
             mock_settings.META_APP_ID = "app_id"
             mock_settings.META_APP_SECRET = "app_secret"
@@ -133,7 +133,7 @@ class TestOauthCallback:
     @pytest.mark.asyncio
     async def test_raises_400_on_exchange_failure(self):
         repo = _repo()
-        with patch("src.modules.connections.api.meta.MetaAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.meta.MetaAdapter") as MockAdapter:
             MockAdapter.return_value.exchange_code = AsyncMock(side_effect=Exception("fail"))
             with pytest.raises(HTTPException) as exc_info:
                 await oauth_callback("bad_code", "https://cb.example.com", _user(), repo)
@@ -151,8 +151,8 @@ class TestOauthCallback:
         profile_data = {"id": "meta_user_1", "name": "Test User"}
 
         with (
-            patch("src.modules.connections.api.meta.MetaAdapter") as MockAdapter,
-            patch("src.modules.connections.api.meta._sync_assets_for_tenant", new_callable=AsyncMock) as mock_sync,
+            patch("luana_core_connections.api.meta.MetaAdapter") as MockAdapter,
+            patch("luana_core_connections.api.meta._sync_assets_for_tenant", new_callable=AsyncMock) as mock_sync,
         ):
             MockAdapter.return_value.exchange_code = AsyncMock(return_value=creds_data)
             MockAdapter.return_value.get_user_profile = AsyncMock(return_value=profile_data)
@@ -172,7 +172,7 @@ class TestGetStatus:
     @pytest.mark.asyncio
     async def test_returns_not_connected_when_no_connection(self):
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=None))
-        with patch("src.modules.connections.api.meta.settings") as mock_settings:
+        with patch("luana_core_connections.api.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app"
             mock_settings.META_APP_SECRET = "sec"
             result = await get_status(_user(), repo)
@@ -182,7 +182,7 @@ class TestGetStatus:
     async def test_returns_connected_with_valid_token(self):
         conn = _conn(creds={"access_token": "valid_tok"}, config={"name": "My Page"})
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=conn))
-        with patch("src.modules.connections.api.meta.settings") as mock_settings:
+        with patch("luana_core_connections.api.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app"
             mock_settings.META_APP_SECRET = "sec"
             result = await get_status(_user(), repo)
@@ -191,7 +191,7 @@ class TestGetStatus:
     @pytest.mark.asyncio
     async def test_debug_flag_adds_diagnostic_info(self):
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=None))
-        with patch("src.modules.connections.api.meta.settings") as mock_settings:
+        with patch("luana_core_connections.api.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app"
             mock_settings.META_APP_SECRET = "sec"
             result = await get_status(_user(), repo, debug=True)
@@ -201,7 +201,7 @@ class TestGetStatus:
     async def test_inactive_connection_returns_not_connected(self):
         conn = _conn(creds={"access_token": "tok"}, is_active=False)
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=conn))
-        with patch("src.modules.connections.api.meta.settings") as mock_settings:
+        with patch("luana_core_connections.api.meta.settings") as mock_settings:
             mock_settings.META_APP_ID = "app"
             mock_settings.META_APP_SECRET = "sec"
             result = await get_status(_user(), repo)
@@ -262,7 +262,7 @@ class TestTestConnection:
         conn = _conn(creds={"access_token": "valid"})
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=conn))
         profile = {"id": "123", "name": "Test"}
-        with patch("src.modules.connections.api.meta.MetaAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.meta.MetaAdapter") as MockAdapter:
             MockAdapter.return_value.get_user_profile = AsyncMock(return_value=profile)
             result = await meta_test_connection(_user(), repo)
         assert result["status"] == "ok"
@@ -271,7 +271,7 @@ class TestTestConnection:
     async def test_returns_error_on_adapter_exception(self):
         conn = _conn(creds={"access_token": "tok"})
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=conn))
-        with patch("src.modules.connections.api.meta.MetaAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.meta.MetaAdapter") as MockAdapter:
             MockAdapter.return_value.get_user_profile = AsyncMock(side_effect=Exception("network err"))
             result = await meta_test_connection(_user(), repo)
         assert result["status"] == "error"
@@ -379,7 +379,7 @@ class TestSyncAssets:
             get_by_tenant_and_type=MagicMock(return_value=conn),
             get_all_by_tenant_and_types=MagicMock(return_value=[]),
         )
-        with patch("src.modules.connections.api.meta._sync_assets_for_tenant", new_callable=AsyncMock) as mock_sync:
+        with patch("luana_core_connections.api.meta._sync_assets_for_tenant", new_callable=AsyncMock) as mock_sync:
             mock_sync.return_value = ({}, [])
             result = await sync_assets(_user(), repo)
         assert hasattr(result, "pages")

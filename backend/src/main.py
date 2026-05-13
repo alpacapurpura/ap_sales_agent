@@ -11,158 +11,160 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from luana_core_analytics_engine.api import campaigns as analytics_campaigns
+from luana_core_analytics_engine.api import etl_admin as analytics_etl_admin
+
+# 9. Advertising (offer-campaign association, health check, metrics by offer)
+# 10. Social Media (No API Router exposed yet)
+# 11. Analytics
+from luana_core_analytics_engine.api import metrics as analytics_metrics
+from luana_core_assets.api import offer_gallery as assets_offers
+
+# 13. Assets
+from luana_core_assets.api import router as assets_gallery
+from luana_core_brand_studio.api import avatars as brand_avatars
+from luana_core_brand_studio.api import buyer_personas as brand_buyer_personas
+from luana_core_brand_studio.api import extraction as brand_tools
+from luana_core_brand_studio.api import personality as brand_personality
+from luana_core_brand_studio.api import router as brand_settings
+from luana_core_brand_studio.api import sections as brand_sections
+
+# 2. Brand
+from luana_core_brand_studio.api import style as brand_style
+
+# 19. Campaigns (PI-1 S1 PR-4)
+from luana_core_campaigns.api.routers import (
+    campaigns_router as campaigns_campaigns_router,
+)
+from luana_core_campaigns.api.routers import (
+    segments_router as campaigns_segments_router,
+)
+from luana_core_campaigns.api.routers import (
+    templates_router as campaigns_templates_router,
+)
+
+# 14. Commercial Calendar
+from luana_core_commercial_calendar.api import events as calendar_events
+from luana_core_connections.api import calendar as conn_calendar
+from luana_core_connections.api import channel_info as conn_channel_info
+from luana_core_connections.api import gmail as conn_gmail
+from luana_core_connections.api import google_analytics as conn_google_analytics
+from luana_core_connections.api import google_workspace as conn_google_workspace
+from luana_core_connections.api import health as conn_health
+from luana_core_connections.api import mailerlite as conn_mailerlite
+from luana_core_connections.api import manychat as conn_manychat
+from luana_core_connections.api import marketing_webhooks as conn_marketing
+from luana_core_connections.api import meta as conn_meta
+from luana_core_connections.api import shopify as conn_shopify
+from luana_core_connections.api import shopify_compliance
+from luana_core_connections.api import status as conn_status
+from luana_core_connections.api import telegram as conn_telegram
+
+# 12. Connections
+from luana_core_connections.api import webhook as conn_webhook
+from luana_core_connections.api import whatsapp as conn_whatsapp
+from luana_core_connections.api import youtube as conn_youtube
+from luana_core_connections.api import youtube_analytics as conn_youtube_analytics
+
+# 6. Copilot
+from luana_core_copilot.api import actions as copilot_actions
+from luana_core_copilot.api import chat as copilot_chat
+from luana_core_copilot.api import conversations as copilot_conversations
+from luana_core_copilot.api import events as copilot_events
+from luana_core_copilot.api import knowledge as copilot_knowledge
+from luana_core_copilot.api import media as copilot_media
+from luana_core_copilot.api import nudge as copilot_nudge
+from luana_core_copilot.api import plan as copilot_plan
+from luana_core_copilot.api import suggestions as copilot_suggestions
+from luana_core_copilot.api import telegram as copilot_telegram
+from luana_core_copilot.api import voice as copilot_voice
+from luana_core_crm.api import cdp as crm_cdp
+
+# 7. CRM
+from luana_core_crm.api import leads as crm_leads
+from luana_core_crm.api import nps as crm_nps
+from luana_core_crm.api import pipeline as crm_pipeline
+from luana_core_crm.api import referral as crm_referral
+from luana_core_crm.api import sales as crm_sales
+from luana_core_iam.api import settings as iam_settings
+from luana_core_iam.api import webhooks as iam_webhooks
+from luana_core_iam.api.dependencies import get_tenant_context
+from luana_core_iam.api.routers import auth_router as iam_users
+
+# --- Domain Imports (Sorted by INDEX.md) ---
+# 1. IAM
+from luana_core_iam.api.routers import tenant_router as iam_admin
+from luana_core_iam.api.tracking import public_router as iam_tracking_public
+from luana_core_iam.api.tracking import router as iam_tracking
+
+# 4. Landing
+from luana_core_landing.api import landing as landing_ai
+from luana_core_landing.api import public_edition as landing_public_edition
+from luana_core_landing.api import public_landing as landing_public
+from luana_core_offer_studio.api import archetypes as offer_archetypes
+from luana_core_offer_studio.api import assets as offer_assets
+from luana_core_offer_studio.api import definitions as offer_definitions
+from luana_core_offer_studio.api import formats as offer_formats
+from luana_core_offer_studio.api import knowledge as offer_knowledge
+from luana_core_offer_studio.api import landing as offer_landing
+from luana_core_offer_studio.api import launch_editions as offer_launch_editions
+from luana_core_offer_studio.api import lifecycle as offer_lifecycle
+from luana_core_offer_studio.api import offer_ai, offer_field_contract
+from luana_core_offer_studio.api import offer_extraction as offer_tools
+from luana_core_offer_studio.api import offer_ladder_hints as offer_ladder_hints_api
+from luana_core_offer_studio.api import offer_type_presets as offer_type_presets_api
+from luana_core_offer_studio.api import product_mappings as offer_product_mappings
+
+# 3. Offer
+from luana_core_offer_studio.api import products as offer_products
+from luana_core_offer_studio.api import value_levels as offer_value_levels
+from luana_core_offer_studio.api import variant_structures as offer_variant_structures
+
+# 16. Shared catalogs (currencies, etc.)
+from luana_core_platform.api import currencies as shared_currencies
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.database import SessionLocal, init_db, redis_client
+from luana_core_platform.core.logger import configure_logging
+
+# --- Sentry must init before app creation to capture startup errors ---
+from luana_core_platform.core.sentry import init_sentry
+
+# 5. Sales Agent
+from luana_core_sales_agent.api import audit as sales_audit
+from luana_core_sales_agent.api import closer_studio as sales_closer
+from luana_core_sales_agent.api import enrollments as sales_enrollments
+from luana_core_sales_agent.api import payment_webhooks as sales_payment_webhooks
+from luana_core_sales_agent.api import scheduler_webhooks as sales_scheduler_webhooks
+from luana_core_sales_agent.api import ws as sales_ws
+
+# 18. Social Proof
+from luana_core_social_proof.api import authority as social_proof_authority
+from luana_core_social_proof.api import placements as social_proof_placements
+from luana_core_social_proof.api import team_members as social_proof_team
+from luana_core_social_proof.api import testimonials as social_proof_testimonials
+
+# 15. Tenant Domains
+from luana_core_tenant_domains.api import domain_router as domains_router
+from luana_core_tenant_profile.api import business_types_catalog as business_types_catalog_router
+
+# 17. Tenant Profile (new bounded context — SSoT for business_types)
+from luana_core_tenant_profile.api import router as tenant_profile_router
 from sqlalchemy import text
 
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.agent_observability_bootstrap
 import src.shared.infrastructure.model_registry  # noqa: F401
-from src.core.config import settings
-from src.core.database import SessionLocal, init_db, redis_client
-from src.core.logger import configure_logging
-
-# --- Sentry must init before app creation to capture startup errors ---
-from src.core.sentry import init_sentry
 from src.modules.advertising.api import routes as advertising_routes
-from src.modules.analytics.api import campaigns as analytics_campaigns
-from src.modules.analytics.api import etl_admin as analytics_etl_admin
-
-# 9. Advertising (offer-campaign association, health check, metrics by offer)
-# 10. Social Media (No API Router exposed yet)
-# 11. Analytics
-from src.modules.analytics.api import metrics as analytics_metrics
-from src.modules.assets.api import offer_gallery as assets_offers
-
-# 13. Assets
-from src.modules.assets.api import router as assets_gallery
-from src.modules.brand.api import avatars as brand_avatars
-from src.modules.brand.api import buyer_personas as brand_buyer_personas
-from src.modules.brand.api import extraction as brand_tools
-from src.modules.brand.api import personality as brand_personality
-from src.modules.brand.api import router as brand_settings
-from src.modules.brand.api import sections as brand_sections
-
-# 2. Brand
-from src.modules.brand.api import style as brand_style
-
-# 19. Campaigns (PI-1 S1 PR-4)
-from src.modules.campaigns.api.routers import (
-    campaigns_router as campaigns_campaigns_router,
-)
-from src.modules.campaigns.api.routers import (
-    segments_router as campaigns_segments_router,
-)
-from src.modules.campaigns.api.routers import (
-    templates_router as campaigns_templates_router,
-)
-
-# 14. Commercial Calendar
-from src.modules.commercial_calendar.api import events as calendar_events
-from src.modules.connections.api import calendar as conn_calendar
-from src.modules.connections.api import channel_info as conn_channel_info
-from src.modules.connections.api import gmail as conn_gmail
-from src.modules.connections.api import google_analytics as conn_google_analytics
-from src.modules.connections.api import google_workspace as conn_google_workspace
-from src.modules.connections.api import health as conn_health
-from src.modules.connections.api import mailerlite as conn_mailerlite
-from src.modules.connections.api import manychat as conn_manychat
-from src.modules.connections.api import marketing_webhooks as conn_marketing
-from src.modules.connections.api import meta as conn_meta
-from src.modules.connections.api import shopify as conn_shopify
-from src.modules.connections.api import shopify_compliance
-from src.modules.connections.api import status as conn_status
-from src.modules.connections.api import telegram as conn_telegram
-
-# 12. Connections
-from src.modules.connections.api import webhook as conn_webhook
-from src.modules.connections.api import whatsapp as conn_whatsapp
-from src.modules.connections.api import youtube as conn_youtube
-from src.modules.connections.api import youtube_analytics as conn_youtube_analytics
-
-# 6. Copilot
-from src.modules.copilot.api import actions as copilot_actions
-from src.modules.copilot.api import chat as copilot_chat
-from src.modules.copilot.api import conversations as copilot_conversations
-from src.modules.copilot.api import events as copilot_events
-from src.modules.copilot.api import knowledge as copilot_knowledge
-from src.modules.copilot.api import media as copilot_media
-from src.modules.copilot.api import nudge as copilot_nudge
-from src.modules.copilot.api import plan as copilot_plan
-from src.modules.copilot.api import suggestions as copilot_suggestions
-from src.modules.copilot.api import telegram as copilot_telegram
-from src.modules.copilot.api import voice as copilot_voice
-from src.modules.crm.api import cdp as crm_cdp
-from src.modules.crm.api import contacts as crm_contacts
-
-# 7. CRM
-from src.modules.crm.api import leads as crm_leads
-from src.modules.crm.api import nps as crm_nps
-from src.modules.crm.api import pipeline as crm_pipeline
-from src.modules.crm.api import referral as crm_referral
-from src.modules.crm.api import sales as crm_sales
-from src.modules.iam.api import settings as iam_settings
-from src.modules.iam.api import webhooks as iam_webhooks
-from src.modules.iam.api.dependencies import get_tenant_context
-from src.modules.iam.api.routers import auth_router as iam_users
-
-# --- Domain Imports (Sorted by INDEX.md) ---
-# 1. IAM
-from src.modules.iam.api.routers import tenant_router as iam_admin
-from src.modules.iam.api.tracking import public_router as iam_tracking_public
-from src.modules.iam.api.tracking import router as iam_tracking
-
-# 4. Landing
-from src.modules.landing.api import landing as landing_ai
-from src.modules.landing.api import public_edition as landing_public_edition
-from src.modules.landing.api import public_landing as landing_public
-from src.modules.offer.api import archetypes as offer_archetypes
-from src.modules.offer.api import assets as offer_assets
-from src.modules.offer.api import campaigns as offer_campaigns
-from src.modules.offer.api import counts as offer_counts
-from src.modules.offer.api import definitions as offer_definitions
-from src.modules.offer.api import formats as offer_formats
-from src.modules.offer.api import knowledge as offer_knowledge
-from src.modules.offer.api import landing as offer_landing
-from src.modules.offer.api import launch_editions as offer_launch_editions
-from src.modules.offer.api import lifecycle as offer_lifecycle
-from src.modules.offer.api import offer_ai, offer_field_contract
-from src.modules.offer.api import offer_extraction as offer_tools
-from src.modules.offer.api import offer_ladder_hints as offer_ladder_hints_api
-from src.modules.offer.api import offer_type_presets as offer_type_presets_api
-from src.modules.offer.api import product_mappings as offer_product_mappings
-
-# 3. Offer
-from src.modules.offer.api import products as offer_products
-from src.modules.offer.api import value_levels as offer_value_levels
-from src.modules.offer.api import variant_structures as offer_variant_structures
-
-# 5. Sales Agent
-from src.modules.sales_agent.api import audit as sales_audit
-from src.modules.sales_agent.api import closer_studio as sales_closer
-from src.modules.sales_agent.api import enrollments as sales_enrollments
-from src.modules.sales_agent.api import payment_webhooks as sales_payment_webhooks
-from src.modules.sales_agent.api import scheduler_webhooks as sales_scheduler_webhooks
-from src.modules.sales_agent.api import ws as sales_ws
+from src.modules.crm.api import contacts as crm_contacts  # Nicolify-local: not yet lifted to luana_core_crm
+from src.modules.offer.api import (
+    campaigns as offer_campaigns,
+)  # Nicolify-local: not yet lifted to luana_core_offer_studio
+from src.modules.offer.api import counts as offer_counts  # Nicolify-local: not yet lifted to luana_core_offer_studio
 from src.modules.scheduling.api import agenda as sched_agenda
 
 # 8. Scheduling
 from src.modules.scheduling.api import event_types as sched_types
 from src.modules.scheduling.api import public_links as sched_public
-
-# 18. Social Proof
-from src.modules.social_proof.api import authority as social_proof_authority
-from src.modules.social_proof.api import placements as social_proof_placements
-from src.modules.social_proof.api import team_members as social_proof_team
-from src.modules.social_proof.api import testimonials as social_proof_testimonials
-
-# 15. Tenant Domains
-from src.modules.tenant_domains.api import domain_router as domains_router
-from src.modules.tenant_profile.api import business_types_catalog as business_types_catalog_router
-
-# 17. Tenant Profile (new bounded context — SSoT for business_types)
-from src.modules.tenant_profile.api import router as tenant_profile_router
-
-# 16. Shared catalogs (currencies, etc.)
-from src.shared.api import currencies as shared_currencies
 
 init_sentry("api")
 
@@ -270,26 +272,26 @@ def on_startup() -> None:
     # process-wide LiteLLM CustomLogger that bridges kwargs["response_cost"]
     # into the LangChain BaseAgentCallbackHandler via a thread-safe TTL
     # cache. Idempotent — safe to call from FastAPI + ARQ + scheduler.
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         register_cost_recorder,
     )
 
     register_cost_recorder()
 
     # Register CRM domain event handlers (EventBus wiring)
-    from src.modules.crm.application.event_handlers import register_event_handlers
+    from luana_core_crm.application.event_handlers import register_event_handlers
 
     register_event_handlers()
 
     # Register copilot extraction event handlers (brand/offer workers → copilot cards)
-    from src.modules.copilot.application.extraction_card_flow import (
+    from luana_core_copilot.application.extraction_card_flow import (
         register_extraction_event_handlers,
     )
 
     register_extraction_event_handlers()
 
     # Register brand summary lighthouse handler — F3 (brand save → ARQ regen)
-    from src.shared.application.brand_summary_event_handlers import (
+    from luana_core_platform.application.brand_summary_event_handlers import (
         register_brand_summary_event_handlers,
     )
 
@@ -298,7 +300,7 @@ def on_startup() -> None:
     # Register sales_agent brand voice cache invalidator (S7) — invalidates
     # PromptLoader per tenant when the tenant edits Brand Studio
     # "Estilo Comunicacional". See .claude/rules/sales-agent-brand-voice.md.
-    from src.shared.application.personality_event_handlers import (
+    from luana_core_platform.application.personality_event_handlers import (
         register_personality_event_handlers,
     )
 
@@ -307,14 +309,14 @@ def on_startup() -> None:
     # Register sales_agent scheduling event subscribers (S8) — bridges
     # AppointmentEvent + BookingMissedEvent into scheduled_meetings JSONB
     # so the reminder engine + Closer Studio see live status.
-    from src.modules.sales_agent.application.scheduling_event_handlers import (
+    from luana_core_sales_agent.application.scheduling_event_handlers import (
         register_scheduling_event_handlers,
     )
 
     register_scheduling_event_handlers()
 
     # S9 — payment event subscribers (auto_grant_on_paid).
-    from src.modules.sales_agent.application.payment_event_handlers import (
+    from luana_core_sales_agent.application.payment_event_handlers import (
         register_payment_subscribers,
     )
 
@@ -324,7 +326,7 @@ def on_startup() -> None:
     # Wires TurnStarted/TurnEnded/CardEmitted/RoutingDecided onto the
     # shared EventBus so the orchestrator only needs to publish — never
     # imports persistence directly.
-    from src.modules.copilot.observability import register as register_copilot_obs
+    from luana_core_copilot.observability import register as register_copilot_obs
 
     register_copilot_obs()
 
@@ -332,7 +334,7 @@ def on_startup() -> None:
 @app.on_event("startup")
 async def startup_arq_pool() -> None:
     """Create shared ARQ connection pool for job dispatch."""
-    from src.core.arq_pool import set_arq_pool
+    from luana_core_platform.core.arq_pool import set_arq_pool
 
     try:
         app.state.arq_pool = await create_pool(
@@ -400,11 +402,10 @@ async def _start_llm_config_service() -> None:
 
     try:
         import redis.asyncio as redis_async
-
-        from src.core.database import async_session_maker
-        from src.shared.infrastructure.llm.application.config_service import (
+        from luana_core_llm.application.config_service import (
             init_llm_config_service,
         )
+        from luana_core_platform.core.database import async_session_maker
 
         try:
             redis_client = redis_async.from_url(settings.REDIS_URL, decode_responses=True)
@@ -436,7 +437,7 @@ async def _stop_llm_config_service() -> None:
 @app.on_event("shutdown")
 async def shutdown_arq_pool() -> None:
     """Close ARQ connection pool."""
-    from src.core.arq_pool import set_arq_pool
+    from luana_core_platform.core.arq_pool import set_arq_pool
 
     if hasattr(app.state, "arq_pool") and app.state.arq_pool:
         await app.state.arq_pool.close()

@@ -10,7 +10,7 @@ Covers:
 import json
 from unittest.mock import MagicMock, patch
 
-from src.modules.sales_agent.application.agents.sales.tools import (
+from luana_core_sales_agent.application.agents.sales.tools import (
     TOOL_REGISTRY,
     tool_check_schedule,
     tool_escalate_to_human,
@@ -58,7 +58,7 @@ def _base_state(**overrides) -> dict:
     return state
 
 
-_TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_node"
+_TRACE_PATCH = "luana_core_sales_agent.infrastructure.monitoring.tracing.trace_node"
 
 
 def _noop_trace(name):
@@ -131,7 +131,7 @@ class TestCheckSchedule:
         assert result["status"] == "error"
 
     @patch(
-        "src.modules.sales_agent.application.agents.sales.tools.AvailabilityService",
+        "luana_core_sales_agent.application.agents.sales.tools.AvailabilityService",
         create=True,
     )
     def test_success_when_calendar_connected(self, _mock_cls):
@@ -310,7 +310,7 @@ class TestToolExecutor:
 
         # Patch the TOOL_REGISTRY to raise an exception
         with patch(
-            "src.modules.sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
+            "luana_core_sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
             {"send_payment_link": MagicMock(side_effect=RuntimeError("DB exploded"))},
         ):
             # Need to reload nodes again so the lazy import picks up the patched registry
@@ -338,7 +338,7 @@ class TestToolExecutor:
         state["_db"] = mock_db
 
         with patch(
-            "src.modules.sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
+            "luana_core_sales_agent.application.agents.sales.tools.TOOL_REGISTRY",
             {"mock_tool": mock_tool},
         ):
             nodes_mod.node_tool_executor(state)

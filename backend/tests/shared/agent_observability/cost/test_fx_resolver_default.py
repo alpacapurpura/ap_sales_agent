@@ -13,7 +13,7 @@ from decimal import Decimal
 
 class TestFXResolverDefault:
     def test_default_returns_fxresolver_instance(self) -> None:
-        from src.shared.agent_observability.cost.fx_resolver import FXResolver
+        from luana_core_observability.cost.fx_resolver import FXResolver
 
         resolver = FXResolver.default()
         assert isinstance(resolver, FXResolver)
@@ -23,7 +23,7 @@ class TestFXResolverDefault:
 
         We don't assert on internals (timeout) — httpx version-agnostic.
         """
-        from src.shared.agent_observability.cost.fx_resolver import FXResolver
+        from luana_core_observability.cost.fx_resolver import FXResolver
 
         resolver = FXResolver.default()
         client = resolver.http_client_factory()
@@ -34,7 +34,7 @@ class TestFXResolverDefault:
 
     def test_default_passthrough_for_usd(self) -> None:
         """USD does not call the network — short-circuits to ``Decimal(1)``."""
-        from src.shared.agent_observability.cost.fx_resolver import FXResolver
+        from luana_core_observability.cost.fx_resolver import FXResolver
 
         resolver = FXResolver.default()
         rate, source = resolver.resolve(currency_code="USD", at_ts=dt.datetime.now(tz=dt.UTC))

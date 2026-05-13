@@ -11,25 +11,25 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 
 @pytest.fixture()
 def _settings_deepseek_nano(monkeypatch: pytest.MonkeyPatch) -> None:
     """Patch settings so NANO role maps to deepseek provider + deepseek-v4-flash model."""
-    from src.core.enums import AIProvider
+    from luana_core_platform.core.enums import AIProvider
 
-    monkeypatch.setattr("src.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
-    monkeypatch.setattr("src.core.config.settings.LITELLM_MASTER_KEY", "sk-test-master")
-    monkeypatch.setattr("src.core.config.settings.AI_MODEL_NANO", "deepseek-v4-flash")
-    monkeypatch.setattr("src.core.config.settings.AI_PROVIDER_NANO", AIProvider.DEEPSEEK)
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_MASTER_KEY", "sk-test-master")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.AI_MODEL_NANO", "deepseek-v4-flash")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.AI_PROVIDER_NANO", AIProvider.DEEPSEEK)
 
 
 def test_litellm_service_builds_model_alias_provider_slash_model(
     _settings_deepseek_nano: None,
 ) -> None:
     """LiteLLMService._litellm_model_name(NANO) returns 'deepseek/deepseek-v4-flash'."""
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     alias = svc._litellm_model_name(ModelRole.NANO)
@@ -42,7 +42,7 @@ def test_litellm_service_get_client_targets_litellm_base_url(
     """get_client returns a ChatOpenAI instance pointing at LITELLM_BASE_URL."""
     from langchain_openai import ChatOpenAI
 
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     client = svc.get_client(ModelRole.NANO)
@@ -56,7 +56,7 @@ def test_litellm_service_caches_per_model_temperature(
     _settings_deepseek_nano: None,
 ) -> None:
     """get_client(NANO, temperature=0.5) cached separately from temperature=0.7."""
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     client_a = svc.get_client(ModelRole.NANO, temperature=0.5)
@@ -75,11 +75,11 @@ def test_litellm_service_get_embedding_model_targets_litellm(
     """get_embedding_model returns OpenAIEmbeddings with base_url=LITELLM_BASE_URL."""
     from langchain_openai import OpenAIEmbeddings
 
-    monkeypatch.setattr("src.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
-    monkeypatch.setattr("src.core.config.settings.LITELLM_MASTER_KEY", "sk-test-master")
-    monkeypatch.setattr("src.core.config.settings.AI_MODEL_EMBEDDING", "text-embedding-3-large")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_MASTER_KEY", "sk-test-master")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.AI_MODEL_EMBEDDING", "text-embedding-3-large")
 
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     emb = svc.get_embedding_model()
@@ -93,7 +93,7 @@ def test_litellm_service_generate_response_invokes_chat_model(
     _settings_deepseek_nano: None,
 ) -> None:
     """generate_response invokes the chat client and returns content string."""
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     mock_response = MagicMock()
     mock_response.content = "hola mundo"

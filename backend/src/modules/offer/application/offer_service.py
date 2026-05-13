@@ -4,32 +4,31 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
-
-from src.modules.offer.domain.archetype_catalog import get_capabilities
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.archetype_catalog import get_capabilities
+from luana_core_offer_studio.domain.enums import (
     GuaranteeType,
     OfferArchetype,
     OfferStatus,
     OfferValueLevel,
 )
-from src.modules.offer.domain.offer import (
+from luana_core_offer_studio.domain.offer import (
     ARCHETYPE_TO_DETAILS_MAPPING,
     Offer,
     PricingStructure,
 )
-from src.modules.offer.domain.offer_type_preset_catalog import (
+from luana_core_offer_studio.domain.offer_type_preset_catalog import (
     OFFER_TYPE_PRESET_CATALOG,
     PresetFlag,
     resolve_preset_flags,
 )
-from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
+from luana_core_offer_studio.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
-from src.modules.offer.infrastructure.repositories.offer_repository import (
+from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
-from src.shared.domain.enums import FinancialCapacity
+from luana_core_platform.domain.enums import FinancialCapacity
+from sqlalchemy.orm import Session
 
 
 class OfferService:

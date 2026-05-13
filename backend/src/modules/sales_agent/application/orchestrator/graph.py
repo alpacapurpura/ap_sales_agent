@@ -4,10 +4,9 @@ from typing import Any
 
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.graph import END, START, StateGraph
-
-from src.modules.sales_agent.application.agents.sales.graph import sales_app
-from src.modules.sales_agent.application.orchestrator.state import AgentState
-from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
+from luana_core_sales_agent.application.agents.sales.graph import sales_app
+from luana_core_sales_agent.application.orchestrator.state import AgentState
+from luana_core_sales_agent.infrastructure.monitoring.tracing import trace_node
 
 
 # Nodes

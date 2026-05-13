@@ -24,21 +24,20 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
-
-from src.modules.copilot.api.suggestions_dto import (
+from luana_core_copilot.api.suggestions_dto import (
     SuggestionAcceptRequest,
     SuggestionAcceptResponse,
     SuggestionDTO,
     SuggestionsRequest,
     SuggestionsResponse,
 )
-from src.modules.copilot.application.suggestions.registry import get_default_engine
-from src.modules.copilot.domain.events import SuggestionAccepted, SuggestionShown
-from src.modules.copilot.domain.suggestion import SuggestionContext
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_copilot.application.suggestions.registry import get_default_engine
+from luana_core_copilot.domain.events import SuggestionAccepted, SuggestionShown
+from luana_core_copilot.domain.suggestion import SuggestionContext
+from luana_core_events.outbox.application.event_bus_adapter import (
     adapter_bus as EventBus,  # noqa: N812
 )
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
 
 logger = structlog.get_logger()
 

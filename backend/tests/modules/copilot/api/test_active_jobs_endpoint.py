@@ -54,7 +54,7 @@ class TestActiveJobsEndpointHappyPath:
 
     async def test_returns_empty_jobs_when_no_active_job(self) -> None:
         """Returns 200 with jobs=[] when conversation has no active_extraction_job."""
-        from src.modules.copilot.api.conversations import get_active_jobs
+        from luana_core_copilot.api.conversations import get_active_jobs
 
         conv_mock = _make_conv_mock(procedure_state={})
         repo_mock = MagicMock()
@@ -63,11 +63,11 @@ class TestActiveJobsEndpointHappyPath:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
                 return_value=repo_mock,
             ),
             patch(
-                "src.modules.copilot.application.extraction.active_job_persistence.read_active_job",
+                "luana_core_copilot.application.extraction.active_job_persistence.read_active_job",
                 return_value=None,
             ),
         ):
@@ -82,8 +82,8 @@ class TestActiveJobsEndpointHappyPath:
 
     async def test_returns_job_when_active_job_exists(self) -> None:
         """Returns 200 with job data when procedure_state has active_extraction_job."""
-        from src.modules.copilot.api.conversations import get_active_jobs
-        from src.modules.copilot.application.extraction.active_job_state import (
+        from luana_core_copilot.api.conversations import get_active_jobs
+        from luana_core_copilot.application.extraction.active_job_state import (
             ActiveExtractionJob,
         )
 
@@ -105,14 +105,14 @@ class TestActiveJobsEndpointHappyPath:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
                 return_value=repo_mock,
             ),
             patch(
-                "src.modules.copilot.api.conversations.read_active_job",
+                "luana_core_copilot.api.conversations.read_active_job",
                 return_value=active_job,
             ),
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
         ):
             result = await get_active_jobs(
                 conversation_id=CONVERSATION_ID,
@@ -130,8 +130,8 @@ class TestActiveJobsEndpointHappyPath:
 
     async def test_poll_endpoint_format_offer(self) -> None:
         """poll_endpoint for 'offer' module uses extract-full-offer/status pattern."""
-        from src.modules.copilot.api.conversations import get_active_jobs
-        from src.modules.copilot.application.extraction.active_job_state import (
+        from luana_core_copilot.api.conversations import get_active_jobs
+        from luana_core_copilot.application.extraction.active_job_state import (
             ActiveExtractionJob,
         )
 
@@ -153,14 +153,14 @@ class TestActiveJobsEndpointHappyPath:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
                 return_value=repo_mock,
             ),
             patch(
-                "src.modules.copilot.api.conversations.read_active_job",
+                "luana_core_copilot.api.conversations.read_active_job",
                 return_value=active_job,
             ),
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
         ):
             result = await get_active_jobs(
                 conversation_id=CONVERSATION_ID,
@@ -175,8 +175,8 @@ class TestActiveJobsEndpointHappyPath:
 
     async def test_poll_endpoint_format_brand(self) -> None:
         """poll_endpoint for 'brand' module uses extract-full-brand/status pattern."""
-        from src.modules.copilot.api.conversations import get_active_jobs
-        from src.modules.copilot.application.extraction.active_job_state import (
+        from luana_core_copilot.api.conversations import get_active_jobs
+        from luana_core_copilot.application.extraction.active_job_state import (
             ActiveExtractionJob,
         )
 
@@ -199,14 +199,14 @@ class TestActiveJobsEndpointHappyPath:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
                 return_value=repo_mock,
             ),
             patch(
-                "src.modules.copilot.api.conversations.read_active_job",
+                "luana_core_copilot.api.conversations.read_active_job",
                 return_value=active_job,
             ),
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
         ):
             result = await get_active_jobs(
                 conversation_id=CONVERSATION_ID,
@@ -223,8 +223,8 @@ class TestActiveJobsEndpointHappyPath:
         """When Redis has progress data, it is merged into the DTO."""
         import json
 
-        from src.modules.copilot.api.conversations import get_active_jobs
-        from src.modules.copilot.application.extraction.active_job_state import (
+        from luana_core_copilot.api.conversations import get_active_jobs
+        from luana_core_copilot.application.extraction.active_job_state import (
             ActiveExtractionJob,
         )
 
@@ -260,14 +260,14 @@ class TestActiveJobsEndpointHappyPath:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
                 return_value=repo_mock,
             ),
             patch(
-                "src.modules.copilot.api.conversations.read_active_job",
+                "luana_core_copilot.api.conversations.read_active_job",
                 return_value=active_job,
             ),
-            patch("src.core.database.redis_client", redis_mock),
+            patch("luana_core_platform.core.database.redis_client", redis_mock),
         ):
             result = await get_active_jobs(
                 conversation_id=CONVERSATION_ID,
@@ -286,8 +286,8 @@ class TestActiveJobsEndpointHappyPath:
 
     async def test_null_redis_values_when_redis_unavailable(self) -> None:
         """When Redis has no key (expired), status/progress/stage are None."""
-        from src.modules.copilot.api.conversations import get_active_jobs
-        from src.modules.copilot.application.extraction.active_job_state import (
+        from luana_core_copilot.api.conversations import get_active_jobs
+        from luana_core_copilot.application.extraction.active_job_state import (
             ActiveExtractionJob,
         )
 
@@ -313,14 +313,14 @@ class TestActiveJobsEndpointHappyPath:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
                 return_value=repo_mock,
             ),
             patch(
-                "src.modules.copilot.api.conversations.read_active_job",
+                "luana_core_copilot.api.conversations.read_active_job",
                 return_value=active_job,
             ),
-            patch("src.core.database.redis_client", redis_mock),
+            patch("luana_core_platform.core.database.redis_client", redis_mock),
         ):
             result = await get_active_jobs(
                 conversation_id=CONVERSATION_ID,
@@ -344,7 +344,7 @@ class TestActiveJobsEndpointError:
         """Returns 404 when the conversation doesn't exist or isn't owned by user."""
         from fastapi import HTTPException
 
-        from src.modules.copilot.api.conversations import get_active_jobs
+        from luana_core_copilot.api.conversations import get_active_jobs
 
         repo_mock = MagicMock()
         repo_mock.get_by_id.return_value = None  # Not found
@@ -352,7 +352,7 @@ class TestActiveJobsEndpointError:
 
         with (
             patch(
-                "src.modules.copilot.api.conversations.ConversationRepository",
+                "luana_core_copilot.api.conversations.ConversationRepository",
                 return_value=repo_mock,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -370,7 +370,7 @@ class TestActiveJobsEndpointError:
         """Returns 401 when tenant_id is None."""
         from fastapi import HTTPException
 
-        from src.modules.copilot.api.conversations import get_active_jobs
+        from luana_core_copilot.api.conversations import get_active_jobs
 
         user_mock = _make_user_mock()
 

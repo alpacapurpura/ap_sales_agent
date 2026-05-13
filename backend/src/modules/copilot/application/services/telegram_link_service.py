@@ -14,13 +14,12 @@ from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select
-
-from src.core.config import settings
-from src.modules.copilot.infrastructure.models.telegram_models import (
+from luana_core_copilot.infrastructure.models.telegram_models import (
     CopilotChannelLinkModel,
     CopilotLinkTokenModel,
 )
+from luana_core_platform.core.config import settings
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

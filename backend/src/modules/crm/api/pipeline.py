@@ -8,14 +8,13 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from luana_core_crm.infrastructure.models.lead_model import LeadModel
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
-
-from src.core.database import get_db
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
 
 router = APIRouter(tags=["CRM - Pipeline"])
 
@@ -122,8 +121,8 @@ async def override_stage(
 
     Requires X-Tenant-ID header. Creates audit trail with triggered_by='manual'.
     """
-    from src.modules.crm.application.services.lifecycle_service import LifecycleService
-    from src.modules.crm.domain.enums import LifecycleStage
+    from luana_core_crm.application.services.lifecycle_service import LifecycleService
+    from luana_core_crm.domain.enums import LifecycleStage
 
     # Validate stage value
     try:
@@ -138,7 +137,7 @@ async def override_stage(
     svc = LifecycleService(db)
 
     # Get current stage for response
-    from src.modules.crm.infrastructure.models.customer_model import (
+    from luana_core_crm.infrastructure.models.customer_model import (
         CustomerProfileModel,
     )
 
@@ -188,7 +187,7 @@ async def get_transitions(
 
     Returns most recent transitions first. Requires X-Tenant-ID header.
     """
-    from src.modules.crm.infrastructure.repositories.lifecycle_repository import (
+    from luana_core_crm.infrastructure.repositories.lifecycle_repository import (
         LifecycleRepository,
     )
 

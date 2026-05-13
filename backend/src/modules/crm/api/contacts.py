@@ -20,25 +20,25 @@ from uuid import UUID
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.modules.campaigns.api._dependencies import get_campaigns_async_session
-from src.modules.campaigns.application.dtos.pagination import PaginatedResponse
-from src.modules.crm.api.dto.contact_filters import ContactFilterParams
-from src.modules.crm.api.dto.contacts import (
+from luana_core_campaigns.api._dependencies import get_campaigns_async_session
+from luana_core_campaigns.application.dtos.pagination import PaginatedResponse
+from luana_core_crm.api.dto.contact_filters import ContactFilterParams
+from luana_core_crm.api.dto.contacts import (
     ContactDetail,
     ContactListItem,
     DeferredEndpointResponse,
     FilterFieldMeta,
     FilterSchemaResponse,
 )
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.domain.enums import LifecycleStage
+from luana_core_platform.links.ports.campaigns import create_campaigns_lookup_port
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.modules.crm.application.services.contact_query_service import (
     ContactQueryService,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.shared.domain.enums import LifecycleStage
-from src.shared.links.ports.campaigns import create_campaigns_lookup_port
 
 logger = structlog.get_logger(__name__)
 

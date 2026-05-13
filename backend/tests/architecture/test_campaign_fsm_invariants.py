@@ -17,8 +17,8 @@ from __future__ import annotations
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from src.modules.campaigns.domain.campaign import Campaign, _FSM_TRANSITIONS
-from src.modules.campaigns.domain.enums import CampaignStatus
+from luana_core_campaigns.domain.campaign import Campaign, _FSM_TRANSITIONS
+from luana_core_campaigns.domain.enums import CampaignStatus
 
 
 class TestCampaignFSMStructure:

@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 
 class ClassifierType(StrEnum):

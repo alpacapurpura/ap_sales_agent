@@ -41,7 +41,7 @@ class TestFeSectionSlugIntegrity:
 
     def test_fe_section_slugs_constant_matches_catalog(self) -> None:
         """FE_SECTION_SLUGS constant in the module matches the FE catalog."""
-        from src.modules.offer.domain.extraction_section_map import FE_SECTION_SLUGS
+        from luana_core_offer_studio.domain.extraction_section_map import FE_SECTION_SLUGS
 
         assert FE_SECTION_SLUGS == FE_CATALOG_SLUGS, (
             "FE_SECTION_SLUGS constant drifted from FE catalog. "
@@ -51,7 +51,7 @@ class TestFeSectionSlugIntegrity:
 
     def test_field_contract_sections_subset_of_fe_catalog(self) -> None:
         """Every section slug used in OFFER_FIELD_CONTRACTS is a valid FE catalog slug."""
-        from src.modules.offer.domain.field_contract import OFFER_FIELD_CONTRACTS
+        from luana_core_offer_studio.domain.field_contract import OFFER_FIELD_CONTRACTS
 
         sections = {c.section for c in OFFER_FIELD_CONTRACTS}
         invalid = sections - FE_CATALOG_SLUGS
@@ -66,8 +66,8 @@ class TestArchetypeMapping:
 
     def test_every_archetype_has_details_slug(self) -> None:
         """Every OfferArchetype value has an entry in _DETAILS_BY_ARCHETYPE."""
-        from src.modules.offer.domain.enums import OfferArchetype
-        from src.modules.offer.domain.extraction_section_map import _DETAILS_BY_ARCHETYPE
+        from luana_core_offer_studio.domain.enums import OfferArchetype
+        from luana_core_offer_studio.domain.extraction_section_map import _DETAILS_BY_ARCHETYPE
 
         missing = [a for a in OfferArchetype if a not in _DETAILS_BY_ARCHETYPE]
         assert not missing, (
@@ -77,21 +77,21 @@ class TestArchetypeMapping:
 
     def test_every_archetype_details_slug_is_valid_fe_slug(self) -> None:
         """Every value in _DETAILS_BY_ARCHETYPE is a valid FE catalog slug."""
-        from src.modules.offer.domain.extraction_section_map import _DETAILS_BY_ARCHETYPE
+        from luana_core_offer_studio.domain.extraction_section_map import _DETAILS_BY_ARCHETYPE
 
         invalid = {archetype: slug for archetype, slug in _DETAILS_BY_ARCHETYPE.items() if slug not in FE_CATALOG_SLUGS}
         assert not invalid, f"Invalid FE slugs in _DETAILS_BY_ARCHETYPE: {invalid}"
 
     def test_resolve_details_section_returns_none_for_none(self) -> None:
         """resolve_details_section(None) returns None gracefully."""
-        from src.modules.offer.domain.extraction_section_map import resolve_details_section
+        from luana_core_offer_studio.domain.extraction_section_map import resolve_details_section
 
         assert resolve_details_section(None) is None
 
     def test_resolve_details_section_returns_correct_slugs(self) -> None:
         """resolve_details_section returns the expected FE slug per archetype."""
-        from src.modules.offer.domain.enums import OfferArchetype
-        from src.modules.offer.domain.extraction_section_map import resolve_details_section
+        from luana_core_offer_studio.domain.enums import OfferArchetype
+        from luana_core_offer_studio.domain.extraction_section_map import resolve_details_section
 
         expected = {
             OfferArchetype.PROGRAMA: "program_details",
@@ -112,7 +112,7 @@ class TestFieldsToFeSections:
 
     def test_identity_fields_grouped_correctly(self) -> None:
         """headline_promise + public_name → identity."""
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(
             archetype=None,
@@ -124,7 +124,7 @@ class TestFieldsToFeSections:
 
     def test_strategy_fields_grouped_correctly(self) -> None:
         """value_level + delivery_model → strategy."""
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(
             archetype=None,
@@ -135,8 +135,8 @@ class TestFieldsToFeSections:
 
     def test_specific_details_routed_by_archetype(self) -> None:
         """specific_details.* → program_details for PROGRAMA archetype."""
-        from src.modules.offer.domain.enums import OfferArchetype
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.enums import OfferArchetype
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(
             archetype=OfferArchetype.PROGRAMA,
@@ -147,8 +147,8 @@ class TestFieldsToFeSections:
 
     def test_specific_details_routed_to_product_for_producto(self) -> None:
         """specific_details.* → product_details for PRODUCTO archetype."""
-        from src.modules.offer.domain.enums import OfferArchetype
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.enums import OfferArchetype
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(
             archetype=OfferArchetype.PRODUCTO,
@@ -158,7 +158,7 @@ class TestFieldsToFeSections:
 
     def test_unknown_fields_silently_ignored(self) -> None:
         """System fields (status, deleted_at, archived_at, metadata_info) produce no output."""
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(
             archetype=None,
@@ -168,8 +168,8 @@ class TestFieldsToFeSections:
 
     def test_idempotent_same_input_same_output(self) -> None:
         """Calling twice with the same args produces the same result."""
-        from src.modules.offer.domain.enums import OfferArchetype
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.enums import OfferArchetype
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         paths = ["headline_promise", "value_level", "deliverables", "guarantee_type"]
         result1 = fields_to_fe_sections(archetype=OfferArchetype.PROGRAMA, filled_paths=paths)
@@ -178,7 +178,7 @@ class TestFieldsToFeSections:
 
     def test_no_duplicate_paths_in_output(self) -> None:
         """Passing a path twice doesn't produce duplicates in the output."""
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(
             archetype=None,
@@ -188,14 +188,14 @@ class TestFieldsToFeSections:
 
     def test_empty_input_produces_empty_output(self) -> None:
         """Empty filled_paths produces an empty dict."""
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(archetype=None, filled_paths=[])
         assert result == {}
 
     def test_pricing_fields_grouped_to_pricing(self) -> None:
         """pricing_options + currency → pricing."""
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(
             archetype=None,
@@ -205,7 +205,7 @@ class TestFieldsToFeSections:
 
     def test_closing_fields_grouped_to_closing(self) -> None:
         """guarantee_type + checkout_page_url → closing."""
-        from src.modules.offer.domain.extraction_section_map import fields_to_fe_sections
+        from luana_core_offer_studio.domain.extraction_section_map import fields_to_fe_sections
 
         result = fields_to_fe_sections(
             archetype=None,

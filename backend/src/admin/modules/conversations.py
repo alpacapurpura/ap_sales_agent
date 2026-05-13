@@ -8,14 +8,15 @@ def render_conversations_page() -> None:
     """Render the copilot conversation explorer page."""
     st.title("💬 Explorador de Conversaciones")
 
+    from luana_core_copilot.infrastructure.repositories.conversation_repository import (
+        ConversationRepository,
+    )
+    from luana_core_platform.core.database import SessionLocal
+
     from src.admin.modules._shared import (
         TOOLTIPS,
         get_tenant_name,
         render_tenant_selector,
-    )
-    from src.core.database import SessionLocal
-    from src.modules.copilot.infrastructure.repositories.conversation_repository import (
-        ConversationRepository,
     )
 
     # ── Filters ──

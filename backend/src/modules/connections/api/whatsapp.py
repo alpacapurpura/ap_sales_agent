@@ -15,22 +15,21 @@ from fastapi import (
     Query,
     Request,
 )
-from sqlalchemy.orm import Session
-
-from src.core.config import settings
-from src.core.database import get_db
-from src.modules.connections.api.dependencies import get_message_handler
-from src.modules.connections.api.dto.common import (
+from luana_core_connections.api.dependencies import get_message_handler
+from luana_core_connections.api.dto.common import (
     WhatsAppQRResponse,
     WhatsAppSessionResponse,
     WhatsAppStatusResponse,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.channels.whatsapp import WhatsAppChannel
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.channels.whatsapp import WhatsAppChannel
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_tenant_id
+from luana_core_iam.api.dependencies import get_current_tenant_id
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["WhatsApp"])
 logger = structlog.get_logger()

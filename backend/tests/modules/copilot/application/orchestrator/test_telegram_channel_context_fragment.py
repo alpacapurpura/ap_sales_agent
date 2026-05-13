@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import re
 
-from src.modules.copilot.application.orchestrator.graph import (
+from luana_core_copilot.application.orchestrator.graph import (
     _build_telegram_channel_context_fragment,
 )
-from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+from luana_core_copilot.application.orchestrator.system_prompt_layout import (
     CACHEABLE_FRAGMENTS,
     PROMPT_FRAGMENT_ORDER,
     PromptFragment,

@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import pytest
 
-from src.shared.billing.domain.budget_decision import BudgetDecision
+from luana_core_billing.domain.budget_decision import BudgetDecision
 
 
 class TestBudgetDecisionInvariants:

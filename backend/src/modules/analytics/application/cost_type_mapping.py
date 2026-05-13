@@ -9,7 +9,7 @@ This mapping drives how each metric is classified in dashboard rollups:
 
 import logging
 
-from src.modules.analytics.domain.enums import CostType
+from luana_core_analytics_engine.domain.enums import CostType
 
 logger = logging.getLogger(__name__)
 

@@ -11,7 +11,7 @@ class TestAggregateRefreshTask:
     @pytest.mark.asyncio
     async def test_refreshes_both_mvs_concurrently(self, monkeypatch) -> None:
         """Task issues ``REFRESH MATERIALIZED VIEW CONCURRENTLY`` for both MVs."""
-        from src.shared.agent_observability.workers import aggregate_refresh_task
+        from luana_core_observability.workers import aggregate_refresh_task
 
         executed: list[str] = []
 
@@ -49,7 +49,7 @@ class TestAggregateRefreshTask:
     @pytest.mark.asyncio
     async def test_swallows_exceptions_and_rollbacks(self, monkeypatch) -> None:
         """Failure in refresh must NOT propagate; rollback + close called."""
-        from src.shared.agent_observability.workers import aggregate_refresh_task
+        from luana_core_observability.workers import aggregate_refresh_task
 
         class _BoomSession:
             def __init__(self) -> None:
@@ -84,7 +84,7 @@ class TestAggregateRefreshTask:
     @pytest.mark.asyncio
     async def test_partial_failure_marks_only_failing_mv(self, monkeypatch) -> None:
         """If only legacy MV fails, v2_ok stays True and overall ok=False."""
-        from src.shared.agent_observability.workers import aggregate_refresh_task
+        from luana_core_observability.workers import aggregate_refresh_task
 
         class _PartialSession:
             def __init__(self) -> None:
@@ -116,7 +116,7 @@ class TestAggregateRefreshTask:
 
 class TestSchedulerRegistration:
     def test_task_listed_in_worker_settings(self) -> None:
-        from src.shared.agent_observability.workers.aggregate_refresh_task import (
+        from luana_core_observability.workers.aggregate_refresh_task import (
             refresh_daily_cost_mv,
         )
         from src.workers.settings import SchedulerSettings, WorkerSettings
@@ -125,7 +125,7 @@ class TestSchedulerRegistration:
         assert refresh_daily_cost_mv in SchedulerSettings.functions
 
     def test_cron_job_present_for_hourly_refresh(self) -> None:
-        from src.shared.agent_observability.workers.aggregate_refresh_task import (
+        from luana_core_observability.workers.aggregate_refresh_task import (
             refresh_daily_cost_mv,
         )
         from src.workers.settings import SchedulerSettings

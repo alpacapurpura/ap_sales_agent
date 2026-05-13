@@ -7,11 +7,7 @@ from uuid import UUID, uuid4
 
 import structlog
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from sqlalchemy import desc, select
-from sqlalchemy.orm import Session
-
-from src.core.database import redis_client
-from src.modules.brand.api.dto.extraction import (
+from luana_core_brand_studio.api.dto.extraction import (
     BrandVisualsResponse,
     ExtractFullBrandResponse,
     ExtractionStatusResponse,
@@ -19,14 +15,17 @@ from src.modules.brand.api.dto.extraction import (
     ExtractionTraceSummaryResponse,
     ExtractRequest,
 )
-from src.modules.brand.application.extraction_service import BrandExtractionService
-from src.modules.brand.infrastructure.models.extraction_trace_model import (
+from luana_core_brand_studio.application.extraction_service import BrandExtractionService
+from luana_core_brand_studio.infrastructure.models.extraction_trace_model import (
     BrandExtractionTrace,
 )
-from src.modules.iam.api.dependencies import get_current_user, get_db
-from src.modules.iam.domain.user import User
-from src.shared.domain.extraction_jobs import ExtractionJob
-from src.shared.infrastructure.files.file_parsing_service import FileParsingService
+from luana_core_iam.api.dependencies import get_current_user, get_db
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import redis_client
+from luana_core_platform.domain.extraction_jobs import ExtractionJob
+from luana_core_platform.infrastructure.files.file_parsing_service import FileParsingService
+from sqlalchemy import desc, select
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 router = APIRouter()

@@ -7,8 +7,8 @@ individual endpoint files depend only on shared port ABCs.
 # DDD exception (intentional): this file IS the composition root for connections.
 # Its sole job is to wire ChatOrchestrator as the concrete MessageHandlerPort
 # implementation. The import of sales_agent here is correct DI wiring.
-from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
-from src.shared.links.ports.message_handler import MessageHandlerPort
+from luana_core_platform.links.ports.message_handler import MessageHandlerPort
+from luana_core_sales_agent.application.orchestrator.chat import ChatOrchestrator
 
 # Singleton — ChatOrchestrator is stateless (no DB session in __init__).
 _message_handler: MessageHandlerPort = ChatOrchestrator()

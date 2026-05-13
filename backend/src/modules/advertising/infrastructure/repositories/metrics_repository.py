@@ -14,14 +14,13 @@ from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.analytics.infrastructure.models.official_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
     OfficialMetricModel,
 )
-from src.modules.analytics.infrastructure.models.period_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.period_metrics_model import (
     PeriodMetricModel,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

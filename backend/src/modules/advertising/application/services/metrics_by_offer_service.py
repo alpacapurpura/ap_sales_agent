@@ -29,6 +29,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from luana_core_platform.domain.locale import TenantLocale
+
 from src.modules.advertising.application.dto.metrics_by_offer_dto import (
     BrandingAggregateDTO,
     FunnelStepDTO,
@@ -51,18 +53,16 @@ from src.modules.advertising.infrastructure.repositories.metrics_repository impo
     MetricsRepository,
     resolve_period_window,
 )
-from src.shared.domain.locale import TenantLocale
 
 if TYPE_CHECKING:
     from datetime import date
     from uuid import UUID
 
-    from sqlalchemy.orm import Session
-
-    from src.modules.analytics.infrastructure.models.period_metrics_model import (
+    from luana_core_analytics_engine.infrastructure.models.period_metrics_model import (
         PeriodMetricModel,
     )
-    from src.shared.domain.ports import OfferReadDTO, OfferReadPort
+    from luana_core_platform.domain.ports import OfferReadDTO, OfferReadPort
+    from sqlalchemy.orm import Session
 
 _PRIMARY_METRIC_CONFIG: dict[OfferExpectedMetric, dict] = {
     OfferExpectedMetric.LEAD: {

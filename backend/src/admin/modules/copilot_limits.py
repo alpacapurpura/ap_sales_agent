@@ -19,11 +19,11 @@ from src.admin.modules._shared import render_tenant_selector
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
-from src.core.config import settings
-from src.core.database import SessionLocal
-from src.modules.copilot.infrastructure.repositories.tenant_limits_repository import (
+from luana_core_copilot.infrastructure.repositories.tenant_limits_repository import (
     SyncCopilotTenantLimitsRepository,
 )
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.database import SessionLocal
 
 _ONE_MIB = 1 * 1024 * 1024
 _HUNDRED_MIB = 100 * 1024 * 1024

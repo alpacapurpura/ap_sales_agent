@@ -47,7 +47,7 @@ class TestCostoAgentesPage:
 class TestCrossAgentRegistryWiring:
     def test_registry_known_to_admin(self) -> None:
         """Adding an agent to the registry surfaces it in the page caption."""
-        from src.shared.agent_observability.registry import (
+        from luana_core_observability.registry import (
             agent_observability_registry,
         )
 
@@ -74,7 +74,7 @@ class TestSharedHelpers:
 )
 def test_registry_spec_consistency(agent_kind: str) -> None:
     """Each registered agent has matching env-var names + table names."""
-    from src.shared.agent_observability.registry import get_spec
+    from luana_core_observability.registry import get_spec
 
     spec = get_spec(agent_kind)
     assert spec.agent_kind == agent_kind

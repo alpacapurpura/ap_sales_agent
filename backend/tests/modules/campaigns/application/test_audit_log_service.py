@@ -13,8 +13,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.campaigns.application.services.audit_log_service import AuditLogService
-from src.modules.campaigns.domain.audit_log import AuditEventType
+from luana_core_campaigns.application.services.audit_log_service import AuditLogService
+from luana_core_campaigns.domain.audit_log import AuditEventType
 
 
 @pytest.fixture

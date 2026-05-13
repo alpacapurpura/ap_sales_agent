@@ -3,8 +3,7 @@
 from typing import Any
 
 from fastapi import APIRouter
-
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     GUARANTEE_METADATA,
     AccessDuration,
     AccommodationType,
@@ -29,7 +28,7 @@ from src.modules.offer.domain.enums import (
     ServiceFrequency,
     get_enum_options,
 )
-from src.shared.domain.enums import AvatarPersona, FinancialCapacity, LeadTemperature
+from luana_core_platform.domain.enums import AvatarPersona, FinancialCapacity, LeadTemperature
 
 router = APIRouter(tags=["System Definitions"])
 

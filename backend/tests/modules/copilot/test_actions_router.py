@@ -5,9 +5,9 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.copilot.api.actions import router
-from src.modules.iam.api.dependencies import get_current_user
+from luana_core_platform.core.database import get_db
+from luana_core_copilot.api.actions import router
+from luana_core_iam.api.dependencies import get_current_user
 
 
 def _build_client(tenant_id):
@@ -27,7 +27,7 @@ def test_copilot_brand_extract_delegates_to_service():
     client = _build_client(tenant_id)
 
     with patch(
-        "src.modules.copilot.api.actions.CopilotBrandAIActionsService",
+        "luana_core_copilot.api.actions.CopilotBrandAIActionsService",
     ) as service_cls:
         service_instance = MagicMock()
         service_instance.extract_brand_identity = AsyncMock(

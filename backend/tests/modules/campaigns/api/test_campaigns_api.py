@@ -14,31 +14,31 @@ from uuid import UUID, uuid4
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from src.modules.campaigns.application.dtos.campaign_dtos import (
+from luana_core_campaigns.application.dtos.campaign_dtos import (
     CampaignLaunchResponse,
     CampaignResponse,
 )
-from src.modules.campaigns.application.dtos.campaign_step_dtos import CampaignStepResponse
-from src.modules.campaigns.application.dtos.campaign_template_dtos import (
+from luana_core_campaigns.application.dtos.campaign_step_dtos import CampaignStepResponse
+from luana_core_campaigns.application.dtos.campaign_template_dtos import (
     CampaignTemplateResponse,
 )
-from src.modules.campaigns.application.dtos.pagination import PaginatedResponse
-from src.modules.campaigns.application.dtos.segment_dtos import (
+from luana_core_campaigns.application.dtos.pagination import PaginatedResponse
+from luana_core_campaigns.application.dtos.segment_dtos import (
     SegmentEstimateSizeResponse,
     SegmentResolveResponse,
     SegmentResponse,
     SegmentSnapshotResponse,
 )
-from src.modules.campaigns.application.services.campaign_service import (
+from luana_core_campaigns.application.services.campaign_service import (
     CampaignDuplicateNameError,
     CampaignNotFoundError,
     CampaignPlanLimitExceededError,
 )
-from src.modules.campaigns.application.services.segment_service import SegmentNotFoundError
-from src.modules.campaigns.application.services.campaign_template_service import (
+from luana_core_campaigns.application.services.segment_service import SegmentNotFoundError
+from luana_core_campaigns.application.services.campaign_template_service import (
     CampaignTemplateNotFoundError,
 )
-from src.modules.campaigns.domain.enums import (
+from luana_core_campaigns.domain.enums import (
     CampaignStatus,
     CampaignType,
     SegmentType,
@@ -85,7 +85,7 @@ def _campaign_response(**overrides: Any) -> CampaignResponse:
 
 def _segment_response(**overrides: Any) -> SegmentResponse:
     """Build a minimal SegmentResponse for mocking."""
-    from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
+    from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
 
     defaults: dict[str, Any] = {
         "id": SEGMENT_ID,
@@ -163,7 +163,7 @@ def _get_fake_user() -> _FakeUser:
 async def client() -> AsyncClient:  # type: ignore[override]
     """AsyncClient pointed at the FastAPI app with auth overridden."""
     from src.main import app
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     app.dependency_overrides[get_current_user] = _get_fake_user
 
@@ -191,8 +191,8 @@ class TestCampaignCreate:
     @pytest.mark.asyncio
     async def test_create_campaign_returns_201(self, client: AsyncClient) -> None:
         """Happy path: valid body → 201 + CampaignResponse shape."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_campaign_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         resp = _campaign_response()
@@ -220,8 +220,8 @@ class TestCampaignCreate:
     @pytest.mark.asyncio
     async def test_create_campaign_duplicate_name_returns_409(self, client: AsyncClient) -> None:
         """Duplicate name → 409."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_campaign_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -242,8 +242,8 @@ class TestCampaignCreate:
     @pytest.mark.asyncio
     async def test_create_campaign_plan_limit_returns_402(self, client: AsyncClient) -> None:
         """Plan limit exceeded → 402."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_campaign_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -268,8 +268,8 @@ class TestCampaignList:
     @pytest.mark.asyncio
     async def test_list_returns_paginated(self, client: AsyncClient) -> None:
         """List endpoint returns PaginatedResponse shape."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_campaign_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         resp = PaginatedResponse[CampaignResponse](
@@ -299,8 +299,8 @@ class TestCampaignList:
     @pytest.mark.asyncio
     async def test_list_accepts_limit_offset(self, client: AsyncClient) -> None:
         """list endpoint accepts limit/offset query params."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_campaign_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         resp = PaginatedResponse[CampaignResponse](items=[], total_count=0, limit=5, offset=10, has_more=False)
@@ -325,8 +325,8 @@ class TestCampaignGet:
     @pytest.mark.asyncio
     async def test_get_existing_returns_200(self, client: AsyncClient) -> None:
         """Get by ID returns 200 + campaign body."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_campaign_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -347,8 +347,8 @@ class TestCampaignGet:
     @pytest.mark.asyncio
     async def test_get_missing_returns_404(self, client: AsyncClient) -> None:
         """Not-found → 404."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_campaign_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -377,8 +377,8 @@ class TestCampaignFSM:
     @pytest.mark.asyncio
     async def test_cancel_returns_200(self, client: AsyncClient) -> None:
         """Cancel transition returns 200 + campaign."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_campaign_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -407,8 +407,8 @@ class TestSegmentCRUD:
     @pytest.mark.asyncio
     async def test_list_segments_returns_paginated(self, client: AsyncClient) -> None:
         """List returns paginated segments."""
-        from src.modules.campaigns.api._service_factories import get_segment_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_segment_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         resp = PaginatedResponse[SegmentResponse](
@@ -436,8 +436,8 @@ class TestSegmentCRUD:
     @pytest.mark.asyncio
     async def test_create_segment_returns_201(self, client: AsyncClient) -> None:
         """Create segment → 201."""
-        from src.modules.campaigns.api._service_factories import get_segment_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_segment_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -463,8 +463,8 @@ class TestSegmentCRUD:
     @pytest.mark.asyncio
     async def test_get_segment_not_found_returns_404(self, client: AsyncClient) -> None:
         """Not found → 404."""
-        from src.modules.campaigns.api._service_factories import get_segment_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_segment_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -484,8 +484,8 @@ class TestSegmentCRUD:
     @pytest.mark.asyncio
     async def test_resolve_segment_returns_uuid_list(self, client: AsyncClient) -> None:
         """Resolve → SegmentResolveResponse with lead_ids (no PII)."""
-        from src.modules.campaigns.api._service_factories import get_segment_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_segment_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         lead_ids = [uuid4(), uuid4()]
@@ -511,8 +511,8 @@ class TestSegmentCRUD:
     @pytest.mark.asyncio
     async def test_estimate_size_returns_200(self, client: AsyncClient) -> None:
         """estimate-size endpoint returns size response."""
-        from src.modules.campaigns.api._service_factories import get_segment_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_segment_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         # Service returns tuple (estimated_size, cached_at, cache_hit) — router builds DTO.
@@ -541,8 +541,8 @@ class TestTemplateCatalog:
     @pytest.mark.asyncio
     async def test_list_templates_returns_list(self, client: AsyncClient) -> None:
         """Templates list returns list of CampaignTemplateResponse."""
-        from src.modules.campaigns.api._service_factories import get_template_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_template_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -564,8 +564,8 @@ class TestTemplateCatalog:
     @pytest.mark.asyncio
     async def test_get_template_not_found_returns_404(self, client: AsyncClient) -> None:
         """Not found → 404."""
-        from src.modules.campaigns.api._service_factories import get_template_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_template_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()
@@ -585,8 +585,8 @@ class TestTemplateCatalog:
     @pytest.mark.asyncio
     async def test_clone_template_returns_201(self, client: AsyncClient) -> None:
         """Clone → 201 + CampaignResponse."""
-        from src.modules.campaigns.api._service_factories import get_template_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_template_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         mock_svc = AsyncMock()

@@ -8,7 +8,7 @@ The concrete adapter is owned by the provider module and wired at startup
 via FastAPI ``Depends``. The consumer only knows the port.
 """
 
-from src.shared.links.ports.advertising import (
+from luana_core_platform.links.ports.advertising import (
     AdvertisingReadPort,
     CampaignAggregateKPIsDTO,
     CampaignRowDTO,

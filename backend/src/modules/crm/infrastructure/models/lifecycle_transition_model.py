@@ -2,6 +2,6 @@
 
 # This model now lives in src.shared.infrastructure.models.crm so that
 # analytics can import it without violating DDD boundaries.
-from src.shared.infrastructure.models.crm import LifecycleTransitionModel
+from luana_core_platform.infrastructure.models.crm import LifecycleTransitionModel
 
 __all__ = ["LifecycleTransitionModel"]

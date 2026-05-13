@@ -19,7 +19,7 @@ PAYMENT_ID = uuid.UUID("dddd9020-0000-0000-0000-000000000001")
 
 
 def _build_paid_event(auto_grant: bool = True):
-    from src.shared.domain.events import PaymentReceivedEvent
+    from luana_core_platform.domain.events import PaymentReceivedEvent
 
     return PaymentReceivedEvent.create(
         tenant_id=TENANT_ID,
@@ -31,7 +31,7 @@ def _build_paid_event(auto_grant: bool = True):
 
 
 def test_auto_grant_subscriber_importable() -> None:
-    from src.modules.sales_agent.application.payment_event_handlers import (
+    from luana_core_sales_agent.application.payment_event_handlers import (
         auto_grant_on_paid,
         register_payment_subscribers,
     )
@@ -39,15 +39,15 @@ def test_auto_grant_subscriber_importable() -> None:
 
 def test_auto_grant_fires_when_auto_grant_true() -> None:
     """PaymentReceivedEvent with auto_grant=True triggers grant_access."""
-    from src.modules.sales_agent.application.payment_event_handlers import (
+    from luana_core_sales_agent.application.payment_event_handlers import (
         auto_grant_on_paid,
     )
 
     event = _build_paid_event(auto_grant=True)
 
     with (
-        patch("src.modules.sales_agent.application.payment_event_handlers._run_grant_access") as mock_grant,
-        patch("src.modules.sales_agent.application.payment_event_handlers.SessionLocal") as mock_session,
+        patch("luana_core_sales_agent.application.payment_event_handlers._run_grant_access") as mock_grant,
+        patch("luana_core_sales_agent.application.payment_event_handlers.SessionLocal") as mock_session,
     ):
         mock_session.return_value.__enter__ = MagicMock(return_value=MagicMock())
         mock_session.return_value.__exit__ = MagicMock(return_value=False)
@@ -58,20 +58,20 @@ def test_auto_grant_fires_when_auto_grant_true() -> None:
 
 def test_auto_grant_skipped_when_auto_grant_false() -> None:
     """PaymentReceivedEvent with auto_grant=False → no grant_access."""
-    from src.modules.sales_agent.application.payment_event_handlers import (
+    from luana_core_sales_agent.application.payment_event_handlers import (
         auto_grant_on_paid,
     )
 
     event = _build_paid_event(auto_grant=False)
 
-    with patch("src.modules.sales_agent.application.payment_event_handlers._run_grant_access") as mock_grant:
+    with patch("luana_core_sales_agent.application.payment_event_handlers._run_grant_access") as mock_grant:
         auto_grant_on_paid(event)
 
     mock_grant.assert_not_called()
 
 
 def test_payment_received_event_importable() -> None:
-    from src.shared.domain.events import (
+    from luana_core_platform.domain.events import (
         AccessGrantedEvent,
         PaymentLinkCreatedEvent,
         PaymentReceivedEvent,
@@ -79,7 +79,7 @@ def test_payment_received_event_importable() -> None:
 
 
 def test_payment_link_created_event_fields() -> None:
-    from src.shared.domain.events import PaymentLinkCreatedEvent
+    from luana_core_platform.domain.events import PaymentLinkCreatedEvent
 
     event = PaymentLinkCreatedEvent.create(
         tenant_id=TENANT_ID,
@@ -96,7 +96,7 @@ def test_payment_link_created_event_fields() -> None:
 
 
 def test_access_granted_event_fields() -> None:
-    from src.shared.domain.events import AccessGrantedEvent
+    from luana_core_platform.domain.events import AccessGrantedEvent
 
     event = AccessGrantedEvent.create(
         tenant_id=TENANT_ID,

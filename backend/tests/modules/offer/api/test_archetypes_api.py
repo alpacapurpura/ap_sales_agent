@@ -5,8 +5,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.offer.api.archetypes import router
-from src.modules.offer.domain.enums import OfferArchetype
+from luana_core_offer_studio.api.archetypes import router
+from luana_core_offer_studio.domain.enums import OfferArchetype
 
 
 def _client() -> TestClient:

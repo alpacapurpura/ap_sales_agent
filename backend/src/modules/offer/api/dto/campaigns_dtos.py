@@ -7,7 +7,7 @@ other's internals.
 
 from __future__ import annotations
 
-from src.shared.links.ports.advertising import (
+from luana_core_platform.links.ports.advertising import (
     CampaignAggregateKPIsDTO,
     CampaignRowDTO,
     OfferCampaignsViewDTO,

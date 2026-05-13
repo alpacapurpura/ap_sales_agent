@@ -100,7 +100,7 @@ def test_known_direct_emitters_allowlist_size() -> None:
 
 def test_event_bus_adapter_is_real() -> None:
     """Sanity: EventBusAdapter importable + routes via _is_outbox_enabled."""
-    from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    from luana_core_events.outbox.application.event_bus_adapter import (
         EventBusAdapter,
     )
 

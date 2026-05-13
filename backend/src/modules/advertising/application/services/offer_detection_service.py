@@ -38,9 +38,8 @@ from src.modules.advertising.infrastructure.repositories.meta_catalog_repository
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.domain.ports import OfferReadDTO, OfferReadPort
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 
 KEYWORD_MATCH_THRESHOLD = 0.5
 

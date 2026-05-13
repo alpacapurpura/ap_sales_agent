@@ -29,14 +29,13 @@ from typing import Any
 from uuid import UUID
 
 import structlog
-
-from src.shared.billing.application.budget_guard import BudgetGuard
-from src.shared.billing.application.cost_estimator import (
+from luana_core_billing.application.budget_guard import BudgetGuard
+from luana_core_billing.application.cost_estimator import (
     _messages_to_prompt,
     estimate_llm_cost,
 )
-from src.shared.billing.application.exceptions import BudgetExceeded
-from src.shared.billing.domain.budget_decision import BudgetDecision
+from luana_core_billing.application.exceptions import BudgetExceeded
+from luana_core_billing.domain.budget_decision import BudgetDecision
 
 logger = structlog.get_logger(__name__)
 
@@ -312,7 +311,7 @@ def get_guarded_llm_service(
         ``BudgetGuardingLLMService`` when both ``tenant_id`` and
         ``budget_guard`` provided; else plain LLM service.
     """
-    from src.shared.infrastructure.llm.factory import LLMFactory
+    from luana_core_llm.factory import LLMFactory
 
     inner = LLMFactory.get_service()
 

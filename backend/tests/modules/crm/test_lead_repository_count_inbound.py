@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.crm.infrastructure.repositories.lead_repository import LeadRepository
-from src.shared.infrastructure.models.crm import LeadModel
+from luana_core_crm.infrastructure.repositories.lead_repository import LeadRepository
+from luana_core_platform.infrastructure.models.crm import LeadModel
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

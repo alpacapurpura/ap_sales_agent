@@ -11,8 +11,8 @@ Tests cover:
 import uuid
 from datetime import date
 
-from src.modules.analytics.domain.period_config import TenantPeriodConfig
-from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
+from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
+from luana_core_analytics_engine.infrastructure.etl.aggregations import compute_aggregations
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 

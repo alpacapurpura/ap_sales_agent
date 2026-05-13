@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.offer.domain.archetype_catalog import (
+from luana_core_offer_studio.domain.archetype_catalog import (
     ARCHETYPE_CATALOG,
     ArchetypeCapabilities,
     get_capabilities,
 )
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     FulfillmentType,
     OfferArchetype,
     OfferDeliveryModel,

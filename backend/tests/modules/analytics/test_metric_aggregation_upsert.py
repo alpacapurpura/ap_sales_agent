@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.modules.analytics.infrastructure.repositories.metric_aggregation_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.metric_aggregation_repository import (
     MetricAggregationRepository,
 )
 

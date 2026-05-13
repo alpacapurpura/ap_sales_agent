@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.analytics.copilot_provider.provider import AnalyticsCopilotProvider
+from luana_core_analytics_engine.copilot_provider.provider import AnalyticsCopilotProvider
 
 provider: AnalyticsCopilotProvider = AnalyticsCopilotProvider()
 

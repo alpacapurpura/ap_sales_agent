@@ -15,7 +15,7 @@ from datetime import date
 
 import pytest
 
-from src.modules.analytics.infrastructure.providers.meta_provider import (
+from luana_core_analytics_engine.infrastructure.providers.meta_provider import (
     MetaProvider,
     PeriodAggregateError,
 )

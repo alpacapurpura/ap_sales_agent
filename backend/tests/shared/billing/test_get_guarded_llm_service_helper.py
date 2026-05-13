@@ -27,11 +27,11 @@ TENANT_ID = UUID("12345678-1234-5678-1234-567812345678")
 
 def test_returns_plain_when_tenant_id_none() -> None:
     """No tenant_id → returns plain LLM service (test path)."""
-    from src.shared.billing.application.llm_guards import get_guarded_llm_service
+    from luana_core_billing.application.llm_guards import get_guarded_llm_service
 
     fake_inner = _FakeLLMService()
 
-    with patch("src.shared.infrastructure.llm.factory.LLMFactory.get_service", return_value=fake_inner):
+    with patch("luana_core_llm.factory.LLMFactory.get_service", return_value=fake_inner):
         result = get_guarded_llm_service(tenant_id=None, agent_kind="brand", budget_guard=MagicMock())
 
     assert result is fake_inner
@@ -39,11 +39,11 @@ def test_returns_plain_when_tenant_id_none() -> None:
 
 def test_returns_plain_when_budget_guard_none() -> None:
     """budget_guard=None (default brand pre-S4) → returns plain LLM service."""
-    from src.shared.billing.application.llm_guards import get_guarded_llm_service
+    from luana_core_billing.application.llm_guards import get_guarded_llm_service
 
     fake_inner = _FakeLLMService()
 
-    with patch("src.shared.infrastructure.llm.factory.LLMFactory.get_service", return_value=fake_inner):
+    with patch("luana_core_llm.factory.LLMFactory.get_service", return_value=fake_inner):
         result = get_guarded_llm_service(tenant_id=TENANT_ID, agent_kind="brand", budget_guard=None)
 
     assert result is fake_inner
@@ -51,7 +51,7 @@ def test_returns_plain_when_budget_guard_none() -> None:
 
 def test_returns_guarded_when_tenant_id_and_guard_provided() -> None:
     """tenant_id + budget_guard provided → returns BudgetGuardingLLMService wrapping inner."""
-    from src.shared.billing.application.llm_guards import (
+    from luana_core_billing.application.llm_guards import (
         BudgetGuardingLLMService,
         get_guarded_llm_service,
     )
@@ -59,7 +59,7 @@ def test_returns_guarded_when_tenant_id_and_guard_provided() -> None:
     fake_inner = _FakeLLMService()
     fake_guard = MagicMock()
 
-    with patch("src.shared.infrastructure.llm.factory.LLMFactory.get_service", return_value=fake_inner):
+    with patch("luana_core_llm.factory.LLMFactory.get_service", return_value=fake_inner):
         result = get_guarded_llm_service(tenant_id=TENANT_ID, agent_kind="brand", budget_guard=fake_guard)
 
     assert isinstance(result, BudgetGuardingLLMService)
@@ -71,7 +71,7 @@ def test_returns_guarded_when_tenant_id_and_guard_provided() -> None:
 
 def test_model_hint_propagated() -> None:
     """model_hint forwarded to BudgetGuardingLLMService when guarded."""
-    from src.shared.billing.application.llm_guards import (
+    from luana_core_billing.application.llm_guards import (
         BudgetGuardingLLMService,
         get_guarded_llm_service,
     )
@@ -79,7 +79,7 @@ def test_model_hint_propagated() -> None:
     fake_inner = _FakeLLMService()
     fake_guard = MagicMock()
 
-    with patch("src.shared.infrastructure.llm.factory.LLMFactory.get_service", return_value=fake_inner):
+    with patch("luana_core_llm.factory.LLMFactory.get_service", return_value=fake_inner):
         result = get_guarded_llm_service(
             tenant_id=TENANT_ID,
             agent_kind="brand",
@@ -98,11 +98,11 @@ def test_default_brand_pre_s4_path() -> None:
     tenant_id but not budget_guard; helper returns plain LLM until S4 wires
     a real DI provider. Architectural seam ready, runtime behavior preserved.
     """
-    from src.shared.billing.application.llm_guards import get_guarded_llm_service
+    from luana_core_billing.application.llm_guards import get_guarded_llm_service
 
     fake_inner = _FakeLLMService()
 
-    with patch("src.shared.infrastructure.llm.factory.LLMFactory.get_service", return_value=fake_inner):
+    with patch("luana_core_llm.factory.LLMFactory.get_service", return_value=fake_inner):
         # Mimic brand callsite signature: tenant_id + agent_kind only
         result = get_guarded_llm_service(tenant_id=TENANT_ID, agent_kind="brand")
 

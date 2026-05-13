@@ -25,7 +25,7 @@ CAMPAIGN_ID = uuid.UUID("cccc0000-0000-0000-0000-000000000003")
 
 def test_conversation_list_item_has_campaign_fields() -> None:
     """ConversationListItem debe tener campaign_id y campaign_name opcionales."""
-    from src.modules.sales_agent.api.dto.closer_studio import ConversationListItem
+    from luana_core_sales_agent.api.dto.closer_studio import ConversationListItem
 
     fields = ConversationListItem.model_fields
     assert "campaign_id" in fields, "ConversationListItem debe tener campaign_id"
@@ -42,7 +42,7 @@ def test_conversation_list_item_has_campaign_fields() -> None:
 
 def test_conversation_detail_has_campaign_fields() -> None:
     """ConversationDetail debe tener campaign_id y campaign_name opcionales."""
-    from src.modules.sales_agent.api.dto.closer_studio import ConversationDetail
+    from luana_core_sales_agent.api.dto.closer_studio import ConversationDetail
 
     fields = ConversationDetail.model_fields
     assert "campaign_id" in fields, "ConversationDetail debe tener campaign_id"
@@ -59,7 +59,7 @@ def test_conversation_detail_has_campaign_fields() -> None:
 
 def test_conversation_list_item_campaign_fields_assignable() -> None:
     """ConversationListItem debe poder asignar campaign_id y campaign_name."""
-    from src.modules.sales_agent.api.dto.closer_studio import ConversationListItem
+    from luana_core_sales_agent.api.dto.closer_studio import ConversationListItem
 
     item = ConversationListItem(
         lead_id=LEAD_ID_1,
@@ -76,7 +76,7 @@ def test_conversation_list_item_campaign_fields_assignable() -> None:
 
 def test_inbox_campaign_enrichment_service_exists() -> None:
     """inbox_campaign_enrichment.py debe existir con las funciones correctas."""
-    from src.modules.sales_agent.application.services import inbox_campaign_enrichment
+    from luana_core_sales_agent.application.services import inbox_campaign_enrichment
 
     assert hasattr(inbox_campaign_enrichment, "enrich_conversation_list_with_campaign")
     assert hasattr(inbox_campaign_enrichment, "enrich_conversation_detail_with_campaign")
@@ -87,11 +87,11 @@ async def test_enrich_list_adds_campaign_fields_for_hit_leads() -> None:
     """enrich_conversation_list_with_campaign añade fields a leads con hit."""
     import datetime as dt
 
-    from src.modules.sales_agent.api.dto.closer_studio import ConversationListItem
-    from src.modules.sales_agent.application.services.inbox_campaign_enrichment import (
+    from luana_core_sales_agent.api.dto.closer_studio import ConversationListItem
+    from luana_core_sales_agent.application.services.inbox_campaign_enrichment import (
         enrich_conversation_list_with_campaign,
     )
-    from src.shared.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
+    from luana_core_platform.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
 
     # Dos leads: uno con hit, uno sin hit
     items = [
@@ -147,11 +147,11 @@ async def test_enrich_list_adds_campaign_fields_for_hit_leads() -> None:
 @pytest.mark.asyncio
 async def test_enrich_list_fail_open_on_exception() -> None:
     """enrich_conversation_list_with_campaign es fail-open: en excepción, items quedan inalterados."""
-    from src.modules.sales_agent.api.dto.closer_studio import ConversationListItem
-    from src.modules.sales_agent.application.services.inbox_campaign_enrichment import (
+    from luana_core_sales_agent.api.dto.closer_studio import ConversationListItem
+    from luana_core_sales_agent.application.services.inbox_campaign_enrichment import (
         enrich_conversation_list_with_campaign,
     )
-    from src.shared.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
+    from luana_core_platform.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
 
     items = [
         ConversationListItem(lead_id=LEAD_ID_1, display_name="Lead 1"),
@@ -189,11 +189,11 @@ async def test_enrich_detail_adds_campaign_fields_for_hit() -> None:
     """enrich_conversation_detail_with_campaign añade fields si hay hit."""
     import datetime as dt
 
-    from src.modules.sales_agent.api.dto.closer_studio import ConversationDetail
-    from src.modules.sales_agent.application.services.inbox_campaign_enrichment import (
+    from luana_core_sales_agent.api.dto.closer_studio import ConversationDetail
+    from luana_core_sales_agent.application.services.inbox_campaign_enrichment import (
         enrich_conversation_detail_with_campaign,
     )
-    from src.shared.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
+    from luana_core_platform.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
 
     detail = ConversationDetail(lead_id=LEAD_ID_1, display_name="Lead 1")
 
@@ -238,11 +238,11 @@ async def test_enrich_detail_adds_campaign_fields_for_hit() -> None:
 @pytest.mark.asyncio
 async def test_enrich_detail_null_when_miss() -> None:
     """enrich_conversation_detail_with_campaign deja None cuando no hay hit."""
-    from src.modules.sales_agent.api.dto.closer_studio import ConversationDetail
-    from src.modules.sales_agent.application.services.inbox_campaign_enrichment import (
+    from luana_core_sales_agent.api.dto.closer_studio import ConversationDetail
+    from luana_core_sales_agent.application.services.inbox_campaign_enrichment import (
         enrich_conversation_detail_with_campaign,
     )
-    from src.shared.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
+    from luana_core_platform.links.ports.campaigns import CampaignTaskLookupResult, CampaignsLookupPort
 
     detail = ConversationDetail(lead_id=LEAD_ID_1, display_name="Lead 1")
 

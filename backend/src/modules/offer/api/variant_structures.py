@@ -16,12 +16,11 @@ rationale and DAG position.
 from __future__ import annotations
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict
-
-from src.modules.offer.domain.variant_structure_catalog import (
+from luana_core_offer_studio.domain.variant_structure_catalog import (
     VARIANT_STRUCTURE_CATALOG,
     VariantStructureMetadata,
 )
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
 

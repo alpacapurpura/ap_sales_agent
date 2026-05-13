@@ -28,69 +28,67 @@ from uuid import UUID, uuid4
 
 import structlog
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-
-from src.core.context import set_conversation_id
-from src.core.database import redis_client
-from src.modules.assets.application.asset_extraction_service import (
+from luana_core_assets.application.asset_extraction_service import (
     AssetExtractionService,
 )
-from src.modules.assets.infrastructure.repositories.asset_repository import (
+from luana_core_assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
-from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
-from src.modules.copilot.application.extraction.active_job_state import load_active_job
-from src.modules.copilot.application.guided.state import load_guided_state
-from src.modules.copilot.application.orchestrator.deep_agent import (
+from luana_core_channels.intent_detector import (
+    detect_channel_intent,
+)
+from luana_core_copilot.api.dto import ClientContextDTO, SSEEvent
+from luana_core_copilot.application.extraction.active_job_state import load_active_job
+from luana_core_copilot.application.guided.state import load_guided_state
+from luana_core_copilot.application.orchestrator.deep_agent import (
     build_deep_agent_graph,
 )
-from src.modules.copilot.application.orchestrator.output_sanitizer import (
+from luana_core_copilot.application.orchestrator.output_sanitizer import (
     sanitize_assistant_text,
 )
-from src.modules.copilot.application.orchestrator.state import (
+from luana_core_copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
-from src.modules.copilot.application.orchestrator.stream_provenance import (
+from luana_core_copilot.application.orchestrator.stream_provenance import (
     StreamPolicy,
     policy_for,
 )
-from src.modules.copilot.application.orchestrator.tool_call_dedup import (
+from luana_core_copilot.application.orchestrator.tool_call_dedup import (
     DedupVerdict,
     ToolCallDedupTracker,
     ToolCallLoopError,
     augment_tool_message_for_warn,
 )
-from src.modules.copilot.application.router import (
+from luana_core_copilot.application.router import (
     RoutingRequest,
     build_default_router,
 )
-from src.modules.copilot.application.tools.registry import get_tools_for_context
-from src.modules.copilot.domain.events import CardEmitted, RoutingDecided
-from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+from luana_core_copilot.application.tools.registry import get_tools_for_context
+from luana_core_copilot.domain.events import CardEmitted, RoutingDecided
+from luana_core_copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
-from src.modules.copilot.infrastructure.repositories.routing_log_repository import (
+from luana_core_copilot.infrastructure.repositories.routing_log_repository import (
     RoutingLogRepository,
 )
-from src.modules.copilot.observability import ObservabilityContext
-from src.shared.agent_observability.channels.intent_detector import (
-    detect_channel_intent,
-)
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_copilot.observability import ObservabilityContext
+from luana_core_events.outbox.application.event_bus_adapter import (
     adapter_bus as EventBus,  # noqa: N812
 )
+from luana_core_platform.core.context import set_conversation_id
+from luana_core_platform.core.database import redis_client
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
-    from sqlalchemy.orm import Session
-
-    from src.modules.copilot.application.orchestrator.invoke_result import (
+    from luana_core_copilot.application.orchestrator.invoke_result import (
         CopilotInvokeResult,
     )
-    from src.modules.copilot.application.router import ModelRouter
-    from src.modules.copilot.infrastructure.models.conversation_model import (
+    from luana_core_copilot.application.router import ModelRouter
+    from luana_core_copilot.infrastructure.models.conversation_model import (
         CopilotConversationModel,
     )
+    from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 
@@ -228,7 +226,7 @@ def _render_attachment_context(
 # Registration + handlers live in block_adapters.py (SSoT). Adding a new
 # block-emitting tool does NOT require editing this file.
 
-from src.modules.copilot.application.orchestrator.block_adapters import (
+from luana_core_copilot.application.orchestrator.block_adapters import (
     tool_result_to_blocks as _tool_result_to_block,
 )
 
@@ -409,7 +407,7 @@ def _ui_action_to_card_block(action: dict) -> dict | None:
     if not card_kind:
         return None
 
-    from src.modules.copilot.domain.card_payloads import validate_card_payload
+    from luana_core_copilot.domain.card_payloads import validate_card_payload
 
     ok, err = validate_card_payload(card_kind, action)
     if not ok:
@@ -611,20 +609,20 @@ class CopilotOrchestrator:
         ``ObservabilityContext`` whose callback handler the graph stream
         consumes via ``obs.langchain_config()``.
         """
-        from src.modules.copilot.observability.persistence.llm_call_repository import (
+        from luana_core_copilot.observability.persistence.llm_call_repository import (
             LlmCallRepository,
         )
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.shared.agent_observability.cost.fx_resolver import FXResolver
-        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+        from luana_core_observability.cost.fx_resolver import FXResolver
+        from luana_core_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
-        from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
+        from luana_core_observability.persistence.tenant_billing_config_repository import (
             TenantBillingConfigRepository,
         )
-        from src.shared.agent_observability.pricing.resolver import PricingResolver
+        from luana_core_observability.pricing.resolver import PricingResolver
 
         billing_repo = TenantBillingConfigRepository(self.db)
         currency = "USD"
@@ -830,13 +828,13 @@ class CopilotOrchestrator:
         ``copilot_conversations.rolling_summary`` (deferred S5).
         """
         try:
-            from src.modules.copilot.application.memory.context_window_builder import (
+            from luana_core_copilot.application.memory.context_window_builder import (
                 ContextWindowBuilder,
             )
-            from src.modules.copilot.application.memory.rolling_summarizer import (
+            from luana_core_copilot.application.memory.rolling_summarizer import (
                 RollingSummarizer,
             )
-            from src.modules.copilot.domain.ports import LLMMessage
+            from luana_core_copilot.domain.ports import LLMMessage
         except Exception as exc:  # noqa: BLE001 — memory wiring is best-effort
             logger.warning("memory_window_import_failed", error=str(exc))
             return history_messages
@@ -1200,7 +1198,7 @@ class CopilotOrchestrator:
         lives in the worker (per dependency-isolation iron rule); this
         method does not impose its own.
         """
-        from src.modules.copilot.application.orchestrator.invoke_result import (
+        from luana_core_copilot.application.orchestrator.invoke_result import (
             CopilotInvokeResult,
         )
 
@@ -1328,7 +1326,7 @@ class CopilotOrchestrator:
         ``acc.obs.langchain_config()``. The stream loop only handles
         SSE shaping.
         """
-        from src.shared.domain.datetime_utils import utc_now as _utc_now
+        from luana_core_platform.domain.datetime_utils import utc_now as _utc_now
 
         if msg_id is None:
             msg_id = str(uuid4())
@@ -1847,7 +1845,7 @@ class CopilotOrchestrator:
         )
         # Fallback: if no accumulated messages, persist simple format
         if not accumulated_messages:
-            from src.shared.domain.datetime_utils import utc_now as _utc_now
+            from luana_core_platform.domain.datetime_utils import utc_now as _utc_now
 
             now_iso = _utc_now().isoformat()
             new_messages = [
@@ -2017,7 +2015,7 @@ class CopilotOrchestrator:
 
         Preserves ``tool_calls`` on AIMessages and ToolMessages for replay.
         """
-        from src.shared.domain.datetime_utils import utc_now as _utc_now
+        from luana_core_platform.domain.datetime_utils import utc_now as _utc_now
 
         result = []
         for msg in messages:

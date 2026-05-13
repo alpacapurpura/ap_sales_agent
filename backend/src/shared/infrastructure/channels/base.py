@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.shared.domain.messages import IncomingMessage, OutgoingMessage
+from luana_core_platform.domain.messages import IncomingMessage, OutgoingMessage
 
 
 class BaseChannel(ABC):

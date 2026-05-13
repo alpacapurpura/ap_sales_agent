@@ -11,14 +11,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from luana_core_platform.domain.ports import ConnectionPort
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.ports import ConnectionPort
 
 
 def create_telegram_adapter(*, token: str | None = None) -> object:
     """Create a TelegramChannel adapter. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.channels.telegram import (
+    from luana_core_connections.infrastructure.channels.telegram import (
         TelegramChannel,
     )
 
@@ -27,7 +26,7 @@ def create_telegram_adapter(*, token: str | None = None) -> object:
 
 def create_whatsapp_adapter(*, tenant_id: str) -> object:
     """Create a WhatsAppChannel adapter. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.channels.whatsapp import (
+    from luana_core_connections.infrastructure.channels.whatsapp import (
         WhatsAppChannel,
     )
 
@@ -36,7 +35,7 @@ def create_whatsapp_adapter(*, tenant_id: str) -> object:
 
 def create_instagram_adapter(*, client_config: dict, credentials_data: dict) -> object:
     """Create an InstagramChannel adapter. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.channels.instagram import (
+    from luana_core_connections.infrastructure.channels.instagram import (
         InstagramChannel,
     )
 
@@ -48,7 +47,7 @@ def create_instagram_adapter(*, client_config: dict, credentials_data: dict) -> 
 
 def create_connection_port(db: Session) -> ConnectionPort:
     """Create a ConnectionPortImpl instance. Lazy-imports from connections."""
-    from src.modules.connections.application.services.connection_port_impl import (
+    from luana_core_connections.application.services.connection_port_impl import (
         ConnectionPortImpl,
     )
 
@@ -57,7 +56,7 @@ def create_connection_port(db: Session) -> ConnectionPort:
 
 def get_channel_connection_model() -> type:
     """Return the ChannelConnectionModel class. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.models.channel_connection_model import (
+    from luana_core_connections.infrastructure.models.channel_connection_model import (
         ChannelConnectionModel,
     )
 
@@ -66,7 +65,7 @@ def get_channel_connection_model() -> type:
 
 def create_manychat_connector() -> type:
     """Return the ManyChatConnector class. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.marketing_connectors.manychat import (
+    from luana_core_connections.infrastructure.marketing_connectors.manychat import (
         ManyChatConnector,
     )
 
@@ -75,7 +74,7 @@ def create_manychat_connector() -> type:
 
 def create_mailerlite_connector(*, api_key: str) -> object:
     """Create a MailerLiteConnector instance. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.marketing_connectors.mailerlite import (
+    from luana_core_connections.infrastructure.marketing_connectors.mailerlite import (
         MailerLiteConnector,
     )
 
@@ -84,7 +83,7 @@ def create_mailerlite_connector(*, api_key: str) -> object:
 
 def create_google_ads_adapter() -> object:
     """Create a GoogleAdsAdapter instance. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.channels.google_ads import (
+    from luana_core_connections.infrastructure.channels.google_ads import (
         GoogleAdsAdapter,
     )
 
@@ -93,14 +92,14 @@ def create_google_ads_adapter() -> object:
 
 def create_tiktok_adapter() -> object:
     """Create a TikTokAdapter instance. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.channels.tiktok import TikTokAdapter
+    from luana_core_connections.infrastructure.channels.tiktok import TikTokAdapter
 
     return TikTokAdapter()
 
 
 def create_youtube_adapter(*, credentials_data: dict) -> object:
     """Create a YouTubeAnalyticsAdapter instance. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.channels.youtube_analytics import (
+    from luana_core_connections.infrastructure.channels.youtube_analytics import (
         YouTubeAnalyticsAdapter,
     )
 
@@ -109,7 +108,7 @@ def create_youtube_adapter(*, credentials_data: dict) -> object:
 
 def create_google_analytics_adapter(*, client_config: dict, credentials_data: dict) -> object:
     """Create a GoogleAnalyticsAdapter instance. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.channels.google_analytics import (
+    from luana_core_connections.infrastructure.channels.google_analytics import (
         GoogleAnalyticsAdapter,
     )
 
@@ -121,7 +120,7 @@ def create_google_analytics_adapter(*, client_config: dict, credentials_data: di
 
 def create_search_console_adapter(*, credentials_data: dict) -> object:
     """Create a SearchConsoleAdapter instance. Lazy-imports from connections."""
-    from src.modules.connections.infrastructure.channels.search_console import (
+    from luana_core_connections.infrastructure.channels.search_console import (
         SearchConsoleAdapter,
     )
 
@@ -134,11 +133,10 @@ def get_active_connections_by_type(db: Session, channel_type: str) -> list:
     Returns list of connection model instances.
     Lazy-imports ChannelConnectionModel from connections.
     """
-    from sqlalchemy import and_, select
-
-    from src.modules.connections.infrastructure.models.channel_connection_model import (
+    from luana_core_connections.infrastructure.models.channel_connection_model import (
         ChannelConnectionModel,
     )
+    from sqlalchemy import and_, select
 
     result = db.execute(
         select(ChannelConnectionModel).where(

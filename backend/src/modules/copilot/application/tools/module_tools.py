@@ -11,13 +11,12 @@ from uuid import UUID
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
-from src.modules.copilot.domain.module_registry import ModuleDescriptor, get_module_registry
-from src.modules.copilot.domain.schema_introspection import (
+from luana_core_copilot.domain.module_registry import ModuleDescriptor, get_module_registry
+from luana_core_copilot.domain.schema_introspection import (
     get_model_sections,
 )
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
 
 logger = structlog.get_logger()
 

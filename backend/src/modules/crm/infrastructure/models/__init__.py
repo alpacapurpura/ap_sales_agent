@@ -1,11 +1,11 @@
 """CRM infrastructure models package."""
 
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerIdentityModel,
     CustomerProfileModel,
     JourneyEventModel,
 )
-from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
 

@@ -4,11 +4,11 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.application.services.offer_psychology_service import (
+from luana_core_copilot.application.services.offer_psychology_service import (
     CopilotOfferPsychologyService,
 )
-from src.modules.copilot.infrastructure.prompts.base import prompt_loader
-from src.modules.offer.domain.offer_ai_schemas import (
+from luana_core_copilot.infrastructure.prompts.base import prompt_loader
+from luana_core_offer_studio.domain.offer_ai_schemas import (
     PsychologyGenerationRequest,
     PsychologyGenerationResponse,
 )
@@ -36,11 +36,11 @@ async def test_generate_psychology_success():
 
     with (
         patch(
-            "src.modules.copilot.application.services.offer_psychology_service.prompt_loader.render",
+            "luana_core_copilot.application.services.offer_psychology_service.prompt_loader.render",
             return_value="PROMPT_RENDERED",
         ) as render_mock,
         patch(
-            "src.modules.copilot.application.services.offer_psychology_service.AIActionService.run_structured_action",
+            "luana_core_copilot.application.services.offer_psychology_service.AIActionService.run_structured_action",
         ) as run_structured_action_mock,
     ):
         run_structured_action_mock.return_value = PsychologyGenerationResponse(
@@ -98,7 +98,7 @@ async def test_generate_psychology_tenant_isolation():
 
 def test_offer_psychology_prompt_resolves_from_copilot_templates():
     with patch(
-        "src.shared.infrastructure.prompts.base.settings.PROMPT_SOURCE",
+        "luana_core_platform.infrastructure.prompts.base.settings.PROMPT_SOURCE",
         "file",
     ):
         rendered = prompt_loader.render(

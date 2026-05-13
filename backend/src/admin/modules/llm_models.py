@@ -15,8 +15,7 @@ import asyncio
 from typing import TYPE_CHECKING, Any
 
 import streamlit as st
-
-from src.core.enums import AIProvider, ModelRole
+from luana_core_platform.core.enums import AIProvider, ModelRole
 
 if TYPE_CHECKING:
     from collections.abc import Coroutine
@@ -35,10 +34,10 @@ def _run_async(coro: Coroutine[Any, Any, Any]) -> Any:  # noqa: ANN401 — Strea
 def _list_bindings() -> list[Any]:
     """Fetch all bindings via repo. Returns [] on error (graceful)."""
     try:
-        from src.core.database import async_session_maker
-        from src.shared.infrastructure.llm.infrastructure.role_binding_repository import (
+        from luana_core_llm.infrastructure.role_binding_repository import (
             SqlAlchemyLLMRoleBindingRepository,
         )
+        from luana_core_platform.core.database import async_session_maker
 
         async def _fetch() -> list[Any]:
             async with async_session_maker() as session:
@@ -53,10 +52,10 @@ def _list_bindings() -> list[Any]:
 
 def _list_audit(limit: int = 25) -> list[dict[str, Any]]:
     try:
-        from src.core.database import async_session_maker
-        from src.shared.infrastructure.llm.infrastructure.role_binding_repository import (
+        from luana_core_llm.infrastructure.role_binding_repository import (
             SqlAlchemyLLMRoleBindingRepository,
         )
+        from luana_core_platform.core.database import async_session_maker
 
         async def _fetch() -> list[dict[str, Any]]:
             async with async_session_maker() as session:
@@ -76,13 +75,13 @@ def _create_binding(
     notes: str | None,
 ) -> bool:
     try:
-        from src.core.database import async_session_maker
-        from src.shared.infrastructure.llm.application.config_service import (
+        from luana_core_llm.application.config_service import (
             get_llm_config_service,
         )
-        from src.shared.infrastructure.llm.infrastructure.role_binding_repository import (
+        from luana_core_llm.infrastructure.role_binding_repository import (
             SqlAlchemyLLMRoleBindingRepository,
         )
+        from luana_core_platform.core.database import async_session_maker
 
         async def _do() -> None:
             async with async_session_maker() as session:
@@ -109,13 +108,13 @@ def _activate_binding(binding_id: str, actor: str, reason: str | None) -> bool:
     try:
         from uuid import UUID
 
-        from src.core.database import async_session_maker
-        from src.shared.infrastructure.llm.application.config_service import (
+        from luana_core_llm.application.config_service import (
             get_llm_config_service,
         )
-        from src.shared.infrastructure.llm.infrastructure.role_binding_repository import (
+        from luana_core_llm.infrastructure.role_binding_repository import (
             SqlAlchemyLLMRoleBindingRepository,
         )
+        from luana_core_platform.core.database import async_session_maker
 
         async def _do() -> None:
             async with async_session_maker() as session:

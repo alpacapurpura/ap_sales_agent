@@ -10,11 +10,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import func, select
-
-from src.modules.copilot.observability.persistence.models.llm_call_model import (
+from luana_core_copilot.observability.persistence.models.llm_call_model import (
     CopilotLlmCallModel,
 )
+from sqlalchemy import func, select
 
 if TYPE_CHECKING:
     import datetime as dt

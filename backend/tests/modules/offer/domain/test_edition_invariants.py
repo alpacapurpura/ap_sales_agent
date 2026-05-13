@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
     LaunchEdition,

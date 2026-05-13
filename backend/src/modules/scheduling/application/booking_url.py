@@ -10,11 +10,10 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 if TYPE_CHECKING:
-    from src.shared.links.ports.domain_lookup import DomainLookupPort
+    from luana_core_platform.links.ports.domain_lookup import DomainLookupPort
 
 logger = structlog.get_logger()
 

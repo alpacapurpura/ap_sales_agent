@@ -19,22 +19,21 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from src.core.config import settings
-from src.core.database import get_db
-from src.modules.connections.api.dto.common import (
+from luana_core_connections.api.dto.common import (
     ToggleServiceResponse,
     WorkspaceStatusResponse,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.channels.youtube import YoutubeAdapter
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.database import get_db
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 # Allow OAuth scope changes (e.g. if user granted extra scopes previously)
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"

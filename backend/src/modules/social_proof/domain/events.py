@@ -10,12 +10,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from src.shared.domain.events import DomainEvent
+from luana_core_platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.social_proof.domain.enums import SourceTable, SurfaceType
+    from luana_core_social_proof.domain.enums import SourceTable, SurfaceType
 
 
 # ─────────────────────────────────────────────

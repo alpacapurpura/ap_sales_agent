@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
-from src.modules.brand.infrastructure.qdrant.style_anchor_store import (
+from luana_core_brand_studio.infrastructure.qdrant.style_anchor_store import (
     COLLECTION_NAME,
     StyleAnchorStore,
 )

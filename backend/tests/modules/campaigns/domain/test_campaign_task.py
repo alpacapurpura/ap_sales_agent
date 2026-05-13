@@ -8,8 +8,8 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from src.modules.campaigns.domain.campaign_task import CampaignTask
-from src.modules.campaigns.domain.enums import TaskStatus
+from luana_core_campaigns.domain.campaign_task import CampaignTask
+from luana_core_campaigns.domain.enums import TaskStatus
 
 
 NOW = dt.datetime.now(dt.timezone.utc)

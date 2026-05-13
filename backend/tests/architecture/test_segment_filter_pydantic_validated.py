@@ -87,7 +87,7 @@ class TestSegmentFilterPydanticStrict:
 
     def test_predefined_segment_filter_runtime_rejects_extra_fields(self) -> None:
         """Runtime check: PredefinedSegmentFilter rechaza campos desconocidos."""
-        from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
+        from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
 
         import pytest
 
@@ -96,7 +96,7 @@ class TestSegmentFilterPydanticStrict:
 
     def test_segment_filter_alias_points_to_predefined(self) -> None:
         """SegmentFilter type alias debe apuntar a PredefinedSegmentFilter."""
-        from src.modules.campaigns.domain.segment_filter import (
+        from luana_core_campaigns.domain.segment_filter import (
             PredefinedSegmentFilter,
             SegmentFilter,
         )
@@ -108,7 +108,7 @@ class TestSegmentFilterPydanticStrict:
 
     def test_score_range_extra_forbid(self) -> None:
         """ScoreRange también debe tener extra='forbid'."""
-        from src.modules.campaigns.domain.segment_filter import ScoreRange
+        from luana_core_campaigns.domain.segment_filter import ScoreRange
 
         import pytest
 
@@ -117,7 +117,7 @@ class TestSegmentFilterPydanticStrict:
 
     def test_date_range_extra_forbid(self) -> None:
         """DateRange también debe tener extra='forbid'."""
-        from src.modules.campaigns.domain.segment_filter import DateRange
+        from luana_core_campaigns.domain.segment_filter import DateRange
 
         import pytest
 

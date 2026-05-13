@@ -13,21 +13,20 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import httpx
-from sqlalchemy.orm import Session
-
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.models.channel_connection_model import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )
-from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
+from luana_core_connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
 )
-from src.shared.domain.ports import (
+from luana_core_platform.domain.ports import (
     ConnectionCredentials,
     ConnectionPort,
     ConnectionRevokedError,
     TokenRefreshError,
 )
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.modules.analytics.domain.enums import AggregationType, MetricUnit
+from luana_core_analytics_engine.domain.enums import AggregationType, MetricUnit
 
 
 @dataclass(frozen=True)

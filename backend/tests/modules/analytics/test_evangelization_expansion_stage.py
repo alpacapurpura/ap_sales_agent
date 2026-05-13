@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.analytics.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.period_config import DateRange
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 DATE_RANGE = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
@@ -21,7 +21,7 @@ def _run(coro):
 
 
 def _make_evang_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.evangelization_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.evangelization_stage import (
         EvangelizationStageService,
     )
 
@@ -97,7 +97,7 @@ class TestEvangelizationStageServiceCacheMiss:
         svc, _db = _make_evang_svc()
         data = _evangelization_data()
         with patch(
-            "src.modules.analytics.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_evangelization_data = AsyncMock(return_value=data)
@@ -113,7 +113,7 @@ class TestEvangelizationStageServiceCacheMiss:
         data = _evangelization_data()
         data["k_factor"] = 0.2
         with patch(
-            "src.modules.analytics.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_evangelization_data = AsyncMock(return_value=data)
@@ -127,7 +127,7 @@ class TestEvangelizationStageServiceCacheMiss:
         data = _evangelization_data()
         data["k_factor"] = 0.7
         with patch(
-            "src.modules.analytics.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_evangelization_data = AsyncMock(return_value=data)
@@ -142,7 +142,7 @@ class TestEvangelizationStageServiceCacheMiss:
         data["surveys_sent"] = 50
         data["nps_response_rate_pct"] = 5.0
         with patch(
-            "src.modules.analytics.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_evangelization_data = AsyncMock(return_value=data)
@@ -157,7 +157,7 @@ class TestEvangelizationStageServiceCacheMiss:
         data["surveys_sent"] = 50
         data["nps_response_rate_pct"] = 20.0
         with patch(
-            "src.modules.analytics.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_evangelization_data = AsyncMock(return_value=data)
@@ -173,7 +173,7 @@ class TestEvangelizationStageServiceCacheMiss:
         svc, _db = _make_evang_svc(cache=cache)
         data = _evangelization_data()
         with patch(
-            "src.modules.analytics.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.evangelization_repository.EvangelizationRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_evangelization_data = AsyncMock(return_value=data)
@@ -187,7 +187,7 @@ class TestEvangelizationStageServiceCacheMiss:
 
 
 def _make_expansion_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.expansion_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.expansion_stage import (
         ExpansionStageService,
     )
 
@@ -266,7 +266,7 @@ class TestExpansionStageServiceCacheMiss:
     def test_empty_data_no_bottlenecks(self):
         svc, _db = _make_expansion_svc()
         with patch(
-            "src.modules.analytics.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_expansion_sales_grouped.return_value = {"renewals": [], "upsells": []}
@@ -285,7 +285,7 @@ class TestExpansionStageServiceCacheMiss:
     def test_high_churn_critical_bottleneck(self):
         svc, _db = _make_expansion_svc()
         with patch(
-            "src.modules.analytics.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_expansion_sales_grouped.return_value = {"renewals": [], "upsells": []}
@@ -302,7 +302,7 @@ class TestExpansionStageServiceCacheMiss:
     def test_medium_churn_warning_bottleneck(self):
         svc, _db = _make_expansion_svc()
         with patch(
-            "src.modules.analytics.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_expansion_sales_grouped.return_value = {"renewals": [], "upsells": []}
@@ -322,7 +322,7 @@ class TestExpansionStageServiceCacheMiss:
         cache.set = AsyncMock()
         svc, _db = _make_expansion_svc(cache=cache)
         with patch(
-            "src.modules.analytics.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_expansion_sales_grouped.return_value = {"renewals": [], "upsells": []}
@@ -339,7 +339,7 @@ class TestExpansionStageServiceCacheMiss:
 
 class TestExpansionHelpers:
     def test_build_expansion_offers_empty(self):
-        from src.modules.analytics.application.services.stage_services.expansion_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.expansion_stage import (
             _build_expansion_offers,
         )
 
@@ -347,7 +347,7 @@ class TestExpansionHelpers:
         assert result == []
 
     def test_build_expansion_offers_with_items(self):
-        from src.modules.analytics.application.services.stage_services.expansion_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.expansion_stage import (
             _build_expansion_offers,
         )
 
@@ -358,7 +358,7 @@ class TestExpansionHelpers:
         assert result[0].revenue == 500.0
 
     def test_build_expansion_group(self):
-        from src.modules.analytics.application.services.stage_services.expansion_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.expansion_stage import (
             _build_expansion_group,
         )
 

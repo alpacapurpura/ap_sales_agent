@@ -9,30 +9,30 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from src.modules.copilot.domain.ports import BaseCopilotProvider, ModuleData
+from luana_core_copilot.domain.ports import BaseCopilotProvider, ModuleData
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+    from luana_core_social_proof.infrastructure.repositories.authority_item_repository import (
         AuthorityItemRepository,
     )
-    from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+    from luana_core_social_proof.infrastructure.repositories.team_member_repository import (
         TeamMemberRepository,
     )
-    from src.modules.social_proof.infrastructure.repositories.testimonial_repository import (
+    from luana_core_social_proof.infrastructure.repositories.testimonial_repository import (
         TestimonialRepository,
     )
 
 
 def _social_proof_repo_factory(db: object) -> object:
-    from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+    from luana_core_social_proof.infrastructure.repositories.authority_item_repository import (
         AuthorityItemRepository,
     )
-    from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+    from luana_core_social_proof.infrastructure.repositories.team_member_repository import (
         TeamMemberRepository,
     )
-    from src.modules.social_proof.infrastructure.repositories.testimonial_repository import (
+    from luana_core_social_proof.infrastructure.repositories.testimonial_repository import (
         TestimonialRepository,
     )
 

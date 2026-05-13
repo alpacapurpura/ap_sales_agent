@@ -63,7 +63,7 @@ def _build_minimal_concrete():
     Returns the class — instantiate per-test with ``klass.start(...)``
     so each test gets a fresh ``_TurnSummary`` + ``_turn_start_monotonic``.
     """
-    from src.shared.agent_observability.recording.turn_envelope import (
+    from luana_core_observability.recording.turn_envelope import (
         BaseObservabilityContext,
     )
 
@@ -128,7 +128,7 @@ class TestAbstractEnforcement:
     """Cannot instantiate :class:`BaseObservabilityContext` directly."""
 
     def test_abstract_class_cannot_be_instantiated(self) -> None:
-        from src.shared.agent_observability.recording.turn_envelope import (
+        from luana_core_observability.recording.turn_envelope import (
             BaseObservabilityContext,
         )
 

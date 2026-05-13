@@ -28,7 +28,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 
 # ---------------------------------------------------------------------------
@@ -39,14 +39,14 @@ from src.core.enums import ModelRole
 @pytest.fixture()
 def litellm_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     """Patch settings for LiteLLMService — points at LiteLLM Proxy."""
-    from src.core.enums import AIProvider
+    from luana_core_platform.core.enums import AIProvider
 
-    monkeypatch.setattr("src.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
-    monkeypatch.setattr("src.core.config.settings.LITELLM_MASTER_KEY", "sk-test-master")
-    monkeypatch.setattr("src.core.config.settings.AI_MODEL_REASONING", "gemini-2.5-pro")
-    monkeypatch.setattr("src.core.config.settings.AI_PROVIDER_REASONING", AIProvider.GEMINI)
-    monkeypatch.setattr("src.core.config.settings.AI_MODEL_VISION", "gemini-2.5-flash")
-    monkeypatch.setattr("src.core.config.settings.AI_PROVIDER_VISION", AIProvider.GEMINI)
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_MASTER_KEY", "sk-test-master")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.AI_MODEL_REASONING", "gemini-2.5-pro")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.AI_PROVIDER_REASONING", AIProvider.GEMINI)
+    monkeypatch.setattr("luana_core_platform.core.config.settings.AI_MODEL_VISION", "gemini-2.5-flash")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.AI_PROVIDER_VISION", AIProvider.GEMINI)
 
 
 def _make_ai_message(content: str = "Gemini response") -> MagicMock:
@@ -74,7 +74,7 @@ def test_function_calling_shape_passes_tools_via_kwargs(
 
     Reference: https://github.com/BerriAI/litellm/tree/main/litellm/llms/gemini
     """
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     tools = [
         {
@@ -121,7 +121,7 @@ def test_function_calling_model_alias_uses_gemini_prefix(
     LiteLLM Proxy routes 'gemini/gemini-2.5-pro' to Google Gemini API.
     This is the contract that enables function calling to reach Gemini.
     """
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     alias = svc._litellm_model_name(ModelRole.REASONING)
@@ -145,7 +145,7 @@ def test_safety_settings_passed_through_extra_body(
 
     Reference: https://github.com/BerriAI/litellm/tree/main/litellm/llms/gemini
     """
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     safety_settings = [
         {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
@@ -195,7 +195,7 @@ def test_system_prompt_converted_to_langchain_system_message(
     """
     from langchain_core.messages import SystemMessage
 
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     messages = [{"role": "user", "content": "What is your name?"}]
@@ -240,16 +240,16 @@ def test_generation_config_temperature_mapping(
     override path (raised NotImplementedError). LiteLLMService supports
     per-call temperature via get_client(temperature=X).
     """
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     custom_temp = 0.3
 
     # get_client with custom temperature creates a new ChatOpenAI instance
-    with patch("src.shared.infrastructure.llm.providers.litellm.ChatBuildContext") as mock_ctx_class:
+    with patch("luana_core_llm.providers.litellm.ChatBuildContext") as mock_ctx_class:
         mock_ctx = MagicMock()
         mock_ctx_class.return_value = mock_ctx
-        with patch("src.shared.infrastructure.llm.providers.litellm._build_chat_from_spec") as mock_build:
+        with patch("luana_core_llm.providers.litellm._build_chat_from_spec") as mock_build:
             mock_build.return_value = MagicMock()
             svc._get_chat_model(ModelRole.REASONING, temperature=custom_temp)
 
@@ -270,7 +270,7 @@ def test_max_tokens_kwarg_passes_through_to_invoke(
     LiteLLMService.generate_response() forwards unknown kwargs to invoke()
     after normalisation via CHAT_MODEL_SPEC.kwargs_normalizer.
     """
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     messages = [{"role": "user", "content": "Summarize in 50 words"}]
@@ -314,7 +314,7 @@ def test_vision_multipart_message_passes_through_as_human_message(
     """
     from langchain_core.messages import HumanMessage
 
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     vision_content: list[dict[str, Any]] = [
@@ -362,7 +362,7 @@ def test_streaming_not_implemented_in_generate_response(
     LiteLLM Proxy applies when callers use get_client(role).stream() directly.
     LiteLLM normalizes Gemini stream delta format to OpenAI-compatible chunks.
     """
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     messages = [{"role": "user", "content": "Stream test"}]
@@ -399,7 +399,7 @@ def test_streaming_via_get_client_returns_langchain_model(
     """
     from langchain_openai import ChatOpenAI
 
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+    from luana_core_llm.providers.litellm import LiteLLMService
 
     svc = LiteLLMService()
     client = svc.get_client(ModelRole.REASONING)

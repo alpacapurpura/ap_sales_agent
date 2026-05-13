@@ -6,8 +6,7 @@ from dataclasses import dataclass
 
 import httpx
 import structlog
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 logger = structlog.get_logger()
 

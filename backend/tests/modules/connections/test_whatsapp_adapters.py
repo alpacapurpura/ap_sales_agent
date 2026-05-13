@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.connections.infrastructure.channels.whatsapp.base import BaseEvolutionApi
-from src.modules.connections.infrastructure.channels.whatsapp.v1 import EvolutionApiV1
-from src.modules.connections.infrastructure.channels.whatsapp.v2 import EvolutionApiV2
-from src.shared.domain.messages import OutgoingMessage
+from luana_core_connections.infrastructure.channels.whatsapp.base import BaseEvolutionApi
+from luana_core_connections.infrastructure.channels.whatsapp.v1 import EvolutionApiV1
+from luana_core_connections.infrastructure.channels.whatsapp.v2 import EvolutionApiV2
+from luana_core_platform.domain.messages import OutgoingMessage
 
 TENANT_ID = "tenant_abc"
 BASE_URL = "https://evolution.example.com"

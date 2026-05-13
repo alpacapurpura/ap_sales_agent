@@ -3,9 +3,8 @@
 from typing import Any
 
 import structlog
-
-from src.modules.assets.domain.entity import Asset
-from src.modules.assets.domain.enums import AssetType
+from luana_core_assets.domain.entity import Asset
+from luana_core_assets.domain.enums import AssetType
 
 logger = structlog.get_logger()
 
@@ -37,7 +36,7 @@ class AssetProcessor:
         context: str | None,
     ) -> dict[str, Any]:
         try:
-            from src.shared.infrastructure.files.image_analysis import (
+            from luana_core_platform.infrastructure.files.image_analysis import (
                 ImageAnalysisService,
             )
 

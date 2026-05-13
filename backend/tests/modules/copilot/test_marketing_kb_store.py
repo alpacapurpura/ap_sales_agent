@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 from qdrant_client import QdrantClient
 
-from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
     MARKETING_KB_COLLECTION,
     MARKETING_KB_VECTOR_SIZE,
     KbChunk,

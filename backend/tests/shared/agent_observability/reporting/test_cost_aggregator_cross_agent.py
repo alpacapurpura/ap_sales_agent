@@ -22,10 +22,10 @@ from uuid import UUID, uuid4
 import pytest
 from sqlalchemy.orm import sessionmaker
 
-from src.modules.copilot.observability.persistence.models.llm_call_model import (
+from luana_core_copilot.observability.persistence.models.llm_call_model import (
     CopilotLlmCallModel,
 )
-from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
     SalesAgentLlmCallModel,
 )
 
@@ -168,7 +168,7 @@ def seed_cross_agent(db):
 
 class TestCostAggregatorParametrized:
     def test_aggregator_against_copilot_model(self, db, seed_cross_agent) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -184,7 +184,7 @@ class TestCostAggregatorParametrized:
         assert detail.call_count == 2
 
     def test_aggregator_against_sales_model(self, db, seed_cross_agent) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -200,7 +200,7 @@ class TestCostAggregatorParametrized:
         assert detail.call_count == 3
 
     def test_top_leads_for_sales_model(self, db, seed_cross_agent) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -219,7 +219,7 @@ class TestCostAggregatorParametrized:
         assert rows[1].lead_id == lead_y
 
     def test_top_conversations_unsupported_for_sales(self, db) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -232,7 +232,7 @@ class TestCostAggregatorParametrized:
             )
 
     def test_top_leads_unsupported_for_copilot(self, db) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
@@ -247,7 +247,7 @@ class TestCostAggregatorParametrized:
 
 class TestCrossAgentCostAggregator:
     def test_breakdown_sums_both_agents(self, db, seed_cross_agent) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CrossAgentCostAggregator,
         )
 
@@ -267,7 +267,7 @@ class TestCrossAgentCostAggregator:
         assert by_kind["sales_agent"].cost_usd == Decimal("0.0350")
 
     def test_tenant_without_sales_calls_returns_zero_for_sales(self, db, seed_cross_agent) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CrossAgentCostAggregator,
         )
 
@@ -286,7 +286,7 @@ class TestCrossAgentCostAggregator:
         assert by_kind["sales_agent"].call_count == 0
 
     def test_summary_keyed_by_agent_kind(self, db, seed_cross_agent) -> None:
-        from src.shared.agent_observability.reporting.cost_aggregator import (
+        from luana_core_observability.reporting.cost_aggregator import (
             CrossAgentCostAggregator,
         )
 
@@ -309,7 +309,7 @@ class TestCrossAgentCostAggregator:
 
 class TestRegistryWiring:
     def test_registry_lists_known_agents(self) -> None:
-        from src.shared.agent_observability.registry import (
+        from luana_core_observability.registry import (
             agent_observability_registry,
             get_spec,
         )
@@ -328,7 +328,7 @@ class TestRegistryWiring:
         assert sales_spec.trace_event_table == "sales_agent_trace_event"
 
     def test_unknown_agent_raises(self) -> None:
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_observability.registry import get_spec
 
         with pytest.raises(KeyError, match="Unknown agent_kind"):
             get_spec("email_agent_2099")

@@ -19,7 +19,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.sales_agent.application.orchestrator.outbound_orchestrator import (
+from luana_core_sales_agent.application.orchestrator.outbound_orchestrator import (
     OutboundOrchestrator,
     OutboundResult,
 )
@@ -112,55 +112,55 @@ class TestOutboundOrchestratorHappyPath:
 
         with (
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
                 return_value=(tenant_uuid, {}),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
                 return_value="# Identidad",
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
                 return_value="# Voz",
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
                 return_value=({"messages": [], "session_id": "sess-1"}, None),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
                 new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
             ) as mock_app,
             patch(
-                "src.modules.sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
+                "luana_core_sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
                 new=AsyncMock(return_value="external_msg_001"),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
+                "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
                 new=AsyncMock(),
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.memory.audit_repository.AuditRepository",
+                "luana_core_sales_agent.infrastructure.memory.audit_repository.AuditRepository",
             ) as mock_audit_repo_cls,
             patch(
-                "src.modules.sales_agent.infrastructure.repositories.state_repository.StateRepository",
+                "luana_core_sales_agent.infrastructure.repositories.state_repository.StateRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
+                "luana_core_sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
             ),
         ):
             mock_app.ainvoke = AsyncMock(
@@ -210,7 +210,7 @@ class TestOutboundOrchestratorTenantLookupErrors:
         channel_adapter,
     ):
         with patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
             return_value=(None, {}),
         ):
             result = await OutboundOrchestrator.send_outbound(
@@ -239,7 +239,7 @@ class TestOutboundOrchestratorLeadLookupErrors:
     ):
         _set_lead_not_found(db_session)
         with patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
             return_value=(tenant_uuid, {}),
         ):
             result = await OutboundOrchestrator.send_outbound(
@@ -275,40 +275,40 @@ class TestOutboundOrchestratorGraphFailure:
         _set_lead_query(db_session, lead_row)
         with (
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
                 return_value=(tenant_uuid, {}),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
                 return_value=({"messages": [], "session_id": "s"}, None),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
             ) as mock_app,
             patch(
-                "src.modules.sales_agent.infrastructure.memory.audit_repository.AuditRepository",
+                "luana_core_sales_agent.infrastructure.memory.audit_repository.AuditRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.repositories.state_repository.StateRepository",
+                "luana_core_sales_agent.infrastructure.repositories.state_repository.StateRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
+                "luana_core_sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
             ),
         ):
             mock_app.ainvoke = AsyncMock(side_effect=RuntimeError("boom"))
@@ -341,47 +341,47 @@ class TestOutboundOrchestratorEmptyResponse:
         _set_lead_query(db_session, lead_row)
         with (
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
                 return_value=(tenant_uuid, {}),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
                 return_value=({"messages": [], "session_id": "s"}, None),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
                 new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
             ) as mock_app,
             patch(
-                "src.modules.sales_agent.infrastructure.memory.audit_repository.AuditRepository",
+                "luana_core_sales_agent.infrastructure.memory.audit_repository.AuditRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.repositories.state_repository.StateRepository",
+                "luana_core_sales_agent.infrastructure.repositories.state_repository.StateRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
+                "luana_core_sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
             ),
         ):
             mock_app.ainvoke = AsyncMock(
@@ -437,55 +437,55 @@ class TestOutboundOrchestratorCheckpointReuse:
 
         with (
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
                 return_value=(tenant_uuid, {}),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
                 return_value=existing_ckpt,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
                 return_value=({"messages": [], "session_id": "sess-existing"}, None),
             ) as mock_build_state,
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
                 new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
             ) as mock_app,
             patch(
-                "src.modules.sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
+                "luana_core_sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
                 new=AsyncMock(return_value="ext-x"),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
+                "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
                 new=AsyncMock(),
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.memory.audit_repository.AuditRepository",
+                "luana_core_sales_agent.infrastructure.memory.audit_repository.AuditRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.repositories.state_repository.StateRepository",
+                "luana_core_sales_agent.infrastructure.repositories.state_repository.StateRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
+                "luana_core_sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
             ),
         ):
             mock_app.ainvoke = AsyncMock(
@@ -535,55 +535,55 @@ class TestOutboundOrchestratorBudgetGuardWiring:
 
         with (
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.fetch_tenant_config",
                 return_value=(tenant_uuid, {}),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
                 return_value=({"messages": [], "session_id": "s"}, None),
             ) as mock_build_state,
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
                 new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
                 return_value=None,
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
+                "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
             ) as mock_app,
             patch(
-                "src.modules.sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
+                "luana_core_sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
                 new=AsyncMock(return_value="ext"),
             ),
             patch(
-                "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
+                "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
                 new=AsyncMock(),
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.memory.audit_repository.AuditRepository",
+                "luana_core_sales_agent.infrastructure.memory.audit_repository.AuditRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.repositories.state_repository.StateRepository",
+                "luana_core_sales_agent.infrastructure.repositories.state_repository.StateRepository",
             ),
             patch(
-                "src.modules.sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
+                "luana_core_sales_agent.infrastructure.db.repositories.business_repository.BusinessRepository",
             ),
         ):
             mock_app.ainvoke = AsyncMock(

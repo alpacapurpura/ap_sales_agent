@@ -7,9 +7,9 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain_events.outbox.domain.event import DomainEvent
-from src.shared.domain_events.outbox.domain.outbox_entry import OutboxEntry, OutboxStatus
-from src.shared.domain_events.outbox.infrastructure.dispatcher import _entry_to_event, dispatch_outbox
+from luana_core_events.outbox.domain.event import DomainEvent
+from luana_core_events.outbox.domain.outbox_entry import OutboxEntry, OutboxStatus
+from luana_core_events.outbox.infrastructure.dispatcher import _entry_to_event, dispatch_outbox
 
 
 def _make_pending_entry(event_name="test_event", tenant_id=None) -> OutboxEntry:
@@ -46,11 +46,11 @@ class TestDispatchOutbox:
 
         with (
             patch(
-                "src.shared.domain_events.outbox.infrastructure.dispatcher.OutboxRepositoryImpl",
+                "luana_core_events.outbox.infrastructure.dispatcher.OutboxRepositoryImpl",
                 return_value=mock_repo,
             ),
             patch(
-                "src.shared.domain.events.EventBus._dispatch",
+                "luana_core_platform.domain.events.EventBus._dispatch",
             ),
         ):
             await dispatch_outbox({"db_factory": mock_db_factory})
@@ -76,11 +76,11 @@ class TestDispatchOutbox:
 
         with (
             patch(
-                "src.shared.domain_events.outbox.infrastructure.dispatcher.OutboxRepositoryImpl",
+                "luana_core_events.outbox.infrastructure.dispatcher.OutboxRepositoryImpl",
                 return_value=mock_repo,
             ),
             patch(
-                "src.shared.domain.events.EventBus._dispatch",
+                "luana_core_platform.domain.events.EventBus._dispatch",
                 side_effect=Exception("handler boom"),
             ),
         ):
@@ -102,7 +102,7 @@ class TestDispatchOutbox:
         mock_db_factory = MagicMock(return_value=mock_session)
 
         with patch(
-            "src.shared.domain_events.outbox.infrastructure.dispatcher.OutboxRepositoryImpl",
+            "luana_core_events.outbox.infrastructure.dispatcher.OutboxRepositoryImpl",
             return_value=mock_repo,
         ):
             await dispatch_outbox({"db_factory": mock_db_factory})
@@ -132,10 +132,10 @@ class TestDispatchOutbox:
 
         with (
             patch(
-                "src.shared.domain_events.outbox.infrastructure.dispatcher.OutboxRepositoryImpl",
+                "luana_core_events.outbox.infrastructure.dispatcher.OutboxRepositoryImpl",
                 return_value=mock_repo,
             ),
-            patch("src.shared.domain.events.EventBus._dispatch"),
+            patch("luana_core_platform.domain.events.EventBus._dispatch"),
         ):
             # Second tick recovers the entry
             await dispatch_outbox({"db_factory": mock_db_factory})

@@ -9,7 +9,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.analytics.infrastructure.providers.crm_internal_provider import (
+from luana_core_analytics_engine.infrastructure.providers.crm_internal_provider import (
     CRMInternalProvider,
 )
 

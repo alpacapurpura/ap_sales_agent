@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.domain.messages import IncomingMessage
+from luana_core_platform.domain.messages import IncomingMessage
 from tests.modules.sales_agent.orchestrator._chat_flow_snapshot_helpers import (
     TENANT_ID,
     FlowCapture,
@@ -40,7 +40,7 @@ async def test_chat_flow_telegram_new_lead_snapshot(monkeypatch: pytest.MonkeyPa
     capture = FlowCapture()
     install_chat_module_patches(monkeypatch, capture)
 
-    from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
+    from luana_core_sales_agent.application.orchestrator.chat import ChatOrchestrator
 
     adapter = build_capturing_channel_adapter(capture)
     incoming = IncomingMessage(

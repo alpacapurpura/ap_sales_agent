@@ -1,6 +1,6 @@
 """Tests for context-aware tool selection (route-based + guided mode)."""
 
-from src.modules.copilot.application.tools.registry import (
+from luana_core_copilot.application.tools.registry import (
     TOOL_GROUPS,
     get_tools_for_context,
 )

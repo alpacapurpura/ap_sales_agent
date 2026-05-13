@@ -1,6 +1,6 @@
 """Tests for TenantLocale value object."""
 
-from src.shared.domain.locale import TenantLocale
+from luana_core_platform.domain.locale import TenantLocale
 
 
 class TestTenantLocale:

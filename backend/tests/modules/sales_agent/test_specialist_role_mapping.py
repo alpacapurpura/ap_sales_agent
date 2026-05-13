@@ -17,8 +17,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.core.enums import ModelRole
-from src.modules.sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
+from luana_core_platform.core.enums import ModelRole
+from luana_core_sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
 
 
 class TestSpecialistToRoleSSoT:

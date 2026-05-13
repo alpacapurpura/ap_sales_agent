@@ -4,10 +4,9 @@ import logging
 from typing import Any
 
 import httpx
-
-from src.core.config import settings
-from src.shared.domain.messages import IncomingMessage, OutgoingMessage
-from src.shared.infrastructure.channels.base import BaseChannel
+from luana_core_platform.core.config import settings
+from luana_core_platform.domain.messages import IncomingMessage, OutgoingMessage
+from luana_core_platform.infrastructure.channels.base import BaseChannel
 
 logger = logging.getLogger(__name__)
 

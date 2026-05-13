@@ -5,28 +5,27 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.offer.application.edition_clone_service import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_offer_studio.application.edition_clone_service import (
     CloneStrategy,
     EditionCloneService,
 )
-from src.modules.offer.application.launch_edition_service import (
+from luana_core_offer_studio.application.launch_edition_service import (
     LaunchEditionService,
 )
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.domain.launch_edition import (
     LaunchEdition,
     LaunchEditionCreate,
     PricingTier,
 )
-from src.modules.offer.domain.offer import PricingStructure
-from src.shared.links.ports.edition_landing_clone import (
+from luana_core_offer_studio.domain.offer import PricingStructure
+from luana_core_platform.core.database import get_db
+from luana_core_platform.links.ports.edition_landing_clone import (
     create_edition_landing_clone_port,
 )
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

@@ -17,7 +17,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+from luana_core_copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
 

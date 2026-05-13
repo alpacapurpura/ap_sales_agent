@@ -14,35 +14,33 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 import structlog
+from luana_core_campaigns.application.services._event_bridge import to_domain_event
+from luana_core_campaigns.domain.enums import SegmentType
+from luana_core_campaigns.domain.events import SegmentCreated, SegmentSnapshotted
+from luana_core_campaigns.domain.segment import Segment, SegmentSnapshot
+from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.infrastructure.models.crm import LeadModel
 from sqlalchemy import select
 
-from src.modules.campaigns.application.services._event_bridge import to_domain_event
-from src.modules.campaigns.domain.enums import SegmentType
-from src.modules.campaigns.domain.events import SegmentCreated, SegmentSnapshotted
-from src.modules.campaigns.domain.segment import Segment, SegmentSnapshot
-from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.infrastructure.models.crm import LeadModel
-
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.modules.campaigns.application.dtos.pagination import PaginatedResponse
-    from src.modules.campaigns.application.dtos.segment_dtos import (
+    from luana_core_campaigns.application.dtos.pagination import PaginatedResponse
+    from luana_core_campaigns.application.dtos.segment_dtos import (
         SegmentCreate,
         SegmentResponse,
         SegmentUpdate,
     )
-    from src.modules.campaigns.application.ports.lead_query_port import LeadQueryPort
-    from src.modules.campaigns.application.segment_filter_evaluator import (
+    from luana_core_campaigns.application.ports.lead_query_port import LeadQueryPort
+    from luana_core_campaigns.application.segment_filter_evaluator import (
         SegmentFilterEvaluator,
     )
-    from src.modules.campaigns.application.services.cache import CacheBackend
-    from src.modules.campaigns.domain.repositories import (
+    from luana_core_campaigns.application.services.cache import CacheBackend
+    from luana_core_campaigns.domain.repositories import (
         SegmentRepository,
         SegmentSnapshotRepository,
     )
-    from src.shared.domain_events.outbox.application.outbox_service import OutboxService
+    from luana_core_events.outbox.application.outbox_service import OutboxService
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 
@@ -223,11 +221,11 @@ class SegmentService:
         offset: int = 0,
     ) -> PaginatedResponse[SegmentResponse]:
         """Paginated list of segments for tenant."""
-        from src.modules.campaigns.application.dtos.pagination import PaginatedResponse
-        from src.modules.campaigns.application.dtos.segment_dtos import SegmentResponse
+        from luana_core_campaigns.application.dtos.pagination import PaginatedResponse
+        from luana_core_campaigns.application.dtos.segment_dtos import SegmentResponse
 
         if not (1 <= limit <= 100):
-            from src.modules.campaigns.application.services.campaign_service import (
+            from luana_core_campaigns.application.services.campaign_service import (
                 CampaignServiceError,
             )
 

@@ -13,7 +13,7 @@ import json
 
 class TestEditableFieldsPort:
     def test_brand_catalog_non_empty(self) -> None:
-        from src.shared.links.ports.editable_fields import get_catalog
+        from luana_core_platform.links.ports.editable_fields import get_catalog
 
         catalog = get_catalog("brand")
         assert len(catalog) > 0
@@ -26,7 +26,7 @@ class TestEditableFieldsPort:
         assert "identity.voice_tone" not in paths
 
     def test_offer_catalog_non_empty(self) -> None:
-        from src.shared.links.ports.editable_fields import get_catalog
+        from luana_core_platform.links.ports.editable_fields import get_catalog
 
         catalog = get_catalog("offer")
         paths = {f.path for f in catalog}
@@ -35,7 +35,7 @@ class TestEditableFieldsPort:
         assert "pricing_options" in paths
 
     def test_buyer_persona_catalog_non_empty(self) -> None:
-        from src.shared.links.ports.editable_fields import get_catalog
+        from luana_core_platform.links.ports.editable_fields import get_catalog
 
         catalog = get_catalog("buyer_persona")
         paths = {f.path for f in catalog}
@@ -54,12 +54,12 @@ class TestEditableFieldsPort:
         assert "preferred_channels" not in paths
 
     def test_unknown_domain_returns_empty(self) -> None:
-        from src.shared.links.ports.editable_fields import get_catalog
+        from luana_core_platform.links.ports.editable_fields import get_catalog
 
         assert get_catalog("nonexistent_domain") == ()
 
     def test_get_registered_domains_includes_brand_and_offer(self) -> None:
-        from src.shared.links.ports.editable_fields import get_registered_domains
+        from luana_core_platform.links.ports.editable_fields import get_registered_domains
 
         domains = get_registered_domains()
         assert "brand" in domains
@@ -68,7 +68,7 @@ class TestEditableFieldsPort:
 
 class TestProposeFieldUpdatesValidation:
     def test_accepts_known_brand_field(self) -> None:
-        from src.modules.copilot.application.tools.mutations import propose_field_updates
+        from luana_core_copilot.application.tools.mutations import propose_field_updates
 
         result = propose_field_updates.invoke(
             {
@@ -85,7 +85,7 @@ class TestProposeFieldUpdatesValidation:
         assert len(result["ui_action"]["updates"]) == 1
 
     def test_accepts_known_offer_field(self) -> None:
-        from src.modules.copilot.application.tools.mutations import propose_field_updates
+        from luana_core_copilot.application.tools.mutations import propose_field_updates
 
         result = propose_field_updates.invoke(
             {
@@ -102,7 +102,7 @@ class TestProposeFieldUpdatesValidation:
 
     def test_rejects_unknown_field(self) -> None:
         """The legacy ``voice_tone`` must NOT pass validation."""
-        from src.modules.copilot.application.tools.mutations import propose_field_updates
+        from luana_core_copilot.application.tools.mutations import propose_field_updates
 
         result = propose_field_updates.invoke(
             {
@@ -119,7 +119,7 @@ class TestProposeFieldUpdatesValidation:
         assert "identity.voice_tone" in result["message"]
 
     def test_mixed_valid_and_invalid_only_valid_pass(self) -> None:
-        from src.modules.copilot.application.tools.mutations import propose_field_updates
+        from luana_core_copilot.application.tools.mutations import propose_field_updates
 
         result = propose_field_updates.invoke(
             {
@@ -148,7 +148,7 @@ class TestProposeFieldUpdatesValidation:
 
 class TestCatalogMarkdownForPrompt:
     def test_catalog_markdown_contains_sections_and_fields(self) -> None:
-        from src.modules.copilot.domain.schema_introspection import (
+        from luana_core_copilot.domain.schema_introspection import (
             format_editable_field_catalog_markdown,
         )
 
@@ -162,7 +162,7 @@ class TestCatalogMarkdownForPrompt:
         assert "voice_tone" not in md
 
     def test_catalog_markdown_for_unknown_domain_is_empty(self) -> None:
-        from src.modules.copilot.domain.schema_introspection import (
+        from luana_core_copilot.domain.schema_introspection import (
             format_editable_field_catalog_markdown,
         )
 
@@ -172,8 +172,8 @@ class TestCatalogMarkdownForPrompt:
 class TestRegressionLegacyStaysOutOfCatalog:
     def test_brand_model_still_has_voice_tone_but_catalog_excludes_it(self) -> None:
         """Defends against accidental re-inclusion of the legacy field."""
-        from src.modules.brand.domain.aggregates import BrandSettings
-        from src.shared.links.ports.editable_fields import get_paths_for
+        from luana_core_brand_studio.domain.aggregates import BrandSettings
+        from luana_core_platform.links.ports.editable_fields import get_paths_for
 
         # The BE model keeps the legacy column for back-compat; confirm it.
         identity_fields = BrandSettings.model_fields["identity"].annotation
@@ -189,7 +189,7 @@ def test_catalog_json_serialisable() -> None:
     """FieldSpec entries are serialisable via dataclasses.asdict."""
     from dataclasses import asdict
 
-    from src.shared.links.ports.editable_fields import get_catalog
+    from luana_core_platform.links.ports.editable_fields import get_catalog
 
     data = [asdict(f) for f in get_catalog("brand")]
     blob = json.dumps(data, ensure_ascii=False)

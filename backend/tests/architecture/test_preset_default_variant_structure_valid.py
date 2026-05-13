@@ -19,8 +19,8 @@ Invariants:
 
 from __future__ import annotations
 
-from src.modules.offer.domain.archetype_catalog import ARCHETYPE_CATALOG
-from src.modules.offer.domain.offer_type_preset_catalog import OFFER_TYPE_PRESET_CATALOG
+from luana_core_offer_studio.domain.archetype_catalog import ARCHETYPE_CATALOG
+from luana_core_offer_studio.domain.offer_type_preset_catalog import OFFER_TYPE_PRESET_CATALOG
 
 
 def test_preset_default_structure_within_archetype_supported_tuple() -> None:

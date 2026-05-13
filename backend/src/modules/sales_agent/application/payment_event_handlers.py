@@ -13,14 +13,13 @@ Coupling discipline:
 from __future__ import annotations
 
 import structlog
-
-from src.core.database import SessionLocal
-from src.shared.domain.events import (
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.domain.events import (
     DomainEvent,
     PaymentReceivedEvent,
-)
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
 )
 
 logger = structlog.get_logger()
@@ -58,7 +57,7 @@ def auto_grant_on_paid(event: DomainEvent) -> None:
 
 def _run_grant_access(*, db, tenant_id, lead_id, offer_id, payment_id) -> None:  # noqa: ANN001
     """Execute grant_access tool inside a DB session."""
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_grant_access,
     )
 

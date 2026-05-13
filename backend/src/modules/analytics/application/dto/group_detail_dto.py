@@ -5,9 +5,8 @@ providing the full metrics for that group's channels only.
 Much lighter than the full stage detail (~50-100 fields vs ~500+).
 """
 
+from luana_core_analytics_engine.application.dto.attraction_dto import ChannelMetricDTO
 from pydantic import BaseModel, ConfigDict
-
-from src.modules.analytics.application.dto.attraction_dto import ChannelMetricDTO
 
 
 class GroupDetailDTO(BaseModel):

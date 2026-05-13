@@ -13,13 +13,13 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.shared.billing.domain.plan import PlanConfig
-from src.shared.billing.domain.subscription import TenantSubscription
-from src.shared.billing.infrastructure.plan_repository_impl import SQLAPlanRepository
-from src.shared.billing.infrastructure.subscription_repository_impl import (
+from luana_core_billing.domain.plan import PlanConfig
+from luana_core_billing.domain.subscription import TenantSubscription
+from luana_core_billing.infrastructure.plan_repository_impl import SQLAPlanRepository
+from luana_core_billing.infrastructure.subscription_repository_impl import (
     SQLASubscriptionRepository,
 )
-from src.shared.domain.base_entity import Base
+from luana_core_platform.domain.base_entity import Base
 
 pytestmark = pytest.mark.asyncio
 

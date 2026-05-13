@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.offer import (
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.offer import (
     Offer,
     OfferPromiseUpdate,
 )
@@ -53,7 +53,7 @@ class TestOfferExtractionServiceInit:
     """Test that the service initializes correctly."""
 
     def test_creates_with_required_params(self, mock_db):
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
 
@@ -65,7 +65,7 @@ class TestOfferExtractionServiceInit:
         """Verify WebCrawler is imported from shared, not brand."""
         import inspect
 
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
 
@@ -78,9 +78,9 @@ class TestOfferExtractionServiceInit:
 class TestOfferExtractionServicePromptRendering:
     """Test prompt rendering with archetype."""
 
-    @patch("src.modules.offer.application.offer_extraction_service.prompt_loader")
+    @patch("luana_core_offer_studio.application.offer_extraction_service.prompt_loader")
     def test_render_prompt_includes_archetype(self, mock_loader, mock_db):
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
 
@@ -99,7 +99,7 @@ class TestOfferExtractionServicePromptRendering:
         assert call_kwargs["archetype"] == "programa"
 
     def test_append_schema_instruction(self, mock_db):
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
 
@@ -122,8 +122,8 @@ class TestOfferExtractionServiceExtractAll:
     """Test the full extraction orchestration."""
 
     @pytest.mark.asyncio
-    @patch("src.modules.offer.application.offer_extraction_service.OfferService")
-    @patch("src.modules.offer.application.offer_extraction_service.WebCrawler")
+    @patch("luana_core_offer_studio.application.offer_extraction_service.OfferService")
+    @patch("luana_core_offer_studio.application.offer_extraction_service.WebCrawler")
     async def test_extract_all_calls_crawler_with_url(
         self,
         mock_crawler_cls,
@@ -131,7 +131,7 @@ class TestOfferExtractionServiceExtractAll:
         mock_db,
         mock_offer,
     ):
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
 
@@ -161,14 +161,14 @@ class TestOfferExtractionServiceExtractAll:
             assert len(progress_calls) > 0
 
     @pytest.mark.asyncio
-    @patch("src.modules.offer.application.offer_extraction_service.OfferService")
+    @patch("luana_core_offer_studio.application.offer_extraction_service.OfferService")
     async def test_extract_all_uses_text_when_no_url(
         self,
         mock_offer_svc_cls,
         mock_db,
         mock_offer,
     ):
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
 
@@ -184,14 +184,14 @@ class TestOfferExtractionServiceExtractAll:
             assert mock_run.await_count == 6
 
     @pytest.mark.asyncio
-    @patch("src.modules.offer.application.offer_extraction_service.OfferService")
+    @patch("luana_core_offer_studio.application.offer_extraction_service.OfferService")
     async def test_extract_all_persists_results_per_wave(
         self,
         mock_offer_svc_cls,
         mock_db,
         mock_offer,
     ):
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
 
@@ -211,13 +211,13 @@ class TestOfferExtractionServiceExtractAll:
             assert mock_svc.patch_offer.call_count >= 2
 
     @pytest.mark.asyncio
-    @patch("src.modules.offer.application.offer_extraction_service.OfferService")
+    @patch("luana_core_offer_studio.application.offer_extraction_service.OfferService")
     async def test_extract_all_uses_correct_archetype(
         self,
         mock_offer_svc_cls,
         mock_db,
     ):
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
 

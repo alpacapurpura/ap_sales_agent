@@ -53,8 +53,8 @@ from typing import Any
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from src.core.enums import ModelRole
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_platform.core.enums import ModelRole
+from luana_core_llm.factory import LLMFactory
 from tests.agentic_evals.sales_agent.simulator._internal.concurrency import (
     EVAL_SIMULATOR_SEMAPHORE,
 )

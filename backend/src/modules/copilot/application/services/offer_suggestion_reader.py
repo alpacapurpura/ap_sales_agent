@@ -43,7 +43,7 @@ class OfferSuggestionReader:
     def list_offers(self) -> list[OfferRowVO]:
         """Return all active offers for the tenant as lightweight VOs."""
         try:
-            from src.shared.links.ports.offer import get_offer_repository
+            from luana_core_platform.links.ports.offer import get_offer_repository
 
             repo = get_offer_repository(self._db)
             raw = repo.get_all_by_tenant(self._tenant_id)  # type: ignore[attr-defined]
@@ -67,7 +67,7 @@ class OfferSuggestionReader:
         if offer_id is None:
             return []
         try:
-            from src.shared.links.ports.offer import get_offer_repository, get_offer_type_preset
+            from luana_core_platform.links.ports.offer import get_offer_repository, get_offer_type_preset
 
             repo = get_offer_repository(self._db)
             offers = repo.get_all_by_tenant(self._tenant_id)  # type: ignore[attr-defined]
@@ -96,7 +96,7 @@ class OfferSuggestionReader:
         Heuristic: any offer with ``is_lead_magnet`` flag + no offer without it.
         """
         try:
-            from src.shared.links.ports.offer import get_offer_repository, get_offer_type_preset
+            from luana_core_platform.links.ports.offer import get_offer_repository, get_offer_type_preset
 
             repo = get_offer_repository(self._db)
             offers = repo.get_all_by_tenant(self._tenant_id)  # type: ignore[attr-defined]

@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.campaigns.domain.enums import TaskStatus
+from luana_core_campaigns.domain.enums import TaskStatus
 
 TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
 TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
@@ -29,7 +29,7 @@ LEAD_ID_2 = uuid.UUID("eeee0000-0000-0000-0000-000000000002")
 
 def test_repository_abc_has_find_recent_for_lead() -> None:
     """CampaignTaskRepository ABC debe declarar find_recent_for_lead."""
-    from src.modules.campaigns.domain.repositories import CampaignTaskRepository
+    from luana_core_campaigns.domain.repositories import CampaignTaskRepository
 
     assert hasattr(CampaignTaskRepository, "find_recent_for_lead"), (
         "PR-8: CampaignTaskRepository debe tener método abstracto find_recent_for_lead"
@@ -38,7 +38,7 @@ def test_repository_abc_has_find_recent_for_lead() -> None:
 
 def test_repository_abc_has_find_recent_for_leads() -> None:
     """CampaignTaskRepository ABC debe declarar find_recent_for_leads (batch)."""
-    from src.modules.campaigns.domain.repositories import CampaignTaskRepository
+    from luana_core_campaigns.domain.repositories import CampaignTaskRepository
 
     assert hasattr(CampaignTaskRepository, "find_recent_for_leads"), (
         "PR-8: CampaignTaskRepository debe tener método abstracto find_recent_for_leads"
@@ -47,7 +47,7 @@ def test_repository_abc_has_find_recent_for_leads() -> None:
 
 def test_repository_abc_has_count_responded_leads() -> None:
     """CampaignTaskRepository ABC debe declarar count_responded_leads."""
-    from src.modules.campaigns.domain.repositories import CampaignTaskRepository
+    from luana_core_campaigns.domain.repositories import CampaignTaskRepository
 
     assert hasattr(CampaignTaskRepository, "count_responded_leads"), (
         "PR-8: CampaignTaskRepository debe tener método abstracto count_responded_leads"
@@ -60,8 +60,8 @@ def test_repository_abc_has_count_responded_leads() -> None:
 @pytest.mark.asyncio
 async def test_find_recent_for_lead_happy_path() -> None:
     """find_recent_for_lead retorna la task más reciente SENT dentro de la ventana."""
-    from src.modules.campaigns.domain.campaign_task import CampaignTask
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.domain.campaign_task import CampaignTask
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
 
@@ -114,7 +114,7 @@ async def test_find_recent_for_lead_happy_path() -> None:
 @pytest.mark.asyncio
 async def test_find_recent_for_lead_miss_returns_none() -> None:
     """find_recent_for_lead retorna None si no hay task en el rango."""
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
 
@@ -142,8 +142,8 @@ async def test_find_recent_for_lead_miss_returns_none() -> None:
 @pytest.mark.asyncio
 async def test_find_recent_for_leads_batch_returns_hit_only_map() -> None:
     """find_recent_for_leads retorna solo los leads con hit (sin Miss)."""
-    from src.modules.campaigns.domain.campaign_task import CampaignTask
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.domain.campaign_task import CampaignTask
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
 
@@ -197,7 +197,7 @@ async def test_find_recent_for_leads_batch_returns_hit_only_map() -> None:
 @pytest.mark.asyncio
 async def test_find_recent_for_leads_empty_input() -> None:
     """find_recent_for_leads con lista vacía retorna mapa vacío."""
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
 
@@ -223,7 +223,7 @@ async def test_find_recent_for_leads_empty_input() -> None:
 @pytest.mark.asyncio
 async def test_count_responded_leads_happy_path() -> None:
     """count_responded_leads retorna conteo de leads respondidos."""
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
 
@@ -246,7 +246,7 @@ async def test_count_responded_leads_happy_path() -> None:
 @pytest.mark.asyncio
 async def test_count_responded_leads_zero() -> None:
     """count_responded_leads retorna 0 cuando nadie respondió."""
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
 

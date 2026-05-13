@@ -16,12 +16,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
 
 
 def _build_client(tenant_id: UUID | None, user_id: UUID | None = None) -> TestClient:
     """Build TestClient with mocked auth for accept endpoint."""
-    from src.modules.copilot.api.suggestions import router
+    from luana_core_copilot.api.suggestions import router
 
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/copilot")
@@ -53,12 +53,12 @@ class TestAcceptHappyPath:
 
     def test_accept_happy_path_returns_202_ok_true(self) -> None:
         """Body válido → 202 + ok=True + EventBus.publish llamado."""
-        from src.modules.copilot.domain.events import SuggestionAccepted
+        from luana_core_copilot.domain.events import SuggestionAccepted
 
         tenant_id = uuid4()
         client = _build_client(tenant_id)
 
-        with patch("src.modules.copilot.api.suggestions.EventBus") as mock_bus:
+        with patch("luana_core_copilot.api.suggestions.EventBus") as mock_bus:
             resp = client.post(
                 "/api/v1/copilot/suggestions/accept",
                 json=_valid_accept_body(),
@@ -75,7 +75,7 @@ class TestAcceptHappyPath:
 
     def test_accept_publishes_event_with_correct_payload(self) -> None:
         """Verificar campos del SuggestionAccepted event matchean request."""
-        from src.modules.copilot.domain.events import SuggestionAccepted
+        from luana_core_copilot.domain.events import SuggestionAccepted
 
         tenant_id = uuid4()
         user_id = uuid4()
@@ -86,7 +86,7 @@ class TestAcceptHappyPath:
         body["source_module"] = "brand"
         body["category"] = "clarify"
 
-        with patch("src.modules.copilot.api.suggestions.EventBus") as mock_bus:
+        with patch("luana_core_copilot.api.suggestions.EventBus") as mock_bus:
             resp = client.post(
                 "/api/v1/copilot/suggestions/accept",
                 json=body,
@@ -135,8 +135,8 @@ class TestAcceptValidation:
         client = _build_client(tenant_id)
 
         with (
-            patch("src.modules.copilot.api.suggestions.EventBus") as mock_bus,
-            patch("src.modules.copilot.api.suggestions.logger") as mock_logger,
+            patch("luana_core_copilot.api.suggestions.EventBus") as mock_bus,
+            patch("luana_core_copilot.api.suggestions.logger") as mock_logger,
         ):
             mock_bus.publish.side_effect = RuntimeError("Redis unavailable")
 

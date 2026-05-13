@@ -7,13 +7,12 @@ for monitoring and retry logic.
 from datetime import UTC, date, datetime
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.domain.enums import ExtractionStatus
-from src.modules.analytics.infrastructure.models.extraction_run_model import (
+from luana_core_analytics_engine.domain.enums import ExtractionStatus
+from luana_core_analytics_engine.infrastructure.models.extraction_run_model import (
     ExtractionRunModel,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 
 class ExtractionRunRepository:

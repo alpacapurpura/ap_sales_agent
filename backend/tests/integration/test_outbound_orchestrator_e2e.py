@@ -27,18 +27,18 @@ pytestmark = pytest.mark.integration
 def _ensure_tables(db):
     """Make sure CRM + IAM tables are present (they should be via session fixture)."""
     # Smoke check — fail fast if model registration regresses
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.shared.infrastructure.models.crm import LeadModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_platform.infrastructure.models.crm import LeadModel
 
 
 @pytest.mark.asyncio
 async def test_outbound_orchestrator_success_with_real_db_tenant_and_lead(db):
     """E2E: real Tenant + real Lead row → OutboundOrchestrator.send_outbound success."""
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.sales_agent.application.orchestrator.outbound_orchestrator import (
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_sales_agent.application.orchestrator.outbound_orchestrator import (
         OutboundOrchestrator,
     )
-    from src.shared.infrastructure.models.crm import CustomerProfileModel, LeadModel
+    from luana_core_platform.infrastructure.models.crm import CustomerProfileModel, LeadModel
 
     _ensure_tables(db)
 
@@ -73,41 +73,41 @@ async def test_outbound_orchestrator_success_with_real_db_tenant_and_lead(db):
 
     with (
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_initial_state",
             return_value=({"messages": [], "session_id": "sess-int"}, None),
         ) as mock_build_state,
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.load_checkpoint",
             return_value=None,
         ),
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_agent_identity",
             return_value="# Identidad",
         ),
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.build_brand_voice",
             return_value="# Voz",
         ),
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.save_checkpoint",
         ),
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.ConversationPipeline.sanitize_text",
             new=AsyncMock(side_effect=lambda txt, *_a, **_kw: txt),
         ),
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.build_sales_agent_observability_context",
             return_value=None,
         ),
         patch(
-            "src.modules.sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
+            "luana_core_sales_agent.application.orchestrator.outbound_orchestrator.agent_app",
         ) as mock_app,
         patch(
-            "src.modules.sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
+            "luana_core_sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
             new=AsyncMock(return_value="ext-tg-001"),
         ),
         patch(
-            "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
+            "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
             new=AsyncMock(),
         ),
     ):
@@ -149,11 +149,11 @@ async def test_outbound_orchestrator_success_with_real_db_tenant_and_lead(db):
 @pytest.mark.asyncio
 async def test_outbound_orchestrator_tenant_isolation_real_db(db):
     """Lead from a different tenant must NOT be found (tenant isolation invariant)."""
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.sales_agent.application.orchestrator.outbound_orchestrator import (
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_sales_agent.application.orchestrator.outbound_orchestrator import (
         OutboundOrchestrator,
     )
-    from src.shared.infrastructure.models.crm import CustomerProfileModel, LeadModel
+    from luana_core_platform.infrastructure.models.crm import CustomerProfileModel, LeadModel
 
     _ensure_tables(db)
 

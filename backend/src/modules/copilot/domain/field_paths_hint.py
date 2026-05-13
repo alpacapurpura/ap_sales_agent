@@ -21,8 +21,8 @@ hint is best-effort guidance, not a binding contract.
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.schema_introspection import _get_dict_parents
-from src.shared.links.ports.editable_fields import FieldSpec, get_catalog
+from luana_core_copilot.domain.schema_introspection import _get_dict_parents
+from luana_core_platform.links.ports.editable_fields import FieldSpec, get_catalog
 
 # Paths that store arrays of objects (form-runtime split-mode lists). The
 # LLM is hinted to emit ``list[dict]`` for these. Keep aligned with

@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.application.tools.ask_tenant_data import ask_tenant_data
+from luana_core_copilot.application.tools.ask_tenant_data import ask_tenant_data
 
 if TYPE_CHECKING:
     from deepagents import SubAgent

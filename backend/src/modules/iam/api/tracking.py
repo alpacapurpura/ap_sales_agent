@@ -5,14 +5,13 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.tracking_config import TrackingConfig
+from luana_core_iam.domain.user import User
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.core.database import get_db
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.tracking_config import TrackingConfig
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
 logger = structlog.get_logger()
 

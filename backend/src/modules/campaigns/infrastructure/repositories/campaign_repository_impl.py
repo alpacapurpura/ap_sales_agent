@@ -11,13 +11,12 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from uuid import UUID
 
+    from luana_core_campaigns.domain.enums import CampaignStatus, CampaignType
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType
-
-from src.modules.campaigns.domain.campaign import Campaign
-from src.modules.campaigns.domain.repositories import CampaignRepository
-from src.modules.campaigns.infrastructure.models.campaign_model import CampaignModel
+from luana_core_campaigns.domain.campaign import Campaign
+from luana_core_campaigns.domain.repositories import CampaignRepository
+from luana_core_campaigns.infrastructure.models.campaign_model import CampaignModel
 
 logger = structlog.get_logger()
 
@@ -144,7 +143,7 @@ class CampaignRepositoryImpl(CampaignRepository):
 
     async def count_active(self, tenant_id: UUID, *, session: AsyncSession) -> int:
         """Count campaigns in active statuses for plan limit check."""
-        from src.modules.campaigns.domain.enums import CampaignStatus
+        from luana_core_campaigns.domain.enums import CampaignStatus
 
         active_statuses = [
             CampaignStatus.DRAFT.value,

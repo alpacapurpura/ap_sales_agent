@@ -2,12 +2,11 @@
 
 import uuid
 
+from luana_core_platform.domain.base_entity import Base
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from src.shared.domain.base_entity import Base
 
 
 class AppointmentModel(Base):

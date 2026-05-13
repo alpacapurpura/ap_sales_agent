@@ -5,23 +5,22 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from src.modules.social_proof.domain.events import (
+from luana_core_platform.domain.events import EventBus
+from luana_core_social_proof.domain.events import (
     PlacementAdded,
     PlacementRemoved,
     PlacementReordered,
 )
-from src.modules.social_proof.domain.placement import Placement
-from src.modules.social_proof.infrastructure.repositories.placement_repository import (
+from luana_core_social_proof.domain.placement import Placement
+from luana_core_social_proof.infrastructure.repositories.placement_repository import (
     PlacementRepository,
 )
-from src.shared.domain.events import EventBus
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_social_proof.domain.enums import SourceTable, SurfaceType
     from sqlalchemy.orm import Session
-
-    from src.modules.social_proof.domain.enums import SourceTable, SurfaceType
 
 
 class PlacementService:

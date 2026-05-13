@@ -27,9 +27,8 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 import structlog
-
-from src.core.enums import AIProvider, ModelRole
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.core.enums import AIProvider, ModelRole
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -153,7 +152,7 @@ class LLMEvalGateRunner:
     @staticmethod
     async def _run_eval_in_thread(use_kind: str, threshold: float) -> dict[str, object]:
         """Invoke sync EvalRunner via asyncio.to_thread (no event loop block)."""
-        from src.modules.copilot.evals.runner import EvalRunner
+        from luana_core_copilot.evals.runner import EvalRunner
 
         def _sync() -> dict[str, object]:
             if use_kind == "classifier":

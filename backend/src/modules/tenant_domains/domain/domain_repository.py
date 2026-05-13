@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.modules.tenant_domains.domain.domain_entity import TenantDomain
+from luana_core_tenant_domains.domain.domain_entity import TenantDomain
 
 
 class DomainRepository(ABC):

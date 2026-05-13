@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.connections.infrastructure.channels.instagram import InstagramChannel
-from src.shared.domain.messages import OutgoingMessage
+from luana_core_connections.infrastructure.channels.instagram import InstagramChannel
+from luana_core_platform.domain.messages import OutgoingMessage
 
 
 @pytest.fixture

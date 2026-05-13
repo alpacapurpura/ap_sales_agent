@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.ports import DataQueryPlan, DataQueryResult
+    from luana_core_copilot.domain.ports import DataQueryPlan, DataQueryResult
 
 
 def annotate_state(*, plan: DataQueryPlan, result: DataQueryResult) -> dict[str, Any]:

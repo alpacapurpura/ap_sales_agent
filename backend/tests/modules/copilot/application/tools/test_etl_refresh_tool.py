@@ -17,9 +17,9 @@ from pydantic import ValidationError
 
 TENANT_ID = UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 
-_GET_TENANT_ID = "src.modules.copilot.application.tools.analytics_tools.get_tenant_id"
-_GET_GUARD = "src.modules.copilot.application.tools.analytics_tools._get_etl_refresh_guard"
-_CALL_ETL = "src.modules.copilot.application.tools.analytics_tools._call_etl_refresh"
+_GET_TENANT_ID = "luana_core_copilot.application.tools.analytics_tools.get_tenant_id"
+_GET_GUARD = "luana_core_copilot.application.tools.analytics_tools._get_etl_refresh_guard"
+_CALL_ETL = "luana_core_copilot.application.tools.analytics_tools._call_etl_refresh"
 
 
 class TestTriggerEtlRefreshHappy:
@@ -27,10 +27,10 @@ class TestTriggerEtlRefreshHappy:
 
     def test_allowed_refresh_returns_queued_status(self) -> None:
         """Allowed guard decision + successful ETL → status='queued' in JSON."""
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 
@@ -51,10 +51,10 @@ class TestTriggerEtlRefreshHappy:
 
     def test_returns_json_with_current_count_and_limit(self) -> None:
         """Response includes current_count and limit from guard decision."""
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 
@@ -79,10 +79,10 @@ class TestTriggerEtlRefreshRateLimit:
 
     def test_rate_limited_returns_error_with_retry_after(self) -> None:
         """Guard blocks → error='rate_limit_exceeded' with retry_after_seconds."""
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 
@@ -113,10 +113,10 @@ class TestTriggerEtlRefreshConfirmFlow:
 
     def test_requires_confirmation_returns_correct_status(self) -> None:
         """Guard requires_confirmation → status='requires_confirmation' in JSON."""
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 
@@ -141,10 +141,10 @@ class TestTriggerEtlRefreshConfirmFlow:
 
     def test_confirmed_true_bypasses_confirmation(self) -> None:
         """confirmed=True passed to guard.check — guard allows, ETL queued."""
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 
@@ -172,7 +172,7 @@ class TestTriggerEtlRefreshValidation:
         """Invalid channel slug → Pydantic ValidationError at schema level (before tool body)."""
         from pydantic import ValidationError
 
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             TriggerEtlRefreshParams,
         )
 
@@ -181,7 +181,7 @@ class TestTriggerEtlRefreshValidation:
 
     def test_no_tenant_returns_error(self) -> None:
         """No tenant in context → structured no_tenant error."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 
@@ -193,7 +193,7 @@ class TestTriggerEtlRefreshValidation:
 
     def test_extra_fields_rejected_by_schema(self) -> None:
         """TriggerEtlRefreshParams extra='forbid' rejects tenant_id override."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             TriggerEtlRefreshParams,
         )
 

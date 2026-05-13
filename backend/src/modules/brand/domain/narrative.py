@@ -2,9 +2,8 @@
 
 import uuid
 
+from luana_core_platform.domain.base_entity import BaseEntity
 from pydantic import ConfigDict, Field
-
-from src.shared.domain.base_entity import BaseEntity
 
 
 class StoryBrandHero(BaseEntity):

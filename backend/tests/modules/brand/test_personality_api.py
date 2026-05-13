@@ -10,10 +10,10 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.brand.api.personality import router
-from src.modules.brand.infrastructure.models.personality_model import PersonalityProfileModel
-from src.modules.iam.api.dependencies import get_current_user, get_db
-from src.modules.iam.domain.user import User
+from luana_core_brand_studio.api.personality import router
+from luana_core_brand_studio.infrastructure.models.personality_model import PersonalityProfileModel
+from luana_core_iam.api.dependencies import get_current_user, get_db
+from luana_core_iam.domain.user import User
 from tests.modules.conftest import TENANT_A, TENANT_B, USER_A
 
 if TYPE_CHECKING:
@@ -77,7 +77,7 @@ class TestGetActiveProfile:
         assert resp.json() is None
 
     def test_returns_profile_after_select(self, db: Session) -> None:
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         svc.select_preset(TENANT_A, "warm_close")
@@ -91,7 +91,7 @@ class TestGetActiveProfile:
         assert data["is_active"] is True
 
     def test_tenant_isolation_different_tenant_sees_null(self, db: Session) -> None:
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         svc.select_preset(TENANT_A, "electric")
@@ -199,7 +199,7 @@ class TestCloneEndpoint:
         }
 
         client = _build_client(db, TENANT_A)
-        with patch("src.modules.brand.application.services.personality_service.personality_app") as mock_app:
+        with patch("luana_core_brand_studio.application.services.personality_service.personality_app") as mock_app:
             mock_app.ainvoke = AsyncMock(return_value=mock_state)
             resp = client.post(
                 "/api/v1/brand/personality/clone",
@@ -217,7 +217,7 @@ class TestCloneEndpoint:
         error_state = {"error": "LLM timeout", "personality_dimensions": None}
 
         client = _build_client(db, TENANT_A)
-        with patch("src.modules.brand.application.services.personality_service.personality_app") as mock_app:
+        with patch("luana_core_brand_studio.application.services.personality_service.personality_app") as mock_app:
             mock_app.ainvoke = AsyncMock(return_value=error_state)
             resp = client.post(
                 "/api/v1/brand/personality/clone",
@@ -236,7 +236,7 @@ class TestCloneEndpoint:
 class TestActivateEndpoint:
     def test_activate_existing_profile_returns_200(self, db: Session) -> None:
         """Activating an existing profile → 200 with active profile."""
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         profile = svc.select_preset(TENANT_A, "serene")
@@ -257,7 +257,7 @@ class TestActivateEndpoint:
 
     def test_activate_wrong_tenant_returns_404(self, db: Session) -> None:
         """Activating a profile from another tenant → 404 (no cross-tenant leak)."""
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         profile = svc.select_preset(TENANT_A, "electric")
@@ -269,7 +269,7 @@ class TestActivateEndpoint:
 
     def test_activate_idempotent(self, db: Session) -> None:
         """Calling activate twice on the same profile returns 200 both times."""
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         profile = svc.select_preset(TENANT_A, "minimalist")
@@ -295,8 +295,8 @@ class TestFromVoiceToneEndpoint:
 
     def test_success_returns_from_voice_tone_response(self, db: Session, seed_tenant) -> None:
         """With voice_tone in BrandIdentity → 200 with FromVoiceToneResponse shape."""
-        from src.modules.brand.domain import BrandIdentity, BrandSettings
-        from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
+        from luana_core_brand_studio.domain import BrandIdentity, BrandSettings
+        from luana_core_brand_studio.infrastructure.repositories.brand_repository import BrandRepository
 
         # Seed brand identity with voice_tone (seed_tenant fixture inserts the tenant row)
         brand_repo = BrandRepository(db)
@@ -308,7 +308,7 @@ class TestFromVoiceToneEndpoint:
         )
         brand_repo.save_settings(TENANT_A, settings)
 
-        with patch("src.modules.brand.application.services.personality_service.find_nearest_preset") as mock_find:
+        with patch("luana_core_brand_studio.application.services.personality_service.find_nearest_preset") as mock_find:
             mock_find.return_value = ("warm_close", 0.82)
 
             client = _build_client(db, TENANT_A)
@@ -325,8 +325,8 @@ class TestFromVoiceToneEndpoint:
 
     def test_already_migrated_returns_409(self, db: Session, seed_tenant) -> None:
         """Calling from-voice-tone when migration already done → 409."""
-        from src.modules.brand.domain import BrandIdentity, BrandSettings
-        from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
+        from luana_core_brand_studio.domain import BrandIdentity, BrandSettings
+        from luana_core_brand_studio.infrastructure.repositories.brand_repository import BrandRepository
 
         brand_repo = BrandRepository(db)
         settings = BrandSettings(
@@ -337,7 +337,7 @@ class TestFromVoiceToneEndpoint:
         )
         brand_repo.save_settings(TENANT_A, settings)
 
-        with patch("src.modules.brand.application.services.personality_service.find_nearest_preset") as mock_find:
+        with patch("luana_core_brand_studio.application.services.personality_service.find_nearest_preset") as mock_find:
             mock_find.return_value = ("direct", 0.75)
             client = _build_client(db, TENANT_A)
             # First migration
@@ -355,7 +355,7 @@ class TestFromVoiceToneEndpoint:
 
 class TestUpdateDimensions:
     def test_update_dimensions_success(self, db: Session) -> None:
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         profile = svc.select_preset(TENANT_A, "warm_close")
@@ -379,7 +379,7 @@ class TestUpdateDimensions:
         assert data["dimensions"]["energy"] == pytest.approx(0.1)
 
     def test_update_dimensions_wrong_tenant_returns_404(self, db: Session) -> None:
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         profile = svc.select_preset(TENANT_A, "warm_close")
@@ -408,7 +408,7 @@ class TestUpdateDimensions:
 
 class TestSimulate:
     def test_simulate_existing_profile_returns_3_responses(self, db: Session) -> None:
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         profile = svc.select_preset(TENANT_A, "narrative")
@@ -433,7 +433,7 @@ class TestSimulate:
 
 class TestDeleteProfile:
     def test_delete_existing_returns_204(self, db: Session) -> None:
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         profile = svc.select_preset(TENANT_A, "minimalist")
@@ -443,7 +443,7 @@ class TestDeleteProfile:
         assert resp.status_code == 204
 
     def test_delete_wrong_tenant_returns_404(self, db: Session) -> None:
-        from src.modules.brand.application.services.personality_service import PersonalityService
+        from luana_core_brand_studio.application.services.personality_service import PersonalityService
 
         svc = PersonalityService(db=db)
         profile = svc.select_preset(TENANT_A, "direct")

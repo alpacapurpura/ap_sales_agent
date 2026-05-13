@@ -11,15 +11,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from google.auth.exceptions import RefreshError, TransportError
 
-from src.modules.connections.infrastructure.channels.gmail import GmailAdapter
-from src.modules.connections.infrastructure.channels.google_analytics import (
+from luana_core_connections.infrastructure.channels.gmail import GmailAdapter
+from luana_core_connections.infrastructure.channels.google_analytics import (
     GoogleAnalyticsAdapter,
 )
-from src.modules.connections.infrastructure.channels.google_calendar import (
+from luana_core_connections.infrastructure.channels.google_calendar import (
     GoogleCalendarAdapter,
 )
-from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
-from src.modules.connections.infrastructure.channels.youtube_analytics import (
+from luana_core_connections.infrastructure.channels.youtube import YoutubeAdapter
+from luana_core_connections.infrastructure.channels.youtube_analytics import (
     YouTubeAnalyticsAdapter,
 )
 
@@ -57,7 +57,7 @@ class TestYoutubeAdapterInit:
 
     def test_init_with_credentials_creates_creds(self):
         with patch(
-            "src.modules.connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info"
+            "luana_core_connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info"
         ) as mock_creds:
             mock_creds.return_value = _mock_creds()
             adapter = YoutubeAdapter(client_config=CLIENT_CONFIG, credentials_data=CREDS_DATA)
@@ -68,7 +68,7 @@ class TestYoutubeAdapterAuthUrl:
     def test_returns_url_and_state(self):
         mock_flow = _mock_flow()
         with patch(
-            "src.modules.connections.infrastructure.channels.youtube.Flow.from_client_config", return_value=mock_flow
+            "luana_core_connections.infrastructure.channels.youtube.Flow.from_client_config", return_value=mock_flow
         ):
             adapter = YoutubeAdapter(client_config=CLIENT_CONFIG)
             url, state = adapter.get_authorization_url("https://redirect.example.com")
@@ -80,7 +80,7 @@ class TestYoutubeAdapterExchangeCode:
     def test_returns_credentials_dict(self):
         mock_flow = _mock_flow()
         with patch(
-            "src.modules.connections.infrastructure.channels.youtube.Flow.from_client_config", return_value=mock_flow
+            "luana_core_connections.infrastructure.channels.youtube.Flow.from_client_config", return_value=mock_flow
         ):
             adapter = YoutubeAdapter(client_config=CLIENT_CONFIG)
             result = adapter.exchange_code("code123", "https://redirect.example.com")
@@ -90,7 +90,7 @@ class TestYoutubeAdapterExchangeCode:
         mock_flow = MagicMock()
         mock_flow.fetch_token.side_effect = Exception("OAuth error")
         with patch(
-            "src.modules.connections.infrastructure.channels.youtube.Flow.from_client_config", return_value=mock_flow
+            "luana_core_connections.infrastructure.channels.youtube.Flow.from_client_config", return_value=mock_flow
         ):
             adapter = YoutubeAdapter(client_config=CLIENT_CONFIG)
             with pytest.raises(Exception):  # noqa: B017
@@ -106,10 +106,10 @@ class TestYoutubeAdapterGetService:
     def test_builds_service_with_creds(self):
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info",
+                "luana_core_connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info",
                 return_value=_mock_creds(),
             ),
-            patch("src.modules.connections.infrastructure.channels.youtube.build") as mock_build,
+            patch("luana_core_connections.infrastructure.channels.youtube.build") as mock_build,
         ):
             mock_build.return_value = MagicMock()
             adapter = YoutubeAdapter(client_config=CLIENT_CONFIG, credentials_data=CREDS_DATA)
@@ -132,10 +132,10 @@ class TestYoutubeAdapterGetChannelInfo:
         }
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info",
+                "luana_core_connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info",
                 return_value=_mock_creds(),
             ),
-            patch("src.modules.connections.infrastructure.channels.youtube.build", return_value=mock_service),
+            patch("luana_core_connections.infrastructure.channels.youtube.build", return_value=mock_service),
         ):
             adapter = YoutubeAdapter(client_config=CLIENT_CONFIG, credentials_data=CREDS_DATA)
             result = adapter.get_channel_info()
@@ -147,10 +147,10 @@ class TestYoutubeAdapterGetChannelInfo:
         mock_service.channels.return_value.list.return_value.execute.return_value = {"items": []}
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info",
+                "luana_core_connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info",
                 return_value=_mock_creds(),
             ),
-            patch("src.modules.connections.infrastructure.channels.youtube.build", return_value=mock_service),
+            patch("luana_core_connections.infrastructure.channels.youtube.build", return_value=mock_service),
         ):
             adapter = YoutubeAdapter(client_config=CLIENT_CONFIG, credentials_data=CREDS_DATA)
             result = adapter.get_channel_info()
@@ -161,10 +161,10 @@ class TestYoutubeAdapterGetChannelInfo:
         mock_service.channels.return_value.list.return_value.execute.side_effect = Exception("API error")
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info",
+                "luana_core_connections.infrastructure.channels.youtube.Credentials.from_authorized_user_info",
                 return_value=_mock_creds(),
             ),
-            patch("src.modules.connections.infrastructure.channels.youtube.build", return_value=mock_service),
+            patch("luana_core_connections.infrastructure.channels.youtube.build", return_value=mock_service),
         ):
             adapter = YoutubeAdapter(client_config=CLIENT_CONFIG, credentials_data=CREDS_DATA)
             with pytest.raises(Exception):  # noqa: B017
@@ -179,7 +179,7 @@ class TestYoutubeAdapterGetChannelInfo:
 def _yta(creds_data: dict | None = None) -> YouTubeAnalyticsAdapter:
     creds_data = creds_data or CREDS_DATA
     with patch(
-        "src.modules.connections.infrastructure.channels.youtube_analytics.Credentials.from_authorized_user_info",
+        "luana_core_connections.infrastructure.channels.youtube_analytics.Credentials.from_authorized_user_info",
         return_value=_mock_creds(),
     ):
         return YouTubeAnalyticsAdapter(credentials_data=creds_data)
@@ -342,7 +342,7 @@ class TestYouTubeAnalyticsTopVideosEnriched:
 def _ga(creds_data: dict | None = None) -> GoogleAnalyticsAdapter:
     creds_data = creds_data or CREDS_DATA
     with patch(
-        "src.modules.connections.infrastructure.channels.google_analytics.Credentials.from_authorized_user_info",
+        "luana_core_connections.infrastructure.channels.google_analytics.Credentials.from_authorized_user_info",
         return_value=_mock_creds(),
     ):
         return GoogleAnalyticsAdapter(client_config=CLIENT_CONFIG, credentials_data=creds_data)
@@ -362,7 +362,7 @@ class TestGoogleAnalyticsAdapterAuthUrl:
     def test_returns_url_and_state(self):
         mock_flow = _mock_flow()
         with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.Flow.from_client_config",
+            "luana_core_connections.infrastructure.channels.google_analytics.Flow.from_client_config",
             return_value=mock_flow,
         ):
             adapter = GoogleAnalyticsAdapter(client_config=CLIENT_CONFIG)
@@ -374,7 +374,7 @@ class TestGoogleAnalyticsAdapterExchangeCode:
     def test_returns_credentials(self):
         mock_flow = _mock_flow()
         with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.Flow.from_client_config",
+            "luana_core_connections.infrastructure.channels.google_analytics.Flow.from_client_config",
             return_value=mock_flow,
         ):
             adapter = GoogleAnalyticsAdapter(client_config=CLIENT_CONFIG)
@@ -385,7 +385,7 @@ class TestGoogleAnalyticsAdapterExchangeCode:
         mock_flow = MagicMock()
         mock_flow.fetch_token.side_effect = Exception("OAuth error")
         with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.Flow.from_client_config",
+            "luana_core_connections.infrastructure.channels.google_analytics.Flow.from_client_config",
             return_value=mock_flow,
         ):
             adapter = GoogleAnalyticsAdapter(client_config=CLIENT_CONFIG)
@@ -400,7 +400,7 @@ class TestGoogleAnalyticsAdapterService:
             adapter.get_service()
 
     def test_builds_analytics_admin_service(self):
-        with patch("src.modules.connections.infrastructure.channels.google_analytics.build") as mock_build:
+        with patch("luana_core_connections.infrastructure.channels.google_analytics.build") as mock_build:
             mock_build.return_value = MagicMock()
             adapter = _ga()
             svc = adapter.get_service()
@@ -459,7 +459,7 @@ class TestGoogleAnalyticsAdapterRunReport:
 
         adapter = _ga()
         with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.asyncio.to_thread",
+            "luana_core_connections.infrastructure.channels.google_analytics.asyncio.to_thread",
             new_callable=AsyncMock,
             return_value=mock_response,
         ):
@@ -471,7 +471,7 @@ class TestGoogleAnalyticsAdapterRunReport:
         adapter = _ga()
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio.to_thread",
+                "luana_core_connections.infrastructure.channels.google_analytics.asyncio.to_thread",
                 new_callable=AsyncMock,
                 side_effect=RefreshError("token revoked"),
             ),
@@ -484,7 +484,7 @@ class TestGoogleAnalyticsAdapterRunReport:
         adapter = _ga()
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio.to_thread",
+                "luana_core_connections.infrastructure.channels.google_analytics.asyncio.to_thread",
                 new_callable=AsyncMock,
                 side_effect=TransportError("network error"),
             ),
@@ -502,7 +502,7 @@ def _gcal(creds_data: dict | None = None) -> GoogleCalendarAdapter:
     if creds_data is None:
         creds_data = CREDS_DATA
     with patch(
-        "src.modules.connections.infrastructure.channels.google_calendar.Credentials.from_authorized_user_info",
+        "luana_core_connections.infrastructure.channels.google_calendar.Credentials.from_authorized_user_info",
         return_value=_mock_creds(),
     ):
         return GoogleCalendarAdapter(credentials_data=creds_data)
@@ -535,7 +535,7 @@ class TestGoogleCalendarAdapterAuthUrl:
     def test_returns_url_and_state(self):
         mock_flow = _mock_flow()
         with patch(
-            "src.modules.connections.infrastructure.channels.google_calendar.Flow.from_client_config",
+            "luana_core_connections.infrastructure.channels.google_calendar.Flow.from_client_config",
             return_value=mock_flow,
         ):
             url, _state = GoogleCalendarAdapter.get_authorization_url()
@@ -544,7 +544,7 @@ class TestGoogleCalendarAdapterAuthUrl:
     def test_exchange_code_returns_creds(self):
         mock_flow = _mock_flow()
         with patch(
-            "src.modules.connections.infrastructure.channels.google_calendar.Flow.from_client_config",
+            "luana_core_connections.infrastructure.channels.google_calendar.Flow.from_client_config",
             return_value=mock_flow,
         ):
             result = GoogleCalendarAdapter.exchange_code("code123")
@@ -555,7 +555,7 @@ class TestGoogleCalendarAdapterAuthUrl:
         mock_flow.fetch_token.side_effect = Exception("OAuth error")
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_calendar.Flow.from_client_config",
+                "luana_core_connections.infrastructure.channels.google_calendar.Flow.from_client_config",
                 return_value=mock_flow,
             ),
             pytest.raises(Exception),  # noqa: B017
@@ -571,7 +571,7 @@ class TestGoogleCalendarAdapterService:
 
     def test_builds_calendar_service(self):
         adapter = _gcal()
-        with patch("src.modules.connections.infrastructure.channels.google_calendar.build") as mock_build:
+        with patch("luana_core_connections.infrastructure.channels.google_calendar.build") as mock_build:
             mock_build.return_value = MagicMock()
             svc = adapter.get_service()
         assert svc is not None
@@ -656,7 +656,7 @@ def _gmail(creds_data: dict | None = None) -> GmailAdapter:
     if creds_data is None:
         creds_data = CREDS_DATA
     with patch(
-        "src.modules.connections.infrastructure.channels.gmail.Credentials.from_authorized_user_info",
+        "luana_core_connections.infrastructure.channels.gmail.Credentials.from_authorized_user_info",
         return_value=_mock_creds(),
     ):
         return GmailAdapter(credentials_data=creds_data)
@@ -676,7 +676,7 @@ class TestGmailAdapterAuthUrl:
     def test_returns_url_and_state(self):
         mock_flow = _mock_flow()
         with patch(
-            "src.modules.connections.infrastructure.channels.gmail.Flow.from_client_config", return_value=mock_flow
+            "luana_core_connections.infrastructure.channels.gmail.Flow.from_client_config", return_value=mock_flow
         ):
             url, _state = GmailAdapter.get_authorization_url()
         assert "accounts.google.com" in url
@@ -684,7 +684,7 @@ class TestGmailAdapterAuthUrl:
     def test_exchange_code_returns_creds(self):
         mock_flow = _mock_flow()
         with patch(
-            "src.modules.connections.infrastructure.channels.gmail.Flow.from_client_config", return_value=mock_flow
+            "luana_core_connections.infrastructure.channels.gmail.Flow.from_client_config", return_value=mock_flow
         ):
             result = GmailAdapter.exchange_code("code123")
         assert result["access_token"] == "at"
@@ -694,7 +694,7 @@ class TestGmailAdapterAuthUrl:
         mock_flow.fetch_token.side_effect = Exception("OAuth error")
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.gmail.Flow.from_client_config", return_value=mock_flow
+                "luana_core_connections.infrastructure.channels.gmail.Flow.from_client_config", return_value=mock_flow
             ),
             pytest.raises(Exception),  # noqa: B017
         ):
@@ -709,7 +709,7 @@ class TestGmailAdapterService:
 
     def test_builds_gmail_service(self):
         adapter = _gmail()
-        with patch("src.modules.connections.infrastructure.channels.gmail.build") as mock_build:
+        with patch("luana_core_connections.infrastructure.channels.gmail.build") as mock_build:
             mock_build.return_value = MagicMock()
             svc = adapter.get_service()
         assert svc is not None

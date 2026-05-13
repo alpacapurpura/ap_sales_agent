@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.connections.infrastructure.channels.google_analytics import (
+from luana_core_connections.infrastructure.channels.google_analytics import (
     GoogleAnalyticsAdapter,
 )
 
@@ -60,10 +60,10 @@ class TestRunReportHappyPath:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
+                "luana_core_connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
+                "luana_core_connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
         ):
             mock_client_instance = MagicMock()
@@ -110,10 +110,10 @@ class TestRunReportHappyPath:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
+                "luana_core_connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
+                "luana_core_connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
         ):
             mock_client_instance = MagicMock()
@@ -150,13 +150,13 @@ class TestRunReportHappyPath:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
+                "luana_core_connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
+                "luana_core_connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.RunReportRequest",
+                "luana_core_connections.infrastructure.channels.google_analytics.RunReportRequest",
             ) as MockRequest,
         ):
             mock_client_instance = MagicMock()
@@ -205,10 +205,10 @@ class TestRunReportAsyncSafety:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
+                "luana_core_connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
+                "luana_core_connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
         ):
             mock_client_instance = MagicMock()
@@ -249,10 +249,10 @@ class TestRunReportEmptyResponse:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
+                "luana_core_connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
+                "luana_core_connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
         ):
             mock_client_instance = MagicMock()

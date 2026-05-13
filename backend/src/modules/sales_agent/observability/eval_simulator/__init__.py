@@ -15,4 +15,6 @@ polluting mv_daily_llm_cost_per_tenant_v2 + budget guards + Streamlit dashboards
 
 from __future__ import annotations
 
-from src.modules.sales_agent.observability.eval_simulator import spec as _spec  # noqa: F401
+from src.modules.sales_agent.observability.eval_simulator import (
+    spec as _spec,  # noqa: F401  # deferred Nicolify-local eval_simulator
+)

@@ -23,27 +23,26 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.sales_agent.observability.persistence.llm_call_repository import (
-    SalesAgentLlmCallRepository,
-)
-from src.modules.sales_agent.observability.persistence.trace_event_repository import (
-    SalesAgentTraceEventRepository,
-)
-from src.modules.sales_agent.observability.recording.callback_handler import (
-    SalesAgentCallbackHandler,
-)
-from src.modules.sales_agent.observability.recording.turn_envelope import (
-    SalesAgentObservabilityContext,
-)
-from src.shared.agent_observability.cost.fx_resolver import FXResolver
-from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+from luana_core_observability.cost.fx_resolver import FXResolver
+from luana_core_observability.persistence.pricing_snapshot_repository import (
     PricingSnapshotRepository,
 )
-from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
+from luana_core_observability.persistence.tenant_billing_config_repository import (
     TenantBillingConfigRepository,
 )
-from src.shared.agent_observability.pricing.resolver import PricingResolver
+from luana_core_observability.pricing.resolver import PricingResolver
+from luana_core_sales_agent.observability.persistence.llm_call_repository import (
+    SalesAgentLlmCallRepository,
+)
+from luana_core_sales_agent.observability.persistence.trace_event_repository import (
+    SalesAgentTraceEventRepository,
+)
+from luana_core_sales_agent.observability.recording.callback_handler import (
+    SalesAgentCallbackHandler,
+)
+from luana_core_sales_agent.observability.recording.turn_envelope import (
+    SalesAgentObservabilityContext,
+)
 
 if TYPE_CHECKING:
     from uuid import UUID

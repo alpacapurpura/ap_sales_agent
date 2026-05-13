@@ -29,8 +29,8 @@ def _make_run(**kwargs):
 
 
 def _make_app(db_mock):
-    from src.core.database import get_db
-    from src.modules.analytics.api.etl_admin import health_router, tenant_router
+    from luana_core_platform.core.database import get_db
+    from luana_core_analytics_engine.api.etl_admin import health_router, tenant_router
 
     app = FastAPI()
     app.include_router(health_router)

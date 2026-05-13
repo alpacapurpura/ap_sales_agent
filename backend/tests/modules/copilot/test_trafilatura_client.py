@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from src.modules.copilot.infrastructure.web import trafilatura_client as tc
+from luana_core_copilot.infrastructure.web import trafilatura_client as tc
 
 # ── Validation ───────────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ class TestExtractMarkdown:
 class TestOgImage:
     def test_extracts_og_image(self) -> None:
         # Indirectly via fetch_extract path is async; test the regex directly.
-        from src.modules.copilot.infrastructure.web.trafilatura_client import (
+        from luana_core_copilot.infrastructure.web.trafilatura_client import (
             _extract_og_image,
         )
 

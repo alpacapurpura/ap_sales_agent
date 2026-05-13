@@ -2,8 +2,8 @@
 
 import uuid
 
-from src.modules.iam.domain.tenant import Tenant
-from src.modules.iam.infrastructure.repositories.user_tenant_repository import (
+from luana_core_iam.domain.tenant import Tenant
+from luana_core_iam.infrastructure.repositories.user_tenant_repository import (
     UserTenantRepository,
 )
 
@@ -50,7 +50,7 @@ class TestUserTenantRepository:
         tenant_id,
     ):
         """Inactive user-tenant links must be excluded."""
-        from src.modules.iam.infrastructure.models.user_tenant_model import (
+        from luana_core_iam.infrastructure.models.user_tenant_model import (
             UserTenantModel,
         )
 
@@ -76,7 +76,7 @@ class TestUserTenantRepository:
         tenant_id,
     ):
         """Links to inactive tenants must be excluded."""
-        from src.modules.iam.infrastructure.models.user_tenant_model import (
+        from luana_core_iam.infrastructure.models.user_tenant_model import (
             UserTenantModel,
         )
         from tests.factories import TenantFactory

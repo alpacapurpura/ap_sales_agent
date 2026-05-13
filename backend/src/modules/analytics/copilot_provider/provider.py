@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.ports import BaseCopilotProvider, ModuleData
+from luana_core_copilot.domain.ports import BaseCopilotProvider, ModuleData
 
 
 class AnalyticsCopilotProvider(BaseCopilotProvider):

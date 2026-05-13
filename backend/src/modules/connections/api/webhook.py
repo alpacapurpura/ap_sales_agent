@@ -5,15 +5,14 @@ from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Body, Depends, Header, HTTPException
+from luana_core_connections.api.dependencies import get_message_handler
+from luana_core_connections.infrastructure.channels.webhook import WebhookAdapter
+from luana_core_iam.domain.tenant import Tenant
+from luana_core_platform.core.context import set_tenant_id
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.messages import IncomingMessage
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.core.context import set_tenant_id
-from src.core.database import get_db
-from src.modules.connections.api.dependencies import get_message_handler
-from src.modules.connections.infrastructure.channels.webhook import WebhookAdapter
-from src.modules.iam.domain.tenant import Tenant
-from src.shared.domain.messages import IncomingMessage
 
 router = APIRouter()
 logger = structlog.get_logger()

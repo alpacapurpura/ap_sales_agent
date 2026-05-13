@@ -18,8 +18,8 @@ import pytest
 TENANT_ID = UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 
 # Patch paths: where names are used (not where defined)
-_GET_TENANT_ID = "src.modules.copilot.application.tools.analytics_tools.get_tenant_id"
-_CALL_STAGE_OV = "src.modules.copilot.application.tools.analytics_tools._call_stage_overview"
+_GET_TENANT_ID = "luana_core_copilot.application.tools.analytics_tools.get_tenant_id"
+_CALL_STAGE_OV = "luana_core_copilot.application.tools.analytics_tools._call_stage_overview"
 
 
 def _make_stage_overview(**kwargs) -> MagicMock:
@@ -49,7 +49,7 @@ class TestGetStageMetricsHappy:
 
     def test_returns_json_string(self) -> None:
         """Tool returns a JSON-decodable string."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -68,7 +68,7 @@ class TestGetStageMetricsHappy:
 
     def test_stage_slug_mapped_correctly(self) -> None:
         """Spanish slug 'atraccion-captura' maps to 'attraction'."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -85,7 +85,7 @@ class TestGetStageMetricsHappy:
 
     def test_all_valid_stage_slugs_accepted(self) -> None:
         """All 5 canonical stage slugs are accepted without error."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -112,7 +112,7 @@ class TestGetStageMetricsHappy:
         """Invalid stage slug is rejected by Pydantic Literal at schema validation."""
         from pydantic import ValidationError
 
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             StageFilterParams,
         )
 
@@ -121,7 +121,7 @@ class TestGetStageMetricsHappy:
 
     def test_period_defaults_to_30d(self) -> None:
         """When period is '30d', API period is mapped to 'last_30_days'."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -143,7 +143,7 @@ class TestGetStageMetricsTenantIsolation:
 
     def test_no_tenant_returns_error(self) -> None:
         """No tenant_id in context → structured error."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -158,7 +158,7 @@ class TestGetStageMetricsTenantIsolation:
         """StageFilterParams schema does not allow tenant_id field."""
         from pydantic import ValidationError
 
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             StageFilterParams,
         )
 
@@ -172,7 +172,7 @@ class TestStageMetricsKpiSerialization:
 
     def test_kpis_include_slug_and_value(self) -> None:
         """Header KPIs are serialized to JSON with slug and value fields."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -198,7 +198,7 @@ class TestStageMetricsKpiSerialization:
 
     def test_response_has_ui_action(self) -> None:
         """Response includes ui_action field for FE rendering."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 

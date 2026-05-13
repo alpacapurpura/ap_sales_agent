@@ -25,13 +25,13 @@ from uuid import uuid4
 import pytest
 from langchain_core.messages import HumanMessage
 
-from src.modules.copilot.application.orchestrator.deep_agent import (
+from luana_core_copilot.application.orchestrator.deep_agent import (
     _build_combined_system_prompt,
 )
-from src.modules.copilot.application.orchestrator.state import (
+from luana_core_copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
-from src.shared.agent_observability.channels.intent_detector import (
+from luana_core_channels.intent_detector import (
     detect_channel_intent,
 )
 
@@ -40,7 +40,7 @@ from src.shared.agent_observability.channels.intent_detector import (
 def _stub_system_prompt(monkeypatch):
     """Hermetic: skip the DB-touching ``build_system_prompt``."""
     monkeypatch.setattr(
-        "src.modules.copilot.application.orchestrator.deep_agent.build_system_prompt",
+        "luana_core_copilot.application.orchestrator.deep_agent.build_system_prompt",
         lambda _state: "Eres el Copilot de Nicolify.",
     )
 

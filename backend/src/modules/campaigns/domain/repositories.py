@@ -15,14 +15,13 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from uuid import UUID
 
+    from luana_core_campaigns.domain.campaign import Campaign
+    from luana_core_campaigns.domain.campaign_step import CampaignStep
+    from luana_core_campaigns.domain.campaign_task import CampaignTask
+    from luana_core_campaigns.domain.campaign_template import CampaignTemplate
+    from luana_core_campaigns.domain.enums import CampaignStatus, CampaignType, TaskStatus
+    from luana_core_campaigns.domain.segment import Segment, SegmentSnapshot
     from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.modules.campaigns.domain.campaign import Campaign
-    from src.modules.campaigns.domain.campaign_step import CampaignStep
-    from src.modules.campaigns.domain.campaign_task import CampaignTask
-    from src.modules.campaigns.domain.campaign_template import CampaignTemplate
-    from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType, TaskStatus
-    from src.modules.campaigns.domain.segment import Segment, SegmentSnapshot
 
 
 class CampaignRepository(ABC):

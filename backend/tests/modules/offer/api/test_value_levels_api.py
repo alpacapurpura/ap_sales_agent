@@ -5,8 +5,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.offer.api.value_levels import router
-from src.modules.offer.domain.enums import OfferValueLevel
+from luana_core_offer_studio.api.value_levels import router
+from luana_core_offer_studio.domain.enums import OfferValueLevel
 
 
 def _client() -> TestClient:

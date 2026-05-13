@@ -7,11 +7,11 @@ prompt construction, LLM parameters, and state transformations.
 import importlib
 from unittest.mock import MagicMock, patch
 
-from src.core.enums import ModelRole
-from src.modules.sales_agent.application.agents.sales.nodes import (
+from luana_core_platform.core.enums import ModelRole
+from luana_core_sales_agent.application.agents.sales.nodes import (
     _determine_stage,
 )
-from src.modules.sales_agent.application.prompts.compose import (
+from luana_core_sales_agent.application.prompts.compose import (
     CACHE_BOUNDARY_MARKER,
 )
 
@@ -19,7 +19,7 @@ from src.modules.sales_agent.application.prompts.compose import (
 # Helpers
 # ---------------------------------------------------------------------------
 
-_TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_node"
+_TRACE_PATCH = "luana_core_sales_agent.infrastructure.monitoring.tracing.trace_node"
 
 
 def _noop_trace(name):

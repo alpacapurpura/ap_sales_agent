@@ -16,38 +16,36 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_tenant_id
-from src.modules.copilot.application.data_access import (
+from luana_core_copilot.application.data_access import (
     ConversationDataAccessProvider,
 )
-from src.modules.copilot.application.tools.ask_tenant_data.executor import (
+from luana_core_copilot.application.tools.ask_tenant_data.executor import (
     NoAccessorError,
     execute_plan,
 )
-from src.modules.copilot.application.tools.ask_tenant_data.intent_classifier import (
+from luana_core_copilot.application.tools.ask_tenant_data.intent_classifier import (
     classify_intent,
 )
-from src.modules.copilot.application.tools.ask_tenant_data.query_builder import (
+from luana_core_copilot.application.tools.ask_tenant_data.query_builder import (
     build_plan,
 )
-from src.modules.copilot.application.tools.ask_tenant_data.state_check import (
+from luana_core_copilot.application.tools.ask_tenant_data.state_check import (
     annotate_state,
 )
-from src.modules.copilot.application.tools.ask_tenant_data.synthesizer import (
+from luana_core_copilot.application.tools.ask_tenant_data.synthesizer import (
     synthesize_answer,
 )
-from src.modules.copilot.infrastructure.cache.data_query_cache import (
+from luana_core_copilot.infrastructure.cache.data_query_cache import (
     DataQueryCache,
     make_cache_key,
 )
+from luana_core_platform.core.context import get_tenant_id
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    from luana_core_copilot.domain.ports import DataAccessProvider
     from sqlalchemy.orm import Session
-
-    from src.modules.copilot.domain.ports import DataAccessProvider
 
 logger = structlog.get_logger()
 
@@ -79,7 +77,7 @@ def _success_payload(*, answer: str, kind: str, metadata: dict[str, Any]) -> str
 
 
 def _open_session() -> Session:
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     return SessionLocal()
 
@@ -93,7 +91,7 @@ def _default_accessors(db_factory: Callable[[], Session]) -> tuple:
     accessors: list = [ConversationDataAccessProvider(db_factory=db_factory)]
 
     try:
-        from src.modules.copilot.application.discovery import discover_providers
+        from luana_core_copilot.application.discovery import discover_providers
 
         for provider in discover_providers().values():
             da = provider.data_access()
@@ -107,7 +105,7 @@ def _default_accessors(db_factory: Callable[[], Session]) -> tuple:
 
 def _default_cache() -> DataQueryCache:
     try:
-        from src.core.database import redis_client
+        from luana_core_platform.core.database import redis_client
     except Exception:  # noqa: BLE001 — Redis is optional; cache fails open
         return DataQueryCache(redis=None)
     return DataQueryCache(redis=redis_client)

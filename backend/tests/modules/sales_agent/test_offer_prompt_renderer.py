@@ -14,10 +14,10 @@ from dataclasses import replace
 
 import pytest
 
-from src.modules.sales_agent.application.services.offer_prompt_renderer import (
+from luana_core_sales_agent.application.services.offer_prompt_renderer import (
     filter_offer_for_prompt,
 )
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldStatus,
     get_module_contracts,
     register_module_contracts,

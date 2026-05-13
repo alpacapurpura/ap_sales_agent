@@ -35,30 +35,28 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 import structlog
-from sqlalchemy import func, select
-
-from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
-    SalesAgentLlmCallModel,
-)
-from src.modules.sales_agent.observability.recording.callback_handler import (
-    SalesAgentCallbackHandler,
-)
-from src.shared.agent_observability.recording.turn_envelope import (
+from luana_core_observability.recording.turn_envelope import (
     BaseObservabilityContext,
     _empty_totals,
 )
+from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
+    SalesAgentLlmCallModel,
+)
+from luana_core_sales_agent.observability.recording.callback_handler import (
+    SalesAgentCallbackHandler,
+)
+from sqlalchemy import func, select
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
-
-    from src.modules.sales_agent.observability.persistence.llm_call_repository import (
+    from luana_core_observability.cost.fx_resolver import FXResolver
+    from luana_core_observability.pricing.resolver import PricingResolver
+    from luana_core_sales_agent.observability.persistence.llm_call_repository import (
         SalesAgentLlmCallRepository,
     )
-    from src.modules.sales_agent.observability.persistence.trace_event_repository import (
+    from luana_core_sales_agent.observability.persistence.trace_event_repository import (
         SalesAgentTraceEventRepository,
     )
-    from src.shared.agent_observability.cost.fx_resolver import FXResolver
-    from src.shared.agent_observability.pricing.resolver import PricingResolver
+    from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

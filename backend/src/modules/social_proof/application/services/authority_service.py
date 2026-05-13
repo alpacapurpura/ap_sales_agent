@@ -5,23 +5,22 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from src.modules.social_proof.domain.authority_item import AuthorityItem
-from src.modules.social_proof.domain.events import (
+from luana_core_platform.domain.events import EventBus
+from luana_core_social_proof.domain.authority_item import AuthorityItem
+from luana_core_social_proof.domain.events import (
     AuthorityItemCreated,
     AuthorityItemSoftDeleted,
     AuthorityItemUpdated,
 )
-from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+from luana_core_social_proof.infrastructure.repositories.authority_item_repository import (
     AuthorityItemRepository,
 )
-from src.shared.domain.events import EventBus
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_social_proof.domain.enums import AuthorityType
     from sqlalchemy.orm import Session
-
-    from src.modules.social_proof.domain.enums import AuthorityType
 
 
 class AuthorityService:
@@ -81,8 +80,8 @@ class AuthorityService:
 
     def soft_delete(self, tenant_id: UUID, item_id: UUID) -> bool:
         """Soft-delete an AuthorityItem, cascade placements, emit event."""
-        from src.modules.social_proof.domain.enums import SourceTable
-        from src.modules.social_proof.infrastructure.repositories.placement_repository import (
+        from luana_core_social_proof.domain.enums import SourceTable
+        from luana_core_social_proof.infrastructure.repositories.placement_repository import (
             PlacementRepository,
         )
 

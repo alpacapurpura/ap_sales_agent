@@ -9,16 +9,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import select
-
-from src.modules.sales_agent.domain.enrollment import (
+from luana_core_sales_agent.domain.enrollment import (
     Enrollment,
     EnrollmentStatus,
     PaymentProvider,
 )
-from src.modules.sales_agent.infrastructure.models.enrollment_model import (
+from luana_core_sales_agent.infrastructure.models.enrollment_model import (
     EnrollmentModel,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.sales_agent.application.prompts.compose import (
+from luana_core_sales_agent.application.prompts.compose import (
     CACHE_BOUNDARY_MARKER,
     CACHEABLE_FRAGMENTS,
     PROMPT_FRAGMENT_ORDER,

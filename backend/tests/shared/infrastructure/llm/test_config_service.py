@@ -19,15 +19,15 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.core.enums import AIProvider, ModelRole
-from src.shared.infrastructure.llm.application.config_service import (
+from luana_core_platform.core.enums import AIProvider, ModelRole
+from luana_core_llm.application.config_service import (
     CACHE_INVALIDATE_LLM_ROLE_BINDING_CHANNEL,
     LLMConfigService,
     get_llm_config_service,
     init_llm_config_service,
     reset_llm_config_service,
 )
-from src.shared.infrastructure.llm.domain.resolved import ResolvedModel
+from luana_core_llm.domain.resolved import ResolvedModel
 
 
 @pytest.fixture(autouse=True)
@@ -181,7 +181,7 @@ async def test_resolve_async_no_session_factory_falls_back_env() -> None:
 
 def test_settings_get_model_uses_service_when_initialized() -> None:
     """Settings.get_model wraps via singleton when service is set."""
-    from src.core.config import settings
+    from luana_core_platform.core.config import settings
 
     # Pre-init: should use env fallback.
     pre_init_value = settings.get_model(ModelRole.NANO)

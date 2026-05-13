@@ -9,9 +9,8 @@ import datetime as dt
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
+from luana_core_campaigns.domain.enums import CampaignStatus, CampaignType
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType
 
 
 class CampaignStatsResponse(BaseModel):

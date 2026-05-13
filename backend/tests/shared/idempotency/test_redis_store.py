@@ -7,8 +7,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.idempotency.domain.key import IdempotencyKey
-from src.shared.idempotency.infrastructure.redis_store import RedisIdempotencyStore
+from luana_core_idempotency.domain.key import IdempotencyKey
+from luana_core_idempotency.infrastructure.redis_store import RedisIdempotencyStore
 
 try:
     import fakeredis

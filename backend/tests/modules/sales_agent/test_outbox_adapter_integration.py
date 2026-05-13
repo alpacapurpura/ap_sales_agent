@@ -15,8 +15,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.shared.domain.events import LeadCapturedEvent, PaymentReceivedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_platform.domain.events import LeadCapturedEvent, PaymentReceivedEvent
+from luana_core_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
 )
 
@@ -53,7 +53,7 @@ class TestEventBusAdapterFlagOff:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),
@@ -72,11 +72,11 @@ class TestEventBusAdapterFlagOff:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.subscribe",
+                "luana_core_platform.domain.events.EventBus.subscribe",
                 side_effect=lambda name, h: calls.append(f"sub:{name}"),
             ),
             patch(
-                "src.shared.domain.events.EventBus.clear",
+                "luana_core_platform.domain.events.EventBus.clear",
                 side_effect=lambda: calls.append("clear"),
             ),
         ):
@@ -100,7 +100,7 @@ class TestEventBusAdapterFlagOn:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
@@ -127,7 +127,7 @@ class TestEventBusAdapterFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):
@@ -155,7 +155,7 @@ class TestEventBusAdapterFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):
@@ -172,8 +172,8 @@ class TestSalesAgentLocalEventBus:
 
     def test_local_event_bus_subscribe_wires_by_class(self) -> None:
         """Local EventBus._subscribers dict supports class-keyed wiring."""
-        from src.modules.sales_agent.application.event_bus import EventBus
-        from src.modules.sales_agent.domain.events import LeadQualifiedEvent
+        from luana_core_sales_agent.application.event_bus import EventBus
+        from luana_core_sales_agent.domain.events import LeadQualifiedEvent
 
         bus = EventBus()
 
@@ -186,7 +186,7 @@ class TestSalesAgentLocalEventBus:
 
     def test_local_event_bus_is_independent_class(self) -> None:
         """The local EventBus is the module-internal class, not the adapter."""
-        from src.modules.sales_agent.application.event_bus import EventBus
+        from luana_core_sales_agent.application.event_bus import EventBus
 
         bus = EventBus()
         # Confirms it has the class-keyed _subscribers (not adapter API)
@@ -195,14 +195,14 @@ class TestSalesAgentLocalEventBus:
 
     def test_register_subscribers_wires_all_four_observability_handlers(self) -> None:
         """register_subscribers wires all 4 sales_agent observability handlers."""
-        from src.modules.sales_agent.application.event_bus import EventBus
-        from src.modules.sales_agent.domain.events import (
+        from luana_core_sales_agent.application.event_bus import EventBus
+        from luana_core_sales_agent.domain.events import (
             LeadQualifiedEvent,
             ObjectionHandledEvent,
             StageTransitionedEvent,
             ToolLoopDetectedEvent,
         )
-        from src.modules.sales_agent.observability.domain_events.subscribers import (
+        from luana_core_sales_agent.observability.domain_events.subscribers import (
             register_subscribers,
         )
 

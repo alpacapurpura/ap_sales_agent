@@ -4,15 +4,14 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.customer import CustomerIdentity, CustomerProfile
-from src.modules.crm.domain.enums import IdentityType
-from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
-from src.modules.crm.infrastructure.repositories.customer_repository import (
+from luana_core_crm.domain.customer import CustomerIdentity, CustomerProfile
+from luana_core_crm.domain.enums import IdentityType
+from luana_core_crm.infrastructure.models.customer_model import JourneyEventModel
+from luana_core_crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
     JourneyEventRepository,
 )
+from sqlalchemy.orm import Session
 
 
 class CustomerService:
@@ -107,7 +106,7 @@ class CustomerService:
         This is the canonical entry point for journey event creation.
         Service layer orchestrates: persist event -> recalculate score.
         """
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
 

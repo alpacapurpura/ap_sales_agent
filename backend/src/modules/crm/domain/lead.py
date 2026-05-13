@@ -4,9 +4,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import Field
-
-from src.modules.crm.domain.enums import (
+from luana_core_crm.domain.enums import (
     AuthorityLevel,
     AvatarPersona,
     BusinessStage,
@@ -14,7 +12,8 @@ from src.modules.crm.domain.enums import (
     LeadTemperature,
     SophisticationLevel,
 )
-from src.shared.domain.base_entity import BaseEntity
+from luana_core_platform.domain.base_entity import BaseEntity
+from pydantic import Field
 
 
 class UserProfile(BaseEntity):

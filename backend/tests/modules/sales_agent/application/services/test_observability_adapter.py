@@ -15,7 +15,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
-from src.shared.domain.base_entity import Base
+from luana_core_platform.domain.base_entity import Base
 
 
 @pytest.fixture(scope="module")
@@ -26,8 +26,8 @@ def sa_engine():
         connect_args={"check_same_thread": False},
     )
     # Import models to register in Base.metadata
-    from src.modules.sales_agent.infrastructure.models.enrollment_model import EnrollmentModel
-    from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
+    from luana_core_sales_agent.infrastructure.models.enrollment_model import EnrollmentModel
+    from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
 
     Base.metadata.create_all(engine)
     return engine
@@ -53,7 +53,7 @@ _OLD = _NOW - timedelta(days=10)
 
 
 def _make_message(session, tenant_id, user_id, created_at):
-    from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
+    from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
 
     msg = MessageModel(
         id=uuid.uuid4(),
@@ -69,7 +69,7 @@ def _make_message(session, tenant_id, user_id, created_at):
 
 
 def _make_enrollment(session, tenant_id, offer_id, status, created_at, edition_id=None):
-    from src.modules.sales_agent.infrastructure.models.enrollment_model import EnrollmentModel
+    from luana_core_sales_agent.infrastructure.models.enrollment_model import EnrollmentModel
 
     enrollment = EnrollmentModel(
         id=uuid.uuid4(),
@@ -87,7 +87,7 @@ def _make_enrollment(session, tenant_id, offer_id, status, created_at, edition_i
 class TestCountLeadsSince:
     def test_count_leads_since_filters_by_tenant_and_date(self, db_session) -> None:
         """Count distinct user_ids for tenant_a from _RECENT onward only."""
-        from src.modules.sales_agent.application.services.observability_adapter import (
+        from luana_core_sales_agent.application.services.observability_adapter import (
             SalesAgentObservabilityAdapter,
         )
 
@@ -110,7 +110,7 @@ class TestCountLeadsSince:
 
     def test_count_leads_since_tenant_b_not_leaking(self, db_session) -> None:
         """tenant_b messages do not bleed into tenant_a counts."""
-        from src.modules.sales_agent.application.services.observability_adapter import (
+        from luana_core_sales_agent.application.services.observability_adapter import (
             SalesAgentObservabilityAdapter,
         )
 
@@ -126,7 +126,7 @@ class TestCountLeadsSince:
 class TestListEnrollmentsByStatus:
     def test_list_enrollments_by_status_filters(self, db_session) -> None:
         """Returns only enrollments matching requested statuses."""
-        from src.modules.sales_agent.application.services.observability_adapter import (
+        from luana_core_sales_agent.application.services.observability_adapter import (
             SalesAgentObservabilityAdapter,
         )
 
@@ -145,7 +145,7 @@ class TestListEnrollmentsByStatus:
 
     def test_list_enrollments_empty_statuses_returns_empty(self, db_session) -> None:
         """Empty statuses tuple returns []."""
-        from src.modules.sales_agent.application.services.observability_adapter import (
+        from luana_core_sales_agent.application.services.observability_adapter import (
             SalesAgentObservabilityAdapter,
         )
 
@@ -160,10 +160,10 @@ class TestAdapterProtocol:
         from sqlalchemy.orm import Session
         from unittest.mock import MagicMock
 
-        from src.modules.sales_agent.application.services.observability_adapter import (
+        from luana_core_sales_agent.application.services.observability_adapter import (
             SalesAgentObservabilityAdapter,
         )
-        from src.shared.links.ports.sales_agent import SalesAgentObservabilityPort
+        from luana_core_platform.links.ports.sales_agent import SalesAgentObservabilityPort
 
         adapter = SalesAgentObservabilityAdapter(MagicMock(spec=Session))
         assert isinstance(adapter, SalesAgentObservabilityPort)

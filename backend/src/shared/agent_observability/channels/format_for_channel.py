@@ -15,8 +15,7 @@ import re
 
 import structlog
 from langchain_core.tools import tool
-
-from src.shared.agent_observability.channels.format import (
+from luana_core_channels.format import (
     ChannelFormat,
     get_channel_format,
 )

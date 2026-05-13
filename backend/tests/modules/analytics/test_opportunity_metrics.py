@@ -4,13 +4,13 @@ Covers: OpportunityDetailDTO construction, bottleneck threshold logic
 for abandoned cart and meeting no-show rates at all severity levels.
 """
 
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     ChannelMetricDTO,
     MetricValueDTO,
     TrafficGroupDTO,
 )
-from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
-from src.modules.analytics.application.dto.opportunity_dto import (
+from luana_core_analytics_engine.application.dto.capture_dto import MiniFunnelDTO
+from luana_core_analytics_engine.application.dto.opportunity_dto import (
     BottleneckDTO,
     OpportunityDetailDTO,
     OpportunityHeaderKpisDTO,

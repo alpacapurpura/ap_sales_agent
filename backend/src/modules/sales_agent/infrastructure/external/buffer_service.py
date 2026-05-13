@@ -4,8 +4,7 @@ import json
 import time
 
 import structlog
-
-from src.core.database import redis_client
+from luana_core_platform.core.database import redis_client
 
 logger = structlog.get_logger()
 

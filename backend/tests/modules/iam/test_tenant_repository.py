@@ -4,8 +4,8 @@ import uuid
 
 import pytest
 
-from src.modules.iam.domain.tenant import Tenant
-from src.modules.iam.infrastructure.repositories.tenant_repository import (
+from luana_core_iam.domain.tenant import Tenant
+from luana_core_iam.infrastructure.repositories.tenant_repository import (
     TenantRepository,
 )
 

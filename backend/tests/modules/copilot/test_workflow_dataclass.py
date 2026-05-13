@@ -11,7 +11,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from src.modules.copilot.domain.workflow import (
+from luana_core_copilot.domain.workflow import (
     NodeOutput,
     Workflow,
     WorkflowExecutionState,

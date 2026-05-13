@@ -3,19 +3,18 @@
 from uuid import UUID
 
 import structlog
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import func
-
-from src.modules.tenant_domains.domain.domain_entity import (
+from luana_core_tenant_domains.domain.domain_entity import (
     DomainStatus,
     DomainType,
     TenantDomain,
 )
-from src.modules.tenant_domains.domain.domain_repository import DomainRepository
-from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
+from luana_core_tenant_domains.domain.domain_repository import DomainRepository
+from luana_core_tenant_domains.infrastructure.models.tenant_domain_model import (
     TenantDomainModel,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 logger = structlog.get_logger()
 

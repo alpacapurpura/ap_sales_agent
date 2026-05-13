@@ -29,13 +29,12 @@ from pathlib import Path
 from typing import Literal
 
 import structlog
-
-from src.modules.copilot.evals.golden_dataset import (
+from luana_core_copilot.evals.golden_dataset import (
     load_all_classifier_goldens,
     load_all_summarizer_goldens,
 )
-from src.modules.copilot.evals.scorers.classifier import ClassifierScorer
-from src.modules.copilot.evals.scorers.summarizer import SummarizerScorer
+from luana_core_copilot.evals.scorers.classifier import ClassifierScorer
+from luana_core_copilot.evals.scorers.summarizer import SummarizerScorer
 
 logger = structlog.get_logger()
 

@@ -28,9 +28,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.shared.billing.application.budget_guard import BudgetGuard, SA_AGENT_KIND
-from src.shared.billing.domain.budget_decision import BudgetDecision
-from src.shared.billing.domain.plan import PlanConfig
+from luana_core_billing.application.budget_guard import BudgetGuard, SA_AGENT_KIND
+from luana_core_billing.domain.budget_decision import BudgetDecision
+from luana_core_billing.domain.plan import PlanConfig
 
 
 # ── Test fixtures and helpers ────────────────────────────────────────────────

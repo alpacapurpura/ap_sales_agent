@@ -10,7 +10,7 @@ TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
 
 def _make_user():
-    from src.modules.iam.domain.user import User
+    from luana_core_iam.domain.user import User
 
     user = MagicMock(spec=User)
     user.tenant_id = TENANT_ID
@@ -18,9 +18,9 @@ def _make_user():
 
 
 def _make_campaigns_app():
-    from src.core.database import get_db
-    from src.modules.analytics.api.campaigns import router
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_platform.core.database import get_db
+    from luana_core_analytics_engine.api.campaigns import router
+    from luana_core_iam.api.dependencies import get_current_user
 
     db = MagicMock()
     app = FastAPI()
@@ -31,9 +31,9 @@ def _make_campaigns_app():
 
 
 def _make_email_app():
-    from src.core.database import get_db
-    from src.modules.analytics.api.email_metrics import router
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_platform.core.database import get_db
+    from luana_core_analytics_engine.api.email_metrics import router
+    from luana_core_iam.api.dependencies import get_current_user
 
     db = MagicMock()
     app = FastAPI()
@@ -51,8 +51,8 @@ class TestCampaignsOverviewRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.campaigns.CampaignService") as MockSvc:
-            from src.modules.analytics.application.dto.campaign_dto import CampaignOverviewDTO
+        with patch("luana_core_analytics_engine.api.campaigns.CampaignService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.campaign_dto import CampaignOverviewDTO
 
             instance = MagicMock()
             instance.get_overview.return_value = CampaignOverviewDTO(
@@ -79,8 +79,8 @@ class TestCampaignsPerformanceRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.campaigns.CampaignService") as MockSvc:
-            from src.modules.analytics.application.dto.campaign_dto import CampaignPerformanceDTO
+        with patch("luana_core_analytics_engine.api.campaigns.CampaignService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.campaign_dto import CampaignPerformanceDTO
 
             instance = MagicMock()
             instance.get_performance.return_value = CampaignPerformanceDTO(
@@ -107,8 +107,8 @@ class TestCampaignsCreativesRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.campaigns.CampaignService") as MockSvc:
-            from src.modules.analytics.application.dto.campaign_dto import CreativesOverviewDTO
+        with patch("luana_core_analytics_engine.api.campaigns.CampaignService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.campaign_dto import CreativesOverviewDTO
 
             instance = MagicMock()
             instance.get_creatives_overview.return_value = CreativesOverviewDTO(
@@ -132,8 +132,8 @@ class TestAdsPerformanceRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.campaigns.AdPerformanceService") as MockSvc:
-            from src.modules.analytics.application.dto.campaign_dto import AdPerformanceListDTO
+        with patch("luana_core_analytics_engine.api.campaigns.AdPerformanceService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.campaign_dto import AdPerformanceListDTO
 
             instance = MagicMock()
             instance.get_top_ads.return_value = AdPerformanceListDTO(period="30d", ads=[])
@@ -154,8 +154,8 @@ class TestAdsFormatComparisonRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.campaigns.AdPerformanceService") as MockSvc:
-            from src.modules.analytics.application.dto.campaign_dto import FormatComparisonDTO
+        with patch("luana_core_analytics_engine.api.campaigns.AdPerformanceService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.campaign_dto import FormatComparisonDTO
 
             instance = MagicMock()
             instance.get_format_comparison.return_value = FormatComparisonDTO(
@@ -173,7 +173,7 @@ class TestCampaignAdSetsRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.campaigns.CampaignService") as MockSvc:
+        with patch("luana_core_analytics_engine.api.campaigns.CampaignService") as MockSvc:
             instance = MagicMock()
             instance.get_ad_sets.return_value = []
             MockSvc.return_value = instance
@@ -187,7 +187,7 @@ class TestAdSetAdsRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.campaigns.CampaignService") as MockSvc:
+        with patch("luana_core_analytics_engine.api.campaigns.CampaignService") as MockSvc:
             instance = MagicMock()
             instance.get_ads.return_value = []
             MockSvc.return_value = instance
@@ -201,7 +201,7 @@ class TestCampaignSyncStatusRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.core.database.redis_client", None):
+        with patch("luana_core_platform.core.database.redis_client", None):
             resp = client.get("/campaigns/sync/status")
 
         assert resp.status_code == 200
@@ -214,7 +214,7 @@ class TestCampaignSyncStatusRoute:
         mock_redis = MagicMock()
         mock_redis.get.return_value = None
 
-        with patch("src.core.database.redis_client", mock_redis):
+        with patch("luana_core_platform.core.database.redis_client", mock_redis):
             resp = client.get("/campaigns/sync/status")
 
         assert resp.status_code == 200
@@ -237,7 +237,7 @@ class TestCampaignSyncStatusRoute:
             }
         )
 
-        with patch("src.core.database.redis_client", mock_redis):
+        with patch("luana_core_platform.core.database.redis_client", mock_redis):
             resp = client.get("/campaigns/sync/status")
 
         assert resp.status_code == 200
@@ -251,8 +251,8 @@ class TestTriggerCampaignSyncRoute:
         app, _ = _make_campaigns_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.campaigns.CampaignService") as MockSvc:
-            from src.modules.analytics.api.campaigns import CampaignSyncResponse
+        with patch("luana_core_analytics_engine.api.campaigns.CampaignService") as MockSvc:
+            from luana_core_analytics_engine.api.campaigns import CampaignSyncResponse
 
             instance = MagicMock()
             instance.trigger_sync = AsyncMock(return_value=CampaignSyncResponse(status="queued"))
@@ -270,8 +270,8 @@ class TestEmailDashboardRoute:
         app, _ = _make_email_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.email_metrics.EmailDashboardService") as MockSvc:
-            from src.modules.analytics.application.dto.email_dashboard_dto import EmailDashboardDTO
+        with patch("luana_core_analytics_engine.api.email_metrics.EmailDashboardService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailDashboardDTO
 
             instance = MagicMock()
             instance.get_dashboard = AsyncMock(return_value=MagicMock(spec=EmailDashboardDTO))
@@ -286,8 +286,8 @@ class TestEmailCampaignsRoute:
         app, _ = _make_email_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.email_metrics.EmailDashboardService") as MockSvc:
-            from src.modules.analytics.application.dto.email_dashboard_dto import EmailCampaignsResponseDTO
+        with patch("luana_core_analytics_engine.api.email_metrics.EmailDashboardService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailCampaignsResponseDTO
 
             instance = MagicMock()
             instance.get_campaigns = AsyncMock(return_value=MagicMock(spec=EmailCampaignsResponseDTO))
@@ -302,8 +302,8 @@ class TestEmailHealthRoute:
         app, _ = _make_email_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.email_metrics.EmailDashboardService") as MockSvc:
-            from src.modules.analytics.application.dto.email_dashboard_dto import EmailHealthResponseDTO
+        with patch("luana_core_analytics_engine.api.email_metrics.EmailDashboardService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailHealthResponseDTO
 
             instance = MagicMock()
             instance.get_health = AsyncMock(return_value=MagicMock(spec=EmailHealthResponseDTO))
@@ -318,8 +318,8 @@ class TestEmailGrowthRoute:
         app, _ = _make_email_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.email_metrics.EmailDashboardService") as MockSvc:
-            from src.modules.analytics.application.dto.email_dashboard_dto import EmailGrowthResponseDTO
+        with patch("luana_core_analytics_engine.api.email_metrics.EmailDashboardService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailGrowthResponseDTO
 
             instance = MagicMock()
             instance.get_growth = AsyncMock(return_value=MagicMock(spec=EmailGrowthResponseDTO))
@@ -334,8 +334,8 @@ class TestEmailAudienceRoute:
         app, _ = _make_email_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.email_metrics.EmailDashboardService") as MockSvc:
-            from src.modules.analytics.application.dto.email_dashboard_dto import EmailAudienceResponseDTO
+        with patch("luana_core_analytics_engine.api.email_metrics.EmailDashboardService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailAudienceResponseDTO
 
             instance = MagicMock()
             instance.get_audience = AsyncMock(return_value=MagicMock(spec=EmailAudienceResponseDTO))
@@ -350,8 +350,8 @@ class TestEmailAutomationsRoute:
         app, _ = _make_email_app()
         client = TestClient(app, raise_server_exceptions=False)
 
-        with patch("src.modules.analytics.api.email_metrics.EmailDashboardService") as MockSvc:
-            from src.modules.analytics.application.dto.email_dashboard_dto import EmailAutomationsResponseDTO
+        with patch("luana_core_analytics_engine.api.email_metrics.EmailDashboardService") as MockSvc:
+            from luana_core_analytics_engine.application.dto.email_dashboard_dto import EmailAutomationsResponseDTO
 
             instance = MagicMock()
             instance.get_automations = AsyncMock(return_value=MagicMock(spec=EmailAutomationsResponseDTO))

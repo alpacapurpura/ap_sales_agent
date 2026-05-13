@@ -15,10 +15,9 @@ from typing import Any
 from uuid import UUID
 
 import structlog
-
-from src.shared.billing.domain.plan import PlanConfig
-from src.shared.billing.domain.plan_repository import PlanRepository
-from src.shared.billing.domain.subscription_repository import TenantSubscriptionRepository
+from luana_core_billing.domain.plan import PlanConfig
+from luana_core_billing.domain.plan_repository import PlanRepository
+from luana_core_billing.domain.subscription_repository import TenantSubscriptionRepository
 
 logger = structlog.get_logger(__name__)
 
@@ -179,7 +178,7 @@ class PlanService:
         """Update subscription and publish per-tenant cache invalidation."""
         import datetime as dt
 
-        from src.shared.billing.domain.subscription import TenantSubscription
+        from luana_core_billing.domain.subscription import TenantSubscription
 
         now = dt.datetime.now(dt.timezone.utc)
         sub = TenantSubscription(

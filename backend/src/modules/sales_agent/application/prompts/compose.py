@@ -38,14 +38,13 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
-from src.shared.agent_observability.channels.format import get_channel_format
+from luana_core_channels.format import get_channel_format
+from luana_core_sales_agent.infrastructure.prompts.base import prompt_loader
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from src.modules.sales_agent.application.orchestrator.state import AgentState
+    from luana_core_sales_agent.application.orchestrator.state import AgentState
 
 
 logger = structlog.get_logger(__name__)

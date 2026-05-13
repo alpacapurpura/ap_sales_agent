@@ -12,11 +12,11 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.domain.tenant_limits import CopilotTenantLimits
-from src.modules.copilot.infrastructure.models.tenant_limits_model import (
+from luana_core_copilot.domain.tenant_limits import CopilotTenantLimits
+from luana_core_copilot.infrastructure.models.tenant_limits_model import (
     CopilotTenantLimitsModel,
 )
-from src.modules.copilot.infrastructure.repositories.tenant_limits_repository import (
+from luana_core_copilot.infrastructure.repositories.tenant_limits_repository import (
     SyncCopilotTenantLimitsRepository,
     _model_to_domain,
 )

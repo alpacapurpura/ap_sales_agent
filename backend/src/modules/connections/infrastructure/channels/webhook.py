@@ -3,8 +3,7 @@
 from typing import Any
 
 import structlog
-
-from src.shared.domain.messages import OutgoingMessage
+from luana_core_platform.domain.messages import OutgoingMessage
 
 logger = structlog.get_logger()
 

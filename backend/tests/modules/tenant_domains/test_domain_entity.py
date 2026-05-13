@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from src.modules.tenant_domains.domain.domain_entity import (
+from luana_core_tenant_domains.domain.domain_entity import (
     DomainStatus,
     DomainType,
     TenantDomain,

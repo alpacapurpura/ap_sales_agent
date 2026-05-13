@@ -17,7 +17,7 @@ import pytest
 class TestNoDataResponseRefactor:
     def test_no_data_response_returns_empty_suggestions_and_next_step_hint(self) -> None:
         """_no_data_response produces: suggestions=[], next_step_hint=hint."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             _no_data_response,
         )
 
@@ -35,7 +35,7 @@ class TestNoDataResponseRefactor:
 
         Regression guard: ensures PR-2 deuda was resolved.
         """
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             _no_data_response,
         )
 
@@ -52,7 +52,7 @@ class TestNoDataResponseRefactor:
 class TestOkResponseRefactor:
     def test_ok_response_includes_optional_next_step_hint(self) -> None:
         """_ok_response accepts next_step_hint keyword and includes it in output."""
-        from src.modules.copilot.application.tools.offer_section_tools import _ok_response
+        from luana_core_copilot.application.tools.offer_section_tools import _ok_response
 
         result = json.loads(
             _ok_response(
@@ -69,7 +69,7 @@ class TestOkResponseRefactor:
 
     def test_ok_response_next_step_hint_defaults_to_none(self) -> None:
         """_ok_response without next_step_hint still works (backwards compat)."""
-        from src.modules.copilot.application.tools.offer_section_tools import _ok_response
+        from luana_core_copilot.application.tools.offer_section_tools import _ok_response
 
         result = json.loads(_ok_response("identity", {"brand_name": "ACME"}, ["chip"], 0.9))
         # next_step_hint is either absent or None — not required
@@ -96,7 +96,7 @@ class TestGrepNoStaticSuggestionsHintLiteral:
 
     def test_existing_tools_still_export_correctly(self) -> None:
         """OFFER_SECTION_TOOLS still exports all expected tools after refactor."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             OFFER_SECTION_TOOLS,
         )
 

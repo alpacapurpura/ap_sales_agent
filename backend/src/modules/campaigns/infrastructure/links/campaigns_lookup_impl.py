@@ -13,16 +13,15 @@ import datetime as dt
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.campaigns.domain.enums import TaskStatus
-from src.modules.campaigns.infrastructure.repositories.campaign_repository_impl import (
+from luana_core_campaigns.domain.enums import TaskStatus
+from luana_core_campaigns.infrastructure.repositories.campaign_repository_impl import (
     CampaignRepositoryImpl,
 )
-from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
     CampaignTaskRepositoryImpl,
 )
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.links.ports.campaigns import CampaignsLookupPort, CampaignTaskLookupResult
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.links.ports.campaigns import CampaignsLookupPort, CampaignTaskLookupResult
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

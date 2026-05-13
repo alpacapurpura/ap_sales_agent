@@ -15,15 +15,14 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select, update
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-from src.shared.agent_observability.recording.sanitization import sanitize_payload
-from src.shared.domain_events.outbox.domain.outbox_entry import (
+from luana_core_events.outbox.domain.outbox_entry import (
     OutboxEntry,
     OutboxStatus,
 )
-from src.shared.domain_events.outbox.infrastructure.models import DomainEventOutboxModel
+from luana_core_events.outbox.infrastructure.models import DomainEventOutboxModel
+from luana_core_observability.recording.sanitization import sanitize_payload
+from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

@@ -10,7 +10,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.compliance.domain.policies.country_block_policy import (
+from luana_core_compliance.domain.policies.country_block_policy import (
     CountryBlockPolicy,
     _lookup_phone_prefix,
 )

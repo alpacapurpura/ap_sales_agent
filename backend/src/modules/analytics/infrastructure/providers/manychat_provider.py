@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.analytics.domain.extraction_result import ExtractionResult
-from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
+from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+from luana_core_analytics_engine.infrastructure.providers.base import BaseMetricsProvider
 
 if TYPE_CHECKING:
     from datetime import date

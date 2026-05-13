@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger(__name__)
 
@@ -101,11 +101,10 @@ async def _delete_batch(
     cutoff: dt.datetime,
 ) -> int:
     """Delete one batch of stale audit rows. Returns rows deleted."""
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.modules.campaigns.infrastructure.repositories.audit_log_repo_impl import (
+    from luana_core_campaigns.infrastructure.repositories.audit_log_repo_impl import (
         AuditLogRepositoryImpl,
     )
+    from sqlalchemy.ext.asyncio import AsyncSession
 
     assert isinstance(cutoff, dt.datetime)  # noqa: S101
 

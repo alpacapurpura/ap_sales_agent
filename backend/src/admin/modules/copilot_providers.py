@@ -13,16 +13,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import streamlit as st
-
-from src.modules.copilot.application.discovery import (
+from luana_core_copilot.application.discovery import (
     discover_providers,
     health,
     reset_discovery,
 )
-from src.modules.copilot.domain.module_registry import reset_module_registry_cache
+from luana_core_copilot.domain.module_registry import reset_module_registry_cache
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.ports import CopilotProvider
+    from luana_core_copilot.domain.ports import CopilotProvider
 
 
 def _capability_badge(label: str, *, present: bool) -> str:

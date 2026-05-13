@@ -13,13 +13,14 @@ parallel registries can no longer happen by construction.
 
 from __future__ import annotations
 
-# Triggers offer FieldContract registration on first import.
-import src.modules.offer.domain.field_contract  # noqa: F401
-from src.modules.offer.domain.enums import OfferArchetype
-from src.shared.domain.field_contract import (
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_platform.domain.field_contract import (
     FieldContract,
     get_module_contracts,
 )
+
+# Triggers offer FieldContract registration on first import.
+import src.modules.offer.domain.field_contract  # noqa: F401
 
 # All 21 FE section slugs from section-catalog.ts — used in arch tests.
 FE_SECTION_SLUGS: frozenset[str] = frozenset(

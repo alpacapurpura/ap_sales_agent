@@ -13,9 +13,8 @@ from __future__ import annotations
 from uuid import UUID
 
 import structlog
-
-from src.shared.compliance.domain.check_result import CheckResult
-from src.shared.compliance.domain.opt_in_repository import OptInRepository
+from luana_core_compliance.domain.check_result import CheckResult
+from luana_core_compliance.domain.opt_in_repository import OptInRepository
 
 logger = structlog.get_logger(__name__)
 

@@ -9,20 +9,19 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.offer.api.dto.lifecycle_dtos import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_offer_studio.api.dto.lifecycle_dtos import (
     OfferStatusChangeRequest,
     OfferStatusChangeResponse,
 )
-from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.application.services.offer_lifecycle_service import (
+from luana_core_offer_studio.application.offer_service import OfferService
+from luana_core_offer_studio.application.services.offer_lifecycle_service import (
     OfferLifecycleService,
 )
-from src.modules.offer.domain.exceptions import InvalidTransitionError
+from luana_core_offer_studio.domain.exceptions import InvalidTransitionError
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

@@ -2,11 +2,10 @@
 
 from uuid import UUID
 
+from luana_core_iam.domain.user import User
+from luana_core_iam.infrastructure.models.user_model import UserModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models.user_model import UserModel
 
 
 class UserRepository:

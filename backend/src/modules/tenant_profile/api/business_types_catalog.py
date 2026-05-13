@@ -17,8 +17,7 @@ key their cache by the returned ``version`` and evict on bump.
 from __future__ import annotations
 
 from fastapi import APIRouter
-
-from src.modules.tenant_profile.api.dtos import (
+from luana_core_tenant_profile.api.dtos import (
     BusinessTypesCatalogResponse,
     _build_catalog_response,
 )

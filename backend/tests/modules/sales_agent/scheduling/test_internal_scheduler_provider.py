@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.modules.sales_agent.application.tools.scheduling.providers import (
+from luana_core_sales_agent.application.tools.scheduling.providers import (
     BookingStatusValue,
     InternalSchedulerProvider,
     SchedulerProvider,
@@ -22,7 +22,7 @@ from src.modules.sales_agent.application.tools.scheduling.providers import (
 
 @pytest.fixture
 def tenant(db):
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
     t = TenantModel(
         id=uuid.UUID("aaaa1111-0000-0000-0000-000000000001"),
@@ -37,7 +37,7 @@ def tenant(db):
 
 @pytest.fixture
 def lead(db, tenant):
-    from src.modules.crm.infrastructure.models.lead_model import LeadModel
+    from luana_core_crm.infrastructure.models.lead_model import LeadModel
 
     lead = LeadModel(
         id=uuid.UUID("bbbb1111-0000-0000-0000-000000000001"),
@@ -64,7 +64,7 @@ def test_create_booking_link_persists_link(db, tenant, lead) -> None:
     from src.modules.scheduling.infrastructure.models.booking_link import BookingLink
 
     with patch(
-        "src.shared.links.ports.domain_lookup.create_domain_lookup",
+        "luana_core_platform.links.ports.domain_lookup.create_domain_lookup",
     ) as mock_lookup:
         mock_lookup.return_value.get_verified_domain.return_value = None  # fallback to DASHBOARD_DOMAIN
         provider = InternalSchedulerProvider(db)
@@ -100,7 +100,7 @@ def test_verify_booking_status_unknown_token(db, tenant, lead) -> None:
 def test_verify_booking_status_pending_when_link_active(db, tenant, lead) -> None:
     """ACTIVE link, no appointment → PENDING."""
     with patch(
-        "src.shared.links.ports.domain_lookup.create_domain_lookup",
+        "luana_core_platform.links.ports.domain_lookup.create_domain_lookup",
     ) as mock_lookup:
         mock_lookup.return_value.get_verified_domain.return_value = None
         provider = InternalSchedulerProvider(db)

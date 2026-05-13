@@ -7,7 +7,7 @@ a clear error. This test makes the mismatch fail at CI instead of in prod.
 
 from __future__ import annotations
 
-from src.shared.domain.extraction_jobs import ExtractionJob
+from luana_core_platform.domain.extraction_jobs import ExtractionJob
 from src.workers.settings import WorkerSettings
 
 

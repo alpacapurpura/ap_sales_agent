@@ -214,7 +214,7 @@ class InternalSchedulerProvider:
         expires_in_hours: int = 72,
     ) -> BookingLinkOutput:
         """Persist a BookingLink + return URL composed against tenant domain."""
-        from src.shared.links.ports.scheduling import (
+        from luana_core_platform.links.ports.scheduling import (
             create_personalized_booking_link,
             get_booking_base_url,
         )
@@ -231,7 +231,7 @@ class InternalSchedulerProvider:
             expires_at=expires_at,
         )
 
-        from src.shared.links.ports.domain_lookup import create_domain_lookup
+        from luana_core_platform.links.ports.domain_lookup import create_domain_lookup
 
         base_url = get_booking_base_url(tenant_id, create_domain_lookup(self.db))
         tenant_slug = self._resolve_tenant_slug(tenant_id)
@@ -303,7 +303,7 @@ class InternalSchedulerProvider:
         days_ahead: int = 14,
     ) -> list[SchedulerSlot]:
         """Pull slots from AvailabilityService via shared port."""
-        from src.shared.links.ports.scheduling import list_event_type_slots
+        from luana_core_platform.links.ports.scheduling import list_event_type_slots
 
         rows = list_event_type_slots(
             self.db,
@@ -316,7 +316,7 @@ class InternalSchedulerProvider:
     # ── helpers ──────────────────────────────────────────────
 
     def _resolve_tenant_slug(self, tenant_id: UUID) -> str:
-        from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+        from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
         stmt = select(TenantModel.slug).where(TenantModel.id == tenant_id)
         slug = self.db.execute(stmt).scalar_one_or_none()
@@ -327,7 +327,7 @@ class InternalSchedulerProvider:
         tracking_id: str,
     ) -> tuple[str, str | None, dt.datetime, UUID | None] | None:
         """Return (status, event_slug, expires_at, lead_id) for a token, or None."""
-        from src.shared.links.ports.scheduling import lookup_booking_link_by_token
+        from luana_core_platform.links.ports.scheduling import lookup_booking_link_by_token
 
         return lookup_booking_link_by_token(self.db, tracking_id)
 
@@ -343,7 +343,7 @@ class InternalSchedulerProvider:
         imports scheduling models directly. ``event_slug`` reserved for
         future per-slug filtering when AppointmentModel grows the FK.
         """
-        from src.shared.links.ports.scheduling import (
+        from luana_core_platform.links.ports.scheduling import (
             lookup_latest_appointment_for_lead,
         )
 

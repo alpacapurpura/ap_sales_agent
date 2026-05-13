@@ -68,7 +68,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_simulator_grade import (
     EvalSimulatorGradeModel,
 )
-from src.shared.agent_observability.recording.sanitization import sanitize_payload
+from luana_core_observability.recording.sanitization import sanitize_payload
 from tests.agentic_evals.sales_agent.grader._internal.cache import (
     cache_lookup,
     cache_persist,

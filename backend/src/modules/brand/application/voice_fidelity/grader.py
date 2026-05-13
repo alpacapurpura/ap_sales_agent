@@ -89,8 +89,8 @@ def grade_response(rubric: GraderRubric) -> GraderResult:
     lex = _lexical_alignment(rubric.response, rubric.target_vocabulary)
 
     try:
-        from src.core.enums import ModelRole
-        from src.shared.infrastructure.llm.factory import LLMFactory
+        from luana_core_llm.factory import LLMFactory
+        from luana_core_platform.core.enums import ModelRole
     except Exception:  # noqa: BLE001 — scaffold tolerates missing infra
         return GraderResult(
             tone_match=0,

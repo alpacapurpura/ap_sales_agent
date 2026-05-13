@@ -8,7 +8,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.modules.connections.api.calendar import (
+from luana_core_connections.api.calendar import (
     book_meeting,
     create_booking_link,
     create_personalized_link,
@@ -23,10 +23,10 @@ from src.modules.connections.api.calendar import (
     oauth_callback,
     update_schedule,
 )
-from src.modules.connections.api.calendar import (
+from luana_core_connections.api.calendar import (
     test_connection as cal_test_connection,
 )
-from src.modules.connections.api.dto.calendar import (
+from luana_core_connections.api.dto.calendar import (
     BookMeetingRequest,
     CreateBookingLinkRequest,
 )
@@ -72,7 +72,7 @@ class TestCalendarGetAuthUrl:
     @pytest.mark.asyncio
     async def test_returns_url_and_state(self):
         user = _user()
-        with patch("src.modules.connections.api.calendar.GoogleCalendarAdapter.get_authorization_url") as mock_url:
+        with patch("luana_core_connections.api.calendar.GoogleCalendarAdapter.get_authorization_url") as mock_url:
             mock_url.return_value = ("https://accounts.google.com/auth", "state_abc")
             result = await get_auth_url(user, redirect_uri=None)
         assert "url" in result
@@ -91,7 +91,7 @@ class TestCalendarOAuthCallback:
         user = _user()
         repo = _repo()
 
-        with patch("src.modules.connections.api.calendar.GoogleCalendarAdapter.exchange_code") as mock_ex:
+        with patch("luana_core_connections.api.calendar.GoogleCalendarAdapter.exchange_code") as mock_ex:
             mock_ex.side_effect = Exception("bad code")
             with pytest.raises(HTTPException) as exc_info:
                 await oauth_callback("bad_code", db, user, repo, redirect_uri=None)
@@ -105,8 +105,8 @@ class TestCalendarOAuthCallback:
         creds = {"access_token": "at", "refresh_token": "rt"}
 
         with (
-            patch("src.modules.connections.api.calendar.GoogleCalendarAdapter.exchange_code", return_value=creds),
-            patch("src.modules.connections.api.calendar.GoogleCalendarAdapter") as MockAdapter,
+            patch("luana_core_connections.api.calendar.GoogleCalendarAdapter.exchange_code", return_value=creds),
+            patch("luana_core_connections.api.calendar.GoogleCalendarAdapter") as MockAdapter,
         ):
             mock_service = MagicMock()
             mock_service.calendars.return_value.get.return_value.execute.return_value = {"id": "user@gmail.com"}
@@ -125,8 +125,8 @@ class TestCalendarOAuthCallback:
         creds = {"access_token": "at", "refresh_token": "rt"}
 
         with (
-            patch("src.modules.connections.api.calendar.GoogleCalendarAdapter.exchange_code", return_value=creds),
-            patch("src.modules.connections.api.calendar.GoogleCalendarAdapter") as MockAdapter,
+            patch("luana_core_connections.api.calendar.GoogleCalendarAdapter.exchange_code", return_value=creds),
+            patch("luana_core_connections.api.calendar.GoogleCalendarAdapter") as MockAdapter,
         ):
             MockAdapter.return_value.get_service.side_effect = Exception("service error")
             result = await oauth_callback("good_code", db, user, repo, redirect_uri=None)
@@ -148,8 +148,8 @@ class TestCalendarGetStatus:
         repo = _repo(get_active=MagicMock(return_value=None))
 
         with (
-            patch("src.modules.connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
-            patch("src.modules.connections.api.calendar.create_domain_lookup"),
+            patch("luana_core_connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
+            patch("luana_core_connections.api.calendar.create_domain_lookup"),
         ):
             result = await get_status(db, user, repo)
 
@@ -163,8 +163,8 @@ class TestCalendarGetStatus:
         repo = _repo(get_active=MagicMock(return_value=conn))
 
         with (
-            patch("src.modules.connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
-            patch("src.modules.connections.api.calendar.create_domain_lookup"),
+            patch("luana_core_connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
+            patch("luana_core_connections.api.calendar.create_domain_lookup"),
         ):
             result = await get_status(db, user, repo)
 
@@ -181,8 +181,8 @@ class TestCalendarGetStatus:
         repo = _repo(get_active=MagicMock(return_value=None))
 
         with (
-            patch("src.modules.connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
-            patch("src.modules.connections.api.calendar.create_domain_lookup"),
+            patch("luana_core_connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
+            patch("luana_core_connections.api.calendar.create_domain_lookup"),
         ):
             result = await get_status(db, user, repo)
 
@@ -204,9 +204,9 @@ class TestCreateBookingLink:
         link.token = "tok123"
 
         with (
-            patch("src.modules.connections.api.calendar.LinkService") as MockLS,
-            patch("src.modules.connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
-            patch("src.modules.connections.api.calendar.create_domain_lookup"),
+            patch("luana_core_connections.api.calendar.LinkService") as MockLS,
+            patch("luana_core_connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
+            patch("luana_core_connections.api.calendar.create_domain_lookup"),
         ):
             MockLS.return_value.create_link.return_value = link
             result = await create_booking_link(db, user)
@@ -228,7 +228,7 @@ class TestCreatePersonalizedLink:
         payload = CreateBookingLinkRequest(lead_id=str(uuid4()), event_slug="meeting", expiration_days=7)
 
         with (
-            patch("src.modules.connections.api.calendar.verify_lead_exists", return_value=False),
+            patch("luana_core_connections.api.calendar.verify_lead_exists", return_value=False),
             pytest.raises(HTTPException) as exc_info,
         ):
             await create_personalized_link(payload, db, user)
@@ -243,10 +243,10 @@ class TestCreatePersonalizedLink:
         link_data = {"token": "plink123", "expires_at": datetime.datetime.now(datetime.UTC)}
 
         with (
-            patch("src.modules.connections.api.calendar.verify_lead_exists", return_value=True),
-            patch("src.modules.connections.api.calendar.create_personalized_booking_link", return_value=link_data),
-            patch("src.modules.connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
-            patch("src.modules.connections.api.calendar.create_domain_lookup"),
+            patch("luana_core_connections.api.calendar.verify_lead_exists", return_value=True),
+            patch("luana_core_connections.api.calendar.create_personalized_booking_link", return_value=link_data),
+            patch("luana_core_connections.api.calendar.get_booking_base_url", return_value="https://book.example.com"),
+            patch("luana_core_connections.api.calendar.create_domain_lookup"),
         ):
             result = await create_personalized_link(payload, db, user)
 
@@ -300,7 +300,7 @@ class TestCalendarTestConnection:
         conn = _conn()
         repo = _repo(get_active=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.calendar.GoogleCalendarAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.calendar.GoogleCalendarAdapter") as MockAdapter:
             MockAdapter.return_value.list_busy_periods.return_value = []
             result = await cal_test_connection(user, repo)
 
@@ -312,7 +312,7 @@ class TestCalendarTestConnection:
         conn = _conn()
         repo = _repo(get_active=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.calendar.GoogleCalendarAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.calendar.GoogleCalendarAdapter") as MockAdapter:
             MockAdapter.return_value.list_busy_periods.side_effect = Exception("API error")
             result = await cal_test_connection(user, repo)
 
@@ -332,7 +332,7 @@ class TestGetSlots:
         start = datetime.date(2024, 1, 1)
         end = datetime.date(2024, 1, 7)
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.get_available_slots.return_value = ["2024-01-01T09:00:00", "2024-01-01T10:00:00"]
             result = await get_slots(start, end, db, user, duration=30)
 
@@ -355,7 +355,7 @@ class TestBookMeeting:
             lead_data={"name": "Test Lead", "email": "lead@example.com"},
         )
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.book_meeting.return_value = {"htmlLink": "https://calendar.google.com/event/123"}
             result = await book_meeting(payload, db, user)
 
@@ -372,7 +372,7 @@ class TestBookMeeting:
             lead_data={},
         )
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.book_meeting.side_effect = Exception("slot taken")
             with pytest.raises(HTTPException) as exc_info:
                 await book_meeting(payload, db, user)
@@ -402,7 +402,7 @@ class TestListAppointments:
             }
         ]
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.list_appointments.return_value = events
             result = await list_appointments(start, end, db, user)
 
@@ -422,7 +422,7 @@ class TestScheduleEndpoints:
         db = _mock_db()
         user = _user()
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.list_schedules.return_value = [MagicMock()]
             result = await list_schedules(db, user)
 
@@ -434,7 +434,7 @@ class TestScheduleEndpoints:
         user = _user()
         schedule = MagicMock()
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.create_schedule.return_value = schedule
             result = await create_schedule(schedule, db, user)
 
@@ -447,7 +447,7 @@ class TestScheduleEndpoints:
         update = MagicMock()
         updated = MagicMock()
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.update_schedule.return_value = updated
             result = await update_schedule("sched_1", update, db, user)
 
@@ -459,7 +459,7 @@ class TestScheduleEndpoints:
         user = _user()
         update = MagicMock()
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.update_schedule.return_value = None
             with pytest.raises(HTTPException) as exc_info:
                 await update_schedule("missing_id", update, db, user)
@@ -470,7 +470,7 @@ class TestScheduleEndpoints:
         db = _mock_db()
         user = _user()
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.delete_schedule.return_value = True
             result = await delete_schedule("sched_1", db, user)
 
@@ -481,7 +481,7 @@ class TestScheduleEndpoints:
         db = _mock_db()
         user = _user()
 
-        with patch("src.modules.connections.api.calendar.get_availability_service") as mock_svc:
+        with patch("luana_core_connections.api.calendar.get_availability_service") as mock_svc:
             mock_svc.return_value.delete_schedule.return_value = False
             with pytest.raises(HTTPException) as exc_info:
                 await delete_schedule("missing_id", db, user)

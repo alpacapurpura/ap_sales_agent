@@ -4,9 +4,9 @@ import uuid
 
 import pytest
 
-from src.modules.landing.application.landing_service import LandingService
-from src.modules.landing.domain.content import LandingPageConfig, SqueezeContent
-from src.modules.landing.domain.enums import LandingPageArchetype
+from luana_core_landing.application.landing_service import LandingService
+from luana_core_landing.domain.content import LandingPageConfig, SqueezeContent
+from luana_core_landing.domain.enums import LandingPageArchetype
 
 
 def _make_config(slug: str = "test-page") -> LandingPageConfig:

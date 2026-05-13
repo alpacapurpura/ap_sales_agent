@@ -14,8 +14,8 @@ import re
 from collections import defaultdict
 from datetime import date
 
-from src.modules.analytics.domain.enums import AggregationType
-from src.modules.analytics.domain.metric_catalog import MetricDefinition, get_metric_def
+from luana_core_analytics_engine.domain.enums import AggregationType
+from luana_core_analytics_engine.domain.metric_catalog import MetricDefinition, get_metric_def
 
 # ---------------------------------------------------------------------------
 # Alias map: hero_metrics names → metric_catalog canonical names

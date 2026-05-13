@@ -10,7 +10,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.domain.tenant_limits import CopilotTenantLimits
+from luana_core_copilot.domain.tenant_limits import CopilotTenantLimits
 
 
 class TestCopilotTenantLimitsInvariants:

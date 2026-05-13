@@ -14,11 +14,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
     SalesAgentLlmCallModel,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

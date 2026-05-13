@@ -9,10 +9,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.application.tools.shared_tools.web_research import (
+from luana_core_copilot.application.tools.shared_tools.web_research import (
     web_research,
 )
-from src.modules.copilot.infrastructure.web.tavily_search import SearchResult
+from luana_core_copilot.infrastructure.web.tavily_search import SearchResult
 
 
 @pytest.mark.asyncio
@@ -33,7 +33,7 @@ async def test_web_research_returns_results() -> None:
     ]
 
     with patch(
-        "src.modules.copilot.application.tools.shared_tools.web_research.TavilySearchService",
+        "luana_core_copilot.application.tools.shared_tools.web_research.TavilySearchService",
     ) as mock_cls:
         mock_service = MagicMock()
         mock_service.search = AsyncMock(return_value=mock_results)
@@ -56,7 +56,7 @@ async def test_web_research_returns_results() -> None:
 @pytest.mark.asyncio
 async def test_web_research_empty_results() -> None:
     with patch(
-        "src.modules.copilot.application.tools.shared_tools.web_research.TavilySearchService",
+        "luana_core_copilot.application.tools.shared_tools.web_research.TavilySearchService",
     ) as mock_cls:
         mock_service = MagicMock()
         mock_service.search = AsyncMock(return_value=[])
@@ -70,7 +70,7 @@ async def test_web_research_empty_results() -> None:
 @pytest.mark.asyncio
 async def test_web_research_default_max_results() -> None:
     with patch(
-        "src.modules.copilot.application.tools.shared_tools.web_research.TavilySearchService",
+        "luana_core_copilot.application.tools.shared_tools.web_research.TavilySearchService",
     ) as mock_cls:
         mock_service = MagicMock()
         mock_service.search = AsyncMock(return_value=[])

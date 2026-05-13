@@ -20,7 +20,7 @@ from decimal import Decimal
 from typing import Any, Literal
 from uuid import UUID
 
-from src.core.enums import AIProvider, ModelRole
+from luana_core_platform.core.enums import AIProvider, ModelRole
 
 AuditAction = Literal["create", "activate", "deactivate", "update_config", "test_ping", "rollback"]
 

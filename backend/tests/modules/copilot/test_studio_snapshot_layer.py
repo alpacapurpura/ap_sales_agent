@@ -18,7 +18,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.graph import (
+from luana_core_copilot.application.orchestrator.graph import (
     _build_studio_snapshot_layer,
     _resolve_studio_context,
 )
@@ -142,7 +142,7 @@ def test_layer_brand_route_partitions_filled_and_empty() -> None:
     """Stub out `_compute_field_completion` to verify the template contract."""
     state = _state_on_route(f"/{_TENANT_ID}/brand-studio/identity")
     with patch(
-        "src.modules.copilot.application.orchestrator.graph._compute_field_completion",
+        "luana_core_copilot.application.orchestrator.graph._compute_field_completion",
         return_value=(
             ["identity.brand_name", "identity.tagline"],
             ["positioning.brand_essence"],
@@ -166,7 +166,7 @@ def test_layer_offer_route_includes_entity_id_context() -> None:
         f"/{_TENANT_ID}/offer-studio/offer/{_OFFER_ID}/promise",
     )
     with patch(
-        "src.modules.copilot.application.orchestrator.graph._compute_field_completion",
+        "luana_core_copilot.application.orchestrator.graph._compute_field_completion",
         return_value=(["public_name"], ["primary_outcome"]),
     ):
         rendered = _build_studio_snapshot_layer(state)
@@ -179,7 +179,7 @@ def test_layer_offer_route_includes_entity_id_context() -> None:
 def test_layer_empty_when_catalog_returns_no_paths() -> None:
     state = _state_on_route(f"/{_TENANT_ID}/brand-studio/identity")
     with patch(
-        "src.modules.copilot.application.orchestrator.graph.get_catalog",
+        "luana_core_copilot.application.orchestrator.graph.get_catalog",
         return_value=(),
     ):
         # No editable fields → nothing to announce; stay silent.
@@ -224,7 +224,7 @@ def test_layer_buyer_persona_route_renders_persona_id_in_prompt() -> None:
         f"/{_TENANT_ID}/brand-studio/publico/persona/{_PERSONA_ID}",
     )
     with patch(
-        "src.modules.copilot.application.orchestrator.graph._compute_field_completion",
+        "luana_core_copilot.application.orchestrator.graph._compute_field_completion",
         return_value=(
             ["identity.name", "psychology.symptoms"],
             ["psychology.desires", "psychology.fears"],

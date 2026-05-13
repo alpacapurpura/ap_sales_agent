@@ -8,13 +8,13 @@ Query / Command / Kpi axis (research: lightweight CQRS for FastAPI 2026
 # S11-shared-lift-orchestrator-decomp.md
 """
 
-from src.modules.sales_agent.application.services.closer_studio.command_service import (
+from luana_core_sales_agent.application.services.closer_studio.command_service import (
     ConversationCommandService,
 )
-from src.modules.sales_agent.application.services.closer_studio.kpi_service import (
+from luana_core_sales_agent.application.services.closer_studio.kpi_service import (
     KpiService,
 )
-from src.modules.sales_agent.application.services.closer_studio.query_service import (
+from luana_core_sales_agent.application.services.closer_studio.query_service import (
     ConversationQueryService,
 )
 

@@ -16,10 +16,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
 )
-from src.shared.domain_events.outbox.domain.event import DomainEvent
+from luana_core_events.outbox.domain.event import DomainEvent
 
 
 def _make_card_emitted_event() -> DomainEvent:
@@ -58,7 +58,7 @@ class TestCopilotOutboxAdapterFlagOff:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),
@@ -80,7 +80,7 @@ class TestCopilotOutboxAdapterFlagOff:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),
@@ -100,7 +100,7 @@ class TestCopilotOutboxAdapterFlagOff:
         monkeypatch.setattr to assert the flag-off branch contract.
         """
         monkeypatch.setattr(
-            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            "luana_core_events.outbox.application.event_bus_adapter.settings",
             MagicMock(USE_OUTBOX_PATTERN_COPILOT=False, USE_OUTBOX_PATTERN_DEFAULT=False),
         )
         result = EventBusAdapter._is_outbox_enabled("copilot")
@@ -110,7 +110,7 @@ class TestCopilotOutboxAdapterFlagOff:
         """Verify flag OFF via monkeypatch.setattr on settings (pydantic-settings
         loads env at startup; setenv after import does not propagate)."""
         monkeypatch.setattr(
-            "src.shared.domain_events.outbox.application.event_bus_adapter.settings",
+            "luana_core_events.outbox.application.event_bus_adapter.settings",
             MagicMock(USE_OUTBOX_PATTERN_COPILOT=False, USE_OUTBOX_PATTERN_DEFAULT=False),
         )
         result = EventBusAdapter._is_outbox_enabled("copilot")
@@ -135,7 +135,7 @@ class TestCopilotOutboxAdapterFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):
@@ -158,7 +158,7 @@ class TestCopilotOutboxAdapterFlagOn:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
@@ -189,7 +189,7 @@ class TestCopilotOutboxAdapterFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):
@@ -205,15 +205,15 @@ class TestDomainSubscribersRegistration:
 
     def test_register_subscribers_wires_card_emitted_handler(self) -> None:
         """register_subscribers registers on_card_emitted for copilot_card_emitted."""
-        from src.shared.domain.events import EventBus as LegacyEventBus
+        from luana_core_platform.domain.events import EventBus as LegacyEventBus
 
         # Clear to start fresh
         LegacyEventBus.clear()
 
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
 
@@ -224,7 +224,7 @@ class TestDomainSubscribersRegistration:
         register_subscribers(repo_factory=lambda: mock_repo)
 
         # Verify handlers registered — adapter.subscribe delegates to legacy bus _handlers
-        from src.modules.copilot.domain.events import EVENT_CARD_EMITTED
+        from luana_core_copilot.domain.events import EVENT_CARD_EMITTED
 
         assert EVENT_CARD_EMITTED in LegacyEventBus._handlers, (
             f"Expected '{EVENT_CARD_EMITTED}' to be registered in LegacyEventBus._handlers"
@@ -232,21 +232,21 @@ class TestDomainSubscribersRegistration:
 
     def test_register_subscribers_idempotent(self) -> None:
         """Calling register_subscribers twice does not duplicate handlers."""
-        from src.shared.domain.events import EventBus as LegacyEventBus
+        from luana_core_platform.domain.events import EventBus as LegacyEventBus
 
         LegacyEventBus.clear()
 
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
 
         mock_repo = MagicMock(spec=TraceEventRepository)
 
         register_subscribers(repo_factory=lambda: mock_repo)
-        from src.modules.copilot.domain.events import EVENT_CARD_EMITTED
+        from luana_core_copilot.domain.events import EVENT_CARD_EMITTED
 
         handlers_after_first = len(getattr(LegacyEventBus, "_handlers", {}).get(EVENT_CARD_EMITTED, []))
 

@@ -13,10 +13,9 @@ import structlog
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.links.ports.campaigns import CampaignsLookupPort
+    from luana_core_sales_agent.api.dto.closer_studio import ConversationDetail, ConversationListItem
     from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.modules.sales_agent.api.dto.closer_studio import ConversationDetail, ConversationListItem
-    from src.shared.links.ports.campaigns import CampaignsLookupPort
 
 logger = structlog.get_logger(__name__)
 

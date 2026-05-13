@@ -7,12 +7,17 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import structlog
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.core.config import settings
+from luana_core_platform.links.ports.calendar import (
+    create_calendar_adapter,
+    create_gmail_adapter,
+    get_channel_credentials,
+)
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
-from src.core.config import settings
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.scheduling.domain.availability_schema import (
     AvailabilitySchedule,
     DaySchedule,
@@ -23,11 +28,6 @@ from src.modules.scheduling.domain.availability_schema import (
 from src.modules.scheduling.domain.event_type_schema import EventType
 from src.modules.scheduling.infrastructure.models.appointment_model import (
     AppointmentModel as Appointment,
-)
-from src.shared.links.ports.calendar import (
-    create_calendar_adapter,
-    create_gmail_adapter,
-    get_channel_credentials,
 )
 
 logger = structlog.get_logger()
@@ -410,7 +410,7 @@ class AvailabilityService:
 
             # Find or Create Lead if not provided
             if not lead_id and lead_data.get("email"):
-                from src.shared.links.ports.lead_resolution import find_or_create_lead
+                from luana_core_platform.links.ports.lead_resolution import find_or_create_lead
 
                 lead_id = find_or_create_lead(self.db, self.tenant_id, lead_data)
 

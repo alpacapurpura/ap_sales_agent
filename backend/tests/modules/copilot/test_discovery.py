@@ -20,8 +20,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.modules.copilot.application import discovery as discovery_mod
-from src.modules.copilot.domain.ports import (
+from luana_core_copilot.application import discovery as discovery_mod
+from luana_core_copilot.domain.ports import (
     CopilotProvider,
     ModuleData,
     ProviderHealth,

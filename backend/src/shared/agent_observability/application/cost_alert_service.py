@@ -24,17 +24,16 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select
-
-from src.shared.agent_observability.persistence.models.tenant_billing_config_model import (
+from luana_core_observability.persistence.models.tenant_billing_config_model import (
     TenantBillingConfigModel,
 )
-from src.shared.agent_observability.reporting.billing_cycle_service import (
+from luana_core_observability.reporting.billing_cycle_service import (
     BillingCycleService,
 )
-from src.shared.agent_observability.reporting.cost_aggregator import (
+from luana_core_observability.reporting.cost_aggregator import (
     CrossAgentCostAggregator,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

@@ -58,7 +58,7 @@ def _build_from_providers() -> dict[str, ModuleDescriptor]:
     # Local import keeps domain layer free of application-layer dependencies
     # at module-load time and matches the lazy-loader pattern this module
     # used pre-F1.
-    from src.modules.copilot.application.discovery import discover_providers
+    from luana_core_copilot.application.discovery import discover_providers
 
     registry: dict[str, ModuleDescriptor] = {}
     for module_id, provider in discover_providers().items():

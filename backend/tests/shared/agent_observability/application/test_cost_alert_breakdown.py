@@ -19,10 +19,10 @@ from uuid import UUID, uuid4
 import pytest
 from sqlalchemy.orm import sessionmaker
 
-from src.modules.copilot.observability.persistence.models.llm_call_model import (
+from luana_core_copilot.observability.persistence.models.llm_call_model import (
     CopilotLlmCallModel,
 )
-from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
     SalesAgentLlmCallModel,
 )
 
@@ -39,7 +39,7 @@ def db(db_engine):
 
 
 def _seed_billing_config(db, tenant_id: UUID, threshold_usd: Decimal) -> None:
-    from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
+    from luana_core_observability.persistence.tenant_billing_config_repository import (
         TenantBillingConfigRepository,
     )
 
@@ -144,7 +144,7 @@ class TestCrossAgentBreakdown:
         monkeypatch,
     ) -> None:
         """Copilot ($0.50) + sales ($1.50) = $2.00 > $1.00 threshold → alert with breakdown."""
-        from src.shared.agent_observability.application import cost_alert_service
+        from luana_core_observability.application import cost_alert_service
 
         tenant_id = uuid4()
         cycle_pivot = dt.datetime(2026, 4, 26, tzinfo=dt.UTC)
@@ -173,7 +173,7 @@ class TestCrossAgentBreakdown:
 
     def test_neither_agent_alone_triggers_but_combined_does(self, db, monkeypatch) -> None:
         """Each agent under threshold individually but combined goes over."""
-        from src.shared.agent_observability.application import cost_alert_service
+        from luana_core_observability.application import cost_alert_service
 
         tenant_id = uuid4()
         cycle_pivot = dt.datetime(2026, 4, 26, tzinfo=dt.UTC)
@@ -195,7 +195,7 @@ class TestCrossAgentBreakdown:
 
     def test_only_one_agent_no_double_count(self, db, monkeypatch) -> None:
         """Tenant with only sales calls — copilot breakdown is 0, total is sales-only."""
-        from src.shared.agent_observability.application import cost_alert_service
+        from luana_core_observability.application import cost_alert_service
 
         tenant_id = uuid4()
         cycle_pivot = dt.datetime(2026, 4, 26, tzinfo=dt.UTC)

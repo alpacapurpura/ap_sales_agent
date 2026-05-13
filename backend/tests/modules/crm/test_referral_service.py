@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.models.referral_code_model import ReferralCodeModel
+from luana_core_crm.infrastructure.models.referral_code_model import ReferralCodeModel
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -51,7 +51,7 @@ class TestGenerateCode:
     """generate_code creates REF-XXXXXX format with collision retry."""
 
     def test_generate_code_format(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         svc = ReferralService(db)
         profile_id = uuid.uuid4()
@@ -63,7 +63,7 @@ class TestGenerateCode:
         assert suffix.isalnum()
 
     def test_generate_two_codes_different(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         svc = ReferralService(db)
         profile_id = uuid.uuid4()
@@ -73,7 +73,7 @@ class TestGenerateCode:
         assert code1.code != code2.code
 
     def test_generate_code_collision_retry(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         svc = ReferralService(db)
         profile_id = uuid.uuid4()
@@ -96,7 +96,7 @@ class TestGenerateCode:
         assert call_count == 3
 
     def test_generate_code_tenant_isolation(self, db: Session, other_tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         svc = ReferralService(db)
         profile_a = uuid.uuid4()
@@ -123,7 +123,7 @@ class TestGetCodesByTenant:
     """get_codes_by_tenant filters by tenant and active status."""
 
     def test_active_only_returns_active(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         _make_referral_code(db, tenant_id=tenant_id, code="REF-ACTIVE1", is_active=True)
         _make_referral_code(db, tenant_id=tenant_id, code="REF-INACTIVE1", is_active=False)
@@ -135,7 +135,7 @@ class TestGetCodesByTenant:
         assert results[0].code == "REF-ACTIVE1"
 
     def test_all_returns_inactive_too(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         _make_referral_code(db, tenant_id=tenant_id, code="REF-ACTIVE2", is_active=True)
         _make_referral_code(db, tenant_id=tenant_id, code="REF-INACTIVE2", is_active=False)
@@ -146,7 +146,7 @@ class TestGetCodesByTenant:
         assert len(results) == 2
 
     def test_tenant_isolation(self, db: Session, tenant_id, other_tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         _make_referral_code(db, tenant_id=tenant_id, code="REF-TENANTA", is_active=True)
         _make_referral_code(db, tenant_id=other_tenant_id, code="REF-TENANTB", is_active=True)
@@ -170,7 +170,7 @@ class TestGetCodeByCustomer:
     """get_code_by_customer retrieves active code for a specific customer."""
 
     def test_returns_active_code(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         customer = uuid.uuid4()
         _make_referral_code(db, tenant_id=tenant_id, customer_id=customer, code="REF-CUST1")
@@ -182,7 +182,7 @@ class TestGetCodeByCustomer:
         assert result.code == "REF-CUST1"
 
     def test_returns_none_when_no_code(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         svc = ReferralService(db)
         result = svc.get_code_by_customer(tenant_id, uuid.uuid4())
@@ -190,7 +190,7 @@ class TestGetCodeByCustomer:
         assert result is None
 
     def test_returns_none_when_deactivated(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         customer = uuid.uuid4()
         _make_referral_code(db, tenant_id=tenant_id, customer_id=customer, code="REF-DEACT", is_active=False)
@@ -210,7 +210,7 @@ class TestDeactivateCode:
     """deactivate_code soft-deactivates a referral code."""
 
     def test_deactivate_sets_inactive(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         code_record = _make_referral_code(db, tenant_id=tenant_id, code="REF-DEACT1")
 
@@ -221,7 +221,7 @@ class TestDeactivateCode:
         assert code_record.is_active is False
 
     def test_deactivate_other_tenant_no_effect(self, db: Session, tenant_id, other_tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         code_record = _make_referral_code(db, tenant_id=tenant_id, code="REF-NOEFFECT")
 
@@ -232,7 +232,7 @@ class TestDeactivateCode:
         assert code_record.is_active is True
 
     def test_deactivate_nonexistent_id_silent(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         svc = ReferralService(db)
         svc.deactivate_code(tenant_id, uuid.uuid4())
@@ -248,7 +248,7 @@ class TestExtractShopifyCodes:
 
     @pytest.mark.asyncio
     async def test_import_shopify_codes(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         mock_response = MagicMock()
         mock_response.raise_for_status = lambda: None
@@ -288,7 +288,7 @@ class TestExtractShopifyCodes:
 
     @pytest.mark.asyncio
     async def test_skip_duplicate_code(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         _make_referral_code(db, tenant_id=tenant_id, code="EXISTING", source="internal")
 
@@ -330,7 +330,7 @@ class TestExtractShopifyCodes:
     async def test_network_error_returns_empty(self, db: Session, tenant_id):
         import httpx
 
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from luana_core_crm.application.services.referral_service import ReferralService
 
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)

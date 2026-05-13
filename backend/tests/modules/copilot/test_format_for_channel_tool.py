@@ -15,12 +15,12 @@ import json
 
 import pytest
 
-from src.shared.agent_observability.channels.format import (
+from luana_core_channels.format import (
     ChannelFormat,
     register_channel,
     reset_registry_for_tests,
 )
-from src.shared.agent_observability.channels.format_for_channel import (
+from luana_core_channels.format_for_channel import (
     format_for_channel,
     format_for_channel_impl,
 )

@@ -8,15 +8,12 @@ from uuid import UUID
 
 import structlog
 from fastapi import BackgroundTasks
-from sqlalchemy.orm import Session
-
-from src.core.config import settings
-from src.modules.assets.application.asset_extraction_service import (
+from luana_core_assets.application.asset_extraction_service import (
     AssetExtractionService,
 )
-from src.modules.assets.application.asset_processor import AssetProcessor
-from src.modules.assets.domain.entity import Asset
-from src.modules.assets.domain.enums import (
+from luana_core_assets.application.asset_processor import AssetProcessor
+from luana_core_assets.domain.entity import Asset
+from luana_core_assets.domain.enums import (
     DEFAULT_SCOPE_FOR_PURPOSE,
     AssetPurpose,
     AssetScope,
@@ -25,11 +22,13 @@ from src.modules.assets.domain.enums import (
     ExtractionStatus,
     StorageProvider,
 )
-from src.modules.assets.infrastructure.repositories.asset_repository import (
+from luana_core_assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
-from src.modules.assets.infrastructure.storage import get_storage_strategy
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_assets.infrastructure.storage import get_storage_strategy
+from luana_core_platform.core.config import settings
+from luana_core_platform.domain.datetime_utils import utc_now
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 
@@ -158,7 +157,7 @@ class AssetsService:
     ) -> None:
         """Background task: fetch file bytes from storage, then run AI processing."""
         try:
-            from src.core.database import SessionLocal
+            from luana_core_platform.core.database import SessionLocal
 
             db = SessionLocal()
             repo = AssetRepository(db)
@@ -192,9 +191,8 @@ class AssetsService:
             logger.exception("background_task_failed", error=str(e))
 
     def _update_asset_in_db(self, db: Session, asset: Asset) -> None:
+        from luana_core_assets.infrastructure.models.asset_model import AssetModel
         from sqlalchemy import update
-
-        from src.modules.assets.infrastructure.models.asset_model import AssetModel
 
         stmt = (
             update(AssetModel)

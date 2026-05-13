@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.modules.tenant_domains.application.domain_service import DomainService
-from src.modules.tenant_domains.domain.domain_entity import DomainStatus, DomainType
+from luana_core_tenant_domains.application.domain_service import DomainService
+from luana_core_tenant_domains.domain.domain_entity import DomainStatus, DomainType
 
 # ---------------------------------------------------------------------------
 # Helpers

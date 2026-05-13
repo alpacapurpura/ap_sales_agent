@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.modules.commercial_calendar.application.calendar_event_service import (
+from luana_core_commercial_calendar.application.calendar_event_service import (
     CalendarEventService,
 )
 
@@ -107,7 +107,7 @@ class TestDeleteIsSoft:
         # But row still exists in DB (soft deleted)
         from sqlalchemy import select
 
-        from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
+        from luana_core_commercial_calendar.infrastructure.models.calendar_event_model import (
             CalendarEventModel,
         )
 

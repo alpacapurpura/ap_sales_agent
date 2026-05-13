@@ -90,7 +90,7 @@ class TestExtractionSummaryCardKind:
 
     def test_extraction_summary_in_card_block_literal(self) -> None:
         """CardBlock.card_kind must accept 'extraction_summary'."""
-        from src.modules.copilot.domain.message_blocks import CardBlock
+        from luana_core_copilot.domain.message_blocks import CardBlock
 
         field = CardBlock.model_fields["card_kind"]
         allowed_kinds = set(field.annotation.__args__)
@@ -100,7 +100,7 @@ class TestExtractionSummaryCardKind:
 
     def test_extraction_summary_in_card_payload_registry(self) -> None:
         """card_payloads.py must have an entry for extraction_summary."""
-        from src.modules.copilot.domain.card_payloads import CARD_PAYLOAD_MODELS
+        from luana_core_copilot.domain.card_payloads import CARD_PAYLOAD_MODELS
 
         assert "extraction_summary" in CARD_PAYLOAD_MODELS, (
             "extraction_summary must be in CARD_PAYLOAD_MODELS. Add ExtractionSummaryCardPayload to card_payloads.py."
@@ -108,7 +108,7 @@ class TestExtractionSummaryCardKind:
 
     def test_extraction_summary_payload_model_validates(self) -> None:
         """ExtractionSummaryCardPayload must validate a minimal correct payload."""
-        from src.modules.copilot.domain.card_payloads import CARD_PAYLOAD_MODELS
+        from luana_core_copilot.domain.card_payloads import CARD_PAYLOAD_MODELS
 
         model = CARD_PAYLOAD_MODELS.get("extraction_summary")
         assert model is not None

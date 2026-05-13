@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 # Spanish neutro tuteo. Anti-pattern A12 (research §7).
 TELEGRAM_TOOL_UNAVAILABLE_TEMPLATE: Final[str] = (

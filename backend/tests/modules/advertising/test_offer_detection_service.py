@@ -16,7 +16,7 @@ from src.modules.advertising.domain.enums import (
 from src.modules.advertising.infrastructure.repositories.association_repository import (
     AssociationRepository,
 )
-from src.shared.domain.ports import OfferReadDTO, OfferReadPort
+from luana_core_platform.domain.ports import OfferReadDTO, OfferReadPort
 
 
 class _StubOfferReadPort(OfferReadPort):

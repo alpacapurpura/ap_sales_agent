@@ -3,13 +3,12 @@
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
+from luana_core_crm.application.services.customer_service import CustomerService
+from luana_core_crm.domain.customer import CustomerProfile
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.crm.application.services.customer_service import CustomerService
-from src.modules.crm.domain.customer import CustomerProfile
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
 
 router = APIRouter()
 

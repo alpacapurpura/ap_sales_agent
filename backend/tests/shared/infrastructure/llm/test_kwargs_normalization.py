@@ -8,7 +8,7 @@ here means future translations land with one test, not three.
 
 from __future__ import annotations
 
-from src.shared.infrastructure.llm.providers._kwargs import (
+from luana_core_llm.providers._kwargs import (
     normalize_openai_protocol_kwargs,
 )
 

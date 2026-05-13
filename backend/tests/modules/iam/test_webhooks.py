@@ -6,8 +6,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.iam.api.webhooks import router
+from luana_core_platform.core.database import get_db
+from luana_core_iam.api.webhooks import router
 
 _VALID_HEADERS = {
     "svix-id": "msg_123",
@@ -44,7 +44,7 @@ def _patch_webhook(payload):
     """Return context manager that makes Webhook.verify return payload."""
     wh_instance = MagicMock()
     wh_instance.verify.return_value = payload
-    return patch("src.modules.iam.api.webhooks.Webhook", return_value=wh_instance)
+    return patch("luana_core_iam.api.webhooks.Webhook", return_value=wh_instance)
 
 
 class TestWebhookMissingHeaders:
@@ -61,7 +61,7 @@ class TestWebhookMissingHeaders:
 
 class TestWebhookSecretMissing:
     def test_no_webhook_secret_returns_500(self, client):
-        with patch("src.modules.iam.api.webhooks.settings") as mock_settings:
+        with patch("luana_core_iam.api.webhooks.settings") as mock_settings:
             mock_settings.CLERK_WEBHOOK_SECRET = None
             resp = client.post(
                 "/webhooks/clerk",
@@ -79,9 +79,9 @@ class TestWebhookInvalidSignature:
         wh_instance.verify.side_effect = WebhookVerificationError("bad sig")
 
         with (
-            patch("src.modules.iam.api.webhooks.settings") as mock_settings,
+            patch("luana_core_iam.api.webhooks.settings") as mock_settings,
             patch(
-                "src.modules.iam.api.webhooks.Webhook",
+                "luana_core_iam.api.webhooks.Webhook",
                 return_value=wh_instance,
             ),
         ):
@@ -97,7 +97,7 @@ class TestWebhookInvalidSignature:
 
 class TestWebhookUserCreated:
     def test_new_user_created_returns_200(self, client):
-        with patch("src.modules.iam.api.webhooks.settings") as mock_settings, _patch_webhook(_USER_CREATED_PAYLOAD):
+        with patch("luana_core_iam.api.webhooks.settings") as mock_settings, _patch_webhook(_USER_CREATED_PAYLOAD):
             mock_settings.CLERK_WEBHOOK_SECRET = "test_secret"
             resp = client.post(
                 "/webhooks/clerk",
@@ -119,7 +119,7 @@ class TestWebhookUserCreated:
                 "email_addresses": [{"id": "em_1", "email_address": "alice@example.com"}],
             },
         }
-        with patch("src.modules.iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
+        with patch("luana_core_iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
             mock_settings.CLERK_WEBHOOK_SECRET = "test_secret"
             resp = client.post(
                 "/webhooks/clerk",
@@ -140,7 +140,7 @@ class TestWebhookUserCreated:
                 "email_addresses": [{"id": "em_1", "email_address": "bob@example.com"}],
             },
         }
-        with patch("src.modules.iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
+        with patch("luana_core_iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
             mock_settings.CLERK_WEBHOOK_SECRET = "test_secret"
             resp = client.post(
                 "/webhooks/clerk",
@@ -162,7 +162,7 @@ class TestWebhookUserUpdated:
                 "email_addresses": [{"id": "em_1", "email_address": "alice@example.com"}],
             },
         }
-        with patch("src.modules.iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
+        with patch("luana_core_iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
             mock_settings.CLERK_WEBHOOK_SECRET = "test_secret"
             resp = client.post(
                 "/webhooks/clerk",
@@ -174,7 +174,7 @@ class TestWebhookUserUpdated:
 
 class TestWebhookUserDeleted:
     def test_user_deleted_deactivates(self, client, seed_user):
-        with patch("src.modules.iam.api.webhooks.settings") as mock_settings, _patch_webhook(_USER_DELETED_PAYLOAD):
+        with patch("luana_core_iam.api.webhooks.settings") as mock_settings, _patch_webhook(_USER_DELETED_PAYLOAD):
             mock_settings.CLERK_WEBHOOK_SECRET = "test_secret"
             resp = client.post(
                 "/webhooks/clerk",
@@ -185,7 +185,7 @@ class TestWebhookUserDeleted:
 
     def test_user_deleted_not_found_still_200(self, client):
         payload = {"type": "user.deleted", "data": {"id": "clerk_nonexistent"}}
-        with patch("src.modules.iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
+        with patch("luana_core_iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
             mock_settings.CLERK_WEBHOOK_SECRET = "test_secret"
             resp = client.post(
                 "/webhooks/clerk",
@@ -198,7 +198,7 @@ class TestWebhookUserDeleted:
 class TestWebhookUnknownType:
     def test_unknown_event_type_ignored(self, client):
         payload = {"type": "session.created", "data": {"id": "sess_1"}}
-        with patch("src.modules.iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
+        with patch("luana_core_iam.api.webhooks.settings") as mock_settings, _patch_webhook(payload):
             mock_settings.CLERK_WEBHOOK_SECRET = "test_secret"
             resp = client.post(
                 "/webhooks/clerk",
@@ -221,10 +221,10 @@ class TestWebhookInternalError:
             },
         }
         with (
-            patch("src.modules.iam.api.webhooks.settings") as mock_settings,
+            patch("luana_core_iam.api.webhooks.settings") as mock_settings,
             _patch_webhook(payload),
             patch(
-                "src.modules.iam.api.webhooks._handle_user_sync",
+                "luana_core_iam.api.webhooks._handle_user_sync",
                 side_effect=RuntimeError("boom"),
             ),
         ):

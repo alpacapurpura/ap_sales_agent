@@ -14,7 +14,7 @@ def _run(coro):
 
 
 def _make_svc(cache=None, db=None):
-    from src.modules.analytics.application.services.metrics_service import MetricsService
+    from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
     db = db or MagicMock()
     return MetricsService(db=db, cache=cache)
@@ -25,19 +25,19 @@ def _make_svc(cache=None, db=None):
 
 class TestComputePeriodTotals:
     def test_empty_returns_empty(self):
-        from src.modules.analytics.application.services.metrics_service import _compute_period_totals
+        from luana_core_analytics_engine.application.services.metrics_service import _compute_period_totals
 
         assert _compute_period_totals({}) == {}
 
     def test_single_date_single_channel(self):
-        from src.modules.analytics.application.services.metrics_service import _compute_period_totals
+        from luana_core_analytics_engine.application.services.metrics_service import _compute_period_totals
 
         d = date(2026, 3, 1)
         result = _compute_period_totals({d: {"ig-organic": 100.0}})
         assert result == {"ig-organic": 100.0}
 
     def test_multiple_dates_same_channel_summed(self):
-        from src.modules.analytics.application.services.metrics_service import _compute_period_totals
+        from luana_core_analytics_engine.application.services.metrics_service import _compute_period_totals
 
         d1, d2 = date(2026, 3, 1), date(2026, 3, 2)
         date_map = {d1: {"ig-organic": 100.0}, d2: {"ig-organic": 200.0}}
@@ -45,7 +45,7 @@ class TestComputePeriodTotals:
         assert result["ig-organic"] == 300.0
 
     def test_multiple_channels_accumulated(self):
-        from src.modules.analytics.application.services.metrics_service import _compute_period_totals
+        from luana_core_analytics_engine.application.services.metrics_service import _compute_period_totals
 
         d = date(2026, 3, 1)
         date_map = {d: {"ig-organic": 100.0, "fb-organic": 50.0}}
@@ -66,14 +66,14 @@ class TestBuildDateMap:
         return row
 
     def test_empty_rows_returns_empty(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         date_map, channels = MetricsService._build_date_map([], "daily")
         assert len(date_map) == 0
         assert len(channels) == 0
 
     def test_daily_groups_by_date(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         d1, d2 = date(2026, 3, 1), date(2026, 3, 2)
         rows = [
@@ -85,7 +85,7 @@ class TestBuildDateMap:
         assert "ig-organic" in channels
 
     def test_weekly_aggregates_to_week_start(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         # Wednesday Mar 5, 2026 → week starts Monday Mar 3, 2026
         d_wed = date(2026, 3, 5)
@@ -102,7 +102,7 @@ class TestBuildDateMap:
         assert date_map[week_start]["ig-organic"] == 300.0
 
     def test_weekly_different_weeks_separate(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         # Mon Mar 2 = week 1, Mon Mar 9 = week 2
         d1 = date(2026, 3, 2)  # Monday
@@ -115,7 +115,7 @@ class TestBuildDateMap:
         assert len(date_map) == 2
 
     def test_daily_duplicate_slug_on_same_date_accumulated(self):
-        from src.modules.analytics.application.services.metrics_service import MetricsService
+        from luana_core_analytics_engine.application.services.metrics_service import MetricsService
 
         d = date(2026, 3, 1)
         rows = [

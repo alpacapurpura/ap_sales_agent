@@ -28,8 +28,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import structlog
-
-from src.modules.copilot.domain.ports import CopilotProvider, ProviderHealth
+from luana_core_copilot.domain.ports import CopilotProvider, ProviderHealth
 
 _LOGGER = structlog.get_logger(__name__)
 

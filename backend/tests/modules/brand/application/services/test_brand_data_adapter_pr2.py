@@ -20,14 +20,14 @@ _TENANT = uuid4()
 class TestGetBuyerPersonaCountExtension:
     def test_get_buyer_persona_count_excludes_soft_deleted(self) -> None:
         """list_by_tenant returns 3 personas → count == 3 (mock verifies soft-delete excluded at repo)."""
-        from src.modules.brand.application.services.brand_data_adapter import BrandDataAdapter
+        from luana_core_brand_studio.application.services.brand_data_adapter import BrandDataAdapter
 
         mock_db = MagicMock()
         mock_repo = MagicMock()
         mock_repo.list_by_tenant.return_value = [MagicMock(), MagicMock(), MagicMock()]
 
         with patch(
-            "src.modules.brand.application.services.brand_data_adapter.BuyerPersonaRepository",
+            "luana_core_brand_studio.application.services.brand_data_adapter.BuyerPersonaRepository",
             return_value=mock_repo,
         ):
             adapter = BrandDataAdapter(mock_db)
@@ -38,14 +38,14 @@ class TestGetBuyerPersonaCountExtension:
 
     def test_get_buyer_persona_count_zero_when_empty(self) -> None:
         """list_by_tenant returns [] → count == 0."""
-        from src.modules.brand.application.services.brand_data_adapter import BrandDataAdapter
+        from luana_core_brand_studio.application.services.brand_data_adapter import BrandDataAdapter
 
         mock_db = MagicMock()
         mock_repo = MagicMock()
         mock_repo.list_by_tenant.return_value = []
 
         with patch(
-            "src.modules.brand.application.services.brand_data_adapter.BuyerPersonaRepository",
+            "luana_core_brand_studio.application.services.brand_data_adapter.BuyerPersonaRepository",
             return_value=mock_repo,
         ):
             adapter = BrandDataAdapter(mock_db)
@@ -57,14 +57,14 @@ class TestGetBuyerPersonaCountExtension:
 class TestGetActivePersonalityProfilePresentExtension:
     def test_get_active_personality_profile_present_true(self) -> None:
         """get_active returns profile → True."""
-        from src.modules.brand.application.services.brand_data_adapter import BrandDataAdapter
+        from luana_core_brand_studio.application.services.brand_data_adapter import BrandDataAdapter
 
         mock_db = MagicMock()
         mock_repo = MagicMock()
         mock_repo.get_active.return_value = MagicMock()  # profile exists
 
         with patch(
-            "src.modules.brand.application.services.brand_data_adapter.PersonalityProfileRepository",
+            "luana_core_brand_studio.application.services.brand_data_adapter.PersonalityProfileRepository",
             return_value=mock_repo,
         ):
             adapter = BrandDataAdapter(mock_db)
@@ -75,14 +75,14 @@ class TestGetActivePersonalityProfilePresentExtension:
 
     def test_get_active_personality_profile_present_false(self) -> None:
         """get_active returns None → False."""
-        from src.modules.brand.application.services.brand_data_adapter import BrandDataAdapter
+        from luana_core_brand_studio.application.services.brand_data_adapter import BrandDataAdapter
 
         mock_db = MagicMock()
         mock_repo = MagicMock()
         mock_repo.get_active.return_value = None
 
         with patch(
-            "src.modules.brand.application.services.brand_data_adapter.PersonalityProfileRepository",
+            "luana_core_brand_studio.application.services.brand_data_adapter.PersonalityProfileRepository",
             return_value=mock_repo,
         ):
             adapter = BrandDataAdapter(mock_db)
@@ -103,10 +103,10 @@ class TestGetBrandKnowledgeHandlesORMPersonalityProfile:
         """RED: real ORM instance via from_attributes → dict serialisation succeeds."""
         from datetime import datetime, timezone
 
-        from src.modules.brand.application.services.brand_data_adapter import (
+        from luana_core_brand_studio.application.services.brand_data_adapter import (
             BrandDataAdapter,
         )
-        from src.modules.brand.infrastructure.models.personality_model import (
+        from luana_core_brand_studio.infrastructure.models.personality_model import (
             PersonalityProfileModel,
         )
 
@@ -139,15 +139,15 @@ class TestGetBrandKnowledgeHandlesORMPersonalityProfile:
 
         with (
             patch(
-                "src.modules.brand.application.services.brand_data_adapter.BrandRepository",
+                "luana_core_brand_studio.application.services.brand_data_adapter.BrandRepository",
                 return_value=mock_brand_repo,
             ),
             patch(
-                "src.modules.brand.application.services.brand_data_adapter.AvatarRepository",
+                "luana_core_brand_studio.application.services.brand_data_adapter.AvatarRepository",
                 return_value=mock_avatar_repo,
             ),
             patch(
-                "src.modules.brand.application.services.brand_data_adapter.PersonalityProfileRepository",
+                "luana_core_brand_studio.application.services.brand_data_adapter.PersonalityProfileRepository",
                 return_value=mock_pers_repo,
             ),
         ):
@@ -163,7 +163,7 @@ class TestGetBrandKnowledgeHandlesORMPersonalityProfile:
 
     def test_get_brand_knowledge_with_no_personality_returns_none(self) -> None:
         """get_active returns None → personality_profile field is None."""
-        from src.modules.brand.application.services.brand_data_adapter import (
+        from luana_core_brand_studio.application.services.brand_data_adapter import (
             BrandDataAdapter,
         )
 
@@ -177,15 +177,15 @@ class TestGetBrandKnowledgeHandlesORMPersonalityProfile:
 
         with (
             patch(
-                "src.modules.brand.application.services.brand_data_adapter.BrandRepository",
+                "luana_core_brand_studio.application.services.brand_data_adapter.BrandRepository",
                 return_value=mock_brand_repo,
             ),
             patch(
-                "src.modules.brand.application.services.brand_data_adapter.AvatarRepository",
+                "luana_core_brand_studio.application.services.brand_data_adapter.AvatarRepository",
                 return_value=mock_avatar_repo,
             ),
             patch(
-                "src.modules.brand.application.services.brand_data_adapter.PersonalityProfileRepository",
+                "luana_core_brand_studio.application.services.brand_data_adapter.PersonalityProfileRepository",
                 return_value=mock_pers_repo,
             ),
         ):

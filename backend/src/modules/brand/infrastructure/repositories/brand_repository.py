@@ -3,16 +3,15 @@
 from uuid import UUID
 
 import structlog
+from luana_core_brand_studio.domain import BrandSettings
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.domain.events import BrandSectionUpdatedEvent
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
-
-from src.modules.brand.domain import BrandSettings
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.shared.domain.events import BrandSectionUpdatedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
-)
 
 logger = structlog.get_logger()
 

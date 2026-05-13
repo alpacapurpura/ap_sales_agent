@@ -12,9 +12,8 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
+from luana_core_copilot.domain.message_blocks import MessageBlock
 from pydantic import BaseModel, ConfigDict, model_validator
-
-from src.modules.copilot.domain.message_blocks import MessageBlock
 
 MessageRole = Literal["user", "assistant", "tool"]
 MessageStatus = Literal["sending", "streaming", "sent", "error"]

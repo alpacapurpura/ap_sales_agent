@@ -14,14 +14,14 @@ class TestOfferReadPortABC:
 
     def test_offer_read_port_is_abstract(self):
         """OfferReadPort cannot be instantiated directly."""
-        from src.modules.analytics.domain.ports import OfferReadPort
+        from luana_core_analytics_engine.domain.ports import OfferReadPort
 
         with pytest.raises(TypeError):
             OfferReadPort()
 
     def test_offer_read_dto_has_required_fields(self):
         """OfferReadDTO has id, tenant_id, public_name, offer_type, value_level, pricing_type."""
-        from src.modules.analytics.domain.ports import OfferReadDTO
+        from luana_core_analytics_engine.domain.ports import OfferReadDTO
 
         dto = OfferReadDTO(
             id=UUID("22222222-2222-2222-2222-222222222222"),
@@ -41,8 +41,8 @@ class TestOfferReadPortImpl:
 
     def test_impl_implements_port(self):
         """OfferReadPortImpl is a subclass of OfferReadPort."""
-        from src.modules.analytics.domain.ports import OfferReadPort
-        from src.modules.offer.application.services.offer_read_port_impl import (
+        from luana_core_analytics_engine.domain.ports import OfferReadPort
+        from luana_core_offer_studio.application.services.offer_read_port_impl import (
             OfferReadPortImpl,
         )
 
@@ -52,7 +52,7 @@ class TestOfferReadPortImpl:
         """OfferReadPortImpl must NOT import from offer.domain (DDD boundary)."""
         import inspect
 
-        from src.modules.offer.application.services import offer_read_port_impl
+        from luana_core_offer_studio.application.services import offer_read_port_impl
 
         source = inspect.getsource(offer_read_port_impl)
         assert "from src.modules.offer.domain" not in source, (

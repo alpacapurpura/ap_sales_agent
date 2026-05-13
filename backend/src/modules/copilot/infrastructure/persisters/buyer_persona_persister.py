@@ -6,9 +6,8 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import structlog
-
-from src.modules.brand.domain.buyer_persona import BuyerPersona
-from src.modules.brand.infrastructure.repositories.buyer_persona_repository import (
+from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
+from luana_core_brand_studio.infrastructure.repositories.buyer_persona_repository import (
     BuyerPersonaRepository,
 )
 

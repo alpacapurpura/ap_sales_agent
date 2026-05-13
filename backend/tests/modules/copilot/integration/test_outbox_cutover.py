@@ -19,8 +19,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.shared.domain.events import DomainEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_platform.domain.events import DomainEvent
+from luana_core_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
 )
 
@@ -29,7 +29,7 @@ def _make_copilot_event() -> DomainEvent:
     """Build a minimal domain event representing copilot routing decision."""
     # Use PaymentReceivedEvent as a concrete DomainEvent for testing the adapter
     # (copilot events are routed through the same adapter path)
-    from src.shared.domain.events import PaymentReceivedEvent
+    from luana_core_platform.domain.events import PaymentReceivedEvent
 
     return PaymentReceivedEvent.create(
         tenant_id="cccccccc-dddd-eeee-ffff-000000000001",
@@ -51,7 +51,7 @@ class TestCopilotOutboxCutoverFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
+                "luana_core_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
                 return_value=mock_outbox,
             ),
         ):
@@ -72,7 +72,7 @@ class TestCopilotOutboxCutoverFlagOn:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
@@ -91,7 +91,7 @@ class TestCopilotOutboxCutoverFlagOn:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),
@@ -111,7 +111,7 @@ class TestCopilotOutboxCutoverFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
+                "luana_core_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
                 return_value=mock_outbox,
             ),
         ):
@@ -132,7 +132,7 @@ class TestCopilotOutboxCutoverFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
+                "luana_core_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
                 return_value=mock_outbox,
             ),
         ):

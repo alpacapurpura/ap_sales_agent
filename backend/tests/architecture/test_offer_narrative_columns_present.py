@@ -3,8 +3,8 @@
 refs: docs/contracts/offer-narrative-fields-CONTRACT.md §13.1
 """
 
-from src.modules.offer.domain.offer import Offer
-from src.modules.offer.infrastructure.models.product_model import ProductModel
+from luana_core_offer_studio.domain.offer import Offer
+from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
 
 NARRATIVE_FIELDS = frozenset(
     {

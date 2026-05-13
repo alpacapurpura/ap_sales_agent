@@ -29,18 +29,18 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
-from src.modules.copilot.domain.events import EVENT_ROUTING_DECIDED
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.routing_policy import (
+from luana_core_copilot.application.orchestrator.chat import CopilotOrchestrator
+from luana_core_copilot.domain.events import EVENT_ROUTING_DECIDED
+from luana_core_platform.core.enums import ModelRole
+from luana_core_copilot.domain.routing_policy import (
     ClassifierType,
     RoutingDecision,
 )
-from src.modules.copilot.infrastructure.models.routing_log_model import RoutingLogModel
-from src.modules.copilot.infrastructure.repositories.routing_log_repository import (
+from luana_core_copilot.infrastructure.models.routing_log_model import RoutingLogModel
+from luana_core_copilot.infrastructure.repositories.routing_log_repository import (
     RoutingLogRepository,
 )
-from src.shared.domain.events import EventBus
+from luana_core_platform.domain.events import EventBus
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

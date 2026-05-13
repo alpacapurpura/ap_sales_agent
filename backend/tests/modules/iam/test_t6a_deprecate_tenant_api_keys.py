@@ -238,7 +238,7 @@ def test_factory_extract_tenant_key_method_deleted() -> None:
     Originally scoped to T-6c, accelerated to T-6a per zero-tech-debt
     directive (no caller anywhere in src/ or tests/).
     """
-    from src.shared.infrastructure.llm.factory import LLMFactory
+    from luana_core_llm.factory import LLMFactory
 
     assert not hasattr(LLMFactory, "_extract_tenant_key"), (
         "LLMFactory._extract_tenant_key must be DELETED (orphaned post-T-5). "
@@ -267,7 +267,7 @@ def test_dto_excludes_deprecated_fields() -> None:
 
     Both are required for the field to be absent from the wire response.
     """
-    from src.modules.iam.domain.tenant import AISettings
+    from luana_core_iam.domain.tenant import AISettings
 
     # Construct an instance with all 5 keys populated (legacy bridge —
     # ORM may still pass them in until T-6c drops the columns).
@@ -307,7 +307,7 @@ def test_tenant_domain_excludes_deprecated_fields() -> None:
     """
     from uuid import uuid4
 
-    from src.modules.iam.domain.tenant import Tenant
+    from luana_core_iam.domain.tenant import Tenant
 
     instance = Tenant(
         id=uuid4(),
@@ -332,7 +332,7 @@ def test_tenant_settings_update_excludes_deprecated_fields() -> None:
     The PATCH /ai endpoint accepts this DTO. Excluding deprecated fields
     on the request side prevents accidental writes by old clients.
     """
-    from src.modules.iam.domain.tenant import TenantSettingsUpdate
+    from luana_core_iam.domain.tenant import TenantSettingsUpdate
 
     instance = TenantSettingsUpdate(
         openai_api_key="sk-attempt",
@@ -362,7 +362,7 @@ def test_repo_create_update_no_longer_writes() -> None:
 
     ``gemini_api_key`` writes must remain (it is still active).
     """
-    from src.modules.iam.infrastructure.repositories import tenant_repository
+    from luana_core_iam.infrastructure.repositories import tenant_repository
 
     repo_source = Path(tenant_repository.__file__).read_text(encoding="utf-8")
 
@@ -402,7 +402,7 @@ def test_factory_source_no_extract_tenant_key_def() -> None:
     Acts as a defense-in-depth check alongside ``hasattr`` test above —
     catches dynamic re-additions or commented-out methods.
     """
-    from src.shared.infrastructure.llm import factory
+    from luana_core_llm import factory
 
     factory_source = Path(factory.__file__).read_text(encoding="utf-8")
     assert "def _extract_tenant_key" not in factory_source, (

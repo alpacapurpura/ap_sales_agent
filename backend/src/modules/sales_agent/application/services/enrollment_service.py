@@ -11,26 +11,26 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from src.modules.sales_agent.domain.enrollment import (
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_sales_agent.domain.enrollment import (
     Enrollment,
     EnrollmentCreate,
     EnrollmentStatus,
     EnrollmentUpdate,
     PaymentProvider,
 )
-from src.modules.sales_agent.domain.events import (
+from luana_core_sales_agent.domain.events import (
     DomainEvent,
     EnrollmentCreated,
     EnrollmentPaid,
     EnrollmentStatusTransitioned,
 )
-from src.shared.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from datetime import datetime
     from uuid import UUID
 
-    from src.modules.sales_agent.infrastructure.repositories.enrollment_repository import (
+    from luana_core_sales_agent.infrastructure.repositories.enrollment_repository import (
         EnrollmentRepository,
     )
 

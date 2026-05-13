@@ -5,9 +5,9 @@ import uuid
 from datetime import date
 from unittest.mock import AsyncMock
 
-from src.modules.analytics.domain.extraction_result import ExtractionResult
-from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
-from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
+from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
     MAILERLITE_METRIC_MAP,
     MailerLiteProvider,
     classify_campaign_type,
@@ -96,7 +96,7 @@ class TestCampaignMetadataInExtra:
         """Campaign metrics should include per-campaign metadata list in extra."""
         from datetime import date
 
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             MailerLiteProvider,
         )
 
@@ -157,7 +157,7 @@ class TestCampaignMetadataInExtra:
         """
         from datetime import date
 
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             MailerLiteProvider,
         )
 
@@ -223,7 +223,7 @@ class TestCampaignMetadataInExtra:
         """Campaign without emails field should default to empty subject."""
         from datetime import date
 
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             MailerLiteProvider,
         )
 
@@ -324,7 +324,7 @@ class TestExtractMetricsDailyOptimized:
 
     def test_propagates_failures(self):
         """Failures from extract_metrics must propagate through."""
-        from src.modules.analytics.domain.extraction_result import SubExtractorFailure
+        from luana_core_analytics_engine.domain.extraction_result import SubExtractorFailure
 
         provider = MailerLiteProvider()
         failure = SubExtractorFailure(
@@ -357,49 +357,49 @@ class TestExtractMetricsDailyOptimized:
 
 class TestAutomationTypeClassification:
     def test_welcome_from_bienvenida(self):
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             classify_automation_type,
         )
 
         assert classify_automation_type("BIENVENIDA: nuevas inscritas") == "welcome"
 
     def test_welcome_from_english(self):
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             classify_automation_type,
         )
 
         assert classify_automation_type("Welcome new subscribers") == "welcome"
 
     def test_nurture_from_nutricion(self):
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             classify_automation_type,
         )
 
         assert classify_automation_type("Nutrición de leads") == "nurture"
 
     def test_reengagement(self):
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             classify_automation_type,
         )
 
         assert classify_automation_type("Re-engagement campaña") == "reengagement"
 
     def test_post_compra(self):
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             classify_automation_type,
         )
 
         assert classify_automation_type("Post-compra seguimiento") == "post_compra"
 
     def test_default_is_workflow(self):
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             classify_automation_type,
         )
 
         assert classify_automation_type("Visionaras Linktree Workflow") == "workflow"
 
     def test_case_insensitive(self):
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             classify_automation_type,
         )
 
@@ -471,7 +471,7 @@ class TestExtractAutomationsPerRow:
         client = AsyncMock()  # not used directly — _api_get is patched
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.mailerlite_provider._api_get",
+            "luana_core_analytics_engine.infrastructure.providers.mailerlite_provider._api_get",
             side_effect=fake_api_get,
         ):
             return _run(
@@ -611,7 +611,7 @@ class TestAutomationStepExtraction:
         """Provider extra must contain steps array with per-email data."""
         from unittest.mock import MagicMock, patch
 
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             MailerLiteProvider,
         )
 
@@ -628,7 +628,7 @@ class TestAutomationStepExtraction:
         mock_client = AsyncMock()
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.mailerlite_provider._api_get",
+            "luana_core_analytics_engine.infrastructure.providers.mailerlite_provider._api_get",
             side_effect=fake_api_get,
         ):
             metrics = _run(
@@ -664,7 +664,7 @@ class TestAutomationStepExtraction:
         """automation_status must read the enabled flag, not hardcoded."""
         from unittest.mock import MagicMock, patch
 
-        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.mailerlite_provider import (
             MailerLiteProvider,
         )
 
@@ -682,7 +682,7 @@ class TestAutomationStepExtraction:
         mock_client = AsyncMock()
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.mailerlite_provider._api_get",
+            "luana_core_analytics_engine.infrastructure.providers.mailerlite_provider._api_get",
             side_effect=fake_api_get,
         ):
             metrics = _run(

@@ -68,7 +68,7 @@ def _make_llm_call_kwargs(tenant_id, *, turn_id=None, started_at=None, status="o
 
 class TestLlmCallRepository:
     def test_add_and_find_by_turn(self, db) -> None:
-        from src.modules.copilot.observability.persistence.llm_call_repository import (
+        from luana_core_copilot.observability.persistence.llm_call_repository import (
             LlmCallRepository,
         )
 
@@ -86,7 +86,7 @@ class TestLlmCallRepository:
         assert all(r.turn_id == turn for r in rows)
 
     def test_find_by_tenant_range(self, db) -> None:
-        from src.modules.copilot.observability.persistence.llm_call_repository import (
+        from luana_core_copilot.observability.persistence.llm_call_repository import (
             LlmCallRepository,
         )
 
@@ -106,7 +106,7 @@ class TestLlmCallRepository:
         assert rows[0].started_at.day == 26
 
     def test_count_errors_today(self, db) -> None:
-        from src.modules.copilot.observability.persistence.llm_call_repository import (
+        from luana_core_copilot.observability.persistence.llm_call_repository import (
             LlmCallRepository,
         )
 
@@ -122,7 +122,7 @@ class TestLlmCallRepository:
         assert count == 2
 
     def test_tenant_isolation_on_find_by_turn(self, db) -> None:
-        from src.modules.copilot.observability.persistence.llm_call_repository import (
+        from luana_core_copilot.observability.persistence.llm_call_repository import (
             LlmCallRepository,
         )
 
@@ -162,7 +162,7 @@ def _make_pricing_kwargs(provider="openai", model="gpt-4o", *, valid_from=None, 
 
 class TestPricingSnapshotRepository:
     def test_add_and_find_active(self, db) -> None:
-        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+        from luana_core_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
 
@@ -175,7 +175,7 @@ class TestPricingSnapshotRepository:
         assert active.valid_to is None
 
     def test_find_active_returns_none_when_missing(self, db) -> None:
-        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+        from luana_core_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
 
@@ -184,7 +184,7 @@ class TestPricingSnapshotRepository:
         assert active is None
 
     def test_close_active_sets_valid_to(self, db) -> None:
-        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+        from luana_core_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
 
@@ -202,7 +202,7 @@ class TestPricingSnapshotRepository:
         assert active_after is None
 
     def test_find_at_returns_correct_snapshot_for_timestamp(self, db) -> None:
-        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+        from luana_core_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
 
@@ -246,7 +246,7 @@ class TestPricingSnapshotRepository:
 
 class TestTenantBillingConfigRepository:
     def test_get_returns_none_for_unconfigured_tenant(self, db) -> None:
-        from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
+        from luana_core_observability.persistence.tenant_billing_config_repository import (
             TenantBillingConfigRepository,
         )
 
@@ -254,7 +254,7 @@ class TestTenantBillingConfigRepository:
         assert repo.get(tenant_id=uuid4()) is None
 
     def test_upsert_inserts_then_updates(self, db) -> None:
-        from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
+        from luana_core_observability.persistence.tenant_billing_config_repository import (
             TenantBillingConfigRepository,
         )
 
@@ -286,7 +286,7 @@ class TestTenantBillingConfigRepository:
 
 class TestTraceEventRepository:
     def test_add_inserts_row(self, db) -> None:
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
 
@@ -309,7 +309,7 @@ class TestTraceEventRepository:
         assert row.tenant_id == tenant
 
     def test_list_by_turn_filters_tenant(self, db) -> None:
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
 

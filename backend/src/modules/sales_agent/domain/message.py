@@ -4,10 +4,9 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from luana_core_platform.domain.base_entity import BaseEntity
+from luana_core_sales_agent.domain.enums import MessageSender
 from pydantic import Field
-
-from src.modules.sales_agent.domain.enums import MessageSender
-from src.shared.domain.base_entity import BaseEntity
 
 
 class Message(BaseEntity):

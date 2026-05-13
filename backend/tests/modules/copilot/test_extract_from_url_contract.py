@@ -25,8 +25,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.core.context import set_tenant_id
-from src.modules.copilot.application.tools.extraction_tools import (
+from luana_core_platform.core.context import set_tenant_id
+from luana_core_copilot.application.tools.extraction_tools import (
     EXTRACTION_TOOLS,
     extract_from_url,
 )
@@ -48,11 +48,11 @@ def mock_arq_pool(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     pool = MagicMock()
     pool.enqueue_job = AsyncMock(return_value=MagicMock(job_id="arq-id"))
     monkeypatch.setattr(
-        "src.modules.copilot.application.tools.extraction_tools.get_arq_pool",
+        "luana_core_copilot.application.tools.extraction_tools.get_arq_pool",
         lambda: pool,
     )
     monkeypatch.setattr(
-        "src.modules.copilot.application.tools.extraction_tools.redis_client",
+        "luana_core_copilot.application.tools.extraction_tools.redis_client",
         MagicMock(setex=MagicMock()),
     )
     return pool
@@ -328,7 +328,7 @@ class TestToolRegistration:
         assert "extract_from_doc" in names, "extract_from_doc must be registered in EXTRACTION_TOOLS"
 
     def test_both_tools_in_registry_extraction_group(self) -> None:
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         names = {t.name for t in TOOL_GROUPS["extraction"]}
         assert "extract_from_url" in names

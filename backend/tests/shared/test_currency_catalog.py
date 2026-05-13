@@ -7,8 +7,8 @@ selectors expose. Every code is ISO 4217 and comes with display data
 
 from __future__ import annotations
 
-from src.shared.domain.currency import SUPPORTED_CURRENCIES, is_valid_currency
-from src.shared.domain.currency_catalog import (
+from luana_core_platform.domain.currency import SUPPORTED_CURRENCIES, is_valid_currency
+from luana_core_platform.domain.currency_catalog import (
     CURRENCY_CATALOG,
     CurrencyMetadata,
     get_currency_metadata,

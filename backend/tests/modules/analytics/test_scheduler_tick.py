@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 import src.shared.infrastructure.model_registry
-from src.modules.analytics.workers.scheduler import run_tick_scheduler
+from luana_core_analytics_engine.workers.scheduler import run_tick_scheduler
 
 
 def _make_tenant(tenant_id, tz_name, priority, is_active=True):
@@ -71,7 +71,7 @@ async def test_tick_enqueues_tenant_at_3am_local(tenants, mock_ctx):
     mock_result.scalars.return_value = mock_scalars
     mock_db.execute.return_value = mock_result
 
-    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
+    with patch("luana_core_analytics_engine.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
         mock_datetime.side_effect = datetime
 
@@ -99,7 +99,7 @@ async def test_tick_no_enqueue_when_no_3am_match(tenants, mock_ctx):
     mock_result.scalars.return_value = mock_scalars
     mock_db.execute.return_value = mock_result
 
-    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
+    with patch("luana_core_analytics_engine.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
         mock_datetime.side_effect = datetime
 
@@ -121,7 +121,7 @@ async def test_tick_tenants_ordered_by_priority(mock_ctx):
 
     fixed_utc = datetime(2026, 3, 15, 8, 0, 0, tzinfo=timezone.utc)
 
-    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
+    with patch("luana_core_analytics_engine.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
         mock_datetime.side_effect = datetime
 
@@ -156,7 +156,7 @@ async def test_tick_multiple_tenants_at_3am(mock_ctx):
     # 08:00 UTC = 3:00 AM Bogota
     fixed_utc = datetime(2026, 3, 15, 8, 0, 0, tzinfo=timezone.utc)
 
-    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
+    with patch("luana_core_analytics_engine.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
         mock_datetime.side_effect = datetime
 
@@ -185,7 +185,7 @@ async def test_tick_handles_invalid_timezone(mock_ctx):
     # 08:00 UTC = 3:00 AM Bogota
     fixed_utc = datetime(2026, 3, 15, 8, 0, 0, tzinfo=timezone.utc)
 
-    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
+    with patch("luana_core_analytics_engine.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
         mock_datetime.side_effect = datetime
 
@@ -212,7 +212,7 @@ async def test_tick_enqueues_campaign_sync_alongside_extraction(mock_ctx):
     # 08:00 UTC = 3:00 AM Bogota
     fixed_utc = datetime(2026, 3, 15, 8, 0, 0, tzinfo=timezone.utc)
 
-    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
+    with patch("luana_core_analytics_engine.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
         mock_datetime.side_effect = datetime
 

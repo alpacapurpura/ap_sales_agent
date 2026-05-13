@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.brand.infrastructure.repositories.brand_summary_repository import (
+from luana_core_brand_studio.infrastructure.repositories.brand_summary_repository import (
     BrandSummaryRepository,
 )
 

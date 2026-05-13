@@ -3,12 +3,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
 
 router = APIRouter(prefix="/nps", tags=["CRM - NPS"])
 
@@ -97,7 +96,7 @@ async def create_survey(
     """Create NPS survey. Returns survey with unique token URL."""
     from uuid import UUID
 
-    from src.modules.crm.application.services.nps_service import NpsService
+    from luana_core_crm.application.services.nps_service import NpsService
 
     customer_id = UUID(body.customer_id) if body.customer_id else None
     offer_id = UUID(body.offer_id) if body.offer_id else None
@@ -129,7 +128,7 @@ async def get_survey(
 
     Returns survey details. No tenant auth needed.
     """
-    from src.modules.crm.application.services.nps_service import NpsService
+    from luana_core_crm.application.services.nps_service import NpsService
 
     svc = NpsService(db)
     survey = svc.get_survey_by_token(token)
@@ -162,7 +161,7 @@ async def submit_nps_response(
 
     Validates score 0-10. Updates survey status. Stores response.
     """
-    from src.modules.crm.application.services.nps_service import NpsService
+    from luana_core_crm.application.services.nps_service import NpsService
 
     svc = NpsService(db)
     survey = svc.get_survey_by_token(token)
@@ -214,7 +213,7 @@ async def get_nps_summary(
     user: Annotated[User, Depends(get_current_user)],
 ) -> NpsSummaryResponse:
     """Get NPS summary metrics for tenant."""
-    from src.modules.crm.application.services.nps_service import NpsService
+    from luana_core_crm.application.services.nps_service import NpsService
 
     svc = NpsService(db)
     summary = svc.get_nps_summary(user.tenant_id)
@@ -228,7 +227,7 @@ async def get_evangelist_candidates(
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[EvangelistCandidateResponse]:
     """Get customers with NPS >= 9 not yet promoted to EVANGELIST."""
-    from src.modules.crm.application.services.nps_service import NpsService
+    from luana_core_crm.application.services.nps_service import NpsService
 
     svc = NpsService(db)
     candidates = svc.get_evangelist_candidates(user.tenant_id)

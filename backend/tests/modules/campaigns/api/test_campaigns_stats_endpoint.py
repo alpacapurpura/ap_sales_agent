@@ -23,14 +23,14 @@ CAMPAIGN_ID = uuid.UUID("cccc0000-0000-0000-0000-000000000003")
 
 def test_campaign_stats_response_dto_exists() -> None:
     """CampaignStatsResponse debe existir en el módulo campaigns."""
-    from src.modules.campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
+    from luana_core_campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
 
     assert CampaignStatsResponse is not None
 
 
 def test_campaign_stats_response_has_required_fields() -> None:
     """CampaignStatsResponse debe tener todos los campos requeridos."""
-    from src.modules.campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
+    from luana_core_campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
 
     fields = CampaignStatsResponse.model_fields
     assert "campaign_id" in fields
@@ -46,7 +46,7 @@ def test_campaign_stats_response_has_required_fields() -> None:
 
 def test_campaign_stats_response_currency_is_optional() -> None:
     """currency en CampaignStatsResponse debe ser str | None."""
-    from src.modules.campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
+    from luana_core_campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
 
     # Debe poder construirse sin currency
     stats = CampaignStatsResponse(
@@ -65,7 +65,7 @@ def test_campaign_stats_response_currency_is_optional() -> None:
 
 def test_campaign_stats_response_attribution_method_literal() -> None:
     """converted_count_attribution_method debe ser un Literal válido."""
-    from src.modules.campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
+    from luana_core_campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
 
     stats = CampaignStatsResponse(
         campaign_id=CAMPAIGN_ID,
@@ -83,7 +83,7 @@ def test_campaign_stats_response_attribution_method_literal() -> None:
 
 def test_campaign_stats_response_rates_null_when_sent_zero() -> None:
     """response_rate y conversion_rate deben poder ser None cuando sent_count=0."""
-    from src.modules.campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
+    from luana_core_campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
 
     stats = CampaignStatsResponse(
         campaign_id=CAMPAIGN_ID,
@@ -105,7 +105,7 @@ def test_campaign_stats_response_rates_null_when_sent_zero() -> None:
 
 def test_campaign_stats_service_exists() -> None:
     """CampaignStatsService debe existir en campaigns.application.services."""
-    from src.modules.campaigns.application.services.campaign_stats_service import (
+    from luana_core_campaigns.application.services.campaign_stats_service import (
         CampaignStatsService,
     )
 
@@ -115,11 +115,11 @@ def test_campaign_stats_service_exists() -> None:
 @pytest.mark.asyncio
 async def test_campaign_stats_service_happy_path() -> None:
     """CampaignStatsService.get_stats retorna stats correctas."""
-    from src.modules.campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
-    from src.modules.campaigns.application.services.campaign_stats_service import (
+    from luana_core_campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
+    from luana_core_campaigns.application.services.campaign_stats_service import (
         CampaignStatsService,
     )
-    from src.modules.campaigns.domain.enums import TaskStatus
+    from luana_core_campaigns.domain.enums import TaskStatus
 
     # Mock repos
     mock_campaign = MagicMock()
@@ -170,7 +170,7 @@ async def test_campaign_stats_service_happy_path() -> None:
 @pytest.mark.asyncio
 async def test_campaign_stats_service_zero_tasks_rates_null() -> None:
     """Con cero tasks, las rates deben ser None."""
-    from src.modules.campaigns.application.services.campaign_stats_service import (
+    from luana_core_campaigns.application.services.campaign_stats_service import (
         CampaignStatsService,
     )
 
@@ -209,8 +209,8 @@ async def test_campaign_stats_service_zero_tasks_rates_null() -> None:
 @pytest.mark.asyncio
 async def test_campaign_stats_service_raises_not_found_when_missing() -> None:
     """CampaignStatsService lanza CampaignNotFoundError si la campaña no existe."""
-    from src.modules.campaigns.application.services.campaign_service import CampaignNotFoundError
-    from src.modules.campaigns.application.services.campaign_stats_service import (
+    from luana_core_campaigns.application.services.campaign_service import CampaignNotFoundError
+    from luana_core_campaigns.application.services.campaign_stats_service import (
         CampaignStatsService,
     )
 
@@ -239,8 +239,8 @@ async def test_campaign_stats_service_raises_not_found_when_missing() -> None:
 @pytest.mark.asyncio
 async def test_campaign_stats_service_tenant_isolation() -> None:
     """CampaignStatsService lanza CampaignNotFoundError si tenant no coincide."""
-    from src.modules.campaigns.application.services.campaign_service import CampaignNotFoundError
-    from src.modules.campaigns.application.services.campaign_stats_service import (
+    from luana_core_campaigns.application.services.campaign_service import CampaignNotFoundError
+    from luana_core_campaigns.application.services.campaign_stats_service import (
         CampaignStatsService,
     )
 

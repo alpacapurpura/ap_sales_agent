@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import structlog
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
-
-from src.modules.sales_agent.infrastructure.ws_manager import ws_manager
+from luana_core_sales_agent.infrastructure.ws_manager import ws_manager
 
 logger = structlog.get_logger()
 router = APIRouter()

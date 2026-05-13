@@ -4,9 +4,8 @@ import base64
 import hashlib
 
 from cryptography.fernet import Fernet
+from luana_core_platform.core.config import settings
 from passlib.context import CryptContext
-
-from src.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

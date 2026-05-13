@@ -12,21 +12,19 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.application.services.closer_studio.lead_helpers import (
+from luana_core_sales_agent.application.services.closer_studio.lead_helpers import (
     get_checkpoint,
 )
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
+from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from sqlalchemy.orm import Session
-
-    from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+    from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
         AgentStateCheckpointModel,
     )
+    from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

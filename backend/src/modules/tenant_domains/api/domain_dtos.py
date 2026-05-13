@@ -3,9 +3,8 @@
 from datetime import datetime
 from uuid import UUID
 
+from luana_core_tenant_domains.domain.domain_entity import DomainStatus, DomainType
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.tenant_domains.domain.domain_entity import DomainStatus, DomainType
 
 
 class DomainCreate(BaseModel):

@@ -13,7 +13,7 @@ import datetime as dt
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.shared.compliance.domain.lead_opt_in import LeadOptIn, OptInSource
+from luana_core_compliance.domain.lead_opt_in import LeadOptIn, OptInSource
 
 
 class OptInRepository(ABC):

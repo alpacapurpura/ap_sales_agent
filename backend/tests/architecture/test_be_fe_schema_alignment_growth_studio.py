@@ -121,7 +121,7 @@ def _extract_enum_values(prop_schema: dict[str, Any]) -> list[str] | None:
 @pytest.fixture(scope="module")
 def be_schemas() -> dict[str, Any]:
     """Load BE Pydantic JSON schemas (model_json_schema)."""
-    from src.modules.copilot.application.tools._analytics_inputs import (
+    from luana_core_copilot.application.tools._analytics_inputs import (
         ChannelOverviewParams,
         StageFilterParams,
         TriggerEtlRefreshParams,

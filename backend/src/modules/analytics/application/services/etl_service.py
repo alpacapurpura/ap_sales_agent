@@ -17,55 +17,53 @@ from uuid import UUID
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from sqlalchemy.orm import Session
-
-    from src.modules.analytics.domain.period_config import TenantPeriodConfig
-    from src.modules.analytics.domain.ports import ConnectionPort
-    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-    from src.modules.analytics.infrastructure.models.extraction_run_model import (
+    from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
+    from luana_core_analytics_engine.domain.ports import ConnectionPort
+    from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+    from luana_core_analytics_engine.infrastructure.models.extraction_run_model import (
         ExtractionRunModel,
     )
-    from src.modules.analytics.infrastructure.providers.base import (
+    from luana_core_analytics_engine.infrastructure.providers.base import (
         BaseMetricsProvider,
         ExtractedMetric,
     )
-    from src.modules.crm.application.services.customer_service import CustomerService
-    from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
+    from luana_core_crm.application.services.customer_service import CustomerService
+    from luana_core_offer_studio.infrastructure.repositories.external_product_mapping_repository import (
         ExternalProductMappingRepository,
     )
+    from sqlalchemy.orm import Session
 
-from sqlalchemy import select
-
-from src.modules.analytics.application.config import ETLConfig
-from src.modules.analytics.application.cost_type_mapping import get_cost_type
-from src.modules.analytics.application.services.channel_registry import (
+from luana_core_analytics_engine.application.config import ETLConfig
+from luana_core_analytics_engine.application.cost_type_mapping import get_cost_type
+from luana_core_analytics_engine.application.services.channel_registry import (
     CHANNEL_TYPE_TO_PROVIDERS,
 )
-from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
-from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
-from src.modules.analytics.infrastructure.etl.transformers import (
+from luana_core_analytics_engine.infrastructure.etl.aggregations import compute_aggregations
+from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
+from luana_core_analytics_engine.infrastructure.etl.transformers import (
     transform_staging_to_official,
 )
-from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
-from src.modules.analytics.infrastructure.providers.registry import (
+from luana_core_analytics_engine.infrastructure.providers.registry import (
     PROVIDER_REGISTRY,
     get_provider,
 )
-from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
 )
-from src.modules.analytics.infrastructure.repositories.metric_aggregation_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.metric_aggregation_repository import (
     MetricAggregationRepository,
 )
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
-from src.modules.analytics.infrastructure.repositories.staging_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.staging_repository import (
     StagingMetricsRepository,
 )
-from src.shared.domain.datetime_utils import utc_today
+from luana_core_platform.domain.datetime_utils import utc_today
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -188,8 +186,8 @@ class ETLService:
 
     def _get_period_config(self, tenant_id: UUID) -> TenantPeriodConfig:
         """Resolve TenantPeriodConfig from the tenant's DB columns."""
-        from src.modules.analytics.domain.period_config import TenantPeriodConfig
-        from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+        from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
+        from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
         stmt = select(TenantModel).where(TenantModel.id == tenant_id)
         tenant = self.db.execute(stmt).scalar_one_or_none()
@@ -250,10 +248,10 @@ class ETLService:
         # DDD exception (intentional): ETL must query active connections to know
         # which providers to run. The connection record IS the provider credentials
         # and config — this dependency is real, not accidental coupling.
-        from src.core.database import SessionLocal
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
+        from luana_core_platform.core.database import SessionLocal
 
         db = SessionLocal()
         try:
@@ -392,10 +390,10 @@ class ETLService:
 
         Returns list of per-provider result dicts.
         """
-        from src.modules.analytics.infrastructure.etl.period_pipeline import (
+        from luana_core_analytics_engine.infrastructure.etl.period_pipeline import (
             PeriodExtractionPipeline,
         )
-        from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository import (
             PeriodMetricsRepository,
         )
 
@@ -457,7 +455,7 @@ class ETLService:
 
         Returns the sync result dict, or None if no Meta credentials.
         """
-        from src.modules.analytics.application.services.ig_dm_sync_service import (
+        from luana_core_analytics_engine.application.services.ig_dm_sync_service import (
             InstagramDMSyncService,
         )
 
@@ -675,8 +673,8 @@ class ETLService:
         Replicates what webhooks produce so that UnmatchedProducts and
         OfferLadder widgets work after an ETL backfill.
         """
-        from src.shared.links.ports.crm_repos import get_customer_service
-        from src.shared.links.ports.offer import get_product_mapping_repo
+        from luana_core_platform.links.ports.crm_repos import get_customer_service
+        from luana_core_platform.links.ports.offer import get_product_mapping_repo
 
         orders = provider.get_last_extracted_orders()
         checkouts = provider.get_last_extracted_checkouts()
@@ -728,11 +726,10 @@ class ETLService:
         mapping_repo: ExternalProductMappingRepository,
     ) -> tuple[int, int]:
         """Process completed orders into journey_events + SaleModel. Returns (orders_processed, sales_created)."""
+        from luana_core_platform.domain.enums import SaleStage, SaleStatus
+        from luana_core_platform.infrastructure.models.crm import JourneyEventModel, SaleModel
         from sqlalchemy import func as sa_func
         from sqlalchemy import select as sa_select
-
-        from src.shared.domain.enums import SaleStage, SaleStatus
-        from src.shared.infrastructure.models.crm import JourneyEventModel, SaleModel
 
         orders_processed = 0
         sales_created = 0
@@ -897,10 +894,9 @@ class ETLService:
         customer_svc: CustomerService,
     ) -> int:
         """Process abandoned checkouts into journey_events. Returns checkouts_processed."""
+        from luana_core_platform.infrastructure.models.crm import JourneyEventModel
         from sqlalchemy import func as sa_func
         from sqlalchemy import select as sa_select
-
-        from src.shared.infrastructure.models.crm import JourneyEventModel
 
         checkouts_processed = 0
 
@@ -977,10 +973,10 @@ class ETLService:
         Called after the main initial_load completes. Fetches period-level
         values (e.g. reach, frequency) that cannot be summed across days.
         """
-        from src.modules.analytics.infrastructure.etl.period_pipeline import (
+        from luana_core_analytics_engine.infrastructure.etl.period_pipeline import (
             PeriodExtractionPipeline,
         )
-        from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.period_metrics_repository import (
             PeriodMetricsRepository,
         )
 

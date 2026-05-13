@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.compliance.domain.check_result import CheckResult
+from luana_core_compliance.domain.check_result import CheckResult
 
 
 class TestCheckResultInvariants:

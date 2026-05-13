@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.copilot.api.telegram import router
+from luana_core_copilot.api.telegram import router
 
 _VALID_SECRET = "test-webhook-secret-token-fixture"
 
@@ -44,7 +44,7 @@ def _payload_private_chat() -> dict:
 
 
 def _patch_settings_secret(monkeypatch) -> None:
-    from src.core import config as cfg
+    from luana_core_platform.core import config as cfg
 
     monkeypatch.setattr(
         cfg.settings,
@@ -53,7 +53,7 @@ def _patch_settings_secret(monkeypatch) -> None:
     )
 
 
-@patch("src.modules.copilot.api.telegram.get_arq_pool", new_callable=AsyncMock)
+@patch("luana_core_copilot.api.telegram.get_arq_pool", new_callable=AsyncMock)
 def test_webhook_accepts_dash_form_header_telegram_real_world(mock_arq, monkeypatch):
     """Telegram sends `X-Telegram-Bot-Api-Secret-Token` (dashes). MUST be 200."""
     _patch_settings_secret(monkeypatch)
@@ -75,7 +75,7 @@ def test_webhook_accepts_dash_form_header_telegram_real_world(mock_arq, monkeypa
     )
 
 
-@patch("src.modules.copilot.api.telegram.get_arq_pool", new_callable=AsyncMock)
+@patch("luana_core_copilot.api.telegram.get_arq_pool", new_callable=AsyncMock)
 def test_webhook_rejects_missing_secret_header(mock_arq, monkeypatch):
     _patch_settings_secret(monkeypatch)
     client = _build_client()
@@ -88,7 +88,7 @@ def test_webhook_rejects_missing_secret_header(mock_arq, monkeypatch):
     assert resp.status_code == 401
 
 
-@patch("src.modules.copilot.api.telegram.get_arq_pool", new_callable=AsyncMock)
+@patch("luana_core_copilot.api.telegram.get_arq_pool", new_callable=AsyncMock)
 def test_webhook_rejects_wrong_secret_header(mock_arq, monkeypatch):
     _patch_settings_secret(monkeypatch)
     client = _build_client()

@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.connections.infrastructure.channels.telegram_service import TelegramService
+from luana_core_connections.infrastructure.channels.telegram_service import TelegramService
 
 TENANT_ID = uuid4()
 
@@ -118,7 +118,7 @@ class TestTelegramConnect:
             return set_webhook_resp
 
         with (
-            patch("src.modules.connections.infrastructure.channels.telegram_service.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.telegram_service.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.API_DOMAIN = "api.example.com"
@@ -159,7 +159,7 @@ class TestTelegramConnect:
             return webhook_fail_resp
 
         with (
-            patch("src.modules.connections.infrastructure.channels.telegram_service.settings") as mock_settings,
+            patch("luana_core_connections.infrastructure.channels.telegram_service.settings") as mock_settings,
             patch("httpx.AsyncClient") as MockClient,
         ):
             mock_settings.API_DOMAIN = "api.example.com"

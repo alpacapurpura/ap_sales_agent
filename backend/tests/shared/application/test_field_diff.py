@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.shared.application.field_diff import (
+from luana_core_platform.application.field_diff import (
     diff_filled_by_section,
     filled_fields_by_section,
 )

@@ -4,7 +4,7 @@ Ratchet shrink-only: futuro adds OK; remove FAIL test. Origen: PR-10 PI-1 S4.
 Cuando PI-3 agrega filter nuevo → DEBE actualizar CANONICAL_FILTER_FIELDS aquí.
 """
 
-from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
 CANONICAL_FILTER_FIELDS: frozenset[str] = frozenset(
     {

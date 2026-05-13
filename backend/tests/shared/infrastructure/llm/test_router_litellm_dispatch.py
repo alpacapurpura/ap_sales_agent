@@ -13,18 +13,18 @@ from __future__ import annotations
 
 import pytest
 
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 
 def test_router_resolve_returns_litellm(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """_resolve(role) returns LiteLLMService — the only runtime dispatch path."""
-    monkeypatch.setattr("src.core.config.settings.LITELLM_MASTER_KEY", "sk-test")
-    monkeypatch.setattr("src.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_MASTER_KEY", "sk-test")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
 
-    from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
-    from src.shared.infrastructure.llm.router import MultiRoleLLMRouter
+    from luana_core_llm.providers.litellm import LiteLLMService
+    from luana_core_llm.router import MultiRoleLLMRouter
 
     router = MultiRoleLLMRouter()
     svc = router._resolve(ModelRole.NANO)
@@ -35,10 +35,10 @@ def test_router_litellm_singleton_across_roles(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Same LiteLLMService instance returned for NANO + REASONING + AGENT."""
-    monkeypatch.setattr("src.core.config.settings.LITELLM_MASTER_KEY", "sk-test")
-    monkeypatch.setattr("src.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_MASTER_KEY", "sk-test")
+    monkeypatch.setattr("luana_core_platform.core.config.settings.LITELLM_BASE_URL", "http://litellm:4000/v1")
 
-    from src.shared.infrastructure.llm.router import MultiRoleLLMRouter
+    from luana_core_llm.router import MultiRoleLLMRouter
 
     router = MultiRoleLLMRouter()
     svc_nano = router._resolve(ModelRole.NANO)

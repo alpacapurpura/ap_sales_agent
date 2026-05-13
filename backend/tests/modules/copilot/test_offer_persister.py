@@ -7,29 +7,29 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.infrastructure.persisters.brand_persister import (
+from luana_core_copilot.infrastructure.persisters.brand_persister import (
     BrandPersister,
 )
-from src.modules.copilot.infrastructure.persisters.offer_persister import (
+from luana_core_copilot.infrastructure.persisters.offer_persister import (
     OfferPersister,
 )
-from src.modules.copilot.infrastructure.persisters.persister_registry import (
+from luana_core_copilot.infrastructure.persisters.persister_registry import (
     get_persister,
 )
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     DeliverableFormat,
     GuaranteeType,
     OfferArchetype,
     OfferStatus,
     PaymentPlanType,
 )
-from src.modules.offer.domain.offer import (
+from luana_core_offer_studio.domain.offer import (
     DeliverableItem,
     ObjectionItem,
     Offer,
     PricingStructure,
 )
-from src.shared.domain.enums import FinancialCapacity
+from luana_core_platform.domain.enums import FinancialCapacity
 
 
 def _make_offer(**overrides: object) -> Offer:

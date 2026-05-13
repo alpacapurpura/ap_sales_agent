@@ -50,7 +50,7 @@ def tool_check_schedule(state: dict[str, Any], db: Any = None) -> dict[str, Any]
         }
 
     try:
-        from src.shared.links.ports.scheduling import create_scheduling_port
+        from luana_core_platform.links.ports.scheduling import create_scheduling_port
 
         tid = UUID(str(tenant_id)) if not isinstance(tenant_id, UUID) else tenant_id
         service = create_scheduling_port(db=db, tenant_id=tid)
@@ -94,13 +94,13 @@ def tool_escalate_to_human(state: dict[str, Any], db: Any = None) -> dict[str, s
     }
 
 
-from src.modules.sales_agent.application.agents.sales.enrollment_tools import (
+from luana_core_sales_agent.application.agents.sales.enrollment_tools import (
     ENROLLMENT_TOOL_REGISTRY,
 )
-from src.modules.sales_agent.application.tools.payment import (
+from luana_core_sales_agent.application.tools.payment import (
     PAYMENT_TOOL_REGISTRY,
 )
-from src.modules.sales_agent.application.tools.scheduling import (
+from luana_core_sales_agent.application.tools.scheduling import (
     SCHEDULING_TOOL_REGISTRY,
 )
 

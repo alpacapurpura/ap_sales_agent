@@ -24,7 +24,7 @@ from uuid import uuid4
 import pytest
 
 import src.shared.domain_events.outbox.application.event_bus_adapter as _adapter_mod
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
     _reset_module_inference_cache,
 )
@@ -101,7 +101,7 @@ class TestOutboxCutoverSalesAgent:
             mock_outbox = MagicMock()
             adapter = EventBusAdapter(outbox_service=mock_outbox)
 
-            from src.shared.domain.events import PaymentReceivedEvent
+            from luana_core_platform.domain.events import PaymentReceivedEvent
 
             event = PaymentReceivedEvent.create(
                 tenant_id=uuid4(),
@@ -113,7 +113,7 @@ class TestOutboxCutoverSalesAgent:
             mock_session = MagicMock()
 
             with patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ):
                 _publish_from_module(
@@ -138,11 +138,11 @@ class TestOutboxCutoverSalesAgent:
 
             legacy_called: list[str] = []
             with patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ):
                 adapter = EventBusAdapter()
-                from src.shared.domain.events import LeadCapturedEvent
+                from luana_core_platform.domain.events import LeadCapturedEvent
 
                 event = LeadCapturedEvent.create(
                     tenant_id=uuid4(),
@@ -182,7 +182,7 @@ class TestOutboxCutoverCopilot:
             mock_outbox = MagicMock()
             adapter = EventBusAdapter(outbox_service=mock_outbox)
 
-            from src.shared.domain_events.outbox.domain.event import DomainEvent
+            from luana_core_events.outbox.domain.event import DomainEvent
 
             event = DomainEvent(
                 event_name="copilot_card_emitted",
@@ -192,7 +192,7 @@ class TestOutboxCutoverCopilot:
             mock_session = MagicMock()
 
             with patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ):
                 _publish_from_module(
@@ -217,10 +217,10 @@ class TestOutboxCutoverCopilot:
 
             legacy_called: list[str] = []
             with patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ):
-                from src.shared.domain_events.outbox.domain.event import DomainEvent
+                from luana_core_events.outbox.domain.event import DomainEvent
 
                 adapter = EventBusAdapter()
                 event = DomainEvent(
@@ -259,7 +259,7 @@ class TestOutboxCutoverBrand:
             mock_outbox = MagicMock()
             adapter = EventBusAdapter(outbox_service=mock_outbox)
 
-            from src.shared.domain.events import BrandSectionUpdatedEvent
+            from luana_core_platform.domain.events import BrandSectionUpdatedEvent
 
             event = BrandSectionUpdatedEvent.create(
                 tenant_id=uuid4(),
@@ -268,7 +268,7 @@ class TestOutboxCutoverBrand:
             mock_session = MagicMock()
 
             with patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ):
                 _publish_from_module(
@@ -293,10 +293,10 @@ class TestOutboxCutoverBrand:
 
             legacy_called: list[str] = []
             with patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ):
-                from src.shared.domain.events import PersonalityProfileUpdatedEvent
+                from luana_core_platform.domain.events import PersonalityProfileUpdatedEvent
 
                 adapter = EventBusAdapter()
                 event = PersonalityProfileUpdatedEvent.create(
@@ -338,11 +338,11 @@ class TestOutboxCutoverIsolation:
             legacy_called: list[str] = []
 
             with patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ):
                 adapter = EventBusAdapter(outbox_service=mock_outbox)
-                from src.shared.domain_events.outbox.domain.event import DomainEvent
+                from luana_core_events.outbox.domain.event import DomainEvent
 
                 event = DomainEvent(
                     event_name="copilot_card_emitted",

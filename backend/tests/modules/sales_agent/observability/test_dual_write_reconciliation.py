@@ -20,7 +20,7 @@ class TestEnabledFlag:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.delenv("SALES_AGENT_DUAL_WRITE_RECONCILE", raising=False)
-        from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
+        from luana_core_sales_agent.observability.workers.dual_write_reconciliation_task import (
             run_sales_agent_dual_write_reconcile,
         )
 
@@ -39,7 +39,7 @@ class TestEnabledFlag:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setenv("SALES_AGENT_DUAL_WRITE_RECONCILE", "1")
-        from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
+        from luana_core_sales_agent.observability.workers.dual_write_reconciliation_task import (
             run_sales_agent_dual_write_reconcile,
         )
 
@@ -56,7 +56,7 @@ class TestReconcileFunction:
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        from src.modules.sales_agent.observability.workers import dual_write_reconciliation_task as mod
+        from luana_core_sales_agent.observability.workers import dual_write_reconciliation_task as mod
 
         tenant_id = uuid4()
         legacy_result = MagicMock()
@@ -78,7 +78,7 @@ class TestReconcileFunction:
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        from src.modules.sales_agent.observability.workers import dual_write_reconciliation_task as mod
+        from luana_core_sales_agent.observability.workers import dual_write_reconciliation_task as mod
 
         tenant_id = uuid4()
         legacy_result = MagicMock()
@@ -98,7 +98,7 @@ class TestReconcileFunction:
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        from src.modules.sales_agent.observability.workers import dual_write_reconciliation_task as mod
+        from luana_core_sales_agent.observability.workers import dual_write_reconciliation_task as mod
 
         new_only = uuid4()
         legacy_result = MagicMock()
@@ -124,7 +124,7 @@ class TestBestEffort:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setenv("SALES_AGENT_DUAL_WRITE_RECONCILE", "1")
-        from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
+        from luana_core_sales_agent.observability.workers.dual_write_reconciliation_task import (
             run_sales_agent_dual_write_reconcile,
         )
 

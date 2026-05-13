@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
-from src.modules.offer.application.ports import ILandingGenerationRepository
+from luana_core_offer_studio.application.ports import ILandingGenerationRepository
 
 
 @dataclass

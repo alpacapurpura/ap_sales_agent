@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.shared.domain.events import (
+from luana_core_platform.domain.events import (
     EventBus,
     ExtractionJobCompletedEvent,
     ExtractionSectionCompletedEvent,
@@ -118,7 +118,7 @@ class TestRegisterExtractionEventHandlers:
 
     def test_register_subscribes_both_events(self) -> None:
         """After register, EventBus has handlers for both extraction event names."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             register_extraction_event_handlers,
         )
 
@@ -131,7 +131,7 @@ class TestRegisterExtractionEventHandlers:
 
     def test_register_idempotent_no_duplicate_handlers(self) -> None:
         """Calling register twice does not duplicate handlers."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             register_extraction_event_handlers,
         )
 
@@ -151,7 +151,7 @@ class TestHandlerResiliency:
 
     def test_section_handler_swallows_emitter_exception(self) -> None:
         """If the emitter raises, the handler catches and logs — never re-raises."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             handle_section_completed,
         )
 
@@ -166,14 +166,14 @@ class TestHandlerResiliency:
         )
 
         with (
-            patch("src.core.database.SessionLocal", side_effect=RuntimeError("DB down")),
+            patch("luana_core_platform.core.database.SessionLocal", side_effect=RuntimeError("DB down")),
         ):
             # Must not raise
             handle_section_completed(event)
 
     def test_job_handler_swallows_emitter_exception(self) -> None:
         """If the emitter raises, the job handler catches and logs — never re-raises."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             handle_job_completed,
         )
 
@@ -191,7 +191,7 @@ class TestHandlerResiliency:
         )
 
         with (
-            patch("src.core.database.SessionLocal", side_effect=RuntimeError("DB down")),
+            patch("luana_core_platform.core.database.SessionLocal", side_effect=RuntimeError("DB down")),
         ):
             # Must not raise
             handle_job_completed(event)
@@ -202,7 +202,7 @@ class TestHandlerSkipsWhenNoConversation:
 
     def test_section_handler_no_op_without_conversation(self) -> None:
         """If conversation_id is None, section handler does nothing."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             handle_section_completed,
         )
 
@@ -217,7 +217,7 @@ class TestHandlerSkipsWhenNoConversation:
         )
 
         db_mock = MagicMock()
-        with patch("src.core.database.SessionLocal", return_value=db_mock):
+        with patch("luana_core_platform.core.database.SessionLocal", return_value=db_mock):
             handle_section_completed(event)
 
         # SessionLocal should NOT be called — we exit before opening a session
@@ -225,7 +225,7 @@ class TestHandlerSkipsWhenNoConversation:
 
     def test_job_handler_no_op_without_conversation(self) -> None:
         """If conversation_id is None, job handler does nothing."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             handle_job_completed,
         )
 
@@ -243,7 +243,7 @@ class TestHandlerSkipsWhenNoConversation:
         )
 
         db_mock = MagicMock()
-        with patch("src.core.database.SessionLocal", return_value=db_mock):
+        with patch("luana_core_platform.core.database.SessionLocal", return_value=db_mock):
             handle_job_completed(event)
 
         db_mock.close.assert_not_called()
@@ -299,7 +299,7 @@ class TestEmitterFunctions:
 
     def test_emit_section_pill_inserts_navigation_card(self) -> None:
         """emit_section_complete_pill inserts a navigation card into the conversation."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             emit_section_complete_pill,
         )
 
@@ -310,9 +310,9 @@ class TestEmitterFunctions:
         )
 
         with (
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
             patch(
-                "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
+                "luana_core_copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=conv_repo_mock,
             ),
         ):
@@ -334,7 +334,7 @@ class TestEmitterFunctions:
 
     def test_emit_summary_card_inserts_extraction_summary(self) -> None:
         """emit_extraction_summary_card inserts an extraction_summary card."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             emit_extraction_summary_card,
         )
 
@@ -346,9 +346,9 @@ class TestEmitterFunctions:
 
         unique_job_id = str(uuid.uuid4())
         with (
-            patch("src.core.database.redis_client", None),
+            patch("luana_core_platform.core.database.redis_client", None),
             patch(
-                "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
+                "luana_core_copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=conv_repo_mock,
             ),
         ):
@@ -370,7 +370,7 @@ class TestEmitterFunctions:
 
     def test_emit_section_pill_idempotent_with_redis(self) -> None:
         """Second call with same job_id+slug is a no-op when Redis NX claim fails."""
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             emit_section_complete_pill,
         )
 
@@ -386,11 +386,11 @@ class TestEmitterFunctions:
 
         with (
             patch(
-                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                "luana_core_copilot.application.extraction_card_flow.redis_client",
                 redis_mock,
             ),
             patch(
-                "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
+                "luana_core_copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=conv_repo_mock,
             ),
         ):

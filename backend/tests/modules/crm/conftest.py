@@ -11,12 +11,12 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
     JourneyEventModel,
 )
-from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
 

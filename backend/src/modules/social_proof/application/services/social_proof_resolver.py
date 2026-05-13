@@ -10,21 +10,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from src.modules.social_proof.domain.authority_item import AuthorityItem
-from src.modules.social_proof.domain.enums import SourceTable, SurfaceType
-from src.modules.social_proof.domain.placement import Placement
-from src.modules.social_proof.domain.team_member import TeamMember
-from src.modules.social_proof.domain.testimonial import Testimonial
-from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+from luana_core_social_proof.domain.authority_item import AuthorityItem
+from luana_core_social_proof.domain.enums import SourceTable, SurfaceType
+from luana_core_social_proof.domain.placement import Placement
+from luana_core_social_proof.domain.team_member import TeamMember
+from luana_core_social_proof.domain.testimonial import Testimonial
+from luana_core_social_proof.infrastructure.repositories.authority_item_repository import (
     AuthorityItemRepository,
 )
-from src.modules.social_proof.infrastructure.repositories.placement_repository import (
+from luana_core_social_proof.infrastructure.repositories.placement_repository import (
     PlacementRepository,
 )
-from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+from luana_core_social_proof.infrastructure.repositories.team_member_repository import (
     TeamMemberRepository,
 )
-from src.modules.social_proof.infrastructure.repositories.testimonial_repository import (
+from luana_core_social_proof.infrastructure.repositories.testimonial_repository import (
     TestimonialRepository,
 )
 

@@ -20,19 +20,18 @@ import contextlib
 import datetime as dt
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.application.tools.payment.providers import (
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
+from luana_core_platform.domain.events import PaymentReceivedEvent
+from luana_core_sales_agent.application.tools.payment.providers import (
     PaymentStatusEnum,
     payment_provider_for_tenant,
 )
-from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+from luana_core_sales_agent.infrastructure.models.payment_link_model import (
     PaymentLinkModel,
 )
-from src.shared.domain.events import PaymentReceivedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
-)
+from sqlalchemy import select
 
 logger = structlog.get_logger()
 

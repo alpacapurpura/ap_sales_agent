@@ -10,8 +10,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.api.dto import SSEEvent
-from src.modules.copilot.application.orchestrator.chat import (
+from luana_core_copilot.api.dto import SSEEvent
+from luana_core_copilot.application.orchestrator.chat import (
     COPILOT_STREAM_TIMEOUT_SECONDS,
     CopilotOrchestrator,
 )
@@ -107,7 +107,7 @@ def mock_db() -> MagicMock:
 def orchestrator(mock_db: MagicMock) -> CopilotOrchestrator:
     """Create orchestrator with mocked dependencies."""
     with patch(
-        "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+        "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
     ) as mock_repo_cls:
         mock_repo = MagicMock()
         mock_conv = MagicMock()
@@ -167,18 +167,18 @@ class TestStreamingTimeout:
         """When LLM streaming times out, an SSE error event must be emitted."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
+                "luana_core_copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 0.1,  # 100ms timeout for fast test
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
@@ -205,18 +205,18 @@ class TestStreamingTimeout:
         """Partial text chunks emitted before timeout must still be received."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
+                "luana_core_copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 0.1,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
@@ -240,18 +240,18 @@ class TestStreamingTimeout:
         """Fast responses should complete normally without timeout error."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
+                "luana_core_copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 5,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
@@ -275,18 +275,18 @@ class TestStreamingTimeout:
         """Even on timeout, the stream must end with status:done and done events."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
+                "luana_core_copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 0.1,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
@@ -311,18 +311,18 @@ class TestStreamingTimeout:
         """On timeout with partial response, the partial text should be persisted."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
+                "luana_core_copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 0.1,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo = _setup_orchestrator_mocks(orchestrator)

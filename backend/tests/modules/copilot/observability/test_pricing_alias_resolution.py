@@ -35,7 +35,7 @@ def _kimi_snapshot() -> MagicMock:
 
 class TestAliasResolutionFallsThroughOnInternalMiss:
     def test_kimi_internal_identity_resolves_via_alias(self) -> None:
-        from src.shared.agent_observability.pricing.resolver import PricingResolver
+        from luana_core_observability.pricing.resolver import PricingResolver
 
         upstream = _kimi_snapshot()
 
@@ -61,7 +61,7 @@ class TestAliasResolutionFallsThroughOnInternalMiss:
         assert result.snapshot is upstream
 
     def test_alias_hit_is_cached_for_subsequent_calls(self) -> None:
-        from src.shared.agent_observability.pricing.resolver import PricingResolver
+        from luana_core_observability.pricing.resolver import PricingResolver
 
         upstream = _kimi_snapshot()
 
@@ -91,7 +91,7 @@ class TestAliasResolutionFallsThroughOnInternalMiss:
         assert repo.find_active.call_count == 2
 
     def test_unknown_internal_identity_still_estimates(self) -> None:
-        from src.shared.agent_observability.pricing.resolver import PricingResolver
+        from luana_core_observability.pricing.resolver import PricingResolver
 
         repo = MagicMock()
         repo.find_active.return_value = None
@@ -112,7 +112,7 @@ class TestAliasResolutionFallsThroughOnInternalMiss:
         internal identity to override LiteLLM (incident response, custom
         contracts). Those rows must beat the alias path.
         """
-        from src.shared.agent_observability.pricing.resolver import PricingResolver
+        from luana_core_observability.pricing.resolver import PricingResolver
 
         manual = MagicMock()
         manual.provider = "kimi"

@@ -10,7 +10,7 @@ from __future__ import annotations
 import datetime as dt
 from abc import ABC, abstractmethod
 
-from src.shared.billing.domain.mv_refresh_log import MVRefreshLog, RefreshStatus
+from luana_core_billing.domain.mv_refresh_log import MVRefreshLog, RefreshStatus
 
 
 class MVRefreshLogRepository(ABC):

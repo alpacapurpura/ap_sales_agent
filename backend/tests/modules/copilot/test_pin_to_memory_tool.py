@@ -7,18 +7,18 @@ from uuid import uuid4
 
 import pytest
 
-from src.core.context import (
+from luana_core_platform.core.context import (
     set_conversation_id,
     set_tenant_id,
     set_user_id,
 )
-from src.modules.copilot.application.tools.pin_to_memory import (
+from luana_core_copilot.application.tools.pin_to_memory import (
     _pin_to_memory_impl,
 )
-from src.modules.copilot.infrastructure.repositories.inspiration_repository import (
+from luana_core_copilot.infrastructure.repositories.inspiration_repository import (
     CopilotInspirationRepository,
 )
-from src.modules.copilot.infrastructure.repositories.pinned_memory_repository import (
+from luana_core_copilot.infrastructure.repositories.pinned_memory_repository import (
     CopilotPinnedMemoryRepository,
 )
 

@@ -11,7 +11,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.modules.connections.api.google_workspace import (
+from luana_core_connections.api.google_workspace import (
     _test_analytics,
     _test_calendar,
     _test_gmail,
@@ -22,10 +22,10 @@ from src.modules.connections.api.google_workspace import (
     oauth_callback,
     toggle_service,
 )
-from src.modules.connections.api.google_workspace import (
+from luana_core_connections.api.google_workspace import (
     test_connection as gw_test_connection,
 )
-from src.modules.connections.domain.enums import ChannelType
+from luana_core_connections.domain.enums import ChannelType
 
 TENANT_ID = uuid4()
 
@@ -58,7 +58,7 @@ def _conn(channel_type=ChannelType.GMAIL.value, creds=None, config=None, is_acti
 class TestGetAuthUrl:
     @pytest.mark.asyncio
     async def test_returns_url_and_state(self):
-        with patch("src.modules.connections.api.google_workspace.Flow") as MockFlow:
+        with patch("luana_core_connections.api.google_workspace.Flow") as MockFlow:
             mock_flow = MockFlow.from_client_config.return_value
             mock_flow.authorization_url.return_value = ("https://accounts.google.com/auth", "state_abc")
             mock_flow.redirect_uri = None
@@ -79,7 +79,7 @@ class TestOauthCallback:
     @pytest.mark.asyncio
     async def test_raises_400_on_token_exchange_failure(self):
         repo = _repo()
-        with patch("src.modules.connections.api.google_workspace.Flow") as MockFlow:
+        with patch("luana_core_connections.api.google_workspace.Flow") as MockFlow:
             mock_flow = MockFlow.from_client_config.return_value
             mock_flow.fetch_token.side_effect = Exception("invalid code")
             mock_flow.redirect_uri = None
@@ -96,10 +96,10 @@ class TestOauthCallback:
         )
 
         with (
-            patch("src.modules.connections.api.google_workspace.Flow") as MockFlow,
-            patch("src.modules.connections.api.google_workspace.Credentials") as MockCreds,
-            patch("src.modules.connections.api.google_workspace.build") as mock_build,
-            patch("src.modules.connections.api.google_workspace.YoutubeAdapter") as MockYT,
+            patch("luana_core_connections.api.google_workspace.Flow") as MockFlow,
+            patch("luana_core_connections.api.google_workspace.Credentials") as MockCreds,
+            patch("luana_core_connections.api.google_workspace.build") as mock_build,
+            patch("luana_core_connections.api.google_workspace.YoutubeAdapter") as MockYT,
         ):
             mock_flow = MockFlow.from_client_config.return_value
             mock_flow.redirect_uri = None
@@ -250,7 +250,7 @@ class TestTestConnection:
 
         repo = _repo(get_by_tenant_and_type=MagicMock(side_effect=_get_conn))
 
-        with patch("src.modules.connections.api.google_workspace._run_service_test") as mock_run:
+        with patch("luana_core_connections.api.google_workspace._run_service_test") as mock_run:
             mock_run.return_value = {"status": "ok"}
             result = await gw_test_connection(_user(), repo)
 
@@ -262,7 +262,7 @@ class TestTestConnection:
 
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.google_workspace._run_service_test") as mock_run:
+        with patch("luana_core_connections.api.google_workspace._run_service_test") as mock_run:
             mock_run.return_value = {"status": "error", "_auth_error": True}
             result = await gw_test_connection(_user(), repo)
 
@@ -277,8 +277,8 @@ class TestTestConnection:
 class TestHelpers:
     def test_test_gmail_calls_gmail_api(self):
         with (
-            patch("src.modules.connections.api.google_workspace.Credentials") as MockCreds,
-            patch("src.modules.connections.api.google_workspace.build") as mock_build,
+            patch("luana_core_connections.api.google_workspace.Credentials") as MockCreds,
+            patch("luana_core_connections.api.google_workspace.build") as mock_build,
         ):
             mock_profile = {"emailAddress": "x@gmail.com", "messagesTotal": 10, "threadsTotal": 5}
             mock_build.return_value.users.return_value.getProfile.return_value.execute.return_value = mock_profile
@@ -290,8 +290,8 @@ class TestHelpers:
 
     def test_test_calendar_returns_calendars(self):
         with (
-            patch("src.modules.connections.api.google_workspace.Credentials") as MockCreds,
-            patch("src.modules.connections.api.google_workspace.build") as mock_build,
+            patch("luana_core_connections.api.google_workspace.Credentials") as MockCreds,
+            patch("luana_core_connections.api.google_workspace.build") as mock_build,
         ):
             mock_build.return_value.calendarList.return_value.list.return_value.execute.return_value = {
                 "items": [{"id": "primary", "summary": "My Cal", "primary": True}]
@@ -304,8 +304,8 @@ class TestHelpers:
 
     def test_test_analytics_returns_accounts(self):
         with (
-            patch("src.modules.connections.api.google_workspace.Credentials") as MockCreds,
-            patch("src.modules.connections.api.google_workspace.build") as mock_build,
+            patch("luana_core_connections.api.google_workspace.Credentials") as MockCreds,
+            patch("luana_core_connections.api.google_workspace.build") as mock_build,
         ):
             mock_build.return_value.accountSummaries.return_value.list.return_value.execute.return_value = {
                 "accountSummaries": [{"displayName": "My Account", "propertySummaries": []}]
@@ -318,8 +318,8 @@ class TestHelpers:
 
     def test_test_youtube_returns_channel_info(self):
         with (
-            patch("src.modules.connections.api.google_workspace.Credentials") as MockCreds,
-            patch("src.modules.connections.api.google_workspace.build") as mock_build,
+            patch("luana_core_connections.api.google_workspace.Credentials") as MockCreds,
+            patch("luana_core_connections.api.google_workspace.build") as mock_build,
         ):
             MockCreds.from_authorized_user_info.return_value = MagicMock()
             mock_build.return_value.channels.return_value.list.return_value.execute.return_value = {

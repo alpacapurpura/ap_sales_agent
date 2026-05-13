@@ -13,7 +13,7 @@ Validates that:
 class TestRouteToolMapping:
     def test_all_routes_resolve_to_at_least_one_tool(self):
         """Every route entry in ROUTE_TOOL_MAP yields at least 1 tool."""
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             ROUTE_TOOL_MAP,
             get_tools_for_route,
         )
@@ -26,7 +26,7 @@ class TestRouteToolMapping:
 
     def test_brand_studio_includes_mutation_and_awareness(self):
         """brand-studio route includes both mutation and awareness tool groups."""
-        from src.modules.copilot.application.tools.registry import ROUTE_TOOL_MAP
+        from luana_core_copilot.application.tools.registry import ROUTE_TOOL_MAP
 
         groups = ROUTE_TOOL_MAP.get("brand-studio", [])
         assert "mutation" in groups
@@ -34,7 +34,7 @@ class TestRouteToolMapping:
 
     def test_growth_studio_includes_analytics_tools(self):
         """growth-studio route includes the analytics tool group."""
-        from src.modules.copilot.application.tools.registry import ROUTE_TOOL_MAP
+        from luana_core_copilot.application.tools.registry import ROUTE_TOOL_MAP
 
         groups = ROUTE_TOOL_MAP.get("growth-studio", [])
         assert "analytics" in groups
@@ -42,7 +42,7 @@ class TestRouteToolMapping:
 
     def test_unknown_route_uses_fallback(self):
         """An unrecognised route uses the '*' fallback group list."""
-        from src.modules.copilot.application.tools.registry import get_tools_for_route
+        from luana_core_copilot.application.tools.registry import get_tools_for_route
 
         tools_unknown = get_tools_for_route("/tenant/totally-unknown-page")
         tools_fallback = get_tools_for_route(None)  # None also hits fallback
@@ -52,7 +52,7 @@ class TestRouteToolMapping:
 
     def test_none_route_equals_fallback(self):
         """get_tools_for_route(None) == get_tools_for_route on an unknown route."""
-        from src.modules.copilot.application.tools.registry import get_tools_for_route
+        from luana_core_copilot.application.tools.registry import get_tools_for_route
 
         none_tools = {t.name for t in get_tools_for_route(None)}
         unknown_tools = {t.name for t in get_tools_for_route("/totally/unknown")}
@@ -60,7 +60,7 @@ class TestRouteToolMapping:
 
     def test_tools_have_name_attribute(self):
         """All resolved tools expose a .name attribute (LangChain tool contract)."""
-        from src.modules.copilot.application.tools.registry import get_all_tools
+        from luana_core_copilot.application.tools.registry import get_all_tools
 
         tools = get_all_tools()
         assert tools, "No tools registered at all"
@@ -73,19 +73,19 @@ class TestDocumentToolAlwaysPresent:
     """read_document must be available on every route — uploads happen anywhere."""
 
     def test_read_document_in_brand_studio(self) -> None:
-        from src.modules.copilot.application.tools.registry import get_tool_names_for_route
+        from luana_core_copilot.application.tools.registry import get_tool_names_for_route
 
         names = get_tool_names_for_route("/tenant/brand-studio")
         assert "read_document" in names
 
     def test_read_document_in_growth_studio(self) -> None:
-        from src.modules.copilot.application.tools.registry import get_tool_names_for_route
+        from luana_core_copilot.application.tools.registry import get_tool_names_for_route
 
         names = get_tool_names_for_route("/tenant/growth-studio/metrics")
         assert "read_document" in names
 
     def test_read_document_on_fallback_route(self) -> None:
-        from src.modules.copilot.application.tools.registry import get_tool_names_for_route
+        from luana_core_copilot.application.tools.registry import get_tool_names_for_route
 
         names = get_tool_names_for_route(None)
         assert "read_document" in names
@@ -104,7 +104,7 @@ class TestProviderRouteMerging:
     def _synth_provider(self):
         from langchain_core.tools import tool
 
-        from src.modules.copilot.domain.ports import (
+        from luana_core_copilot.domain.ports import (
             BaseCopilotProvider,
             ProviderRoute,
         )
@@ -169,7 +169,7 @@ class TestProviderRouteMerging:
         """
         from langchain_core.tools import tool
 
-        from src.modules.copilot.domain.ports import (
+        from luana_core_copilot.domain.ports import (
             BaseCopilotProvider,
             ProviderRoute,
         )
@@ -219,7 +219,7 @@ class TestProviderRouteMerging:
         """Provider declaring an already-present group on the same prefix is
         a no-op — no duplicate group entry in the route list.
         """
-        from src.modules.copilot.domain.ports import (
+        from luana_core_copilot.domain.ports import (
             BaseCopilotProvider,
             ProviderRoute,
         )

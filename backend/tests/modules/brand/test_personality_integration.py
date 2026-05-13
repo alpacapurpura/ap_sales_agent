@@ -10,9 +10,9 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.brand.application.services.personality_service import PersonalityService
-from src.modules.brand.domain.personality import PERSONALITY_PRESETS
-from src.modules.brand.infrastructure.repositories.personality_repository import (
+from luana_core_brand_studio.application.services.personality_service import PersonalityService
+from luana_core_brand_studio.domain.personality import PERSONALITY_PRESETS
+from luana_core_brand_studio.infrastructure.repositories.personality_repository import (
     PersonalityProfileRepository,
 )
 

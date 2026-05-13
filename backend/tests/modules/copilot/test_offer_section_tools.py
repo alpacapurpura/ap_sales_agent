@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.application.tools.offer_section_tools import (
+from luana_core_copilot.application.tools.offer_section_tools import (
     OFFER_SECTION_TOOLS,
     adapt_from_brand_identity,
     adapt_from_brand_narrative,
@@ -188,7 +188,7 @@ def test_offer_section_tools_registered() -> None:
 
 def test_offer_section_tools_in_registry_tool_groups() -> None:
     """offer_section group must exist in TOOL_GROUPS."""
-    from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+    from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
     assert "offer_section" in TOOL_GROUPS
     assert len(TOOL_GROUPS["offer_section"]) == 18
@@ -196,7 +196,7 @@ def test_offer_section_tools_in_registry_tool_groups() -> None:
 
 def test_offer_studio_route_includes_offer_section() -> None:
     """offer-studio route must include offer_section group."""
-    from src.modules.copilot.application.tools.registry import ROUTE_TOOL_MAP
+    from luana_core_copilot.application.tools.registry import ROUTE_TOOL_MAP
 
     groups = ROUTE_TOOL_MAP.get("offer-studio", [])
     assert "offer_section" in groups
@@ -211,13 +211,13 @@ class TestAdaptFromBrandIdentity:
     def test_happy_path(self) -> None:
         settings = _make_brand_settings(identity=_make_brand_identity("Nicolify", "Crece sin límites", "entusiasta"))
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
             # Block real DB access via SuggestionEngine providers (PI-11 PR-1: tests previously
             # leaked into get_default_engine() → OfferSuggestionProvider._compute → SessionLocal()).
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                "luana_core_copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
                 return_value=[],
             ),
         ):
@@ -231,9 +231,9 @@ class TestAdaptFromBrandIdentity:
 
     def test_missing_brand(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=None),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=None),
         ):
             result = json.loads(adapt_from_brand_identity.invoke({}))
 
@@ -246,13 +246,13 @@ class TestAdaptFromBrandIdentity:
         """_brand_settings must be called with the request-scoped tenant_id."""
         settings = _make_brand_settings()
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings
+                "luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings
             ) as mock_bs,
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                "luana_core_copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
                 return_value=[],
             ),
         ):
@@ -272,15 +272,15 @@ class TestAdaptFromBrandIdentity:
         personality_profile.system_instruction = "BLOQUE 1 — REGLAS DE PERSONALIDAD\nCalma y precisión."
 
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._active_personality",
+                "luana_core_copilot.application.tools.offer_section_tools._active_personality",
                 return_value=personality_profile,
             ),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                "luana_core_copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
                 return_value=[],
             ),
         ):
@@ -296,15 +296,15 @@ class TestAdaptFromBrandIdentity:
         settings = _make_brand_settings(identity=identity)
 
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._active_personality",
+                "luana_core_copilot.application.tools.offer_section_tools._active_personality",
                 return_value=None,
             ),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                "luana_core_copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
                 return_value=[],
             ),
         ):
@@ -324,11 +324,11 @@ class TestAdaptFromBrandNarrative:
         narrative = _make_narrative()
         settings = _make_brand_settings(narrative=narrative)
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                "luana_core_copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
                 return_value=[],
             ),
         ):
@@ -341,9 +341,9 @@ class TestAdaptFromBrandNarrative:
     def test_no_narrative(self) -> None:
         settings = _make_brand_settings(narrative=None)
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
         ):
             result = json.loads(adapt_from_brand_narrative.invoke({}))
 
@@ -353,13 +353,13 @@ class TestAdaptFromBrandNarrative:
     def test_tenant_isolation(self) -> None:
         settings = _make_brand_settings(narrative=_make_narrative())
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings
+                "luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings
             ) as mock_bs,
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
+                "luana_core_copilot.application.tools.offer_section_tools._engine_suggestions_for_context",
                 return_value=[],
             ),
         ):
@@ -395,9 +395,9 @@ class TestRewriteTones:
 class TestValidatePresetCoherence:
     def test_happy_path_no_issues(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
         ):
             result = json.loads(
                 validate_preset_coherence.invoke(
@@ -410,10 +410,10 @@ class TestValidatePresetCoherence:
 
     def test_high_ticket_flag_missing_keywords(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags",
+                "luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags",
                 return_value=["high_ticket"],
             ),
         ):
@@ -426,9 +426,9 @@ class TestValidatePresetCoherence:
 
     def test_empty_promise(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
         ):
             result = json.loads(validate_preset_coherence.invoke({"current_promise": "", "offer_id": ""}))
 
@@ -444,9 +444,9 @@ class TestReuseBrandBuyerPersonas:
     def test_happy_path(self) -> None:
         avatars = [_make_avatar("Emprendedor", True, "30-40 años, quiere escalar")]
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._avatars", return_value=avatars),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._avatars", return_value=avatars),
         ):
             result = json.loads(reuse_brand_buyer_personas.invoke({}))
 
@@ -456,9 +456,9 @@ class TestReuseBrandBuyerPersonas:
 
     def test_no_avatars(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._avatars", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._avatars", return_value=[]),
         ):
             result = json.loads(reuse_brand_buyer_personas.invoke({}))
 
@@ -468,11 +468,9 @@ class TestReuseBrandBuyerPersonas:
     def test_tenant_isolation(self) -> None:
         avatars = [_make_avatar()]
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch(
-                "src.modules.copilot.application.tools.offer_section_tools._avatars", return_value=avatars
-            ) as mock_av,
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._avatars", return_value=avatars) as mock_av,
         ):
             reuse_brand_buyer_personas.invoke({})
             args = mock_av.call_args[0]
@@ -489,9 +487,9 @@ class TestInheritBrandMethodology:
         strategy = _make_strategy()
         settings = _make_brand_settings(strategy=strategy)
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
         ):
             result = json.loads(inherit_brand_methodology.invoke({}))
 
@@ -502,9 +500,9 @@ class TestInheritBrandMethodology:
     def test_no_strategy(self) -> None:
         settings = _make_brand_settings(strategy=None)
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
         ):
             result = json.loads(inherit_brand_methodology.invoke({}))
 
@@ -519,10 +517,10 @@ class TestInheritBrandMethodology:
 class TestHighTicketTieringTemplate:
     def test_happy_path_with_flag(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags",
+                "luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags",
                 return_value=["high_ticket"],
             ),
         ):
@@ -538,10 +536,10 @@ class TestHighTicketTieringTemplate:
 
     def test_no_flag_returns_hint(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags",
+                "luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags",
                 return_value=["recurring_billing"],
             ),
         ):
@@ -552,9 +550,9 @@ class TestHighTicketTieringTemplate:
     def test_no_offer_id_returns_template_anyway(self) -> None:
         """Without offer_id, flags list is empty — template still returned (no flag check without ID)."""
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
         ):
             result = json.loads(high_ticket_tiering_template.invoke({"offer_id": ""}))
 
@@ -570,10 +568,10 @@ class TestHighTicketTieringTemplate:
 class TestRecurringBillingSetup:
     def test_happy_path_with_flag(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags",
+                "luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags",
                 return_value=["recurring_billing"],
             ),
         ):
@@ -585,10 +583,10 @@ class TestRecurringBillingSetup:
 
     def test_wrong_flag_returns_hint(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags",
+                "luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags",
                 return_value=["high_ticket"],
             ),
         ):
@@ -607,15 +605,15 @@ class TestDetectCurrencyMismatch:
         tenant_mock = MagicMock()
         tenant_mock.default_currency = "PEN"
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
         ):
             db_mock = MagicMock()
             db_mock.execute.return_value.scalars.return_value.first.return_value = tenant_mock
             mock_sl.return_value = db_mock
             with (
-                patch("src.modules.copilot.application.tools.offer_section_tools.TenantModel", create=True),
-                patch("src.modules.copilot.application.tools.offer_section_tools.select", create=True),
+                patch("luana_core_copilot.application.tools.offer_section_tools.TenantModel", create=True),
+                patch("luana_core_copilot.application.tools.offer_section_tools.select", create=True),
             ):
                 # Just test that it runs without error and returns a JSON with section_slug
                 result_raw = detect_currency_mismatch.invoke({"offer_id": ""})
@@ -623,7 +621,7 @@ class TestDetectCurrencyMismatch:
         assert result["section_slug"] == "pricing"
 
     def test_no_tenant_id(self) -> None:
-        with patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=None):
+        with patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=None):
             result = json.loads(detect_currency_mismatch.invoke({"offer_id": ""}))
         assert result["confidence"] == 0.0
 
@@ -637,9 +635,9 @@ class TestImportSchedulingEventType:
     def test_happy_path(self) -> None:
         et = _make_event_type("Consulta 30 min", 30, "consulta-30")
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._event_types", return_value=[et]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._event_types", return_value=[et]),
         ):
             result = json.loads(import_scheduling_event_type.invoke({"event_type_id": ""}))
 
@@ -650,9 +648,9 @@ class TestImportSchedulingEventType:
 
     def test_no_event_types(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._event_types", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._event_types", return_value=[]),
         ):
             result = json.loads(import_scheduling_event_type.invoke({"event_type_id": ""}))
 
@@ -662,9 +660,9 @@ class TestImportSchedulingEventType:
         et_id = str(uuid.uuid4())
         et = _make_event_type("VIP 60 min", 60, "vip-60", et_id=et_id)
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._event_types", return_value=[et]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._event_types", return_value=[et]),
         ):
             result = json.loads(import_scheduling_event_type.invoke({"event_type_id": et_id}))
 
@@ -673,9 +671,9 @@ class TestImportSchedulingEventType:
     def test_specific_event_type_id_not_found(self) -> None:
         et = _make_event_type(et_id=str(uuid.uuid4()))
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._event_types", return_value=[et]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._event_types", return_value=[et]),
         ):
             result = json.loads(import_scheduling_event_type.invoke({"event_type_id": "non-existent-id"}))
 
@@ -716,11 +714,9 @@ class TestImportFromBrandVault:
         ts = [_make_testimonial("Ana", "Coach", "Cambió mi vida por completo.")]
         bundle = {"testimonials": ts, "authority_items": [], "team_members": []}
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
-            ),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle),
         ):
             result = json.loads(import_from_brand_vault.invoke({}))
 
@@ -731,11 +727,9 @@ class TestImportFromBrandVault:
     def test_no_testimonials(self) -> None:
         bundle = {"testimonials": [], "authority_items": [], "team_members": []}
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
-            ),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle),
         ):
             result = json.loads(import_from_brand_vault.invoke({}))
 
@@ -745,10 +739,10 @@ class TestImportFromBrandVault:
         ts = [_make_testimonial()]
         bundle = {"testimonials": ts, "authority_items": [], "team_members": []}
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
+                "luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
             ) as mock_sp,
         ):
             import_from_brand_vault.invoke({})
@@ -764,9 +758,9 @@ class TestImportFromBrandVault:
 class TestSuggestMissingObjections:
     def test_happy_path_finds_missing(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
         ):
             result = json.loads(suggest_missing_objections.invoke({"offer_id": "", "existing_objections": ""}))
 
@@ -777,16 +771,16 @@ class TestSuggestMissingObjections:
     def test_all_covered_returns_ok(self) -> None:
         covered = "tiempo precio experiencia_previa resultados_reales soporte inversion_alta compromiso_mensual valor_gratuito"
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
         ):
             result = json.loads(suggest_missing_objections.invoke({"offer_id": "", "existing_objections": covered}))
 
         assert result["confidence"] > 0.8
 
     def test_no_tenant_id(self) -> None:
-        with patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=None):
+        with patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=None):
             result = json.loads(suggest_missing_objections.invoke({"offer_id": "", "existing_objections": ""}))
         assert result["confidence"] == 0.0
 
@@ -799,10 +793,10 @@ class TestSuggestMissingObjections:
 class TestGenerateFromPresetFlags:
     def test_happy_path_with_flags(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags",
+                "luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags",
                 return_value=["high_ticket", "recurring_billing"],
             ),
         ):
@@ -815,9 +809,9 @@ class TestGenerateFromPresetFlags:
 
     def test_no_offer_id_returns_base_faqs(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch("src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
         ):
             result = json.loads(generate_from_preset_flags.invoke({"offer_id": ""}))
 
@@ -825,7 +819,7 @@ class TestGenerateFromPresetFlags:
         assert len(faqs) == 5  # only base FAQs
 
     def test_no_tenant_id(self) -> None:
-        with patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=None):
+        with patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=None):
             result = json.loads(generate_from_preset_flags.invoke({"offer_id": ""}))
         assert result["confidence"] == 0.0
 
@@ -842,8 +836,8 @@ class TestPullSalesAgentCommonQuestions:
             "El lead preguntó sobre el precio y la duración del programa." if k == "conversation_summary" else d
         )
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
         ):
             db_mock = MagicMock()
             db_mock.execute.return_value.mappings.return_value.all.return_value = [row1]
@@ -855,8 +849,8 @@ class TestPullSalesAgentCommonQuestions:
 
     def test_no_conversations(self) -> None:
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal") as mock_sl,
         ):
             db_mock = MagicMock()
             db_mock.execute.return_value.mappings.return_value.all.return_value = []
@@ -866,7 +860,7 @@ class TestPullSalesAgentCommonQuestions:
         assert result["confidence"] == 0.0
 
     def test_no_tenant_id(self) -> None:
-        with patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=None):
+        with patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=None):
             result = json.loads(pull_sales_agent_common_questions.invoke({}))
         assert result["confidence"] == 0.0
 
@@ -881,11 +875,9 @@ class TestAssembleFromBrandAuthority:
         ai = _make_authority_item("Forbes", "media", "Mención en Forbes MX 2024")
         bundle = {"testimonials": [], "authority_items": [ai], "team_members": []}
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
-            ),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle),
         ):
             result = json.loads(assemble_from_brand_authority.invoke({}))
 
@@ -896,11 +888,9 @@ class TestAssembleFromBrandAuthority:
     def test_no_authority_items(self) -> None:
         bundle = {"testimonials": [], "authority_items": [], "team_members": []}
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
-            ),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle),
         ):
             result = json.loads(assemble_from_brand_authority.invoke({}))
 
@@ -910,10 +900,10 @@ class TestAssembleFromBrandAuthority:
         ai = _make_authority_item()
         bundle = {"testimonials": [], "authority_items": [ai], "team_members": []}
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
+                "luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
             ) as mock_sp,
         ):
             assemble_from_brand_authority.invoke({})
@@ -931,13 +921,11 @@ class TestReuseBrandTeam:
         tm = _make_team_member("Ana López", "Coach")
         bundle = {"testimonials": [], "authority_items": [], "team_members": [tm]}
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
-            ),
-            patch(
-                "src.modules.copilot.application.tools.offer_section_tools._brand_settings",
+                "luana_core_copilot.application.tools.offer_section_tools._brand_settings",
                 return_value=_make_brand_settings(),
             ),
         ):
@@ -953,12 +941,10 @@ class TestReuseBrandTeam:
         bundle = {"testimonials": [], "authority_items": [], "team_members": []}
         settings = _make_brand_settings(team=[])
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
-            patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
-            ),
-            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle),
+            patch("luana_core_copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
         ):
             result = json.loads(reuse_brand_team.invoke({}))
 
@@ -968,13 +954,13 @@ class TestReuseBrandTeam:
         tm = _make_team_member()
         bundle = {"testimonials": [], "authority_items": [], "team_members": [tm]}
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
-            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("luana_core_copilot.application.tools.offer_section_tools.SessionLocal"),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
+                "luana_core_copilot.application.tools.offer_section_tools._social_proof_bundle", return_value=bundle
             ) as mock_sp,
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._brand_settings",
+                "luana_core_copilot.application.tools.offer_section_tools._brand_settings",
                 return_value=_make_brand_settings(),
             ),
         ):

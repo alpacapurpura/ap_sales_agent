@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.routing_policy import ClassifierType
+from luana_core_copilot.domain.routing_policy import ClassifierType
+from luana_core_platform.core.enums import ModelRole
 
 
 @dataclass(frozen=True, slots=True)

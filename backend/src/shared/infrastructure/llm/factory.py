@@ -30,8 +30,8 @@ ratification): it remains active because landing extractors still call
 Gemini directly outside the LiteLLM Proxy.
 """
 
-from src.shared.infrastructure.llm.base import BaseLLMService
-from src.shared.infrastructure.llm.router import MultiRoleLLMRouter
+from luana_core_llm.base import BaseLLMService
+from luana_core_llm.router import MultiRoleLLMRouter
 
 
 class LLMFactory:

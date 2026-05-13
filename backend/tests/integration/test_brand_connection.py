@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 pytest.skip(
-    "src.modules.landing.brand sub-module not yet implemented",
+    "luana_core_landing.brand sub-module not yet implemented",
     allow_module_level=True,
 )
 from fastapi.testclient import TestClient
@@ -16,10 +16,10 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 # --- MOCK SETUP ---
 # Mock dependencies to avoid importing the whole backend stack
 mock_deps = MagicMock()
-sys.modules["src.modules.iam.api.dependencies"] = mock_deps
-sys.modules["src.core.database"] = mock_deps
-sys.modules["src.core.config"] = MagicMock()
-sys.modules["src.core.config"].settings = MagicMock()
+sys.modules["luana_core_iam.api.dependencies"] = mock_deps
+sys.modules["luana_core_platform.core.database"] = mock_deps
+sys.modules["luana_core_platform.core.config"] = MagicMock()
+sys.modules["luana_core_platform.core.config"].settings = MagicMock()
 
 # --- DB SETUP ---
 Base = declarative_base()
@@ -41,8 +41,8 @@ class MockTenantModel(Base):
 
 
 # Patch the real models
-with patch("src.modules.iam.infrastructure.models.TenantModel", MockTenantModel):
-    from src.modules.landing.brand.api.router import router
+with patch("luana_core_iam.infrastructure.models.TenantModel", MockTenantModel):
+    from luana_core_landing.brand.api.router import router
 
 # --- APP SETUP ---
 from fastapi import FastAPI

@@ -9,10 +9,9 @@ from __future__ import annotations
 import datetime as dt
 from uuid import UUID
 
+from luana_core_campaigns.domain.enums import SegmentType
+from luana_core_campaigns.domain.segment_filter import SegmentFilter
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.campaigns.domain.enums import SegmentType
-from src.modules.campaigns.domain.segment_filter import SegmentFilter
 
 
 class Segment(BaseModel):

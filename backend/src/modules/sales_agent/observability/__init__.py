@@ -7,12 +7,12 @@ Importing this package registers the sales_agent observability spec in
 
 from __future__ import annotations
 
-from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
-    SalesAgentLlmCallModel,
-)
-from src.shared.agent_observability.registry import (
+from luana_core_observability.registry import (
     AgentObservabilitySpec,
     register_agent_observability,
+)
+from luana_core_sales_agent.observability.persistence.models.llm_call_model import (
+    SalesAgentLlmCallModel,
 )
 
 register_agent_observability(

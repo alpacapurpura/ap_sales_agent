@@ -9,9 +9,8 @@ from __future__ import annotations
 import datetime as dt
 from typing import Literal
 
+from luana_core_campaigns.domain.enums import SegmentFilterCombinator
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.campaigns.domain.enums import SegmentFilterCombinator
 
 # v1 catalog — predefined fields only (covers 100% of FOUNDATION segment catalog).
 # vNext = ExpressiveSegmentFilter (full JSON-logic DSL) — out of scope post PI-1.

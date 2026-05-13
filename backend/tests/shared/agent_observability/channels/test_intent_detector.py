@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.agent_observability.channels.intent_detector import (
+from luana_core_channels.intent_detector import (
     ChannelIntent,
     detect_channel_in_user_msg,
     detect_channel_intent,

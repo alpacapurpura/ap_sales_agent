@@ -7,16 +7,15 @@ reading from per-stage Redis caches with fallback to DB queries.
 from datetime import UTC
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.dto.summary_dto import (
+from luana_core_analytics_engine.application.dto.summary_dto import (
     BowtiesSummaryDTO,
     StageSummaryKpiDTO,
 )
-from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.shared.domain.enums import LifecycleStage
-from src.shared.links.ports.crm_repos import get_customer_repository, get_lead_metrics_repository
+from luana_core_analytics_engine.domain.ports import ConnectionPort, OfferReadPort
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_platform.domain.enums import LifecycleStage
+from luana_core_platform.links.ports.crm_repos import get_customer_repository, get_lead_metrics_repository
+from sqlalchemy.orm import Session
 
 
 class SummaryStageService:
@@ -60,12 +59,11 @@ class SummaryStageService:
                 secondary_label="canales activos",
             ), cache.get("last_updated")
 
-        from sqlalchemy import func as sa_func
-        from sqlalchemy import select
-
-        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+        from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,
         )
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select
 
         visitor_stmt = select(
             sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0),
@@ -142,7 +140,7 @@ class SummaryStageService:
         from datetime import datetime as dt_cls
         from datetime import timedelta as td
 
-        from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository import (
             SalesMetricsRepository,
         )
 

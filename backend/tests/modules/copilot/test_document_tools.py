@@ -16,7 +16,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from src.modules.assets.domain.enums import (
+from luana_core_assets.domain.enums import (
     AssetScope,
     AssetStatus,
     AssetType,
@@ -44,10 +44,10 @@ def _make_asset(**overrides) -> SimpleNamespace:
     return SimpleNamespace(**defaults)
 
 
-@patch("src.modules.copilot.application.tools.document_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.document_tools.AssetExtractionService")
-@patch("src.modules.copilot.application.tools.document_tools.AssetRepository")
-@patch("src.modules.copilot.application.tools.document_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.document_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.document_tools.AssetExtractionService")
+@patch("luana_core_copilot.application.tools.document_tools.AssetRepository")
+@patch("luana_core_copilot.application.tools.document_tools.SessionLocal")
 def test_read_document_returns_full_text_for_small_asset(
     mock_session_cls: MagicMock,
     mock_repo_cls: MagicMock,
@@ -55,7 +55,7 @@ def test_read_document_returns_full_text_for_small_asset(
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """When the doc is small the tool returns the full text + metadata."""
-    from src.modules.copilot.application.tools.document_tools import read_document
+    from luana_core_copilot.application.tools.document_tools import read_document
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id
@@ -79,10 +79,10 @@ def test_read_document_returns_full_text_for_small_asset(
     assert data["truncated"] is False
 
 
-@patch("src.modules.copilot.application.tools.document_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.document_tools.AssetExtractionService")
-@patch("src.modules.copilot.application.tools.document_tools.AssetRepository")
-@patch("src.modules.copilot.application.tools.document_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.document_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.document_tools.AssetExtractionService")
+@patch("luana_core_copilot.application.tools.document_tools.AssetRepository")
+@patch("luana_core_copilot.application.tools.document_tools.SessionLocal")
 def test_read_document_returns_fragment_when_query(
     mock_session_cls: MagicMock,
     mock_repo_cls: MagicMock,
@@ -90,7 +90,7 @@ def test_read_document_returns_fragment_when_query(
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """With a query, the tool returns summary + the most relevant fragment."""
-    from src.modules.copilot.application.tools.document_tools import read_document
+    from luana_core_copilot.application.tools.document_tools import read_document
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id
@@ -116,16 +116,16 @@ def test_read_document_returns_fragment_when_query(
     assert data["summary"] == "Brief de marca para Alpaca Púrpura."
 
 
-@patch("src.modules.copilot.application.tools.document_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.document_tools.AssetRepository")
-@patch("src.modules.copilot.application.tools.document_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.document_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.document_tools.AssetRepository")
+@patch("luana_core_copilot.application.tools.document_tools.SessionLocal")
 def test_read_document_missing_asset_returns_error(
     mock_session_cls: MagicMock,
     mock_repo_cls: MagicMock,
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """Unknown asset_id → structured error, never a crash."""
-    from src.modules.copilot.application.tools.document_tools import read_document
+    from luana_core_copilot.application.tools.document_tools import read_document
 
     mock_get_tenant_id.return_value = uuid4()
     mock_session = MagicMock()
@@ -139,20 +139,20 @@ def test_read_document_missing_asset_returns_error(
     assert "error" in data
 
 
-@patch("src.modules.copilot.application.tools.document_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.document_tools.get_tenant_id")
 def test_read_document_without_tenant_returns_error(mock_get_tenant_id: MagicMock) -> None:
     """No tenant context → structured error."""
-    from src.modules.copilot.application.tools.document_tools import read_document
+    from luana_core_copilot.application.tools.document_tools import read_document
 
     mock_get_tenant_id.return_value = None
     result = read_document.invoke({"asset_id": str(uuid4())})
     assert "error" in json.loads(result)
 
 
-@patch("src.modules.copilot.application.tools.document_tools.get_tenant_id")
-@patch("src.modules.copilot.application.tools.document_tools.AssetExtractionService")
-@patch("src.modules.copilot.application.tools.document_tools.AssetRepository")
-@patch("src.modules.copilot.application.tools.document_tools.SessionLocal")
+@patch("luana_core_copilot.application.tools.document_tools.get_tenant_id")
+@patch("luana_core_copilot.application.tools.document_tools.AssetExtractionService")
+@patch("luana_core_copilot.application.tools.document_tools.AssetRepository")
+@patch("luana_core_copilot.application.tools.document_tools.SessionLocal")
 def test_read_document_triggers_extraction_when_pending(
     mock_session_cls: MagicMock,
     mock_repo_cls: MagicMock,
@@ -160,7 +160,7 @@ def test_read_document_triggers_extraction_when_pending(
     mock_get_tenant_id: MagicMock,
 ) -> None:
     """If the asset has not been extracted yet, the tool runs ensure_extracted."""
-    from src.modules.copilot.application.tools.document_tools import read_document
+    from luana_core_copilot.application.tools.document_tools import read_document
 
     tenant_id = uuid4()
     mock_get_tenant_id.return_value = tenant_id

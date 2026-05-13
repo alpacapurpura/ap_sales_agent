@@ -12,17 +12,16 @@ import logging
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from luana_core_analytics_engine.application.config import CacheConfig, ETLConfig
+from luana_core_analytics_engine.domain.period_config import TenantPeriodConfig
 from sqlalchemy import select
-
-from src.modules.analytics.application.config import CacheConfig, ETLConfig
-from src.modules.analytics.domain.period_config import TenantPeriodConfig
 
 logger = logging.getLogger(__name__)
 
 
 async def run_tick_scheduler(ctx: dict) -> None:
     """Evaluate all tenants and enqueue extractions for those at 3am local time."""
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
     db_factory = ctx["db_factory"]
     db = db_factory()

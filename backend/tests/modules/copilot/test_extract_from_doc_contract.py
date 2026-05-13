@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.core.context import set_tenant_id
+from luana_core_platform.core.context import set_tenant_id
 
 TENANT_ID = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 ASSET_ID = str(uuid.UUID("cccccccc-cccc-cccc-cccc-cccccccccccc"))
@@ -40,11 +40,11 @@ def mock_arq_and_redis(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     # Try to patch in the extract_from_doc module location
     try:
         monkeypatch.setattr(
-            "src.modules.copilot.application.tools.extract_from_doc.get_arq_pool",
+            "luana_core_copilot.application.tools.extract_from_doc.get_arq_pool",
             lambda: pool,
         )
         monkeypatch.setattr(
-            "src.modules.copilot.application.tools.extract_from_doc.redis_client",
+            "luana_core_copilot.application.tools.extract_from_doc.redis_client",
             MagicMock(setex=MagicMock()),
         )
     except AttributeError:
@@ -62,7 +62,7 @@ class TestExtractFromDocImport:
         callables — assert the contract surface (`ainvoke`) instead of plain
         callability.
         """
-        from src.modules.copilot.application.tools.extract_from_doc import (
+        from luana_core_copilot.application.tools.extract_from_doc import (
             extract_from_doc,
         )
 
@@ -71,7 +71,7 @@ class TestExtractFromDocImport:
 
     def test_tool_is_langchain_tool(self) -> None:
         """extract_from_doc must be a LangChain @tool."""
-        from src.modules.copilot.application.tools.extract_from_doc import (
+        from luana_core_copilot.application.tools.extract_from_doc import (
             extract_from_doc,
         )
 
@@ -81,7 +81,7 @@ class TestExtractFromDocImport:
 class TestExtractFromDocShape:
     async def test_dispatched_has_source_kind_doc(self, mock_arq_and_redis: MagicMock) -> None:
         """source_kind must be 'doc' for this tool."""
-        from src.modules.copilot.application.tools.extract_from_doc import (
+        from luana_core_copilot.application.tools.extract_from_doc import (
             extract_from_doc,
         )
 
@@ -97,7 +97,7 @@ class TestExtractFromDocShape:
 
     async def test_dispatched_has_required_keys(self, mock_arq_and_redis: MagicMock) -> None:
         """All contract keys must be present on dispatched response."""
-        from src.modules.copilot.application.tools.extract_from_doc import (
+        from luana_core_copilot.application.tools.extract_from_doc import (
             extract_from_doc,
         )
 
@@ -123,7 +123,7 @@ class TestExtractFromDocShape:
 
     async def test_source_kind_is_doc(self, mock_arq_and_redis: MagicMock) -> None:
         """source_kind must be 'doc' (not 'url')."""
-        from src.modules.copilot.application.tools.extract_from_doc import (
+        from luana_core_copilot.application.tools.extract_from_doc import (
             extract_from_doc,
         )
 
@@ -146,7 +146,7 @@ class TestExtractFromDocValidation:
         from pydantic import ValidationError
         from pydantic_core import ValidationError as CoreValidationError
 
-        from src.modules.copilot.application.tools.extract_from_doc import (
+        from luana_core_copilot.application.tools.extract_from_doc import (
             extract_from_doc,
         )
 
@@ -161,7 +161,7 @@ class TestExtractFromDocValidation:
 
     async def test_missing_asset_id_returns_error(self, mock_arq_and_redis: MagicMock) -> None:
         """asset_id is required."""
-        from src.modules.copilot.application.tools.extract_from_doc import (
+        from luana_core_copilot.application.tools.extract_from_doc import (
             extract_from_doc,
         )
 
@@ -178,7 +178,7 @@ class TestExtractFromDocValidation:
     async def test_no_tenant_context_returns_error(self, mock_arq_and_redis: MagicMock) -> None:
         """Missing tenant context must return error (never crash)."""
         set_tenant_id(None)
-        from src.modules.copilot.application.tools.extract_from_doc import (
+        from luana_core_copilot.application.tools.extract_from_doc import (
             extract_from_doc,
         )
 
@@ -192,7 +192,7 @@ class TestExtractFromDocValidation:
 class TestExtractFromDocRegistry:
     def test_in_extraction_tools_list(self) -> None:
         """extract_from_doc must be exported in EXTRACTION_TOOLS."""
-        from src.modules.copilot.application.tools.extraction_tools import (
+        from luana_core_copilot.application.tools.extraction_tools import (
             EXTRACTION_TOOLS,
         )
 
@@ -200,7 +200,7 @@ class TestExtractFromDocRegistry:
         assert "extract_from_doc" in names
 
     def test_bound_in_brand_studio_route(self) -> None:
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             get_tool_names_for_route,
         )
 
@@ -208,7 +208,7 @@ class TestExtractFromDocRegistry:
         assert "extract_from_doc" in names
 
     def test_bound_in_offer_studio_route(self) -> None:
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             get_tool_names_for_route,
         )
 

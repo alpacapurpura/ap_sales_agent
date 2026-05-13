@@ -18,7 +18,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 
-from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
+from luana_core_copilot.application.orchestrator.chat import CopilotOrchestrator
 
 
 def _make_orchestrator() -> CopilotOrchestrator:
@@ -29,7 +29,7 @@ def _make_orchestrator() -> CopilotOrchestrator:
     mock_conv.messages = []
 
     with patch(
-        "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+        "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
     ) as mock_cls:
         mock_repo = MagicMock()
         mock_repo.get_by_id.return_value = mock_conv
@@ -299,7 +299,7 @@ class TestSubagentCoverageInvariant:
     REGISTERED = ("audit_inspector", "url_analyzer", "data_query")
 
     def test_registered_list_matches_subagents_module(self) -> None:
-        from src.modules.copilot.application.orchestrator.subagents import (
+        from luana_core_copilot.application.orchestrator.subagents import (
             AUDIT_INSPECTOR_SUBAGENT,
             DATA_QUERY_SUBAGENT,
             URL_ANALYZER_SUBAGENT,

@@ -98,9 +98,12 @@ class TestNoHardcodedChannelLiterals:
 class TestRegistryImported:
     def test_imports_get_channel_format(self) -> None:
         src = OUTPUT_MANAGER_PATH.read_text(encoding="utf-8")
-        # Accept import from the package or from the format submodule.
+        # Accept import from legacy src.shared path, OR new luana_core_channels path
+        # (post-luana-nicolify migration Story 10 P1-prepared codemod).
         assert (
             "from src.shared.agent_observability.channels.format import" in src
             or "from src.shared.agent_observability.channels import" in src
+            or "from luana_core_channels.format import" in src
+            or "from luana_core_channels import" in src
         ), "OutputManager must import the shared channels registry."
         assert "get_channel_format" in src

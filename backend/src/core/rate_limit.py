@@ -10,8 +10,7 @@ import time
 
 import structlog
 from fastapi import HTTPException
-
-from src.core.database import redis_client
+from luana_core_platform.core.database import redis_client
 
 logger = structlog.get_logger(__name__)
 

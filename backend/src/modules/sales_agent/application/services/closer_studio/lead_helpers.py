@@ -10,19 +10,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
+from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.infrastructure.models.crm import LeadModel
     from sqlalchemy.orm import Session
-
-    from src.shared.infrastructure.models.crm import LeadModel
 
 
 def get_checkpoint(

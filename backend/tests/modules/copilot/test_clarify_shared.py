@@ -12,7 +12,7 @@ import json
 
 import pytest
 
-from src.modules.copilot.application.tools.shared_tools.clarify import (
+from luana_core_copilot.application.tools.shared_tools.clarify import (
     MAX_CLARIFY_ITEMS,
     clarify,
 )
@@ -60,13 +60,13 @@ class TestClarifyShared:
 
 class TestSharedToolsGroup:
     def test_shared_tools_exposes_clarify(self) -> None:
-        from src.modules.copilot.application.tools.shared_tools import SHARED_TOOLS
+        from luana_core_copilot.application.tools.shared_tools import SHARED_TOOLS
 
         names = [t.name for t in SHARED_TOOLS]
         assert "clarify" in names
 
     def test_registry_has_shared_tools_group(self) -> None:
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         assert "shared_tools" in TOOL_GROUPS
         names = {t.name for t in TOOL_GROUPS["shared_tools"]}
@@ -86,7 +86,7 @@ class TestRouteBinding:
         """Clarify must be available everywhere so the LLM can ask the user
         questions before picking a tool.
         """
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             get_tool_names_for_route,
         )
 

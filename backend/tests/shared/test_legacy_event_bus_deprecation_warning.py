@@ -15,7 +15,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain.events import DomainEvent, EventBus
+from luana_core_platform.domain.events import DomainEvent, EventBus
 
 
 def _make_event() -> DomainEvent:
@@ -36,9 +36,9 @@ class TestLegacyEventBusDeprecationWarning:
         Test capability suites call EventBus.publish directly (Caso D/E).
         _is_internal_caller_or_test() detects /tests/ in call stack → suppresses.
         """
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_SALES_AGENT", True)
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_COPILOT", False)
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_BRAND", False)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_SALES_AGENT", True)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_COPILOT", False)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_BRAND", False)
         event = _make_event()
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -57,7 +57,7 @@ class TestLegacyEventBusDeprecationWarning:
         _is_internal_caller_or_test() detects shared/domain_events/ in call stack → suppresses.
         """
         # Import from the adapter directly to simulate adapter fall-through call
-        from src.shared.domain_events.outbox.application.event_bus_adapter import EventBusAdapter
+        from luana_core_events.outbox.application.event_bus_adapter import EventBusAdapter
 
         adapter = EventBusAdapter()
         event = _make_event()
@@ -78,16 +78,16 @@ class TestLegacyEventBusDeprecationWarning:
         When outbox is not enabled, EventBus.publish is the canonical path.
         No warning should be emitted (not a deprecated use case in legacy mode).
         """
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_SALES_AGENT", False)
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_COPILOT", False)
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_BRAND", False)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_SALES_AGENT", False)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_COPILOT", False)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_BRAND", False)
         event = _make_event()
 
         # Simulate external caller by patching _is_internal_caller_or_test to return False
         with (
             warnings.catch_warnings(record=True) as w,
             patch(
-                "src.shared.domain.events._is_internal_caller_or_test",
+                "luana_core_platform.domain.events._is_internal_caller_or_test",
                 return_value=False,
             ),
         ):
@@ -105,16 +105,16 @@ class TestLegacyEventBusDeprecationWarning:
         Uses _is_internal_caller_or_test mock to simulate external caller context
         (since this test IS inside /tests/ which normally suppresses).
         """
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_BRAND", True)
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_SALES_AGENT", False)
-        monkeypatch.setattr("src.core.config.settings.USE_OUTBOX_PATTERN_COPILOT", False)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_BRAND", True)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_SALES_AGENT", False)
+        monkeypatch.setattr("luana_core_platform.core.config.settings.USE_OUTBOX_PATTERN_COPILOT", False)
         event = _make_event()
 
         # Patch _is_internal_caller_or_test to return False to simulate external caller
         with (
             warnings.catch_warnings(record=True) as w,
             patch(
-                "src.shared.domain.events._is_internal_caller_or_test",
+                "luana_core_platform.domain.events._is_internal_caller_or_test",
                 return_value=False,
             ),
         ):

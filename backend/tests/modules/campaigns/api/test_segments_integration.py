@@ -19,15 +19,15 @@ from uuid import UUID, uuid4
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from src.modules.campaigns.application.services.cache import SimpleTTLCache
-from src.modules.campaigns.application.services.segment_service import (
+from luana_core_campaigns.application.services.cache import SimpleTTLCache
+from luana_core_campaigns.application.services.segment_service import (
     SegmentNotFoundError,
     SegmentService,
 )
-from src.modules.campaigns.domain.enums import SegmentType
-from src.modules.campaigns.domain.segment import Segment
-from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_campaigns.domain.enums import SegmentType
+from luana_core_campaigns.domain.segment import Segment
+from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
+from luana_core_platform.domain.datetime_utils import utc_now
 
 pytestmark = pytest.mark.asyncio
 
@@ -70,7 +70,7 @@ def _build_real_segment_service(
     Snapshot repo and outbox are always mocked (not under test here).
     SegmentFilterEvaluator is REAL (pure Python — no deps).
     """
-    from src.modules.campaigns.application.segment_filter_evaluator import (
+    from luana_core_campaigns.application.segment_filter_evaluator import (
         SegmentFilterEvaluator,
     )
 
@@ -108,7 +108,7 @@ def _make_segment_domain(segment_id: UUID | None = None) -> Segment:
 async def client() -> AsyncClient:  # type: ignore[override]
     """AsyncClient with auth overridden but service NOT mocked."""
     from src.main import app
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     app.dependency_overrides[get_current_user] = _get_fake_user
 
@@ -133,8 +133,8 @@ class TestResolveContractRouterToService:
     @pytest.mark.asyncio
     async def test_resolve_router_builds_dto_from_service_tuple(self, client: AsyncClient) -> None:
         """Router calls svc.resolve() with correct kwargs and builds SegmentResolveResponse."""
-        from src.modules.campaigns.api._service_factories import get_segment_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_segment_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         lead_ids_returned = [uuid4(), uuid4(), uuid4()]
@@ -173,8 +173,8 @@ class TestResolveContractRouterToService:
     @pytest.mark.asyncio
     async def test_resolve_router_not_found_returns_404(self, client: AsyncClient) -> None:
         """Not found segment → real service raises SegmentNotFoundError → router maps to 404."""
-        from src.modules.campaigns.api._service_factories import get_segment_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_segment_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         repo_mock = AsyncMock()
@@ -208,8 +208,8 @@ class TestEstimateSizeContractRouterToService:
     @pytest.mark.asyncio
     async def test_estimate_size_router_builds_dto_from_service_tuple(self, client: AsyncClient) -> None:
         """Router calls svc.estimate_size() correctly and builds SegmentEstimateSizeResponse."""
-        from src.modules.campaigns.api._service_factories import get_segment_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
+        from luana_core_campaigns.api._service_factories import get_segment_service
+        from luana_core_campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
         repo_mock = AsyncMock()

@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.modules.tenant_domains.application.domain_service import DomainService
+from luana_core_tenant_domains.application.domain_service import DomainService
 
 
 @pytest.fixture

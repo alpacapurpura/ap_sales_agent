@@ -10,17 +10,17 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.modules.landing.api.public_edition import router as public_edition_router
-from src.modules.landing.domain.content import LandingPageConfig
-from src.modules.landing.domain.landing_page import LandingPage
-from src.modules.landing.infrastructure.repositories.landing_repository import (
+from luana_core_platform.core.database import get_db
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_landing.api.public_edition import router as public_edition_router
+from luana_core_landing.domain.content import LandingPageConfig
+from luana_core_landing.domain.landing_page import LandingPage
+from luana_core_landing.infrastructure.repositories.landing_repository import (
     LandingRepository,
 )
-from src.modules.offer.domain.enums import VariantStructure
-from src.modules.offer.domain.launch_edition import EditionStatus, EditionVisibility
-from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
+from luana_core_offer_studio.domain.enums import VariantStructure
+from luana_core_offer_studio.domain.launch_edition import EditionStatus, EditionVisibility
+from luana_core_offer_studio.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
 from tests.modules.offer.conftest import create_product_model

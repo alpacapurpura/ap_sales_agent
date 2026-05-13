@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from src.shared.domain.field_contract import FieldStatus, get_module_contracts
+from luana_core_platform.domain.field_contract import FieldStatus, get_module_contracts
 
 BUILDERS_PATH = (
     Path(__file__).parent / ".." / ".." / "src" / "modules" / "landing" / "application" / "landing_content_builders.py"

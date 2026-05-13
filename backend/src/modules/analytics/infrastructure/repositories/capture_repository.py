@@ -8,13 +8,12 @@ import logging
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
-from src.shared.infrastructure.models.crm import (
+from luana_core_platform.infrastructure.models.crm import (
     CustomerProfileModel,
     JourneyEventModel,
 )
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

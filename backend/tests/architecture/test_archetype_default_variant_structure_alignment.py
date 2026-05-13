@@ -33,7 +33,7 @@ These rules complement:
 
 from __future__ import annotations
 
-from src.modules.offer.domain.archetype_catalog import ARCHETYPE_CATALOG
+from luana_core_offer_studio.domain.archetype_catalog import ARCHETYPE_CATALOG
 
 
 def test_edition_supporting_archetypes_declare_default_variant_structure() -> None:

@@ -43,7 +43,7 @@ class TestComputeCycleStartPy:
 
     @pytest.fixture
     def fn(self):
-        from src.shared.agent_observability.reporting.cycle_window import (
+        from luana_core_observability.reporting.cycle_window import (
             compute_cycle_start_py,
         )
 

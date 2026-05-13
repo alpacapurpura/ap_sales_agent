@@ -3,12 +3,11 @@
 from datetime import datetime
 from uuid import UUID
 
+from luana_core_crm.domain.enums import SaleStatus
+from luana_core_crm.domain.sale import Sale
+from luana_core_crm.infrastructure.models.sale_model import SaleModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.enums import SaleStatus
-from src.modules.crm.domain.sale import Sale
-from src.modules.crm.infrastructure.models.sale_model import SaleModel
 
 
 class SaleRepository:

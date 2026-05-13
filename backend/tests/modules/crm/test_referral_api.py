@@ -48,7 +48,7 @@ def _get_fake_user() -> _FakeUser:
 async def client() -> AsyncClient:  # type: ignore[override]
     """AsyncClient pointed at the FastAPI app with auth overridden."""
     from src.main import app
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     app.dependency_overrides[get_current_user] = _get_fake_user
 
@@ -104,18 +104,18 @@ class TestListReferralCodes:
     @pytest.mark.asyncio
     async def test_list_returns_codes(self, client: AsyncClient) -> None:
         """Happy path: returns list of referral codes."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_code = _make_referral_code()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.referral_service.ReferralService.get_codes_by_tenant",
+                "luana_core_crm.application.services.referral_service.ReferralService.get_codes_by_tenant",
                 return_value=[mock_code],
             ),
         ):
@@ -135,17 +135,17 @@ class TestListReferralCodes:
     @pytest.mark.asyncio
     async def test_list_empty_returns_empty_list(self, client: AsyncClient) -> None:
         """No codes → empty list."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.referral_service.ReferralService.get_codes_by_tenant",
+                "luana_core_crm.application.services.referral_service.ReferralService.get_codes_by_tenant",
                 return_value=[],
             ),
         ):
@@ -171,7 +171,7 @@ class TestPromoteToEvangelist:
     @pytest.mark.asyncio
     async def test_promote_success(self, client: AsyncClient) -> None:
         """Valid customer_id → 200 + promotion details."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -179,11 +179,11 @@ class TestPromoteToEvangelist:
         mock_code = _make_referral_code()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.lifecycle_service.LifecycleService.promote_to_evangelist",
+                "luana_core_crm.application.services.lifecycle_service.LifecycleService.promote_to_evangelist",
                 return_value=(mock_profile, mock_code),
             ),
         ):
@@ -217,17 +217,17 @@ class TestPromoteToEvangelist:
     @pytest.mark.asyncio
     async def test_promote_profile_not_found(self, client: AsyncClient) -> None:
         """Profile not found → 404."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.lifecycle_service.LifecycleService.promote_to_evangelist",
+                "luana_core_crm.application.services.lifecycle_service.LifecycleService.promote_to_evangelist",
                 side_effect=ValueError("Profile not found"),
             ),
         ):
@@ -255,22 +255,22 @@ class TestGenerateReferralCode:
     @pytest.mark.asyncio
     async def test_generate_success(self, client: AsyncClient) -> None:
         """Valid request → 201 + referral code."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_code = _make_referral_code()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.referral_service.ReferralService.get_code_by_customer",
+                "luana_core_crm.application.services.referral_service.ReferralService.get_code_by_customer",
                 return_value=None,
             ),
             patch(
-                "src.modules.crm.application.services.referral_service.ReferralService.generate_code",
+                "luana_core_crm.application.services.referral_service.ReferralService.generate_code",
                 return_value=mock_code,
             ),
         ):
@@ -302,18 +302,18 @@ class TestGenerateReferralCode:
     @pytest.mark.asyncio
     async def test_generate_already_has_code(self, client: AsyncClient) -> None:
         """Customer already has code → 409."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         existing_code = _make_referral_code(code="EXISTING-CODE")
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.referral_service.ReferralService.get_code_by_customer",
+                "luana_core_crm.application.services.referral_service.ReferralService.get_code_by_customer",
                 return_value=existing_code,
             ),
         ):

@@ -8,9 +8,9 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from src.modules.campaigns.domain.enums import SegmentType
-from src.modules.campaigns.domain.segment import Segment, SegmentSnapshot
-from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
+from luana_core_campaigns.domain.enums import SegmentType
+from luana_core_campaigns.domain.segment import Segment, SegmentSnapshot
+from luana_core_campaigns.domain.segment_filter import PredefinedSegmentFilter
 
 
 NOW = dt.datetime.now(dt.timezone.utc)

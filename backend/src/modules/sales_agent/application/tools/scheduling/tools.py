@@ -28,18 +28,17 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
-
-from src.modules.sales_agent.application.services.meeting_state_service import (
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
+from luana_core_platform.domain.events import BookingLinkCreatedEvent
+from luana_core_sales_agent.application.services.meeting_state_service import (
     MeetingEntryStatus,
     MeetingStateService,
 )
-from src.modules.sales_agent.application.tools.scheduling.providers import (
+from luana_core_sales_agent.application.tools.scheduling.providers import (
     BookingStatusValue,
     scheduler_provider_for_tenant,
-)
-from src.shared.domain.events import BookingLinkCreatedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
 )
 
 if TYPE_CHECKING:
@@ -300,7 +299,7 @@ def _reconstruct_url_from_existing(
     tenant_slug = state.get("tenant_slug") or product.get("tenant_slug") or "tenant"
     if base:
         return f"{base}/book/{tenant_slug}/{event_slug}?token={tracking_id}"
-    from src.core.config import settings
+    from luana_core_platform.core.config import settings
 
     return f"{settings.DASHBOARD_DOMAIN}/book/{tenant_slug}/{event_slug}?token={tracking_id}"
 

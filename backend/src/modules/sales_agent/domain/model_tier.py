@@ -51,7 +51,7 @@ y registrar el snapshot en
 
 from __future__ import annotations
 
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 __all__ = ["LLM_ROLE_BY_SITE", "SPECIALIST_TO_ROLE"]
 

@@ -11,8 +11,8 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from src.modules.commercial_calendar.domain.calendar_event import CalendarEvent
-from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
+from luana_core_commercial_calendar.domain.calendar_event import CalendarEvent
+from luana_core_commercial_calendar.infrastructure.repositories.calendar_event_repository import (
     CalendarEventRepository,
 )
 

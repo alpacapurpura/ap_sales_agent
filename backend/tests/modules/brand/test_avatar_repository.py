@@ -2,8 +2,8 @@
 
 import uuid
 
-from src.modules.brand.domain import Avatar
-from src.modules.brand.infrastructure.repositories.avatar_repository import (
+from luana_core_brand_studio.domain import Avatar
+from luana_core_brand_studio.infrastructure.repositories.avatar_repository import (
     AvatarRepository,
 )
 from tests.modules.conftest import TENANT_A, TENANT_B

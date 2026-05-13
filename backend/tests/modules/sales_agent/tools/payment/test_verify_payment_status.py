@@ -17,12 +17,12 @@ PAYMENT_ID = uuid.UUID("dddd9003-0000-0000-0000-000000000001")
 
 @pytest.fixture
 def populated_db(db):
-    from src.modules.crm.infrastructure.models.lead_model import LeadModel
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+    from luana_core_crm.infrastructure.models.lead_model import LeadModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
         AgentStateCheckpointModel,
     )
-    from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+    from luana_core_sales_agent.infrastructure.models.payment_link_model import (
         PaymentLinkModel,
     )
 
@@ -67,10 +67,10 @@ def _build_state(**kwargs) -> dict:
 
 
 def test_verify_payment_status_pending(populated_db) -> None:
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PaymentStatusEnum,
     )
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_verify_payment_status,
     )
 
@@ -80,7 +80,7 @@ def test_verify_payment_status_pending(populated_db) -> None:
 
     state = _build_state()
     with patch(
-        "src.modules.sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
+        "luana_core_sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
         return_value=mock_provider,
     ):
         result = tool_verify_payment_status(state, populated_db)
@@ -91,13 +91,13 @@ def test_verify_payment_status_pending(populated_db) -> None:
 
 def test_verify_payment_status_paid_updates_local(populated_db) -> None:
     """Provider says PAID → local payment_link row updated to paid."""
-    from src.modules.sales_agent.application.tools.payment.providers import (
+    from luana_core_sales_agent.application.tools.payment.providers import (
         PaymentStatusEnum,
     )
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_verify_payment_status,
     )
-    from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+    from luana_core_sales_agent.infrastructure.models.payment_link_model import (
         PaymentLinkModel,
     )
 
@@ -107,7 +107,7 @@ def test_verify_payment_status_paid_updates_local(populated_db) -> None:
 
     state = _build_state()
     with patch(
-        "src.modules.sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
+        "luana_core_sales_agent.application.tools.payment.tools.payment_provider_for_tenant",
         return_value=mock_provider,
     ):
         result = tool_verify_payment_status(state, populated_db)
@@ -120,7 +120,7 @@ def test_verify_payment_status_paid_updates_local(populated_db) -> None:
 
 
 def test_verify_payment_status_not_found_returns_error(populated_db) -> None:
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_verify_payment_status,
     )
 
@@ -130,7 +130,7 @@ def test_verify_payment_status_not_found_returns_error(populated_db) -> None:
 
 
 def test_verify_payment_status_no_db() -> None:
-    from src.modules.sales_agent.application.tools.payment.tools import (
+    from luana_core_sales_agent.application.tools.payment.tools import (
         tool_verify_payment_status,
     )
 

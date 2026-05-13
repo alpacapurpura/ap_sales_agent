@@ -14,20 +14,20 @@ from unittest.mock import patch
 
 import pytest
 
-from src.modules.brand.application.voice_fidelity import (
+from luana_core_brand_studio.application.voice_fidelity import (
     GOLDEN_PROMPTS,
     GraderResult,
     GraderRubric,
     grade_response,
 )
-from src.modules.brand.domain.personality import PERSONALITY_PRESETS
+from luana_core_brand_studio.domain.personality import PERSONALITY_PRESETS
 
 
 def _rubric_for(preset_key: str, response: str, prompt: str = "Hola") -> GraderRubric:
     preset = PERSONALITY_PRESETS[preset_key]
     banned: list[str] = []
     for dim_name in ("energy", "warmth", "humor", "expressiveness", "narrative", "verbosity"):
-        from src.modules.brand.domain.personality import DimensionContract
+        from luana_core_brand_studio.domain.personality import DimensionContract
 
         level = DimensionContract.resolve(dim_name, getattr(preset.dimensions, dim_name))
         banned.extend(level.negative_constraints)
@@ -67,7 +67,7 @@ class TestGraderDeterministicScores:
         every test causing 30s network timeout instead of warm-singleton skip.
         """
         with patch(
-            "src.shared.infrastructure.llm.factory.LLMFactory.get_service",
+            "luana_core_llm.factory.LLMFactory.get_service",
             side_effect=RuntimeError("LLM stubbed — deterministic test only"),
         ):
             yield
@@ -110,15 +110,15 @@ class TestGraderSkipsJudgeWithoutInfra:
         import sys
 
         # Inject a sentinel module that breaks the import.
-        original = sys.modules.get("src.shared.infrastructure.llm.factory")
+        original = sys.modules.get("luana_core_llm.factory")
         try:
-            sys.modules["src.shared.infrastructure.llm.factory"] = None  # type: ignore[assignment]
+            sys.modules["luana_core_llm.factory"] = None  # type: ignore[assignment]
             rubric = _rubric_for("minimalist", response="Hola.")
             result = grade_response(rubric)
             assert isinstance(result, GraderResult)
             assert result.judge_skipped is True
         finally:
             if original is not None:
-                sys.modules["src.shared.infrastructure.llm.factory"] = original
+                sys.modules["luana_core_llm.factory"] = original
             else:
-                sys.modules.pop("src.shared.infrastructure.llm.factory", None)
+                sys.modules.pop("luana_core_llm.factory", None)

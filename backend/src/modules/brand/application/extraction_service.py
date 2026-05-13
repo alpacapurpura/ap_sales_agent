@@ -24,17 +24,14 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from uuid import UUID
 
+    from luana_core_brand_studio.application.extraction_trace import ExtractionTraceCollector
     from pydantic import BaseModel
     from sqlalchemy.orm import Session
 
-    from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
-
 import traceback
 
-from src.core.enums import ModelRole
-
 # Import crawler functions/class
-from src.modules.brand.application.extraction_crawler import (
+from luana_core_brand_studio.application.extraction_crawler import (
     _HIGH_KEYWORDS,  # noqa: F401
     _MEDIUM_KEYWORDS,  # noqa: F401
     _SKIP_EXTENSIONS,  # noqa: F401
@@ -49,7 +46,7 @@ from src.modules.brand.application.extraction_crawler import (
 )
 
 # Import orchestrator models/functions
-from src.modules.brand.application.extraction_orchestrator import (
+from luana_core_brand_studio.application.extraction_orchestrator import (
     BrandAuthorityExtraction,
     BrandPeopleContactExtraction,
     BrandTestimonialsExtraction,
@@ -57,7 +54,7 @@ from src.modules.brand.application.extraction_orchestrator import (
     is_empty,
     summarize_settings,
 )
-from src.modules.brand.domain import (
+from luana_core_brand_studio.domain import (
     BrandIdentity,
     BrandNarrative,
     BrandPositioning,
@@ -67,15 +64,16 @@ from src.modules.brand.domain import (
     BrandVisuals,
     CommunicationAssets,
 )
-from src.modules.brand.infrastructure.repositories.brand_repository import (
+from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
-from src.shared.application.ai_action_service import (
+from luana_core_platform.application.ai_action_service import (
     AIActionPolicy,
     AIActionService,
     AIModelPolicy,
 )
-from src.shared.infrastructure.prompts.base import prompt_loader
+from luana_core_platform.core.enums import ModelRole
+from luana_core_platform.infrastructure.prompts.base import prompt_loader
 
 # Backward-compat alias
 _summarize_settings = summarize_settings
@@ -131,7 +129,7 @@ _PROFILES = {
 
 def _get_active_profile() -> ExtractionProfile:
     """Resolve active profile from settings.BRAND_EXTRACTION_PROFILE (default: safe)."""
-    from src.core.config import settings as app_settings
+    from luana_core_platform.core.config import settings as app_settings
 
     name = app_settings.BRAND_EXTRACTION_PROFILE.lower()
     profile = _PROFILES.get(name)

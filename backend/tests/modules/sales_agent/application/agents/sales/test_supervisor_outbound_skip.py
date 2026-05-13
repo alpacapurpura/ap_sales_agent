@@ -15,7 +15,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.sales_agent.application.agents.sales.nodes import node_sales_supervisor
+from luana_core_sales_agent.application.agents.sales.nodes import node_sales_supervisor
 
 
 @pytest.fixture(autouse=True)
@@ -28,7 +28,7 @@ def _mute_trace_node_writes(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     fake_session = MagicMock()
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.monitoring.tracing.SessionLocal",
+        "luana_core_sales_agent.infrastructure.monitoring.tracing.SessionLocal",
         lambda: fake_session,
     )
 
@@ -42,7 +42,7 @@ def _mute_trace_node_writes(monkeypatch: pytest.MonkeyPatch) -> None:
         def close(self) -> None: ...
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.monitoring.tracing.AuditRepository",
+        "luana_core_sales_agent.infrastructure.monitoring.tracing.AuditRepository",
         _NullRepo,
     )
 
@@ -102,7 +102,7 @@ class TestOutboundSkipQualifier:
 
     def test_outbound_true_lead_score_40_skips_qualifier(self):
         state = _state(outbound_mode=True, lead_score=40)
-        with patch("src.modules.sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
+        with patch("luana_core_sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
             result = node_sales_supervisor(state)
             # Skip MUST happen BEFORE prompt loader call
             mock_loader.render.assert_not_called()
@@ -110,14 +110,14 @@ class TestOutboundSkipQualifier:
 
     def test_outbound_true_lead_score_45_skips_qualifier(self):
         state = _state(outbound_mode=True, lead_score=45)
-        with patch("src.modules.sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
+        with patch("luana_core_sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
             result = node_sales_supervisor(state)
             mock_loader.render.assert_not_called()
         assert result == {"next_node": "closer"}
 
     def test_outbound_true_lead_score_99_skips_qualifier(self):
         state = _state(outbound_mode=True, lead_score=99)
-        with patch("src.modules.sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
+        with patch("luana_core_sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
             result = node_sales_supervisor(state)
             mock_loader.render.assert_not_called()
         assert result == {"next_node": "closer"}
@@ -133,7 +133,7 @@ class TestOutboundFallThroughLowScore:
         mock_llm.generate_response.return_value = "qualifier"
         state["_llm_service"] = mock_llm
 
-        with patch("src.modules.sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
+        with patch("luana_core_sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
             mock_loader.render.return_value = "supervisor system prompt"
             result = node_sales_supervisor(state)
             mock_loader.render.assert_called_once()  # LLM path WAS taken
@@ -145,7 +145,7 @@ class TestOutboundFallThroughLowScore:
         mock_llm.generate_response.return_value = "qualifier"
         state["_llm_service"] = mock_llm
 
-        with patch("src.modules.sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
+        with patch("luana_core_sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
             mock_loader.render.return_value = "supervisor"
             result = node_sales_supervisor(state)
             mock_loader.render.assert_called_once()
@@ -158,7 +158,7 @@ class TestOutboundFallThroughLowScore:
         mock_llm.generate_response.return_value = "qualifier"
         state["_llm_service"] = mock_llm
 
-        with patch("src.modules.sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
+        with patch("luana_core_sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
             mock_loader.render.return_value = "supervisor"
             result = node_sales_supervisor(state)
             mock_loader.render.assert_called_once()
@@ -175,7 +175,7 @@ class TestInboundBaselinePreserved:
         mock_llm.generate_response.return_value = "closer"
         state["_llm_service"] = mock_llm
 
-        with patch("src.modules.sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
+        with patch("luana_core_sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
             mock_loader.render.return_value = "supervisor"
             result = node_sales_supervisor(state)
             # Must invoke LLM (no skip)
@@ -189,7 +189,7 @@ class TestInboundBaselinePreserved:
         mock_llm.generate_response.return_value = "qualifier"
         state["_llm_service"] = mock_llm
 
-        with patch("src.modules.sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
+        with patch("luana_core_sales_agent.application.agents.sales.nodes.prompt_loader") as mock_loader:
             mock_loader.render.return_value = "supervisor"
             result = node_sales_supervisor(state)
             mock_loader.render.assert_called_once()

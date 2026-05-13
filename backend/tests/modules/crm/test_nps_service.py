@@ -11,9 +11,9 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.models.nps_models import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import CustomerProfileModel
+from luana_core_crm.infrastructure.models.nps_models import (
     NpsResponseModel,
     NpsSurveyModel,
 )
@@ -102,7 +102,7 @@ class TestCreateSurvey:
     """create_survey generates token, sets expiry, status, and optional fields."""
 
     def test_create_survey_generates_long_token(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -110,7 +110,7 @@ class TestCreateSurvey:
         assert len(survey.token) >= 32
 
     def test_create_survey_expires_in_30_days(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -121,7 +121,7 @@ class TestCreateSurvey:
         assert survey.expires_at < now + timedelta(days=31)
 
     def test_create_survey_status_pending(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -129,7 +129,7 @@ class TestCreateSurvey:
         assert survey.status == "pending"
 
     def test_create_survey_optional_fields(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -148,7 +148,7 @@ class TestGetSurveyByToken:
     """get_survey_by_token retrieves or returns None."""
 
     def test_get_survey_by_existing_token(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -160,7 +160,7 @@ class TestGetSurveyByToken:
         assert result.token == survey.token
 
     def test_get_survey_by_nonexistent_token(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         result = svc.get_survey_by_token("nonexistent-token-xyz")
@@ -177,7 +177,7 @@ class TestSubmitResponse:
     """submit_response validates score, creates response, updates survey and profile."""
 
     def test_submit_response_valid_score(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -198,7 +198,7 @@ class TestSubmitResponse:
         assert survey.status == "responded"
 
     def test_submit_response_updates_profile_nps_score(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -215,7 +215,7 @@ class TestSubmitResponse:
         assert profile.computed_traits["nps_score"] == 8
 
     def test_submit_response_invalid_score_negative(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -230,7 +230,7 @@ class TestSubmitResponse:
             )
 
     def test_submit_response_invalid_score_over_10(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -245,7 +245,7 @@ class TestSubmitResponse:
             )
 
     def test_submit_response_tenant_isolation(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         other = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
         svc = NpsService(db)
@@ -280,7 +280,7 @@ class TestGetNpsSummary:
     """get_nps_summary aggregates scores, calculates standard NPS and response rate."""
 
     def test_nps_summary_empty_tenant(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         summary = svc.get_nps_summary(tenant_id)
@@ -295,7 +295,7 @@ class TestGetNpsSummary:
         assert summary["response_rate_pct"] == 0.0
 
     def test_nps_summary_with_mixed_scores(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey1 = svc.create_survey(tenant_id=tenant_id)
@@ -331,7 +331,7 @@ class TestGetEvangelistCandidates:
     """get_evangelist_candidates finds high-NPS customers not yet promoted."""
 
     def test_evangelist_candidates_returns_high_scores(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -346,7 +346,7 @@ class TestGetEvangelistCandidates:
         assert candidates[0]["nps_score"] == 10
 
     def test_evangelist_candidates_filters_by_tenant(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         other = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
         svc = NpsService(db)
@@ -365,7 +365,7 @@ class TestGetEvangelistCandidates:
         assert candidates[0]["full_name"] == "Tenant A"
 
     def test_evangelist_candidates_empty_when_all_evangelist(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         svc = NpsService(db)
         survey = svc.create_survey(tenant_id=tenant_id)
@@ -389,19 +389,19 @@ class TestCalculateNpsScore:
     """calculate_nps_score returns average rounded to 1 decimal."""
 
     def test_empty_returns_none(self):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         assert NpsService.calculate_nps_score([]) is None
 
     def test_average_rounded(self):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         result = NpsService.calculate_nps_score([9, 8, 3])
 
         assert result == 6.7
 
     def test_single_score(self):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         result = NpsService.calculate_nps_score([10])
 
@@ -417,26 +417,26 @@ class TestCalculateStandardNps:
     """calculate_standard_nps returns ((promoters - detractors) / total) * 100."""
 
     def test_empty_returns_none(self):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         assert NpsService.calculate_standard_nps([]) is None
 
     def test_all_promoters(self):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         result = NpsService.calculate_standard_nps([9, 9, 9])
 
         assert result == 100.0
 
     def test_all_detractors(self):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         result = NpsService.calculate_standard_nps([0, 0, 0])
 
         assert result == -100.0
 
     def test_mixed_balanced(self):
-        from src.modules.crm.application.services.nps_service import NpsService
+        from luana_core_crm.application.services.nps_service import NpsService
 
         # promoter=9, passive=7, detractor=0 → (1-1)/3*100 = 0.0
         result = NpsService.calculate_standard_nps([9, 7, 0])

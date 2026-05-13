@@ -26,7 +26,7 @@ EXPECTED_BLOCK_TYPES: frozenset[str] = frozenset(
 
 def test_block_types_tuple_is_exhaustive() -> None:
     """BLOCK_TYPES tuple in message_blocks.py exactly matches EXPECTED_BLOCK_TYPES."""
-    from src.modules.copilot.domain.message_blocks import BLOCK_TYPES
+    from luana_core_copilot.domain.message_blocks import BLOCK_TYPES
 
     actual = frozenset(BLOCK_TYPES)
     missing = EXPECTED_BLOCK_TYPES - actual
@@ -48,7 +48,7 @@ def test_message_block_union_includes_all_types() -> None:
 
     from pydantic import TypeAdapter
 
-    from src.modules.copilot.domain.message_blocks import MessageBlock
+    from luana_core_copilot.domain.message_blocks import MessageBlock
 
     adapter = TypeAdapter(MessageBlock)
 
@@ -134,7 +134,7 @@ def test_message_block_union_includes_all_types() -> None:
 
 def test_asset_blocks_have_asset_id_field() -> None:
     """All blocks that reference an Asset must expose an asset_id field."""
-    from src.modules.copilot.domain.message_blocks import (
+    from luana_core_copilot.domain.message_blocks import (
         AudioBlock,
         DocumentBlock,
         ImageBlock,

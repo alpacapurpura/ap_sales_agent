@@ -11,30 +11,29 @@ from typing import Annotated
 
 import structlog
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.modules.campaigns.api._async_session import get_campaigns_async_session
-from src.modules.campaigns.application.services.cache import SimpleTTLCache
-from src.modules.campaigns.application.services.campaign_service import CampaignService
-from src.modules.campaigns.application.services.campaign_template_service import (
+from luana_core_campaigns.api._async_session import get_campaigns_async_session
+from luana_core_campaigns.application.services.cache import SimpleTTLCache
+from luana_core_campaigns.application.services.campaign_service import CampaignService
+from luana_core_campaigns.application.services.campaign_template_service import (
     CampaignTemplateService,
 )
-from src.modules.campaigns.application.services.segment_service import SegmentService
-from src.modules.campaigns.infrastructure.repositories.campaign_repository_impl import (
+from luana_core_campaigns.application.services.segment_service import SegmentService
+from luana_core_campaigns.infrastructure.repositories.campaign_repository_impl import (
     CampaignRepositoryImpl,
 )
-from src.modules.campaigns.infrastructure.repositories.campaign_step_repository_impl import (
+from luana_core_campaigns.infrastructure.repositories.campaign_step_repository_impl import (
     CampaignStepRepositoryImpl,
 )
-from src.modules.campaigns.infrastructure.repositories.campaign_template_repository_impl import (
+from luana_core_campaigns.infrastructure.repositories.campaign_template_repository_impl import (
     CampaignTemplateRepositoryImpl,
 )
-from src.modules.campaigns.infrastructure.repositories.segment_repository_impl import (
+from luana_core_campaigns.infrastructure.repositories.segment_repository_impl import (
     SegmentRepositoryImpl,
 )
-from src.modules.campaigns.infrastructure.repositories.segment_snapshot_repository_impl import (
+from luana_core_campaigns.infrastructure.repositories.segment_snapshot_repository_impl import (
     SegmentSnapshotRepositoryImpl,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 
@@ -46,13 +45,13 @@ _template_cache = SimpleTTLCache(max_entries=1024)
 
 def _get_plan_service() -> object:
     """Lazy factory for PlanService with async repos."""
-    from src.core.database import redis_client
-    from src.modules.campaigns.api._async_session import _AsyncSessionLocal
-    from src.shared.billing.application.plan_service import PlanService
-    from src.shared.billing.infrastructure.plan_repository_impl import SQLAPlanRepository
-    from src.shared.billing.infrastructure.subscription_repository_impl import (
+    from luana_core_billing.application.plan_service import PlanService
+    from luana_core_billing.infrastructure.plan_repository_impl import SQLAPlanRepository
+    from luana_core_billing.infrastructure.subscription_repository_impl import (
         SQLASubscriptionRepository,
     )
+    from luana_core_campaigns.api._async_session import _AsyncSessionLocal
+    from luana_core_platform.core.database import redis_client
 
     async_session = _AsyncSessionLocal()
 
@@ -65,8 +64,8 @@ def _get_plan_service() -> object:
 
 def _get_outbox_service() -> object:
     """Lazy factory for OutboxService."""
-    from src.shared.domain_events.outbox.application.outbox_service import OutboxService
-    from src.shared.domain_events.outbox.infrastructure.repository import (
+    from luana_core_events.outbox.application.outbox_service import OutboxService
+    from luana_core_events.outbox.infrastructure.repository import (
         OutboxRepositoryImpl,
     )
 
@@ -94,10 +93,10 @@ async def get_segment_service(
     session: Annotated[AsyncSession, Depends(get_campaigns_async_session)],
 ) -> SegmentService:
     """FastAPI dependency that builds a SegmentService for a request."""
-    from src.modules.campaigns.application.segment_filter_evaluator import (
+    from luana_core_campaigns.application.segment_filter_evaluator import (
         SegmentFilterEvaluator,
     )
-    from src.modules.crm.application.services.lead_query_service import (
+    from luana_core_crm.application.services.lead_query_service import (
         LeadQueryServiceImpl,
     )
 
@@ -127,20 +126,20 @@ async def get_campaign_stats_service(
     session: Annotated[AsyncSession, Depends(get_campaigns_async_session)],
 ) -> object:
     """FastAPI dependency que construye CampaignStatsService para una request."""
-    from src.modules.campaigns.application.services.campaign_stats_service import (
+    from luana_core_campaigns.application.services.campaign_stats_service import (
         CampaignStatsService,
     )
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
-    from src.shared.domain.locale import TenantLocale
+    from luana_core_platform.domain.locale import TenantLocale
 
     async def _get_locale(tenant_id: object) -> TenantLocale:
         """Resuelve TenantLocale de forma async (Lee config_json del TenantModel)."""
         from sqlalchemy import select
 
         try:
-            from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+            from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
             row = (await session.execute(select(TenantModel).where(TenantModel.id == tenant_id))).scalar_one_or_none()
             if row is not None:
@@ -163,8 +162,8 @@ async def get_campaign_stats_service(
 
 def _get_audit_log_service() -> object:
     """Lazy factory for AuditLogService."""
-    from src.modules.campaigns.application.services.audit_log_service import AuditLogService
-    from src.modules.campaigns.infrastructure.repositories.audit_log_repo_impl import (
+    from luana_core_campaigns.application.services.audit_log_service import AuditLogService
+    from luana_core_campaigns.infrastructure.repositories.audit_log_repo_impl import (
         AuditLogRepositoryImpl,
     )
 
@@ -180,8 +179,7 @@ async def _arq_pool_provider() -> object:
     try:
         from arq import create_pool
         from arq.connections import RedisSettings
-
-        from src.core.config import settings as app_settings
+        from luana_core_platform.core.config import settings as app_settings
 
         return await create_pool(RedisSettings.from_dsn(app_settings.REDIS_URL))
     except Exception:  # noqa: BLE001
@@ -194,14 +192,14 @@ async def get_campaign_orchestrator(
     session: Annotated[AsyncSession, Depends(get_campaigns_async_session)],
 ) -> object:
     """FastAPI dependency that builds a CampaignOrchestrator for a request."""
-    from src.modules.campaigns.application.segment_filter_evaluator import (
+    from luana_core_campaigns.application.segment_filter_evaluator import (
         SegmentFilterEvaluator,
     )
-    from src.modules.campaigns.application.services.orchestrator import CampaignOrchestrator
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.application.services.orchestrator import CampaignOrchestrator
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
-    from src.modules.crm.application.services.lead_query_service import (
+    from luana_core_crm.application.services.lead_query_service import (
         LeadQueryServiceImpl,
     )
 

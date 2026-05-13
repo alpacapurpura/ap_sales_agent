@@ -15,7 +15,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from src.modules.offer.application.extraction_schemas import (
+from luana_core_offer_studio.application.extraction_schemas import (
     ClosingWaveOutput,
     ObjectionItem,
     PromiseWaveOutput,
@@ -23,7 +23,7 @@ from src.modules.offer.application.extraction_schemas import (
     StrategyWaveOutput,
     ValueStackWaveOutput,
 )
-from src.modules.offer.domain.offer import (
+from luana_core_offer_studio.domain.offer import (
     OfferClosingUpdate,
     OfferPromiseUpdate,
     OfferPsychologyUpdate,
@@ -293,7 +293,7 @@ class TestClosingWaveOutput:
         assert result.urgency_drivers == []
 
     def test_guarantee_type_enum_coercion(self) -> None:
-        from src.modules.offer.domain.enums import GuaranteeType
+        from luana_core_offer_studio.domain.enums import GuaranteeType
 
         result = ClosingWaveOutput(guarantee_type=GuaranteeType.UNCONDITIONAL_30_DAY)
         assert result.guarantee_type == GuaranteeType.UNCONDITIONAL_30_DAY

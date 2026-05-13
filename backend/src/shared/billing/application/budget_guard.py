@@ -19,12 +19,11 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
-
-from src.shared.billing.domain.budget_decision import BudgetDecision
-from src.shared.billing.domain.mv_refresh_log_repository import MVRefreshLogRepository
+from luana_core_billing.domain.budget_decision import BudgetDecision
+from luana_core_billing.domain.mv_refresh_log_repository import MVRefreshLogRepository
 
 if TYPE_CHECKING:
-    from src.shared.billing.application.plan_service import PlanService
+    from luana_core_billing.application.plan_service import PlanService
 
 logger = structlog.get_logger(__name__)
 

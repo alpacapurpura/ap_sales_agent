@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.modules.copilot.domain.rules.rule_metadata import RuleMetadata
+from luana_core_copilot.domain.rules.rule_metadata import RuleMetadata
 
 
 @dataclass(frozen=True, slots=True)

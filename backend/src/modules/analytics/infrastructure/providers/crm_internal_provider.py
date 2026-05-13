@@ -12,16 +12,15 @@ import logging
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import func, select
-
-from src.modules.analytics.domain.extraction_result import ExtractionResult
-from src.modules.analytics.infrastructure.providers.base import (
+from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+from luana_core_analytics_engine.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.shared.infrastructure.models.crm import (
+from luana_core_platform.infrastructure.models.crm import (
     JourneyEventModel,
 )
+from sqlalchemy import func, select
 
 logger = logging.getLogger(__name__)
 

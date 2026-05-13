@@ -20,10 +20,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import streamlit as st
+from luana_core_platform.core.database import SessionLocal
 from sqlalchemy import text
 
 from src.admin.modules._shared import render_tenant_selector
-from src.core.database import SessionLocal
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

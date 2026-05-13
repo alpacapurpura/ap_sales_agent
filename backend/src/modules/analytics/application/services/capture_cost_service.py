@@ -9,12 +9,11 @@ import logging
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.infrastructure.models.channel_cost_model import (
+from luana_core_analytics_engine.infrastructure.models.channel_cost_model import (
     ChannelCostSettingModel,
 )
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +66,7 @@ class CaptureCostService:
 
         Reads spend metric for meta-ads, google-ads, tiktok-ads, yt-ads channels.
         """
-        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+        from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,
         )
 

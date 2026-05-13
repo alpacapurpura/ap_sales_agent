@@ -8,13 +8,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
-
-# Runtime imports (needed by FastAPI's dependency resolver for Annotated[..., Depends(...)] —
-# cannot be moved to TYPE_CHECKING or FastAPI treats the param as a query arg).
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.copilot.api.conversation_dto import (
+from luana_core_copilot.api.conversation_dto import (
     ActiveJobProgressDTO,
     ActiveJobsResponse,
     AppliedMutationDTO,
@@ -32,21 +26,26 @@ from src.modules.copilot.api.conversation_dto import (
     RevertRequest,
     RevertResponse,
 )
-from src.modules.copilot.application.extraction.active_job_persistence import (
+from luana_core_copilot.application.extraction.active_job_persistence import (
     read_active_job,
 )
-from src.modules.copilot.application.services.mutation_apply_service import (
+from luana_core_copilot.application.services.mutation_apply_service import (
     MutationApplyService,
 )
-from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+from luana_core_copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
-from src.modules.copilot.infrastructure.repositories.message_codec import decode_message
-from src.modules.copilot.infrastructure.repositories.mutation_journal_repository import (
+from luana_core_copilot.infrastructure.repositories.message_codec import decode_message
+from luana_core_copilot.infrastructure.repositories.mutation_journal_repository import (
     MutationJournalRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+
+# Runtime imports (needed by FastAPI's dependency resolver for Annotated[..., Depends(...)] —
+# cannot be moved to TYPE_CHECKING or FastAPI treats the param as a query arg).
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 
@@ -236,7 +235,7 @@ async def patch_conversation(
         conv.title = body.title
 
     if body.archived is True:
-        from src.shared.domain.datetime_utils import utc_now
+        from luana_core_platform.domain.datetime_utils import utc_now
 
         conv.archived_at = utc_now()
     elif body.archived is False:
@@ -494,7 +493,7 @@ async def get_active_jobs(
     # Read live progress from Redis — best-effort, tolerate absence.
     redis_data: dict = {}
     try:
-        from src.core.database import redis_client
+        from luana_core_platform.core.database import redis_client
 
         if redis_client:
             progress_key = f"{job.module}_extract:{tenant_id!s}:{job.job_id}"

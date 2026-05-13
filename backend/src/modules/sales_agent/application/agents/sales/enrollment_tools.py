@@ -16,19 +16,18 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
-
-from src.modules.sales_agent.application.services.enrollment_service import (
+from luana_core_platform.links.ports.offer import get_launch_edition_repository
+from luana_core_sales_agent.application.services.enrollment_service import (
     EnrollmentService,
 )
-from src.modules.sales_agent.domain.enrollment import (
+from luana_core_sales_agent.domain.enrollment import (
     EnrollmentCreate,
     EnrollmentStatus,
     PaymentProvider,
 )
-from src.modules.sales_agent.infrastructure.repositories.enrollment_repository import (
+from luana_core_sales_agent.infrastructure.repositories.enrollment_repository import (
     EnrollmentRepository,
 )
-from src.shared.links.ports.offer import get_launch_edition_repository
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

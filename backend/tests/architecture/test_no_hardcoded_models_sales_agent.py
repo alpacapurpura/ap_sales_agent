@@ -83,7 +83,7 @@ class TestSpecialistRoleMappingExists:
         assert target.is_file(), f"missing SSoT: {target.relative_to(REPO)}"
 
     def test_specialist_to_role_exposes_required_keys(self) -> None:
-        from src.modules.sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
+        from luana_core_sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
 
         required = {"supervisor", "qualifier", "product_expert", "closer"}
         missing = required - set(SPECIALIST_TO_ROLE.keys())

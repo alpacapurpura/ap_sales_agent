@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.crm.copilot_provider.provider import CrmCopilotProvider
+from luana_core_crm.copilot_provider.provider import CrmCopilotProvider
 
 provider: CrmCopilotProvider = CrmCopilotProvider()
 

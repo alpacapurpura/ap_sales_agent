@@ -15,11 +15,11 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldStatus,
     get_module_contracts,
 )
-from src.shared.links.ports.editable_fields import FieldSpec, get_catalog, get_paths_for
+from luana_core_platform.links.ports.editable_fields import FieldSpec, get_catalog, get_paths_for
 
 MIGRATED_DOMAINS: tuple[str, ...] = ("offer", "brand", "buyer_persona")
 

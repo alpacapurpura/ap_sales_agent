@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.offer.application.launch_edition_service import LaunchEditionService
-from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.domain.enums import OfferArchetype
+from luana_core_offer_studio.application.launch_edition_service import LaunchEditionService
+from luana_core_offer_studio.application.offer_service import OfferService
+from luana_core_offer_studio.domain.enums import OfferArchetype
 
 if TYPE_CHECKING:
     import uuid

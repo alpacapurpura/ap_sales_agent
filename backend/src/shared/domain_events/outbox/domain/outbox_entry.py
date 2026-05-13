@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 if TYPE_CHECKING:
-    from src.shared.domain_events.outbox.domain.event import DomainEvent
+    from luana_core_events.outbox.domain.event import DomainEvent
 
 
 class OutboxStatus(StrEnum):

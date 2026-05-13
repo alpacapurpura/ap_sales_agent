@@ -3,7 +3,7 @@
 import json
 from uuid import uuid4
 
-from src.modules.analytics.api.campaigns import CampaignSyncStatusDTO
+from luana_core_analytics_engine.api.campaigns import CampaignSyncStatusDTO
 
 
 class TestCampaignSyncStatusDTO:

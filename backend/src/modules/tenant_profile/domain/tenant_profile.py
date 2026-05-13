@@ -20,15 +20,15 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from src.modules.tenant_profile.domain.events import (
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
+from luana_core_tenant_profile.domain.events import (
     BusinessTypesChanged,
     TenantProfileInitialized,
 )
-from src.modules.tenant_profile.domain.exceptions import (
+from luana_core_tenant_profile.domain.exceptions import (
     BusinessTypesChangeRateLimitedError,
 )
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.domain.expert_business_type import ExpertBusinessType
 
 # Business-rule constants — product-tunable, change here only.
 BUSINESS_TYPES_MIN: int = 1

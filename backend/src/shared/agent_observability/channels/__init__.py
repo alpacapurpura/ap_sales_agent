@@ -18,7 +18,7 @@ Subpaquetes:
 Reference: `docs/domains/sales-agent/redesign-2026-04/phases/S5-channel-registry.md`.
 """
 
-from src.shared.agent_observability.channels.format import (
+from luana_core_channels.format import (
     CHANNEL_FORMATS,
     SUPPORTED_CHANNELS,
     ChannelFormat,
@@ -27,10 +27,10 @@ from src.shared.agent_observability.channels.format import (
     register_channel,
     reset_registry_for_tests,
 )
-from src.shared.agent_observability.channels.format_for_channel import (
+from luana_core_channels.format_for_channel import (
     format_for_channel_impl,
 )
-from src.shared.agent_observability.channels.intent_detector import (
+from luana_core_channels.intent_detector import (
     ChannelIntent,
     detect_channel_in_user_msg,
     detect_channel_intent,

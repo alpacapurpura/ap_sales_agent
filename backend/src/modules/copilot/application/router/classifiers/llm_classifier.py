@@ -29,16 +29,15 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
-
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.routing_policy import (
+from luana_core_copilot.domain.routing_policy import (
     ClassifierType,
     RoutingDecision,
     RoutingPolicy,
 )
+from luana_core_platform.core.enums import ModelRole
 
 if TYPE_CHECKING:
-    from src.modules.copilot.application.router.model_router import RoutingRequest
+    from luana_core_copilot.application.router.model_router import RoutingRequest
 
 logger = structlog.get_logger()
 
@@ -136,7 +135,7 @@ class LLMClassifier:
     def _resolve_llm(self) -> object:
         if self._llm is not None:
             return self._llm
-        from src.shared.infrastructure.llm.factory import LLMFactory
+        from luana_core_llm.factory import LLMFactory
 
         client = LLMFactory.get_service().get_client(ModelRole.NANO)
         with contextlib.suppress(AttributeError):

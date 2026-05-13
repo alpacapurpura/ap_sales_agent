@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.sales_agent.domain.enrollment import (
+from luana_core_sales_agent.domain.enrollment import (
     Enrollment,
     EnrollmentStatus,
     PaymentProvider,
 )
-from src.modules.sales_agent.infrastructure.repositories.enrollment_repository import (
+from luana_core_sales_agent.infrastructure.repositories.enrollment_repository import (
     EnrollmentRepository,
 )
 from tests.modules.offer.conftest import create_product_model

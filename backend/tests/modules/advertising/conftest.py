@@ -15,22 +15,22 @@ from src.modules.advertising.infrastructure.models.ad_campaign_template_model im
 from src.modules.advertising.infrastructure.models.ad_offer_association_model import (
     AdOfferAssociationModel,
 )
-from src.modules.analytics.infrastructure.models.ad_campaign_model import (
+from luana_core_analytics_engine.infrastructure.models.ad_campaign_model import (
     AdCampaignModel,
 )
-from src.modules.analytics.infrastructure.models.ad_model import (
+from luana_core_analytics_engine.infrastructure.models.ad_model import (
     AdModel,
 )
-from src.modules.analytics.infrastructure.models.ad_set_model import (
+from luana_core_analytics_engine.infrastructure.models.ad_set_model import (
     AdSetModel,
 )
-from src.modules.analytics.infrastructure.models.official_metrics_model import (
+from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
     OfficialMetricModel,
 )
-from src.modules.offer.infrastructure.models.product_model import (
+from luana_core_offer_studio.infrastructure.models.product_model import (
     ProductModel,
 )
-from src.shared.domain.base_entity import Base
+from luana_core_platform.domain.base_entity import Base
 
 
 @pytest.fixture(autouse=True)

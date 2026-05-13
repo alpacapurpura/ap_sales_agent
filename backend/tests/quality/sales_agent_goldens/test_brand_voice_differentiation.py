@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from src.modules.sales_agent.application.quality.judge import SalesAgentJudge
+from luana_core_sales_agent.application.quality.judge import SalesAgentJudge
 from tests.quality.sales_agent_goldens.conversations import GOLDEN_CONVERSATIONS
 
 

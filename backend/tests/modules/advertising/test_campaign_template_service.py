@@ -12,7 +12,7 @@ from src.modules.advertising.application.services.campaign_template_service impo
 from src.modules.advertising.infrastructure.models.ad_campaign_template_model import (
     AdCampaignTemplateModel,
 )
-from src.shared.domain.ports import OfferReadDTO, OfferReadPort
+from luana_core_platform.domain.ports import OfferReadDTO, OfferReadPort
 
 
 class _StubOfferReadPort(OfferReadPort):

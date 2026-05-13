@@ -26,7 +26,7 @@ import structlog
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from src.shared.domain.events import DomainEvent
+    from luana_core_platform.domain.events import DomainEvent
 
 logger = structlog.get_logger()
 

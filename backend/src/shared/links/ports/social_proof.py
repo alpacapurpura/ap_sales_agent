@@ -30,15 +30,14 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from sqlalchemy.orm import Session
-
-    from src.modules.social_proof.application.services.social_proof_resolver import (
+    from luana_core_social_proof.application.services.social_proof_resolver import (
         ResolvedSocialProof,
     )
-    from src.modules.social_proof.domain.authority_item import AuthorityItem
-    from src.modules.social_proof.domain.enums import SurfaceType
-    from src.modules.social_proof.domain.team_member import TeamMember
-    from src.modules.social_proof.domain.testimonial import Testimonial
+    from luana_core_social_proof.domain.authority_item import AuthorityItem
+    from luana_core_social_proof.domain.enums import SurfaceType
+    from luana_core_social_proof.domain.team_member import TeamMember
+    from luana_core_social_proof.domain.testimonial import Testimonial
+    from sqlalchemy.orm import Session
 
 
 def resolve_for_surface(
@@ -66,7 +65,7 @@ def resolve_for_surface(
         A :class:`ResolvedSocialProof` bundle with ``testimonials``,
         ``authority_items`` and ``team_members``.
     """
-    from src.modules.social_proof.application.services.social_proof_resolver import (
+    from luana_core_social_proof.application.services.social_proof_resolver import (
         SocialProofResolver,
     )
 
@@ -83,7 +82,7 @@ def list_tenant_testimonials(
     tenant_id: UUID,
 ) -> list[Testimonial]:
     """Return every live testimonial for the tenant (full catalog)."""
-    from src.modules.social_proof.infrastructure.repositories.testimonial_repository import (
+    from luana_core_social_proof.infrastructure.repositories.testimonial_repository import (
         TestimonialRepository,
     )
 
@@ -95,7 +94,7 @@ def list_tenant_authority_items(
     tenant_id: UUID,
 ) -> list[AuthorityItem]:
     """Return every live authority item for the tenant."""
-    from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+    from luana_core_social_proof.infrastructure.repositories.authority_item_repository import (
         AuthorityItemRepository,
     )
 
@@ -107,7 +106,7 @@ def list_tenant_team_members(
     tenant_id: UUID,
 ) -> list[TeamMember]:
     """Return every live team member for the tenant (ordered by sort_order)."""
-    from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+    from luana_core_social_proof.infrastructure.repositories.team_member_repository import (
         TeamMemberRepository,
     )
 
@@ -137,10 +136,10 @@ def resolve_sales_agent_context(db: Session, tenant_id: UUID) -> dict[str, Any]:
         — every entity pre-serialized via ``model_dump(mode="json")``, safe
         to drop into ``prompt_loader.render``.
     """
-    from src.modules.social_proof.application.services.social_proof_resolver import (
+    from luana_core_social_proof.application.services.social_proof_resolver import (
         SocialProofResolver,
     )
-    from src.modules.social_proof.domain.enums import SurfaceType as _Surface
+    from luana_core_social_proof.domain.enums import SurfaceType as _Surface
 
     resolved = SocialProofResolver(db).for_surface(
         tenant_id=tenant_id,
@@ -163,10 +162,10 @@ def resolve_offer_context(
     include_brand: bool = True,
 ) -> dict[str, Any]:
     """Return social proof for an offer page, pre-serialized for templates."""
-    from src.modules.social_proof.application.services.social_proof_resolver import (
+    from luana_core_social_proof.application.services.social_proof_resolver import (
         SocialProofResolver,
     )
-    from src.modules.social_proof.domain.enums import SurfaceType as _Surface
+    from luana_core_social_proof.domain.enums import SurfaceType as _Surface
 
     resolved = SocialProofResolver(db).for_surface(
         tenant_id=tenant_id,
@@ -189,10 +188,10 @@ def resolve_landing_page_context(
     include_brand: bool = True,
 ) -> dict[str, Any]:
     """Return social proof for a landing page, pre-serialized for templates."""
-    from src.modules.social_proof.application.services.social_proof_resolver import (
+    from luana_core_social_proof.application.services.social_proof_resolver import (
         SocialProofResolver,
     )
-    from src.modules.social_proof.domain.enums import SurfaceType as _Surface
+    from luana_core_social_proof.domain.enums import SurfaceType as _Surface
 
     resolved = SocialProofResolver(db).for_surface(
         tenant_id=tenant_id,
@@ -288,10 +287,10 @@ def sync_testimonials_from_extraction(
     """
     if mode == "suggest" or not items:
         return 0
-    from src.modules.social_proof.application.services.testimonial_service import (
+    from luana_core_social_proof.application.services.testimonial_service import (
         TestimonialService,
     )
-    from src.modules.social_proof.infrastructure.repositories.testimonial_repository import (
+    from luana_core_social_proof.infrastructure.repositories.testimonial_repository import (
         TestimonialRepository,
     )
 
@@ -369,11 +368,11 @@ def sync_authority_items_from_extraction(
     """
     if mode == "suggest" or not items:
         return 0
-    from src.modules.social_proof.application.services.authority_service import (
+    from luana_core_social_proof.application.services.authority_service import (
         AuthorityService,
     )
-    from src.modules.social_proof.domain.enums import AuthorityType
-    from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+    from luana_core_social_proof.domain.enums import AuthorityType
+    from luana_core_social_proof.infrastructure.repositories.authority_item_repository import (
         AuthorityItemRepository,
     )
 
@@ -428,10 +427,10 @@ def sync_team_members_from_extraction(
     """Write extracted team members into the social_proof bounded context."""
     if mode == "suggest" or not items:
         return 0
-    from src.modules.social_proof.application.services.team_service import (
+    from luana_core_social_proof.application.services.team_service import (
         TeamService,
     )
-    from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+    from luana_core_social_proof.infrastructure.repositories.team_member_repository import (
         TeamMemberRepository,
     )
 

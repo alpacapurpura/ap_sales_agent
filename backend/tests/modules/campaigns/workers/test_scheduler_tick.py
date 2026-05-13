@@ -22,13 +22,13 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.modules.campaigns.workers.scheduler_tick import run_campaign_scheduler_tick
+from luana_core_campaigns.workers.scheduler_tick import run_campaign_scheduler_tick
 
 pytestmark = pytest.mark.asyncio
 
 # Lazy-import path for CampaignTaskRepositoryImpl (never bound at scheduler_tick module level)
 _TASK_REPO_PATH = (
-    "src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl.CampaignTaskRepositoryImpl"
+    "luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl.CampaignTaskRepositoryImpl"
 )
 
 TENANT_ID = uuid4()
@@ -99,7 +99,7 @@ async def test_phase_a_picks_up_scheduled_campaigns_at_or_before_now() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.scheduler_tick._build_orchestrator_standalone",
+            "luana_core_campaigns.workers.scheduler_tick._build_orchestrator_standalone",
             return_value=orchestrator_mock,
         ),
         patch(
@@ -126,7 +126,7 @@ async def test_phase_a_skips_campaigns_scheduled_in_future() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.scheduler_tick._build_orchestrator_standalone",
+            "luana_core_campaigns.workers.scheduler_tick._build_orchestrator_standalone",
             return_value=orchestrator_mock,
         ),
         patch(
@@ -157,7 +157,7 @@ async def test_phase_a_idempotent_single_tick() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.scheduler_tick._build_orchestrator_standalone",
+            "luana_core_campaigns.workers.scheduler_tick._build_orchestrator_standalone",
             return_value=orchestrator_mock,
         ),
         patch(
@@ -187,7 +187,7 @@ async def test_phase_b_enqueues_claimed_tasks() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.scheduler_tick._build_orchestrator_standalone",
+            "luana_core_campaigns.workers.scheduler_tick._build_orchestrator_standalone",
             return_value=orchestrator_mock,
         ),
         patch(
@@ -225,7 +225,7 @@ async def test_phase_b_no_tasks_returns_zero_enqueued() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.scheduler_tick._build_orchestrator_standalone",
+            "luana_core_campaigns.workers.scheduler_tick._build_orchestrator_standalone",
             return_value=orchestrator_mock,
         ),
         patch(
@@ -264,7 +264,7 @@ async def test_heartbeat_written_to_redis_after_success() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.scheduler_tick._build_orchestrator_standalone",
+            "luana_core_campaigns.workers.scheduler_tick._build_orchestrator_standalone",
             return_value=orchestrator_mock,
         ),
         patch(

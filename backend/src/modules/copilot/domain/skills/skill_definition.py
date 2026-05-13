@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.modules.copilot.domain.skills.skill_metadata import SkillMetadata
+from luana_core_copilot.domain.skills.skill_metadata import SkillMetadata
 
 
 @dataclass(frozen=True, slots=True)

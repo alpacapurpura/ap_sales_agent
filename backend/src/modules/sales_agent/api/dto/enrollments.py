@@ -11,9 +11,8 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from luana_core_sales_agent.domain.enrollment import EnrollmentStatus, PaymentProvider
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.sales_agent.domain.enrollment import EnrollmentStatus, PaymentProvider
 
 
 class EnrollmentDTO(BaseModel):

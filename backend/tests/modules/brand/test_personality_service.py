@@ -11,7 +11,7 @@ import pytest
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-from src.modules.brand.application.services.personality_service import PersonalityService
+from luana_core_brand_studio.application.services.personality_service import PersonalityService
 from tests.modules.conftest import TENANT_A
 
 TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
@@ -70,7 +70,7 @@ class TestSelectPreset:
 
     def test_select_preset_all_six_presets_work(self, service: PersonalityService, db: Session) -> None:
         """Every preset key in PERSONALITY_PRESETS can be selected without error."""
-        from src.modules.brand.domain.personality import PERSONALITY_PRESETS
+        from luana_core_brand_studio.domain.personality import PERSONALITY_PRESETS
 
         for key in PERSONALITY_PRESETS:
             svc = PersonalityService(db=db)
@@ -115,7 +115,7 @@ class TestSelectPreset:
         assert str(active.id) == str(second.id)
 
         # Reload first from DB to check it is now inactive
-        from src.modules.brand.infrastructure.repositories.personality_repository import (
+        from luana_core_brand_studio.infrastructure.repositories.personality_repository import (
             PersonalityProfileRepository,
         )
 
@@ -215,7 +215,7 @@ class TestActivate:
         # We want a profile that is already inactive to test activate directly.
         profile = service.select_preset(TENANT_A, "serene")
         # Immediately deactivate it to test activate() in isolation
-        from src.modules.brand.infrastructure.repositories.personality_repository import (
+        from luana_core_brand_studio.infrastructure.repositories.personality_repository import (
             PersonalityProfileRepository,
         )
 
@@ -253,7 +253,7 @@ class TestActivate:
         assert result.is_active is True
 
         # second should now be inactive
-        from src.modules.brand.infrastructure.repositories.personality_repository import (
+        from luana_core_brand_studio.infrastructure.repositories.personality_repository import (
             PersonalityProfileRepository,
         )
 
@@ -359,7 +359,7 @@ class TestCloneFromMaterial:
 
         text = "\n".join([f"Mensaje de ejemplo número {i}" for i in range(15)])
 
-        with patch("src.modules.brand.application.services.personality_service.personality_app") as mock_app:
+        with patch("luana_core_brand_studio.application.services.personality_service.personality_app") as mock_app:
             mock_app.ainvoke = AsyncMock(return_value=mock_state)
 
             profile = await service.clone_from_material(
@@ -382,7 +382,7 @@ class TestCloneFromMaterial:
 
         mock_state = {"error": "LLM timeout", "personality_dimensions": None}
 
-        with patch("src.modules.brand.application.services.personality_service.personality_app") as mock_app:
+        with patch("luana_core_brand_studio.application.services.personality_service.personality_app") as mock_app:
             mock_app.ainvoke = AsyncMock(return_value=mock_state)
 
             with pytest.raises(RuntimeError, match=r"pipeline|analizar"):
@@ -417,7 +417,7 @@ class TestMigrateFromVoiceTone:
         """migrate_from_voice_tone() creates an active profile with correct metadata."""
         voice_tone = "Soy muy cálida, cercana, con humor ligero y mucho entusiasmo genuino."
 
-        with patch("src.modules.brand.application.services.personality_service.find_nearest_preset") as mock_find:
+        with patch("luana_core_brand_studio.application.services.personality_service.find_nearest_preset") as mock_find:
             mock_find.return_value = ("warm_close", 0.85)
 
             profile, preset_key, confidence = await service.migrate_from_voice_tone(
@@ -437,7 +437,7 @@ class TestMigrateFromVoiceTone:
         """migrate_from_voice_tone() creates profile even when no preset matches (None confidence)."""
         voice_tone = "Tono de voz muy específico sin match claro"
 
-        with patch("src.modules.brand.application.services.personality_service.find_nearest_preset") as mock_find:
+        with patch("luana_core_brand_studio.application.services.personality_service.find_nearest_preset") as mock_find:
             mock_find.return_value = (None, 0.0)
 
             profile, preset_key, confidence = await service.migrate_from_voice_tone(

@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.modules.analytics.application.services.stage_services.overview_stage import (
+from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
     StageOverviewService,
 )
 

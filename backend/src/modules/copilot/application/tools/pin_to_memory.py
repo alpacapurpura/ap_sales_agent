@@ -22,8 +22,7 @@ from uuid import UUID
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_conversation_id, get_tenant_id, get_user_id
+from luana_core_platform.core.context import get_conversation_id, get_tenant_id, get_user_id
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -60,7 +59,7 @@ def _ok(*, slug: str, path: str, summary: str) -> str:
 
 def _open_session() -> Session:
     """Lazy import of ``SessionLocal``."""
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     return SessionLocal()
 
@@ -100,10 +99,10 @@ async def _pin_to_memory_impl(  # noqa: PLR0911 — early-return guards
     if owns_db:
         db = _open_session()
     try:
-        from src.modules.copilot.infrastructure.repositories.inspiration_repository import (
+        from luana_core_copilot.infrastructure.repositories.inspiration_repository import (
             CopilotInspirationRepository,
         )
-        from src.modules.copilot.infrastructure.repositories.pinned_memory_repository import (
+        from luana_core_copilot.infrastructure.repositories.pinned_memory_repository import (
             CopilotPinnedMemoryRepository,
         )
 

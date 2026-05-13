@@ -31,19 +31,18 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.copilot.application.observability.judge import (
+from luana_core_copilot.application.observability.judge import (
     CopilotJudge,
     JudgeResult,
 )
-from src.modules.copilot.infrastructure.models.conversation_model import (
+from luana_core_copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
 )
-from src.modules.copilot.infrastructure.repositories.workflow_metric_repository import (
+from luana_core_copilot.infrastructure.repositories.workflow_metric_repository import (
     WorkflowMetricRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

@@ -31,7 +31,7 @@ def _run(coro):
 
 def _make_period_metric(**overrides):
     """Create a mock ExtractedMetric for period extraction."""
-    from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+    from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
     defaults = {
         "provider": "meta",
@@ -47,14 +47,14 @@ def _make_period_metric(**overrides):
 
 def _make_extraction_result(*metrics, failures=None):
     """Wrap metrics + optional failures into ExtractionResult."""
-    from src.modules.analytics.domain.extraction_result import ExtractionResult
+    from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
 
     return ExtractionResult(metrics=list(metrics), failures=failures or [])
 
 
 def _make_sub_extractor_failure(name="meta_reach", error="Timeout"):
     """Create a SubExtractorFailure instance."""
-    from src.modules.analytics.domain.extraction_result import SubExtractorFailure
+    from luana_core_analytics_engine.domain.extraction_result import SubExtractorFailure
 
     return SubExtractorFailure(extractor_name=name, error=error, error_type="timeout")
 
@@ -74,7 +74,7 @@ def _make_pipeline(*, provider_name="meta", non_agg_metrics=None):
 
     Returns (pipeline, mocks_dict).
     """
-    from src.modules.analytics.infrastructure.etl.period_pipeline import (
+    from luana_core_analytics_engine.infrastructure.etl.period_pipeline import (
         PeriodExtractionPipeline,
     )
 
@@ -131,7 +131,7 @@ class TestPeriodPipelineSkip:
         pipeline, mocks = _make_pipeline()
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=[],
         ):
             result = _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -148,7 +148,7 @@ class TestPeriodPipelineHappyPath:
 
     def test_run_extracts_and_upserts_metrics(self):
         """Happy path calls provider.extract_period_metrics and period_repo.upsert."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         pipeline, mocks = _make_pipeline()
         mocks["provider"].extract_period_metrics.return_value = _make_extraction_result(
@@ -158,7 +158,7 @@ class TestPeriodPipelineHappyPath:
         mocks["period_repo"].upsert_period_metrics.return_value = 2
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach", "unique_users"],
         ):
             result = _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -176,7 +176,7 @@ class TestPeriodPipelineHappyPath:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -194,7 +194,7 @@ class TestPeriodPipelineHappyPath:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -204,7 +204,7 @@ class TestPeriodPipelineHappyPath:
 
     def test_run_marks_success_status(self):
         """run_repo.update_status called with SUCCESS when all metrics extracted."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         pipeline, mocks = _make_pipeline()
         mocks["provider"].extract_period_metrics.return_value = _make_extraction_result(
@@ -212,7 +212,7 @@ class TestPeriodPipelineHappyPath:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -229,7 +229,7 @@ class TestPeriodPipelineHappyPath:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach", "unique_users"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -242,13 +242,13 @@ class TestPeriodPipelineHappyPath:
 
     def test_zero_metrics_succeeds(self):
         """Extraction returning empty metrics (no failures) = SUCCESS."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         pipeline, mocks = _make_pipeline()
         mocks["provider"].extract_period_metrics.return_value = _make_extraction_result()
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             result = _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -262,7 +262,7 @@ class TestPeriodPipelinePartialSuccess:
 
     def test_failures_with_metrics_marks_partial_success(self):
         """Some sub-extractors fail but metrics exist -> PARTIAL_SUCCESS."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         pipeline, mocks = _make_pipeline()
         mocks["provider"].extract_period_metrics.return_value = _make_extraction_result(
@@ -271,7 +271,7 @@ class TestPeriodPipelinePartialSuccess:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -289,7 +289,7 @@ class TestPeriodPipelinePartialSuccess:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -298,7 +298,7 @@ class TestPeriodPipelinePartialSuccess:
 
     def test_all_sub_extractors_fail_no_metrics_marks_failed(self):
         """No metrics + failures -> FAILED (not PARTIAL_SUCCESS)."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         pipeline, mocks = _make_pipeline()
         mocks["provider"].extract_period_metrics.return_value = _make_extraction_result(
@@ -309,7 +309,7 @@ class TestPeriodPipelinePartialSuccess:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach", "unique_users"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -324,7 +324,7 @@ class TestPeriodPipelineConnectionRevoked:
 
     def test_connection_revoked_returns_revoked_status(self):
         """ConnectionRevokedError caught -> result status = 'revoked'."""
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+        from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
         pipeline, mocks = _make_pipeline()
         mocks["connection_port"].get_credentials.side_effect = ConnectionRevokedError(
@@ -333,7 +333,7 @@ class TestPeriodPipelineConnectionRevoked:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             result = _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -343,8 +343,8 @@ class TestPeriodPipelineConnectionRevoked:
 
     def test_connection_revoked_marks_run_failed(self):
         """ConnectionRevokedError -> run_repo.update_status with FAILED."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
         pipeline, mocks = _make_pipeline()
         mocks["connection_port"].get_credentials.side_effect = ConnectionRevokedError(
@@ -353,7 +353,7 @@ class TestPeriodPipelineConnectionRevoked:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -364,7 +364,7 @@ class TestPeriodPipelineConnectionRevoked:
 
     def test_connection_revoked_does_not_call_provider(self):
         """After ConnectionRevokedError, provider.extract_period_metrics not called."""
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+        from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
         pipeline, mocks = _make_pipeline()
         mocks["connection_port"].get_credentials.side_effect = ConnectionRevokedError(
@@ -373,7 +373,7 @@ class TestPeriodPipelineConnectionRevoked:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -383,7 +383,7 @@ class TestPeriodPipelineConnectionRevoked:
 
     def test_connection_revoked_rolls_back_db(self):
         """ConnectionRevokedError triggers db.rollback() before status update."""
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
+        from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
 
         pipeline, mocks = _make_pipeline()
         mocks["connection_port"].get_credentials.side_effect = ConnectionRevokedError(
@@ -392,7 +392,7 @@ class TestPeriodPipelineConnectionRevoked:
         )
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -405,13 +405,13 @@ class TestPeriodPipelineGenericError:
 
     def test_generic_exception_marks_failed(self):
         """RuntimeError in extract_period_metrics -> FAILED status."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         pipeline, mocks = _make_pipeline()
         mocks["provider"].extract_period_metrics.side_effect = RuntimeError("Network timeout")
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -427,7 +427,7 @@ class TestPeriodPipelineGenericError:
         mocks["provider"].extract_period_metrics.side_effect = RuntimeError("Unexpected error")
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             result = _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -441,7 +441,7 @@ class TestPeriodPipelineGenericError:
         mocks["provider"].extract_period_metrics.side_effect = RuntimeError("DB error")
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))
@@ -456,7 +456,7 @@ class TestPeriodPipelineGenericError:
         mocks["provider"].extract_period_metrics.side_effect = RuntimeError(long_error)
 
         with patch(
-            "src.modules.analytics.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
+            "luana_core_analytics_engine.infrastructure.etl.period_pipeline.get_non_aggregable_for_provider",
             return_value=["reach"],
         ):
             _run(pipeline.run(TENANT_ID, PERIOD_TYPE, PERIOD_START, PERIOD_END))

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.infrastructure.web.tavily_search import (
+from luana_core_copilot.infrastructure.web.tavily_search import (
     SearchResult,
     TavilySearchService,
 )
@@ -24,7 +24,7 @@ async def test_search_returns_results() -> None:
         ],
     }
     with patch(
-        "src.modules.copilot.infrastructure.web.tavily_search.httpx.AsyncClient",
+        "luana_core_copilot.infrastructure.web.tavily_search.httpx.AsyncClient",
     ) as mock_client_cls:
         mock_client = MagicMock()
         mock_client.__aenter__ = AsyncMock(
@@ -54,7 +54,7 @@ async def test_search_with_empty_results() -> None:
     """Test search with no results returns empty list."""
     mock_response = {"results": []}
     with patch(
-        "src.modules.copilot.infrastructure.web.tavily_search.httpx.AsyncClient",
+        "luana_core_copilot.infrastructure.web.tavily_search.httpx.AsyncClient",
     ) as mock_client_cls:
         mock_client = MagicMock()
         mock_client.__aenter__ = AsyncMock(
@@ -80,7 +80,7 @@ async def test_search_passes_correct_params() -> None:
     """Test search passes API key and params correctly."""
     mock_response = {"results": []}
     with patch(
-        "src.modules.copilot.infrastructure.web.tavily_search.httpx.AsyncClient",
+        "luana_core_copilot.infrastructure.web.tavily_search.httpx.AsyncClient",
     ) as mock_client_cls:
         mock_client = MagicMock()
         mock_client.__aenter__ = AsyncMock(

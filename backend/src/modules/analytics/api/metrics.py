@@ -6,32 +6,28 @@ from typing import Annotated, TypeVar
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db, redis_client
-from src.modules.analytics.api.email_metrics import router as email_router
-from src.modules.analytics.application.config import ETLConfig
-from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
-from src.modules.analytics.application.dto.attraction_dto import AttractionDetailDTO
-from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
-from src.modules.analytics.application.dto.channel_dashboard_dto import (
+from luana_core_analytics_engine.api.email_metrics import router as email_router
+from luana_core_analytics_engine.application.config import ETLConfig
+from luana_core_analytics_engine.application.dto.adoption_dto import AdoptionDetailDTO
+from luana_core_analytics_engine.application.dto.attraction_dto import AttractionDetailDTO
+from luana_core_analytics_engine.application.dto.capture_dto import CaptureDetailDTO
+from luana_core_analytics_engine.application.dto.channel_dashboard_dto import (
     ChannelDashboardDTO,
     DemographicsDTO,
 )
-from src.modules.analytics.application.dto.evangelization_dto import (
+from luana_core_analytics_engine.application.dto.evangelization_dto import (
     EvangelizationDetailDTO,
 )
-from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
-from src.modules.analytics.application.dto.group_detail_dto import GroupDetailDTO
-from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
-from src.modules.analytics.application.dto.opportunity_dto import OpportunityDetailDTO
-from src.modules.analytics.application.dto.sales_dto import SalesDetailDTO
-from src.modules.analytics.application.dto.stage_overview_dto import StageOverviewDTO
-from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
-from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
-from src.modules.analytics.application.services.metrics_service import MetricsService
-from src.modules.analytics.application.services.stage_services import (
+from luana_core_analytics_engine.application.dto.expansion_dto import ExpansionDetailDTO
+from luana_core_analytics_engine.application.dto.group_detail_dto import GroupDetailDTO
+from luana_core_analytics_engine.application.dto.nurture_dto import NurtureDetailDTO
+from luana_core_analytics_engine.application.dto.opportunity_dto import OpportunityDetailDTO
+from luana_core_analytics_engine.application.dto.sales_dto import SalesDetailDTO
+from luana_core_analytics_engine.application.dto.stage_overview_dto import StageOverviewDTO
+from luana_core_analytics_engine.application.dto.summary_dto import BowtiesSummaryDTO
+from luana_core_analytics_engine.application.dto.timeseries_dto import StageTimeSeriesDTO
+from luana_core_analytics_engine.application.services.metrics_service import MetricsService
+from luana_core_analytics_engine.application.services.stage_services import (
     AdoptionStageService,
     AttractionStageService,
     CaptureStageService,
@@ -42,23 +38,26 @@ from src.modules.analytics.application.services.stage_services import (
     SalesStageService,
     StageOverviewService,
 )
-from src.modules.analytics.application.services.stage_services.group_detail import (
+from luana_core_analytics_engine.application.services.stage_services.group_detail import (
     GroupDetailService,
 )
-from src.modules.analytics.domain.period_config import DateRange, TenantPeriodConfig
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_analytics_engine.domain.period_config import DateRange, TenantPeriodConfig
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
 
 # DDD exception (intentional): api/ is the composition root — it wires concrete
 # implementations for ConnectionPortImpl and OfferReadPortImpl as FastAPI
 # dependencies. Cross-module import here is correct DI wiring, not coupling.
-from src.modules.connections.application.services.connection_port_impl import (
+from luana_core_connections.application.services.connection_port_impl import (
     ConnectionPortImpl,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.offer.application.services.offer_read_port_impl import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_offer_studio.application.services.offer_read_port_impl import (
     OfferReadPortImpl,
 )
+from luana_core_platform.core.database import get_db, redis_client
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/metrics", tags=["Marketing Metrics"])
 router.include_router(email_router)
@@ -227,10 +226,9 @@ _VALID_PERIODS = {"last_30_days", "weekly", "monthly", "quarterly"}
 
 def _resolve_date_range(period: str, tenant_id: UUID, db: Session) -> DateRange:
     """Resolve period string to DateRange using tenant's period config."""
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_platform.domain.datetime_utils import utc_today
     from sqlalchemy import select as sa_select
-
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.shared.domain.datetime_utils import utc_today
 
     tenant = db.execute(
         sa_select(TenantModel).where(TenantModel.id == tenant_id),
@@ -633,7 +631,7 @@ async def sync_all_sources(
     Global 2-min cooldown prevents concurrent or back-to-back syncs.
     Per-provider 15-min cooldown — skipped providers report remaining time.
     """
-    from src.modules.analytics.application.services.etl_service import ETLService
+    from luana_core_analytics_engine.application.services.etl_service import ETLService
 
     # Global cooldown: prevent back-to-back or concurrent syncs for the same tenant.
     cooldown_key = f"sync_all:{user.tenant_id}"
@@ -732,7 +730,7 @@ async def sync_ig_dm(
                     remaining_minutes=remaining_min,
                 )
 
-    from src.modules.analytics.application.services.ig_dm_sync_service import (
+    from luana_core_analytics_engine.application.services.ig_dm_sync_service import (
         InstagramDMSyncService,
     )
 
@@ -789,7 +787,7 @@ async def refresh_channel_metrics(
         )
 
     # Check cooldown: last extraction run for this provider+tenant
-    from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository import (
         ExtractionRunRepository,
     )
 
@@ -807,7 +805,7 @@ async def refresh_channel_metrics(
             )
 
     # Trigger extraction
-    from src.modules.analytics.application.services.etl_service import ETLService
+    from luana_core_analytics_engine.application.services.etl_service import ETLService
 
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
@@ -837,7 +835,7 @@ def get_metric_catalog(
     Useful for frontend to display metric descriptions, units, and
     understand which metrics should NOT be summed across time periods.
     """
-    from src.modules.analytics.domain.metric_catalog import METRIC_CATALOG
+    from luana_core_analytics_engine.domain.metric_catalog import METRIC_CATALOG
 
     entries = [
         MetricCatalogEntryResponse(
@@ -881,13 +879,13 @@ async def get_channel_dashboard(
             detail=f"Invalid period: {period}. Use 7d, 30d, or 90d.",
         )
 
-    from src.modules.analytics.application.services.channel_dashboard_service import (
+    from luana_core_analytics_engine.application.services.channel_dashboard_service import (
         ChannelDashboardService,
     )
 
     # DDD exception (intentional): api/ composition root — BrandReadPortImpl injected
     # lazily here because ChannelDashboardService needs brand data for display config.
-    from src.modules.brand.application.services.brand_read_port_impl import (
+    from luana_core_brand_studio.application.services.brand_read_port_impl import (
         BrandReadPortImpl,
     )
 
@@ -917,7 +915,7 @@ async def get_channel_demographics(
             detail=f"Invalid period: {period}. Use 7d, 30d, or 90d.",
         )
 
-    from src.modules.analytics.application.services.channel_dashboard_service import (
+    from luana_core_analytics_engine.application.services.channel_dashboard_service import (
         ChannelDashboardService,
     )
 
@@ -944,7 +942,7 @@ async def trigger_initial_load(
         raise HTTPException(status_code=404, detail=f"Unknown provider: {provider}")
 
     # Cooldown check
-    from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository import (
         ExtractionRunRepository,
     )
 
@@ -961,7 +959,7 @@ async def trigger_initial_load(
                 detail=f"Disponible en {remaining_min} min",
             )
 
-    from src.modules.analytics.application.services.etl_service import ETLService
+    from luana_core_analytics_engine.application.services.etl_service import ETLService
 
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
@@ -1060,7 +1058,7 @@ async def trigger_period_extraction(
             detail="period_end must be >= period_start",
         )
 
-    from src.modules.analytics.application.services.etl_service import ETLService
+    from luana_core_analytics_engine.application.services.etl_service import ETLService
 
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
@@ -1109,9 +1107,8 @@ async def get_period_config(
     user: Annotated[User, Depends(get_current_user)],
 ) -> TenantPeriodConfigDTO:
     """Get the tenant's period configuration."""
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
     from sqlalchemy import select as sa_select
-
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
     tenant = db.execute(
         sa_select(TenantModel).where(TenantModel.id == user.tenant_id),
@@ -1137,10 +1134,9 @@ async def update_period_config(
 
     Changes affect future aggregation calculations and period boundary detection.
     """
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
     from sqlalchemy import select as sa_select
     from sqlalchemy import update as sa_update
-
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
     tenant = db.execute(
         sa_select(TenantModel).where(TenantModel.id == user.tenant_id),

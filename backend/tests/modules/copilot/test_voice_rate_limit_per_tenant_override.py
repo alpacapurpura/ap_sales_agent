@@ -13,9 +13,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.copilot.api.voice import _get_voice_limits, router
-from src.modules.copilot.application.services.limits_resolver import EffectiveLimits
-from src.modules.iam.api.dependencies import get_current_user, get_db
+from luana_core_copilot.api.voice import _get_voice_limits, router
+from luana_core_copilot.application.services.limits_resolver import EffectiveLimits
+from luana_core_iam.api.dependencies import get_current_user, get_db
 
 
 def _make_override_limits(voice_rpm: int) -> EffectiveLimits:
@@ -29,7 +29,7 @@ def _make_override_limits(voice_rpm: int) -> EffectiveLimits:
     )
 
 
-@patch("src.modules.copilot.api.voice.check_rate_limit")
+@patch("luana_core_copilot.api.voice.check_rate_limit")
 def test_tenant_override_20_req7_passes(mock_rate_limit: MagicMock) -> None:
     """With override 20 RPM, request 7 is allowed (under the limit)."""
     mock_rate_limit.return_value = None  # Under limit
@@ -58,7 +58,7 @@ def test_tenant_override_20_req7_passes(mock_rate_limit: MagicMock) -> None:
     assert call_kwargs.get("max_requests") == 20
 
 
-@patch("src.modules.copilot.api.voice.check_rate_limit")
+@patch("luana_core_copilot.api.voice.check_rate_limit")
 def test_resolver_uses_override_rpm_not_env(mock_rate_limit: MagicMock) -> None:
     """CopilotLimitsResolver override propagates to check_rate_limit max_requests."""
     mock_rate_limit.return_value = None

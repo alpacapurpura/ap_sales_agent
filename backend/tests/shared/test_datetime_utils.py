@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from src.shared.domain.datetime_utils import (
+from luana_core_platform.domain.datetime_utils import (
     ensure_utc,
     is_valid_timezone,
     to_tenant_tz,

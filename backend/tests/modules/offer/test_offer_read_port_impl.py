@@ -15,7 +15,7 @@ import uuid
 import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.offer.application.services.offer_read_port_impl import (
+from luana_core_offer_studio.application.services.offer_read_port_impl import (
     OfferReadPortImpl,
 )
 from tests.modules.offer.conftest import create_product_model

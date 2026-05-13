@@ -16,7 +16,7 @@ import pytest
 
 
 def _iter_named_tools():
-    from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+    from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
     for group_name, tools in TOOL_GROUPS.items():
         for t in tools:
@@ -44,7 +44,7 @@ class TestToolRegistryIntegrity:
         """`register_tool_groups` raises on divergent same-name collisions."""
         from langchain_core.tools import tool as lc_tool
 
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             ToolNameCollisionError,
             _register_tool_groups,
         )
@@ -68,7 +68,7 @@ class TestToolRegistryIntegrity:
         """Re-exporting the *same* tool object across groups is fine."""
         from langchain_core.tools import tool as lc_tool
 
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             _register_tool_groups,
         )
 

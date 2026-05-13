@@ -15,12 +15,12 @@ from dataclasses import dataclass
 import pytest
 from langchain_core.messages import AIMessage
 
-from src.modules.copilot.application.router.classifiers.llm_classifier import (
+from luana_core_copilot.application.router.classifiers.llm_classifier import (
     LLMClassifier,
 )
-from src.modules.copilot.application.router.model_router import RoutingRequest
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.routing_policy import (
+from luana_core_copilot.application.router.model_router import RoutingRequest
+from luana_core_platform.core.enums import ModelRole
+from luana_core_copilot.domain.routing_policy import (
     DEFAULT_ROUTING_POLICY,
     ClassifierType,
 )

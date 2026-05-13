@@ -32,14 +32,13 @@ from uuid import UUID, uuid4
 
 import structlog
 from langchain_core.callbacks import BaseCallbackHandler
-
-from src.shared.agent_observability.cost.calculator import (
+from luana_core_observability.cost.calculator import (
     calculate_cost,  # noqa: F401 — retained for reconciliation utility, NOT used in runtime path post-T1.
 )
-from src.shared.agent_observability.cost.fx_resolver import FXResolver
-from src.shared.agent_observability.pricing.resolver import PricingResolver
-from src.shared.agent_observability.recording.cost_recorder import pop_cost
-from src.shared.agent_observability.recording.sanitization import (
+from luana_core_observability.cost.fx_resolver import FXResolver
+from luana_core_observability.pricing.resolver import PricingResolver
+from luana_core_observability.recording.cost_recorder import pop_cost
+from luana_core_observability.recording.sanitization import (
     sanitize_payload,
     truncate,
 )

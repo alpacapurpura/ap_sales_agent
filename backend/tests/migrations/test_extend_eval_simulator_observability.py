@@ -352,48 +352,48 @@ class TestSpecRegistration:
     def test_spec_registered_after_bootstrap_import(self) -> None:
         """get_spec('eval_simulator') returns a non-None spec after bootstrap import."""
         # The bootstrap import is idempotent (re-registering same key is allowed per registry).
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec is not None
 
     def test_spec_agent_kind_is_eval_simulator(self) -> None:
         """Registered spec.agent_kind == 'eval_simulator'."""
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec.agent_kind == "eval_simulator"
 
     def test_spec_llm_call_table_name(self) -> None:
         """Spec.llm_call_table matches the migration table name."""
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec.llm_call_table == "eval_simulator_llm_call"
 
     def test_spec_trace_event_table_name(self) -> None:
         """Spec.trace_event_table matches the migration table name."""
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec.trace_event_table == "eval_simulator_trace_event"
 
     def test_spec_has_lead_id_false(self) -> None:
         """Spec.has_lead_id is False — eval simulator does not write per-lead audit rows."""
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec.has_lead_id is False
 
     def test_spec_retention_defaults(self) -> None:
         """Spec retention defaults are 30 days (synthetic, no audit obligation)."""
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec.trace_default_days == 30

@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.infrastructure.channels.in_memory_channel import (
+from luana_core_copilot.infrastructure.channels.in_memory_channel import (
     InMemoryConversationalChannel,
 )
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldContract,
     FieldStatus,
     FieldType,
 )
-from src.shared.links.ports.conversational_channel import ConversationalChannelPort
+from luana_core_platform.links.ports.conversational_channel import ConversationalChannelPort
 
 
 def _contract(path: str, *, question: str | None = None) -> FieldContract:

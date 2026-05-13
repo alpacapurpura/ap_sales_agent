@@ -31,7 +31,7 @@ def create_domain_lookup(db: Session) -> DomainLookupPort:
 
     Lazy-imports the concrete adapter from tenant_domains.
     """
-    from src.modules.tenant_domains.application.domain_lookup_adapter import (
+    from luana_core_tenant_domains.application.domain_lookup_adapter import (
         DomainLookupAdapter,
     )
 

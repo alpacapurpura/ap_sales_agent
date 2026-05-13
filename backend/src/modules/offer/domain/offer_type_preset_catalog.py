@@ -65,9 +65,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel, VariantStructure
-from src.modules.offer.domain.section_catalog import SectionKey
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferValueLevel, VariantStructure
+from luana_core_offer_studio.domain.section_catalog import SectionKey
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 
 class PresetFlag(StrEnum):

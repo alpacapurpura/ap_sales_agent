@@ -28,7 +28,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from src.modules.copilot.application.orchestrator.stream_filters import (
+from luana_core_copilot.application.orchestrator.stream_filters import (
     is_internal_llm_event,
 )
 

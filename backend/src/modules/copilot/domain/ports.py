@@ -11,11 +11,13 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 from uuid import UUID
 
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.procedure_state import ProcedureState
+from luana_core_copilot.domain.procedure_state import ProcedureState
+from luana_core_platform.core.enums import ModelRole
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from luana_core_copilot.domain.workflow import Workflow
 
 # ── Message value object ─────────────────────────────────────────────────────
 
@@ -257,7 +259,6 @@ class ProviderHealth:
 # F6 — full Workflow declarative model lives in ``domain/workflow.py``. Ports
 # re-exports it so existing imports (``from src.modules.copilot.domain.ports
 # import Workflow``) keep working without a churn touch in every provider.
-from src.modules.copilot.domain.workflow import Workflow as Workflow  # noqa: PLC0414, TC001
 
 
 @runtime_checkable

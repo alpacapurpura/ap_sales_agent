@@ -5,13 +5,13 @@ F2 shipped the dummy ``audit_inspector`` (plumbing only). F4 added the real
 (``ask_tenant_data`` subgraph).
 """
 
-from src.modules.copilot.application.orchestrator.subagents.audit_inspector import (
+from luana_core_copilot.application.orchestrator.subagents.audit_inspector import (
     AUDIT_INSPECTOR_SUBAGENT,
 )
-from src.modules.copilot.application.orchestrator.subagents.data_query import (
+from luana_core_copilot.application.orchestrator.subagents.data_query import (
     DATA_QUERY_SUBAGENT,
 )
-from src.modules.copilot.application.orchestrator.subagents.url_analyzer import (
+from luana_core_copilot.application.orchestrator.subagents.url_analyzer import (
     URL_ANALYZER_SUBAGENT,
 )
 

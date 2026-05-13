@@ -11,16 +11,15 @@ Cache strategy:
 """
 
 import structlog
-
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     ChannelMetricDTO,
     MetricValueDTO,
 )
-from src.modules.analytics.application.dto.group_detail_dto import GroupDetailDTO
-from src.modules.analytics.application.services.stage_services.constants import (
+from luana_core_analytics_engine.application.dto.group_detail_dto import GroupDetailDTO
+from luana_core_analytics_engine.application.services.stage_services.constants import (
     STAGE_GROUPS as _STAGE_GROUPS,
 )
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
 
 logger = structlog.get_logger()
 

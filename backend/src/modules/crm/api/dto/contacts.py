@@ -13,9 +13,8 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
+from luana_core_platform.domain.enums import LifecycleStage
 from pydantic import BaseModel, ConfigDict
-
-from src.shared.domain.enums import LifecycleStage
 
 
 class ContactListItem(BaseModel):

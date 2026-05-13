@@ -8,8 +8,7 @@ Replaces the hardcoded 13-channel list in MetricsService.get_attraction_metrics(
 from uuid import UUID
 
 import structlog
-
-from src.modules.analytics.domain.ports import ConnectionPort
+from luana_core_analytics_engine.domain.ports import ConnectionPort
 
 logger = structlog.get_logger(__name__)
 

@@ -8,8 +8,8 @@ from __future__ import annotations
 import pytest
 from hypothesis import given, settings, strategies as st
 
-from src.modules.campaigns.domain.campaign import Campaign, _FSM_TRANSITIONS
-from src.modules.campaigns.domain.enums import CampaignStatus
+from luana_core_campaigns.domain.campaign import Campaign, _FSM_TRANSITIONS
+from luana_core_campaigns.domain.enums import CampaignStatus
 
 
 TERMINAL_STATES = frozenset({CampaignStatus.COMPLETED, CampaignStatus.CANCELED})

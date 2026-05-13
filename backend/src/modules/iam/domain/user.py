@@ -4,9 +4,8 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from luana_core_platform.domain.base_entity import BaseEntity
 from pydantic import EmailStr
-
-from src.shared.domain.base_entity import BaseEntity
 
 
 class User(BaseEntity):

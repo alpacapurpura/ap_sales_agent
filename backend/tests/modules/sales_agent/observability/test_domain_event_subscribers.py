@@ -13,7 +13,7 @@ def _stub_session_local(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     """Replace ``SessionLocal()`` with a mock; capture repo writes."""
     fake_session = MagicMock()
     monkeypatch.setattr(
-        "src.modules.sales_agent.observability.domain_events.subscribers.SessionLocal",
+        "luana_core_sales_agent.observability.domain_events.subscribers.SessionLocal",
         lambda: fake_session,
     )
     return fake_session
@@ -32,7 +32,7 @@ def captured_repo_calls(monkeypatch: pytest.MonkeyPatch) -> list[dict]:
             calls.append(kwargs)
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.observability.domain_events.subscribers.SalesAgentTraceEventRepository",
+        "luana_core_sales_agent.observability.domain_events.subscribers.SalesAgentTraceEventRepository",
         _CaptureRepo,
     )
     return calls
@@ -41,8 +41,8 @@ def captured_repo_calls(monkeypatch: pytest.MonkeyPatch) -> list[dict]:
 class TestLeadQualifiedSubscriber:
     @pytest.mark.asyncio
     async def test_persists_domain_event_row(self, captured_repo_calls: list[dict]) -> None:
-        from src.modules.sales_agent.domain.events import LeadQualifiedEvent
-        from src.modules.sales_agent.observability.domain_events.subscribers import (
+        from luana_core_sales_agent.domain.events import LeadQualifiedEvent
+        from luana_core_sales_agent.observability.domain_events.subscribers import (
             on_lead_qualified,
         )
 
@@ -74,8 +74,8 @@ class TestLeadQualifiedSubscriber:
 class TestToolLoopDetectedSubscriber:
     @pytest.mark.asyncio
     async def test_persists_with_error_status(self, captured_repo_calls: list[dict]) -> None:
-        from src.modules.sales_agent.domain.events import ToolLoopDetectedEvent
-        from src.modules.sales_agent.observability.domain_events.subscribers import (
+        from luana_core_sales_agent.domain.events import ToolLoopDetectedEvent
+        from luana_core_sales_agent.observability.domain_events.subscribers import (
             on_tool_loop_detected,
         )
 
@@ -109,12 +109,12 @@ class TestSubscriberIsBestEffort:
                 raise RuntimeError(msg)
 
         monkeypatch.setattr(
-            "src.modules.sales_agent.observability.domain_events.subscribers.SalesAgentTraceEventRepository",
+            "luana_core_sales_agent.observability.domain_events.subscribers.SalesAgentTraceEventRepository",
             _BoomRepo,
         )
 
-        from src.modules.sales_agent.domain.events import StageTransitionedEvent
-        from src.modules.sales_agent.observability.domain_events.subscribers import (
+        from luana_core_sales_agent.domain.events import StageTransitionedEvent
+        from luana_core_sales_agent.observability.domain_events.subscribers import (
             on_stage_transitioned,
         )
 
@@ -134,14 +134,14 @@ class TestSubscriberIsBestEffort:
 
 class TestRegisterSubscribers:
     def test_register_subscribers_wires_all_four_handlers(self) -> None:
-        from src.modules.sales_agent.application.event_bus import EventBus
-        from src.modules.sales_agent.domain.events import (
+        from luana_core_sales_agent.application.event_bus import EventBus
+        from luana_core_sales_agent.domain.events import (
             LeadQualifiedEvent,
             ObjectionHandledEvent,
             StageTransitionedEvent,
             ToolLoopDetectedEvent,
         )
-        from src.modules.sales_agent.observability.domain_events.subscribers import (
+        from luana_core_sales_agent.observability.domain_events.subscribers import (
             register_subscribers,
         )
 

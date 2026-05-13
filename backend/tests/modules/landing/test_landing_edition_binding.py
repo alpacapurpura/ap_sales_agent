@@ -10,12 +10,12 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from src.modules.landing.domain.content import (
+from luana_core_landing.domain.content import (
     LandingPageConfig,
     SqueezeContent,
 )
-from src.modules.landing.domain.enums import LandingPageArchetype
-from src.modules.landing.domain.landing_page import LandingPage
+from luana_core_landing.domain.enums import LandingPageArchetype
+from luana_core_landing.domain.landing_page import LandingPage
 
 
 def _make_config(slug: str = "edition-test") -> LandingPageConfig:

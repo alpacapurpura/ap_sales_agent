@@ -12,14 +12,14 @@ from __future__ import annotations
 import uuid
 from unittest.mock import MagicMock, patch
 
-from src.modules.assets.domain.enums import (
+from luana_core_assets.domain.enums import (
     AssetScope,
     AssetStatus,
     AssetType,
     ExtractionStatus,
     StorageProvider,
 )
-from src.modules.assets.infrastructure.models.asset_model import AssetModel
+from luana_core_assets.infrastructure.models.asset_model import AssetModel
 
 
 def _make_document_asset(db, tenant_id, **overrides) -> AssetModel:
@@ -47,7 +47,7 @@ def _make_document_asset(db, tenant_id, **overrides) -> AssetModel:
 class TestAssetExtractionService:
     def test_extracts_document_text_and_summary(self, db, seed_tenant, tenant_id) -> None:
         """A pending PDF is parsed, persisted, and marked extracted."""
-        from src.modules.assets.application.asset_extraction_service import (
+        from luana_core_assets.application.asset_extraction_service import (
             AssetExtractionService,
         )
 
@@ -58,7 +58,7 @@ class TestAssetExtractionService:
         with (
             patch.object(service, "_read_bytes", return_value=b"fake-pdf"),
             patch(
-                "src.modules.assets.application.asset_extraction_service.FileParsingService.parse_pdf",
+                "luana_core_assets.application.asset_extraction_service.FileParsingService.parse_pdf",
                 return_value=fake_text,
             ),
         ):
@@ -73,7 +73,7 @@ class TestAssetExtractionService:
 
     def test_idempotent_on_already_extracted(self, db, seed_tenant, tenant_id) -> None:
         """A second call on an extracted asset must not re-parse."""
-        from src.modules.assets.application.asset_extraction_service import (
+        from luana_core_assets.application.asset_extraction_service import (
             AssetExtractionService,
         )
 
@@ -87,7 +87,7 @@ class TestAssetExtractionService:
 
         service = AssetExtractionService(db)
         with patch(
-            "src.modules.assets.application.asset_extraction_service.FileParsingService.parse_pdf",
+            "luana_core_assets.application.asset_extraction_service.FileParsingService.parse_pdf",
         ) as mock_parse:
             result = service.ensure_extracted(asset.id, tenant_id=tenant_id)
 
@@ -96,7 +96,7 @@ class TestAssetExtractionService:
 
     def test_image_is_skipped(self, db, seed_tenant, tenant_id) -> None:
         """Images have no extractable text — status moves to skipped, not failed."""
-        from src.modules.assets.application.asset_extraction_service import (
+        from luana_core_assets.application.asset_extraction_service import (
             AssetExtractionService,
         )
 
@@ -115,7 +115,7 @@ class TestAssetExtractionService:
 
     def test_audio_uses_transcript_when_provided(self, db, seed_tenant, tenant_id) -> None:
         """Audio assets' transcript (in ai_metadata) becomes the extracted_text."""
-        from src.modules.assets.application.asset_extraction_service import (
+        from luana_core_assets.application.asset_extraction_service import (
             AssetExtractionService,
         )
 
@@ -135,7 +135,7 @@ class TestAssetExtractionService:
 
     def test_failure_records_error_and_marks_failed(self, db, seed_tenant, tenant_id) -> None:
         """Parser exceptions flip status to FAILED and save the message."""
-        from src.modules.assets.application.asset_extraction_service import (
+        from luana_core_assets.application.asset_extraction_service import (
             AssetExtractionService,
         )
 
@@ -152,7 +152,7 @@ class TestAssetExtractionService:
 
     def test_cross_tenant_returns_none(self, db, seed_tenant, tenant_id) -> None:
         """An asset from another tenant must not be extractable across boundaries."""
-        from src.modules.assets.application.asset_extraction_service import (
+        from luana_core_assets.application.asset_extraction_service import (
             AssetExtractionService,
         )
 

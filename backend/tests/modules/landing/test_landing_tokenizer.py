@@ -9,7 +9,7 @@ a round-trip.
 
 from __future__ import annotations
 
-from src.modules.landing.application.tokenizer import substitute_tokens
+from luana_core_landing.application.tokenizer import substitute_tokens
 
 
 class TestSubstituteTokens:

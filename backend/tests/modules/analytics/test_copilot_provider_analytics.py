@@ -3,7 +3,7 @@
 
 class TestAnalyticsCopilotProvider:
     def _make(self):
-        from src.modules.analytics.copilot_provider.provider import AnalyticsCopilotProvider
+        from luana_core_analytics_engine.copilot_provider.provider import AnalyticsCopilotProvider
 
         return AnalyticsCopilotProvider()
 
@@ -14,7 +14,7 @@ class TestAnalyticsCopilotProvider:
         assert self._make().label == "Growth Studio"
 
     def test_module_data_returns_module_data(self):
-        from src.modules.copilot.domain.ports import ModuleData
+        from luana_core_copilot.domain.ports import ModuleData
 
         result = self._make().module_data()
         assert isinstance(result, ModuleData)

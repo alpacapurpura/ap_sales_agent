@@ -5,13 +5,12 @@ from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from luana_core_iam.domain.user import User
+from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.database import get_db
 from sqlalchemy.orm import Session
 from svix.webhooks import Webhook, WebhookVerificationError
-
-from src.core.config import settings
-from src.core.database import get_db
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
 
 router = APIRouter()
 logger = structlog.get_logger()

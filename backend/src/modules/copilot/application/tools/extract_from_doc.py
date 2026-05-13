@@ -24,15 +24,14 @@ from uuid import UUID, uuid4
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_conversation_id, get_tenant_id
-from src.core.database import redis_client
+from luana_core_platform.core.context import get_conversation_id, get_tenant_id
+from luana_core_platform.core.database import redis_client
 
 logger = structlog.get_logger()
 
 # Import the ARQ pool — may be None when the worker is unavailable
 try:
-    from src.core.arq_pool import get_arq_pool as _get_arq_pool
+    from luana_core_platform.core.arq_pool import get_arq_pool as _get_arq_pool
 except ImportError:  # pragma: no cover — optional dependency
     _get_arq_pool = lambda: None  # noqa: E731
 
@@ -191,7 +190,7 @@ async def extract_from_doc(
 
     # Persist the in-flight job so the guided layer pauses questions for this
     # domain until the worker finishes. Mirrors extract_from_url dispatch.
-    from src.modules.copilot.application.tools.extraction_tools import (
+    from luana_core_copilot.application.tools.extraction_tools import (
         _record_active_extraction_job,
     )
 
@@ -231,17 +230,17 @@ async def extract_from_doc(
     # This uses the same pipeline as extract_document_to_fields but returns the
     # unified AsyncToolJob shape for frontend consistency.
     try:
-        from src.core.database import SessionLocal
-        from src.modules.assets.infrastructure.repositories.asset_repository import (
+        from luana_core_assets.infrastructure.repositories.asset_repository import (
             AssetRepository,
         )
-        from src.modules.copilot.application.services.document_processor import (
+        from luana_core_copilot.application.services.document_processor import (
             DocumentProcessor,
         )
-        from src.modules.copilot.domain.extraction_domain_registry import (
+        from luana_core_copilot.domain.extraction_domain_registry import (
             get_extraction_config,
         )
-        from src.shared.application.ai_action_service import AIActionService
+        from luana_core_platform.application.ai_action_service import AIActionService
+        from luana_core_platform.core.database import SessionLocal
 
         if get_extraction_config(domain) is None:
             return _err(f"El módulo '{module}' no tiene template de extracción de documentos.")
@@ -428,12 +427,12 @@ def _publish_completion_events(
     if not conversation_id:
         return
     try:
-        from src.shared.domain.events import (
+        from luana_core_events.outbox.application.event_bus_adapter import (
+            adapter_bus as EventBus,  # noqa: N812
+        )
+        from luana_core_platform.domain.events import (
             ExtractionJobCompletedEvent,
             ExtractionSectionCompletedEvent,
-        )
-        from src.shared.domain_events.outbox.application.event_bus_adapter import (
-            adapter_bus as EventBus,  # noqa: N812
         )
 
         started_dt = datetime.fromisoformat(started_at)

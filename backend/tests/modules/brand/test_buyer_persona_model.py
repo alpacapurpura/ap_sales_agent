@@ -1,6 +1,6 @@
 """Tests for BuyerPersona SQLAlchemy model."""
 
-from src.modules.brand.infrastructure.models.buyer_persona_model import (
+from luana_core_brand_studio.infrastructure.models.buyer_persona_model import (
     BuyerPersonaModel,
 )
 

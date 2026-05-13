@@ -11,8 +11,7 @@ from typing import Any
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 # Allow OAuth scope to change
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"

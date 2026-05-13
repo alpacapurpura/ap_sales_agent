@@ -9,7 +9,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from src.modules.sales_agent.infrastructure.repositories.state_repository import (
+from luana_core_sales_agent.infrastructure.repositories.state_repository import (
     StateRepository,
 )
 

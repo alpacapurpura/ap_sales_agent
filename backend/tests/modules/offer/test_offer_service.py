@@ -6,10 +6,10 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
-from src.modules.offer.domain.offer import PricingStructure
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_offer_studio.application.offer_service import OfferService
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferValueLevel
+from luana_core_offer_studio.domain.offer import PricingStructure
+from luana_core_platform.domain.datetime_utils import utc_now
 from tests.modules.offer.conftest import create_product_model
 
 

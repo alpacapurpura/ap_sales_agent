@@ -5,9 +5,9 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.brand.domain.aggregates import BrandSettings
-from src.modules.copilot.infrastructure.persisters.brand_persister import BrandPersister
-from src.modules.copilot.infrastructure.persisters.persister_registry import (
+from luana_core_brand_studio.domain.aggregates import BrandSettings
+from luana_core_copilot.infrastructure.persisters.brand_persister import BrandPersister
+from luana_core_copilot.infrastructure.persisters.persister_registry import (
     get_persister,
 )
 
@@ -34,7 +34,7 @@ class TestBrandPersister:
             mock_repo.get_settings.return_value = mock_settings
 
             with patch(
-                "src.modules.brand.domain.aggregates.BrandSettings",
+                "luana_core_brand_studio.domain.aggregates.BrandSettings",
             ) as mock_brand:
                 mock_brand.model_validate.return_value = mock_settings
                 persister.persist(tenant_id, mapa_global, fields_to_persist)
@@ -57,7 +57,7 @@ class TestBrandPersister:
             mock_repo.get_settings.return_value = mock_settings
 
             with patch(
-                "src.modules.brand.domain.aggregates.BrandSettings",
+                "luana_core_brand_studio.domain.aggregates.BrandSettings",
             ) as mock_brand:
                 mock_brand.model_validate.return_value = mock_settings
                 persister.persist(tenant_id, mapa_global, fields_to_persist)

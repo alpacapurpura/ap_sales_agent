@@ -15,13 +15,13 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
     _infer_module_from_caller,
     _module_name_from_file,
     _reset_module_inference_cache,
 )
-from src.shared.domain_events.outbox.domain.event import DomainEvent
+from luana_core_events.outbox.domain.event import DomainEvent
 
 
 @pytest.fixture(autouse=True)
@@ -196,12 +196,12 @@ class TestEventBusAdapterPublishWithInferredModule:
 
         with (
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._infer_module_from_caller",
+                "luana_core_events.outbox.application.event_bus_adapter._infer_module_from_caller",
                 return_value="sales_agent",
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):
@@ -216,11 +216,11 @@ class TestEventBusAdapterPublishWithInferredModule:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._infer_module_from_caller",
+                "luana_core_events.outbox.application.event_bus_adapter._infer_module_from_caller",
                 return_value=None,
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),
@@ -241,12 +241,12 @@ class TestEventBusAdapterPublishWithInferredModule:
         # Inference would return "sales_agent" but explicit kwarg = "copilot"
         with (
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._infer_module_from_caller",
+                "luana_core_events.outbox.application.event_bus_adapter._infer_module_from_caller",
                 return_value="sales_agent",  # would be wrong without kwarg
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True) as mock_flag,
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter._is_async_session",
+                "luana_core_events.outbox.application.event_bus_adapter._is_async_session",
                 return_value=False,
             ),
         ):

@@ -8,12 +8,11 @@ from __future__ import annotations
 from decimal import Decimal
 
 import structlog
+from luana_core_billing.domain.plan import PlanConfig
+from luana_core_billing.domain.plan_repository import PlanRepository
+from luana_core_billing.infrastructure.models.plan_config_model import PlanConfigModel
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.shared.billing.domain.plan import PlanConfig
-from src.shared.billing.domain.plan_repository import PlanRepository
-from src.shared.billing.infrastructure.models.plan_config_model import PlanConfigModel
 
 logger = structlog.get_logger(__name__)
 

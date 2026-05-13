@@ -4,8 +4,8 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.shared.domain.locale import TenantLocale
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.domain.locale import TenantLocale
 
 
 class TestGetTenantLocale:
@@ -24,7 +24,7 @@ class TestGetTenantLocale:
         db.add(tenant)
         db.commit()
 
-        from src.modules.iam.api.dependencies import _resolve_tenant_locale
+        from luana_core_iam.api.dependencies import _resolve_tenant_locale
 
         result = _resolve_tenant_locale(db, tenant_id)
         assert isinstance(result, TenantLocale)
@@ -42,7 +42,7 @@ class TestGetTenantLocale:
         db.add(tenant)
         db.commit()
 
-        from src.modules.iam.api.dependencies import _resolve_tenant_locale
+        from luana_core_iam.api.dependencies import _resolve_tenant_locale
 
         result = _resolve_tenant_locale(db, tenant_id)
         assert result.currency == "USD"
@@ -50,7 +50,7 @@ class TestGetTenantLocale:
 
     def test_missing_tenant_returns_default(self, db: Session) -> None:
         """When tenant doesn't exist, return default locale."""
-        from src.modules.iam.api.dependencies import _resolve_tenant_locale
+        from luana_core_iam.api.dependencies import _resolve_tenant_locale
 
         result = _resolve_tenant_locale(db, uuid.uuid4())
         assert result == TenantLocale.default()

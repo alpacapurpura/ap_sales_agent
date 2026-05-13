@@ -14,13 +14,13 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.offer.domain.enums import OfferValueLevel
-from src.modules.offer.domain.offer_ladder_hints import (
+from luana_core_offer_studio.domain.enums import OfferValueLevel
+from luana_core_offer_studio.domain.offer_ladder_hints import (
     OFFER_LADDER_HINTS,
     LadderHint,
 )
-from src.modules.offer.domain.value_level_catalog import VALUE_LEVEL_CATALOG
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_offer_studio.domain.value_level_catalog import VALUE_LEVEL_CATALOG
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 _EXPECTED_KEYS = frozenset((bt, vl) for bt in ExpertBusinessType for vl in OfferValueLevel)
 

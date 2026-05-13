@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.modules.copilot.domain.ports import DataQueryPlan, DataQueryResult
+from luana_core_copilot.domain.ports import DataQueryPlan, DataQueryResult
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 def _default_db_factory() -> Session:
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     return SessionLocal()
 
@@ -61,7 +61,7 @@ class CrmDataAccessProvider:
             msg = "lead_count requires both 'since' and 'until' in filters"
             raise ValueError(msg)
 
-        from src.modules.crm.infrastructure.repositories.lead_repository import (
+        from luana_core_crm.infrastructure.repositories.lead_repository import (
             LeadRepository,
         )
 

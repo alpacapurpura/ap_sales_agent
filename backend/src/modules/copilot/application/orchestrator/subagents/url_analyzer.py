@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.application.tools.fetch_url import fetch_url
+from luana_core_copilot.application.tools.fetch_url import fetch_url
 
 if TYPE_CHECKING:
     from deepagents import SubAgent

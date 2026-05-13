@@ -35,25 +35,24 @@ from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.application.services.channel_resolver import (
+from luana_core_llm.factory import LLMFactory
+from luana_core_sales_agent.application.services.channel_resolver import (
     ChannelResolver,
 )
-from src.modules.sales_agent.application.services.meeting_state_service import (
+from luana_core_sales_agent.application.services.meeting_state_service import (
     MeetingEntry,
     MeetingEntryStatus,
     MeetingStateService,
 )
-from src.modules.sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
-from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+from luana_core_sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
+from luana_core_sales_agent.infrastructure.memory.audit_repository import (
     AuditRepository,
 )
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_sales_agent.infrastructure.prompts.base import prompt_loader
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -267,7 +266,7 @@ async def _send_and_log(
     kind: str,
 ) -> bool:
     """Send via ChannelResolver + persist audit row. Best-effort."""
-    from src.shared.links.ports.crm_repos import get_lead_metrics_repository
+    from luana_core_platform.links.ports.crm_repos import get_lead_metrics_repository
 
     lead_repo = get_lead_metrics_repository(db)
     lead = lead_repo.get_active_lead_by_id(cp.lead_id)

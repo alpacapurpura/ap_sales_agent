@@ -33,7 +33,7 @@ def fake_session() -> MagicMock:
 
 class TestLlmCallRepository:
     def test_add_persists_row_with_sales_columns(self, fake_session: MagicMock) -> None:
-        from src.modules.sales_agent.observability.persistence.llm_call_repository import (
+        from luana_core_sales_agent.observability.persistence.llm_call_repository import (
             SalesAgentLlmCallRepository,
         )
 
@@ -82,10 +82,10 @@ class TestLlmCallRepository:
         assert row.tenant_id == tenant_id
 
     def test_satisfies_base_protocol(self) -> None:
-        from src.modules.sales_agent.observability.persistence.llm_call_repository import (
+        from luana_core_sales_agent.observability.persistence.llm_call_repository import (
             SalesAgentLlmCallRepository,
         )
-        from src.shared.agent_observability.persistence.base_llm_call_repo import (
+        from luana_core_observability.persistence.base_llm_call_repo import (
             BaseLLMCallRepoProtocol,
         )
 
@@ -100,7 +100,7 @@ class TestLlmCallRepository:
 
 class TestTraceEventRepository:
     def test_add_persists_row_with_sales_columns(self, fake_session: MagicMock) -> None:
-        from src.modules.sales_agent.observability.persistence.trace_event_repository import (
+        from luana_core_sales_agent.observability.persistence.trace_event_repository import (
             SalesAgentTraceEventRepository,
         )
 
@@ -128,10 +128,10 @@ class TestTraceEventRepository:
         assert row.event_type == "turn_start"
 
     def test_satisfies_base_protocol(self) -> None:
-        from src.modules.sales_agent.observability.persistence.trace_event_repository import (
+        from luana_core_sales_agent.observability.persistence.trace_event_repository import (
             SalesAgentTraceEventRepository,
         )
-        from src.shared.agent_observability.persistence.base_trace_event_repo import (
+        from luana_core_observability.persistence.base_trace_event_repo import (
             BaseTraceEventRepoProtocol,
         )
 
@@ -141,7 +141,7 @@ class TestTraceEventRepository:
 
 class TestRoutingLogRepository:
     def test_add_persists_row(self, fake_session: MagicMock) -> None:
-        from src.modules.sales_agent.observability.persistence.routing_log_repository import (
+        from luana_core_sales_agent.observability.persistence.routing_log_repository import (
             SalesAgentRoutingLogRepository,
         )
 

@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 
 class BaseLLMService(ABC):

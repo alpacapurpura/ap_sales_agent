@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import pytest
 
-from src.modules.campaigns.workers.segment_refresh_tick import run_segment_refresh_tick
+from luana_core_campaigns.workers.segment_refresh_tick import run_segment_refresh_tick
 
 pytestmark = pytest.mark.asyncio
 
@@ -70,11 +70,11 @@ async def test_static_segment_running_campaign_gets_snapshot() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.segment_refresh_tick._query_stale_segments",
+            "luana_core_campaigns.workers.segment_refresh_tick._query_stale_segments",
             new=AsyncMock(return_value=stale_pairs),
         ),
         patch(
-            "src.modules.campaigns.workers.segment_refresh_tick._build_segment_service_standalone",
+            "luana_core_campaigns.workers.segment_refresh_tick._build_segment_service_standalone",
             return_value=segment_svc_mock,
         ),
     ):
@@ -103,11 +103,11 @@ async def test_multiple_static_segments_all_refreshed() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.segment_refresh_tick._query_stale_segments",
+            "luana_core_campaigns.workers.segment_refresh_tick._query_stale_segments",
             new=AsyncMock(return_value=pairs),
         ),
         patch(
-            "src.modules.campaigns.workers.segment_refresh_tick._build_segment_service_standalone",
+            "luana_core_campaigns.workers.segment_refresh_tick._build_segment_service_standalone",
             return_value=segment_svc_mock,
         ),
     ):
@@ -131,7 +131,7 @@ async def test_no_stale_segments_returns_zero_refreshed() -> None:
     """No stale STATIC+RUNNING combinations → refreshed=0, errors=0."""
     with (
         patch(
-            "src.modules.campaigns.workers.segment_refresh_tick._query_stale_segments",
+            "luana_core_campaigns.workers.segment_refresh_tick._query_stale_segments",
             new=AsyncMock(return_value=[]),  # query returned empty
         ),
     ):
@@ -168,11 +168,11 @@ async def test_single_segment_error_does_not_block_others() -> None:
 
     with (
         patch(
-            "src.modules.campaigns.workers.segment_refresh_tick._query_stale_segments",
+            "luana_core_campaigns.workers.segment_refresh_tick._query_stale_segments",
             new=AsyncMock(return_value=pairs),
         ),
         patch(
-            "src.modules.campaigns.workers.segment_refresh_tick._build_segment_service_standalone",
+            "luana_core_campaigns.workers.segment_refresh_tick._build_segment_service_standalone",
             return_value=segment_svc_mock,
         ),
     ):
@@ -196,7 +196,7 @@ async def test_env_override_changes_refresh_threshold(monkeypatch: pytest.Monkey
     """CAMPAIGNS_SEGMENT_REFRESH_INTERVAL_HOURS env overrides 60-minute default."""
     monkeypatch.setenv("CAMPAIGNS_SEGMENT_REFRESH_INTERVAL_HOURS", "2")
 
-    from src.modules.campaigns.workers.segment_refresh_tick import _refresh_threshold_minutes
+    from luana_core_campaigns.workers.segment_refresh_tick import _refresh_threshold_minutes
 
     assert _refresh_threshold_minutes() == 120
 
@@ -205,6 +205,6 @@ async def test_env_default_refresh_threshold_is_60_minutes(monkeypatch: pytest.M
     """Default refresh interval is 60 minutes (1 hour)."""
     monkeypatch.delenv("CAMPAIGNS_SEGMENT_REFRESH_INTERVAL_HOURS", raising=False)
 
-    from src.modules.campaigns.workers.segment_refresh_tick import _refresh_threshold_minutes
+    from luana_core_campaigns.workers.segment_refresh_tick import _refresh_threshold_minutes
 
     assert _refresh_threshold_minutes() == 60

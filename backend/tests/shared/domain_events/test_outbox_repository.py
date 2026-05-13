@@ -12,9 +12,9 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.domain_events.outbox.domain.event import DomainEvent
-from src.shared.domain_events.outbox.domain.outbox_entry import OutboxEntry, OutboxStatus
-from src.shared.domain_events.outbox.infrastructure.repository import OutboxRepositoryImpl
+from luana_core_events.outbox.domain.event import DomainEvent
+from luana_core_events.outbox.domain.outbox_entry import OutboxEntry, OutboxStatus
+from luana_core_events.outbox.infrastructure.repository import OutboxRepositoryImpl
 
 
 def _make_entry(tenant_id=None, idempotency_key=None, status=OutboxStatus.PENDING):
@@ -187,7 +187,7 @@ class TestOutboxRepositoryImpl:
     @pytest.mark.asyncio
     async def test_get_by_id_returns_entry_when_found(self):
         """get_by_id() maps ORM row to OutboxEntry domain object."""
-        from src.shared.domain_events.outbox.infrastructure.models import DomainEventOutboxModel
+        from luana_core_events.outbox.infrastructure.models import DomainEventOutboxModel
 
         repo = OutboxRepositoryImpl()
         session = AsyncMock()

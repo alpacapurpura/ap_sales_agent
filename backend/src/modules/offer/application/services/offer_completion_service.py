@@ -24,14 +24,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.modules.offer.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.enums import OfferArchetype
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.offer.application.offer_service import OfferService
-    from src.modules.offer.domain.offer import Offer
+    from luana_core_offer_studio.application.offer_service import OfferService
+    from luana_core_offer_studio.domain.offer import Offer
 
 
 logger = structlog.get_logger(__name__)

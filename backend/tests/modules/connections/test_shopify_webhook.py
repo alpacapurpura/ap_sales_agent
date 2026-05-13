@@ -67,15 +67,15 @@ async def test_checkout_created_creates_journey_event():
 
     with (
         patch(
-            "src.modules.crm.application.services.customer_service.CustomerService.identify",
+            "luana_core_crm.application.services.customer_service.CustomerService.identify",
             return_value=profile,
         ),
         patch(
-            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            "luana_core_crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
             return_value=None,
         ),
     ):
-        from src.modules.connections.api.marketing_webhooks import (
+        from luana_core_connections.api.marketing_webhooks import (
             _handle_checkout_created,
         )
 
@@ -104,7 +104,7 @@ async def test_checkout_created_idempotent():
     # Idempotency check returns an existing event ID
     mock_db.execute.return_value.scalar_one_or_none.return_value = uuid.uuid4()
 
-    from src.modules.connections.api.marketing_webhooks import _handle_checkout_created
+    from luana_core_connections.api.marketing_webhooks import _handle_checkout_created
 
     await _handle_checkout_created(mock_db, tenant_id, payload)
 
@@ -119,11 +119,11 @@ async def test_shopify_webhook_returns_200_on_error():
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from src.core.database import get_db
-    from src.modules.connections.api.dependencies.webhook_security import (
+    from luana_core_platform.core.database import get_db
+    from luana_core_connections.api.dependencies.webhook_security import (
         verify_shopify_signature,
     )
-    from src.modules.connections.api.marketing_webhooks import router
+    from luana_core_connections.api.marketing_webhooks import router
 
     app = FastAPI()
     app.include_router(router, prefix="/webhooks")
@@ -153,7 +153,7 @@ async def test_shopify_webhook_returns_200_on_error():
 @pytest.mark.asyncio
 async def test_tenant_resolution_from_shop_domain():
     """_resolve_tenant looks up tenant_id via connections table."""
-    from src.modules.connections.api.marketing_webhooks import (
+    from luana_core_connections.api.marketing_webhooks import (
         _resolve_tenant,
         _shop_tenant_cache,
     )
@@ -192,7 +192,7 @@ async def test_checkout_created_no_email_skips():
 
     mock_db = MagicMock()
 
-    from src.modules.connections.api.marketing_webhooks import _handle_checkout_created
+    from luana_core_connections.api.marketing_webhooks import _handle_checkout_created
 
     await _handle_checkout_created(mock_db, tenant_id, payload)
 

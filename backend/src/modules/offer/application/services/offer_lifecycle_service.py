@@ -16,21 +16,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.offer.domain.enums import OfferStatus
-from src.modules.offer.domain.events import OfferStatusChanged
-from src.modules.offer.domain.exceptions import InvalidTransitionError
-from src.modules.offer.domain.lifecycle import (
+from luana_core_offer_studio.domain.enums import OfferStatus
+from luana_core_offer_studio.domain.events import OfferStatusChanged
+from luana_core_offer_studio.domain.exceptions import InvalidTransitionError
+from luana_core_offer_studio.domain.lifecycle import (
     LIFECYCLE_TRANSITIONS,
     OfferLifecycleStatus,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.offer.application.offer_service import OfferService
-    from src.modules.offer.domain.offer import Offer
+    from luana_core_offer_studio.application.offer_service import OfferService
+    from luana_core_offer_studio.domain.offer import Offer
 
 
 logger = structlog.get_logger(__name__)

@@ -31,16 +31,16 @@ from uuid import UUID, uuid4
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.modules.campaigns.domain.enums import TaskStatus
-from src.modules.campaigns.infrastructure.channels.errors import (
+from luana_core_campaigns.domain.enums import TaskStatus
+from luana_core_campaigns.infrastructure.channels.errors import (
     ChannelComplianceBlocked,
     ChannelFatalError,
     ChannelRateLimitedError,
     ChannelRetryableError,
     ChannelTenantRateExceeded,
 )
-from src.modules.campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
-from src.modules.campaigns.workers.execution_task import run_campaign_execution_task
+from luana_core_campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
+from luana_core_campaigns.workers.execution_task import run_campaign_execution_task
 
 pytestmark = pytest.mark.asyncio
 
@@ -51,13 +51,13 @@ NOW = dt.datetime.now(tz=dt.timezone.utc)
 
 # Patch targets — the definition module (since imports are local in _process_task)
 _TASK_REPO_PATH = (
-    "src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl.CampaignTaskRepositoryImpl"
+    "luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl.CampaignTaskRepositoryImpl"
 )
 _STEP_REPO_PATH = (
-    "src.modules.campaigns.infrastructure.repositories.campaign_step_repository_impl.CampaignStepRepositoryImpl"
+    "luana_core_campaigns.infrastructure.repositories.campaign_step_repository_impl.CampaignStepRepositoryImpl"
 )
-_AUDIT_SVC_PATH = "src.modules.campaigns.application.services.audit_log_service.AuditLogService"
-_AUDIT_REPO_PATH = "src.modules.campaigns.infrastructure.repositories.audit_log_repo_impl.AuditLogRepositoryImpl"
+_AUDIT_SVC_PATH = "luana_core_campaigns.application.services.audit_log_service.AuditLogService"
+_AUDIT_REPO_PATH = "luana_core_campaigns.infrastructure.repositories.audit_log_repo_impl.AuditLogRepositoryImpl"
 
 
 # ── Fake channel router ───────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ def _make_arq_ctx(session: AsyncMock) -> dict:
 @pytest.fixture(autouse=True)
 def reset_channel_registry():
     """Ensure channel registry is clean between tests."""
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     yield
     ChannelRouterRegistry().reset()
@@ -185,7 +185,7 @@ async def test_happy_path_marks_sent_and_returns_sent_status() -> None:
     fake_router = _FakeChannelRouter(external_message_id="TG999")
     row = _make_task_row(task_id, status="pending")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 
@@ -207,7 +207,7 @@ async def test_happy_path_scheduled_status_also_processed() -> None:
     fake_router = _FakeChannelRouter(external_message_id="TGSCHED")
     row = _make_task_row(task_id, status="scheduled")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 
@@ -231,7 +231,7 @@ async def test_circuit_open_marks_failed_no_reraised() -> None:
     fake_router = _FakeChannelRouter(side_effect=exc)
     row = _make_task_row(task_id, status="pending")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 
@@ -257,7 +257,7 @@ async def test_rate_limited_error_is_reraised_for_arq_retry() -> None:
     fake_router = _FakeChannelRouter(side_effect=ChannelRateLimitedError("429"))
     row = _make_task_row(task_id, status="pending")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 
@@ -274,7 +274,7 @@ async def test_retryable_error_is_reraised_for_arq_retry() -> None:
     fake_router = _FakeChannelRouter(side_effect=ChannelRetryableError("5xx"))
     row = _make_task_row(task_id, status="pending")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 
@@ -294,7 +294,7 @@ async def test_compliance_blocked_marks_skipped_no_reraised() -> None:
     fake_router = _FakeChannelRouter(side_effect=ChannelComplianceBlocked("opt-out"))
     row = _make_task_row(task_id, status="pending")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 
@@ -317,7 +317,7 @@ async def test_tenant_rate_exceeded_marks_failed_no_cb_reraised() -> None:
     fake_router = _FakeChannelRouter(side_effect=ChannelTenantRateExceeded("rate exceeded"))
     row = _make_task_row(task_id, status="pending")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 
@@ -340,7 +340,7 @@ async def test_fatal_error_marks_failed_no_reraised() -> None:
     fake_router = _FakeChannelRouter(side_effect=ChannelFatalError("user blocked bot"))
     row = _make_task_row(task_id, status="pending")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 
@@ -383,7 +383,7 @@ async def test_already_processed_task_is_noop(already_status: str) -> None:
     fake_router = _FakeChannelRouter()  # should NOT be called
     row = _make_task_row(task_id, status=already_status, external_message_id="EXT123")
 
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().register("telegram", fake_router)  # type: ignore[arg-type]
 

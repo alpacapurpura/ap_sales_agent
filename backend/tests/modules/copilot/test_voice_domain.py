@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.modules.copilot.domain.voice import (
+from luana_core_copilot.domain.voice import (
     TranscriptionResult,
 )
 

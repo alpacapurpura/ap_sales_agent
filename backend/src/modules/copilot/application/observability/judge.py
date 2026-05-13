@@ -49,8 +49,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
-
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -251,7 +250,7 @@ class CopilotJudge:
     def _resolve_llm(self) -> object:
         if self._llm is not None:
             return self._llm
-        from src.shared.infrastructure.llm.factory import LLMFactory
+        from luana_core_llm.factory import LLMFactory
 
         client = LLMFactory.get_service().get_client(ModelRole.NANO)
         with contextlib.suppress(AttributeError):

@@ -3,11 +3,10 @@
 from datetime import datetime
 from uuid import UUID
 
+from luana_core_crm.domain.lead import Lead, UserProfile
+from luana_core_crm.infrastructure.models.lead_model import LeadModel
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.lead import Lead, UserProfile
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
 # Maps the public channel name (used in ask_tenant_data filters) to the column
 # that carries the channel-specific identifier on ``LeadModel``. Limiting the

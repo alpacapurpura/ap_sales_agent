@@ -37,19 +37,18 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.application.quality.judge import (
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_sales_agent.application.quality.judge import (
     JudgeResult,
     SalesAgentJudge,
 )
-from src.modules.sales_agent.infrastructure.models.workflow_metric_model import (
+from luana_core_sales_agent.infrastructure.models.workflow_metric_model import (
     SalesAgentWorkflowMetricModel,
 )
-from src.modules.sales_agent.infrastructure.repositories.workflow_metric_repository import (
+from luana_core_sales_agent.infrastructure.repositories.workflow_metric_repository import (
     SalesAgentWorkflowMetricRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

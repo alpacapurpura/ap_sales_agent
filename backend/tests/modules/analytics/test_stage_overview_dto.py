@@ -4,7 +4,7 @@ Validates DTO shapes, serialization, and required fields.
 Pure Python -- no DB, no async.
 """
 
-from src.modules.analytics.application.dto.stage_overview_dto import (
+from luana_core_analytics_engine.application.dto.stage_overview_dto import (
     BottleneckOverviewDTO,
     ChannelOverviewDTO,
     GroupOverviewDTO,

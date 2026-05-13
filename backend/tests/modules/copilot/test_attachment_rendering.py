@@ -19,7 +19,7 @@ import uuid
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from src.modules.copilot.application.orchestrator.chat import (
+from luana_core_copilot.application.orchestrator.chat import (
     INLINE_DOCUMENT_THRESHOLD,
     _render_attachment_context,
 )
@@ -39,8 +39,8 @@ def _mock_asset(**overrides) -> SimpleNamespace:
     return SimpleNamespace(**defaults)
 
 
-@patch("src.modules.copilot.application.orchestrator.chat.AssetExtractionService")
-@patch("src.modules.copilot.application.orchestrator.chat.AssetRepository")
+@patch("luana_core_copilot.application.orchestrator.chat.AssetExtractionService")
+@patch("luana_core_copilot.application.orchestrator.chat.AssetRepository")
 def test_small_document_is_inlined(
     mock_repo_cls: MagicMock,
     mock_extract_cls: MagicMock,
@@ -64,8 +64,8 @@ def test_small_document_is_inlined(
     assert str(asset.id) in rendered  # ensures the tool can locate it
 
 
-@patch("src.modules.copilot.application.orchestrator.chat.AssetExtractionService")
-@patch("src.modules.copilot.application.orchestrator.chat.AssetRepository")
+@patch("luana_core_copilot.application.orchestrator.chat.AssetExtractionService")
+@patch("luana_core_copilot.application.orchestrator.chat.AssetRepository")
 def test_large_document_is_hinted_not_inlined(
     mock_repo_cls: MagicMock,
     mock_extract_cls: MagicMock,
@@ -91,8 +91,8 @@ def test_large_document_is_hinted_not_inlined(
     assert len(rendered) < len(big_text) / 2
 
 
-@patch("src.modules.copilot.application.orchestrator.chat.AssetExtractionService")
-@patch("src.modules.copilot.application.orchestrator.chat.AssetRepository")
+@patch("luana_core_copilot.application.orchestrator.chat.AssetExtractionService")
+@patch("luana_core_copilot.application.orchestrator.chat.AssetRepository")
 def test_pending_extraction_emits_hint_and_triggers_extraction(
     mock_repo_cls: MagicMock,
     mock_extract_cls: MagicMock,
@@ -114,8 +114,8 @@ def test_pending_extraction_emits_hint_and_triggers_extraction(
     assert "Texto recién parseado." in rendered or "read_document" in rendered.lower()
 
 
-@patch("src.modules.copilot.application.orchestrator.chat.AssetExtractionService")
-@patch("src.modules.copilot.application.orchestrator.chat.AssetRepository")
+@patch("luana_core_copilot.application.orchestrator.chat.AssetExtractionService")
+@patch("luana_core_copilot.application.orchestrator.chat.AssetRepository")
 def test_missing_asset_returns_empty(
     mock_repo_cls: MagicMock,
     mock_extract_cls: MagicMock,

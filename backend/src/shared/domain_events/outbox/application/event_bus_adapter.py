@@ -34,11 +34,10 @@ from functools import cache
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 if TYPE_CHECKING:
-    from src.shared.domain_events.outbox.domain.event import DomainEvent
+    from luana_core_events.outbox.domain.event import DomainEvent
 
 logger = structlog.get_logger(__name__)
 
@@ -114,14 +113,14 @@ class EventBusAdapter:
 
         Subscribers in-memory continue working for call sites with flag OFF.
         """
-        from src.shared.domain.events import EventBus as LegacyEventBus
+        from luana_core_platform.domain.events import EventBus as LegacyEventBus
 
         LegacyEventBus.subscribe(event_name, handler)
 
     @staticmethod
     def clear() -> None:
         """Clear all handlers — delegates to in-memory bus (test isolation)."""
-        from src.shared.domain.events import EventBus as LegacyEventBus
+        from luana_core_platform.domain.events import EventBus as LegacyEventBus
 
         LegacyEventBus.clear()
 
@@ -143,7 +142,7 @@ class EventBusAdapter:
         the module by walking the call stack.  Explicit ``module=`` kwarg still
         takes precedence so tests can override.
         """
-        from src.shared.domain.events import EventBus as LegacyEventBus
+        from luana_core_platform.domain.events import EventBus as LegacyEventBus
 
         # F-1: Infer module when not explicitly provided.
         resolved_module = module if module is not None else _infer_module_from_caller()
@@ -217,7 +216,7 @@ class EventBusAdapter:
     def _get_outbox(self) -> Any:  # noqa: ANN401
         """Lazy factory — avoids circular imports at module load time."""
         if self._outbox is None:
-            from src.shared.domain_events.outbox.application.outbox_service import OutboxService
+            from luana_core_events.outbox.application.outbox_service import OutboxService
 
             self._outbox = OutboxService()
         return self._outbox

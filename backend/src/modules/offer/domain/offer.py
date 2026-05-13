@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
-from uuid import UUID
+from typing import TYPE_CHECKING, Any
 
-from pydantic import Field, computed_field, model_validator
-
-from src.modules.offer.domain.archetype_catalog import get_capabilities
-from src.modules.offer.domain.details import (
+from luana_core_offer_studio.domain.archetype_catalog import get_capabilities
+from luana_core_offer_studio.domain.details import (
     EventDetails,
     PlatformDetails,
     ProductDetails,
@@ -17,7 +13,7 @@ from src.modules.offer.domain.details import (
     ServiceDetails,
     SubscriptionDetails,
 )
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     AccessDuration,
     DeliverableFormat,
     GuaranteeType,
@@ -29,8 +25,14 @@ from src.modules.offer.domain.enums import (
     PaymentPlanType,
     PrerequisiteType,
 )
-from src.shared.domain.base_entity import BaseEntity
-from src.shared.domain.enums import AvatarPersona, FinancialCapacity
+from luana_core_platform.domain.base_entity import BaseEntity
+from pydantic import Field, computed_field, model_validator
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from uuid import UUID
+
+    from luana_core_platform.domain.enums import AvatarPersona, FinancialCapacity
 
 # --- ARCHETYPE → DETAILS MAPPING ---
 ARCHETYPE_TO_DETAILS_MAPPING: dict[OfferArchetype, type[BaseEntity]] = {

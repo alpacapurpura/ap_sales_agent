@@ -4,8 +4,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.iam.api.routers.tenant_router import router
+from luana_core_platform.core.database import get_db
+from luana_core_iam.api.routers.tenant_router import router
 
 
 @pytest.fixture

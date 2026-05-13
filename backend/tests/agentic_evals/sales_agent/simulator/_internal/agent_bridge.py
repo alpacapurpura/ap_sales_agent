@@ -302,11 +302,11 @@ async def agent_bridge(state: SimulationState) -> dict[str, Any]:  # noqa: PLR09
     # the production sales_agent module to import-resolve at test
     # collection time. Tests patch the canonical module symbols so the
     # lazy load picks up the mocks.
-    from src.modules.sales_agent.application.orchestrator.graph import agent_app
-    from src.modules.sales_agent.application.orchestrator.state import (
+    from luana_core_sales_agent.application.orchestrator.graph import agent_app
+    from luana_core_sales_agent.application.orchestrator.state import (
         create_initial_state,
     )
-    from src.modules.sales_agent.application.services.knowledge_builder import (
+    from luana_core_sales_agent.application.services.knowledge_builder import (
         TenantKnowledgeBuilder,
     )
     from tests.agentic_evals.sales_agent.simulator._internal.observability import (

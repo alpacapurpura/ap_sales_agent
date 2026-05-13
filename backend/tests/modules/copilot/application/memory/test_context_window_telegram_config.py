@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.domain.context_window import (
+from luana_core_copilot.domain.context_window import (
     DEFAULT_CONTEXT_WINDOW_CONFIG,
     TELEGRAM_CONTEXT_WINDOW_CONFIG,
     ContextWindowConfig,

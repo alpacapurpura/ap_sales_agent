@@ -14,20 +14,19 @@ from fastapi import (
     Query,
     UploadFile,
 )
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.assets.application.assets_service import AssetsService
-from src.modules.assets.domain.enums import DEFAULT_SCOPE_FOR_PURPOSE
-from src.modules.assets.domain.schemas import AssetDto, PromoteAssetRequest
-from src.modules.assets.infrastructure.repositories.asset_link_repository import (
+from luana_core_assets.application.assets_service import AssetsService
+from luana_core_assets.domain.enums import DEFAULT_SCOPE_FOR_PURPOSE
+from luana_core_assets.domain.schemas import AssetDto, PromoteAssetRequest
+from luana_core_assets.infrastructure.repositories.asset_link_repository import (
     AssetLinkRepository,
 )
-from src.modules.assets.infrastructure.repositories.asset_repository import (
+from luana_core_assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 router = APIRouter()

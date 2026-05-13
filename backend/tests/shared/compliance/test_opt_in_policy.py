@@ -13,11 +13,11 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.shared.compliance.domain.policies.opt_in_policy import OptInPolicy
-from src.shared.compliance.infrastructure.models.channel_blacklist_model import ChannelBlacklistModel
-from src.shared.compliance.infrastructure.models.lead_opt_in_model import LeadOptInModel
-from src.shared.compliance.infrastructure.opt_in_repository_impl import SQLAOptInRepository
-from src.shared.domain.base_entity import Base
+from luana_core_compliance.domain.policies.opt_in_policy import OptInPolicy
+from luana_core_compliance.infrastructure.models.channel_blacklist_model import ChannelBlacklistModel
+from luana_core_compliance.infrastructure.models.lead_opt_in_model import LeadOptInModel
+from luana_core_compliance.infrastructure.opt_in_repository_impl import SQLAOptInRepository
+from luana_core_platform.domain.base_entity import Base
 
 pytestmark = pytest.mark.asyncio
 

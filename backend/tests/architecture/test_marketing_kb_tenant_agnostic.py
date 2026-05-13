@@ -78,7 +78,7 @@ def test_tool_module_does_not_reference_tenant_id() -> None:
 
 def test_store_collection_constant_is_global_name() -> None:
     """The collection constant must be the curated global one."""
-    from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+    from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
         MARKETING_KB_COLLECTION,
         MarketingKbStore,
     )
@@ -89,7 +89,7 @@ def test_store_collection_constant_is_global_name() -> None:
 
 def test_kb_chunk_payload_never_contains_tenant_id() -> None:
     """Defensive check: ``KbChunk.payload()`` cannot leak tenant identifiers."""
-    from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+    from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
         KbChunk,
     )
 
@@ -108,7 +108,7 @@ def test_kb_chunk_payload_never_contains_tenant_id() -> None:
 
 def test_vector_size_invariant() -> None:
     """Hardcoded 3072 dim — any embedder swap must be a deliberate breaking change."""
-    from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+    from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
         MARKETING_KB_VECTOR_SIZE,
         MarketingKbStore,
     )
@@ -121,7 +121,7 @@ def test_store_search_signature_excludes_tenant_param() -> None:
     """``MarketingKbStore.search`` accepts no ``tenant_id`` keyword."""
     import inspect
 
-    from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+    from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
         MarketingKbStore,
     )
 

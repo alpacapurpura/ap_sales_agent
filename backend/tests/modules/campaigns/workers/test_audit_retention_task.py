@@ -23,16 +23,16 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.modules.campaigns.domain.audit_log import AuditEventType, AuditLogEvent
-from src.modules.campaigns.infrastructure.repositories.audit_log_repo_impl import (
+from luana_core_campaigns.domain.audit_log import AuditEventType, AuditLogEvent
+from luana_core_campaigns.infrastructure.repositories.audit_log_repo_impl import (
     AuditLogRepositoryImpl,
 )
-from src.modules.campaigns.workers.audit_retention_task import (
+from luana_core_campaigns.workers.audit_retention_task import (
     CAMPAIGNS_AUDIT_RETENTION_DAYS,
     _retention_days,
     purge_old_campaigns_audit,
 )
-from src.shared.domain.base_entity import Base
+from luana_core_platform.domain.base_entity import Base
 
 pytestmark = pytest.mark.asyncio
 
@@ -44,7 +44,7 @@ pytestmark = pytest.mark.asyncio
 async def async_engine():
     """Module-scoped async SQLite engine with audit + campaign models registered."""
     # Ensure models are loaded into metadata
-    from src.modules.campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
+    from luana_core_campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
 
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
     async with engine.begin() as conn:
@@ -129,7 +129,7 @@ async def test_rows_older_than_retention_are_deleted(async_engine) -> None:
 
     # Verify fresh row still exists
     from sqlalchemy import select
-    from src.modules.campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
+    from luana_core_campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
 
     async with factory() as session:
         stmt = select(CampaignAuditModel).where(CampaignAuditModel.id == fresh_evt.id)
@@ -161,7 +161,7 @@ async def test_rows_within_retention_are_preserved(async_engine) -> None:
 
     # recent row still present
     from sqlalchemy import select
-    from src.modules.campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
+    from luana_core_campaigns.infrastructure.models.campaign_audit_model import CampaignAuditModel
 
     async with factory() as session:
         stmt = select(CampaignAuditModel).where(CampaignAuditModel.id == recent_evt.id)

@@ -46,8 +46,8 @@ import pytest
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
-from src.core.enums import ModelRole
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_platform.core.enums import ModelRole
+from luana_core_llm.factory import LLMFactory
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def base_state():
 def _stub_system_prompt(monkeypatch):
     """``build_system_prompt`` toca DB; los tests de factory wire son hermeticos."""
     monkeypatch.setattr(
-        "src.modules.copilot.application.orchestrator.deep_agent.build_system_prompt",
+        "luana_core_copilot.application.orchestrator.deep_agent.build_system_prompt",
         lambda _state: "Eres el Copilot de Nicolify.",
     )
 
@@ -84,7 +84,7 @@ def _stub_tools(monkeypatch):
     Telegram filter (D-PI5-023). Stub accepts **kwargs to stay compatible.
     """
     monkeypatch.setattr(
-        "src.modules.copilot.application.orchestrator.deep_agent.get_tools_for_context",
+        "luana_core_copilot.application.orchestrator.deep_agent.get_tools_for_context",
         lambda _ctx, **_kwargs: [],
     )
 
@@ -155,7 +155,7 @@ class TestDeepAgentGraphWithFactoryLLM:
         """Repro directo del bug TP1-pre: llm=None → crash en deepagents.resolve_model."""
         from langgraph.graph.state import CompiledStateGraph
 
-        from src.modules.copilot.application.orchestrator.deep_agent import (
+        from luana_core_copilot.application.orchestrator.deep_agent import (
             build_deep_agent_graph,
         )
 

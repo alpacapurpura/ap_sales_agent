@@ -9,27 +9,26 @@ import re
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.sales_agent.domain.tuning import (
+from luana_core_channels.format import get_channel_format
+from luana_core_platform.domain.messages import OutgoingMessage
+from luana_core_sales_agent.domain.tuning import (
     CPM_SPEED as _CPM_SPEED,
 )
-from src.modules.sales_agent.domain.tuning import (
+from luana_core_sales_agent.domain.tuning import (
     MAX_TYPING_TIME as _MAX_TYPING_TIME,
 )
-from src.modules.sales_agent.domain.tuning import (
+from luana_core_sales_agent.domain.tuning import (
     MICRO_DELAY_RANGE as _MICRO_DELAY_RANGE,
 )
-from src.modules.sales_agent.domain.tuning import (
+from luana_core_sales_agent.domain.tuning import (
     MIN_TYPING_TIME as _MIN_TYPING_TIME,
 )
-from src.modules.sales_agent.domain.tuning import (
+from luana_core_sales_agent.domain.tuning import (
     TYPING_JITTER,
 )
-from src.shared.agent_observability.channels.format import get_channel_format
-from src.shared.domain.messages import OutgoingMessage
 
 if TYPE_CHECKING:
-    from src.shared.infrastructure.channels.base import BaseChannel
+    from luana_core_platform.infrastructure.channels.base import BaseChannel
 
 logger = structlog.get_logger()
 

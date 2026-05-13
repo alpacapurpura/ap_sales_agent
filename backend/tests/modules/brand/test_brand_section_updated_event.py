@@ -17,13 +17,13 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.brand.domain import BrandSettings
-from src.modules.brand.infrastructure.repositories.brand_repository import (
+from luana_core_brand_studio.domain import BrandSettings
+from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.shared.domain.events import EventBus
-from src.shared.domain_events.outbox.application.event_bus_adapter import EventBusAdapter
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.domain.events import EventBus
+from luana_core_events.outbox.application.event_bus_adapter import EventBusAdapter
 
 
 @pytest.fixture(autouse=True)

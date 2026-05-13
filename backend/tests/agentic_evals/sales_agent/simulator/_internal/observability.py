@@ -81,18 +81,18 @@ from src.modules.sales_agent.observability.eval_simulator.persistence.models.eva
 from src.modules.sales_agent.observability.eval_simulator.persistence.models.eval_simulator_trace_event import (
     EvalSimulatorTraceEventModel,
 )
-from src.shared.agent_observability.cost.fx_resolver import FXResolver
-from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+from luana_core_observability.cost.fx_resolver import FXResolver
+from luana_core_observability.persistence.pricing_snapshot_repository import (
     PricingSnapshotRepository,
 )
-from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
+from luana_core_observability.persistence.tenant_billing_config_repository import (
     TenantBillingConfigRepository,
 )
-from src.shared.agent_observability.pricing.resolver import PricingResolver
-from src.shared.agent_observability.recording.base_callback_handler import (
+from luana_core_observability.pricing.resolver import PricingResolver
+from luana_core_observability.recording.base_callback_handler import (
     BaseAgentCallbackHandler,
 )
-from src.shared.agent_observability.recording.turn_envelope import (
+from luana_core_observability.recording.turn_envelope import (
     BaseObservabilityContext,
     _empty_totals,
 )

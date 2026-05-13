@@ -4,7 +4,7 @@ Validates that internal blocks are stripped, JSON arrays are parsed,
 paragraph chunking works, and edge cases are handled.
 """
 
-from src.modules.sales_agent.infrastructure.external.output_manager import OutputManager
+from luana_core_sales_agent.infrastructure.external.output_manager import OutputManager
 
 
 class TestParseResponseBlockStripping:

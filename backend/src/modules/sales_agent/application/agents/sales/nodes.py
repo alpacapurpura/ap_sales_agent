@@ -4,13 +4,14 @@ import json
 import re
 from typing import Any
 
-from src.modules.sales_agent.application.orchestrator.state import AgentState
-from src.modules.sales_agent.application.prompts.compose import (
+from luana_core_llm.factory import LLMFactory
+from luana_core_sales_agent.application.orchestrator.state import AgentState
+from luana_core_sales_agent.application.prompts.compose import (
     SpecialistRole,
     build_specialist_system_prompt,
 )
-from src.modules.sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
-from src.modules.sales_agent.domain.tuning import (
+from luana_core_sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
+from luana_core_sales_agent.domain.tuning import (
     BUYING_SIGNAL_WEIGHT,
     FOLLOW_UP_CADENCES,
     LEAD_SCORE_MAX,
@@ -22,9 +23,8 @@ from src.modules.sales_agent.domain.tuning import (
     STAGE_PRESENTATION_QA,
     SUPERVISOR_MESSAGE_WINDOW,
 )
-from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_sales_agent.infrastructure.monitoring.tracing import trace_node
+from luana_core_sales_agent.infrastructure.prompts.base import prompt_loader
 
 
 def _get_llm_service(state: AgentState) -> object:
@@ -371,7 +371,7 @@ def node_tool_executor(state: AgentState) -> dict[str, Any]:
 
     After execution the graph edge routes back to supervisor.
     """
-    from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+    from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
         DedupVerdict,
         ToolCallLoopError,
         augment_tool_message_for_warn,
@@ -384,7 +384,7 @@ def node_tool_executor(state: AgentState) -> dict[str, Any]:
     tool_name = pending.get("tool", "")
     tool_args = pending.get("args") or {}
 
-    from src.modules.sales_agent.application.agents.sales.tools import TOOL_REGISTRY
+    from luana_core_sales_agent.application.agents.sales.tools import TOOL_REGISTRY
 
     tool_fn = TOOL_REGISTRY.get(tool_name)
     if not tool_fn:

@@ -65,7 +65,7 @@ def read_entity_state(
 
 
 def _read_brand(db: Session, tenant_id: UUID) -> dict[str, Any] | None:
-    from src.modules.brand.infrastructure.repositories.brand_repository import (
+    from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
         BrandRepository,
     )
 
@@ -79,7 +79,7 @@ def _read_brand(db: Session, tenant_id: UUID) -> dict[str, Any] | None:
 def _read_offer(db: Session, tenant_id: UUID, entity_id: str | None) -> dict[str, Any] | None:
     if not entity_id:
         return None
-    from src.modules.offer.infrastructure.repositories.offer_repository import (
+    from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
         OfferRepository,
     )
 
@@ -98,7 +98,7 @@ def _read_offer(db: Session, tenant_id: UUID, entity_id: str | None) -> dict[str
 def _read_buyer_persona(db: Session, tenant_id: UUID, entity_id: str | None) -> dict[str, Any] | None:
     if not entity_id:
         return None
-    from src.modules.brand.infrastructure.repositories.buyer_persona_repository import (
+    from luana_core_brand_studio.infrastructure.repositories.buyer_persona_repository import (
         BuyerPersonaRepository,
     )
 

@@ -5,11 +5,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from src.modules.brand.domain.buyer_persona import BuyerPersona
-from src.modules.copilot.infrastructure.persisters.buyer_persona_persister import (
+from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
+from luana_core_copilot.infrastructure.persisters.buyer_persona_persister import (
     BuyerPersonaPersister,
 )
-from src.modules.copilot.infrastructure.persisters.persister_registry import (
+from luana_core_copilot.infrastructure.persisters.persister_registry import (
     get_persister,
 )
 
@@ -227,10 +227,10 @@ class TestPersisterRegistryBuyerPersona:
 
     def test_existing_persisters_still_work(self) -> None:
         """brand and offer persisters unaffected."""
-        from src.modules.copilot.infrastructure.persisters.brand_persister import (
+        from luana_core_copilot.infrastructure.persisters.brand_persister import (
             BrandPersister,
         )
-        from src.modules.copilot.infrastructure.persisters.offer_persister import (
+        from luana_core_copilot.infrastructure.persisters.offer_persister import (
             OfferPersister,
         )
 

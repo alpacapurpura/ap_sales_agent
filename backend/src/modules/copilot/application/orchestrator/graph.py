@@ -20,14 +20,13 @@ import re
 from uuid import UUID
 
 import structlog
-
-from src.modules.copilot.application.orchestrator.state import CopilotState
-from src.modules.copilot.domain.module_registry import get_module_registry
-from src.modules.copilot.infrastructure.prompts.base import prompt_loader
-from src.modules.copilot.infrastructure.prompts.sanitizer import (
+from luana_core_copilot.application.orchestrator.state import CopilotState
+from luana_core_copilot.domain.module_registry import get_module_registry
+from luana_core_copilot.infrastructure.prompts.base import prompt_loader
+from luana_core_copilot.infrastructure.prompts.sanitizer import (
     sanitize_selected_fields,
 )
-from src.shared.links.ports.editable_fields import get_catalog
+from luana_core_platform.links.ports.editable_fields import get_catalog
 
 logger = structlog.get_logger()
 
@@ -41,14 +40,13 @@ def _get_completion_snapshot(tenant_id: UUID) -> str:
     Uses the awareness tool logic directly (not via tool invocation)
     to avoid a tool call just for the system prompt.
     """
-    from sqlalchemy import text
-
-    from src.core.database import SessionLocal
-    from src.modules.copilot.domain.schema_introspection import (
+    from luana_core_copilot.domain.schema_introspection import (
         check_section_completion,
         format_completion_markdown,
         get_model_sections,
     )
+    from luana_core_platform.core.database import SessionLocal
+    from sqlalchemy import text
 
     registry = get_module_registry()
     db = SessionLocal()
@@ -118,10 +116,10 @@ def _get_completion_snapshot(tenant_id: UUID) -> str:
 
 def _get_behavior_summary(tenant_id: UUID, user_id: UUID) -> str:
     """Build a user behavior summary from copilot events for the system prompt."""
-    from src.core.database import SessionLocal
-    from src.modules.copilot.infrastructure.repositories.event_repository import (
+    from luana_core_copilot.infrastructure.repositories.event_repository import (
         CopilotEventRepository,
     )
+    from luana_core_platform.core.database import SessionLocal
 
     db = SessionLocal()
     try:
@@ -216,7 +214,7 @@ def _compute_field_completion(
         if desc is None or not desc.repo_factory or not desc.read_fn:
             return [], paths
 
-        from src.core.database import SessionLocal
+        from luana_core_platform.core.database import SessionLocal
 
         db = SessionLocal()
         try:
@@ -428,7 +426,7 @@ def _build_guided_layer(state: dict[str, object]) -> str:
     }
 
     if has_guided:
-        from src.modules.copilot.application.guided.block_generator import (
+        from luana_core_copilot.application.guided.block_generator import (
             block_by_id,
             build_blocks,
         )
@@ -487,7 +485,7 @@ def _collect_context_injectors_prefix(
         return ""
 
     try:
-        from src.modules.copilot.application.discovery import discover_providers
+        from luana_core_copilot.application.discovery import discover_providers
     except Exception as exc:  # noqa: BLE001 — orchestrator resilience
         logger.warning("context_injector_discovery_unavailable", error=str(exc))
         return ""
@@ -566,7 +564,7 @@ def _resolve_active_procedure_ctx(state: CopilotState) -> dict[str, object] | No
     active_proc = state.get("active_procedure")
     if not active_proc:
         return None
-    from src.modules.copilot.application.tools.procedure_tools import (
+    from luana_core_copilot.application.tools.procedure_tools import (
         PROCEDURE_REGISTRY,
     )
 
@@ -626,7 +624,7 @@ def _build_studio_snapshot_fragment(state: CopilotState, tenant_id: UUID | None)
 
 def _build_inspirations_fragment(state: CopilotState) -> str:
     """Compose the INSPIRATIONS slot (F4 hook)."""
-    from src.modules.copilot.application.orchestrator.inspirations_layer import (
+    from luana_core_copilot.application.orchestrator.inspirations_layer import (
         build_inspirations_layer,
     )
 
@@ -908,7 +906,7 @@ def _build_modules_list_fragment() -> str:
 def _build_editable_catalog_fragment() -> str:
     """Compose the EDITABLE_CATALOG slot from the schema-introspection SSoT."""
     try:
-        from src.modules.copilot.domain.schema_introspection import (
+        from luana_core_copilot.domain.schema_introspection import (
             format_all_editable_catalogs_markdown,
         )
 
@@ -930,7 +928,7 @@ def build_system_prompt(state: CopilotState) -> str:
 
     # [COPILOT-CACHE-PREFIX-F8] -> docs/domains/copilot/redesign-2026-04/phases/F8-routing-cost-optim.md
     """
-    from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+    from luana_core_copilot.application.orchestrator.system_prompt_layout import (
         PromptFragment,
         compose_system_prompt,
     )

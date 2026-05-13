@@ -80,7 +80,7 @@ _UPSTREAM_PAYLOAD = {
 class TestConfigYamlCrossCheck:
     def test_yaml_model_unknown_to_litellm_emits_warning(self, db, tmp_path: Path) -> None:
         """A3 — yaml lists a model that is NOT in ``litellm.model_cost`` → warn."""
-        from src.shared.agent_observability.pricing.litellm_sync import sync_pricing
+        from luana_core_observability.pricing.litellm_sync import sync_pricing
 
         # Fixture yaml with one known model + one bogus model (NOT in litellm registry).
         yaml_path = tmp_path / "litellm_config.yaml"
@@ -121,7 +121,7 @@ model_list:
         Graceful degradation: the cross-check is opt-in. Missing yaml emits a single
         info log and the sync proceeds normally without warnings.
         """
-        from src.shared.agent_observability.pricing.litellm_sync import sync_pricing
+        from luana_core_observability.pricing.litellm_sync import sync_pricing
 
         client = MagicMock()
         client.get.return_value = _http_response(_UPSTREAM_PAYLOAD)
@@ -148,10 +148,10 @@ class TestUpstreamDriftDetection:
         """
         import datetime as dt
 
-        from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
+        from luana_core_observability.persistence.models.pricing_snapshot_model import (
             ModelPricingSnapshotModel,
         )
-        from src.shared.agent_observability.pricing.litellm_sync import sync_pricing
+        from luana_core_observability.pricing.litellm_sync import sync_pricing
 
         # Seed: snapshot row for a model whose seeded price differs from upstream
         # by MORE than UPSTREAM_DRIFT_THRESHOLD_USD (0.0001 USD/token).
@@ -196,10 +196,10 @@ class TestUpstreamDriftDetection:
         """
         import datetime as dt
 
-        from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
+        from luana_core_observability.persistence.models.pricing_snapshot_model import (
             ModelPricingSnapshotModel,
         )
-        from src.shared.agent_observability.pricing.litellm_sync import sync_pricing
+        from luana_core_observability.pricing.litellm_sync import sync_pricing
 
         seeded = ModelPricingSnapshotModel(
             id=uuid4(),
@@ -238,7 +238,7 @@ class TestMakeSyncPricingExitCodes:
         """A2 — httpx.ConnectError during upstream fetch → ARQ task returns
         ``ok=False`` → Makefile target script exits 1.
         """
-        from src.shared.agent_observability.workers.pricing_sync_task import (
+        from luana_core_observability.workers.pricing_sync_task import (
             sync_litellm_pricing,
         )
 
@@ -260,10 +260,10 @@ class TestMakeSyncPricingExitCodes:
 
         with (
             patch(
-                "src.shared.agent_observability.workers.pricing_sync_task.httpx.Client",
+                "luana_core_observability.workers.pricing_sync_task.httpx.Client",
                 _BoomClient,
             ),
-            patch("src.shared.agent_observability.workers.pricing_sync_task.SessionLocal") as mock_session_local,
+            patch("luana_core_observability.workers.pricing_sync_task.SessionLocal") as mock_session_local,
         ):
             mock_session = MagicMock()
             mock_session_local.return_value = mock_session
@@ -284,8 +284,8 @@ class TestMakeSyncPricingExitCodes:
 class TestWorkerTaskFieldPropagation:
     def test_worker_task_returns_yaml_and_drift_counts(self, db_engine) -> None:
         """SyncResult.config_yaml_warnings + drift_warnings flow to ARQ return dict."""
-        from src.shared.agent_observability.pricing.litellm_sync import SyncResult
-        from src.shared.agent_observability.workers import pricing_sync_task
+        from luana_core_observability.pricing.litellm_sync import SyncResult
+        from luana_core_observability.workers import pricing_sync_task
 
         # Patch SessionLocal to return a real session bound to in-memory engine.
         Session = sessionmaker(bind=db_engine)

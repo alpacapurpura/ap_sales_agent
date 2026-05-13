@@ -1,6 +1,6 @@
 """Tests for analytics campaign domain entities (StrEnums)."""
 
-from src.modules.analytics.domain.campaign_entities import (
+from luana_core_analytics_engine.domain.campaign_entities import (
     BidStrategy,
     CampaignObjective,
     CampaignStatus,

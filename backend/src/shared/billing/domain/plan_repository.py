@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from src.shared.billing.domain.plan import PlanConfig
+from luana_core_billing.domain.plan import PlanConfig
 
 
 class PlanRepository(ABC):

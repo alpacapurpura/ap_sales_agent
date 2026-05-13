@@ -12,16 +12,14 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
-
-from src.modules.campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
-from src.modules.campaigns.application.services.campaign_service import CampaignNotFoundError
-from src.modules.campaigns.domain.enums import TaskStatus
-from src.modules.campaigns.domain.repositories import CampaignRepository, CampaignTaskRepository
+from luana_core_campaigns.application.dtos.campaign_dtos import CampaignStatsResponse
+from luana_core_campaigns.application.services.campaign_service import CampaignNotFoundError
+from luana_core_campaigns.domain.enums import TaskStatus
+from luana_core_campaigns.domain.repositories import CampaignRepository, CampaignTaskRepository
 
 if TYPE_CHECKING:
+    from luana_core_platform.domain.locale import TenantLocale
     from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.shared.domain.locale import TenantLocale
 
 logger = structlog.get_logger(__name__)
 

@@ -16,7 +16,7 @@ in via the ``SCHEDULER_PROVIDERS`` registry plus a matching
 
 # [SALES-AGENT-S8-PROVIDER]  # noqa: ERA001
 
-from src.modules.sales_agent.application.tools.scheduling.providers import (
+from luana_core_sales_agent.application.tools.scheduling.providers import (
     BookingLinkOutput,
     BookingStatus,
     BookingStatusValue,
@@ -25,13 +25,13 @@ from src.modules.sales_agent.application.tools.scheduling.providers import (
     SchedulerSlot,
     scheduler_provider_for_tenant,
 )
-from src.modules.sales_agent.application.tools.scheduling.tools import (
+from luana_core_sales_agent.application.tools.scheduling.tools import (
     SCHEDULING_TOOL_REGISTRY,
     tool_create_booking_link,
     tool_get_available_slots,
     tool_verify_booking_status,
 )
-from src.modules.sales_agent.application.tools.scheduling.webhook_providers import (
+from luana_core_sales_agent.application.tools.scheduling.webhook_providers import (
     SCHEDULER_WEBHOOK_PROVIDERS,
     ParsedWebhookEvent,
     WebhookEventType,

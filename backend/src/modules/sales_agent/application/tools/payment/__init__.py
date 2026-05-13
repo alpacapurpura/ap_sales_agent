@@ -1,19 +1,19 @@
 """Payment tools package for sales_agent — S9."""
 
-from src.modules.sales_agent.application.tools.payment.providers import (
+from luana_core_sales_agent.application.tools.payment.providers import (
     PAYMENT_PROVIDERS,
     PaymentGatewayProvider,
     PaymentLinkOutput,
     PaymentStatusEnum,
     payment_provider_for_tenant,
 )
-from src.modules.sales_agent.application.tools.payment.tools import (
+from luana_core_sales_agent.application.tools.payment.tools import (
     PAYMENT_TOOL_REGISTRY,
     tool_create_payment_link,
     tool_grant_access,
     tool_verify_payment_status,
 )
-from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+from luana_core_sales_agent.application.tools.payment.webhook_providers import (
     PAYMENT_WEBHOOK_PROVIDERS,
     ParsedPaymentWebhookEvent,
     PaymentWebhookEventType,

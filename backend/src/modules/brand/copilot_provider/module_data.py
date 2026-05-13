@@ -10,25 +10,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from src.modules.copilot.domain.ports import ModuleData
+from luana_core_copilot.domain.ports import ModuleData
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_brand_studio.infrastructure.repositories.brand_repository import BrandRepository
     from pydantic import BaseModel
-
-    from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
 
 
 def _lazy_brand_settings() -> type[BaseModel]:
     """Return the BrandSettings class — imported lazily to dodge module-load cycles."""
-    from src.modules.brand.domain.aggregates import BrandSettings
+    from luana_core_brand_studio.domain.aggregates import BrandSettings
 
     return BrandSettings
 
 
 def _brand_repo_factory(db: object) -> object:
-    from src.modules.brand.infrastructure.repositories.brand_repository import (
+    from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
         BrandRepository,
     )
 

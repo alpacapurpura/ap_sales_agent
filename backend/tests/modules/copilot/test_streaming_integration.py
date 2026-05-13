@@ -22,8 +22,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 
-from src.modules.copilot.api.dto import SSEEvent
-from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
+from luana_core_copilot.api.dto import SSEEvent
+from luana_core_copilot.application.orchestrator.chat import CopilotOrchestrator
 
 # ── Helpers ───────────────────────────────────────────────────────────
 
@@ -50,7 +50,7 @@ def _make_orchestrator() -> CopilotOrchestrator:
     mock_conv.messages = []
 
     with patch(
-        "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+        "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
     ) as mock_cls:
         mock_repo = MagicMock()
         mock_repo.get_by_id.return_value = mock_conv
@@ -247,7 +247,7 @@ class TestProcessStreamEvent:
 
         Drop empty/whitespace/single-char AIMessages without tool_calls
         at serialization time so persistence stays valid."""
-        from src.modules.copilot.application.orchestrator.chat import (
+        from luana_core_copilot.application.orchestrator.chat import (
             CopilotOrchestrator,
         )
 
@@ -277,7 +277,7 @@ class TestProcessStreamEvent:
     def test_serialize_messages_keeps_meaningful_short_assistant(self, orch: CopilotOrchestrator) -> None:
         """Short legitimate assistant replies (e.g. '¡OK!') must NOT be
         dropped — only stray 1-char artifacts."""
-        from src.modules.copilot.application.orchestrator.chat import (
+        from luana_core_copilot.application.orchestrator.chat import (
             CopilotOrchestrator,
         )
 
@@ -291,7 +291,7 @@ class TestProcessStreamEvent:
         """TP3 B3 — graph tool outputs travel as ``ToolMessage``. The
         payload parser MUST unwrap the JSON inside ``ToolMessage.content``
         so cards reach the FE; pre-fix the parser only handled str/dict."""
-        from src.modules.copilot.application.orchestrator.chat import (
+        from luana_core_copilot.application.orchestrator.chat import (
             _parse_tool_payload,
         )
 
@@ -305,7 +305,7 @@ class TestProcessStreamEvent:
         assert parsed["ui_action"]["type"] == "inspiration_saved"
 
     def test_parse_tool_payload_returns_none_on_garbled_content(self, orch: CopilotOrchestrator) -> None:
-        from src.modules.copilot.application.orchestrator.chat import (
+        from luana_core_copilot.application.orchestrator.chat import (
             _parse_tool_payload,
         )
 
@@ -317,7 +317,7 @@ class TestProcessStreamEvent:
         orchestrator MUST wrap it as a typed ``CardBlock`` so block_append
         + ``card_emitted`` trace fire. Pre-fix the type was unmapped and
         the card pipeline silently dropped it."""
-        from src.modules.copilot.application.orchestrator.chat import (
+        from luana_core_copilot.application.orchestrator.chat import (
             _ui_action_to_card_block,
         )
 
@@ -339,7 +339,7 @@ class TestProcessStreamEvent:
 
     def test_memory_pinned_action_wraps_to_card_block(self, orch: CopilotOrchestrator) -> None:
         """TP3 B2 — pin_to_memory emits ui_action.type='memory_pinned'."""
-        from src.modules.copilot.application.orchestrator.chat import (
+        from luana_core_copilot.application.orchestrator.chat import (
             _ui_action_to_card_block,
         )
 
@@ -534,14 +534,14 @@ class TestStreamChatEventSequence:
     ) -> list[dict[str, Any]]:
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
+                "luana_core_copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 timeout_seconds,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
         ):

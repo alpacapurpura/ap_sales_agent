@@ -3,7 +3,7 @@
 _service_factories.py imports from this module for backward-compat.
 """
 
-from src.modules.campaigns.api._dependencies import (
+from luana_core_campaigns.api._dependencies import (
     _AsyncSessionLocal,
     get_campaigns_async_session,
 )

@@ -33,11 +33,10 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 import structlog
+from luana_core_platform.core.config import settings
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from qdrant_client.http.exceptions import UnexpectedResponse
-
-from src.core.config import settings
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -206,7 +205,7 @@ class MarketingKbStore:
     def _get_embedder(self) -> Embeddings:
         """Resolve the embedding model on demand."""
         if self._embedder is None:
-            from src.shared.infrastructure.llm.factory import LLMFactory
+            from luana_core_llm.factory import LLMFactory
 
             self._embedder = LLMFactory.get_service().get_embedding_model()
         return self._embedder

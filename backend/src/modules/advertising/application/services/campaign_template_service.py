@@ -20,9 +20,8 @@ from src.modules.advertising.infrastructure.repositories.campaign_template_repos
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.domain.ports import OfferReadPort
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.ports import OfferReadPort
 
 
 class CampaignTemplateService:

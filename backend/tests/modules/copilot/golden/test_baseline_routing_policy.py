@@ -10,7 +10,7 @@ assignment under shipping traffic.
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.routing_policy import DEFAULT_ROUTING_POLICY
+from luana_core_copilot.domain.routing_policy import DEFAULT_ROUTING_POLICY
 from tests.modules.copilot.golden.conftest import assert_matches_golden
 
 

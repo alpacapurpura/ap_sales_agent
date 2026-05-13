@@ -53,7 +53,7 @@ def _stub_system_prompt(monkeypatch):
     appends the deep-agent suffix. Stubbing keeps the test hermetic.
     """
     monkeypatch.setattr(
-        "src.modules.copilot.application.orchestrator.deep_agent.build_system_prompt",
+        "luana_core_copilot.application.orchestrator.deep_agent.build_system_prompt",
         lambda _state: "Eres el Copilot de Nicolify.",
     )
 
@@ -81,7 +81,7 @@ class TestHarnessConstruction:
     def test_returns_compiled_graph_with_messages_input(self, base_state) -> None:
         from langgraph.graph.state import CompiledStateGraph
 
-        from src.modules.copilot.application.orchestrator.deep_agent import (
+        from luana_core_copilot.application.orchestrator.deep_agent import (
             build_deep_agent_graph,
         )
 
@@ -93,10 +93,10 @@ class TestHarnessConstruction:
 
     def test_audit_inspector_subagent_registered(self, base_state) -> None:
         """Spawn-able sub-agents include the dummy ``audit_inspector``."""
-        from src.modules.copilot.application.orchestrator.deep_agent import (
+        from luana_core_copilot.application.orchestrator.deep_agent import (
             build_deep_agent_graph,
         )
-        from src.modules.copilot.application.orchestrator.subagents import (
+        from luana_core_copilot.application.orchestrator.subagents import (
             AUDIT_INSPECTOR_SUBAGENT,
         )
 
@@ -117,7 +117,7 @@ class TestSystemPromptInjection:
 
     @pytest.mark.asyncio
     async def test_system_prompt_starts_with_nicolify_layer(self, base_state) -> None:
-        from src.modules.copilot.application.orchestrator.deep_agent import (
+        from luana_core_copilot.application.orchestrator.deep_agent import (
             build_deep_agent_graph,
         )
 
@@ -145,7 +145,7 @@ class TestPlanningEvent:
 
     @pytest.mark.asyncio
     async def test_astream_events_emits_chat_model_lifecycle(self, base_state) -> None:
-        from src.modules.copilot.application.orchestrator.deep_agent import (
+        from luana_core_copilot.application.orchestrator.deep_agent import (
             build_deep_agent_graph,
         )
 

@@ -87,10 +87,10 @@ class TestSchemaIntrospectionDerivesFromRegistry:
 
     def test_buyer_persona_dict_parents_derived_from_subkeys(self) -> None:
         """``_DOMAIN_DICT_PARENTS["buyer_persona"]`` deriva de BUYER_PERSONA_DICT_SUBKEYS.keys()."""
-        from src.modules.brand.domain.buyer_persona_field_contract import (
+        from luana_core_brand_studio.domain.buyer_persona_field_contract import (
             BUYER_PERSONA_DICT_SUBKEYS,
         )
-        from src.modules.copilot.domain.schema_introspection import _get_dict_parents
+        from luana_core_copilot.domain.schema_introspection import _get_dict_parents
 
         actual = _get_dict_parents("buyer_persona")
         expected = set(BUYER_PERSONA_DICT_SUBKEYS.keys())
@@ -102,7 +102,7 @@ class TestSchemaIntrospectionDerivesFromRegistry:
 
     def test_unknown_domain_dict_parents_empty(self) -> None:
         """Dominios sin dict_parents devuelven set vacío."""
-        from src.modules.copilot.domain.schema_introspection import _get_dict_parents
+        from luana_core_copilot.domain.schema_introspection import _get_dict_parents
 
         assert _get_dict_parents("offer") == set()
         assert _get_dict_parents("brand") == set()

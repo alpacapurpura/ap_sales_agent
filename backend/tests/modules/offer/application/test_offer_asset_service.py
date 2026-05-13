@@ -8,12 +8,12 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.application.services.offer_asset_service import (
+from luana_core_offer_studio.application.services.offer_asset_service import (
     OfferAssetService,
 )
-from src.modules.offer.domain.assets import OfferAsset
-from src.modules.offer.domain.enums import AssetSource, AssetStatus, AssetType
-from src.modules.offer.domain.exceptions import AssetNotFoundError
+from luana_core_offer_studio.domain.assets import OfferAsset
+from luana_core_offer_studio.domain.enums import AssetSource, AssetStatus, AssetType
+from luana_core_offer_studio.domain.exceptions import AssetNotFoundError
 
 
 @pytest.fixture

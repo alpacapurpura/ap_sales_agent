@@ -9,7 +9,7 @@ RUN_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
 
 
 def _make_repo():
-    from src.modules.analytics.infrastructure.repositories.staging_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.staging_repository import (
         StagingMetricsRepository,
     )
 
@@ -18,7 +18,7 @@ def _make_repo():
 
 
 def _make_model(**kwargs):
-    from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+    from luana_core_analytics_engine.infrastructure.models.staging_metrics_model import (
         StagingMetricModel,
     )
 

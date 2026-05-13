@@ -14,7 +14,7 @@ import pytest
 def _postgres_available() -> bool:
     """Check if PostgreSQL is reachable using the app's connection settings."""
     try:
-        from src.core.config import settings
+        from luana_core_platform.core.config import settings
 
         host = settings.POSTGRES_HOST
         with socket.create_connection((host, 5432), timeout=1):
@@ -31,35 +31,35 @@ if not _postgres_available():
 
 from uuid import UUID
 
-from sqlalchemy import text
-
-from src.core.context import set_tenant_id
-from src.core.database import SessionLocal
-from src.modules.crm.application.services.identity_service import (
+from luana_core_crm.application.services.identity_service import (
     IdentityService,
 )
-from src.modules.crm.domain.enums import IdentityType, LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.enums import IdentityType, LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerIdentityModel,
     CustomerProfileModel,
 )
-from src.modules.crm.infrastructure.repositories.customer_repository import (
+from luana_core_crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
 )
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
+from luana_core_crm.infrastructure.repositories.lead_metrics_repository import (
     LeadRepository,
 )
 
 # Import all related models so SQLAlchemy can resolve relationships
-from src.modules.iam.infrastructure.models.tenant_model import (  # noqa: F401
+from luana_core_iam.infrastructure.models.tenant_model import (  # noqa: F401
     TenantModel,
 )
-from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+from luana_core_platform.core.context import set_tenant_id
+from luana_core_platform.core.database import SessionLocal
+from luana_core_sales_agent.infrastructure.memory.audit_repository import (
     AuditRepository,
 )
-from src.modules.sales_agent.infrastructure.models.message_model import (  # noqa: F401
+from luana_core_sales_agent.infrastructure.models.message_model import (  # noqa: F401
     MessageModel,
 )
+from sqlalchemy import text
+
 from src.modules.scheduling.infrastructure.models.appointment_model import (  # noqa: F401
     AppointmentModel,
 )

@@ -15,12 +15,12 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.analytics.application.services.channel_dashboard_service import (
+from luana_core_analytics_engine.application.services.channel_dashboard_service import (
     ChannelDashboardService,
 )
-from src.modules.analytics.domain.enums import AggregationType, MetricUnit
-from src.modules.analytics.domain.metric_catalog import get_metric_def
-from src.modules.analytics.infrastructure.providers.meta_provider import MetaProvider
+from luana_core_analytics_engine.domain.enums import AggregationType, MetricUnit
+from luana_core_analytics_engine.domain.metric_catalog import get_metric_def
+from luana_core_analytics_engine.infrastructure.providers.meta_provider import MetaProvider
 
 TENANT_ID = uuid4()
 CREDS = {

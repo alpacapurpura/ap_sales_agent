@@ -14,7 +14,7 @@ def _run(coro):
 
 
 def _make_svc():
-    from src.modules.analytics.application.services.ig_dm_sync_service import (
+    from luana_core_analytics_engine.application.services.ig_dm_sync_service import (
         InstagramDMSyncService,
     )
 
@@ -30,7 +30,7 @@ def _make_svc():
 class TestSyncNoCredentials:
     def test_no_access_token_returns_zero(self):
         svc, _db, port = _make_svc()
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         port.get_credentials = AsyncMock(
             return_value=ConnectionCredentials(
@@ -44,7 +44,7 @@ class TestSyncNoCredentials:
 
     def test_no_page_id_returns_zero(self):
         svc, _db, port = _make_svc()
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         port.get_credentials = AsyncMock(
             return_value=ConnectionCredentials(
@@ -63,7 +63,7 @@ class TestSyncNoCredentials:
         # sync() doesn't catch this exception; it will propagate
         # But we want to test the no-token path specifically
         # Test the no-token branch directly by returning empty credentials
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         port.get_credentials = AsyncMock(
             return_value=ConnectionCredentials(
@@ -79,7 +79,7 @@ class TestSyncNoCredentials:
 class TestSyncPageTokenFailed:
     def test_page_token_exchange_fails_returns_zero(self):
         svc, _db, port = _make_svc()
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         port.get_credentials = AsyncMock(
             return_value=ConnectionCredentials(
@@ -96,7 +96,7 @@ class TestSyncPageTokenFailed:
 class TestSyncHappyPath:
     def test_empty_conversations_returns_zero(self):
         svc, db, port = _make_svc()
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         port.get_credentials = AsyncMock(
             return_value=ConnectionCredentials(
@@ -115,7 +115,7 @@ class TestSyncHappyPath:
 
     def test_messages_synced_new_lead(self):
         svc, _db, port = _make_svc()
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         customer_mock = MagicMock()
         customer_mock.id = uuid.uuid4()
@@ -152,15 +152,15 @@ class TestSyncHappyPath:
             patch.object(svc, "_fetch_conversations", new=AsyncMock(return_value=conversations)),
             patch.object(svc, "_fetch_messages", new=AsyncMock(return_value=messages)),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_identity_service",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_identity_service",
                 return_value=identity_service_mock,
             ),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_journey_event_repository",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_journey_event_repository",
                 return_value=journey_repo_mock,
             ),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_ig_profile_enricher",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_ig_profile_enricher",
                 return_value=enricher_mock,
             ),
         ):
@@ -172,7 +172,7 @@ class TestSyncHappyPath:
     def test_echo_message_skipped(self):
         """Messages from page_id (business) should be skipped."""
         svc, _db, port = _make_svc()
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         identity_service_mock = MagicMock()
         journey_repo_mock = MagicMock()
@@ -201,15 +201,15 @@ class TestSyncHappyPath:
             patch.object(svc, "_fetch_conversations", new=AsyncMock(return_value=conversations)),
             patch.object(svc, "_fetch_messages", new=AsyncMock(return_value=messages)),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_identity_service",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_identity_service",
                 return_value=identity_service_mock,
             ),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_journey_event_repository",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_journey_event_repository",
                 return_value=journey_repo_mock,
             ),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_ig_profile_enricher",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_ig_profile_enricher",
                 return_value=enricher_mock,
             ),
         ):
@@ -224,7 +224,7 @@ class TestSyncHappyPath:
         # Override _message_exists to return True
         svc._message_exists = MagicMock(return_value=True)
 
-        from src.modules.analytics.domain.ports import ConnectionCredentials
+        from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
         identity_service_mock = MagicMock()
         journey_repo_mock = MagicMock()
@@ -246,15 +246,15 @@ class TestSyncHappyPath:
             patch.object(svc, "_fetch_conversations", new=AsyncMock(return_value=conversations)),
             patch.object(svc, "_fetch_messages", new=AsyncMock(return_value=messages)),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_identity_service",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_identity_service",
                 return_value=identity_service_mock,
             ),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_journey_event_repository",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_journey_event_repository",
                 return_value=journey_repo_mock,
             ),
             patch(
-                "src.modules.analytics.application.services.ig_dm_sync_service.get_ig_profile_enricher",
+                "luana_core_analytics_engine.application.services.ig_dm_sync_service.get_ig_profile_enricher",
                 return_value=enricher_mock,
             ),
         ):

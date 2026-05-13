@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
-from src.modules.offer.infrastructure.repositories.enum_normalizer import (
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferValueLevel
+from luana_core_offer_studio.infrastructure.repositories.enum_normalizer import (
     normalize_archetype,
     normalize_deliverables,
     normalize_delivery_model,

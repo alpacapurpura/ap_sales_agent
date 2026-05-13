@@ -9,7 +9,7 @@ remain stable unless explicitly extended.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.tools.registry import get_tools_for_route
+from luana_core_copilot.application.tools.registry import get_tools_for_route
 from tests.modules.copilot.golden.conftest import assert_matches_golden
 
 # Canonical routes covering the four studios + landing + dashboard +

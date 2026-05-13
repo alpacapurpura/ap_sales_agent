@@ -19,11 +19,10 @@ if TYPE_CHECKING:
 
 def get_payment_connection_provider(db: Session, tenant_id: UUID) -> str | None:
     """Return the active payment provider_id for a tenant, or None."""
-    from sqlalchemy import select
-
-    from src.modules.connections.infrastructure.models.channel_connection_model import (
+    from luana_core_connections.infrastructure.models.channel_connection_model import (
         ChannelConnectionModel,
     )
+    from sqlalchemy import select
 
     row = db.execute(
         select(ChannelConnectionModel).where(
@@ -44,11 +43,10 @@ def get_payment_webhook_secret(
 
     Returns ``""`` if no connection or no secret configured.
     """
-    from sqlalchemy import select
-
-    from src.modules.connections.infrastructure.models.channel_connection_model import (
+    from luana_core_connections.infrastructure.models.channel_connection_model import (
         ChannelConnectionModel,
     )
+    from sqlalchemy import select
 
     row = db.execute(
         select(ChannelConnectionModel).where(

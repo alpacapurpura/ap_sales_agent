@@ -9,11 +9,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select
-
-from src.shared.agent_observability.persistence.models.tenant_billing_config_model import (
+from luana_core_observability.persistence.models.tenant_billing_config_model import (
     TenantBillingConfigModel,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

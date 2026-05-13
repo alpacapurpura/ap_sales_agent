@@ -4,7 +4,7 @@ Canonical location: src.shared.domain.schemas.scheduling
 Re-exported here for backward compatibility.
 """
 
-from src.shared.domain.schemas.scheduling import (
+from luana_core_platform.domain.schemas.scheduling import (
     BookingConfig,
     ConfirmationButton,
     EventType,

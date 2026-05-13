@@ -13,7 +13,7 @@ import pytest
 class TestSuggestionCategory:
     def test_values_match_fe_locked_contract(self) -> None:
         """FE TS union: 'followup' | 'action' | 'clarify' | 'nav'."""
-        from src.modules.copilot.domain.suggestion import SuggestionCategory
+        from luana_core_copilot.domain.suggestion import SuggestionCategory
 
         assert SuggestionCategory.FOLLOWUP == "followup"
         assert SuggestionCategory.ACTION == "action"
@@ -23,7 +23,7 @@ class TestSuggestionCategory:
 
 class TestSuggestionContext:
     def test_tenant_id_is_required_uuid(self) -> None:
-        from src.modules.copilot.domain.suggestion import SuggestionContext
+        from luana_core_copilot.domain.suggestion import SuggestionContext
 
         tenant = uuid4()
         ctx = SuggestionContext(
@@ -35,7 +35,7 @@ class TestSuggestionContext:
         assert ctx.tenant_id == tenant
 
     def test_defaults_are_empty_tuples(self) -> None:
-        from src.modules.copilot.domain.suggestion import SuggestionContext
+        from luana_core_copilot.domain.suggestion import SuggestionContext
 
         ctx = SuggestionContext(
             tenant_id=uuid4(),
@@ -48,7 +48,7 @@ class TestSuggestionContext:
         assert ctx.locale == "es"
 
     def test_context_is_frozen(self) -> None:
-        from src.modules.copilot.domain.suggestion import SuggestionContext
+        from luana_core_copilot.domain.suggestion import SuggestionContext
 
         ctx = SuggestionContext(
             tenant_id=uuid4(),
@@ -62,76 +62,76 @@ class TestSuggestionContext:
 
 class TestSuggestionInvariants:
     def test_confidence_below_zero_raises(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         with pytest.raises(ValueError, match="confidence"):
             Suggestion(label="Hola", prompt="Hola", confidence=-0.1)
 
     def test_confidence_above_one_raises(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         with pytest.raises(ValueError, match="confidence"):
             Suggestion(label="Hola", prompt="Hola", confidence=1.1)
 
     def test_confidence_boundary_zero_ok(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         s = Suggestion(label="Hola", prompt="Hola", confidence=0.0)
         assert s.confidence == 0.0
 
     def test_confidence_boundary_one_ok(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         s = Suggestion(label="Hola", prompt="Hola", confidence=1.0)
         assert s.confidence == 1.0
 
     def test_label_exceeds_60_chars_raises(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         long_label = "A" * 61
         with pytest.raises(ValueError, match="label"):
             Suggestion(label=long_label, prompt="ok", confidence=0.5)
 
     def test_label_exactly_60_chars_ok(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         label = "A" * 60
         s = Suggestion(label=label, prompt="ok", confidence=0.5)
         assert len(s.label) == 60
 
     def test_empty_label_raises(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         with pytest.raises(ValueError, match="required"):
             Suggestion(label="", prompt="ok", confidence=0.5)
 
     def test_whitespace_label_raises(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         with pytest.raises(ValueError, match="required"):
             Suggestion(label="   ", prompt="ok", confidence=0.5)
 
     def test_empty_prompt_raises(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         with pytest.raises(ValueError, match="required"):
             Suggestion(label="ok", prompt="", confidence=0.5)
 
     def test_suggestion_has_uuid_id(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         s = Suggestion(label="ok", prompt="ok", confidence=0.5)
         assert isinstance(s.id, UUID)
 
     def test_suggestion_is_frozen(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion
+        from luana_core_copilot.domain.suggestion import Suggestion
 
         s = Suggestion(label="ok", prompt="ok", confidence=0.5)
         with pytest.raises((AttributeError, TypeError)):
             s.label = "changed"  # type: ignore[misc]
 
     def test_default_category_is_action(self) -> None:
-        from src.modules.copilot.domain.suggestion import Suggestion, SuggestionCategory
+        from luana_core_copilot.domain.suggestion import Suggestion, SuggestionCategory
 
         s = Suggestion(label="ok", prompt="ok", confidence=0.5)
         assert s.category == SuggestionCategory.ACTION
@@ -139,7 +139,7 @@ class TestSuggestionInvariants:
 
 class TestSuggestionEvents:
     def test_suggestion_shown_create_builds_payload(self) -> None:
-        from src.modules.copilot.domain.events import SuggestionShown
+        from luana_core_copilot.domain.events import SuggestionShown
 
         tenant = uuid4()
         sid1, sid2 = uuid4(), uuid4()
@@ -161,7 +161,7 @@ class TestSuggestionEvents:
         assert payload["latency_ms"] == 5
 
     def test_suggestion_accepted_create_builds_payload(self) -> None:
-        from src.modules.copilot.domain.events import SuggestionAccepted
+        from luana_core_copilot.domain.events import SuggestionAccepted
 
         tenant = uuid4()
         sid = uuid4()

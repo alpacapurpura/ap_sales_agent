@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.modules.copilot.application.tools.knowledge_search import (
+from luana_core_copilot.application.tools.knowledge_search import (
     KNOWLEDGE_SEARCH_TOOLS,
     knowledge_search,
     knowledge_search_impl,
 )
-from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
+from luana_core_copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 
 if TYPE_CHECKING:
     import pytest
@@ -152,7 +152,7 @@ def test_tool_decorator_invocable(monkeypatch: pytest.MonkeyPatch) -> None:
         return fake
 
     monkeypatch.setattr(
-        "src.modules.copilot.application.tools.knowledge_search.MarketingKbStore",
+        "luana_core_copilot.application.tools.knowledge_search.MarketingKbStore",
         _factory,
     )
     result = knowledge_search.invoke(

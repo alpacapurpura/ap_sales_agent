@@ -38,18 +38,18 @@ class TestEmitSectionCompletePillIdempotency:
 
         with (
             patch(
-                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                "luana_core_copilot.application.extraction_card_flow.redis_client",
                 mock_redis,
             ),
             patch(
-                "src.modules.copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
+                "luana_core_copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
             ) as mock_append,
-            patch("src.modules.copilot.application.extraction_card_flow.EventBus") as mock_bus,
+            patch("luana_core_copilot.application.extraction_card_flow.EventBus") as mock_bus,
         ):
             mock_append.return_value = None
             mock_bus.publish.return_value = None
 
-            from src.modules.copilot.application.extraction_card_flow import (
+            from luana_core_copilot.application.extraction_card_flow import (
                 emit_section_complete_pill,
             )
 
@@ -76,14 +76,14 @@ class TestEmitSectionCompletePillIdempotency:
 
         with (
             patch(
-                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                "luana_core_copilot.application.extraction_card_flow.redis_client",
                 mock_redis,
             ),
             patch(
-                "src.modules.copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
+                "luana_core_copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
             ) as mock_append,
         ):
-            from src.modules.copilot.application.extraction_card_flow import (
+            from luana_core_copilot.application.extraction_card_flow import (
                 emit_section_complete_pill,
             )
 
@@ -107,18 +107,18 @@ class TestEmitSectionCompletePillIdempotency:
 
         with (
             patch(
-                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                "luana_core_copilot.application.extraction_card_flow.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
+                "luana_core_copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
             ) as mock_append,
-            patch("src.modules.copilot.application.extraction_card_flow.EventBus") as mock_bus,
+            patch("luana_core_copilot.application.extraction_card_flow.EventBus") as mock_bus,
         ):
             mock_append.return_value = None
             mock_bus.publish.return_value = None
 
-            from src.modules.copilot.application.extraction_card_flow import (
+            from luana_core_copilot.application.extraction_card_flow import (
                 emit_section_complete_pill,
             )
 
@@ -152,15 +152,15 @@ class TestEmitSectionCompletePillIdempotency:
 
         with (
             patch(
-                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                "luana_core_copilot.application.extraction_card_flow.redis_client",
                 mock_redis,
             ),
             patch(
-                "src.modules.copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
+                "luana_core_copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
             ),
-            patch("src.modules.copilot.application.extraction_card_flow.EventBus"),
+            patch("luana_core_copilot.application.extraction_card_flow.EventBus"),
         ):
-            from src.modules.copilot.application.extraction_card_flow import (
+            from luana_core_copilot.application.extraction_card_flow import (
                 emit_section_complete_pill,
             )
 
@@ -192,18 +192,18 @@ class TestEmitExtractionSummaryCardIdempotency:
 
         with (
             patch(
-                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                "luana_core_copilot.application.extraction_card_flow.redis_client",
                 mock_redis,
             ),
             patch(
-                "src.modules.copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
+                "luana_core_copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
             ) as mock_append,
-            patch("src.modules.copilot.application.extraction_card_flow.EventBus") as mock_bus,
+            patch("luana_core_copilot.application.extraction_card_flow.EventBus") as mock_bus,
         ):
             mock_append.return_value = None
             mock_bus.publish.return_value = None
 
-            from src.modules.copilot.application.extraction_card_flow import (
+            from luana_core_copilot.application.extraction_card_flow import (
                 emit_extraction_summary_card,
             )
 
@@ -229,14 +229,14 @@ class TestEmitExtractionSummaryCardIdempotency:
 
         with (
             patch(
-                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                "luana_core_copilot.application.extraction_card_flow.redis_client",
                 mock_redis,
             ),
             patch(
-                "src.modules.copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
+                "luana_core_copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
             ) as mock_append,
         ):
-            from src.modules.copilot.application.extraction_card_flow import (
+            from luana_core_copilot.application.extraction_card_flow import (
                 emit_extraction_summary_card,
             )
 
@@ -270,15 +270,15 @@ class TestEmitExtractionSummaryCardIdempotency:
 
         with (
             patch(
-                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                "luana_core_copilot.application.extraction_card_flow.redis_client",
                 mock_redis,
             ),
             patch(
-                "src.modules.copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
+                "luana_core_copilot.infrastructure.repositories.conversation_repository.ConversationRepository.append_messages"
             ),
-            patch("src.modules.copilot.application.extraction_card_flow.EventBus"),
+            patch("luana_core_copilot.application.extraction_card_flow.EventBus"),
         ):
-            from src.modules.copilot.application.extraction_card_flow import (
+            from luana_core_copilot.application.extraction_card_flow import (
                 emit_extraction_summary_card,
             )
 

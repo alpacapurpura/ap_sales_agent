@@ -13,11 +13,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select
-
-from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
+from luana_core_observability.persistence.models.pricing_snapshot_model import (
     ModelPricingSnapshotModel,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

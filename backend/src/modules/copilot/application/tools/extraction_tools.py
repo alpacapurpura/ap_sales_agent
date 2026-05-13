@@ -94,20 +94,19 @@ from uuid import UUID, uuid4
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.arq_pool import get_arq_pool
-from src.core.context import get_conversation_id, get_tenant_id, get_user_id
-from src.core.database import redis_client
-from src.modules.copilot.application.extraction.active_job_persistence import (
+from luana_core_copilot.application.extraction.active_job_persistence import (
     write_active_job,
 )
-from src.modules.copilot.application.extraction.active_job_state import (
+from luana_core_copilot.application.extraction.active_job_state import (
     ActiveExtractionJob,
 )
-from src.modules.copilot.application.guided.persistence import (
+from luana_core_copilot.application.guided.persistence import (
     read_state as read_guided_state,
 )
-from src.shared.domain.extraction_jobs import ExtractionJob
+from luana_core_platform.core.arq_pool import get_arq_pool
+from luana_core_platform.core.context import get_conversation_id, get_tenant_id, get_user_id
+from luana_core_platform.core.database import redis_client
+from luana_core_platform.domain.extraction_jobs import ExtractionJob
 
 logger = structlog.get_logger()
 
@@ -553,7 +552,7 @@ async def extract_from_url(
     )
 
 
-from src.modules.copilot.application.tools.extract_from_doc import (
+from luana_core_copilot.application.tools.extract_from_doc import (
     extract_from_doc,
 )
 

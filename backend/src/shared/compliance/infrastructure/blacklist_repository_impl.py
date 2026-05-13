@@ -8,15 +8,14 @@ from __future__ import annotations
 from uuid import UUID
 
 import structlog
+from luana_core_compliance.domain.blacklist_entry import ChannelBlacklistEntry
+from luana_core_compliance.domain.blacklist_repository import ChannelBlacklistRepository
+from luana_core_compliance.infrastructure.models.channel_blacklist_model import (
+    ChannelBlacklistModel,
+)
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
-
-from src.shared.compliance.domain.blacklist_entry import ChannelBlacklistEntry
-from src.shared.compliance.domain.blacklist_repository import ChannelBlacklistRepository
-from src.shared.compliance.infrastructure.models.channel_blacklist_model import (
-    ChannelBlacklistModel,
-)
 
 logger = structlog.get_logger(__name__)
 

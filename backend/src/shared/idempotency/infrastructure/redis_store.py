@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 import structlog
 
 if TYPE_CHECKING:
-    from src.shared.idempotency.domain.key import IdempotencyKey
+    from luana_core_idempotency.domain.key import IdempotencyKey
 
 logger = structlog.get_logger(__name__)
 

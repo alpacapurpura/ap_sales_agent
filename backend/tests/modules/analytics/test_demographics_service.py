@@ -4,10 +4,10 @@ import json
 from unittest.mock import MagicMock
 from uuid import UUID
 
-from src.modules.analytics.application.dto.channel_dashboard_dto import (
+from luana_core_analytics_engine.application.dto.channel_dashboard_dto import (
     DemographicsDTO,
 )
-from src.modules.analytics.application.services.channel_dashboard_service import (
+from luana_core_analytics_engine.application.services.channel_dashboard_service import (
     ChannelDashboardService,
 )
 

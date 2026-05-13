@@ -3,16 +3,15 @@
 # NOTE(async-migration): This service uses Session (sync). Needs migration to AsyncSession.
 from uuid import UUID
 
-from sqlalchemy import text as sa_text
-from sqlalchemy.orm import Session
-
-from src.modules.landing.application.landing_content_builders import _resolve_content
-from src.modules.landing.domain.content import LandingPageConfig, SqueezeContent
-from src.modules.landing.domain.enums import LandingPageArchetype
-from src.modules.landing.domain.landing_page import LandingPage
-from src.modules.landing.infrastructure.repositories.landing_repository import (
+from luana_core_landing.application.landing_content_builders import _resolve_content
+from luana_core_landing.domain.content import LandingPageConfig, SqueezeContent
+from luana_core_landing.domain.enums import LandingPageArchetype
+from luana_core_landing.domain.landing_page import LandingPage
+from luana_core_landing.infrastructure.repositories.landing_repository import (
     LandingRepository,
 )
+from sqlalchemy import text as sa_text
+from sqlalchemy.orm import Session
 
 
 class LandingService:
@@ -117,7 +116,7 @@ class LandingService:
         4. ``RECURRING_BILLING`` → ``THE_VELVET_ROPE`` (membership feel)
         5. Unknown / no preset → ``THE_BROCHURE`` (safe general default)
         """
-        from src.shared.links.ports.offer import (
+        from luana_core_platform.links.ports.offer import (
             get_offer_type_preset,
             get_preset_flag_values,
         )

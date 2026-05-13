@@ -18,7 +18,7 @@ from typing import Any
 import pytest
 from langchain_core.messages import AIMessage
 
-from src.modules.sales_agent.application.quality.judge import (
+from luana_core_sales_agent.application.quality.judge import (
     CANONICAL_DIMENSIONS,
     DEFAULT_THRESHOLD,
     SalesAgentJudge,
@@ -187,7 +187,7 @@ def test_invalid_threshold_raises():
 
 def test_system_prompt_lists_5_dimensions_in_alphabetical_order():
     """System prompt — dims alfabéticas para mitigar position bias."""
-    from src.modules.sales_agent.application.quality.judge import (
+    from luana_core_sales_agent.application.quality.judge import (
         build_system_prompt,
     )
 
@@ -202,7 +202,7 @@ def test_system_prompt_lists_5_dimensions_in_alphabetical_order():
 
 def test_system_prompt_does_not_voseo_tutela_aliasing():
     """El propio prompt del juez instruye español neutro en su razón."""
-    from src.modules.sales_agent.application.quality.judge import (
+    from luana_core_sales_agent.application.quality.judge import (
         build_system_prompt,
     )
 

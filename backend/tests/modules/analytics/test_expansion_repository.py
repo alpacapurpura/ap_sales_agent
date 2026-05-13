@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from src.modules.analytics.infrastructure.repositories.expansion_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.expansion_repository import (
     ExpansionMetricsRepository,
 )
 

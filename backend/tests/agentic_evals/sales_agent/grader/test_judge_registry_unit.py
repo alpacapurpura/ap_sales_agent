@@ -70,8 +70,7 @@ def test_litellm_proxy_routing_only() -> None:
 
     # Required: LiteLLM Proxy canonical import present.
     assert "from src.shared.infrastructure.llm.providers.litellm import" in source, (
-        "judge_registry.py MUST import LiteLLMService from "
-        "src.shared.infrastructure.llm.providers.litellm (D-AG-17 cement)"
+        "judge_registry.py MUST import LiteLLMService from luana_core_llm.providers.litellm (D-AG-17 cement)"
     )
 
     # Forbidden: walk AST and check every Import / ImportFrom node. The two

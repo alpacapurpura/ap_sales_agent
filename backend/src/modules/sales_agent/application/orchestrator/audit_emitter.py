@@ -24,18 +24,16 @@ import contextlib
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.shared.domain.events import LeadCapturedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_events.outbox.application.event_bus_adapter import (
     adapter_bus as EventBus,  # noqa: N812
 )
+from luana_core_platform.domain.events import LeadCapturedEvent
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_platform.domain.messages import IncomingMessage
     from sqlalchemy.orm import Session
-
-    from src.shared.domain.messages import IncomingMessage
 
 # Cross-module models stay opaque so the arch ratchet
 # (test_no_new_sales_agent_module_imports) keeps the count frozen.
@@ -65,7 +63,7 @@ class AuditEmitter:
     ) -> None:
         """Track ``message_received`` journey event for capture metrics."""
         try:
-            from src.shared.links.ports.crm_repos import (
+            from luana_core_platform.links.ports.crm_repos import (
                 get_journey_event_repository,
             )
 
@@ -117,7 +115,7 @@ class AuditEmitter:
     ) -> None:
         """Emit Closer Studio WS event after the agent replies (best-effort)."""
         try:
-            from src.modules.sales_agent.infrastructure.ws_manager import ws_manager
+            from luana_core_sales_agent.infrastructure.ws_manager import ws_manager
 
             await ws_manager.emit(
                 str(tenant_uuid),
@@ -143,7 +141,7 @@ class AuditEmitter:
     ) -> None:
         """Emit WS event when a lead message arrives while ``handler_mode='human'``."""
         try:
-            from src.modules.sales_agent.infrastructure.ws_manager import ws_manager
+            from luana_core_sales_agent.infrastructure.ws_manager import ws_manager
 
             await ws_manager.emit(
                 str(tenant_uuid),

@@ -46,7 +46,7 @@ class TestGuardDecisionDataclass:
     """Verify GuardDecision is a frozen dataclass with expected fields."""
 
     def test_guard_decision_allowed_fields(self) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
 
@@ -59,7 +59,7 @@ class TestGuardDecisionDataclass:
         assert d.soft_fail is False
 
     def test_guard_decision_blocked_fields(self) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
 
@@ -74,7 +74,7 @@ class TestGuardDecisionDataclass:
         assert d.requires_confirmation is False
 
     def test_guard_decision_requires_confirmation_fields(self) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
 
@@ -92,21 +92,21 @@ class TestEtlRefreshGuardConstants:
     """Verify class-level constants match spec."""
 
     def test_default_limit_is_3(self) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
         assert EtlRefreshGuard.DEFAULT_LIMIT == 3
 
     def test_window_is_3600_seconds(self) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
         assert EtlRefreshGuard.WINDOW_SECONDS == 3600
 
     def test_confirm_threshold_is_1(self) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
@@ -118,7 +118,7 @@ class TestEtlRefreshGuardAllowed:
 
     @pytest.mark.asyncio
     async def test_first_call_allowed(self, mock_redis, mock_config_repo) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
@@ -145,7 +145,7 @@ class TestEtlRefreshGuardConfirmThreshold:
 
     @pytest.mark.asyncio
     async def test_second_call_requires_confirmation_if_not_confirmed(self, mock_redis, mock_config_repo) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
@@ -165,7 +165,7 @@ class TestEtlRefreshGuardConfirmThreshold:
 
     @pytest.mark.asyncio
     async def test_second_call_allowed_if_confirmed(self, mock_redis, mock_config_repo) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
@@ -191,7 +191,7 @@ class TestEtlRefreshGuardRateLimit:
 
     @pytest.mark.asyncio
     async def test_rate_limit_exceeded_returns_retry_after(self, mock_redis, mock_config_repo) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
@@ -218,7 +218,7 @@ class TestEtlRefreshGuardRateLimit:
     @pytest.mark.asyncio
     async def test_rate_limit_with_custom_limit_from_config(self, mock_redis) -> None:
         """Custom limit from channel config overrides default."""
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
@@ -246,7 +246,7 @@ class TestEtlRefreshGuardSoftFail:
 
     @pytest.mark.asyncio
     async def test_redis_unavailable_fail_open(self, mock_config_repo) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
@@ -272,7 +272,7 @@ class TestEtlRefreshGuardSoftFail:
 
     @pytest.mark.asyncio
     async def test_redis_unavailable_logs_warning(self, mock_config_repo) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 
@@ -285,7 +285,7 @@ class TestEtlRefreshGuardSoftFail:
 
         guard = EtlRefreshGuard(redis, mock_config_repo)
 
-        with patch("src.modules.analytics.application.services.etl_refresh_guard.logger") as mock_logger:
+        with patch("luana_core_analytics_engine.application.services.etl_refresh_guard.logger") as mock_logger:
             decision = await guard.check(TENANT_ID, CHANNEL, confirmed=False)
 
         assert decision.soft_fail is True
@@ -300,7 +300,7 @@ class TestEtlRefreshGuardKeyTemplate:
 
     @pytest.mark.asyncio
     async def test_key_includes_tenant_and_channel(self, mock_redis, mock_config_repo) -> None:
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             EtlRefreshGuard,
         )
 

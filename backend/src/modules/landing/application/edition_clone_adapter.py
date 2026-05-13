@@ -25,14 +25,13 @@ import copy
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import select
-
-from src.modules.landing.application.tokenizer import substitute_tokens
-from src.modules.landing.infrastructure.models.landing_model import LandingPageModel
-from src.shared.links.ports.edition_landing_clone import (
+from luana_core_landing.application.tokenizer import substitute_tokens
+from luana_core_landing.infrastructure.models.landing_model import LandingPageModel
+from luana_core_platform.links.ports.edition_landing_clone import (
     IEditionLandingClonePort,
     LandingRef,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.conversational_questioning import (
+from luana_core_copilot.application.orchestrator.conversational_questioning import (
     _gate_satisfied,
     _get_path,
     _is_missing,
     next_question,
 )
-from src.shared.domain.field_contract import (
+from luana_core_platform.domain.field_contract import (
     FieldContract,
     FieldStatus,
     FieldType,

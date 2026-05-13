@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from src.modules.copilot.infrastructure.cache.data_query_cache import (
+from luana_core_copilot.infrastructure.cache.data_query_cache import (
     DataQueryCache,
     make_cache_key,
 )

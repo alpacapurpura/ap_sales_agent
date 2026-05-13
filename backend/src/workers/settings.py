@@ -8,11 +8,7 @@ SchedulerSettings runs cron jobs:
 
 from arq import cron
 from arq.connections import RedisSettings
-
-import src.shared.infrastructure.agent_observability_bootstrap
-import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
-from src.core.config import settings
-from src.modules.analytics.workers.tasks import (
+from luana_core_analytics_engine.workers.tasks import (
     run_campaign_sync,
     run_inactivity_detection,
     run_initial_load,
@@ -20,42 +16,46 @@ from src.modules.analytics.workers.tasks import (
     run_period_extraction,
     run_tenant_extraction,
 )
-from src.modules.brand.workers.tasks import run_brand_extraction
+from luana_core_brand_studio.workers.tasks import run_brand_extraction
 
 # PI-1 S2 PR-5 — campaigns ARQ workers
-from src.modules.campaigns.workers.audit_retention_task import purge_old_campaigns_audit
-from src.modules.campaigns.workers.execution_task import run_campaign_execution_task
-from src.modules.campaigns.workers.scheduler_tick import run_campaign_scheduler_tick
-from src.modules.campaigns.workers.segment_refresh_tick import run_segment_refresh_tick
-from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
-from src.modules.copilot.infrastructure.workers.telegram_worker import (
+from luana_core_campaigns.workers.audit_retention_task import purge_old_campaigns_audit
+from luana_core_campaigns.workers.execution_task import run_campaign_execution_task
+from luana_core_campaigns.workers.scheduler_tick import run_campaign_scheduler_tick
+from luana_core_campaigns.workers.segment_refresh_tick import run_segment_refresh_tick
+from luana_core_copilot.application.services.event_cleanup import cleanup_old_events
+from luana_core_copilot.infrastructure.workers.telegram_worker import (
     process_copilot_telegram_turn,
 )
-from src.modules.offer.workers.tasks import run_offer_extraction
-from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
-    run_sales_agent_dual_write_reconcile,
-)
-from src.modules.sales_agent.workers.appointment_reminder_engine import (
-    run_appointment_reminders,
-)
-from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
-from src.modules.sales_agent.workers.payment_reminder_engine import (
-    run_payment_reminder_engine,
-)
-from src.modules.sales_agent.workers.verify_pending_bookings import (
-    run_verify_pending_bookings,
-)
-from src.modules.sales_agent.workers.verify_pending_payments import (
-    run_verify_pending_payments,
-)
-from src.modules.tenant_domains.workers.tasks import poll_domain_verification
-from src.shared.agent_observability.workers.aggregate_refresh_task import (
+from luana_core_observability.workers.aggregate_refresh_task import (
     refresh_daily_cost_mv,
 )
-from src.shared.agent_observability.workers.cost_alert_task import run_cost_alerts
-from src.shared.agent_observability.workers.pricing_sync_task import sync_litellm_pricing
-from src.shared.agent_observability.workers.retention_task import purge_expired_trace_rows
-from src.shared.workers.brand_summary_regen import regen_brand_summary
+from luana_core_observability.workers.cost_alert_task import run_cost_alerts
+from luana_core_observability.workers.pricing_sync_task import sync_litellm_pricing
+from luana_core_observability.workers.retention_task import purge_expired_trace_rows
+from luana_core_offer_studio.workers.tasks import run_offer_extraction
+from luana_core_platform.core.config import settings
+from luana_core_platform.workers.brand_summary_regen import regen_brand_summary
+from luana_core_sales_agent.observability.workers.dual_write_reconciliation_task import (
+    run_sales_agent_dual_write_reconcile,
+)
+from luana_core_sales_agent.workers.appointment_reminder_engine import (
+    run_appointment_reminders,
+)
+from luana_core_sales_agent.workers.frozen_detection import run_frozen_detection
+from luana_core_sales_agent.workers.payment_reminder_engine import (
+    run_payment_reminder_engine,
+)
+from luana_core_sales_agent.workers.verify_pending_bookings import (
+    run_verify_pending_bookings,
+)
+from luana_core_sales_agent.workers.verify_pending_payments import (
+    run_verify_pending_payments,
+)
+from luana_core_tenant_domains.workers.tasks import poll_domain_verification
+
+import src.shared.infrastructure.agent_observability_bootstrap
+import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
 from src.shared.workers.copilot_quality_eval import weekly_copilot_quality_eval
 from src.shared.workers.copilot_rag_eval import weekly_copilot_rag_eval
 from src.shared.workers.sales_agent_quality_eval import weekly_sales_agent_quality_eval
@@ -103,17 +103,17 @@ class WorkerSettings:
     @staticmethod
     async def on_startup(ctx: dict) -> None:
         """Initialize DB session factory, Redis, and Sentry for worker."""
-        from src.core.database import SessionLocal, redis_client
-        from src.core.sentry import init_sentry
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             register_extraction_event_handlers,
         )
-        from src.shared.agent_observability.recording.cost_recorder import (
+        from luana_core_observability.recording.cost_recorder import (
             register_cost_recorder,
         )
-        from src.shared.application.brand_summary_event_handlers import (
+        from luana_core_platform.application.brand_summary_event_handlers import (
             register_brand_summary_event_handlers,
         )
+        from luana_core_platform.core.database import SessionLocal, redis_client
+        from luana_core_platform.core.sentry import init_sentry
 
         init_sentry("worker")
         ctx["db_factory"] = SessionLocal
@@ -128,7 +128,7 @@ class WorkerSettings:
 
         # S8 — bridge AppointmentEvent / BookingMissedEvent into
         # scheduled_meetings JSONB. Idempotent registration.
-        from src.modules.sales_agent.application.scheduling_event_handlers import (
+        from luana_core_sales_agent.application.scheduling_event_handlers import (
             register_scheduling_event_handlers,
         )
 
@@ -137,7 +137,7 @@ class WorkerSettings:
         # PI-1 S2 PR-5 — campaigns channel registry bootstrap.
         # token_provider: env TELEGRAM_BOT_TOKEN global fallback (dev-app smoke).
         # Tenant-specific tokens wired in S3+ via connections module.
-        from src.modules.campaigns.infrastructure.channels.registry import (
+        from luana_core_campaigns.infrastructure.channels.registry import (
             register_default_channels,
         )
 
@@ -160,7 +160,7 @@ class SchedulerSettings:
     are invisible. All settings must be defined directly on this class.
     """
 
-    from src.modules.analytics.workers.scheduler import run_tick_scheduler
+    from luana_core_analytics_engine.workers.scheduler import run_tick_scheduler
 
     # Repeat from WorkerSettings -- arq reads __dict__, not inherited attrs
     functions = [
@@ -347,17 +347,17 @@ class SchedulerSettings:
     @staticmethod
     async def on_startup(ctx: dict) -> None:
         """Initialize DB session factory, Redis, and Sentry for scheduler."""
-        from src.core.database import SessionLocal, redis_client
-        from src.core.sentry import init_sentry
-        from src.modules.copilot.application.extraction_card_flow import (
+        from luana_core_copilot.application.extraction_card_flow import (
             register_extraction_event_handlers,
         )
-        from src.shared.agent_observability.recording.cost_recorder import (
+        from luana_core_observability.recording.cost_recorder import (
             register_cost_recorder,
         )
-        from src.shared.application.brand_summary_event_handlers import (
+        from luana_core_platform.application.brand_summary_event_handlers import (
             register_brand_summary_event_handlers,
         )
+        from luana_core_platform.core.database import SessionLocal, redis_client
+        from luana_core_platform.core.sentry import init_sentry
 
         init_sentry("scheduler")
         ctx["db_factory"] = SessionLocal
@@ -372,14 +372,14 @@ class SchedulerSettings:
 
         # S8 — bridge AppointmentEvent / BookingMissedEvent into
         # scheduled_meetings JSONB. Idempotent registration.
-        from src.modules.sales_agent.application.scheduling_event_handlers import (
+        from luana_core_sales_agent.application.scheduling_event_handlers import (
             register_scheduling_event_handlers,
         )
 
         register_scheduling_event_handlers()
 
         # PI-1 S2 PR-5 — campaigns channel registry bootstrap (mirror WorkerSettings).
-        from src.modules.campaigns.infrastructure.channels.registry import (
+        from luana_core_campaigns.infrastructure.channels.registry import (
             register_default_channels,
         )
 

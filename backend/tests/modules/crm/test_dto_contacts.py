@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from src.shared.domain.enums import LifecycleStage
+from luana_core_platform.domain.enums import LifecycleStage
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -94,7 +94,7 @@ class TestContactListItem:
     """ContactListItem DTO validation and serialization."""
 
     def test_valid_construction(self):
-        from src.modules.crm.api.dto.contacts import ContactListItem
+        from luana_core_crm.api.dto.contacts import ContactListItem
 
         data = _make_contact_list_data()
         item = ContactListItem(**data)
@@ -106,7 +106,7 @@ class TestContactListItem:
         assert item.has_recent_campaign_engagement is None
 
     def test_all_lifecycle_stages_accepted(self):
-        from src.modules.crm.api.dto.contacts import ContactListItem
+        from luana_core_crm.api.dto.contacts import ContactListItem
 
         for stage in LifecycleStage:
             data = _make_contact_list_data(lifecycle_stage=stage)
@@ -114,7 +114,7 @@ class TestContactListItem:
             assert item.lifecycle_stage == stage
 
     def test_none_optional_fields(self):
-        from src.modules.crm.api.dto.contacts import ContactListItem
+        from luana_core_crm.api.dto.contacts import ContactListItem
 
         data = _make_contact_list_data(
             full_name=None,
@@ -136,7 +136,7 @@ class TestContactListItem:
     def test_extra_fields_forbidden(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import ContactListItem
+        from luana_core_crm.api.dto.contacts import ContactListItem
 
         data = _make_contact_list_data(extra_field="should fail")
 
@@ -146,7 +146,7 @@ class TestContactListItem:
     def test_missing_required_field_raises(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import ContactListItem
+        from luana_core_crm.api.dto.contacts import ContactListItem
 
         data = _make_contact_list_data()
         del data["id"]
@@ -155,7 +155,7 @@ class TestContactListItem:
             ContactListItem(**data)
 
     def test_model_dump_serialization(self):
-        from src.modules.crm.api.dto.contacts import ContactListItem
+        from luana_core_crm.api.dto.contacts import ContactListItem
 
         data = _make_contact_list_data()
         item = ContactListItem(**data)
@@ -167,7 +167,7 @@ class TestContactListItem:
         assert dumped["has_whatsapp_id"] is True
 
     def test_channel_presence_booleans(self):
-        from src.modules.crm.api.dto.contacts import ContactListItem
+        from luana_core_crm.api.dto.contacts import ContactListItem
 
         data = _make_contact_list_data(
             has_telegram_id=True,
@@ -196,7 +196,7 @@ class TestContactIdentity:
     """ContactIdentity DTO validation and serialization."""
 
     def test_valid_construction(self):
-        from src.modules.crm.api.dto.contacts import ContactIdentity
+        from luana_core_crm.api.dto.contacts import ContactIdentity
 
         identity = ContactIdentity(
             type="email",
@@ -214,7 +214,7 @@ class TestContactIdentity:
     def test_extra_fields_forbidden(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import ContactIdentity
+        from luana_core_crm.api.dto.contacts import ContactIdentity
 
         with pytest.raises(ValidationError):
             ContactIdentity(
@@ -229,7 +229,7 @@ class TestContactIdentity:
     def test_missing_required_field_raises(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import ContactIdentity
+        from luana_core_crm.api.dto.contacts import ContactIdentity
 
         with pytest.raises(ValidationError):
             ContactIdentity(
@@ -249,7 +249,7 @@ class TestContactDetail:
     """ContactDetail DTO validation and serialization."""
 
     def test_valid_construction(self):
-        from src.modules.crm.api.dto.contacts import ContactDetail
+        from luana_core_crm.api.dto.contacts import ContactDetail
 
         data = _make_contact_detail_data()
         detail = ContactDetail(**data)
@@ -260,7 +260,7 @@ class TestContactDetail:
         assert len(detail.identities) == 0
 
     def test_with_identities(self):
-        from src.modules.crm.api.dto.contacts import ContactDetail, ContactIdentity
+        from luana_core_crm.api.dto.contacts import ContactDetail, ContactIdentity
 
         identities = [
             ContactIdentity(
@@ -286,7 +286,7 @@ class TestContactDetail:
         assert detail.identities[1].type == "whatsapp"
 
     def test_none_optional_lead_fields(self):
-        from src.modules.crm.api.dto.contacts import ContactDetail
+        from luana_core_crm.api.dto.contacts import ContactDetail
 
         data = _make_contact_detail_data(
             lead_id=None,
@@ -311,7 +311,7 @@ class TestContactDetail:
     def test_extra_fields_forbidden(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import ContactDetail
+        from luana_core_crm.api.dto.contacts import ContactDetail
 
         data = _make_contact_detail_data(extra="nope")
 
@@ -319,7 +319,7 @@ class TestContactDetail:
             ContactDetail(**data)
 
     def test_model_dump_serialization(self):
-        from src.modules.crm.api.dto.contacts import ContactDetail
+        from luana_core_crm.api.dto.contacts import ContactDetail
 
         data = _make_contact_detail_data()
         detail = ContactDetail(**data)
@@ -330,7 +330,7 @@ class TestContactDetail:
         assert dumped["computed_traits"] == {"engagement": "high"}
 
     def test_updated_at_none(self):
-        from src.modules.crm.api.dto.contacts import ContactDetail
+        from luana_core_crm.api.dto.contacts import ContactDetail
 
         data = _make_contact_detail_data(updated_at=None)
         detail = ContactDetail(**data)
@@ -347,7 +347,7 @@ class TestDeferredEndpointResponse:
     """DeferredEndpointResponse for 501 deferred endpoints."""
 
     def test_valid_construction(self):
-        from src.modules.crm.api.dto.contacts import DeferredEndpointResponse
+        from luana_core_crm.api.dto.contacts import DeferredEndpointResponse
 
         resp = DeferredEndpointResponse(
             detail="Endpoint deferred to PI-3",
@@ -363,7 +363,7 @@ class TestDeferredEndpointResponse:
     def test_extra_fields_forbidden(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import DeferredEndpointResponse
+        from luana_core_crm.api.dto.contacts import DeferredEndpointResponse
 
         with pytest.raises(ValidationError):
             DeferredEndpointResponse(
@@ -377,7 +377,7 @@ class TestDeferredEndpointResponse:
     def test_missing_required_field_raises(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import DeferredEndpointResponse
+        from luana_core_crm.api.dto.contacts import DeferredEndpointResponse
 
         with pytest.raises(ValidationError):
             DeferredEndpointResponse(
@@ -396,7 +396,7 @@ class TestFilterFieldMeta:
     """FilterFieldMeta for dynamic filter UI construction."""
 
     def test_valid_construction(self):
-        from src.modules.crm.api.dto.contacts import FilterFieldMeta
+        from luana_core_crm.api.dto.contacts import FilterFieldMeta
 
         meta = FilterFieldMeta(
             name="lifecycle_stage_in",
@@ -410,7 +410,7 @@ class TestFilterFieldMeta:
         assert len(meta.enum_values) == 3
 
     def test_none_enum_values(self):
-        from src.modules.crm.api.dto.contacts import FilterFieldMeta
+        from luana_core_crm.api.dto.contacts import FilterFieldMeta
 
         meta = FilterFieldMeta(
             name="q",
@@ -422,7 +422,7 @@ class TestFilterFieldMeta:
         assert meta.enum_values is None
 
     def test_none_description(self):
-        from src.modules.crm.api.dto.contacts import FilterFieldMeta
+        from luana_core_crm.api.dto.contacts import FilterFieldMeta
 
         meta = FilterFieldMeta(
             name="score_min",
@@ -436,7 +436,7 @@ class TestFilterFieldMeta:
     def test_extra_fields_forbidden(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import FilterFieldMeta
+        from luana_core_crm.api.dto.contacts import FilterFieldMeta
 
         with pytest.raises(ValidationError):
             FilterFieldMeta(
@@ -457,7 +457,7 @@ class TestFilterSchemaResponse:
     """FilterSchemaResponse for filter metadata endpoint."""
 
     def test_valid_construction(self):
-        from src.modules.crm.api.dto.contacts import FilterFieldMeta, FilterSchemaResponse
+        from luana_core_crm.api.dto.contacts import FilterFieldMeta, FilterSchemaResponse
 
         fields = [
             FilterFieldMeta(name="q", type="string", enum_values=None, description="Search"),
@@ -469,7 +469,7 @@ class TestFilterSchemaResponse:
         assert len(resp.fields) == 2
 
     def test_empty_fields_list(self):
-        from src.modules.crm.api.dto.contacts import FilterSchemaResponse
+        from luana_core_crm.api.dto.contacts import FilterSchemaResponse
 
         resp = FilterSchemaResponse(version="2.0", fields=[])
 
@@ -479,7 +479,7 @@ class TestFilterSchemaResponse:
     def test_extra_fields_forbidden(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contacts import FilterSchemaResponse
+        from luana_core_crm.api.dto.contacts import FilterSchemaResponse
 
         with pytest.raises(ValidationError):
             FilterSchemaResponse(version="1.0", fields=[], extra="nope")
@@ -494,7 +494,7 @@ class TestContactFilterParams:
     """ContactFilterParams validation — all fields default to None."""
 
     def test_all_defaults_none(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams()
 
@@ -518,7 +518,7 @@ class TestContactFilterParams:
         assert params.q is None
 
     def test_lifecycle_stage_filter(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams(
             lifecycle_stage_in=[LifecycleStage.LEAD, LifecycleStage.MQL],
@@ -527,7 +527,7 @@ class TestContactFilterParams:
         assert params.lifecycle_stage_in == [LifecycleStage.LEAD, LifecycleStage.MQL]
 
     def test_score_range_validation_valid(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams(score_min=10, score_max=90)
 
@@ -537,7 +537,7 @@ class TestContactFilterParams:
     def test_score_min_below_zero_raises(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         with pytest.raises(ValidationError):
             ContactFilterParams(score_min=-1)
@@ -545,20 +545,20 @@ class TestContactFilterParams:
     def test_score_max_above_100_raises(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         with pytest.raises(ValidationError):
             ContactFilterParams(score_max=101)
 
     def test_source_filter(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams(source_in=["google", "facebook", "organic"])
 
         assert params.source_in == ["google", "facebook", "organic"]
 
     def test_identity_presence_filters(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams(
             has_email=True,
@@ -575,7 +575,7 @@ class TestContactFilterParams:
         assert params.has_whatsapp_id is True
 
     def test_temporal_filters(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         after = datetime(2024, 1, 1, tzinfo=timezone.utc)
         before = datetime(2024, 12, 31, tzinfo=timezone.utc)
@@ -591,7 +591,7 @@ class TestContactFilterParams:
         assert params.created_before == before
 
     def test_is_inactive_filter(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params_active = ContactFilterParams(is_inactive=False)
         params_inactive = ContactFilterParams(is_inactive=True)
@@ -600,28 +600,28 @@ class TestContactFilterParams:
         assert params_inactive.is_inactive is True
 
     def test_campaign_engagement_filter(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams(has_campaign_engagement=True)
 
         assert params.has_campaign_engagement is True
 
     def test_country_filter(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams(country_in=["mx", "pe", "co"])
 
         assert params.country_in == ["mx", "pe", "co"]
 
     def test_search_query_valid(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams(q="john doe")
 
         assert params.q == "john doe"
 
     def test_search_query_max_length(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         long_q = "a" * 120
         params = ContactFilterParams(q=long_q)
@@ -631,7 +631,7 @@ class TestContactFilterParams:
     def test_search_query_exceeds_max_length_raises(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         with pytest.raises(ValidationError):
             ContactFilterParams(q="a" * 121)
@@ -639,13 +639,13 @@ class TestContactFilterParams:
     def test_extra_fields_forbidden(self):
         from pydantic import ValidationError
 
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         with pytest.raises(ValidationError):
             ContactFilterParams(q="test", extra_field="nope")
 
     def test_combined_filters(self):
-        from src.modules.crm.api.dto.contact_filters import ContactFilterParams
+        from luana_core_crm.api.dto.contact_filters import ContactFilterParams
 
         params = ContactFilterParams(
             lifecycle_stage_in=[LifecycleStage.CUSTOMER],

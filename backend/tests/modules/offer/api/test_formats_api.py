@@ -16,9 +16,9 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.offer.api.formats import router
-from src.modules.offer.domain.enums import OfferArchetype
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_offer_studio.api.formats import router
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 
 def _client() -> TestClient:

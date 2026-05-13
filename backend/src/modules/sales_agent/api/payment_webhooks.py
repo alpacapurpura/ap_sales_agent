@@ -34,23 +34,22 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.sales_agent.application.tools.payment.webhook_providers import (
+from luana_core_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.events import PaymentReceivedEvent
+from luana_core_sales_agent.application.tools.payment.webhook_providers import (
     ParsedPaymentWebhookEvent,
     PaymentWebhookEventType,
     webhook_provider_for,
 )
-from src.modules.sales_agent.infrastructure.models.payment_webhook_event_model import (
+from luana_core_sales_agent.infrastructure.models.payment_webhook_event_model import (
     PaymentWebhookEventModel,
 )
-from src.shared.domain.events import PaymentReceivedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
-    adapter_bus as EventBus,  # noqa: N812
-)
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 
@@ -139,7 +138,7 @@ def _resolve_signing_secret(
 
     if tenant_id is not None:
         with contextlib.suppress(Exception):
-            from src.shared.links.ports.payment_connection import (
+            from luana_core_platform.links.ports.payment_connection import (
                 get_payment_webhook_secret,
             )
 
@@ -192,11 +191,10 @@ def _dispatch(parsed: ParsedPaymentWebhookEvent, db: Session) -> None:
 
         if parsed.external_payment_id:
             try:
-                from sqlalchemy import select
-
-                from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+                from luana_core_sales_agent.infrastructure.models.payment_link_model import (
                     PaymentLinkModel,
                 )
+                from sqlalchemy import select
 
                 link = db.execute(
                     select(PaymentLinkModel).where(

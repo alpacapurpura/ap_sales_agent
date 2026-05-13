@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.shared.agent_observability.channels.intent_detector import (
+from luana_core_channels.intent_detector import (
     ChannelIntent,
     detect_channel_intent,
 )
@@ -186,7 +186,7 @@ class TestChannelIntentBackwardsCompat:
         ],
     )
     def test_legacy_string_api(self, msg: str, expected: str | None) -> None:
-        from src.modules.copilot.application.orchestrator.output_sanitizer import (
+        from luana_core_copilot.application.orchestrator.output_sanitizer import (
             detect_channel_in_user_msg,
         )
 

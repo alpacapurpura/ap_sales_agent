@@ -14,13 +14,12 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 import structlog
+from luana_core_llm.domain.role_binding import LLMRoleBinding
+from luana_core_llm.infrastructure.audit_model import LLMConfigAuditModel
+from luana_core_llm.infrastructure.role_binding_model import LLMRoleBindingModel
+from luana_core_platform.core.enums import AIProvider, ModelRole
+from luana_core_platform.domain.datetime_utils import utc_now
 from sqlalchemy import select, update
-
-from src.core.enums import AIProvider, ModelRole
-from src.shared.domain.datetime_utils import utc_now
-from src.shared.infrastructure.llm.domain.role_binding import LLMRoleBinding
-from src.shared.infrastructure.llm.infrastructure.audit_model import LLMConfigAuditModel
-from src.shared.infrastructure.llm.infrastructure.role_binding_model import LLMRoleBindingModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

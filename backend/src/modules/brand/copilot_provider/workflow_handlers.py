@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from src.modules.copilot.domain.workflow import NodeOutput
+from luana_core_copilot.domain.workflow import NodeOutput
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

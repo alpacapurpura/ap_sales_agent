@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 @pytest.fixture(autouse=True)
 def _reset_cache() -> Iterator[None]:
     """Purge cost-recorder cache before AND after each test (function scope)."""
-    from src.shared.agent_observability.recording import cost_recorder
+    from luana_core_observability.recording import cost_recorder
 
     cost_recorder._cache.clear()
     yield
@@ -95,7 +95,7 @@ def _build_response(
 
 def _build_handler(resolver: Any, fx: Any) -> Any:
     """Construct a minimal subclass that captures persistence calls."""
-    from src.shared.agent_observability.recording.base_callback_handler import (
+    from luana_core_observability.recording.base_callback_handler import (
         BaseAgentCallbackHandler,
     )
 
@@ -134,7 +134,7 @@ def _start_and_end(handler: Any, *, model: str, run_id: UUID, response: Any) -> 
 
 def test_cost_recorder_module_exists() -> None:
     """The new module must export ``CostRecorderCustomLogger`` and ``pop_cost``."""
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
         pop_cost,
     )
@@ -146,14 +146,14 @@ def test_cost_recorder_module_exists() -> None:
 
 
 def test_pop_cost_returns_none_on_miss() -> None:
-    from src.shared.agent_observability.recording.cost_recorder import pop_cost
+    from luana_core_observability.recording.cost_recorder import pop_cost
 
     assert pop_cost("nonexistent-id") is None
 
 
 def test_log_success_event_stashes_decimal() -> None:
     """LiteLLM kwargs[response_cost] (float) → Decimal in cache, ``pop_cost`` retrieves once."""
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
         pop_cost,
     )
@@ -175,7 +175,7 @@ def test_log_success_event_stashes_decimal() -> None:
 
 def test_log_success_event_handles_missing_response_cost() -> None:
     """LiteLLM may emit kwargs without 'response_cost' (e.g. unknown model). Stash None."""
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
         pop_cost,
     )
@@ -193,7 +193,7 @@ def test_log_success_event_handles_missing_response_cost() -> None:
 
 def test_canonical_provider_and_cost_from_kwargs(fake_pricing_resolver: Any, fake_fx_resolver: Any) -> None:
     """A1 happy — DeepSeek turn → row provider='deepseek' + cost_usd > 0 (from kwargs)."""
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
     )
 
@@ -251,7 +251,7 @@ def test_unknown_model_records_unknown_provider_and_null_cost(
 
 def test_calculate_cost_not_called_in_runtime_path(fake_pricing_resolver: Any, fake_fx_resolver: Any) -> None:
     """A4 (X2) — calculate_cost() removed from BaseAgentCallbackHandler runtime path."""
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
     )
 
@@ -268,7 +268,7 @@ def test_calculate_cost_not_called_in_runtime_path(fake_pricing_resolver: Any, f
         end_time=0.5,
     )
 
-    with patch("src.shared.agent_observability.recording.base_callback_handler.calculate_cost") as mock_calc:
+    with patch("luana_core_observability.recording.base_callback_handler.calculate_cost") as mock_calc:
         _start_and_end(handler, model="deepseek/deepseek-v4-flash", run_id=run_id, response=response)
         assert mock_calc.call_count == 0, (
             "calculate_cost() must NOT be called from runtime path post-T1 (X2). "
@@ -278,7 +278,7 @@ def test_calculate_cost_not_called_in_runtime_path(fake_pricing_resolver: Any, f
 
 def test_cost_recorder_cache_hit_under_real_litellm_call(fake_pricing_resolver: Any, fake_fx_resolver: Any) -> None:
     """A5 — bridge LangChain↔LiteLLM end-to-end via mocked litellm.completion."""
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
     )
 
@@ -311,7 +311,7 @@ def test_runtime_cost_independent_of_snapshot_during_sync(
     fake_fx_resolver: Any,
 ) -> None:
     """Scenario 3 — runtime cost from kwargs, NOT from PricingResolver snapshot."""
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
     )
 
@@ -375,8 +375,8 @@ def test_all_recorded_calls_pass_through_litellm(fake_pricing_resolver: Any, fak
 
 def test_cost_recorder_orphan_entry_warning(caplog: pytest.LogCaptureFixture) -> None:
     """TTL purge — cache entries older than 60s emit warning when purged."""
-    from src.shared.agent_observability.recording import cost_recorder
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording import cost_recorder
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
         pop_cost,
     )
@@ -401,7 +401,7 @@ def test_cost_recorder_orphan_entry_warning(caplog: pytest.LogCaptureFixture) ->
 
 def test_callback_p95_under_50ms(fake_pricing_resolver: Any, fake_fx_resolver: Any) -> None:
     """A3 NFR — p95 latency on_llm_end < 50ms on cache-hit path (n=20 rounds)."""
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
     )
 
@@ -447,7 +447,7 @@ def test_bootstrap_registers_cost_recorder_callback() -> None:
     """
     import litellm
 
-    from src.shared.agent_observability.recording.cost_recorder import (
+    from luana_core_observability.recording.cost_recorder import (
         CostRecorderCustomLogger,
         register_cost_recorder,
     )

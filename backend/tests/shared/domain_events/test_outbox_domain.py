@@ -10,8 +10,8 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.shared.domain_events.outbox.domain.event import DomainEvent
-from src.shared.domain_events.outbox.domain.outbox_entry import OutboxEntry, OutboxStatus
+from luana_core_events.outbox.domain.event import DomainEvent
+from luana_core_events.outbox.domain.outbox_entry import OutboxEntry, OutboxStatus
 
 
 class TestOutboxEntryFromEvent:

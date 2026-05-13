@@ -20,13 +20,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     FulfillmentType,
     OfferArchetype,
     OfferDeliveryModel,
     VariantStructure,
 )
-from src.modules.offer.domain.section_catalog import SectionKey
+from luana_core_offer_studio.domain.section_catalog import SectionKey
 
 
 @dataclass(frozen=True, slots=True)

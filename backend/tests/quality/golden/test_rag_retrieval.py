@@ -22,19 +22,19 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.application.observability.judge import (
+from luana_core_copilot.application.observability.judge import (
     DEFAULT_THRESHOLD,
     CopilotJudge,
 )
-from src.modules.copilot.application.observability.rag_goldens import (
+from luana_core_copilot.application.observability.rag_goldens import (
     METHODOLOGY_LABEL as _METHODOLOGY_LABEL,
 )
-from src.modules.copilot.application.observability.rag_goldens import (
+from luana_core_copilot.application.observability.rag_goldens import (
     RAG_DIMENSIONS,
     RAG_GOLDENS,
     RagGolden,
 )
-from src.modules.copilot.application.tools.knowledge_search import (
+from luana_core_copilot.application.tools.knowledge_search import (
     knowledge_search_impl,
 )
 

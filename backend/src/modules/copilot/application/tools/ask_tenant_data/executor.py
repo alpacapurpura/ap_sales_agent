@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from src.modules.copilot.domain.ports import (
+    from luana_core_copilot.domain.ports import (
         DataAccessProvider,
         DataQueryPlan,
         DataQueryResult,

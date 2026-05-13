@@ -12,8 +12,7 @@ import json
 
 import structlog
 from langchain_core.tools import tool
-
-from src.modules.copilot.infrastructure.web.tavily_search import TavilySearchService
+from luana_core_copilot.infrastructure.web.tavily_search import TavilySearchService
 
 logger = structlog.get_logger()
 

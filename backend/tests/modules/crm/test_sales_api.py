@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from src.modules.crm.domain.enums import SaleStage, SaleStatus
+from luana_core_crm.domain.enums import SaleStage, SaleStatus
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -51,7 +51,7 @@ def _get_fake_user() -> _FakeUser:
 async def client() -> AsyncClient:  # type: ignore[override]
     """AsyncClient pointed at the FastAPI app with auth overridden."""
     from src.main import app
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     app.dependency_overrides[get_current_user] = _get_fake_user
 
@@ -116,18 +116,18 @@ class TestCreateSale:
     @pytest.mark.asyncio
     async def test_create_sale_success(self, client: AsyncClient) -> None:
         """Valid body → 201 + SaleResponse."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_sale = _make_sale_model()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.sale_service.SaleService.create_sale",
+                "luana_core_crm.application.services.sale_service.SaleService.create_sale",
                 return_value=mock_sale,
             ),
         ):
@@ -155,18 +155,18 @@ class TestCreateSale:
     @pytest.mark.asyncio
     async def test_create_sale_with_optional_fields(self, client: AsyncClient) -> None:
         """Include transaction_id, source, metadata → persisted."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_sale = _make_sale_model(transaction_id="txn-custom", source="api")
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.sale_service.SaleService.create_sale",
+                "luana_core_crm.application.services.sale_service.SaleService.create_sale",
                 return_value=mock_sale,
             ),
         ):
@@ -212,7 +212,7 @@ class TestGetTicker:
     @pytest.mark.asyncio
     async def test_ticker_default_range(self, client: AsyncClient) -> None:
         """Default 30d range → returns ticker items."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -220,11 +220,11 @@ class TestGetTicker:
         mock_customer = _make_customer_model()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.infrastructure.repositories.sale_repository.SaleRepository.get_sales_by_date_range",
+                "luana_core_crm.infrastructure.repositories.sale_repository.SaleRepository.get_sales_by_date_range",
                 return_value=[mock_sale],
             ),
         ):
@@ -246,17 +246,17 @@ class TestGetTicker:
     @pytest.mark.asyncio
     async def test_ticker_today_range(self, client: AsyncClient) -> None:
         """range=today → returns today's sales."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.infrastructure.repositories.sale_repository.SaleRepository.get_sales_by_date_range",
+                "luana_core_crm.infrastructure.repositories.sale_repository.SaleRepository.get_sales_by_date_range",
                 return_value=[],
             ),
         ):
@@ -273,17 +273,17 @@ class TestGetTicker:
     @pytest.mark.asyncio
     async def test_ticker_all_range(self, client: AsyncClient) -> None:
         """range=all → returns all sales."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.infrastructure.repositories.sale_repository.SaleRepository.get_sales_by_date_range",
+                "luana_core_crm.infrastructure.repositories.sale_repository.SaleRepository.get_sales_by_date_range",
                 return_value=[],
             ),
         ):
@@ -300,17 +300,17 @@ class TestGetTicker:
     @pytest.mark.asyncio
     async def test_ticker_week_range(self, client: AsyncClient) -> None:
         """range=week → returns this week's sales."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.infrastructure.repositories.sale_repository.SaleRepository.get_sales_by_date_range",
+                "luana_core_crm.infrastructure.repositories.sale_repository.SaleRepository.get_sales_by_date_range",
                 return_value=[],
             ),
         ):

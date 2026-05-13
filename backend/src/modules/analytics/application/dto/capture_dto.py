@@ -4,12 +4,11 @@ Reuses TrafficGroupDTO and AvailableChannelsDTO from attraction_dto
 to maintain a consistent API shape across stages.
 """
 
-from pydantic import BaseModel
-
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     AvailableChannelsDTO,
     TrafficGroupDTO,
 )
+from pydantic import BaseModel
 
 
 class CaptureHeaderKpisDTO(BaseModel):

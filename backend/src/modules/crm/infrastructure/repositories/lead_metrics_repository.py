@@ -2,16 +2,15 @@
 
 import uuid
 
-from sqlalchemy import desc, func, or_, select
-from sqlalchemy.orm import joinedload
-
-from src.core.base_repository import BaseRepository
-from src.core.context import get_tenant_id
-from src.modules.crm.domain.lead import Lead
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.lead import Lead
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerProfileModel as CustomerProfile,
 )
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
+from luana_core_crm.infrastructure.models.lead_model import LeadModel
+from luana_core_platform.core.base_repository import BaseRepository
+from luana_core_platform.core.context import get_tenant_id
+from sqlalchemy import desc, func, or_, select
+from sqlalchemy.orm import joinedload
 
 # Maps channel name to the LeadModel attribute that stores channel-specific IDs
 _CHANNEL_ATTR_MAP: dict[str, str] = {

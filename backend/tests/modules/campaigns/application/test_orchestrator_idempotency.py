@@ -13,14 +13,14 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.campaigns.application.services.orchestrator import (
+from luana_core_campaigns.application.services.orchestrator import (
     CampaignOrchestrator,
     OrchestratorLaunchResult,
 )
-from src.modules.campaigns.domain.campaign import Campaign
-from src.modules.campaigns.domain.campaign_step import CampaignStep
-from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType, StepType
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_campaigns.domain.campaign import Campaign
+from luana_core_campaigns.domain.campaign_step import CampaignStep
+from luana_core_campaigns.domain.enums import CampaignStatus, CampaignType, StepType
+from luana_core_platform.domain.datetime_utils import utc_now
 
 pytestmark = pytest.mark.asyncio
 
@@ -127,7 +127,7 @@ class TestOrchestratorIdempotency:
         session = AsyncMock()
 
         with patch(
-            "src.shared.idempotency.application.decorator._default_store_factory",
+            "luana_core_idempotency.application.decorator._default_store_factory",
             new=lambda: store_mock,
         ):
             # First launch
@@ -175,7 +175,7 @@ class TestOrchestratorIdempotency:
         session = AsyncMock()
 
         with patch(
-            "src.shared.idempotency.application.decorator._default_store_factory",
+            "luana_core_idempotency.application.decorator._default_store_factory",
             new=lambda: store_mock,
         ):
             # First launch
@@ -218,7 +218,7 @@ class TestOrchestratorIdempotency:
         session = AsyncMock()
 
         with patch(
-            "src.shared.idempotency.application.decorator._default_store_factory",
+            "luana_core_idempotency.application.decorator._default_store_factory",
             new=lambda: store_mock,
         ):
             result = await orch.launch(

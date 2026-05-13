@@ -3,8 +3,7 @@
 from typing import Any
 
 import httpx
-
-from src.shared.domain.messages import IncomingMessage
+from luana_core_platform.domain.messages import IncomingMessage
 
 from .base import BaseEvolutionApi
 

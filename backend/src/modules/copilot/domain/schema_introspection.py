@@ -15,13 +15,12 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import get_args, get_origin
 
-from pydantic import BaseModel
-
-from src.shared.links.ports.editable_fields import (
+from luana_core_platform.links.ports.editable_fields import (
     FieldSpec,
     get_catalog,
     get_registered_domains,
 )
+from pydantic import BaseModel
 
 
 @dataclass
@@ -251,7 +250,7 @@ def _build_brand_paths() -> set[str]:
     ``narrative``, ``visuals``…) — preservando la validación legacy
     que ``get_model_sections(BrandSettings)`` permitía.
     """
-    from src.shared.domain.field_contract import get_module_contracts
+    from luana_core_platform.domain.field_contract import get_module_contracts
 
     contracts = get_module_contracts("brand")
     paths: set[str] = {c.path for c in contracts}
@@ -266,7 +265,7 @@ def _build_offer_paths() -> set[str]:
     matemáticamente a ``PERSISTABLE_FIELDS`` (que también deriva del
     mismo registry) pero sin la indirección — un único origen de verdad.
     """
-    from src.shared.domain.field_contract import (
+    from luana_core_platform.domain.field_contract import (
         FieldStatus,
         get_module_contracts,
     )
@@ -282,7 +281,7 @@ def _build_buyer_persona_paths() -> set[str]:
     en el set — la validación del bare name acepta dot-notation con
     prefix match (ver :data:`_DOMAIN_DICT_PARENTS`).
     """
-    from src.shared.domain.field_contract import get_module_contracts
+    from luana_core_platform.domain.field_contract import get_module_contracts
 
     return {c.path for c in get_module_contracts("buyer_persona")}
 
@@ -293,7 +292,7 @@ def _build_buyer_persona_dict_parents() -> set[str]:
     Lazy import (avoid circular: copilot -> brand) and runtime call so the
     set stays in sync if a sub-key parent is added in the registry.
     """
-    from src.modules.brand.domain.buyer_persona_field_contract import (
+    from luana_core_brand_studio.domain.buyer_persona_field_contract import (
         BUYER_PERSONA_DICT_SUBKEYS,
     )
 

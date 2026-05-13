@@ -12,7 +12,7 @@ class TestRetentionTaskRunner:
     @pytest.mark.asyncio
     async def test_invokes_delete_per_agent_table(self, monkeypatch) -> None:
         """One DELETE per (agent, table). With 2 registered agents that's 4 DELETEs."""
-        from src.shared.agent_observability.workers import retention_task
+        from luana_core_observability.workers import retention_task
 
         executed: list[tuple[str, dict]] = []
 
@@ -66,7 +66,7 @@ class TestRetentionTaskRunner:
         copilot and sales_agent respect their overrides — campaign rows are
         also present but use default retention (no env vars set here).
         """
-        from src.shared.agent_observability.workers import retention_task
+        from luana_core_observability.workers import retention_task
 
         # Track (agent_kind, table_kind, cutoff) from stmts + params.
         captured_stmts: list[tuple[str, dict]] = []
@@ -120,7 +120,7 @@ class TestRetentionTaskRunner:
     @pytest.mark.asyncio
     async def test_swallows_exceptions_per_table(self, monkeypatch) -> None:
         """Failure on one table is logged, other tables continue."""
-        from src.shared.agent_observability.workers import retention_task
+        from luana_core_observability.workers import retention_task
 
         class _BoomSession:
             def __init__(self) -> None:
@@ -156,7 +156,7 @@ class TestPreservesErrors:
     @pytest.mark.asyncio
     async def test_trace_event_delete_preserves_errors(self, monkeypatch) -> None:
         """trace_event deletion must NOT touch rows where status='error'."""
-        from src.shared.agent_observability.workers import retention_task
+        from luana_core_observability.workers import retention_task
 
         captured: list[str] = []
 
@@ -186,7 +186,7 @@ class TestPreservesErrors:
 
 class TestSchedulerRegistration:
     def test_task_listed_in_settings(self) -> None:
-        from src.shared.agent_observability.workers.retention_task import (
+        from luana_core_observability.workers.retention_task import (
             purge_expired_trace_rows,
         )
         from src.workers.settings import SchedulerSettings, WorkerSettings
@@ -195,7 +195,7 @@ class TestSchedulerRegistration:
         assert purge_expired_trace_rows in SchedulerSettings.functions
 
     def test_cron_job_present(self) -> None:
-        from src.shared.agent_observability.workers.retention_task import (
+        from luana_core_observability.workers.retention_task import (
             purge_expired_trace_rows,
         )
         from src.workers.settings import SchedulerSettings

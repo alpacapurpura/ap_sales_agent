@@ -18,9 +18,9 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.modules.campaigns.domain.campaign_template import CampaignTemplate
-from src.modules.campaigns.domain.repositories import CampaignTemplateRepository
-from src.modules.campaigns.infrastructure.models.campaign_template_model import (
+from luana_core_campaigns.domain.campaign_template import CampaignTemplate
+from luana_core_campaigns.domain.repositories import CampaignTemplateRepository
+from luana_core_campaigns.infrastructure.models.campaign_template_model import (
     CampaignTemplateModel,
 )
 

@@ -3,12 +3,11 @@
 import re
 
 import structlog
+from luana_core_llm.factory import LLMFactory
+from luana_core_platform.core.database import SessionLocal
+from luana_core_sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
+from luana_core_sales_agent.infrastructure.prompts.base import prompt_loader
 from sqlalchemy.orm import Session
-
-from src.core.database import SessionLocal
-from src.modules.sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
-from src.shared.infrastructure.llm.factory import LLMFactory
 
 logger = structlog.get_logger()
 

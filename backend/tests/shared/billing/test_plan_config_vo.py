@@ -14,7 +14,7 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from src.shared.billing.domain.plan import PlanConfig
+from luana_core_billing.domain.plan import PlanConfig
 
 
 def _basic_plan(**overrides) -> PlanConfig:

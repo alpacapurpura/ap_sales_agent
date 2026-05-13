@@ -35,7 +35,7 @@ class CampaignReadAdapter:
 
         Returns None if campaign not found or not owned by tenant.
         """
-        from src.modules.campaigns.infrastructure.repositories.campaign_repository_impl import (
+        from luana_core_campaigns.infrastructure.repositories.campaign_repository_impl import (
             CampaignRepositoryImpl,
         )
 

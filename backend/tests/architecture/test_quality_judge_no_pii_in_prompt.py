@@ -35,9 +35,11 @@ def test_judge_module_exists() -> None:
 
 def test_judge_imports_sanitize_payload_from_shared() -> None:
     src = JUDGE.read_text(encoding="utf-8")
-    assert "from src.shared.agent_observability.recording.sanitization import" in src, (
-        "judge.py debe importar sanitize_payload del SSoT shared."
-    )
+    # Accept both legacy src.shared path (pre-luana migration) and new luana_core_observability path.
+    assert (
+        "from src.shared.agent_observability.recording.sanitization import" in src
+        or "from luana_core_observability.recording.sanitization import" in src
+    ), "judge.py debe importar sanitize_payload del SSoT shared (src.shared o luana_core_observability)."
     assert "sanitize_payload" in src, "sanitize_payload debe usarse en judge.py."
 
 

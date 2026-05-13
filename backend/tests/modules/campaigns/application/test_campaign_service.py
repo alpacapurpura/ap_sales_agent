@@ -15,16 +15,16 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.campaigns.application.dtos.campaign_dtos import (
+from luana_core_campaigns.application.dtos.campaign_dtos import (
     CampaignCreate,
     CampaignUpdate,
 )
-from src.modules.campaigns.application.dtos.campaign_step_dtos import (
+from luana_core_campaigns.application.dtos.campaign_step_dtos import (
     CampaignStepCreate,
     CampaignStepUpdate,
 )
-from src.modules.campaigns.application.services.cache import SimpleTTLCache
-from src.modules.campaigns.application.services.campaign_service import (
+from luana_core_campaigns.application.services.cache import SimpleTTLCache
+from luana_core_campaigns.application.services.campaign_service import (
     CampaignDuplicateNameError,
     CampaignInvalidTransitionError,
     CampaignNotEditableError,
@@ -33,14 +33,14 @@ from src.modules.campaigns.application.services.campaign_service import (
     CampaignService,
     CampaignServiceError,
 )
-from src.modules.campaigns.domain.campaign import Campaign
-from src.modules.campaigns.domain.campaign_step import CampaignStep
-from src.modules.campaigns.domain.enums import (
+from luana_core_campaigns.domain.campaign import Campaign
+from luana_core_campaigns.domain.campaign_step import CampaignStep
+from luana_core_campaigns.domain.enums import (
     CampaignStatus,
     CampaignType,
     StepType,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 pytestmark = pytest.mark.asyncio
 
@@ -301,7 +301,7 @@ class TestCampaignServiceFSM:
         svc, *_ = _make_service(campaign=c)
         session = AsyncMock()
 
-        from src.modules.campaigns.application.services.campaign_service import (
+        from luana_core_campaigns.application.services.campaign_service import (
             CampaignInvariantError,
         )
 
@@ -315,7 +315,7 @@ class TestCampaignServiceFSM:
         svc, *_ = _make_service(campaign=c)
         session = AsyncMock()
 
-        from src.modules.campaigns.application.services.campaign_service import (
+        from luana_core_campaigns.application.services.campaign_service import (
             CampaignInvariantError,
         )
 

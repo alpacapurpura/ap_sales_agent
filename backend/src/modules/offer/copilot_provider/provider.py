@@ -4,23 +4,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from src.modules.copilot.domain.ports import (
+from luana_core_copilot.domain.ports import (
     BaseCopilotProvider,
     DataAccessProvider,
     ModuleData,
     WorkflowProvider,
 )
-from src.modules.offer.copilot_provider.data_access import OfferDataAccessProvider
-from src.modules.offer.copilot_provider.workflows import OfferWorkflowProvider
+from luana_core_offer_studio.copilot_provider.data_access import OfferDataAccessProvider
+from luana_core_offer_studio.copilot_provider.workflows import OfferWorkflowProvider
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
+    from luana_core_offer_studio.infrastructure.repositories.offer_repository import OfferRepository
 
 
 def _offer_repo_factory(db: object) -> object:
-    from src.modules.offer.infrastructure.repositories.offer_repository import (
+    from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
         OfferRepository,
     )
 

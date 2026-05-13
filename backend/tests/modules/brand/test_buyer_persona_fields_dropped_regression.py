@@ -13,7 +13,7 @@ from __future__ import annotations
 
 def test_buyer_persona_entity_has_no_objections_field() -> None:
     """BuyerPersona Pydantic entity must not declare objections."""
-    from src.modules.brand.domain.buyer_persona import BuyerPersona
+    from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
 
     fields = BuyerPersona.model_fields
     assert "objections" not in fields
@@ -21,7 +21,7 @@ def test_buyer_persona_entity_has_no_objections_field() -> None:
 
 def test_buyer_persona_entity_has_no_preferred_channels_field() -> None:
     """BuyerPersona Pydantic entity must not declare preferred_channels."""
-    from src.modules.brand.domain.buyer_persona import BuyerPersona
+    from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
 
     fields = BuyerPersona.model_fields
     assert "preferred_channels" not in fields
@@ -34,7 +34,7 @@ def test_buyer_persona_entity_has_no_preferred_channels_field() -> None:
 
 def test_buyer_persona_model_has_no_objections_column() -> None:
     """The buyer_personas table must not have an objections column."""
-    from src.modules.brand.infrastructure.models.buyer_persona_model import (
+    from luana_core_brand_studio.infrastructure.models.buyer_persona_model import (
         BuyerPersonaModel,
     )
 
@@ -44,7 +44,7 @@ def test_buyer_persona_model_has_no_objections_column() -> None:
 
 def test_buyer_persona_model_has_no_preferred_channels_column() -> None:
     """The buyer_personas table must not have a preferred_channels column."""
-    from src.modules.brand.infrastructure.models.buyer_persona_model import (
+    from luana_core_brand_studio.infrastructure.models.buyer_persona_model import (
         BuyerPersonaModel,
     )
 
@@ -59,7 +59,7 @@ def test_buyer_persona_model_has_no_preferred_channels_column() -> None:
 
 def test_response_dto_excludes_objections() -> None:
     """BuyerPersonaResponseDTO must not expose objections."""
-    from src.modules.brand.api.dto.buyer_personas import BuyerPersonaResponseDTO
+    from luana_core_brand_studio.api.dto.buyer_personas import BuyerPersonaResponseDTO
 
     fields = BuyerPersonaResponseDTO.model_fields
     assert "objections" not in fields
@@ -67,7 +67,7 @@ def test_response_dto_excludes_objections() -> None:
 
 def test_response_dto_excludes_preferred_channels() -> None:
     """BuyerPersonaResponseDTO must not expose preferred_channels."""
-    from src.modules.brand.api.dto.buyer_personas import BuyerPersonaResponseDTO
+    from luana_core_brand_studio.api.dto.buyer_personas import BuyerPersonaResponseDTO
 
     fields = BuyerPersonaResponseDTO.model_fields
     assert "preferred_channels" not in fields
@@ -75,7 +75,7 @@ def test_response_dto_excludes_preferred_channels() -> None:
 
 def test_update_dto_excludes_objections() -> None:
     """BuyerPersonaSectionUpdateDTO must not accept objections."""
-    from src.modules.brand.api.dto.buyer_personas import BuyerPersonaSectionUpdateDTO
+    from luana_core_brand_studio.api.dto.buyer_personas import BuyerPersonaSectionUpdateDTO
 
     fields = BuyerPersonaSectionUpdateDTO.model_fields
     assert "objections" not in fields
@@ -83,7 +83,7 @@ def test_update_dto_excludes_objections() -> None:
 
 def test_update_dto_excludes_preferred_channels() -> None:
     """BuyerPersonaSectionUpdateDTO must not accept preferred_channels."""
-    from src.modules.brand.api.dto.buyer_personas import BuyerPersonaSectionUpdateDTO
+    from luana_core_brand_studio.api.dto.buyer_personas import BuyerPersonaSectionUpdateDTO
 
     fields = BuyerPersonaSectionUpdateDTO.model_fields
     assert "preferred_channels" not in fields
@@ -116,7 +116,7 @@ def test_completeness_denominator_is_seven() -> None:
 
 def test_field_contract_section_map_excludes_objections() -> None:
     """BUYER_PERSONA_SECTION_MAP must not map objections to any section."""
-    from src.modules.brand.domain.buyer_persona_field_contract import (
+    from luana_core_brand_studio.domain.buyer_persona_field_contract import (
         BUYER_PERSONA_SECTION_MAP,
     )
 
@@ -125,7 +125,7 @@ def test_field_contract_section_map_excludes_objections() -> None:
 
 def test_field_contract_section_map_excludes_preferred_channels() -> None:
     """BUYER_PERSONA_SECTION_MAP must not map preferred_channels to any section."""
-    from src.modules.brand.domain.buyer_persona_field_contract import (
+    from luana_core_brand_studio.domain.buyer_persona_field_contract import (
         BUYER_PERSONA_SECTION_MAP,
     )
 
@@ -134,7 +134,7 @@ def test_field_contract_section_map_excludes_preferred_channels() -> None:
 
 def test_field_contract_overrides_excludes_objections() -> None:
     """BUYER_PERSONA_FIELD_OVERRIDES must not carry an objections entry."""
-    from src.modules.brand.domain.buyer_persona_field_contract import (
+    from luana_core_brand_studio.domain.buyer_persona_field_contract import (
         BUYER_PERSONA_FIELD_OVERRIDES,
     )
 
@@ -143,7 +143,7 @@ def test_field_contract_overrides_excludes_objections() -> None:
 
 def test_field_contract_overrides_excludes_preferred_channels() -> None:
     """BUYER_PERSONA_FIELD_OVERRIDES must not carry a preferred_channels entry."""
-    from src.modules.brand.domain.buyer_persona_field_contract import (
+    from luana_core_brand_studio.domain.buyer_persona_field_contract import (
         BUYER_PERSONA_FIELD_OVERRIDES,
     )
 
@@ -157,7 +157,7 @@ def test_field_contract_overrides_excludes_preferred_channels() -> None:
 
 def test_copilot_persister_list_fields_excludes_objections() -> None:
     """BuyerPersonaPersister._LIST_FIELDS must not contain objections."""
-    from src.modules.copilot.infrastructure.persisters.buyer_persona_persister import (
+    from luana_core_copilot.infrastructure.persisters.buyer_persona_persister import (
         _LIST_FIELDS,
     )
 
@@ -166,7 +166,7 @@ def test_copilot_persister_list_fields_excludes_objections() -> None:
 
 def test_copilot_persister_list_fields_excludes_preferred_channels() -> None:
     """BuyerPersonaPersister._LIST_FIELDS must not contain preferred_channels."""
-    from src.modules.copilot.infrastructure.persisters.buyer_persona_persister import (
+    from luana_core_copilot.infrastructure.persisters.buyer_persona_persister import (
         _LIST_FIELDS,
     )
 
@@ -180,21 +180,21 @@ def test_copilot_persister_list_fields_excludes_preferred_channels() -> None:
 
 def test_field_paths_hint_buyer_persona_excludes_objections() -> None:
     """_LIST_PATHS['buyer_persona'] must not include objections after cleanup."""
-    from src.modules.copilot.domain.field_paths_hint import _LIST_PATHS
+    from luana_core_copilot.domain.field_paths_hint import _LIST_PATHS
 
     assert "objections" not in _LIST_PATHS.get("buyer_persona", set())
 
 
 def test_field_paths_hint_buyer_persona_excludes_preferred_channels() -> None:
     """_LIST_PATHS['buyer_persona'] must not include preferred_channels after cleanup."""
-    from src.modules.copilot.domain.field_paths_hint import _LIST_PATHS
+    from luana_core_copilot.domain.field_paths_hint import _LIST_PATHS
 
     assert "preferred_channels" not in _LIST_PATHS.get("buyer_persona", set())
 
 
 def test_offer_list_paths_objections_still_present() -> None:
     """offer.objections must remain in _LIST_PATHS (distinct field, NOT dropped)."""
-    from src.modules.copilot.domain.field_paths_hint import _LIST_PATHS
+    from luana_core_copilot.domain.field_paths_hint import _LIST_PATHS
 
     assert "objections" in _LIST_PATHS.get("offer", set())
 
@@ -206,8 +206,8 @@ def test_offer_list_paths_objections_still_present() -> None:
 
 def test_extraction_template_does_not_mention_objections_as_list_field() -> None:
     """After cleanup, the template rule-4 block must not describe objections."""
-    from src.modules.copilot.domain.field_paths_hint import build_field_paths_hint
-    from src.shared.infrastructure.prompts.base import prompt_loader
+    from luana_core_copilot.domain.field_paths_hint import build_field_paths_hint
+    from luana_core_platform.infrastructure.prompts.base import prompt_loader
 
     rendered = prompt_loader.render(
         "interview/buyer_persona_doc_extraction",
@@ -226,8 +226,8 @@ def test_extraction_template_does_not_mention_objections_as_list_field() -> None
 
 def test_extraction_template_does_not_mention_preferred_channels_as_list_field() -> None:
     """After cleanup, the template rule-4 block must not describe preferred_channels."""
-    from src.modules.copilot.domain.field_paths_hint import build_field_paths_hint
-    from src.shared.infrastructure.prompts.base import prompt_loader
+    from luana_core_copilot.domain.field_paths_hint import build_field_paths_hint
+    from luana_core_platform.infrastructure.prompts.base import prompt_loader
 
     rendered = prompt_loader.render(
         "interview/buyer_persona_doc_extraction",

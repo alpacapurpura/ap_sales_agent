@@ -14,7 +14,7 @@ import json
 import logging
 from typing import TYPE_CHECKING
 
-from src.modules.analytics.application.config import CacheConfig
+from luana_core_analytics_engine.application.config import CacheConfig
 
 if TYPE_CHECKING:
     from redis import Redis

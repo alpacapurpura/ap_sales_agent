@@ -15,7 +15,7 @@ def _run(coro):
 
 
 def _make_svc(cache=None, connection_port=None):
-    from src.modules.analytics.application.services.stage_services.capture_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.capture_stage import (
         CaptureStageService,
     )
 
@@ -30,7 +30,7 @@ def _make_svc(cache=None, connection_port=None):
 
 class TestMergeManyChat:
     def _ch(self, slug, name="Test"):
-        from src.modules.analytics.application.dto.attraction_dto import ChannelMetricDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import ChannelMetricDTO
 
         return ChannelMetricDTO(
             slug=slug, name=name, channel_type="messaging", metrics=[], source_label="Test", connected=True
@@ -61,7 +61,7 @@ class TestMergeManyChat:
     def test_mc_metrics_appended_to_meta_dto(self):
         """Lines 102-103: mc_dto metrics not in meta_dto are appended."""
         svc, _ = _make_svc()
-        from src.modules.analytics.application.dto.attraction_dto import (
+        from luana_core_analytics_engine.application.dto.attraction_dto import (
             ChannelMetricDTO,
             MetricValueDTO,
         )
@@ -86,7 +86,7 @@ class TestMergeManyChat:
 
     def test_duplicate_metrics_not_appended(self):
         svc, _ = _make_svc()
-        from src.modules.analytics.application.dto.attraction_dto import (
+        from luana_core_analytics_engine.application.dto.attraction_dto import (
             ChannelMetricDTO,
             MetricValueDTO,
         )
@@ -124,7 +124,7 @@ class TestBuildWebsiteCaptureDtoUnit:
             "source_label": "Website",
         }
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
             repo_instance.get_channel_metrics.return_value = {}
@@ -144,7 +144,7 @@ class TestBuildWebsiteCaptureDtoUnit:
             "source_label": "Website",
         }
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
 
@@ -171,7 +171,7 @@ class TestBuildWebsiteCaptureDtoUnit:
             "source_label": "Website",
         }
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
 
@@ -195,11 +195,11 @@ class TestSupplementManyChat:
     def test_new_metrics_appended(self):
         """Lines 196-207: body of _supplement_manychat_metrics."""
         svc, _db = _make_svc()
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
 
         metrics = [MetricValueDTO(name="leads", value=5.0)]
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
             repo_instance.get_channel_metrics.return_value = {"automation_flows": 10}
@@ -212,11 +212,11 @@ class TestSupplementManyChat:
 
     def test_existing_metric_not_duplicated(self):
         svc, _db = _make_svc()
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
 
         metrics = [MetricValueDTO(name="leads", value=5.0)]
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
             repo_instance.get_channel_metrics.return_value = {"leads": 8}  # already exists
@@ -229,11 +229,11 @@ class TestSupplementManyChat:
 
     def test_empty_mc_metrics_no_change(self):
         svc, _db = _make_svc()
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
 
         metrics = [MetricValueDTO(name="leads", value=5.0)]
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
             repo_instance.get_channel_metrics.return_value = {}
@@ -251,11 +251,11 @@ class TestSupplementMailerlite:
     def test_lead_count_zero_substitutes_new_subscribers(self):
         """Lines 229-231: lead_count=0 and ns>0 → replace leads metric."""
         svc, _db = _make_svc()
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
 
         metrics = [MetricValueDTO(name="leads", value=0.0)]
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
             repo_instance.get_channel_metrics.return_value = {"new_subscribers": 15}
@@ -271,11 +271,11 @@ class TestSupplementMailerlite:
 
     def test_lead_count_nonzero_keeps_existing(self):
         svc, _db = _make_svc()
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
 
         metrics = [MetricValueDTO(name="leads", value=5.0)]
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
             repo_instance.get_channel_metrics.return_value = {"new_subscribers": 15, "open_rate": 30.0}
@@ -292,11 +292,11 @@ class TestSupplementMailerlite:
     def test_new_subscribers_not_duplicated_in_metrics(self):
         """new_subscribers excluded from appended metrics (lines 232-235)."""
         svc, _db = _make_svc()
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
 
         metrics = [MetricValueDTO(name="leads", value=5.0)]
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
         ) as MockRepo:
             repo_instance = MagicMock()
             repo_instance.get_channel_metrics.return_value = {"new_subscribers": 15}
@@ -317,7 +317,7 @@ class TestGetMergedCosts:
     def test_empty_costs_returns_empty_dict(self):
         svc, _db = _make_svc()
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.CaptureCostService"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureCostService"
         ) as MockCost:
             cost_svc = MagicMock()
             cost_svc.get_channel_costs.return_value = {}
@@ -331,7 +331,7 @@ class TestGetMergedCosts:
         """Lines 251, 253: loop bodies execute when costs non-empty."""
         svc, _db = _make_svc()
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.CaptureCostService"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureCostService"
         ) as MockCost:
             cost_svc = MagicMock()
             cost_svc.get_channel_costs.return_value = {"ig-dm": 50.0, "meta-ads": 100.0}
@@ -347,7 +347,7 @@ class TestGetMergedCosts:
         """Line 253: prorated loop body executes."""
         svc, _db = _make_svc()
         with patch(
-            "src.modules.analytics.application.services.stage_services.capture_stage.CaptureCostService"
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureCostService"
         ) as MockCost:
             cost_svc = MagicMock()
             cost_svc.get_channel_costs.return_value = {}
@@ -378,7 +378,9 @@ class TestBuildCaptureChannelDtoProviders:
         svc, _db = _make_svc()
         svc._supplement_manychat_metrics = MagicMock()
 
-        with patch("src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"):
+        with patch(
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+        ):
             result = svc._build_capture_channel_dto(
                 self._ch("manychat"), TENANT_ID, {}, {}, {}, 100, date(2026, 3, 1), date(2026, 3, 31)
             )
@@ -390,11 +392,13 @@ class TestBuildCaptureChannelDtoProviders:
         """Line 323: email_marketing branch in _build_capture_channel_dto."""
         svc, _db = _make_svc()
 
-        from src.modules.analytics.application.dto.attraction_dto import MetricValueDTO
+        from luana_core_analytics_engine.application.dto.attraction_dto import MetricValueDTO
 
         svc._supplement_mailerlite_metrics = MagicMock(return_value=[])
 
-        with patch("src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"):
+        with patch(
+            "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+        ):
             svc._build_capture_channel_dto(
                 self._ch("email_marketing"), TENANT_ID, {}, {}, {}, 100, date(2026, 3, 1), date(2026, 3, 31)
             )
@@ -430,7 +434,7 @@ class TestGetMetricsFlow:
         cache.set = AsyncMock()
         svc, _db = _make_svc(cache=cache)
 
-        from src.modules.analytics.domain.period_config import DateRange
+        from luana_core_analytics_engine.domain.period_config import DateRange
 
         dr = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
         result = _run(svc.get_metrics(TENANT_ID, dr))
@@ -459,19 +463,19 @@ class TestGetMetricsFlow:
             "available": [],
         }
 
-        from src.modules.analytics.domain.period_config import DateRange
+        from luana_core_analytics_engine.domain.period_config import DateRange
 
         dr = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
 
         with (
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.ChannelRegistry"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.ChannelRegistry"
             ) as MockRegistry,
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.CaptureMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureMetricsRepository"
             ) as MockCaptureRepo,
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.CaptureCostService"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureCostService"
             ) as MockCostSvc,
         ):
             reg_instance = MagicMock()
@@ -516,22 +520,22 @@ class TestGetMetricsFlow:
             "available": [],
         }
 
-        from src.modules.analytics.domain.period_config import DateRange
+        from luana_core_analytics_engine.domain.period_config import DateRange
 
         dr = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
 
         with (
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.ChannelRegistry"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.ChannelRegistry"
             ) as MockRegistry,
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.CaptureMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureMetricsRepository"
             ) as MockCaptureRepo,
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.CaptureCostService"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureCostService"
             ) as MockCostSvc,
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.OfficialMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.OfficialMetricsRepository"
             ) as MockOfficialRepo,
         ):
             reg_instance = MagicMock()
@@ -564,19 +568,19 @@ class TestGetMetricsFlow:
         svc, db = _make_svc()
         db.execute.return_value.scalar.return_value = 0
 
-        from src.modules.analytics.domain.period_config import DateRange
+        from luana_core_analytics_engine.domain.period_config import DateRange
 
         dr = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
 
         with (
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.ChannelRegistry"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.ChannelRegistry"
             ) as MockRegistry,
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.CaptureMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureMetricsRepository"
             ) as MockCaptureRepo,
             patch(
-                "src.modules.analytics.application.services.stage_services.capture_stage.CaptureCostService"
+                "luana_core_analytics_engine.application.services.stage_services.capture_stage.CaptureCostService"
             ) as MockCostSvc,
         ):
             reg_instance = MagicMock()

@@ -10,15 +10,14 @@ from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import text
-
-from src.modules.analytics.application.dto.campaign_dto import (
+from luana_core_analytics_engine.application.dto.campaign_dto import (
     AdMetricsDTO,
     AdPerformanceListDTO,
     FormatComparisonDTO,
     FormatComparisonItemDTO,
 )
-from src.shared.domain.datetime_utils import utc_today
+from luana_core_platform.domain.datetime_utils import utc_today
+from sqlalchemy import text
 
 if TYPE_CHECKING:
     from uuid import UUID

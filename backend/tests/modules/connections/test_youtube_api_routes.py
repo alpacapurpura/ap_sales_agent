@@ -7,17 +7,17 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.modules.connections.api.youtube import (
+from luana_core_connections.api.youtube import (
     disconnect,
     get_auth_url,
     get_status,
     oauth_callback,
     update_config,
 )
-from src.modules.connections.api.youtube import (
+from luana_core_connections.api.youtube import (
     test_connection as yt_test_connection,
 )
-from src.modules.connections.api.youtube_analytics import (
+from luana_core_connections.api.youtube_analytics import (
     _default_dates,
     get_countries,
     get_daily_views,
@@ -27,10 +27,10 @@ from src.modules.connections.api.youtube_analytics import (
     get_top_videos_enriched,
     get_traffic_sources,
 )
-from src.modules.connections.api.youtube_analytics import (
+from luana_core_connections.api.youtube_analytics import (
     get_status as yta_get_status,
 )
-from src.modules.connections.api.youtube_analytics import (
+from luana_core_connections.api.youtube_analytics import (
     test_connection as yta_test_connection,
 )
 
@@ -104,7 +104,7 @@ class TestYouTubeGetAuthUrl:
         )
         user = _user()
 
-        with patch("src.modules.connections.api.youtube.YoutubeAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.youtube.YoutubeAdapter") as MockAdapter:
             MockAdapter.return_value.get_authorization_url.return_value = (
                 "https://accounts.google.com/auth",
                 "state_xyz",
@@ -138,7 +138,7 @@ class TestYouTubeOAuthCallback:
         user = _user()
         repo = _repo()
 
-        with patch("src.modules.connections.api.youtube.YoutubeAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.youtube.YoutubeAdapter") as MockAdapter:
             MockAdapter.return_value.exchange_code.side_effect = Exception("bad code")
             with pytest.raises(HTTPException) as exc_info:
                 await oauth_callback("bad_code", db, user, repo, redirect_uri=None)
@@ -160,7 +160,7 @@ class TestYouTubeOAuthCallback:
             "statistics": {},
         }
 
-        with patch("src.modules.connections.api.youtube.YoutubeAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.youtube.YoutubeAdapter") as MockAdapter:
             MockAdapter.return_value.exchange_code.return_value = creds
             MockAdapter.return_value.get_channel_info.return_value = channel_info
             result = await oauth_callback("good_code", db, user, repo, redirect_uri=None)
@@ -177,7 +177,7 @@ class TestYouTubeOAuthCallback:
         repo = _repo()
         creds = {"access_token": "at", "refresh_token": "rt"}
 
-        with patch("src.modules.connections.api.youtube.YoutubeAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.youtube.YoutubeAdapter") as MockAdapter:
             MockAdapter.return_value.exchange_code.return_value = creds
             # No channel id returned
             MockAdapter.return_value.get_channel_info.return_value = {"title": "No ID"}
@@ -266,7 +266,7 @@ class TestYouTubeTestConnection:
         conn = _conn()
         repo = _repo(get_active=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.youtube.YoutubeAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.youtube.YoutubeAdapter") as MockAdapter:
             MockAdapter.return_value.get_channel_info.return_value = {"id": "UCxx", "title": "My Channel"}
             result = await yt_test_connection(db, user, repo)
 
@@ -281,7 +281,7 @@ class TestYouTubeTestConnection:
         conn = _conn()
         repo = _repo(get_active=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.youtube.YoutubeAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.youtube.YoutubeAdapter") as MockAdapter:
             MockAdapter.return_value.get_channel_info.side_effect = Exception("API error")
             result = await yt_test_connection(db, user, repo)
 
@@ -329,7 +329,7 @@ class TestYTAGetStatus:
         conn = _conn()
         repo = _repo(get_active=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.youtube_analytics.YouTubeAnalyticsAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.youtube_analytics.YouTubeAnalyticsAdapter") as MockAdapter:
             MockAdapter.return_value.get_channel_id.return_value = "UCxx"
             result = await yta_get_status(user, repo)
 
@@ -342,7 +342,7 @@ class TestYTAGetStatus:
         conn = _conn()
         repo = _repo(get_active=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.youtube_analytics.YouTubeAnalyticsAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.youtube_analytics.YouTubeAnalyticsAdapter") as MockAdapter:
             MockAdapter.return_value.get_channel_id.side_effect = Exception("auth error")
             result = await yta_get_status(user, repo)
 

@@ -13,8 +13,8 @@ from uuid import UUID, uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.copilot.api.voice import router
-from src.modules.iam.api.dependencies import (
+from luana_core_copilot.api.voice import router
+from luana_core_iam.api.dependencies import (
     get_current_user,
     get_tenant_context,
 )

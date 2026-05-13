@@ -26,13 +26,13 @@ from uuid import UUID
 
 import pytest
 
-from src.modules.brand.application.extraction_orchestrator import (
+from luana_core_brand_studio.application.extraction_orchestrator import (
     BrandAuthorityExtraction,
     BrandPeopleContactExtraction,
     BrandTestimonialsExtraction,
     ExtractionOrchestrator,
 )
-from src.modules.brand.domain import (
+from luana_core_brand_studio.domain import (
     BrandIdentity,
     BrandNarrative,
     BrandPositioning,

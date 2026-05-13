@@ -7,20 +7,19 @@ NPS, UGC, bottleneck detection.
 from datetime import UTC
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
-from src.modules.analytics.application.dto.evangelization_dto import (
+from luana_core_analytics_engine.application.dto.capture_dto import MiniFunnelDTO
+from luana_core_analytics_engine.application.dto.evangelization_dto import (
     CandidatoDTO,
     EvangelistDTO,
     EvangelizationDetailDTO,
     EvangelizationHeaderKpisDTO,
     NpsSummaryDTO,
 )
-from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
-from src.modules.analytics.domain.period_config import DateRange
-from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_analytics_engine.application.dto.opportunity_dto import BottleneckDTO
+from luana_core_analytics_engine.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.ports import ConnectionPort, OfferReadPort
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+from sqlalchemy.orm import Session
 
 
 class EvangelizationStageService:
@@ -55,7 +54,7 @@ class EvangelizationStageService:
         """
         from datetime import datetime as dt_cls
 
-        from src.modules.analytics.infrastructure.repositories.evangelization_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.evangelization_repository import (
             EvangelizationRepository,
         )
 

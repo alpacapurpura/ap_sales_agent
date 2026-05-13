@@ -12,13 +12,12 @@ import uuid as uuid_mod
 from uuid import UUID
 
 import structlog
+from luana_core_compliance.domain.lead_opt_in import LeadOptIn, OptInSource
+from luana_core_compliance.domain.opt_in_repository import OptInRepository
+from luana_core_compliance.infrastructure.models.lead_opt_in_model import LeadOptInModel
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
-
-from src.shared.compliance.domain.lead_opt_in import LeadOptIn, OptInSource
-from src.shared.compliance.domain.opt_in_repository import OptInRepository
-from src.shared.compliance.infrastructure.models.lead_opt_in_model import LeadOptInModel
 
 logger = structlog.get_logger(__name__)
 

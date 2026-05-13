@@ -60,7 +60,7 @@ def _get_real_db_session() -> Session:
 
     Caller closes the session in the fixture teardown.
     """
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     return SessionLocal()
 
@@ -102,9 +102,9 @@ def visionarias_tenant_session() -> Any:  # generator yields dict, but mypy gets
             )
 
         # Lazy imports — keep collection cheap when default suite ignores eval marker.
-        from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-        from src.modules.offer.infrastructure.models.product_model import ProductModel
-        from src.modules.sales_agent.application.services.knowledge_builder import (
+        from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+        from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
+        from luana_core_sales_agent.application.services.knowledge_builder import (
             TenantKnowledgeBuilder,
         )
 

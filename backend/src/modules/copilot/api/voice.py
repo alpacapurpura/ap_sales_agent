@@ -24,24 +24,23 @@ from uuid import UUID
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from fastapi.responses import Response
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.core.rate_limit import check_rate_limit
-from src.modules.assets.application.assets_service import AssetsService
-from src.modules.copilot.api.voice_dto import VoiceUploadAndTranscribeResponse
-from src.modules.copilot.application.services.limits_resolver import (
+from luana_core_assets.application.assets_service import AssetsService
+from luana_core_copilot.api.voice_dto import VoiceUploadAndTranscribeResponse
+from luana_core_copilot.application.services.limits_resolver import (
     CopilotLimitsResolver,
     EffectiveLimits,
 )
-from src.modules.copilot.domain.message_blocks import AudioBlock
-from src.modules.copilot.infrastructure.repositories.tenant_limits_repository import (
+from luana_core_copilot.domain.message_blocks import AudioBlock
+from luana_core_copilot.infrastructure.repositories.tenant_limits_repository import (
     SyncCopilotTenantLimitsRepository,
 )
-from src.modules.copilot.infrastructure.voice.whisper_transcriber import (
+from luana_core_copilot.infrastructure.voice.whisper_transcriber import (
     WhisperTranscriber,
 )
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_platform.core.database import get_db
+from luana_core_platform.core.rate_limit import check_rate_limit
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

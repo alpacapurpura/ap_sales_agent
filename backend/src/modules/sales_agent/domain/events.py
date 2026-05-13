@@ -6,10 +6,9 @@ import uuid
 from datetime import datetime
 from uuid import UUID
 
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_sales_agent.domain.enrollment import EnrollmentStatus, PaymentProvider
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.sales_agent.domain.enrollment import EnrollmentStatus, PaymentProvider
-from src.shared.domain.datetime_utils import utc_now
 
 
 class DomainEvent(BaseModel):

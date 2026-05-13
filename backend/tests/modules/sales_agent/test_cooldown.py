@@ -10,13 +10,13 @@ Covers:
 import importlib
 from unittest.mock import MagicMock, patch
 
-from src.modules.sales_agent.application.orchestrator.state import create_initial_state
+from luana_core_sales_agent.application.orchestrator.state import create_initial_state
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-_TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_node"
+_TRACE_PATCH = "luana_core_sales_agent.infrastructure.monitoring.tracing.trace_node"
 
 
 def _noop_trace(name):
@@ -217,7 +217,7 @@ class TestSupervisorContextEnrichment:
         (after CACHE_BOUNDARY_MARKER) — NOT in the cacheable prefix where it
         would poison the cache."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
-        from src.modules.sales_agent.application.prompts.compose import (
+        from luana_core_sales_agent.application.prompts.compose import (
             CACHE_BOUNDARY_MARKER,
         )
 
@@ -247,7 +247,7 @@ class TestSupervisorContextEnrichment:
 
 class TestCheckpointNewFields:
     def test_save_and_load_consecutive_questions(self, db, tenant_id, lead_id):
-        from src.modules.sales_agent.infrastructure.repositories.state_repository import (
+        from luana_core_sales_agent.infrastructure.repositories.state_repository import (
             StateRepository,
         )
 
@@ -275,7 +275,7 @@ class TestCheckpointNewFields:
         assert loaded.follow_up_cadence == {"delays_hours": [6, 24, 72]}
 
     def test_defaults_to_zero_when_not_set(self, db, tenant_id, lead_id):
-        from src.modules.sales_agent.infrastructure.repositories.state_repository import (
+        from luana_core_sales_agent.infrastructure.repositories.state_repository import (
             StateRepository,
         )
 

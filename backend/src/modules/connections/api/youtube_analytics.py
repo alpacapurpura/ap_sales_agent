@@ -9,25 +9,24 @@ from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.connections.api.dto.common import (
+from luana_core_connections.api.dto.common import (
     ConnectionTestResponse,
     YouTubeAnalyticsDataResponse,
     YouTubeAnalyticsStatusResponse,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.channels.youtube_analytics import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.channels.youtube_analytics import (
     YouTubeAnalyticsAdapter,
 )
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.shared.domain.datetime_utils import utc_today
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.datetime_utils import utc_today
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["youtube-analytics"])
 

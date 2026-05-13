@@ -12,14 +12,13 @@ from uuid import UUID
 
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
-
-from src.modules.analytics.domain.exceptions import ConnectionRevokedError
-from src.modules.analytics.domain.extraction_result import ExtractionResult
-from src.modules.analytics.infrastructure.providers.base import (
+from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
+from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+from luana_core_analytics_engine.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.shared.links.ports.channel_adapter import create_search_console_adapter
+from luana_core_platform.links.ports.channel_adapter import create_search_console_adapter
 
 logger = structlog.get_logger(__name__)
 

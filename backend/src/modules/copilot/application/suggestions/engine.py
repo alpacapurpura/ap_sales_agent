@@ -18,8 +18,8 @@ import structlog
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from src.modules.copilot.application.suggestions.providers.base import SuggestionProvider
-    from src.modules.copilot.domain.suggestion import Suggestion, SuggestionContext
+    from luana_core_copilot.application.suggestions.providers.base import SuggestionProvider
+    from luana_core_copilot.domain.suggestion import Suggestion, SuggestionContext
 
 logger = structlog.get_logger()
 

@@ -12,19 +12,20 @@ def render_home_dashboard() -> None:
 
     # ── KPIs Row 1 ──
     try:
+        from luana_core_copilot.infrastructure.repositories.conversation_repository import (
+            ConversationRepository,
+        )
+        from luana_core_copilot.infrastructure.repositories.event_repository import (
+            CopilotEventRepository,
+        )
+        from luana_core_platform.core.database import SessionLocal
+
         from src.admin.modules._shared import (
             TOOLTIPS,
             get_adoption_funnel,
             get_all_tenants_summary,
             get_tenant_name,
             get_tenant_options,
-        )
-        from src.core.database import SessionLocal
-        from src.modules.copilot.infrastructure.repositories.conversation_repository import (
-            ConversationRepository,
-        )
-        from src.modules.copilot.infrastructure.repositories.event_repository import (
-            CopilotEventRepository,
         )
 
         tenants = get_tenant_options()
@@ -57,7 +58,7 @@ def render_home_dashboard() -> None:
 
             # Knowledge docs count (curated marketing KB — F10)
             try:
-                from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+                from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
                     MarketingKbStore,
                 )
 

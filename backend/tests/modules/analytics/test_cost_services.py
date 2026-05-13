@@ -22,7 +22,7 @@ def _db_with_rows(rows):
 
 class TestCaptureCostServiceGetChannelCosts:
     def test_empty_db_returns_empty_dict(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         db = _db_with_rows([])
         svc = CaptureCostService(db=db)
@@ -30,7 +30,7 @@ class TestCaptureCostServiceGetChannelCosts:
         assert result == {}
 
     def test_rows_returned_as_dict(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         row1 = MagicMock()
         row1.channel_slug = "mailerlite"
@@ -45,7 +45,7 @@ class TestCaptureCostServiceGetChannelCosts:
         assert result == {"mailerlite": 29.0, "ig-dm": 15.0}
 
     def test_custom_stage_arg_accepted(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         db = _db_with_rows([])
         svc = CaptureCostService(db=db)
@@ -55,7 +55,7 @@ class TestCaptureCostServiceGetChannelCosts:
 
 class TestCaptureCostServiceGetTotalStage0Spend:
     def test_zero_spend_returns_zero(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         db = MagicMock()
         db.execute.return_value.scalar.return_value = 0.0
@@ -66,7 +66,7 @@ class TestCaptureCostServiceGetTotalStage0Spend:
         assert result == 0.0
 
     def test_spend_returned(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         db = MagicMock()
         db.execute.return_value.scalar.return_value = 1500.0
@@ -77,7 +77,7 @@ class TestCaptureCostServiceGetTotalStage0Spend:
         assert result == 1500.0
 
     def test_none_result_returns_zero(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         db = MagicMock()
         db.execute.return_value.scalar.return_value = None
@@ -90,20 +90,20 @@ class TestCaptureCostServiceGetTotalStage0Spend:
 
 class TestCaptureCostServiceCalculateCal:
     def test_zero_leads_returns_none(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         svc = CaptureCostService(db=MagicMock())
         assert svc.calculate_cal(100.0, 0) is None
 
     def test_non_zero_leads_computes(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         svc = CaptureCostService(db=MagicMock())
         result = svc.calculate_cal(300.0, 10)
         assert result == 30.0
 
     def test_rounding_applied(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         svc = CaptureCostService(db=MagicMock())
         result = svc.calculate_cal(100.0, 3)
@@ -112,7 +112,7 @@ class TestCaptureCostServiceCalculateCal:
 
 class TestCaptureCostServiceGetProratedAgencyCosts:
     def test_no_rows_returns_empty(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         db = MagicMock()
         db.execute.return_value.scalars.return_value.all.return_value = []
@@ -121,7 +121,7 @@ class TestCaptureCostServiceGetProratedAgencyCosts:
         assert result == {}
 
     def test_no_connected_channels_returns_empty(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         row = MagicMock()
         row.proration_category = "organic_management"
@@ -133,7 +133,7 @@ class TestCaptureCostServiceGetProratedAgencyCosts:
         assert result == {}
 
     def test_organic_management_splits_across_eligible(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         row = MagicMock()
         row.proration_category = "organic_management"
@@ -148,7 +148,7 @@ class TestCaptureCostServiceGetProratedAgencyCosts:
         assert result["ig-dm"] == pytest.approx(45.0)
 
     def test_full_service_splits_all_channels(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         row = MagicMock()
         row.proration_category = "full_service"
@@ -162,7 +162,7 @@ class TestCaptureCostServiceGetProratedAgencyCosts:
             assert result[slug] == pytest.approx(200.0 / 3)
 
     def test_category_with_no_eligible_channels_skipped(self):
-        from src.modules.analytics.application.services.capture_cost_service import CaptureCostService
+        from luana_core_analytics_engine.application.services.capture_cost_service import CaptureCostService
 
         row = MagicMock()
         row.proration_category = "paid_management"
@@ -180,7 +180,7 @@ class TestCaptureCostServiceGetProratedAgencyCosts:
 
 class TestStageCostServiceGetChannelCosts:
     def test_empty_returns_empty(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         db = _db_with_rows([])
         svc = StageCostService(db=db)
@@ -188,7 +188,7 @@ class TestStageCostServiceGetChannelCosts:
         assert result == {}
 
     def test_rows_returned(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         row = MagicMock()
         row.channel_slug = "ai-sdr"
@@ -201,7 +201,7 @@ class TestStageCostServiceGetChannelCosts:
 
 class TestStageCostServiceGetRetargetingSpend:
     def test_empty_returns_empty(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         db = _db_with_rows([])
         svc = StageCostService(db=db)
@@ -211,7 +211,7 @@ class TestStageCostServiceGetRetargetingSpend:
         assert result == {}
 
     def test_rows_returned(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         row = MagicMock()
         row.channel_slug = "meta-retargeting"
@@ -226,13 +226,13 @@ class TestStageCostServiceGetRetargetingSpend:
 
 class TestStageCostServiceCalculateCostPerMql:
     def test_zero_mqls_returns_none(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         svc = StageCostService(db=MagicMock())
         assert svc.calculate_cost_per_mql(100.0, 0) is None
 
     def test_non_zero_computes(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         svc = StageCostService(db=MagicMock())
         result = svc.calculate_cost_per_mql(300.0, 10)
@@ -241,7 +241,7 @@ class TestStageCostServiceCalculateCostPerMql:
 
 class TestStageCostServiceGetGroupCostPerMql:
     def test_zero_mqls_returns_none(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         svc = StageCostService(db=MagicMock())
         result = svc.get_group_cost_per_mql(
@@ -250,7 +250,7 @@ class TestStageCostServiceGetGroupCostPerMql:
         assert result is None
 
     def test_unknown_group_returns_none(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         svc = StageCostService(db=MagicMock())
         result = svc.get_group_cost_per_mql(
@@ -259,7 +259,7 @@ class TestStageCostServiceGetGroupCostPerMql:
         assert result is None
 
     def test_retargeting_zero_spend_returns_none(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         db = _db_with_rows([])
         svc = StageCostService(db=db)
@@ -269,7 +269,7 @@ class TestStageCostServiceGetGroupCostPerMql:
         assert result is None
 
     def test_retargeting_with_spend_computes(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         row = MagicMock()
         row.channel_slug = "meta-retargeting"
@@ -282,7 +282,7 @@ class TestStageCostServiceGetGroupCostPerMql:
         assert result == 50.0
 
     def test_automation_zero_costs_returns_none(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         db = _db_with_rows([])
         svc = StageCostService(db=db)
@@ -292,7 +292,7 @@ class TestStageCostServiceGetGroupCostPerMql:
         assert result is None
 
     def test_automation_with_costs_computes(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         row = MagicMock()
         row.channel_slug = "mailerlite"
@@ -307,7 +307,7 @@ class TestStageCostServiceGetGroupCostPerMql:
 
 class TestStageCostServiceGetTotalFunnelInvestment:
     def test_zero_all_returns_zero_incomplete(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         db = MagicMock()
         db.execute.return_value.scalar.return_value = 0.0
@@ -320,7 +320,7 @@ class TestStageCostServiceGetTotalFunnelInvestment:
         assert is_complete is False
 
     def test_nonzero_ad_spend_marks_complete(self):
-        from src.modules.analytics.application.services.stage_cost_service import StageCostService
+        from luana_core_analytics_engine.application.services.stage_cost_service import StageCostService
 
         call_count = [0]
 
@@ -347,7 +347,7 @@ class TestStageCostServiceGetTotalFunnelInvestment:
 
 class TestManyChatMetricsPromoter:
     def _make_promoter(self):
-        from src.modules.analytics.application.services.manychat_metrics_promoter import (
+        from luana_core_analytics_engine.application.services.manychat_metrics_promoter import (
             ManyChatMetricsPromoter,
         )
 

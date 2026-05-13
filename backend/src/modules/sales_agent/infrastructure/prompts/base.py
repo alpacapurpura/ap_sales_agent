@@ -6,17 +6,16 @@ from typing import Any
 from uuid import UUID
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from sqlalchemy import desc, select
-
-from src.core.config import settings
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
-from src.core.enums import PromptSource
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel as Tenant
-from src.modules.sales_agent.infrastructure.models.prompt_version_model import (
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel as Tenant
+from luana_core_platform.core.config import settings
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.core.enums import PromptSource
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_sales_agent.infrastructure.models.prompt_version_model import (
     PromptVersion,
 )
-from src.shared.domain.datetime_utils import utc_now
+from sqlalchemy import desc, select
 
 logger = logging.getLogger(__name__)
 

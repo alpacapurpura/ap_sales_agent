@@ -17,8 +17,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
+from luana_core_offer_studio.application.offer_service import OfferService
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferValueLevel
 
 if TYPE_CHECKING:
     import uuid

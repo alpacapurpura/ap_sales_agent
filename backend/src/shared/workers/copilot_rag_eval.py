@@ -35,23 +35,22 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
-
-from src.modules.copilot.application.observability.judge import (
+from luana_core_copilot.application.observability.judge import (
     CopilotJudge,
     JudgeResult,
 )
-from src.modules.copilot.application.observability.rag_goldens import (
+from luana_core_copilot.application.observability.rag_goldens import (
     RAG_DIMENSIONS,
     RAG_GOLDENS,
     RagGolden,
 )
-from src.modules.copilot.application.tools.knowledge_search import (
+from luana_core_copilot.application.tools.knowledge_search import (
     knowledge_search_impl,
 )
-from src.modules.copilot.infrastructure.repositories.workflow_metric_repository import (
+from luana_core_copilot.infrastructure.repositories.workflow_metric_repository import (
     WorkflowMetricRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -175,7 +174,7 @@ def _resolve_default_store() -> object:
     Kept indirect so unit tests can pass an injected stub without forcing
     Qdrant connections at import time (heredado F4 gotcha).
     """
-    from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+    from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
         MarketingKbStore,
     )
 

@@ -9,6 +9,6 @@ surface and just swap the implementation underneath.
 [COPILOT-MARKETING-KB-F10]
 """
 
-from src.modules.copilot.application.tools.knowledge_search import knowledge_search
+from luana_core_copilot.application.tools.knowledge_search import knowledge_search
 
 KNOWLEDGE_TOOLS = [knowledge_search]

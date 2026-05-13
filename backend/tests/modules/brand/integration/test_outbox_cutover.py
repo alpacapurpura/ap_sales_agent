@@ -21,9 +21,9 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from src.core.config import settings
-from src.shared.domain.events import DomainEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_platform.core.config import settings
+from luana_core_platform.domain.events import DomainEvent
+from luana_core_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
 )
 
@@ -32,7 +32,7 @@ def _make_brand_event() -> DomainEvent:
     """Build a minimal domain event for testing the adapter."""
     # Use PaymentReceivedEvent as a concrete DomainEvent for adapter routing
     # (brand events follow same adapter path)
-    from src.shared.domain.events import PaymentReceivedEvent
+    from luana_core_platform.domain.events import PaymentReceivedEvent
 
     return PaymentReceivedEvent.create(
         tenant_id="bbbbbbbb-cccc-dddd-eeee-000000000001",
@@ -68,7 +68,7 @@ class TestBrandOutboxCutoverFlagOn:
         with (
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=True),
             patch(
-                "src.shared.domain_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
+                "luana_core_events.outbox.application.event_bus_adapter.EventBusAdapter._get_outbox",
                 return_value=mock_outbox,
             ),
         ):
@@ -85,7 +85,7 @@ class TestBrandOutboxCutoverFlagOn:
 
         with (
             patch(
-                "src.shared.domain.events.EventBus.publish",
+                "luana_core_platform.domain.events.EventBus.publish",
                 side_effect=lambda event, session=None: legacy_called.append(event.event_name),
             ),
             patch.object(EventBusAdapter, "_is_outbox_enabled", return_value=False),

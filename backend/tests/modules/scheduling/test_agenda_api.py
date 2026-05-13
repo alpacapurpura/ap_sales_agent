@@ -20,9 +20,9 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-from src.core.database import get_db
+from luana_core_platform.core.database import get_db
 from src.main import app
-from src.modules.iam.api.dependencies import get_current_user
+from luana_core_iam.api.dependencies import get_current_user
 
 TENANT_ID = uuid.UUID("dddd0000-0000-0000-0000-000000000001")
 
@@ -147,7 +147,7 @@ class TestGetAgenda:
 
         with (
             patch.object(AppointmentRepository, "get_appointments_by_date_range", return_value=[mock_appt]),
-            patch("src.shared.links.ports.lead_resolution.get_lead_names", return_value={}),
+            patch("luana_core_platform.links.ports.lead_resolution.get_lead_names", return_value={}),
         ):
             resp = await async_client.get("/api/v1/scheduling/agenda/?range=today")
 
@@ -180,7 +180,7 @@ class TestGetAgenda:
 
         with (
             patch.object(AppointmentRepository, "get_appointments_by_date_range", return_value=[mock_appt]),
-            patch("src.shared.links.ports.lead_resolution.get_lead_names", return_value={}),
+            patch("luana_core_platform.links.ports.lead_resolution.get_lead_names", return_value={}),
         ):
             resp = await async_client.get("/api/v1/scheduling/agenda/?range=week")
 
@@ -196,7 +196,7 @@ class TestGetAgenda:
         db.add(appt_far)
         db.commit()
 
-        with patch("src.shared.links.ports.lead_resolution.get_lead_names", return_value={}):
+        with patch("luana_core_platform.links.ports.lead_resolution.get_lead_names", return_value={}):
             resp = await async_client.get("/api/v1/scheduling/agenda/?range=today")
 
         assert resp.status_code == 200
@@ -210,7 +210,7 @@ class TestGetAgenda:
         db.add(appt_other)
         db.commit()
 
-        with patch("src.shared.links.ports.lead_resolution.get_lead_names", return_value={}):
+        with patch("luana_core_platform.links.ports.lead_resolution.get_lead_names", return_value={}):
             resp = await async_client.get("/api/v1/scheduling/agenda/?range=today")
 
         assert resp.status_code == 200
@@ -239,7 +239,7 @@ class TestGetAgenda:
         lead_map = {lead_id: "Juan García"}
         with (
             patch.object(AppointmentRepository, "get_appointments_by_date_range", return_value=[mock_appt]),
-            patch("src.shared.links.ports.lead_resolution.get_lead_names", return_value=lead_map),
+            patch("luana_core_platform.links.ports.lead_resolution.get_lead_names", return_value=lead_map),
         ):
             resp = await async_client.get("/api/v1/scheduling/agenda/?range=today")
 
@@ -271,7 +271,7 @@ class TestGetAgenda:
         # get_lead_names retorna mapa vacío (lead_id no encontrado)
         with (
             patch.object(AppointmentRepository, "get_appointments_by_date_range", return_value=[mock_appt]),
-            patch("src.shared.links.ports.lead_resolution.get_lead_names", return_value={}),
+            patch("luana_core_platform.links.ports.lead_resolution.get_lead_names", return_value={}),
         ):
             resp = await async_client.get("/api/v1/scheduling/agenda/?range=today")
 
@@ -423,7 +423,7 @@ class TestPublishAppointmentEvent:
         from src.modules.scheduling.api.agenda import _publish_appointment_event
 
         mock_db = MagicMock()
-        with patch("src.shared.domain.events.EventBus.publish") as mock_bus:
+        with patch("luana_core_platform.domain.events.EventBus.publish") as mock_bus:
             _publish_appointment_event(
                 db=mock_db,
                 tenant_id=TENANT_ID,
@@ -441,7 +441,7 @@ class TestPublishAppointmentEvent:
         lead_id = uuid.uuid4()
         appt_id = uuid.uuid4()
 
-        with patch("src.shared.domain.events.EventBus.publish") as mock_bus:
+        with patch("luana_core_platform.domain.events.EventBus.publish") as mock_bus:
             _publish_appointment_event(
                 db=mock_db,
                 tenant_id=TENANT_ID,

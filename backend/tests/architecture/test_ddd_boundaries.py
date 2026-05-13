@@ -80,20 +80,20 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
 # ──────────────────────────────────────────────────────────────
 _PROVIDER_CONTRACT_IMPORTS: frozenset[str] = frozenset(
     {
-        "src.modules.copilot.domain.ports",
+        "luana_core_copilot.domain.ports",
         # F6 — workflow declarative types are part of the provider contract:
         # ``WorkflowProvider.workflows() -> Sequence[Workflow]`` requires
         # subclasses outside of copilot to import ``Workflow``,
         # ``WorkflowNode``, ``WorkflowTrigger``, ``NodeOutput`` from here. This
         # mirrors the ports.py inversion knot — copilot owns the abstraction,
         # modules supply the concretion.
-        "src.modules.copilot.domain.workflow",
+        "luana_core_copilot.domain.workflow",
         # F7 + S5 — channel formatter registry. Post-S5 (2026-04-28) el SSoT
         # vive en ``src.shared.agent_observability.channels.format``. Providers
         # que registran canales custom importan ``ChannelFormat`` +
         # ``register_channel`` directo desde shared. Sales sweep S6 borró los
         # shims copilot — la entrada actual apunta al SSoT real.
-        "src.shared.agent_observability.channels.format",
+        "luana_core_channels.format",
     }
 )
 

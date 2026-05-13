@@ -2,8 +2,7 @@
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-
-from src.modules.sales_agent.application.agents.sales.nodes import (
+from luana_core_sales_agent.application.agents.sales.nodes import (
     node_closer,
     node_escalation,
     node_product_expert,
@@ -12,7 +11,7 @@ from src.modules.sales_agent.application.agents.sales.nodes import (
     node_signal_accumulator,
     node_tool_executor,
 )
-from src.modules.sales_agent.application.orchestrator.state import AgentState
+from luana_core_sales_agent.application.orchestrator.state import AgentState
 
 
 def _route_after_supervisor(state: AgentState) -> str:

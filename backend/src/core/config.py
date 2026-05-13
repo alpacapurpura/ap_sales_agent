@@ -1,9 +1,8 @@
 """Application configuration via pydantic-settings."""
 
+from luana_core_platform.core.enums import AIProvider, ModelRole, PromptSource
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
-
-from src.core.enums import AIProvider, ModelRole, PromptSource
 
 
 class Settings(BaseSettings):
@@ -102,7 +101,7 @@ class Settings(BaseSettings):
         Async DB I/O is invoked lazily; sync fast path uses cache only.
         """
         try:
-            from src.shared.infrastructure.llm.application.config_service import (
+            from luana_core_llm.application.config_service import (
                 get_llm_config_service,
             )
 

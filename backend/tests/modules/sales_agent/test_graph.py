@@ -11,7 +11,7 @@ Covers:
 
 from unittest.mock import MagicMock, patch
 
-from src.modules.sales_agent.application.agents.sales.nodes import (
+from luana_core_sales_agent.application.agents.sales.nodes import (
     _determine_stage,
     _extract_json_block,
     _strip_blocks,
@@ -58,7 +58,7 @@ def _base_state(**overrides) -> dict:
 
 
 # Shared mock patcher for tracing (prevents DB connections in tests)
-_TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_node"
+_TRACE_PATCH = "luana_core_sales_agent.infrastructure.monitoring.tracing.trace_node"
 
 
 def _noop_trace(name):
@@ -556,7 +556,7 @@ class TestToolExecutor:
 
 class TestGraphRouting:
     def test_route_after_supervisor_valid_nodes(self):
-        from src.modules.sales_agent.application.agents.sales.graph import (
+        from luana_core_sales_agent.application.agents.sales.graph import (
             _route_after_supervisor,
         )
 
@@ -572,7 +572,7 @@ class TestGraphRouting:
             assert _route_after_supervisor(state) == node
 
     def test_route_after_supervisor_invalid_falls_back_to_qualifier(self):
-        from src.modules.sales_agent.application.agents.sales.graph import (
+        from luana_core_sales_agent.application.agents.sales.graph import (
             _route_after_supervisor,
         )
 
@@ -580,7 +580,7 @@ class TestGraphRouting:
         assert _route_after_supervisor(state) == "qualifier"
 
     def test_route_after_supervisor_none_falls_back_to_qualifier(self):
-        from src.modules.sales_agent.application.agents.sales.graph import (
+        from luana_core_sales_agent.application.agents.sales.graph import (
             _route_after_supervisor,
         )
 
@@ -588,7 +588,7 @@ class TestGraphRouting:
         assert _route_after_supervisor(state) == "qualifier"
 
     def test_route_after_accumulator_respond(self):
-        from src.modules.sales_agent.application.agents.sales.graph import (
+        from luana_core_sales_agent.application.agents.sales.graph import (
             _route_after_accumulator,
         )
 
@@ -596,7 +596,7 @@ class TestGraphRouting:
         assert _route_after_accumulator(state) == "respond"
 
     def test_route_after_accumulator_tool_executor(self):
-        from src.modules.sales_agent.application.agents.sales.graph import (
+        from luana_core_sales_agent.application.agents.sales.graph import (
             _route_after_accumulator,
         )
 
@@ -604,7 +604,7 @@ class TestGraphRouting:
         assert _route_after_accumulator(state) == "tool_executor"
 
     def test_route_after_accumulator_default_respond(self):
-        from src.modules.sales_agent.application.agents.sales.graph import (
+        from luana_core_sales_agent.application.agents.sales.graph import (
             _route_after_accumulator,
         )
 

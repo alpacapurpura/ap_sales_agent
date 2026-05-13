@@ -8,12 +8,11 @@ for single-event insertion (no full extraction run needed).
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.cost_type_mapping import get_cost_type
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+from luana_core_analytics_engine.application.cost_type_mapping import get_cost_type
+from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
+from sqlalchemy.orm import Session
 
 
 class ManyChatMetricsPromoter:

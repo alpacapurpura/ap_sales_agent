@@ -12,6 +12,7 @@ D-BE-4 (MajEvalScore v1 cement).
 
 from __future__ import annotations
 
+from luana_core_platform.domain.base_entity import Base
 from sqlalchemy import (
     Boolean,
     Column,
@@ -23,8 +24,6 @@ from sqlalchemy import (
     String,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-
-from src.shared.domain.base_entity import Base
 
 
 class EvalSimulatorGradeModel(Base):

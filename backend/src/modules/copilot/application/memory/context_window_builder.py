@@ -7,11 +7,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.application.memory.token_counter import count_tokens
-from src.modules.copilot.domain.ports import LLMMessage
+from luana_core_copilot.application.memory.token_counter import count_tokens
+from luana_core_copilot.domain.ports import LLMMessage
 
 if TYPE_CHECKING:  # pragma: no cover
-    from src.modules.copilot.domain.context_window import ContextWindowConfig
+    from luana_core_copilot.domain.context_window import ContextWindowConfig
 
 
 class ContextWindowBuilder:
@@ -41,7 +41,7 @@ class ContextWindowBuilder:
         # Local import to avoid a cycle: domain → application is fine, but
         # the original module already imports ContextWindowConfig under
         # TYPE_CHECKING — keep the runtime import scoped here.
-        from src.modules.copilot.domain.context_window import (
+        from luana_core_copilot.domain.context_window import (
             get_context_window_config,
         )
 

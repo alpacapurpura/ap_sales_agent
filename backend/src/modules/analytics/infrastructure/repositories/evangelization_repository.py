@@ -17,17 +17,16 @@ All queries use SQLAlchemy 2.0 select() syntax with tenant_id isolation.
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import and_, case, func, select
-from sqlalchemy.orm import Session
-
-from src.shared.domain.enums import LifecycleStage, SaleStatus
-from src.shared.infrastructure.models.crm import (
+from luana_core_platform.domain.enums import LifecycleStage, SaleStatus
+from luana_core_platform.infrastructure.models.crm import (
     CustomerProfileModel,
     NpsResponseModel,
     NpsSurveyModel,
     ReferralCodeModel,
     SaleModel,
 )
+from sqlalchemy import and_, case, func, select
+from sqlalchemy.orm import Session
 
 
 class EvangelizationRepository:

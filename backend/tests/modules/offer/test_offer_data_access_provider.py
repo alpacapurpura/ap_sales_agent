@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.copilot.domain.ports import DataQueryPlan
-from src.modules.offer.copilot_provider.data_access import OfferDataAccessProvider
+from luana_core_copilot.domain.ports import DataQueryPlan
+from luana_core_offer_studio.copilot_provider.data_access import OfferDataAccessProvider
 from tests.modules.offer.conftest import TENANT_A, create_product_model
 
 if TYPE_CHECKING:

@@ -17,19 +17,18 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.domain.scoring import SCORING_THRESHOLDS, SCORING_WEIGHTS
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.domain.scoring import SCORING_THRESHOLDS, SCORING_WEIGHTS
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
     JourneyEventModel,
 )
-from src.modules.crm.infrastructure.repositories.lifecycle_repository import (
+from luana_core_crm.infrastructure.repositories.lifecycle_repository import (
     LifecycleRepository,
 )
-from src.shared.domain.events import DomainEvent
+from luana_core_platform.domain.events import DomainEvent
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +231,7 @@ class LifecycleService:
         Return (profile, referral_code).
         """
         # Lazy import to avoid circular dependency
-        from src.modules.crm.application.services.referral_service import (
+        from luana_core_crm.application.services.referral_service import (
             ReferralService,
         )
 

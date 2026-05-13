@@ -5,13 +5,12 @@ from uuid import UUID
 
 import httpx
 import structlog
-from sqlalchemy.orm import Session
-
-from src.core.config import settings
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
+from luana_core_platform.core.config import settings
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

@@ -11,10 +11,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.application.services.offer_completion_service import (
+from luana_core_offer_studio.application.services.offer_completion_service import (
     OfferCompletionService,
 )
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     GuaranteeType,
     OfferArchetype,
     OfferValueLevel,
@@ -190,7 +190,7 @@ def _make_offer_with_narratives(
     specific_details: dict | None = None,
 ):
     """Build a MagicMock offer with both narrative and baseline fields."""
-    from src.modules.offer.domain.enums import GuaranteeType, OfferValueLevel
+    from luana_core_offer_studio.domain.enums import GuaranteeType, OfferValueLevel
 
     offer = MagicMock()
     offer.archetype = OfferArchetype.PRODUCTO

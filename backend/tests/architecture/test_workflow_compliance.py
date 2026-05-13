@@ -23,9 +23,9 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel
 
-from src.modules.copilot.application.discovery import discover_providers, reset_discovery
-from src.modules.copilot.application.workflows.registry import collect_workflows
-from src.modules.copilot.domain.workflow import Workflow
+from luana_core_copilot.application.discovery import discover_providers, reset_discovery
+from luana_core_copilot.application.workflows.registry import collect_workflows
+from luana_core_copilot.domain.workflow import Workflow
 
 _BACKEND_ROOT = Path(__file__).resolve().parents[2]
 _WORKFLOWS_DIR = _BACKEND_ROOT / "src" / "modules" / "copilot" / "application" / "workflows"
@@ -33,9 +33,9 @@ _MIGRATION_071 = _BACKEND_ROOT / "alembic" / "versions" / "071_copilot_workflow_
 
 # Allow infrastructure that is intrinsic to the engine (own copilot/, shared base helpers).
 _ALLOWED_IMPORT_PREFIXES = (
-    "src.modules.copilot.",
+    "luana_core_copilot.",
     "src.shared.",
-    "src.core.",
+    "luana_core_platform.core.",
 )
 
 
@@ -94,20 +94,20 @@ def test_application_workflows_imports_no_business_module() -> None:
     preserves the ``copilot → módulo`` ratchet."""
 
     forbidden_prefixes = (
-        "src.modules.brand.",
-        "src.modules.offer.",
-        "src.modules.landing.",
-        "src.modules.analytics.",
-        "src.modules.crm.",
-        "src.modules.connections.",
-        "src.modules.assets.",
-        "src.modules.iam.",
+        "luana_core_brand_studio.",
+        "luana_core_offer_studio.",
+        "luana_core_landing.",
+        "luana_core_analytics_engine.",
+        "luana_core_crm.",
+        "luana_core_connections.",
+        "luana_core_assets.",
+        "luana_core_iam.",
         "src.modules.scheduling.",
-        "src.modules.sales_agent.",
-        "src.modules.social_proof.",
-        "src.modules.commercial_calendar.",
-        "src.modules.tenant_profile.",
-        "src.modules.tenant_domains.",
+        "luana_core_sales_agent.",
+        "luana_core_social_proof.",
+        "luana_core_commercial_calendar.",
+        "luana_core_tenant_profile.",
+        "luana_core_tenant_domains.",
         "src.modules.advertising.",
         "src.modules.social_media.",
     )

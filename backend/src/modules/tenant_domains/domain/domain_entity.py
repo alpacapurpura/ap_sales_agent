@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
-from src.shared.domain.base_entity import BaseEntity
+from luana_core_platform.domain.base_entity import BaseEntity
 
 
 class DomainStatus(StrEnum):

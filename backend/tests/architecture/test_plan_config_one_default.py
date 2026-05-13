@@ -32,7 +32,7 @@ _ALEMBIC_VERSIONS = _BACKEND / "alembic" / "versions"
 
 def test_plan_config_model_has_is_default_column() -> None:
     """PlanConfigModel must have is_default column (PM Q6 DB-level enforcement)."""
-    from src.shared.billing.infrastructure.models.plan_config_model import PlanConfigModel
+    from luana_core_billing.infrastructure.models.plan_config_model import PlanConfigModel
 
     # Check attribute exists on the ORM model
     assert hasattr(PlanConfigModel, "is_default"), (
@@ -42,7 +42,7 @@ def test_plan_config_model_has_is_default_column() -> None:
 
 def test_plan_config_domain_has_is_default_field() -> None:
     """PlanConfig VO must have is_default field."""
-    from src.shared.billing.domain.plan import PlanConfig
+    from luana_core_billing.domain.plan import PlanConfig
 
     fields = set(PlanConfig.model_fields.keys())
     assert "is_default" in fields, (
@@ -56,7 +56,7 @@ def test_plan_config_is_default_defaults_to_false() -> None:
 
     Only one row is default. New plans are non-default until explicitly set.
     """
-    from src.shared.billing.domain.plan import PlanConfig
+    from luana_core_billing.domain.plan import PlanConfig
     from decimal import Decimal
 
     plan = PlanConfig(
@@ -71,7 +71,7 @@ def test_plan_config_is_default_defaults_to_false() -> None:
 
 def test_plan_repository_has_get_default() -> None:
     """PlanRepository ABC must declare get_default() method."""
-    from src.shared.billing.domain.plan_repository import PlanRepository
+    from luana_core_billing.domain.plan_repository import PlanRepository
 
     assert hasattr(PlanRepository, "get_default"), "PlanRepository must have get_default() method for PM Q6 resolution."
 
@@ -101,7 +101,7 @@ def test_plan_repository_get_default_queries_is_default_true() -> None:
 
 def test_plan_service_has_update_plan_method() -> None:
     """PlanService must have update_plan() for atomic is_default toggle."""
-    from src.shared.billing.application.plan_service import PlanService
+    from luana_core_billing.application.plan_service import PlanService
 
     assert hasattr(PlanService, "update_plan"), (
         "PlanService must have update_plan() method for atomic is_default toggle (PM Q6)."
@@ -117,7 +117,7 @@ def test_billing_default_plan_missing_error_exists() -> None:
 
     PM Q6: fail-fast (raise) rather than silent fallback when no default plan.
     """
-    from src.shared.billing.application.plan_service import (
+    from luana_core_billing.application.plan_service import (
         BillingDefaultPlanMissingError,
         PlanService,
     )
@@ -147,7 +147,7 @@ def test_plan_service_get_default_raises_when_no_plan_found() -> None:
 
 def test_partial_unique_index_documented_in_model() -> None:
     """PlanConfigModel must document the partial unique index (comment or __table_args__)."""
-    from src.shared.billing.infrastructure.models.plan_config_model import PlanConfigModel
+    from luana_core_billing.infrastructure.models.plan_config_model import PlanConfigModel
     import inspect as inspect_mod
 
     source = inspect_mod.getsource(PlanConfigModel)

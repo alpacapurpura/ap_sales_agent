@@ -9,11 +9,11 @@ them at boot.
 [COPILOT-WORKFLOW-F6]
 """
 
-from src.modules.copilot.application.workflows.engine import (
+from luana_core_copilot.application.workflows.engine import (
     WorkflowEngine,
     WorkflowExecutionError,
 )
-from src.modules.copilot.application.workflows.registry import (
+from luana_core_copilot.application.workflows.registry import (
     WorkflowRegistryError,
     collect_workflows,
 )

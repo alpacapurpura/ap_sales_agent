@@ -12,13 +12,12 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.connections.api.dependencies.webhook_security import (
+from luana_core_connections.api.dependencies.webhook_security import (
     verify_shopify_signature,
 )
+from luana_core_platform.core.database import get_db
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 
@@ -137,8 +136,8 @@ def _resolve_manychat_profile(
     # This lookup prevents creating a duplicate profile.
     profile = None
     if ig_username:
-        from src.shared.infrastructure.models.crm import CustomerProfileModel as _CustomerProfile
-        from src.shared.links.ports.crm_repos import get_customer_repository
+        from luana_core_platform.infrastructure.models.crm import CustomerProfileModel as _CustomerProfile
+        from luana_core_platform.links.ports.crm_repos import get_customer_repository
 
         customer_repo = get_customer_repository(db)
         existing = customer_repo.find_by_trait(
@@ -151,7 +150,7 @@ def _resolve_manychat_profile(
             profile = db.execute(stmt).scalar_one_or_none()
 
     if not profile and (email or phone):
-        from src.shared.links.ports.crm_repos import get_customer_service
+        from luana_core_platform.links.ports.crm_repos import get_customer_service
 
         customer_svc = get_customer_service(db)
         traits = {"name": f"{first_name} {last_name}".strip()}
@@ -212,8 +211,8 @@ def _create_journey_events(
     subscriber_id: str,
 ) -> None:
     """Create journey_event(s) and recalculate lead score."""
-    from src.shared.infrastructure.models.crm import JourneyEventModel
-    from src.shared.links.ports.crm_repos import get_lifecycle_service
+    from luana_core_platform.infrastructure.models.crm import JourneyEventModel
+    from luana_core_platform.links.ports.crm_repos import get_lifecycle_service
 
     journey_event = JourneyEventModel(
         profile_id=profile.id,
@@ -254,8 +253,8 @@ def _promote_manychat_metric(
     subscriber_id: str,
 ) -> None:
     """Promote ManyChat event to official_metrics for Growth Studio."""
-    from src.shared.domain.datetime_utils import utc_today as date_cls_today
-    from src.shared.links.ports.analytics import get_manychat_metrics_promoter
+    from luana_core_platform.domain.datetime_utils import utc_today as date_cls_today
+    from luana_core_platform.links.ports.analytics import get_manychat_metrics_promoter
 
     metric_name = _event_to_metric_name(event_type, payload)
     stage_slug = _event_to_stage(event_type, payload)
@@ -351,7 +350,7 @@ async def _resolve_tenant(db: Session, shop_domain: str) -> UUID | None:
     if shop_domain in _shop_tenant_cache:
         return _shop_tenant_cache[shop_domain]
 
-    from src.modules.connections.infrastructure.models.channel_connection_model import (
+    from luana_core_connections.infrastructure.models.channel_connection_model import (
         ChannelConnectionModel,
     )
 
@@ -378,8 +377,8 @@ async def _resolve_tenant(db: Session, shop_domain: str) -> UUID | None:
 
 async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) -> None:
     """Process checkouts/create webhook: identity resolution + journey_event + scoring."""
-    from src.shared.infrastructure.models.crm import JourneyEventModel
-    from src.shared.links.ports.crm_repos import get_customer_service, get_lifecycle_service
+    from luana_core_platform.infrastructure.models.crm import JourneyEventModel
+    from luana_core_platform.links.ports.crm_repos import get_customer_service, get_lifecycle_service
 
     email = payload.get("email")
     if not email:
@@ -466,8 +465,8 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
 
 async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> None:
     """Process orders/create webhook: journey_event + per-line-item SaleCompletedEvents."""
-    from src.shared.infrastructure.models.crm import JourneyEventModel
-    from src.shared.links.ports.crm_repos import get_customer_service
+    from luana_core_platform.infrastructure.models.crm import JourneyEventModel
+    from luana_core_platform.links.ports.crm_repos import get_customer_service
 
     email = payload.get("email")
     if not email:
@@ -518,7 +517,7 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
     ]
 
     # Bulk resolve product_id → offer_id mappings
-    from src.shared.links.ports.offer import get_product_mapping_repo
+    from luana_core_platform.links.ports.offer import get_product_mapping_repo
 
     mapping_repo = get_product_mapping_repo(db)
     product_ids = [li["product_id"] for li in line_items_data if li["product_id"]]
@@ -545,7 +544,7 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
     # Publish one SaleCompletedEvent per line_item
     import uuid as uuid_mod
 
-    from src.shared.domain.events import EventBus, SaleCompletedEvent
+    from luana_core_platform.domain.events import EventBus, SaleCompletedEvent
 
     for item in line_items_data:
         product_id = item["product_id"]
@@ -665,7 +664,7 @@ async def handle_mailerlite_webhook(
         return {"status": "ignored", "reason": "no_email"}
 
     # 1. Find customer profile by email
-    from src.shared.infrastructure.models.crm import CustomerProfileModel
+    from luana_core_platform.infrastructure.models.crm import CustomerProfileModel
 
     stmt = select(CustomerProfileModel).where(
         CustomerProfileModel.tenant_id == tenant_id,
@@ -687,7 +686,7 @@ async def handle_mailerlite_webhook(
         return {"status": "ignored", "reason": f"unsupported_event: {event_type}"}
 
     # 3. Create journey_event
-    from src.shared.infrastructure.models.crm import JourneyEventModel
+    from luana_core_platform.infrastructure.models.crm import JourneyEventModel
 
     journey_event = JourneyEventModel(
         profile_id=profile.id,
@@ -703,7 +702,7 @@ async def handle_mailerlite_webhook(
     db.add(journey_event)
 
     # 4. Recalculate score (triggers MQL transition if threshold crossed)
-    from src.shared.links.ports.crm_repos import get_lifecycle_service
+    from luana_core_platform.links.ports.crm_repos import get_lifecycle_service
 
     lifecycle_svc = get_lifecycle_service(db)
     lifecycle_svc.recalculate_score(profile.id, tenant_id)
@@ -750,11 +749,10 @@ async def handle_manychat_webhook(
     - field.updated: Custom field value changed
     - comment.trigger: Comment trigger activated
     """
-    from pydantic import ValidationError
-
-    from src.modules.connections.api.dto.manychat_webhook_dto import (
+    from luana_core_connections.api.dto.manychat_webhook_dto import (
         ManyChatWebhookPayload,
     )
+    from pydantic import ValidationError
 
     try:
         raw = await request.json()
@@ -769,7 +767,7 @@ async def handle_manychat_webhook(
     channel = dto.channel
 
     # Verify tenant has ManyChat connected
-    from src.modules.connections.infrastructure.models.channel_connection_model import (
+    from luana_core_connections.infrastructure.models.channel_connection_model import (
         ChannelConnectionModel,
     )
 

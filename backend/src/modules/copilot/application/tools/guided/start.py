@@ -11,12 +11,11 @@ import json
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_conversation_id, get_tenant_id
-from src.modules.copilot.application.guided.block_generator import build_blocks
-from src.modules.copilot.application.guided.persistence import write_state
-from src.modules.copilot.application.guided.state import GuidedState
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_copilot.application.guided.block_generator import build_blocks
+from luana_core_copilot.application.guided.persistence import write_state
+from luana_core_copilot.application.guided.state import GuidedState
+from luana_core_platform.core.context import get_conversation_id, get_tenant_id
+from luana_core_platform.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger()
 

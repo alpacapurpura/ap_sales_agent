@@ -12,12 +12,12 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.domain.card_payloads import (
+from luana_core_copilot.domain.card_payloads import (
     CARD_PAYLOAD_MODELS,
     ClarifyCardPayload,
     validate_card_payload,
 )
-from src.modules.copilot.domain.message_blocks import CardBlock
+from luana_core_copilot.domain.message_blocks import CardBlock
 
 
 def _card_kinds() -> set[str]:
@@ -65,7 +65,7 @@ class TestPlanCardPayload:
     """B18-TP9 — plan_card schema introduced for deep-agent ``write_todos``."""
 
     def test_valid_payload_passes(self) -> None:
-        from src.modules.copilot.domain.card_payloads import PlanCardPayload
+        from luana_core_copilot.domain.card_payloads import PlanCardPayload
 
         payload = {
             "type": "plan_card",
@@ -83,7 +83,7 @@ class TestPlanCardPayload:
     def test_missing_todos_rejected(self) -> None:
         from pydantic import ValidationError
 
-        from src.modules.copilot.domain.card_payloads import PlanCardPayload
+        from luana_core_copilot.domain.card_payloads import PlanCardPayload
 
         with pytest.raises(ValidationError):
             PlanCardPayload.model_validate({"type": "plan_card"})

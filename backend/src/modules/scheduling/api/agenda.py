@@ -5,13 +5,13 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
 from src.modules.scheduling.infrastructure.models.appointment_model import (
     AppointmentModel,
 )
@@ -54,7 +54,7 @@ async def get_agenda(
     appointments = repo.get_appointments_by_date_range(start, end, user.tenant_id)
 
     # Enrich with Lead Names via shared port (avoids cross-module CRM import)
-    from src.shared.links.ports.lead_resolution import get_lead_names
+    from luana_core_platform.links.ports.lead_resolution import get_lead_names
 
     lead_ids = [a.lead_id for a in appointments if a.lead_id]
     lead_map = get_lead_names(db, lead_ids) if lead_ids else {}
@@ -149,7 +149,7 @@ def _publish_appointment_event(
 
     Uses late binding import to avoid circular dependencies.
     """
-    from src.shared.domain.events import AppointmentEvent, EventBus
+    from luana_core_platform.domain.events import AppointmentEvent, EventBus
 
     if not lead_id:
         return

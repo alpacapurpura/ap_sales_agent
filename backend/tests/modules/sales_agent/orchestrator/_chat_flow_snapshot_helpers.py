@@ -143,12 +143,12 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
     ConversationPipeline, the patches stay where the call happens — only
     the call site moves between classes. Diff = 0 = behavior preserved.
     """
-    chat_mod = "src.modules.sales_agent.application.orchestrator.chat"
+    chat_mod = "luana_core_sales_agent.application.orchestrator.chat"
 
     # 1. Frozen datetime (used by ConversationPipeline.handle_human_mode +
     # determine_session_state for ts comparisons).
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.conversation_pipeline.datetime",
+        "luana_core_sales_agent.application.orchestrator.conversation_pipeline.datetime",
         _FrozenDatetime,
     )
 
@@ -207,7 +207,7 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
 
     journey_repo.track_event.side_effect = _capture_track_event
     monkeypatch.setattr(
-        "src.shared.links.ports.crm_repos.get_journey_event_repository",
+        "luana_core_platform.links.ports.crm_repos.get_journey_event_repository",
         lambda _db: journey_repo,
     )
 
@@ -243,14 +243,14 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
     # Patch the canonical adapter entry point (post outbox cutover).
     # Legacy ``EventBus.publish`` mock kept for backward-compat with any
     # remaining direct callers (test capability suites only).
-    from src.shared.domain_events.outbox.application import event_bus_adapter
+    from luana_core_events.outbox.application import event_bus_adapter
 
     monkeypatch.setattr(event_bus_adapter.adapter_bus, "publish", _capture_publish)
     # Belt-and-suspenders: also patch legacy in case some code path bypasses
     # adapter and hits legacy bus directly (LegacyEventBus fall-through inside
     # adapter when session=None or _is_outbox_enabled returns False).
     monkeypatch.setattr(
-        "src.shared.domain.events.EventBus.publish",
+        "luana_core_platform.domain.events.EventBus.publish",
         staticmethod(lambda event, session=None: _capture_publish(event, session=session)),
     )
 
@@ -266,7 +266,7 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         )
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.identity_resolver.IdentityResolver.update_customer_traits",
+        "luana_core_sales_agent.application.orchestrator.identity_resolver.IdentityResolver.update_customer_traits",
         staticmethod(_capture_traits),
     )
 
@@ -288,17 +288,17 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
     # (chat.py legacy or ConversationPipeline post-extract) sees the fixed
     # identity + voice strings.
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.build_identity",
+        "luana_core_sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.build_identity",
         lambda _self, _tenant_id: "ID:test-brand",
     )
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.build_brand_voice",
+        "luana_core_sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.build_brand_voice",
         lambda _self, _tenant_id: "VOICE:test-voice",
     )
     # Guard the constructor so initializing the real builder doesn't query brand
     # / offer repos (they hit the mocked db.execute and explode on .first()).
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.__init__",
+        "luana_core_sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.__init__",
         lambda self, _db: None,
     )
 
@@ -308,14 +308,14 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
 
     safety_stub = SimpleNamespace(sanitize_content=_safety_passthrough)
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.external.safety_service.SafetyLayerService",
+        "luana_core_sales_agent.infrastructure.external.safety_service.SafetyLayerService",
         lambda: safety_stub,
     )
 
     # 12. SemanticRouter — deterministic intent (patch the class so any module
     # that imports SemanticRouter sees the stub).
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.services.semantic_router.SemanticRouter.detect_and_accumulate",
+        "luana_core_sales_agent.application.services.semantic_router.SemanticRouter.detect_and_accumulate",
         staticmethod(lambda _text, existing_signals, tenant_id: (None, 0.0, list(existing_signals))),
     )
 
@@ -344,7 +344,7 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
 
     obs_context_sentinel = _ObsContextSentinel()
     monkeypatch.setattr(
-        "src.modules.sales_agent.observability.recording.factory.build_sales_agent_observability_context",
+        "luana_core_sales_agent.observability.recording.factory.build_sales_agent_observability_context",
         lambda **_kw: obs_context_sentinel,
     )
 
@@ -355,7 +355,7 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
             return "ToolCallDedupTracker(stub)"
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.tool_call_dedup.ToolCallDedupTracker",
+        "luana_core_sales_agent.application.orchestrator.tool_call_dedup.ToolCallDedupTracker",
         _DeterministicDedup,
     )
 
@@ -370,7 +370,7 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         return _agent_result_stub()
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.graph.agent_app.ainvoke",
+        "luana_core_sales_agent.application.orchestrator.graph.agent_app.ainvoke",
         _capture_ainvoke,
     )
 
@@ -383,7 +383,7 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
             },
         )
 
-    ws_module = "src.modules.sales_agent.infrastructure.ws_manager"
+    ws_module = "luana_core_sales_agent.infrastructure.ws_manager"
     monkeypatch.setattr(f"{ws_module}.ws_manager.emit", _capture_ws_emit)
 
     # 17. OutputManager — capture the actual delivery to the lead.
@@ -402,7 +402,7 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         )
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
+        "luana_core_sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
         _capture_output,
     )
 

@@ -15,8 +15,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.sales_agent.application.orchestrator.state import create_initial_state
-from src.modules.sales_agent.application.prompts.compose import (
+from luana_core_sales_agent.application.orchestrator.state import create_initial_state
+from luana_core_sales_agent.application.prompts.compose import (
     CACHE_BOUNDARY_MARKER,
     CACHEABLE_FRAGMENTS,
     PROMPT_FRAGMENT_ORDER,

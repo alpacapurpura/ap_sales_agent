@@ -4,20 +4,19 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.copilot.api.dto import (
+from luana_core_copilot.api.dto import (
     EventInsightsResponse,
     EventSummaryResponse,
     RecordEventResponse,
 )
-from src.modules.copilot.infrastructure.repositories.event_repository import (
+from luana_core_copilot.infrastructure.repositories.event_repository import (
     CopilotEventRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

@@ -9,12 +9,11 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.modules.analytics.domain.enums import AggregationType
-from src.modules.analytics.domain.metric_catalog import get_metric_def
+from luana_core_analytics_engine.domain.enums import AggregationType
+from luana_core_analytics_engine.domain.metric_catalog import get_metric_def
 
 if TYPE_CHECKING:
-    from src.modules.analytics.application.dto.attraction_dto import ChannelMetricDTO
+    from luana_core_analytics_engine.application.dto.attraction_dto import ChannelMetricDTO
 
 logger = structlog.get_logger(__name__)
 

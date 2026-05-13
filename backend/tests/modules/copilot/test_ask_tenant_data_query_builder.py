@@ -6,10 +6,10 @@ from datetime import date, datetime, timezone
 
 import pytest
 
-from src.modules.copilot.application.tools.ask_tenant_data.intent_classifier import (
+from luana_core_copilot.application.tools.ask_tenant_data.intent_classifier import (
     IntentResult,
 )
-from src.modules.copilot.application.tools.ask_tenant_data.query_builder import (
+from luana_core_copilot.application.tools.ask_tenant_data.query_builder import (
     build_plan,
 )
 

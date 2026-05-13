@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from src.modules.copilot.application.tools.ask_tenant_data.state_check import (
+from luana_core_copilot.application.tools.ask_tenant_data.state_check import (
     annotate_state,
 )
-from src.modules.copilot.domain.ports import DataQueryPlan, DataQueryResult
+from luana_core_copilot.domain.ports import DataQueryPlan, DataQueryResult
 
 
 def test_zero_results_emits_empty_flag() -> None:

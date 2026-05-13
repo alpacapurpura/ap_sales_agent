@@ -1,6 +1,6 @@
 """Tests for assets module enums — value correctness and string behaviour."""
 
-from src.modules.assets.domain.enums import (
+from luana_core_assets.domain.enums import (
     AssetPurpose,
     AssetScope,
     AssetStatus,

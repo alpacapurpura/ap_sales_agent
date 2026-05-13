@@ -14,10 +14,10 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.copilot.api.voice import router
-from src.modules.copilot.application.services.limits_resolver import EffectiveLimits
-from src.modules.copilot.domain.voice import TranscriptionResult
-from src.modules.iam.api.dependencies import get_current_user, get_db
+from luana_core_copilot.api.voice import router
+from luana_core_copilot.application.services.limits_resolver import EffectiveLimits
+from luana_core_copilot.domain.voice import TranscriptionResult
+from luana_core_iam.api.dependencies import get_current_user, get_db
 
 
 def _make_limits(voice_rpm: int = 6) -> EffectiveLimits:
@@ -33,7 +33,7 @@ def _make_limits(voice_rpm: int = 6) -> EffectiveLimits:
 
 def _build_voice_client(voice_rpm: int = 6) -> TestClient:
     """Build test client with mocked dependencies."""
-    from src.modules.copilot.api.voice import _get_voice_limits
+    from luana_core_copilot.api.voice import _get_voice_limits
 
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/copilot/voice")
@@ -52,9 +52,9 @@ def _build_voice_client(voice_rpm: int = 6) -> TestClient:
     return TestClient(app, raise_server_exceptions=False)
 
 
-@patch("src.modules.copilot.api.voice.WhisperTranscriber")
-@patch("src.modules.copilot.api.voice.AssetsService")
-@patch("src.modules.copilot.api.voice.check_rate_limit")
+@patch("luana_core_copilot.api.voice.WhisperTranscriber")
+@patch("luana_core_copilot.api.voice.AssetsService")
+@patch("luana_core_copilot.api.voice.check_rate_limit")
 def test_upload_transcribe_passes_under_limit(
     mock_rate_limit: MagicMock,
     mock_assets_cls: MagicMock,
@@ -80,12 +80,12 @@ def test_upload_transcribe_passes_under_limit(
     assert response.status_code == 200
 
 
-@patch("src.modules.copilot.api.voice.check_rate_limit")
+@patch("luana_core_copilot.api.voice.check_rate_limit")
 def test_upload_transcribe_returns_429_when_rate_limited(
     mock_rate_limit: MagicMock,
 ) -> None:
     """When rate limit is exceeded, endpoint returns 429 with Retry-After header."""
-    from src.core.rate_limit import RateLimitExceeded
+    from luana_core_platform.core.rate_limit import RateLimitExceeded
 
     mock_rate_limit.side_effect = RateLimitExceeded(retry_after=30)
 
@@ -98,7 +98,7 @@ def test_upload_transcribe_returns_429_when_rate_limited(
     assert "Retry-After" in response.headers
 
 
-@patch("src.modules.copilot.api.voice.check_rate_limit")
+@patch("luana_core_copilot.api.voice.check_rate_limit")
 def test_rate_limit_called_with_correct_scope(
     mock_rate_limit: MagicMock,
 ) -> None:
@@ -120,14 +120,14 @@ def test_rate_limit_called_with_correct_scope(
         )
 
 
-@patch("src.modules.copilot.api.voice.check_rate_limit")
+@patch("luana_core_copilot.api.voice.check_rate_limit")
 def test_file_exceeding_max_bytes_returns_413(
     mock_rate_limit: MagicMock,
 ) -> None:
     """File exceeding effective max_bytes returns 413."""
     mock_rate_limit.return_value = None
 
-    from src.modules.copilot.api.voice import _get_voice_limits
+    from luana_core_copilot.api.voice import _get_voice_limits
 
     tiny_limit = EffectiveLimits(
         tenant_id=uuid4(),
@@ -170,8 +170,8 @@ def test_legacy_transcribe_endpoint_returns_410_gone() -> None:
     FE migration to /upload-and-transcribe tracked as follow-up PR (cross-stack).
     CONTRACT §16 Q1 updated: BE deprecated 410 Gone (this PR). FE migration pending.
     """
-    from src.modules.copilot.api.voice import router as voice_router
-    from src.modules.iam.api.dependencies import get_tenant_context
+    from luana_core_copilot.api.voice import router as voice_router
+    from luana_core_iam.api.dependencies import get_tenant_context
 
     app = FastAPI()
     app.include_router(voice_router, prefix="/api/v1/copilot/voice")

@@ -7,20 +7,19 @@ renewal/upsell/churn grouping, bottleneck detection.
 from datetime import UTC
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
-from src.modules.analytics.application.dto.expansion_dto import (
+from luana_core_analytics_engine.application.dto.capture_dto import MiniFunnelDTO
+from luana_core_analytics_engine.application.dto.expansion_dto import (
     ExpansionDetailDTO,
     ExpansionGroupDTO,
     ExpansionHeaderKpisDTO,
     ExpansionOfferDTO,
 )
-from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
-from src.modules.analytics.domain.period_config import DateRange
-from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.shared.domain.currency import convert_to_usd
+from luana_core_analytics_engine.application.dto.opportunity_dto import BottleneckDTO
+from luana_core_analytics_engine.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.ports import ConnectionPort, OfferReadPort
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_platform.domain.currency import convert_to_usd
+from sqlalchemy.orm import Session
 
 
 def _build_expansion_offers(
@@ -112,7 +111,7 @@ class ExpansionStageService:
         """
         from datetime import datetime as dt_cls
 
-        from src.modules.analytics.infrastructure.repositories.expansion_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.expansion_repository import (
             ExpansionMetricsRepository,
         )
 

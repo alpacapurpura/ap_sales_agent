@@ -3,7 +3,7 @@
 Uses has_any_data validation since Offer is a SQLAlchemy model (no single Pydantic root).
 """
 
-from src.modules.copilot.application.procedures.base import Procedure, ProcedureStep
+from luana_core_copilot.application.procedures.base import Procedure, ProcedureStep
 
 OFFER_CREATION = Procedure(
     procedure_id="offer_creation",

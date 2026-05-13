@@ -5,7 +5,7 @@ import uuid
 from typing import NamedTuple
 from unittest.mock import MagicMock
 
-from src.modules.analytics.application.services.email_dashboard_service import (
+from luana_core_analytics_engine.application.services.email_dashboard_service import (
     EmailDashboardService,
     classify_engagement_segment,
     compute_health_score,

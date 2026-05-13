@@ -11,11 +11,11 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
-from src.modules.tenant_domains.domain.domain_entity import DomainStatus
-from src.modules.tenant_domains.infrastructure.domain_repository_impl import (
+from luana_core_platform.links.ports.domain_lookup import DomainLookupPort
+from luana_core_tenant_domains.domain.domain_entity import DomainStatus
+from luana_core_tenant_domains.infrastructure.domain_repository_impl import (
     DomainRepositoryImpl,
 )
-from src.shared.links.ports.domain_lookup import DomainLookupPort
 
 logger = structlog.get_logger()
 

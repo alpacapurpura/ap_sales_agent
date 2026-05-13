@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from src.modules.sales_agent.application.services.tenant_route_overlay import (
+from luana_core_sales_agent.application.services.tenant_route_overlay import (
     collect_tenant_anchors,
 )
 

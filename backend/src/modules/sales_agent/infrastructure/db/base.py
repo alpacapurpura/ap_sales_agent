@@ -1,9 +1,8 @@
 """Base infrastructure module."""
 
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
 from sqlalchemy.orm import Query, Session
-
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
 
 
 class BaseRepository:

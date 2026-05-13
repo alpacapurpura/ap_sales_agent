@@ -11,11 +11,11 @@ from __future__ import annotations
 import uuid
 from unittest.mock import patch
 
-from src.shared.application.personality_event_handlers import (
+from luana_core_platform.application.personality_event_handlers import (
     handle_personality_profile_updated,
     register_personality_event_handlers,
 )
-from src.shared.domain.events import EventBus, PersonalityProfileUpdatedEvent
+from luana_core_platform.domain.events import EventBus, PersonalityProfileUpdatedEvent
 
 TENANT_ID = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
 PROFILE_ID = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
@@ -39,7 +39,7 @@ class TestPersonalityCacheInvalidator:
     def test_subscriber_invalidates_prompt_loader_cache(self) -> None:
         """The subscriber clears the per-tenant cache via PromptLoader.invalidate_tenant."""
         with patch(
-            "src.shared.application.personality_event_handlers.prompt_loader",
+            "luana_core_platform.application.personality_event_handlers.prompt_loader",
         ) as mock_loader:
             event = PersonalityProfileUpdatedEvent.create(
                 tenant_id=TENANT_ID,
@@ -52,7 +52,7 @@ class TestPersonalityCacheInvalidator:
     def test_subscriber_swallows_invalidate_exceptions(self) -> None:
         """Best-effort: a cache-invalidate failure must NOT propagate to the publisher."""
         with patch(
-            "src.shared.application.personality_event_handlers.prompt_loader",
+            "luana_core_platform.application.personality_event_handlers.prompt_loader",
         ) as mock_loader:
             mock_loader.invalidate_tenant.side_effect = RuntimeError("cache down")
             event = PersonalityProfileUpdatedEvent.create(

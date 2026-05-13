@@ -24,13 +24,13 @@ import structlog
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-from src.core.database import SessionLocal
-from src.modules.copilot.domain.suggestion import (
+from luana_core_copilot.domain.suggestion import (
     Suggestion,
     SuggestionCategory,
     SuggestionContext,
 )
-from src.shared.links.ports.brand import create_brand_data_port
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.links.ports.brand import create_brand_data_port
 
 logger = structlog.get_logger()
 

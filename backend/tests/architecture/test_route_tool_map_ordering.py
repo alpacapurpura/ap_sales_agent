@@ -10,7 +10,7 @@ This test fails if two prefixes overlap and the shorter one is listed earlier.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.tools.registry import ROUTE_TOOL_MAP
+from luana_core_copilot.application.tools.registry import ROUTE_TOOL_MAP
 
 
 def test_route_prefixes_are_ordered_most_specific_first() -> None:

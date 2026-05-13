@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.domain.events import (
+from luana_core_copilot.domain.events import (
     EVENT_CARD_EMITTED,
     EVENT_ROUTING_DECIDED,
     EVENT_TURN_ENDED,
@@ -23,7 +23,7 @@ from src.modules.copilot.domain.events import (
     TurnEnded,
     TurnStarted,
 )
-from src.shared.domain.events import EventBus
+from luana_core_platform.domain.events import EventBus
 
 
 @pytest.fixture(autouse=True)
@@ -49,7 +49,7 @@ def test_register_subscribes_card_and_routing_events(fake_repo_factory) -> None:
     directly (single writer, owns the LLM-call aggregation). Subscribers
     cover card emissions + routing decisions only.
     """
-    from src.modules.copilot.observability import register
+    from luana_core_copilot.observability import register
 
     register(repo_factory=fake_repo_factory)
 
@@ -63,7 +63,7 @@ def test_register_subscribes_card_and_routing_events(fake_repo_factory) -> None:
 
 
 def test_register_is_idempotent(fake_repo_factory) -> None:
-    from src.modules.copilot.observability import register
+    from luana_core_copilot.observability import register
 
     register(repo_factory=fake_repo_factory)
     first = {name: list(handlers) for name, handlers in EventBus._handlers.items()}
@@ -76,7 +76,7 @@ def test_register_is_idempotent(fake_repo_factory) -> None:
 
 
 def test_register_persists_card_emitted_via_repo(fake_repo_factory) -> None:
-    from src.modules.copilot.observability import register
+    from luana_core_copilot.observability import register
 
     register(repo_factory=fake_repo_factory)
 
@@ -97,7 +97,7 @@ def test_register_persists_card_emitted_via_repo(fake_repo_factory) -> None:
 
 def test_register_does_not_persist_turn_events(fake_repo_factory) -> None:
     """Turn events bypass subscribers — observe_turn writes the rows."""
-    from src.modules.copilot.observability import register
+    from luana_core_copilot.observability import register
 
     register(repo_factory=fake_repo_factory)
 
@@ -129,7 +129,7 @@ def test_register_does_not_persist_turn_events(fake_repo_factory) -> None:
 
 
 def test_register_persists_routing_decided(fake_repo_factory) -> None:
-    from src.modules.copilot.observability import register
+    from luana_core_copilot.observability import register
 
     register(repo_factory=fake_repo_factory)
 
@@ -152,7 +152,7 @@ def test_register_persists_routing_decided(fake_repo_factory) -> None:
 
 def test_register_repo_failure_does_not_propagate(fake_repo_factory) -> None:
     """Best-effort: a repo that raises on add MUST NOT bubble out of publish()."""
-    from src.modules.copilot.observability import register
+    from luana_core_copilot.observability import register
 
     repo = fake_repo_factory.return_value
     repo.add.side_effect = RuntimeError("DB exploded")

@@ -27,22 +27,21 @@ import time
 from typing import TYPE_CHECKING, Literal
 
 import structlog
-from pydantic import ValidationError
-
-from src.modules.offer.application.offer_service import OfferService
-from src.shared.application.extraction.base_orchestrator import (
+from luana_core_extraction.base_orchestrator import (
     BaseExtractionOrchestrator,
 )
-from src.shared.application.progress_emitter import emit_progress
+from luana_core_offer_studio.application.offer_service import OfferService
+from luana_core_platform.application.progress_emitter import emit_progress
+from pydantic import ValidationError
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from uuid import UUID
 
-    from src.modules.offer.application.offer_extraction_service import (
+    from luana_core_offer_studio.application.offer_extraction_service import (
         OfferExtractionService,
     )
-    from src.modules.offer.application.offer_extraction_trace import (
+    from luana_core_offer_studio.application.offer_extraction_trace import (
         OfferExtractionTraceCollector,
     )
 
@@ -108,7 +107,7 @@ class OfferExtractionOrchestrator(BaseExtractionOrchestrator):
                 trace.crawl_start(url)
             t0 = time.time()
             try:
-                from src.shared.infrastructure.web.crawler import WebCrawler
+                from luana_core_platform.infrastructure.web.crawler import WebCrawler
 
                 crawler = WebCrawler()
                 crawled = await crawler.crawl_content(url)

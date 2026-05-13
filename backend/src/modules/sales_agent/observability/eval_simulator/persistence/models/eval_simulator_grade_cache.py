@@ -12,10 +12,9 @@ D9 (independent lifecycle TTL=null).
 
 from __future__ import annotations
 
+from luana_core_platform.domain.base_entity import Base
 from sqlalchemy import Column, DateTime, SmallInteger, String
 from sqlalchemy.dialects.postgresql import JSONB
-
-from src.shared.domain.base_entity import Base
 
 
 class EvalSimulatorGradeCacheModel(Base):

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 def _get_module_completion(db: Session, tenant_id: object, module_id: str, registry: object) -> float:
     """Return 0.0-1.0 completion for a module."""
-    from src.modules.copilot.domain.schema_introspection import (
+    from luana_core_copilot.domain.schema_introspection import (
         check_section_completion,
         get_model_sections,
     )
@@ -47,6 +47,8 @@ def render_tenant_health() -> None:
     """Render the cross-tenant health overview with drill-down."""
     st.title("🏥 Salud de Tenants")
 
+    from luana_core_platform.core.database import SessionLocal
+
     from src.admin.modules._shared import (
         TOOLTIPS,
         completion_flag,
@@ -54,7 +56,6 @@ def render_tenant_health() -> None:
         get_tenant_options,
         health_flag,
     )
-    from src.core.database import SessionLocal
 
     # ── Filters ──
     col_search, col_status, col_sort, col_period = st.columns(4)
@@ -82,12 +83,12 @@ def render_tenant_health() -> None:
 
         db = SessionLocal()
         try:
-            from src.modules.copilot.infrastructure.repositories.event_repository import (
+            from luana_core_copilot.infrastructure.repositories.event_repository import (
                 CopilotEventRepository,
             )
 
             event_repo = CopilotEventRepository(db)
-            from src.modules.copilot.domain.module_registry import get_module_registry
+            from luana_core_copilot.domain.module_registry import get_module_registry
 
             registry = get_module_registry()
 
@@ -227,8 +228,8 @@ def render_tenant_health() -> None:
     with tab_modules:
         db_detail = SessionLocal()
         try:
-            from src.modules.copilot.domain.module_registry import get_module_registry
-            from src.modules.copilot.domain.schema_introspection import (
+            from luana_core_copilot.domain.module_registry import get_module_registry
+            from luana_core_copilot.domain.schema_introspection import (
                 check_section_completion,
                 get_model_sections,
             )
@@ -275,7 +276,7 @@ def render_tenant_health() -> None:
     with tab_copilot:
         db_copilot = SessionLocal()
         try:
-            from src.modules.copilot.infrastructure.repositories.event_repository import (
+            from luana_core_copilot.infrastructure.repositories.event_repository import (
                 CopilotEventRepository,
             )
 
@@ -398,7 +399,7 @@ def render_tenant_health() -> None:
     with tab_convs:
         db_conv = SessionLocal()
         try:
-            from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+            from luana_core_copilot.infrastructure.repositories.conversation_repository import (
                 ConversationRepository,
             )
 

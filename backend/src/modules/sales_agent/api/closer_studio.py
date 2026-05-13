@@ -5,13 +5,10 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.sales_agent.api.dto.closer_studio import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from luana_core_sales_agent.api.dto.closer_studio import (
     CloserKPIs,
     ConversationDetail,
     ConversationListResponse,
@@ -28,9 +25,11 @@ from src.modules.sales_agent.api.dto.closer_studio import (
     StopRequest,
     StopResponse,
 )
-from src.modules.sales_agent.application.services.closer_studio_service import (
+from luana_core_sales_agent.application.services.closer_studio_service import (
     CloserStudioService,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -105,7 +104,7 @@ async def stop_ai(
     db.commit()
 
     try:
-        from src.modules.sales_agent.infrastructure.ws_manager import ws_manager
+        from luana_core_sales_agent.infrastructure.ws_manager import ws_manager
 
         await ws_manager.emit(
             str(user.tenant_id),
@@ -139,7 +138,7 @@ async def resume_ai(
     db.commit()
 
     try:
-        from src.modules.sales_agent.infrastructure.ws_manager import ws_manager
+        from luana_core_sales_agent.infrastructure.ws_manager import ws_manager
 
         await ws_manager.emit(
             str(user.tenant_id),
@@ -173,10 +172,10 @@ async def send_message(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     if body.mode == "direct":
-        from src.modules.sales_agent.application.services.channel_resolver import (
+        from luana_core_platform.infrastructure.models.crm import LeadModel
+        from luana_core_sales_agent.application.services.channel_resolver import (
             ChannelResolver,
         )
-        from src.shared.infrastructure.models.crm import LeadModel
 
         lead = db.execute(select(LeadModel).where(LeadModel.id == lead_id)).scalars().first()
         if lead:

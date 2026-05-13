@@ -17,11 +17,11 @@ import pytest
 TENANT_ID = UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 PII_FIELDS = {"email", "phone", "address", "mobile", "telephone", "ssn"}
 
-_GET_TENANT_ID = "src.modules.copilot.application.tools.analytics_tools.get_tenant_id"
-_CALL_STAGE_OV = "src.modules.copilot.application.tools.analytics_tools._call_stage_overview"
-_CALL_CHANNEL = "src.modules.copilot.application.tools.analytics_tools._call_channel_dashboard"
-_GET_GUARD = "src.modules.copilot.application.tools.analytics_tools._get_etl_refresh_guard"
-_CALL_ETL = "src.modules.copilot.application.tools.analytics_tools._call_etl_refresh"
+_GET_TENANT_ID = "luana_core_copilot.application.tools.analytics_tools.get_tenant_id"
+_CALL_STAGE_OV = "luana_core_copilot.application.tools.analytics_tools._call_stage_overview"
+_CALL_CHANNEL = "luana_core_copilot.application.tools.analytics_tools._call_channel_dashboard"
+_GET_GUARD = "luana_core_copilot.application.tools.analytics_tools._get_etl_refresh_guard"
+_CALL_ETL = "luana_core_copilot.application.tools.analytics_tools._call_etl_refresh"
 
 
 class TestNoLeakOfPii:
@@ -29,7 +29,7 @@ class TestNoLeakOfPii:
 
     def test_get_stage_metrics_no_pii_fields(self) -> None:
         """get_stage_metrics response contains no PII field names."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -52,7 +52,7 @@ class TestNoLeakOfPii:
 
     def test_get_channel_overview_no_pii_fields(self) -> None:
         """get_channel_overview response contains no PII field names."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_channel_overview,
         )
 
@@ -78,7 +78,7 @@ class TestNoRawExceptionLeak:
 
     def test_get_stage_metrics_exception_returns_structured_error(self) -> None:
         """RuntimeError in _call_stage_overview → structured JSON error response."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -98,7 +98,7 @@ class TestNoRawExceptionLeak:
 
     def test_get_channel_overview_exception_returns_structured_error(self) -> None:
         """RuntimeError in _call_channel_dashboard → structured JSON error response."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_channel_overview,
         )
 
@@ -117,10 +117,10 @@ class TestNoRawExceptionLeak:
 
     def test_trigger_etl_refresh_exception_returns_structured_error(self) -> None:
         """RuntimeError in ETL call → structured JSON error response."""
-        from src.modules.analytics.application.services.etl_refresh_guard import (
+        from luana_core_analytics_engine.application.services.etl_refresh_guard import (
             GuardDecision,
         )
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 
@@ -149,7 +149,7 @@ class TestToolsReturnJsonString:
 
     def test_get_stage_metrics_returns_string(self) -> None:
         """get_stage_metrics always returns str (no_tenant path)."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -160,7 +160,7 @@ class TestToolsReturnJsonString:
 
     def test_get_channel_overview_returns_string(self) -> None:
         """get_channel_overview always returns str (no_tenant path)."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_channel_overview,
         )
 
@@ -171,7 +171,7 @@ class TestToolsReturnJsonString:
 
     def test_trigger_etl_refresh_returns_string(self) -> None:
         """trigger_etl_refresh always returns str (no_tenant path)."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             trigger_etl_refresh,
         )
 

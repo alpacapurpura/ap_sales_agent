@@ -64,7 +64,7 @@ def _backend_root() -> Path:
 
 def test_budget_guard_wrappers_exist() -> None:
     """Sanity: BudgetGuardingChatModel + BudgetGuardingLLMService importable."""
-    from src.shared.billing.application.llm_guards import (
+    from luana_core_billing.application.llm_guards import (
         BudgetGuardingChatModel,
         BudgetGuardingLLMService,
     )
@@ -97,7 +97,7 @@ def test_copilot_deep_agent_graph_accepts_budget_guard() -> None:
     """
     import inspect
 
-    from src.modules.copilot.application.orchestrator.deep_agent import (
+    from luana_core_copilot.application.orchestrator.deep_agent import (
         build_deep_agent_graph,
     )
 

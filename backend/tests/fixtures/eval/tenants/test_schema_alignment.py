@@ -28,8 +28,8 @@ from tests.fixtures.eval.tenants.loader import ARCHETYPE_SLUGS, _THIS_DIR
 # Import brand domain models (read-only per 05-guidelines.md)
 # ---------------------------------------------------------------------------
 
-from src.modules.brand.domain.aggregates import BrandSettings
-from src.modules.brand.domain.personality import (
+from luana_core_brand_studio.domain.aggregates import BrandSettings
+from luana_core_brand_studio.domain.personality import (
     LinguisticPatterns,
     PersonalityDimensions,
     SampleExchange,

@@ -13,7 +13,7 @@ Related:
 
 from __future__ import annotations
 
-from src.modules.brand.domain.section_catalog import (
+from luana_core_brand_studio.domain.section_catalog import (
     BRAND_SECTION_CATALOG,
     BrandSectionKey,
     BrandSectionKind,

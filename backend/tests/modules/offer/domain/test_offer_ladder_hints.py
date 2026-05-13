@@ -11,14 +11,14 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.offer.domain.enums import OfferValueLevel
-from src.modules.offer.domain.offer_ladder_hints import (
+from luana_core_offer_studio.domain.enums import OfferValueLevel
+from luana_core_offer_studio.domain.offer_ladder_hints import (
     OFFER_LADDER_HINTS,
     LadderHint,
     get_ladder_hint,
     get_ladder_hints_for_type,
 )
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 
 class TestHelpers:

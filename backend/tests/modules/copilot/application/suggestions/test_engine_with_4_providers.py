@@ -13,8 +13,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.application.suggestions.engine import SuggestionEngine
-from src.modules.copilot.domain.suggestion import Suggestion, SuggestionCategory, SuggestionContext
+from luana_core_copilot.application.suggestions.engine import SuggestionEngine
+from luana_core_copilot.domain.suggestion import Suggestion, SuggestionCategory, SuggestionContext
 
 
 def _ctx(route: str | None = None, tenant_id=None, conversation_id=None, recent_messages=()):

@@ -4,18 +4,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from src.modules.copilot.domain.ports import BaseCopilotProvider, ModuleData
+from luana_core_copilot.domain.ports import BaseCopilotProvider, ModuleData
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
+    from luana_core_commercial_calendar.infrastructure.repositories.calendar_event_repository import (
         CalendarEventRepository,
     )
 
 
 def _calendar_repo_factory(db: object) -> object:
-    from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
+    from luana_core_commercial_calendar.infrastructure.repositories.calendar_event_repository import (
         CalendarEventRepository,
     )
 
@@ -23,7 +23,7 @@ def _calendar_repo_factory(db: object) -> object:
 
 
 def _calendar_read_fn(repo: object, tenant_id: UUID) -> list:
-    from src.shared.domain.datetime_utils import utc_today
+    from luana_core_platform.domain.datetime_utils import utc_today
 
     today = utc_today()
     return cast("CalendarEventRepository", repo).list_events(

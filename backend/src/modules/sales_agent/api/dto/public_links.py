@@ -2,9 +2,8 @@
 
 import datetime
 
+from luana_core_platform.domain.schemas.scheduling import EventType
 from pydantic import BaseModel, EmailStr
-
-from src.shared.domain.schemas.scheduling import EventType
 
 
 class BookingRequest(BaseModel):

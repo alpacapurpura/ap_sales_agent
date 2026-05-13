@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.infrastructure.repositories.workflow_metric_repository import (
+from luana_core_copilot.infrastructure.repositories.workflow_metric_repository import (
     WorkflowMetricRepository,
 )
 

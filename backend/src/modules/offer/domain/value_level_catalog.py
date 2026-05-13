@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.modules.offer.domain.enums import OfferValueLevel
+from luana_core_offer_studio.domain.enums import OfferValueLevel
 
 
 @dataclass(frozen=True, slots=True)

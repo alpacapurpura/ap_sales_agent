@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from src.modules.analytics.application.services.ad_performance_service import (
+from luana_core_analytics_engine.application.services.ad_performance_service import (
     AdPerformanceService,
 )
 

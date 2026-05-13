@@ -13,11 +13,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.application.extraction.active_job_state import (
+from luana_core_copilot.application.extraction.active_job_state import (
     ActiveExtractionJob,
 )
-from src.modules.copilot.application.guided.state import GuidedState
-from src.modules.copilot.application.tools.extraction_tools import (
+from luana_core_copilot.application.guided.state import GuidedState
+from luana_core_copilot.application.tools.extraction_tools import (
     _record_active_extraction_job,
 )
 
@@ -30,10 +30,10 @@ def patched_persistence() -> Any:
     """Patch guided read + active-job write for in-memory verification."""
     with (
         patch(
-            "src.modules.copilot.application.tools.extraction_tools.read_guided_state",
+            "luana_core_copilot.application.tools.extraction_tools.read_guided_state",
         ) as read_mock,
         patch(
-            "src.modules.copilot.application.tools.extraction_tools.write_active_job",
+            "luana_core_copilot.application.tools.extraction_tools.write_active_job",
         ) as write_mock,
     ):
         yield read_mock, write_mock

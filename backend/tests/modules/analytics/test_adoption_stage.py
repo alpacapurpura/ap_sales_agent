@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.analytics.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.period_config import DateRange
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 DATE_RANGE = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
@@ -18,7 +18,7 @@ def _run(coro):
 
 
 def _make_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.adoption_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.adoption_stage import (
         AdoptionStageService,
     )
 
@@ -70,7 +70,7 @@ class TestAdoptionStageServiceCacheMiss:
     def test_empty_data_returns_zero_dto(self):
         svc, _db = _make_svc()
         with patch(
-            "src.modules.analytics.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_customer_health_by_offer.return_value = []
@@ -90,7 +90,7 @@ class TestAdoptionStageServiceCacheMiss:
         svc, _db = _make_svc()
         offer_uuid = uuid.UUID("22222222-2222-2222-2222-222222222222")
         with patch(
-            "src.modules.analytics.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_customer_health_by_offer.return_value = [(offer_uuid, 10, 8, 2)]
@@ -108,7 +108,7 @@ class TestAdoptionStageServiceCacheMiss:
         svc, _db = _make_svc()
         offer_uuid = uuid.UUID("22222222-2222-2222-2222-222222222222")
         with patch(
-            "src.modules.analytics.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_customer_health_by_offer.return_value = [(offer_uuid, 10, 3, 7)]
@@ -128,7 +128,7 @@ class TestAdoptionStageServiceCacheMiss:
         cache.set = AsyncMock()
         svc, _db = _make_svc(cache=cache)
         with patch(
-            "src.modules.analytics.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_customer_health_by_offer.return_value = []
@@ -146,7 +146,7 @@ class TestAdoptionStageServiceCacheMiss:
         o1 = uuid.UUID("22222222-2222-2222-2222-222222222222")
         o2 = uuid.UUID("33333333-3333-3333-3333-333333333333")
         with patch(
-            "src.modules.analytics.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             # o1: 8 active, 2 inactive; o2: 7 active, 3 inactive
@@ -168,7 +168,7 @@ class TestAdoptionStageServiceCacheMiss:
 
 class TestBuildAdoptionBottlenecks:
     def test_no_bottleneck_healthy(self):
-        from src.modules.analytics.application.services.stage_services.adoption_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.adoption_stage import (
             _build_adoption_bottlenecks,
         )
 
@@ -176,7 +176,7 @@ class TestBuildAdoptionBottlenecks:
         assert result == []
 
     def test_low_health_slow_ttv(self):
-        from src.modules.analytics.application.services.stage_services.adoption_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.adoption_stage import (
             _build_adoption_bottlenecks,
         )
 
@@ -185,7 +185,7 @@ class TestBuildAdoptionBottlenecks:
         assert result[0].type == "low_adoption_health"
 
     def test_low_health_fast_ttv(self):
-        from src.modules.analytics.application.services.stage_services.adoption_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.adoption_stage import (
             _build_adoption_bottlenecks,
         )
 
@@ -194,8 +194,8 @@ class TestBuildAdoptionBottlenecks:
         assert result[0].type == "low_adoption_health"
 
     def test_per_offer_low_health(self):
-        from src.modules.analytics.application.dto.adoption_dto import OfferHealthDTO
-        from src.modules.analytics.application.services.stage_services.adoption_stage import (
+        from luana_core_analytics_engine.application.dto.adoption_dto import OfferHealthDTO
+        from luana_core_analytics_engine.application.services.stage_services.adoption_stage import (
             _build_adoption_bottlenecks,
         )
 

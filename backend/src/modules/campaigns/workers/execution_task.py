@@ -30,18 +30,17 @@ import datetime as dt
 from uuid import UUID
 
 import structlog
-
-from src.modules.campaigns.domain.audit_log import AuditEventType
-from src.modules.campaigns.domain.enums import StepType, TaskStatus
-from src.modules.campaigns.infrastructure.channels.errors import (
+from luana_core_campaigns.domain.audit_log import AuditEventType
+from luana_core_campaigns.domain.enums import StepType, TaskStatus
+from luana_core_campaigns.infrastructure.channels.errors import (
     ChannelComplianceBlocked,
     ChannelFatalError,
     ChannelRateLimitedError,
     ChannelRetryableError,
     ChannelTenantRateExceeded,
 )
-from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
-from src.modules.campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
+from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+from luana_core_campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
 
 logger = structlog.get_logger(__name__)
 
@@ -77,7 +76,7 @@ def _task_row_to_domain(row: object) -> object:
     Returns:
         ``CampaignTask`` domain entity built from the ORM row.
     """
-    from src.modules.campaigns.domain.campaign_task import CampaignTask
+    from luana_core_campaigns.domain.campaign_task import CampaignTask
 
     return CampaignTask.model_validate(row, from_attributes=True)
 
@@ -91,20 +90,19 @@ async def _process_task(session: object, task_id: UUID, ctx: dict | None = None)
         ctx: Optional ARQ context dict — used to pass ``budget_guard`` to
              SalesAgentAdapter for CALL_SUBAGENT_BRIEF steps.
     """
-    from sqlalchemy import select
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from src.modules.campaigns.application.services.audit_log_service import AuditLogService
-    from src.modules.campaigns.infrastructure.models.campaign_task_model import CampaignTaskModel
-    from src.modules.campaigns.infrastructure.repositories.audit_log_repo_impl import (
+    from luana_core_campaigns.application.services.audit_log_service import AuditLogService
+    from luana_core_campaigns.infrastructure.models.campaign_task_model import CampaignTaskModel
+    from luana_core_campaigns.infrastructure.repositories.audit_log_repo_impl import (
         AuditLogRepositoryImpl,
     )
-    from src.modules.campaigns.infrastructure.repositories.campaign_step_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_step_repository_impl import (
         CampaignStepRepositoryImpl,
     )
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
+    from sqlalchemy import select
+    from sqlalchemy.ext.asyncio import AsyncSession
 
     assert isinstance(session, AsyncSession)  # noqa: S101
 
@@ -158,7 +156,7 @@ async def _process_task(session: object, task_id: UUID, ctx: dict | None = None)
         # Channel send + LLM are owned by the orchestrator. Worker only marks
         # task status and writes audit log.
         if step is not None and step.step_type == StepType.CALL_SUBAGENT_BRIEF:
-            from src.modules.campaigns.infrastructure.external.sales_agent_adapter import (
+            from luana_core_campaigns.infrastructure.external.sales_agent_adapter import (
                 SalesAgentAdapter,
             )
 
@@ -455,9 +453,8 @@ async def _audit(
 ) -> None:
     """Write audit row. Never raises (AuditLogService.record contract)."""
     try:
+        from luana_core_campaigns.application.services.audit_log_service import AuditLogService
         from sqlalchemy.ext.asyncio import AsyncSession
-
-        from src.modules.campaigns.application.services.audit_log_service import AuditLogService
 
         assert isinstance(audit_svc, AuditLogService)  # noqa: S101
         assert isinstance(session, AsyncSession)  # noqa: S101

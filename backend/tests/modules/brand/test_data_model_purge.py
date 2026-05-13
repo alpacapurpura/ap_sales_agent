@@ -15,7 +15,7 @@ already — verified by reading the source. No action needed for them.
 import pytest
 from pydantic import ValidationError
 
-from src.modules.brand.domain import BrandSettings
+from luana_core_brand_studio.domain import BrandSettings
 
 
 class TestBrandTeamPurge:
@@ -51,28 +51,28 @@ class TestBrandPersonalityNew:
 
     def test_brand_personality_importable(self):
         """BrandPersonality is importable from brand domain."""
-        from src.modules.brand.domain import BrandPersonality
+        from luana_core_brand_studio.domain import BrandPersonality
 
     def test_brand_personality_has_core_values(self):
-        from src.modules.brand.domain import BrandPersonality
+        from luana_core_brand_studio.domain import BrandPersonality
 
         p = BrandPersonality(core_values=["Innovation", "Transparency"])
         assert p.core_values == ["Innovation", "Transparency"]
 
     def test_brand_personality_has_personality_traits(self):
-        from src.modules.brand.domain import BrandPersonality
+        from luana_core_brand_studio.domain import BrandPersonality
 
         p = BrandPersonality(personality_traits=["Bold", "Empathetic"])
         assert p.personality_traits == ["Bold", "Empathetic"]
 
     def test_brand_personality_has_archetype(self):
-        from src.modules.brand.domain import BrandPersonality
+        from luana_core_brand_studio.domain import BrandPersonality
 
         p = BrandPersonality(archetype="Hero")
         assert p.archetype == "Hero"
 
     def test_brand_personality_all_optional(self):
-        from src.modules.brand.domain import BrandPersonality
+        from luana_core_brand_studio.domain import BrandPersonality
 
         p = BrandPersonality()
         assert p.core_values == []
@@ -86,7 +86,7 @@ class TestBrandPersonalityNew:
         assert s.brand_personality is None
 
     def test_brand_settings_accepts_brand_personality(self):
-        from src.modules.brand.domain import BrandPersonality
+        from luana_core_brand_studio.domain import BrandPersonality
 
         bp = BrandPersonality(archetype="Rebel", core_values=["Freedom"])
         s = BrandSettings(brand_personality=bp)
@@ -95,7 +95,7 @@ class TestBrandPersonalityNew:
         assert s.brand_personality.core_values == ["Freedom"]
 
     def test_brand_settings_roundtrip_with_brand_personality(self):
-        from src.modules.brand.domain import BrandPersonality
+        from luana_core_brand_studio.domain import BrandPersonality
 
         bp = BrandPersonality(
             core_values=["Creativity"],
@@ -114,19 +114,19 @@ class TestBrandValuesLosePersonalityFields:
 
     def test_brand_values_has_no_core_values(self):
         """core_values is no longer on BrandValues."""
-        from src.modules.brand.domain import BrandValues
+        from luana_core_brand_studio.domain import BrandValues
 
         v = BrandValues()
         assert not hasattr(v, "core_values"), "core_values should have been moved to BrandPersonality"
 
     def test_brand_values_has_no_personality_traits(self):
-        from src.modules.brand.domain import BrandValues
+        from luana_core_brand_studio.domain import BrandValues
 
         v = BrandValues()
         assert not hasattr(v, "personality_traits"), "personality_traits should have been moved to BrandPersonality"
 
     def test_brand_values_has_no_archetype(self):
-        from src.modules.brand.domain import BrandValues
+        from luana_core_brand_studio.domain import BrandValues
 
         v = BrandValues()
         assert not hasattr(v, "archetype"), "archetype should have been moved to BrandPersonality"
@@ -139,7 +139,7 @@ class TestBrandValuesLosePersonalityFields:
         This test is deliberately lenient: it only checks we didn't break
         BrandPositioning construction.
         """
-        from src.modules.brand.domain import BrandPositioning
+        from luana_core_brand_studio.domain import BrandPositioning
 
         p = BrandPositioning()
         assert p.values is None or isinstance(p.values, object)
@@ -149,7 +149,7 @@ class TestBrandValuesLosePersonalityFields:
         must not crash on load — the unknown keys are silently dropped
         (extra='ignore' on BrandValues).
         """
-        from src.modules.brand.domain import BrandPositioning
+        from luana_core_brand_studio.domain import BrandPositioning
 
         data = {
             "values": {

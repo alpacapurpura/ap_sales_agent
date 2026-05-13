@@ -4,7 +4,7 @@ Canonical location: src.shared.domain.events
 New code should import directly from src.shared.domain.events.
 """
 
-from src.shared.domain.events import (
+from luana_core_platform.domain.events import (
     CHANNEL_TYPE_TO_CAPTURE_SLUG,
     AppointmentEvent,
     ChurnEvent,

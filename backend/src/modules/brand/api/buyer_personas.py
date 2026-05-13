@@ -4,20 +4,19 @@ import uuid
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.brand.api.dto.buyer_personas import (
+from luana_core_brand_studio.api.dto.buyer_personas import (
     BuyerPersonaCreateDTO,
     BuyerPersonaResponseDTO,
     BuyerPersonaSectionUpdateDTO,
 )
-from src.modules.brand.domain.buyer_persona import BuyerPersona
-from src.modules.brand.infrastructure.repositories.buyer_persona_repository import (
+from luana_core_brand_studio.domain.buyer_persona import BuyerPersona
+from luana_core_brand_studio.infrastructure.repositories.buyer_persona_repository import (
     BuyerPersonaRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

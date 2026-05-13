@@ -17,8 +17,8 @@ router, so existing callsites get per-role routing transparently.
 
 from typing import Any
 
-from src.core.enums import AIProvider, ModelRole
-from src.shared.infrastructure.llm.base import BaseLLMService
+from luana_core_llm.base import BaseLLMService
+from luana_core_platform.core.enums import AIProvider, ModelRole
 
 _LEGACY_MODEL_TYPE_MAP: dict[str, ModelRole] = {
     "smart": ModelRole.REASONING,
@@ -50,7 +50,7 @@ class MultiRoleLLMRouter(BaseLLMService):
         """
         del role  # consumed by LiteLLMService internals via settings lookup
         if self._litellm is None:
-            from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+            from luana_core_llm.providers.litellm import LiteLLMService
 
             self._litellm = LiteLLMService()
         return self._litellm
@@ -94,6 +94,6 @@ class MultiRoleLLMRouter(BaseLLMService):
     # and ops dashboards. The proxy still does the real routing at call time.
     def get_provider_for_role(self, role: ModelRole) -> AIProvider:
         """Return which provider this router will dispatch ``role`` to."""
-        from src.core.config import settings
+        from luana_core_platform.core.config import settings
 
         return settings.get_provider_for_role(role)

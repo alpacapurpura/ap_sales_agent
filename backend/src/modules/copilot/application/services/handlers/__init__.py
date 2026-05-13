@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.copilot.application.services.handlers.brand_apply_handler import (
+from luana_core_copilot.application.services.handlers.brand_apply_handler import (
     apply_brand_field,
     register_brand_handler,
 )

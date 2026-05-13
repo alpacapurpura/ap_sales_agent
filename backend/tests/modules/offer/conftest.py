@@ -5,8 +5,8 @@ import uuid
 import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.offer.domain.enums import OfferArchetype, OfferStatus, OfferValueLevel
-from src.modules.offer.infrastructure.models.product_model import ProductModel
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferStatus, OfferValueLevel
+from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
 
 TENANT_A = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 TENANT_B = uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")

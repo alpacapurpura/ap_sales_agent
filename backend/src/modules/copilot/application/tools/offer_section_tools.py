@@ -20,9 +20,8 @@ from __future__ import annotations
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
 
 logger = structlog.get_logger()
 
@@ -44,8 +43,8 @@ def _engine_suggestions_for_context(
     try:
         from uuid import UUID
 
-        from src.modules.copilot.application.suggestions.registry import get_default_engine
-        from src.modules.copilot.domain.suggestion import SuggestionContext
+        from luana_core_copilot.application.suggestions.registry import get_default_engine
+        from luana_core_copilot.domain.suggestion import SuggestionContext
 
         tid = UUID(str(tenant_id)) if not isinstance(tenant_id, UUID) else tenant_id
         ctx = SuggestionContext(
@@ -70,7 +69,7 @@ def _engine_suggestions_for_context(
 
 def _brand_settings(db: object, tenant_id: object) -> object | None:
     """Return BrandSettings for *tenant_id* or None if the brand has not been set up."""
-    from src.modules.brand.infrastructure.repositories.brand_repository import (
+    from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
         BrandRepository,
     )
 
@@ -87,7 +86,7 @@ def _active_personality(db: object, tenant_id: object) -> object | None:
     Used to prefer personality.system_instruction over legacy voice_tone string.
     Cross-module access is via lazy import (no direct domain import at module level).
     """
-    from src.modules.brand.infrastructure.repositories.personality_repository import (
+    from luana_core_brand_studio.infrastructure.repositories.personality_repository import (
         PersonalityProfileRepository,
     )
 
@@ -97,13 +96,13 @@ def _active_personality(db: object, tenant_id: object) -> object | None:
 
 def _social_proof_bundle(db: object, tenant_id: object) -> dict:
     """Return {testimonials, authority_items, team_members} for *tenant_id*."""
-    from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+    from luana_core_social_proof.infrastructure.repositories.authority_item_repository import (
         AuthorityItemRepository,
     )
-    from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+    from luana_core_social_proof.infrastructure.repositories.team_member_repository import (
         TeamMemberRepository,
     )
-    from src.modules.social_proof.infrastructure.repositories.testimonial_repository import (
+    from luana_core_social_proof.infrastructure.repositories.testimonial_repository import (
         TestimonialRepository,
     )
 
@@ -116,7 +115,7 @@ def _social_proof_bundle(db: object, tenant_id: object) -> dict:
 
 def _avatars(db: object, tenant_id: object) -> list:
     """Return Avatar list for *tenant_id*."""
-    from src.modules.brand.infrastructure.repositories.avatar_repository import (
+    from luana_core_brand_studio.infrastructure.repositories.avatar_repository import (
         AvatarRepository,
     )
 
@@ -127,7 +126,7 @@ def _offer_preset_flags(db: object, tenant_id: object, offer_id: str | None) -> 
     """Return the preset flags (list[str]) for the current offer, or []."""
     if not offer_id:
         return []
-    from src.shared.links.ports.offer import get_offer_repository, get_offer_type_preset
+    from luana_core_platform.links.ports.offer import get_offer_repository, get_offer_type_preset
 
     repo = get_offer_repository(db)  # type: ignore[arg-type]
     # OfferRepository.get_all_by_tenant returns list of offer dicts/objects
@@ -732,9 +731,8 @@ def detect_currency_mismatch(offer_id: str = "") -> str:
     db = SessionLocal()
     try:
         # Get tenant currency from IAM tenant model
+        from luana_core_iam.infrastructure.models.tenant_model import TenantModel
         from sqlalchemy import select
-
-        from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
         stmt = select(TenantModel).where(TenantModel.id == tenant_id)
         tenant_row = db.execute(stmt).scalars().first()  # type: ignore[attr-defined]
@@ -743,7 +741,7 @@ def detect_currency_mismatch(offer_id: str = "") -> str:
         # Get offer currency if offer_id provided
         offer_currency = None
         if offer_id:
-            from src.shared.links.ports.offer import get_offer_repository
+            from luana_core_platform.links.ports.offer import get_offer_repository
 
             repo = get_offer_repository(db)  # type: ignore[arg-type]
             offers = repo.get_all_by_tenant(tenant_id)  # type: ignore[arg-type]
@@ -1391,13 +1389,12 @@ def structure_objections(raw_text: str) -> str:
     """
     import json
 
-    from pydantic import BaseModel, Field
-
-    from src.shared.application.ai_action_service import (
+    from luana_core_platform.application.ai_action_service import (
         AIActionPolicy,
         AIActionService,
         AIModelPolicy,
     )
+    from pydantic import BaseModel, Field
 
     tenant_id = get_tenant_id()
     if not tenant_id:

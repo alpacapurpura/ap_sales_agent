@@ -27,14 +27,13 @@ import inspect
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.modules.copilot.domain.workflow import (
+from luana_core_copilot.domain.workflow import (
     NodeOutput,
     Workflow,
     WorkflowExecutionState,
     WorkflowNode,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping

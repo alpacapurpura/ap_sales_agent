@@ -8,14 +8,14 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.landing.infrastructure.models.landing_model import LandingPageModel
-from src.modules.offer.api.launch_editions import router
-from src.modules.offer.application.launch_edition_service import LaunchEditionService
-from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.domain.enums import OfferArchetype
+from luana_core_platform.core.database import get_db
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_landing.infrastructure.models.landing_model import LandingPageModel
+from luana_core_offer_studio.api.launch_editions import router
+from luana_core_offer_studio.application.launch_edition_service import LaunchEditionService
+from luana_core_offer_studio.application.offer_service import OfferService
+from luana_core_offer_studio.domain.enums import OfferArchetype
 
 
 def _build_client(db, tenant_id: uuid.UUID) -> TestClient:

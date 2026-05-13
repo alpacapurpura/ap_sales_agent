@@ -2,12 +2,11 @@
 
 from uuid import UUID
 
+from luana_core_landing.domain.content import LandingPageConfig
+from luana_core_landing.domain.landing_page import LandingPage
+from luana_core_landing.infrastructure.models.landing_model import LandingPageModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.modules.landing.domain.content import LandingPageConfig
-from src.modules.landing.domain.landing_page import LandingPage
-from src.modules.landing.infrastructure.models.landing_model import LandingPageModel
 
 
 class LandingRepository:

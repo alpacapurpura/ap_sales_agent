@@ -15,10 +15,10 @@ from uuid import UUID
 
 import pytest
 
-from src.modules.sales_agent.application.orchestrator.conversation_pipeline import (
+from luana_core_sales_agent.application.orchestrator.conversation_pipeline import (
     ConversationPipeline,
 )
-from src.shared.domain.messages import IncomingMessage
+from luana_core_platform.domain.messages import IncomingMessage
 
 TENANT_ID = UUID("44444444-4444-4444-4444-444444444444")
 LEAD_ID = UUID("55555555-5555-5555-5555-555555555555")
@@ -88,7 +88,7 @@ async def test_handle_human_mode_increments_unread_and_emits_ws(monkeypatch: pyt
         captured.append(True)
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_human_mode_message",
+        "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_human_mode_message",
         staticmethod(_capture_emit),
     )
 
@@ -186,7 +186,7 @@ def test_build_brand_voice_returns_none_when_tenant_missing() -> None:
 async def test_sanitize_text_returns_sanitized(monkeypatch: pytest.MonkeyPatch) -> None:
     safety_stub = SimpleNamespace(sanitize_content=AsyncMock(return_value=("clean text", True)))
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.external.safety_service.SafetyLayerService",
+        "luana_core_sales_agent.infrastructure.external.safety_service.SafetyLayerService",
         lambda: safety_stub,
     )
     result = await ConversationPipeline.sanitize_text("dirty", "user_input")
@@ -200,7 +200,7 @@ async def test_sanitize_text_returns_original_on_failure(monkeypatch: pytest.Mon
         raise RuntimeError(msg)
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.external.safety_service.SafetyLayerService",
+        "luana_core_sales_agent.infrastructure.external.safety_service.SafetyLayerService",
         _factory,
     )
     assert await ConversationPipeline.sanitize_text("orig", "input") == "orig"
@@ -265,7 +265,7 @@ def test_save_checkpoint_rolls_back_on_failure() -> None:
 async def test_deliver_response_logs_sends_and_emits(monkeypatch: pytest.MonkeyPatch) -> None:
     safety_stub = SimpleNamespace(sanitize_content=AsyncMock(return_value=("respuesta", False)))
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.external.safety_service.SafetyLayerService",
+        "luana_core_sales_agent.infrastructure.external.safety_service.SafetyLayerService",
         lambda: safety_stub,
     )
 
@@ -275,7 +275,7 @@ async def test_deliver_response_logs_sends_and_emits(monkeypatch: pytest.MonkeyP
         output_calls.append((uid, text, channel_type))
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
+        "luana_core_sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
         _capture_output,
     )
 
@@ -285,7 +285,7 @@ async def test_deliver_response_logs_sends_and_emits(monkeypatch: pytest.MonkeyP
         ws_calls.append(True)
 
     monkeypatch.setattr(
-        "src.modules.sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
+        "luana_core_sales_agent.application.orchestrator.audit_emitter.AuditEmitter.emit_assistant_message",
         staticmethod(_capture_ws),
     )
 

@@ -10,36 +10,35 @@ import structlog
 
 if TYPE_CHECKING:
     from fastapi import BackgroundTasks
+    from luana_core_platform.infrastructure.channels.base import BaseChannel
     from sqlalchemy.orm import Session
 
-    from src.shared.infrastructure.channels.base import BaseChannel
-
-from src.core.context import set_tenant_id
-from src.core.database import SessionLocal
-from src.modules.sales_agent.application.orchestrator.conversation_pipeline import (
+from luana_core_platform.core.context import set_tenant_id
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.domain.enums import ChannelType
+from luana_core_platform.domain.messages import IncomingMessage, OutgoingMessage
+from luana_core_platform.links.ports.crm_repos import get_identity_service, get_lead_metrics_repository
+from luana_core_sales_agent.application.orchestrator.conversation_pipeline import (
     ConversationPipeline,
 )
-from src.modules.sales_agent.application.orchestrator.identity_resolver import (
+from luana_core_sales_agent.application.orchestrator.identity_resolver import (
     IdentityResolver,
 )
-from src.modules.sales_agent.application.orchestrator.smart_debounce_runner import (
+from luana_core_sales_agent.application.orchestrator.smart_debounce_runner import (
     run_smart_debounce,
 )
-from src.modules.sales_agent.infrastructure.db.repositories.business_repository import (
+from luana_core_sales_agent.infrastructure.db.repositories.business_repository import (
     BusinessRepository,
 )
-from src.modules.sales_agent.infrastructure.external.buffer_service import (
+from luana_core_sales_agent.infrastructure.external.buffer_service import (
     SmartBufferService,
 )
-from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+from luana_core_sales_agent.infrastructure.memory.audit_repository import (
     AuditRepository,
 )
-from src.modules.sales_agent.infrastructure.repositories.state_repository import (
+from luana_core_sales_agent.infrastructure.repositories.state_repository import (
     StateRepository,
 )
-from src.shared.domain.enums import ChannelType
-from src.shared.domain.messages import IncomingMessage, OutgoingMessage
-from src.shared.links.ports.crm_repos import get_identity_service, get_lead_metrics_repository
 
 logger = structlog.get_logger()
 
@@ -95,8 +94,8 @@ class ChatOrchestrator:
         db: Session = None,
     ) -> None:
         """Handle Telegram Webhook with Multi-Tenant support."""
-        from src.shared.links.ports.calendar import get_channel_credentials
-        from src.shared.links.ports.channel_adapter import create_telegram_adapter
+        from luana_core_platform.links.ports.calendar import get_channel_credentials
+        from luana_core_platform.links.ports.channel_adapter import create_telegram_adapter
 
         token = None
         if tenant_id and db:
@@ -239,9 +238,9 @@ class ChatOrchestrator:
             # En hit: inyecta campaign_id en initial_state (outbound_mode=False — slot 7 ausente).
             inbound_campaign_id: UUID | None = None
             try:
-                from src.core.config import settings as _cfg
-                from src.core.database import get_async_session_factory
-                from src.shared.links.ports.campaigns import create_campaigns_lookup_port
+                from luana_core_platform.core.config import settings as _cfg
+                from luana_core_platform.core.database import get_async_session_factory
+                from luana_core_platform.links.ports.campaigns import create_campaigns_lookup_port
 
                 _port = create_campaigns_lookup_port()
                 async with get_async_session_factory()() as _a_session:
@@ -323,10 +322,10 @@ class ChatOrchestrator:
             # ``turn_end`` rows persist on ``sales_agent_trace_event``.
             # Pre-PR-2 only the callback handler ran, so turns without
             # an LLM call (rare but real) wrote zero rows.
-            from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+            from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
                 ToolCallDedupTracker,
             )
-            from src.modules.sales_agent.observability.recording.factory import (
+            from luana_core_sales_agent.observability.recording.factory import (
                 build_sales_agent_observability_context,
             )
 

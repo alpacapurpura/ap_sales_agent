@@ -31,41 +31,39 @@ from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.sales_agent.application.orchestrator.audit_emitter import AuditEmitter
-from src.modules.sales_agent.application.orchestrator.graph import agent_app
-from src.modules.sales_agent.application.orchestrator.state import create_initial_state
-from src.modules.sales_agent.application.services.knowledge_builder import (
+from luana_core_billing.application.llm_guards import BudgetGuardingLLMService
+from luana_core_llm.factory import LLMFactory
+from luana_core_sales_agent.application.orchestrator.audit_emitter import AuditEmitter
+from luana_core_sales_agent.application.orchestrator.graph import agent_app
+from luana_core_sales_agent.application.orchestrator.state import create_initial_state
+from luana_core_sales_agent.application.services.knowledge_builder import (
     TenantKnowledgeBuilder,
 )
-from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
-from src.modules.sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
-from src.modules.sales_agent.domain.tuning import (
+from luana_core_sales_agent.application.services.semantic_router import SemanticRouter
+from luana_core_sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
+from luana_core_sales_agent.domain.tuning import (
     MESSAGE_HISTORY_LIMIT,
     SESSION_TIMEOUT_HOURS,
 )
-from src.modules.sales_agent.infrastructure.external.output_manager import OutputManager
-from src.shared.billing.application.llm_guards import BudgetGuardingLLMService
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_sales_agent.infrastructure.external.output_manager import OutputManager
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from sqlalchemy.orm import Session
-
-    from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+    from luana_core_billing.application.budget_guard import BudgetGuard
+    from luana_core_platform.domain.messages import IncomingMessage
+    from luana_core_platform.infrastructure.channels.base import BaseChannel
+    from luana_core_sales_agent.infrastructure.memory.audit_repository import (
         AuditRepository,
     )
-    from src.modules.sales_agent.infrastructure.repositories.state_repository import (
+    from luana_core_sales_agent.infrastructure.repositories.state_repository import (
         StateRepository,
     )
-    from src.modules.sales_agent.observability.recording.turn_envelope import (
+    from luana_core_sales_agent.observability.recording.turn_envelope import (
         SalesAgentObservabilityContext,
     )
-    from src.shared.billing.application.budget_guard import BudgetGuard
-    from src.shared.domain.messages import IncomingMessage
-    from src.shared.infrastructure.channels.base import BaseChannel
+    from sqlalchemy.orm import Session
 
 # Cross-module facades stay opaque (see audit_emitter.py rationale).
 _Customer = Any
@@ -90,7 +88,7 @@ class ConversationPipeline:
         try:
             from uuid import UUID as _UUID
 
-            from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+            from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
             tenant_uuid = _UUID(tenant_id)
             tenant_obj = db.execute(select(TenantModel).where(TenantModel.id == tenant_uuid)).scalars().first()
@@ -208,7 +206,7 @@ class ConversationPipeline:
                 last_session_summary = (checkpoint.lead_data or {}).get("session_summary")
                 if not last_session_summary and history:
                     try:
-                        from src.modules.sales_agent.infrastructure.prompts.base import (
+                        from luana_core_sales_agent.infrastructure.prompts.base import (
                             prompt_loader,
                         )
 
@@ -288,7 +286,7 @@ class ConversationPipeline:
     async def sanitize_text(text: str, direction: str = "input") -> str:
         """Run input/output through the safety layer. Returns original on failure."""
         try:
-            from src.modules.sales_agent.infrastructure.external.safety_service import (
+            from luana_core_sales_agent.infrastructure.external.safety_service import (
                 SafetyLayerService,
             )
 

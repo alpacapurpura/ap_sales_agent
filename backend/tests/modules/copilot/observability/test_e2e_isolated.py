@@ -53,12 +53,12 @@ def _pricing_snapshot():
 
 def _build_context(db):
     """Wire the new envelope to an in-memory SQLite session + mocked resolvers."""
-    from src.modules.copilot.observability.persistence.llm_call_repository import LlmCallRepository
-    from src.modules.copilot.observability.persistence.trace_event_repository import (
+    from luana_core_copilot.observability.persistence.llm_call_repository import LlmCallRepository
+    from luana_core_copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
-    from src.modules.copilot.observability.recording.turn_envelope import ObservabilityContext
-    from src.shared.agent_observability.pricing.resolver import PricingResult
+    from luana_core_copilot.observability.recording.turn_envelope import ObservabilityContext
+    from luana_core_observability.pricing.resolver import PricingResult
 
     pricing_resolver = MagicMock()
     pricing_resolver.resolve.return_value = PricingResult(
@@ -100,7 +100,7 @@ class _FakeChatModel:
         self.handler = handler
 
     def __call__(self, _input):
-        from src.shared.agent_observability.recording.cost_recorder import (
+        from luana_core_observability.recording.cost_recorder import (
             CostRecorderCustomLogger,
         )
 
@@ -153,10 +153,10 @@ class _FakeChatModel:
 @pytest.mark.asyncio
 async def test_full_turn_records_llm_call_and_trace_events(db) -> None:
     """A full turn through the envelope persists the canonical rows."""
-    from src.modules.copilot.infrastructure.models.trace_event_model import (
+    from luana_core_copilot.infrastructure.models.trace_event_model import (
         CopilotTraceEventModel,
     )
-    from src.modules.copilot.observability.persistence.models.llm_call_model import (
+    from luana_core_copilot.observability.persistence.models.llm_call_model import (
         CopilotLlmCallModel,
     )
 

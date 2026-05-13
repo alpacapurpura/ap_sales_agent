@@ -6,7 +6,7 @@ Validates:
 - AttractionDetailDTO structure with all 4 groups
 """
 
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     AttractionDetailDTO,
     AvailableChannelsDTO,
     ChannelMetricDTO,

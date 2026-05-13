@@ -26,8 +26,7 @@ from langchain_text_splitters import (
     MarkdownHeaderTextSplitter,
     RecursiveCharacterTextSplitter,
 )
-
-from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
     KbChunk,
 )
 

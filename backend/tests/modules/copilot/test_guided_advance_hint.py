@@ -16,7 +16,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.application.guided.state import GuidedState
+from luana_core_copilot.application.guided.state import GuidedState
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def patched_advance(monkeypatch: pytest.MonkeyPatch) -> tuple[str, str]:
     conv_id = str(uuid4())
     tenant_id = str(uuid4())
 
-    from src.modules.copilot.application.tools.guided import advance as advance_module
+    from luana_core_copilot.application.tools.guided import advance as advance_module
 
     monkeypatch.setattr(advance_module, "get_conversation_id", lambda: conv_id)
     monkeypatch.setattr(advance_module, "get_tenant_id", lambda: tenant_id)
@@ -46,8 +46,8 @@ def patched_advance(monkeypatch: pytest.MonkeyPatch) -> tuple[str, str]:
 def test_advance_includes_suggested_question_when_hint_available(
     patched_advance: tuple[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from src.modules.copilot.application.tools.guided import advance as advance_module
-    from src.modules.copilot.application.tools.guided.advance import advance_guided_block
+    from luana_core_copilot.application.tools.guided import advance as advance_module
+    from luana_core_copilot.application.tools.guided.advance import advance_guided_block
 
     fake_hint = {
         "path": "identity.brand_name",
@@ -70,8 +70,8 @@ def test_advance_includes_suggested_question_when_hint_available(
 def test_advance_omits_suggested_question_when_hint_none(
     patched_advance: tuple[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from src.modules.copilot.application.tools.guided import advance as advance_module
-    from src.modules.copilot.application.tools.guided.advance import advance_guided_block
+    from luana_core_copilot.application.tools.guided import advance as advance_module
+    from luana_core_copilot.application.tools.guided.advance import advance_guided_block
 
     monkeypatch.setattr(
         advance_module,
@@ -89,7 +89,7 @@ def test_advance_omits_suggested_question_when_hint_none(
 def test_compute_helper_returns_none_when_state_reader_returns_none(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.modules.copilot.application.tools.guided import advance as advance_module
+    from luana_core_copilot.application.tools.guided import advance as advance_module
 
     monkeypatch.setattr(advance_module, "read_entity_state", lambda *_, **__: None)
     with patch.object(advance_module, "SessionLocal") as session_local:
@@ -104,7 +104,7 @@ def test_compute_helper_returns_none_when_state_reader_returns_none(
 
 
 def test_compute_helper_handles_invalid_tenant_id() -> None:
-    from src.modules.copilot.application.tools.guided import advance as advance_module
+    from luana_core_copilot.application.tools.guided import advance as advance_module
 
     result = advance_module._compute_suggested_question(
         domain="brand",
@@ -116,7 +116,7 @@ def test_compute_helper_handles_invalid_tenant_id() -> None:
 
 
 def test_compute_helper_handles_none_tenant_id() -> None:
-    from src.modules.copilot.application.tools.guided import advance as advance_module
+    from luana_core_copilot.application.tools.guided import advance as advance_module
 
     result = advance_module._compute_suggested_question(
         domain="brand",
@@ -130,7 +130,7 @@ def test_compute_helper_handles_none_tenant_id() -> None:
 def test_compute_helper_returns_hint_when_state_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from src.modules.copilot.application.tools.guided import advance as advance_module
+    from luana_core_copilot.application.tools.guided import advance as advance_module
 
     monkeypatch.setattr(
         advance_module,

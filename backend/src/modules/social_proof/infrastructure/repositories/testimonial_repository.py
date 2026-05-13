@@ -13,11 +13,11 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
-from src.modules.social_proof.domain.testimonial import Testimonial
-from src.modules.social_proof.infrastructure.models.testimonial_model import (
+from luana_core_platform.domain.datetime_utils import utc_now
+from luana_core_social_proof.domain.testimonial import Testimonial
+from luana_core_social_proof.infrastructure.models.testimonial_model import (
     TestimonialModel,
 )
-from src.shared.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger()
 

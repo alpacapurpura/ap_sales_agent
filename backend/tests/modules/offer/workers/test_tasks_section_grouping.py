@@ -13,8 +13,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.extraction_section_map import (
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.extraction_section_map import (
     fields_to_fe_sections,
 )
 
@@ -62,7 +62,7 @@ class TestFieldsToFeSectionsIntegration:
 
     def test_all_output_keys_are_fe_slugs(self) -> None:
         """All keys in the result must be valid FE section slugs."""
-        from src.modules.offer.domain.extraction_section_map import FE_SECTION_SLUGS
+        from luana_core_offer_studio.domain.extraction_section_map import FE_SECTION_SLUGS
 
         paths = [
             "headline_promise",
@@ -90,7 +90,7 @@ class TestOfferExtractionRoutes:
 
     def test_nav_route_template_format(self) -> None:
         """NAV_ROUTE_TEMPLATE includes all required placeholders."""
-        from src.modules.offer.application.extraction_routes import NAV_ROUTE_TEMPLATE
+        from luana_core_offer_studio.application.extraction_routes import NAV_ROUTE_TEMPLATE
 
         assert "{tenantId}" in NAV_ROUTE_TEMPLATE
         assert "{entityId}" in NAV_ROUTE_TEMPLATE
@@ -98,7 +98,7 @@ class TestOfferExtractionRoutes:
 
     def test_primary_cta_route_includes_offer_id(self) -> None:
         """primary_cta_route includes the offer_id in the path."""
-        from src.modules.offer.application.extraction_routes import primary_cta_route
+        from luana_core_offer_studio.application.extraction_routes import primary_cta_route
 
         offer_id = str(uuid.uuid4())
         route = primary_cta_route(offer_id, ["identity", "strategy"])
@@ -108,13 +108,13 @@ class TestOfferExtractionRoutes:
 
     def test_primary_cta_route_none_when_no_sections(self) -> None:
         """primary_cta_route returns None when sections_completed is empty."""
-        from src.modules.offer.application.extraction_routes import primary_cta_route
+        from luana_core_offer_studio.application.extraction_routes import primary_cta_route
 
         assert primary_cta_route("some-id", []) is None
 
     def test_primary_cta_route_not_brand_studio(self) -> None:
         """primary_cta_route must NOT contain 'brand-studio' (Bug 2 regression)."""
-        from src.modules.offer.application.extraction_routes import primary_cta_route
+        from luana_core_offer_studio.application.extraction_routes import primary_cta_route
 
         offer_id = str(uuid.uuid4())
         route = primary_cta_route(offer_id, ["identity"])
@@ -128,7 +128,7 @@ class TestBrandExtractionRoutes:
 
     def test_nav_route_template_brand_format(self) -> None:
         """Brand NAV_ROUTE_TEMPLATE uses brand-studio pattern."""
-        from src.modules.brand.application.extraction_routes import NAV_ROUTE_TEMPLATE
+        from luana_core_brand_studio.application.extraction_routes import NAV_ROUTE_TEMPLATE
 
         assert "{tenantId}" in NAV_ROUTE_TEMPLATE
         assert "{section_slug}" in NAV_ROUTE_TEMPLATE
@@ -136,7 +136,7 @@ class TestBrandExtractionRoutes:
 
     def test_brand_primary_cta_route_no_entity_id(self) -> None:
         """Brand primary_cta_route does NOT include {entityId} (brand has no entity ID)."""
-        from src.modules.brand.application.extraction_routes import primary_cta_route
+        from luana_core_brand_studio.application.extraction_routes import primary_cta_route
 
         route = primary_cta_route(["identity"])
         assert "{entityId}" not in route
@@ -144,6 +144,6 @@ class TestBrandExtractionRoutes:
 
     def test_brand_primary_cta_route_none_when_empty(self) -> None:
         """Brand primary_cta_route returns None for empty sections."""
-        from src.modules.brand.application.extraction_routes import primary_cta_route
+        from luana_core_brand_studio.application.extraction_routes import primary_cta_route
 
         assert primary_cta_route([]) is None

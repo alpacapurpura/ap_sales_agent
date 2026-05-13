@@ -123,7 +123,7 @@ def test_url_analyzer_subagent_registered() -> None:
 
 def test_url_analyzer_subagent_shape() -> None:
     """F4 — subagent dict has the deepagents-required keys + restricts tools."""
-    from src.modules.copilot.application.orchestrator.subagents import (
+    from luana_core_copilot.application.orchestrator.subagents import (
         URL_ANALYZER_SUBAGENT,
     )
 
@@ -139,7 +139,7 @@ def test_url_analyzer_subagent_shape() -> None:
 
 def test_fetch_url_and_pin_to_memory_in_url_context_group() -> None:
     """F4 — transversal tools land in the dedicated url_context group."""
-    from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+    from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
     group = TOOL_GROUPS.get("url_context", [])
     names = {t.name for t in group}
@@ -149,7 +149,7 @@ def test_fetch_url_and_pin_to_memory_in_url_context_group() -> None:
 
 def test_url_context_group_is_always_available() -> None:
     """F4 — url_context must be in ALWAYS_AVAILABLE_GROUPS so any route can use it."""
-    from src.modules.copilot.application.tools.registry import (
+    from luana_core_copilot.application.tools.registry import (
         ALWAYS_AVAILABLE_GROUPS,
     )
 

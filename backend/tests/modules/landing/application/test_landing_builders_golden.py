@@ -18,7 +18,7 @@ from typing import Any
 
 import pytest
 
-from src.modules.landing.application.landing_content_builders import (
+from luana_core_landing.application.landing_content_builders import (
     _build_brochure_content,
     _build_event_content,
     _build_flash_offer_content,

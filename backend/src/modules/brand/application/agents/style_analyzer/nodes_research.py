@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from src.modules.brand.application.agents.style_analyzer.state import OnboardingState
+from luana_core_brand_studio.application.agents.style_analyzer.state import OnboardingState
 
 
 class _ResearchService:

@@ -14,15 +14,14 @@ from uuid import UUID
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_tenant_id
-from src.core.database import SessionLocal
-from src.modules.copilot.domain.extraction_domain_registry import (
+from luana_core_copilot.domain.extraction_domain_registry import (
     get_extraction_config,
     supported_domains,
 )
-from src.modules.copilot.domain.schema_introspection import validate_field_path
-from src.shared.application.ai_action_service import AIActionService
+from luana_core_copilot.domain.schema_introspection import validate_field_path
+from luana_core_platform.application.ai_action_service import AIActionService
+from luana_core_platform.core.context import get_tenant_id
+from luana_core_platform.core.database import SessionLocal
 
 logger = structlog.get_logger()
 
@@ -182,10 +181,10 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
 
     db = SessionLocal()
     try:
-        from src.modules.assets.infrastructure.repositories.asset_repository import (
+        from luana_core_assets.infrastructure.repositories.asset_repository import (
             AssetRepository,
         )
-        from src.modules.copilot.application.services.document_processor import (
+        from luana_core_copilot.application.services.document_processor import (
             DocumentProcessor,
         )
 

@@ -13,8 +13,8 @@ import src.modules.crm.infrastructure.models.lead_model
 
 # Pre-import models to register them with SQLAlchemy mapper
 # (prevents lazy relationship resolution errors in tests)
-import src.modules.iam.infrastructure.models.tenant_model
-from src.shared.domain.events import DomainEvent, EventBus
+import luana_core_iam.infrastructure.models.tenant_model  # model deleted from AISALESHT — use luana-core equivalent
+from luana_core_platform.domain.events import DomainEvent, EventBus
 
 try:
     import src.modules.connections.infrastructure.models.channel_connection_model
@@ -43,7 +43,7 @@ def _make_appointment_event(
     status: str,
 ) -> DomainEvent:
     """Create an AppointmentEvent using the domain factory."""
-    from src.modules.crm.domain.events import AppointmentEvent
+    from luana_core_crm.domain.events import AppointmentEvent
 
     return AppointmentEvent.create(
         tenant_id=tenant_id,
@@ -73,7 +73,7 @@ def _mock_profile(profile_id: uuid.UUID | None = None):
 
 def test_appointment_event_factory():
     """AppointmentEvent.create maps status to correct event_name."""
-    from src.modules.crm.domain.events import AppointmentEvent
+    from luana_core_crm.domain.events import AppointmentEvent
 
     tid = uuid.uuid4()
     lid = uuid.uuid4()
@@ -117,15 +117,15 @@ def test_appointment_booked_creates_journey_event():
 
     with (
         patch(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             return_value=mock_db,
         ),
         patch(
-            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            "luana_core_crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
             return_value=None,
         ),
     ):
-        from src.modules.crm.application.event_handlers import handle_appointment_booked
+        from luana_core_crm.application.event_handlers import handle_appointment_booked
 
         handle_appointment_booked(event)
 
@@ -162,15 +162,15 @@ def test_appointment_no_show_creates_journey_event():
 
     with (
         patch(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             return_value=mock_db,
         ),
         patch(
-            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            "luana_core_crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
             return_value=None,
         ),
     ):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_appointment_no_show,
         )
 
@@ -186,7 +186,7 @@ def test_eventbus_subscription_registered():
     # Clear existing handlers for isolation
     EventBus.clear()
 
-    from src.modules.crm.application.event_handlers import register_event_handlers
+    from luana_core_crm.application.event_handlers import register_event_handlers
 
     register_event_handlers()
 

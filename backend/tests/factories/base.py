@@ -18,7 +18,7 @@ import uuid
 import factory
 from faker import Faker
 
-from src.modules.brand.domain import (
+from luana_core_brand_studio.domain import (
     Avatar,
     BrandIdentity,
     BrandSettings,
@@ -51,26 +51,26 @@ class TenantFactory(factory.Factory):
         """Build a TenantModel instance. Import related models first to
         satisfy SQLAlchemy's lazy relationship resolution."""
         # These imports register models so SA can resolve relationship strings
-        from src.modules.brand.infrastructure.models.avatar_model import (
+        from luana_core_brand_studio.infrastructure.models.avatar_model import (
             AvatarModel as AvatarORM,
         )
-        from src.modules.connections.infrastructure.models.channel_connection_model import (
+        from luana_core_connections.infrastructure.models.channel_connection_model import (
             ChannelConnectionModel,
         )
-        from src.modules.crm.infrastructure.models.lead_model import (
+        from luana_core_crm.infrastructure.models.lead_model import (
             LeadModel,
         )
-        from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+        from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
             LifecycleTransitionModel,
         )
-        from src.modules.crm.infrastructure.models.sale_model import (
+        from luana_core_crm.infrastructure.models.sale_model import (
             SaleModel,
         )
-        from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-        from src.modules.offer.infrastructure.models.product_model import (
+        from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+        from luana_core_offer_studio.infrastructure.models.product_model import (
             ProductModel,
         )
-        from src.modules.sales_agent.infrastructure.models.message_model import (
+        from luana_core_sales_agent.infrastructure.models.message_model import (
             MessageModel,
         )
         from src.modules.scheduling.infrastructure.models.appointment_model import (

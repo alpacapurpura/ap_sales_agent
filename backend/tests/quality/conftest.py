@@ -45,8 +45,8 @@ def judge_llm():
     """Default to stubbed; opt-in real NANO via ``RUN_LLM_JUDGE=1``."""
     if os.getenv("RUN_LLM_JUDGE") == "1":
         # Real NANO path — defer import to avoid pulling LLMFactory in stub mode.
-        from src.core.enums import ModelRole
-        from src.shared.infrastructure.llm.factory import LLMFactory
+        from luana_core_platform.core.enums import ModelRole
+        from luana_core_llm.factory import LLMFactory
 
         return LLMFactory.get_service().get_client(ModelRole.NANO)
     return _StubJudgeLLM(score=4.0)

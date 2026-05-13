@@ -31,19 +31,19 @@ EXTRACTION_PY = BACKEND_SRC / "modules/copilot/application/extraction_card_flow.
 class TestLegacyModulesDeleted:
     def test_trace_recorder_module_gone(self) -> None:
         spec = importlib.util.find_spec(
-            "src.modules.copilot.application.observability.trace_recorder",
+            "luana_core_copilot.application.observability.trace_recorder",
         )
         assert spec is None, "trace_recorder.py must be deleted in atomic switch"
 
     def test_node_trace_module_gone(self) -> None:
         spec = importlib.util.find_spec(
-            "src.modules.copilot.application.observability.node_trace",
+            "luana_core_copilot.application.observability.node_trace",
         )
         assert spec is None, "node_trace.py must be deleted in atomic switch"
 
     def test_usage_tracking_module_gone(self) -> None:
         spec = importlib.util.find_spec(
-            "src.modules.copilot.application.orchestrator.usage_tracking",
+            "luana_core_copilot.application.orchestrator.usage_tracking",
         )
         assert spec is None, "usage_tracking.py must be deleted in atomic switch"
 

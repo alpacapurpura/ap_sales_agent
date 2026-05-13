@@ -7,7 +7,7 @@ or app entrypoint — so any caller that touches copilot services (the
 handlers registered before they look them up.
 """
 
-from src.modules.copilot.application.services.handlers.brand_apply_handler import (
+from luana_core_copilot.application.services.handlers.brand_apply_handler import (
     register_brand_handler,
 )
 

@@ -16,13 +16,13 @@ Tool surface:
                             into the current domain's fields.
 """
 
-from src.modules.copilot.application.tools.guided.advance import advance_guided_block
-from src.modules.copilot.application.tools.guided.end import end_guided_setup
-from src.modules.copilot.application.tools.guided.extract import (
+from luana_core_copilot.application.tools.guided.advance import advance_guided_block
+from luana_core_copilot.application.tools.guided.end import end_guided_setup
+from luana_core_copilot.application.tools.guided.extract import (
     extract_document_to_fields,
     extract_structured,
 )
-from src.modules.copilot.application.tools.guided.start import start_guided_setup
+from luana_core_copilot.application.tools.guided.start import start_guided_setup
 
 GUIDED_TOOLS = [
     start_guided_setup,

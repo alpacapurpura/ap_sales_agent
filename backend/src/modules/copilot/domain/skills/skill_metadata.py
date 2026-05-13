@@ -7,9 +7,8 @@ from __future__ import annotations
 
 from typing import Literal
 
+from luana_core_platform.core.enums import ModelRole
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-from src.core.enums import ModelRole
 
 SkillOutputFormat = Literal["free", "structured", "procedure"]
 

@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
+from luana_core_platform.core.database import get_db
 from src.modules.advertising.api.routes import router
 from src.modules.advertising.application.dto.association_dto import (
     AssociationSuggestionDTO,
@@ -22,12 +22,12 @@ from src.modules.advertising.application.dto.metrics_by_offer_dto import (
     MetricsByOfferDTO,
     UnassignedAggregateDTO,
 )
-from src.modules.iam.api.dependencies import (
+from luana_core_iam.api.dependencies import (
     get_current_user,
     get_tenant_context,
     get_tenant_locale,
 )
-from src.shared.domain.locale import TenantLocale
+from luana_core_platform.domain.locale import TenantLocale
 
 
 def _build_client(db, tenant_id: UUID):

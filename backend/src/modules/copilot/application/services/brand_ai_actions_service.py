@@ -4,17 +4,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from src.modules.brand.application.extraction_service import BrandExtractionService
+from luana_core_brand_studio.application.extraction_service import BrandExtractionService
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from uuid import UUID
 
+    from luana_core_brand_studio.application.extraction_trace import ExtractionTraceCollector
+    from luana_core_brand_studio.domain.aggregates import BrandSettings
+    from luana_core_brand_studio.domain.identity import BrandVisuals
     from sqlalchemy.orm import Session
-
-    from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
-    from src.modules.brand.domain.aggregates import BrandSettings
-    from src.modules.brand.domain.identity import BrandVisuals
 
 
 class CopilotBrandAIActionsService:

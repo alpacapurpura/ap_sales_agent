@@ -12,11 +12,10 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import structlog
-from sqlalchemy import select
-
-from src.modules.copilot.infrastructure.models.trace_event_model import (
+from luana_core_copilot.infrastructure.models.trace_event_model import (
     CopilotTraceEventModel,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from uuid import UUID

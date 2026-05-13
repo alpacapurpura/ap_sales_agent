@@ -8,19 +8,18 @@ import httpx
 import structlog
 from fastapi import Depends, Header, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.core.context import set_tenant_id
-from src.core.database import get_db
-from src.modules.iam.application.auth import verify_clerk_token, verify_token_payload
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models import (
+from luana_core_iam.application.auth import verify_clerk_token, verify_token_payload
+from luana_core_iam.domain.user import User
+from luana_core_iam.infrastructure.models import (
     TenantModel,
     UserModel,
     UserTenantModel,
 )
-from src.shared.domain.locale import TenantLocale
+from luana_core_platform.core.context import set_tenant_id
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.locale import TenantLocale
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

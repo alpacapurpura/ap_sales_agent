@@ -17,8 +17,8 @@ Covers:
 import uuid
 from datetime import date
 
-from src.modules.commercial_calendar.domain.calendar_event import CalendarEvent
-from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
+from luana_core_commercial_calendar.domain.calendar_event import CalendarEvent
+from luana_core_commercial_calendar.infrastructure.repositories.calendar_event_repository import (
     CalendarEventRepository,
 )
 
@@ -223,7 +223,7 @@ class TestDeleteEvent:
     def test_soft_delete_preserves_row_in_db(self, db, tenant_id):
         from sqlalchemy import select
 
-        from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
+        from luana_core_commercial_calendar.infrastructure.models.calendar_event_model import (
             CalendarEventModel,
         )
 

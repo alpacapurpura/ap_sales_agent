@@ -10,9 +10,8 @@ import datetime as dt
 from typing import Any
 from uuid import UUID
 
+from luana_core_campaigns.domain.enums import CampaignStatus, CampaignType
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-
-from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType
 
 # FSM transitions matrix — single source of truth for arch test introspection.
 # Keys: current status. Values: frozenset of allowed next statuses.

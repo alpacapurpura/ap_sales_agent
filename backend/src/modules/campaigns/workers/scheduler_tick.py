@@ -32,11 +32,10 @@ if TYPE_CHECKING:
     import datetime as dt
     from uuid import UUID
 
+    from luana_core_campaigns.application.services.orchestrator import CampaignOrchestrator
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from src.modules.campaigns.application.services.orchestrator import CampaignOrchestrator
-
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger(__name__)
 
@@ -98,9 +97,8 @@ async def _phase_a_promote(session: AsyncSession, now: dt.datetime) -> tuple[int
     """
     import time
 
+    from luana_core_campaigns.infrastructure.models.campaign_model import CampaignModel
     from sqlalchemy import select
-
-    from src.modules.campaigns.infrastructure.models.campaign_model import CampaignModel
 
     start = time.monotonic()
     promoted = 0
@@ -157,36 +155,36 @@ async def _build_orchestrator_standalone() -> CampaignOrchestrator:
     (correct path). Workers need standalone composition root — same cross-module
     import as api/_service_factories.py, justified in KNOWN_CROSS_MODULE_IMPORTS.
     """
-    from src.modules.campaigns.application.segment_filter_evaluator import (
+    from luana_core_campaigns.application.segment_filter_evaluator import (
         SegmentFilterEvaluator,
     )
-    from src.modules.campaigns.application.services.audit_log_service import AuditLogService
-    from src.modules.campaigns.application.services.cache import SimpleTTLCache
-    from src.modules.campaigns.application.services.orchestrator import CampaignOrchestrator
-    from src.modules.campaigns.application.services.segment_service import SegmentService
-    from src.modules.campaigns.infrastructure.repositories.audit_log_repo_impl import (
+    from luana_core_campaigns.application.services.audit_log_service import AuditLogService
+    from luana_core_campaigns.application.services.cache import SimpleTTLCache
+    from luana_core_campaigns.application.services.orchestrator import CampaignOrchestrator
+    from luana_core_campaigns.application.services.segment_service import SegmentService
+    from luana_core_campaigns.infrastructure.repositories.audit_log_repo_impl import (
         AuditLogRepositoryImpl,
     )
-    from src.modules.campaigns.infrastructure.repositories.campaign_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_repository_impl import (
         CampaignRepositoryImpl,
     )
-    from src.modules.campaigns.infrastructure.repositories.campaign_step_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_step_repository_impl import (
         CampaignStepRepositoryImpl,
     )
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
-    from src.modules.campaigns.infrastructure.repositories.segment_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.segment_repository_impl import (
         SegmentRepositoryImpl,
     )
-    from src.modules.campaigns.infrastructure.repositories.segment_snapshot_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.segment_snapshot_repository_impl import (
         SegmentSnapshotRepositoryImpl,
     )
-    from src.modules.crm.application.services.lead_query_service import (
+    from luana_core_crm.application.services.lead_query_service import (
         LeadQueryServiceImpl,
     )
-    from src.shared.domain_events.outbox.application.outbox_service import OutboxService
-    from src.shared.domain_events.outbox.infrastructure.repository import (
+    from luana_core_events.outbox.application.outbox_service import OutboxService
+    from luana_core_events.outbox.infrastructure.repository import (
         OutboxRepositoryImpl,
     )
 
@@ -216,8 +214,7 @@ async def _arq_pool_provider_fn() -> object:
     try:
         from arq import create_pool
         from arq.connections import RedisSettings
-
-        from src.core.config import settings as app_settings
+        from luana_core_platform.core.config import settings as app_settings
 
         return await create_pool(RedisSettings.from_dsn(app_settings.REDIS_URL))
     except Exception:  # noqa: BLE001
@@ -230,7 +227,7 @@ async def _phase_b_claim_and_enqueue(session: AsyncSession, now: dt.datetime, ct
 
     Returns tasks_enqueued count.
     """
-    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+    from luana_core_campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
     )
 
@@ -249,8 +246,7 @@ async def _phase_b_claim_and_enqueue(session: AsyncSession, now: dt.datetime, ct
         try:
             from arq import create_pool
             from arq.connections import RedisSettings
-
-            from src.core.config import settings as app_settings
+            from luana_core_platform.core.config import settings as app_settings
 
             arq_pool = await create_pool(RedisSettings.from_dsn(app_settings.REDIS_URL))
         except Exception:  # noqa: BLE001

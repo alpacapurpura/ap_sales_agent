@@ -11,11 +11,11 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.domain.lead import Lead, UserProfile
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
-from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.domain.lead import Lead, UserProfile
+from luana_core_crm.infrastructure.models.customer_model import CustomerProfileModel
+from luana_core_crm.infrastructure.models.lead_model import LeadModel
+from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
 
@@ -80,7 +80,7 @@ class TestGetLead:
     """get_lead retrieves a lead by ID or returns None."""
 
     def test_get_existing_lead(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         model = _make_lead_model(db, tenant_id=tenant_id, telegram_id="tg-123")
 
@@ -93,7 +93,7 @@ class TestGetLead:
         assert result.tenant_id == tenant_id
 
     def test_get_nonexistent_lead(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         svc = LeadService(db)
         result = svc.get_lead(uuid.uuid4())
@@ -110,7 +110,7 @@ class TestFindLeadByChannel:
     """find_lead_by_channel looks up leads by channel-specific ID."""
 
     def test_find_by_telegram_id(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         _make_lead_model(db, tenant_id=tenant_id, telegram_id="tg-unique-456")
 
@@ -121,7 +121,7 @@ class TestFindLeadByChannel:
         assert result.telegram_id == "tg-unique-456"
 
     def test_find_by_whatsapp_id(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         _make_lead_model(db, tenant_id=tenant_id, whatsapp_id="wa-unique-789")
 
@@ -132,7 +132,7 @@ class TestFindLeadByChannel:
         assert result.whatsapp_id == "wa-unique-789"
 
     def test_find_by_api_id(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         _make_lead_model(db, tenant_id=tenant_id, api_id="api-ext-001")
 
@@ -143,7 +143,7 @@ class TestFindLeadByChannel:
         assert result.api_id == "api-ext-001"
 
     def test_unknown_channel_returns_none(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         _make_lead_model(db, tenant_id=tenant_id, telegram_id="tg-xyz")
 
@@ -153,7 +153,7 @@ class TestFindLeadByChannel:
         assert result is None
 
     def test_tenant_isolation_lead_not_found(self, db: Session, tenant_id, other_tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         _make_lead_model(db, tenant_id=tenant_id, telegram_id="tg-isolated")
 
@@ -172,7 +172,7 @@ class TestCreateLead:
     """create_lead persists a new lead with or without profile data."""
 
     def test_create_lead_with_profile(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         profile = UserProfile(name="Juan", email="juan@test.com", location="Lima")
 
@@ -190,7 +190,7 @@ class TestCreateLead:
         assert persisted.telegram_id == "tg-new-001"
 
     def test_create_lead_without_profile(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         svc = LeadService(db)
         result = svc.create_lead(tenant_id=tenant_id, whatsapp_id="wa-new-002")
@@ -212,7 +212,7 @@ class TestUpdateLead:
     """update_lead persists changes to an existing lead."""
 
     def test_update_lead_persists_changes(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         model = _make_lead_model(db, tenant_id=tenant_id, telegram_id="tg-update-001")
 
@@ -230,7 +230,7 @@ class TestUpdateLead:
         assert persisted.temperature == "HOT"
 
     def test_update_nonexistent_lead_raises(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import LeadService
+        from luana_core_crm.application.services.lead_service import LeadService
 
         svc = LeadService(db)
         fake_lead = Lead(
@@ -252,14 +252,14 @@ class TestPipelineServiceMoveStage:
     """PipelineService.move_stage delegates to LifecycleService.force_stage."""
 
     def test_move_stage_delegates_to_lifecycle_service(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lead_service import PipelineService
+        from luana_core_crm.application.services.lead_service import PipelineService
 
         profile = _make_profile(db, tenant_id=tenant_id, stage=LifecycleStage.LEAD)
 
         svc = PipelineService(db)
 
         with patch(
-            "src.modules.crm.application.services.lifecycle_service.LifecycleService.force_stage",
+            "luana_core_crm.application.services.lifecycle_service.LifecycleService.force_stage",
         ) as mock_force:
             svc.move_stage(
                 profile_id=profile.id,

@@ -5,16 +5,16 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from src.modules.social_proof.domain.events import (
+from luana_core_platform.domain.events import EventBus
+from luana_core_social_proof.domain.events import (
     TeamMemberCreated,
     TeamMemberSoftDeleted,
     TeamMemberUpdated,
 )
-from src.modules.social_proof.domain.team_member import TeamMember
-from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+from luana_core_social_proof.domain.team_member import TeamMember
+from luana_core_social_proof.infrastructure.repositories.team_member_repository import (
     TeamMemberRepository,
 )
-from src.shared.domain.events import EventBus
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -77,8 +77,8 @@ class TeamService:
 
     def soft_delete(self, tenant_id: UUID, member_id: UUID) -> bool:
         """Soft-delete a TeamMember, cascade placements, emit event."""
-        from src.modules.social_proof.domain.enums import SourceTable
-        from src.modules.social_proof.infrastructure.repositories.placement_repository import (
+        from luana_core_social_proof.domain.enums import SourceTable
+        from luana_core_social_proof.infrastructure.repositories.placement_repository import (
             PlacementRepository,
         )
 

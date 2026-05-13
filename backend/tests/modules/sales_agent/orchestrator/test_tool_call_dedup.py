@@ -14,7 +14,7 @@ import pytest
 
 class TestObserveVerdicts:
     def test_first_two_calls_return_ok(self) -> None:
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
             DedupVerdict,
             ToolCallDedupTracker,
         )
@@ -24,7 +24,7 @@ class TestObserveVerdicts:
         assert tracker.observe("create_payment_link", {"product_id": "abc"}) == DedupVerdict.OK
 
     def test_third_call_returns_warn(self) -> None:
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
             DedupVerdict,
             ToolCallDedupTracker,
         )
@@ -35,7 +35,7 @@ class TestObserveVerdicts:
         assert tracker.observe("send_summary", {"payload": "x"}) == DedupVerdict.WARN
 
     def test_fifth_call_raises_loop_error(self) -> None:
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
             ToolCallDedupTracker,
             ToolCallLoopError,
         )
@@ -49,7 +49,7 @@ class TestObserveVerdicts:
         assert exc_info.value.repeat_count == 5
 
     def test_different_args_do_not_dedup(self) -> None:
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
             DedupVerdict,
             ToolCallDedupTracker,
         )
@@ -82,7 +82,7 @@ class TestEnvVars:
 
 class TestAugmentToolMessage:
     def test_warn_augments_with_anti_loop_directive(self) -> None:
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import (
             augment_tool_message_for_warn,
         )
 
@@ -98,12 +98,12 @@ class TestAugmentToolMessage:
 
 class TestStableHash:
     def test_dict_key_order_does_not_matter(self) -> None:
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import hash_tool_args
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import hash_tool_args
 
         assert hash_tool_args({"a": 1, "b": 2}) == hash_tool_args({"b": 2, "a": 1})
 
     def test_none_and_empty_dict_collapse(self) -> None:
-        from src.modules.sales_agent.application.orchestrator.tool_call_dedup import hash_tool_args
+        from luana_core_sales_agent.application.orchestrator.tool_call_dedup import hash_tool_args
 
         assert hash_tool_args(None) == hash_tool_args({})
 

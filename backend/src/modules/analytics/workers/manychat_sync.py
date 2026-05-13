@@ -13,14 +13,13 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import structlog
-from sqlalchemy.orm import Session
-
-from src.shared.links.ports.calendar import get_channel_credentials
-from src.shared.links.ports.channel_adapter import create_manychat_connector
-from src.shared.links.ports.crm_enrichment import (
+from luana_core_platform.links.ports.calendar import get_channel_credentials
+from luana_core_platform.links.ports.channel_adapter import create_manychat_connector
+from luana_core_platform.links.ports.crm_enrichment import (
     enrich_customer_with_manychat_data,
     get_recent_manychat_subscriber_ids,
 )
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

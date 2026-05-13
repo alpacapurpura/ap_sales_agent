@@ -16,7 +16,7 @@ from uuid import UUID
 import structlog
 
 if TYPE_CHECKING:
-    from src.shared.billing.application.plan_service import PlanService
+    from luana_core_billing.application.plan_service import PlanService
 
 logger = structlog.get_logger(__name__)
 

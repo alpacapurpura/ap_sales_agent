@@ -9,9 +9,9 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.copilot.api.plan import router
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_platform.core.database import get_db
+from luana_core_copilot.api.plan import router
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
 
 
 def _build_client(tenant_id):

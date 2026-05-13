@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.analytics.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.period_config import DateRange
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 DATE_RANGE = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
@@ -21,7 +21,7 @@ def _run(coro):
 
 
 def _make_summary_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.summary_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.summary_stage import (
         SummaryStageService,
     )
 
@@ -31,10 +31,10 @@ def _make_summary_svc(cache=None):
 
     with (
         patch(
-            "src.modules.analytics.application.services.stage_services.summary_stage.get_customer_repository"
+            "luana_core_analytics_engine.application.services.stage_services.summary_stage.get_customer_repository"
         ) as MockCustRepo,
         patch(
-            "src.modules.analytics.application.services.stage_services.summary_stage.get_lead_metrics_repository"
+            "luana_core_analytics_engine.application.services.stage_services.summary_stage.get_lead_metrics_repository"
         ) as MockLeadRepo,
     ):
         cust_repo = MagicMock()
@@ -109,7 +109,7 @@ class TestSummaryStageServiceCacheMiss:
 
 class TestSummaryStaticHelpers:
     def test_build_adoption_kpi_no_cache(self):
-        from src.modules.analytics.application.services.stage_services.summary_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.summary_stage import (
             SummaryStageService,
         )
 
@@ -118,7 +118,7 @@ class TestSummaryStaticHelpers:
         assert result.main_kpi == 0
 
     def test_build_adoption_kpi_from_cache(self):
-        from src.modules.analytics.application.services.stage_services.summary_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.summary_stage import (
             SummaryStageService,
         )
 
@@ -130,7 +130,7 @@ class TestSummaryStaticHelpers:
         assert result.main_kpi == 75.0
 
     def test_build_simple_header_kpi_no_cache(self):
-        from src.modules.analytics.application.services.stage_services.summary_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.summary_stage import (
             SummaryStageService,
         )
 
@@ -141,7 +141,7 @@ class TestSummaryStaticHelpers:
         assert result.stage == "capture"
 
     def test_build_simple_header_kpi_from_cache(self):
-        from src.modules.analytics.application.services.stage_services.summary_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.summary_stage import (
             SummaryStageService,
         )
 
@@ -180,7 +180,7 @@ class TestSummaryAttractionKpi:
 
 
 def _make_ts_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.timeseries_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.timeseries_stage import (
         TimeseriesStageService,
     )
 
@@ -216,7 +216,7 @@ class TestTimeseriesStageServiceCacheMiss:
     def test_no_channels_returns_empty_dto(self):
         svc, _db = _make_ts_svc()
         with patch(
-            "src.modules.analytics.application.services.channel_registry.get_stage_channels",
+            "luana_core_analytics_engine.application.services.channel_registry.get_stage_channels",
             return_value=[],
         ):
             result = _run(svc.get_timeseries(TENANT_ID, "attraction"))
@@ -229,7 +229,7 @@ class TestTimeseriesStageServiceCacheMiss:
         svc, db = _make_ts_svc()
         db.execute.return_value.all.return_value = []
         with patch(
-            "src.modules.analytics.application.services.channel_registry.get_stage_channels",
+            "luana_core_analytics_engine.application.services.channel_registry.get_stage_channels",
             return_value=[{"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid_social"}],
         ):
             result = _run(svc.get_timeseries(TENANT_ID, "attraction"))
@@ -241,7 +241,7 @@ class TestTimeseriesStageServiceCacheMiss:
         svc, db = _make_ts_svc()
         db.execute.return_value.all.return_value = []
         with patch(
-            "src.modules.analytics.application.services.channel_registry.get_stage_channels",
+            "luana_core_analytics_engine.application.services.channel_registry.get_stage_channels",
             return_value=[{"slug": "ig-organic", "name": "IG Organic", "channel_type": "organic_social"}],
         ):
             result = _run(svc.get_timeseries(TENANT_ID, "attraction", granularity="weekly"))
@@ -254,7 +254,7 @@ class TestTimeseriesStageServiceCacheMiss:
         cache.set = AsyncMock()
         svc, _db = _make_ts_svc(cache=cache)
         with patch(
-            "src.modules.analytics.application.services.channel_registry.get_stage_channels",
+            "luana_core_analytics_engine.application.services.channel_registry.get_stage_channels",
             return_value=[],
         ):
             _run(svc.get_timeseries(TENANT_ID, "attraction"))
@@ -265,7 +265,7 @@ class TestTimeseriesStageServiceCacheMiss:
 
 class TestTimeseriesHelpers:
     def test_resolve_metric_aliases_visitors(self):
-        from src.modules.analytics.application.services.stage_services.timeseries_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.timeseries_stage import (
             TimeseriesStageService,
         )
 
@@ -274,7 +274,7 @@ class TestTimeseriesHelpers:
         assert "users" in aliases
 
     def test_resolve_metric_aliases_unknown(self):
-        from src.modules.analytics.application.services.stage_services.timeseries_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.timeseries_stage import (
             TimeseriesStageService,
         )
 
@@ -282,7 +282,7 @@ class TestTimeseriesHelpers:
         assert aliases == ["custom_metric"]
 
     def test_build_date_map_empty(self):
-        from src.modules.analytics.application.services.stage_services.timeseries_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.timeseries_stage import (
             _build_date_map,
         )
 
@@ -291,7 +291,7 @@ class TestTimeseriesHelpers:
         assert channels == set()
 
     def test_build_date_map_with_rows(self):
-        from src.modules.analytics.application.services.stage_services.timeseries_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.timeseries_stage import (
             _build_date_map,
         )
 
@@ -314,7 +314,7 @@ class TestTimeseriesHelpers:
     def test_compute_period_totals(self):
         from collections import OrderedDict
 
-        from src.modules.analytics.application.services.stage_services.timeseries_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.timeseries_stage import (
             _compute_period_totals,
         )
 
@@ -331,7 +331,7 @@ class TestTimeseriesHelpers:
     def test_aggregate_weekly_collapses_days(self):
         from collections import OrderedDict
 
-        from src.modules.analytics.application.services.stage_services.timeseries_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.timeseries_stage import (
             TimeseriesStageService,
         )
 

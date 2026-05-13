@@ -28,7 +28,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.chat import (
+from luana_core_copilot.application.orchestrator.chat import (
     COPILOT_RECURSION_LIMIT,
     CopilotOrchestrator,
 )
@@ -101,7 +101,7 @@ async def _collect_sse_events(
 @pytest.fixture()
 def orchestrator() -> CopilotOrchestrator:
     with patch(
-        "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+        "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
     ) as mock_repo_cls:
         mock_repo = MagicMock()
         mock_conv = MagicMock()
@@ -165,18 +165,18 @@ class TestRecursionLimitSetting:
         """
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.COPILOT_RECURSION_LIMIT",
+                "luana_core_copilot.application.orchestrator.chat.COPILOT_RECURSION_LIMIT",
                 17,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
@@ -221,14 +221,14 @@ class TestGraphRecursionErrorHandling:
 
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
@@ -322,14 +322,14 @@ class TestPartialPersistenceOnError:
 
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
             patch.object(orchestrator, "_persist_messages", side_effect=_spy_persist),
         ):
@@ -417,14 +417,14 @@ class TestToolCallDedupWiring:
 
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
@@ -500,14 +500,14 @@ class TestToolCallDedupWiring:
 
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+                "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             ) as mock_build_graph,
             patch(
-                "src.modules.copilot.application.orchestrator.chat.redis_client",
+                "luana_core_copilot.application.orchestrator.chat.redis_client",
                 None,
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+                "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
             ) as mock_repo_cls,
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)

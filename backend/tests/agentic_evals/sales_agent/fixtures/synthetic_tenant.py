@@ -87,8 +87,8 @@ def seed_t2_synthetic_tenant_with_offer(db: Session) -> dict[str, Any]:
           rows soft-deleted, the upsert restores ``deleted_at = NULL``.
     """
     # Lazy imports — keep collection cheap when default suite ignores eval.
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    from src.modules.offer.infrastructure.models.product_model import ProductModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
 
     # 1. Tenant upsert.
     tenant = db.execute(

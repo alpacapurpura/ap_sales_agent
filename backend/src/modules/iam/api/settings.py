@@ -6,13 +6,8 @@ from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
-
-from src.core.config import settings as app_settings
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.tenant import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.tenant import (
     AISettings,
     GeneralSettings,
     GeneralSettingsUpdate,
@@ -20,18 +15,22 @@ from src.modules.iam.domain.tenant import (
     TenantSettingsUpdate,
     WebhookSettings,
 )
-from src.modules.iam.domain.user import (
+from luana_core_iam.domain.user import (
     SystemUserProfile,
     TeamMemberCreate,
     TeamMemberSchema,
     User,
 )
-from src.modules.iam.infrastructure.models import (
+from luana_core_iam.infrastructure.models import (
     TenantModel,
     UserModel,
     UserTenantModel,
 )
-from src.shared.infrastructure.external.clerk import ClerkService
+from luana_core_platform.core.config import settings as app_settings
+from luana_core_platform.core.database import get_db
+from luana_core_platform.infrastructure.external.clerk import ClerkService
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

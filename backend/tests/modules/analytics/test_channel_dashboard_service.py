@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.modules.analytics.application.services.channel_dashboard_service import (
+from luana_core_analytics_engine.application.services.channel_dashboard_service import (
     _CHANNEL_CONFIGS,
     ChannelDashboardService,
 )
@@ -31,7 +31,7 @@ class TestBuildKpis:
         service = ChannelDashboardService(mock_db)
         current = {"spend": 1000.0, "ROAS": 2.5}
         previous = {"spend": 800.0, "ROAS": 2.0}
-        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+        from luana_core_analytics_engine.domain.industry_benchmarks import IndustryCategory
 
         kpis = service._build_kpis(current, previous, IndustryCategory.GENERAL)
         spend_kpi = next((k for k in kpis if k.metric_name == "spend"), None)
@@ -43,7 +43,7 @@ class TestBuildKpis:
         service = ChannelDashboardService(mock_db)
         current = {"spend": 500.0}
         previous = {}
-        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+        from luana_core_analytics_engine.domain.industry_benchmarks import IndustryCategory
 
         kpis = service._build_kpis(current, previous, IndustryCategory.GENERAL)
         spend_kpi = next((k for k in kpis if k.metric_name == "spend"), None)
@@ -54,7 +54,7 @@ class TestBuildKpis:
         service = ChannelDashboardService(mock_db)
         current = {"CTR": 1.8}
         previous = {}
-        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+        from luana_core_analytics_engine.domain.industry_benchmarks import IndustryCategory
 
         kpis = service._build_kpis(current, previous, IndustryCategory.GENERAL)
         ctr_kpi = next((k for k in kpis if k.metric_name == "CTR"), None)
@@ -128,7 +128,7 @@ class TestMetricResolverIntegration:
 
     def test_alias_kpi_gets_catalog_metadata(self, mock_db):
         """ROAS alias should get display_name, unit, benchmarks from catalog."""
-        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+        from luana_core_analytics_engine.domain.industry_benchmarks import IndustryCategory
 
         service = ChannelDashboardService(mock_db)
         config = _CHANNEL_CONFIGS["meta-ads"]
@@ -146,7 +146,7 @@ class TestMetricResolverIntegration:
 
     def test_ctr_alias_gets_benchmark(self, mock_db):
         """CTR alias should get benchmark from catalog."""
-        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+        from luana_core_analytics_engine.domain.industry_benchmarks import IndustryCategory
 
         service = ChannelDashboardService(mock_db)
         config = _CHANNEL_CONFIGS["meta-ads"]
@@ -162,7 +162,7 @@ class TestMetricResolverIntegration:
 
     def test_cpc_alias_higher_is_better_false(self, mock_db):
         """CPC alias should resolve higher_is_better=False from catalog."""
-        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+        from luana_core_analytics_engine.domain.industry_benchmarks import IndustryCategory
 
         service = ChannelDashboardService(mock_db)
         config = _CHANNEL_CONFIGS["meta-ads"]

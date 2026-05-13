@@ -15,11 +15,11 @@ from pydantic import BaseModel
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-from src.modules.copilot.application.workflows.registry import (
+from luana_core_copilot.application.workflows.registry import (
     WorkflowRegistryError,
     collect_workflows,
 )
-from src.modules.copilot.domain.ports import (
+from luana_core_copilot.domain.ports import (
     BaseCopilotProvider,
     ContextInjector,
     DataAccessProvider,
@@ -28,14 +28,14 @@ from src.modules.copilot.domain.ports import (
     ToolProvider,
     WorkflowProvider,
 )
-from src.modules.copilot.domain.workflow import (
+from luana_core_copilot.domain.workflow import (
     Workflow,
     WorkflowNode,
     WorkflowTrigger,
 )
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.ports import CopilotProvider
+    from luana_core_copilot.domain.ports import CopilotProvider
 
 
 class _State(BaseModel):
@@ -168,7 +168,7 @@ class TestRealProviderIntegration:
     """Integration with real brand + offer providers (after pilots wired)."""
 
     def test_brand_provider_returns_workflow(self) -> None:
-        from src.modules.brand.copilot_provider import provider as brand_provider
+        from luana_core_brand_studio.copilot_provider import provider as brand_provider
 
         wf_provider = brand_provider.workflow_provider()
         assert wf_provider is not None
@@ -178,7 +178,7 @@ class TestRealProviderIntegration:
         assert "setup_brand_minimal" in ids
 
     def test_offer_provider_returns_workflow(self) -> None:
-        from src.modules.offer.copilot_provider import provider as offer_provider
+        from luana_core_offer_studio.copilot_provider import provider as offer_provider
 
         wf_provider = offer_provider.workflow_provider()
         assert wf_provider is not None
@@ -191,7 +191,7 @@ class TestRealProviderIntegration:
         """Every brand workflow node handler_ref must import successfully."""
         import importlib
 
-        from src.modules.brand.copilot_provider import provider as brand_provider
+        from luana_core_brand_studio.copilot_provider import provider as brand_provider
 
         wf_provider = brand_provider.workflow_provider()
         assert wf_provider is not None
@@ -204,7 +204,7 @@ class TestRealProviderIntegration:
     def test_offer_workflow_node_handlers_resolvable(self) -> None:
         import importlib
 
-        from src.modules.offer.copilot_provider import provider as offer_provider
+        from luana_core_offer_studio.copilot_provider import provider as offer_provider
 
         wf_provider = offer_provider.workflow_provider()
         assert wf_provider is not None

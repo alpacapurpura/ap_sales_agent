@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.modules.analytics.application.dto.group_detail_dto import GroupDetailDTO
-from src.modules.analytics.application.services.stage_services.group_detail import (
+from luana_core_analytics_engine.application.dto.group_detail_dto import GroupDetailDTO
+from luana_core_analytics_engine.application.services.stage_services.group_detail import (
     GroupDetailService,
 )
 

@@ -4,11 +4,10 @@ import logging
 import secrets
 from uuid import UUID
 
+from luana_core_crm.infrastructure.models.referral_code_model import ReferralCodeModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-
-from src.modules.crm.infrastructure.models.referral_code_model import ReferralCodeModel
 
 logger = logging.getLogger(__name__)
 

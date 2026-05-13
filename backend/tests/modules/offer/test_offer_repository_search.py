@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.offer.infrastructure.repositories.offer_repository import (
+from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
 from tests.modules.offer.conftest import TENANT_A, TENANT_B, create_product_model

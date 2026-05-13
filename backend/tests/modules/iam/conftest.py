@@ -49,7 +49,7 @@ def seed_other_tenant(db, other_tenant_id: uuid.UUID):
 @pytest.fixture
 def seed_user(db, user_id: uuid.UUID):
     """Persist a UserModel for USER_A to the in-memory SQLite DB."""
-    from src.modules.iam.infrastructure.models.user_model import UserModel
+    from luana_core_iam.infrastructure.models.user_model import UserModel
 
     user = UserModel(
         id=user_id,
@@ -73,7 +73,7 @@ def seed_user_tenant_link(
     tenant_id: uuid.UUID,
 ):
     """Link USER_A to TENANT_A via UserTenantModel."""
-    from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel
+    from luana_core_iam.infrastructure.models.user_tenant_model import UserTenantModel
 
     link = UserTenantModel(
         user_id=user_id,

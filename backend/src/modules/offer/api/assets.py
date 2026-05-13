@@ -18,29 +18,28 @@ from fastapi import (
     Query,
     UploadFile,
 )
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.offer.api.dto.asset_dtos import (
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_offer_studio.api.dto.asset_dtos import (
     AssetDownloadUrlResponse,
     AssetGenerateRequest,
     AssetListResponse,
     AssetUpdateRequest,
     OfferAssetResponse,
 )
-from src.modules.offer.application.ports import IFileStoragePort
-from src.modules.offer.application.services.offer_asset_service import (
+from luana_core_offer_studio.application.ports import IFileStoragePort
+from luana_core_offer_studio.application.services.offer_asset_service import (
     OfferAssetService,
 )
-from src.modules.offer.domain.enums import AssetSource, AssetType
-from src.modules.offer.domain.exceptions import AssetNotFoundError
-from src.modules.offer.infrastructure.models.offer_asset_model import OfferAssetModel
-from src.modules.offer.infrastructure.repositories.offer_asset_repository import (
+from luana_core_offer_studio.domain.enums import AssetSource, AssetType
+from luana_core_offer_studio.domain.exceptions import AssetNotFoundError
+from luana_core_offer_studio.infrastructure.models.offer_asset_model import OfferAssetModel
+from luana_core_offer_studio.infrastructure.repositories.offer_asset_repository import (
     OfferAssetRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.core.database import get_db
+from luana_core_platform.domain.datetime_utils import utc_now
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

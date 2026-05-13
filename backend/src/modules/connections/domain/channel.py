@@ -4,10 +4,9 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_platform.domain.base_entity import BaseEntity
 from pydantic import Field
-
-from src.modules.connections.domain.enums import ChannelType
-from src.shared.domain.base_entity import BaseEntity
 
 
 class ChannelConnection(BaseEntity):

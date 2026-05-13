@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.analytics.infrastructure.sync.campaign_sync_pipeline import (
+from luana_core_analytics_engine.infrastructure.sync.campaign_sync_pipeline import (
     CampaignSyncPipeline,
 )
 

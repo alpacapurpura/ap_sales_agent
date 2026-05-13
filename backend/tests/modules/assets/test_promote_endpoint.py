@@ -24,13 +24,13 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.assets.api.router import router
-from src.modules.assets.domain.enums import (
+from luana_core_platform.core.database import get_db
+from luana_core_assets.api.router import router
+from luana_core_assets.domain.enums import (
     AssetPurpose,
     AssetScope,
 )
-from src.modules.iam.api.dependencies import get_current_user
+from luana_core_iam.api.dependencies import get_current_user
 
 
 def _build_client(tenant_id, user_id=None):
@@ -83,8 +83,8 @@ class TestPromoteEndpoint:
         asset = _asset(tenant_id)
 
         with (
-            patch("src.modules.assets.api.router.AssetRepository") as mock_repo_cls,
-            patch("src.modules.assets.api.router.AssetLinkRepository") as mock_link_cls,
+            patch("luana_core_assets.api.router.AssetRepository") as mock_repo_cls,
+            patch("luana_core_assets.api.router.AssetLinkRepository") as mock_link_cls,
         ):
             mock_repo = MagicMock()
             mock_repo.get_by_id.return_value = asset
@@ -116,8 +116,8 @@ class TestPromoteEndpoint:
         offer_id = uuid4()
 
         with (
-            patch("src.modules.assets.api.router.AssetRepository") as mock_repo_cls,
-            patch("src.modules.assets.api.router.AssetLinkRepository") as mock_link_cls,
+            patch("luana_core_assets.api.router.AssetRepository") as mock_repo_cls,
+            patch("luana_core_assets.api.router.AssetLinkRepository") as mock_link_cls,
         ):
             mock_repo = MagicMock()
             mock_repo.get_by_id.return_value = asset
@@ -157,7 +157,7 @@ class TestPromoteEndpoint:
         client, _ = _build_client(tenant_id)
         asset = _asset(tenant_id)
 
-        with patch("src.modules.assets.api.router.AssetRepository"):
+        with patch("luana_core_assets.api.router.AssetRepository"):
             resp = client.post(
                 f"/api/v1/assets/{asset.id}/promote",
                 json={"purpose": "offer_collateral"},
@@ -169,7 +169,7 @@ class TestPromoteEndpoint:
         tenant_id = uuid4()
         client, _ = _build_client(tenant_id)
 
-        with patch("src.modules.assets.api.router.AssetRepository") as mock_repo_cls:
+        with patch("luana_core_assets.api.router.AssetRepository") as mock_repo_cls:
             mock_repo = MagicMock()
             mock_repo.get_by_id.return_value = None
             mock_repo_cls.return_value = mock_repo

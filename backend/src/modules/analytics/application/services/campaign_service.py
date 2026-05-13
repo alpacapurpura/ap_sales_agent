@@ -5,20 +5,19 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import text
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.dto.campaign_dto import (
+from luana_core_analytics_engine.application.dto.campaign_dto import (
     AdDTO,
     AdSetDTO,
     CampaignDTO,
     CampaignOverviewDTO,
     RecommendationDTO,
 )
-from src.shared.domain.datetime_utils import utc_today
+from luana_core_platform.domain.datetime_utils import utc_today
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
-    from src.modules.analytics.application.dto.campaign_dto import (
+    from luana_core_analytics_engine.application.dto.campaign_dto import (
         CampaignPerformanceDTO,
         CreativesOverviewDTO,
     )
@@ -144,7 +143,7 @@ class CampaignService:
         period: str = "30d",
     ) -> "CampaignPerformanceDTO":
         """Get campaigns with aggregated metrics for the given period."""
-        from src.modules.analytics.application.dto.campaign_dto import (
+        from luana_core_analytics_engine.application.dto.campaign_dto import (
             CampaignMetricsDTO,
             CampaignPerformanceDTO,
             CampaignWithMetricsDTO,
@@ -479,7 +478,7 @@ class CampaignService:
         period: str = "30d",
     ) -> "CreativesOverviewDTO":
         """Get ad gallery with creative details and video retention metrics."""
-        from src.modules.analytics.application.dto.campaign_dto import (
+        from luana_core_analytics_engine.application.dto.campaign_dto import (
             AdPerformanceDTO,
             CreativesOverviewDTO,
             VideoRetentionDTO,
@@ -556,20 +555,20 @@ class CampaignService:
 
     async def _sync_campaigns_inline(self, tenant_id: UUID) -> dict:
         """Execute campaign sync synchronously (inline, no worker needed)."""
-        from src.modules.analytics.infrastructure.providers.meta_campaign_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.meta_campaign_provider import (
             MetaCampaignProvider,
         )
-        from src.modules.analytics.infrastructure.repositories.campaign_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.campaign_repository import (
             CampaignRepository,
         )
-        from src.modules.analytics.infrastructure.sync.campaign_sync_pipeline import (
+        from luana_core_analytics_engine.infrastructure.sync.campaign_sync_pipeline import (
             CampaignSyncPipeline,
         )
 
         # DDD exception (intentional): campaign sync genuinely needs to know which
         # ad connections (Meta, Google Ads) are active — the connection IS the
         # provider config. No factory abstraction makes sense here.
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
 
@@ -592,8 +591,7 @@ class CampaignService:
     async def _enqueue_campaign_sync_arq(self, tenant_id: UUID) -> dict:
         """Fallback: enqueue a campaign sync job via ARQ."""
         from arq.connections import ArqRedis, RedisSettings, create_pool
-
-        from src.core.config import settings as app_settings
+        from luana_core_platform.core.config import settings as app_settings
 
         redis_settings = RedisSettings.from_dsn(app_settings.REDIS_URL)
         redis: ArqRedis = await create_pool(redis_settings)

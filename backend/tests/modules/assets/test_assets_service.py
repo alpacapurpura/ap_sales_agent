@@ -4,9 +4,9 @@ import io
 import uuid
 from unittest.mock import MagicMock, patch
 
-from src.modules.assets.application.assets_service import AssetsService
-from src.modules.assets.domain.entity import Asset
-from src.modules.assets.domain.enums import AssetStatus, AssetType
+from luana_core_assets.application.assets_service import AssetsService
+from luana_core_assets.domain.entity import Asset
+from luana_core_assets.domain.enums import AssetStatus, AssetType
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -16,7 +16,7 @@ from src.modules.assets.domain.enums import AssetStatus, AssetType
 def _make_service(db, storage_mock):
     """Construct AssetsService with the real repo but a mock storage strategy."""
     with patch(
-        "src.modules.assets.application.assets_service.get_storage_strategy",
+        "luana_core_assets.application.assets_service.get_storage_strategy",
         return_value=storage_mock,
     ):
         svc = AssetsService(db)

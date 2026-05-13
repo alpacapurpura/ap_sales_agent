@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.infrastructure.repositories.pinned_memory_repository import (
+from luana_core_copilot.infrastructure.repositories.pinned_memory_repository import (
     CopilotPinnedMemoryRepository,
 )
 

@@ -6,20 +6,19 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_offer_studio.infrastructure.models.external_product_mapping_model import (
+    ExternalProductMappingModel,
+)
+from luana_core_offer_studio.infrastructure.repositories.external_product_mapping_repository import (
+    ExternalProductMappingRepository,
+)
+from luana_core_platform.core.database import get_db
 from pydantic import BaseModel
 from sqlalchemy import func as sa_func
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.offer.infrastructure.models.external_product_mapping_model import (
-    ExternalProductMappingModel,
-)
-from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
-    ExternalProductMappingRepository,
-)
 
 router = APIRouter(tags=["Offer - Product Mappings"])
 
@@ -165,8 +164,8 @@ async def list_source_products(
     source: Annotated[str, Query()] = "shopify",
 ) -> list[SourceProductOut]:
     """List ALL products from a source (mapped + unmapped) with metrics."""
-    from src.modules.offer.infrastructure.models.product_model import ProductModel
-    from src.shared.infrastructure.models.crm import JourneyEventModel
+    from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
+    from luana_core_platform.infrastructure.models.crm import JourneyEventModel
 
     # 1. Fetch all mappings for tenant+source
     mapping_stmt = select(
@@ -223,7 +222,7 @@ async def list_unmatched_products(
     source: Annotated[str, Query()] = "shopify",
 ) -> list[UnmatchedProductOut]:
     """List external products seen in journey_events that have no mapping."""
-    from src.shared.infrastructure.models.crm import JourneyEventModel
+    from luana_core_platform.infrastructure.models.crm import JourneyEventModel
 
     # Get all mapped external_ids for this source
     mapped_stmt = select(ExternalProductMappingModel.external_id).where(
@@ -280,8 +279,8 @@ async def create_product_mapping(
     user: Annotated[User, Depends(get_current_user)],
 ) -> CreateProductMappingOut:
     """Create a new external product → offer mapping with retroactive backfill."""
-    from src.shared.domain.enums import SaleStage, SaleStatus
-    from src.shared.infrastructure.models.crm import JourneyEventModel, SaleModel
+    from luana_core_platform.domain.enums import SaleStage, SaleStatus
+    from luana_core_platform.infrastructure.models.crm import JourneyEventModel, SaleModel
 
     repo = ExternalProductMappingRepository(db)
 
@@ -466,8 +465,8 @@ async def get_offer_products_detail(
     user: Annotated[User, Depends(get_current_user)],
 ) -> OfferProductDetailOut:
     """Return aggregated product-level metrics for a single offer."""
-    from src.modules.offer.infrastructure.models.product_model import ProductModel
-    from src.shared.infrastructure.models.crm import JourneyEventModel, SaleModel
+    from luana_core_offer_studio.infrastructure.models.product_model import ProductModel
+    from luana_core_platform.infrastructure.models.crm import JourneyEventModel, SaleModel
 
     tenant_id = user.tenant_id
 

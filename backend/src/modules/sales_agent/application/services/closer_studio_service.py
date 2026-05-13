@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.sales_agent.application.services.closer_studio import (
+from luana_core_sales_agent.application.services.closer_studio import (
     ConversationCommandService,
     ConversationQueryService,
     KpiService,

@@ -27,29 +27,28 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
-from src.modules.offer.application.ports import IEditionLandingClonePort, LandingRef
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.application.ports import IEditionLandingClonePort, LandingRef
+from luana_core_offer_studio.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
     LaunchEdition,
 )
-from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
+from luana_core_offer_studio.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
-from src.modules.offer.infrastructure.repositories.offer_asset_repository import (
+from luana_core_offer_studio.infrastructure.repositories.offer_asset_repository import (
     OfferAssetRepository,
 )
-from src.modules.offer.infrastructure.repositories.offer_repository import (
+from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from luana_core_offer_studio.domain.assets import OfferAsset
+    from luana_core_offer_studio.domain.launch_edition import LaunchEditionCreate
     from sqlalchemy.orm import Session
-
-    from src.modules.offer.domain.assets import OfferAsset
-    from src.modules.offer.domain.launch_edition import LaunchEditionCreate
 
 
 class CloneStrategy(StrEnum):
@@ -267,7 +266,7 @@ class EditionCloneService:
     def _clone_asset(source: OfferAsset, *, new_edition_id: UUID) -> OfferAsset:
         from uuid import uuid4
 
-        from src.modules.offer.domain.assets import OfferAsset
+        from luana_core_offer_studio.domain.assets import OfferAsset
 
         return OfferAsset(
             id=uuid4(),

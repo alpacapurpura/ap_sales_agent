@@ -8,16 +8,16 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from src.core.enums import ModelRole
-from src.modules.copilot.domain.routing_policy import (
+from luana_core_copilot.domain.routing_policy import (
     ClassifierType,
     RoutingDecision,
     RoutingPolicy,
     RoutingRule,
 )
+from luana_core_platform.core.enums import ModelRole
 
 if TYPE_CHECKING:
-    from src.modules.copilot.application.router.model_router import RoutingRequest
+    from luana_core_copilot.application.router.model_router import RoutingRequest
 
 
 class RuleClassifier:

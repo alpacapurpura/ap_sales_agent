@@ -37,7 +37,7 @@ class CampaignReadOnlyPort(Protocol):
 
 def get_campaign_read_port() -> CampaignReadOnlyPort:
     """Lazy factory. PI-2 commercial_director subagent consumes via this."""
-    from src.modules.campaigns.application.services.campaign_read_adapter import (
+    from luana_core_campaigns.application.services.campaign_read_adapter import (
         CampaignReadAdapter,
     )
 
@@ -117,7 +117,7 @@ def create_campaigns_lookup_port() -> CampaignsLookupPort:
     Vive junto al ABC para que los callers no importen infra directamente.
     La implementación vive en campaigns/infrastructure/links/.
     """
-    from src.modules.campaigns.infrastructure.links.campaigns_lookup_impl import (
+    from luana_core_campaigns.infrastructure.links.campaigns_lookup_impl import (
         CampaignsLookupAdapter,
     )
 

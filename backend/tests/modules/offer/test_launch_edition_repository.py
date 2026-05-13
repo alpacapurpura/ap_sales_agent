@@ -7,9 +7,9 @@ from unittest.mock import patch
 
 from sqlalchemy.orm import Session
 
-from src.modules.offer.domain.enums import VariantStructure
-from src.modules.offer.domain.launch_edition import EditionStatus, LaunchEdition
-from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
+from luana_core_offer_studio.domain.enums import VariantStructure
+from luana_core_offer_studio.domain.launch_edition import EditionStatus, LaunchEdition
+from luana_core_offer_studio.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
 from tests.modules.offer.conftest import create_product_model

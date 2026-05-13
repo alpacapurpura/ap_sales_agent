@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.stream_filters import (
+from luana_core_copilot.application.orchestrator.stream_filters import (
     INTERNAL_LLM_TAG,
 )
-from src.modules.copilot.application.orchestrator.stream_provenance import (
+from luana_core_copilot.application.orchestrator.stream_provenance import (
     EventOrigin,
     StreamPolicy,
     classify_event,

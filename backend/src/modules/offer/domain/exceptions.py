@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.offer.domain.lifecycle import OfferLifecycleStatus
+    from luana_core_offer_studio.domain.lifecycle import OfferLifecycleStatus
 
 
 class OfferDomainError(Exception):

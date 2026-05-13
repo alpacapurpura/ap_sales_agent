@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.tool_call_dedup import (
+from luana_core_copilot.application.orchestrator.tool_call_dedup import (
     DedupVerdict,
     ToolCallDedupTracker,
     ToolCallLoopError,

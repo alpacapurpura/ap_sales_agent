@@ -14,7 +14,7 @@ in isolation:
 [COPILOT-ASK-TENANT-DATA-F5]
 """
 
-from src.modules.copilot.application.tools.ask_tenant_data.tool import (
+from luana_core_copilot.application.tools.ask_tenant_data.tool import (
     _ask_tenant_data_impl,
     ask_tenant_data,
 )

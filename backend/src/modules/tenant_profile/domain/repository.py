@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.tenant_profile.domain.tenant_profile import TenantProfile
+    from luana_core_tenant_profile.domain.tenant_profile import TenantProfile
 
 
 class TenantProfileRepository(ABC):

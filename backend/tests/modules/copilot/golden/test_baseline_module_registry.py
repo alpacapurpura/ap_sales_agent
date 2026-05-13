@@ -11,7 +11,7 @@ unless explicitly evolved.
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.module_registry import get_module_registry
+from luana_core_copilot.domain.module_registry import get_module_registry
 from tests.modules.copilot.golden.conftest import assert_matches_golden
 
 

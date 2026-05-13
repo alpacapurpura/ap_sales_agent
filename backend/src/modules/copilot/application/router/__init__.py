@@ -14,18 +14,18 @@ ordering invariants by hand and skipping the F8 LLM fallback.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.router.classifiers.llm_classifier import (
+from luana_core_copilot.application.router.classifiers.llm_classifier import (
     DEFAULT_THRESHOLD,
     LLMClassifier,
 )
-from src.modules.copilot.application.router.classifiers.rule_classifier import (
+from luana_core_copilot.application.router.classifiers.rule_classifier import (
     RuleClassifier,
 )
-from src.modules.copilot.application.router.model_router import (
+from luana_core_copilot.application.router.model_router import (
     ModelRouter,
     RoutingRequest,
 )
-from src.modules.copilot.domain.routing_policy import (
+from luana_core_copilot.domain.routing_policy import (
     DEFAULT_ROUTING_POLICY,
     RoutingPolicy,
 )

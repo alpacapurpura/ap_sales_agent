@@ -16,8 +16,7 @@ from datetime import datetime
 from typing import Any
 
 import streamlit as st
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 
 def _fetch_virtual_keys() -> list[dict[str, Any]]:

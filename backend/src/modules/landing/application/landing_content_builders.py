@@ -17,7 +17,7 @@ import structlog
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
-from src.modules.landing.domain.content import (
+from luana_core_landing.domain.content import (
     BaseEntity,
     BrochureContent,
     EventContent,
@@ -27,7 +27,7 @@ from src.modules.landing.domain.content import (
     TransformerContent,
     VelvetRopeContent,
 )
-from src.modules.landing.domain.enums import LandingPageArchetype
+from luana_core_landing.domain.enums import LandingPageArchetype
 
 logger = structlog.get_logger(__name__)
 

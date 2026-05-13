@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.analytics.infrastructure.providers.meta_provider import MetaProvider
+from luana_core_analytics_engine.infrastructure.providers.meta_provider import MetaProvider
 
 TENANT_ID = uuid4()
 CREDS = {

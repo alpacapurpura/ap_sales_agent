@@ -25,16 +25,16 @@ class TestOfferSectionToolsContractPreserved:
         """validate_preset_coherence must return JSON with 'suggestions' key."""
         import json
 
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             validate_preset_coherence,
         )
 
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=uuid4()),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=uuid4()),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools.SessionLocal", return_value=_make_session()
+                "luana_core_copilot.application.tools.offer_section_tools.SessionLocal", return_value=_make_session()
             ),
-            patch("src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
+            patch("luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags", return_value=[]),
         ):
             result = validate_preset_coherence.invoke({"current_promise": "Mi promesa clara", "offer_id": ""})
 
@@ -46,17 +46,17 @@ class TestOfferSectionToolsContractPreserved:
         """high_ticket_tiering_template must return JSON with 'draft_fields' key."""
         import json
 
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             high_ticket_tiering_template,
         )
 
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=uuid4()),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=uuid4()),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools.SessionLocal", return_value=_make_session()
+                "luana_core_copilot.application.tools.offer_section_tools.SessionLocal", return_value=_make_session()
             ),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags",
+                "luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags",
                 return_value=["high_ticket"],
             ),
         ):
@@ -70,17 +70,17 @@ class TestOfferSectionToolsContractPreserved:
         """recurring_billing_setup must return JSON with 'draft_fields' key."""
         import json
 
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             recurring_billing_setup,
         )
 
         with (
-            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=uuid4()),
+            patch("luana_core_copilot.application.tools.offer_section_tools.get_tenant_id", return_value=uuid4()),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools.SessionLocal", return_value=_make_session()
+                "luana_core_copilot.application.tools.offer_section_tools.SessionLocal", return_value=_make_session()
             ),
             patch(
-                "src.modules.copilot.application.tools.offer_section_tools._offer_preset_flags",
+                "luana_core_copilot.application.tools.offer_section_tools._offer_preset_flags",
                 return_value=["recurring_billing"],
             ),
         ):
@@ -92,7 +92,7 @@ class TestOfferSectionToolsContractPreserved:
 
     def test_offer_section_tools_exported_list_unchanged(self) -> None:
         """OFFER_SECTION_TOOLS list must still export all 18 tools."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             OFFER_SECTION_TOOLS,
         )
 

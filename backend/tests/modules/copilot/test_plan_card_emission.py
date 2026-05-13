@@ -8,7 +8,7 @@ render the planning UI without touching cards UI semantics.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.orchestrator.chat import (
+from luana_core_copilot.application.orchestrator.chat import (
     _write_todos_to_plan_card,
 )
 

@@ -110,8 +110,8 @@ class TestSpecRegistration:
 
     def test_get_spec_returns_spec_after_bootstrap_import(self) -> None:
         """get_spec('eval_simulator') returns a non-None spec after bootstrap import (runtime check)."""
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec is not None, (
@@ -123,16 +123,16 @@ class TestSpecRegistration:
 
     def test_spec_llm_call_model_matches_migration_table(self) -> None:
         """Spec.llm_call_table == 'eval_simulator_llm_call' (matches migration 125 DDL)."""
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec.llm_call_table == "eval_simulator_llm_call"
 
     def test_spec_trace_event_table_matches_migration_table(self) -> None:
         """Spec.trace_event_table == 'eval_simulator_trace_event' (matches migration 125 DDL)."""
-        from src.shared.infrastructure import agent_observability_bootstrap
-        from src.shared.agent_observability.registry import get_spec
+        from luana_core_platform.infrastructure import agent_observability_bootstrap
+        from luana_core_observability.registry import get_spec
 
         spec = get_spec("eval_simulator")
         assert spec.trace_event_table == "eval_simulator_trace_event"
@@ -420,10 +420,19 @@ class TestR5SchemaMirrorException:
         )
 
     def test_llm_call_model_imports_from_shared_base_entity(self) -> None:
-        """LlmCallModel imports Base from shared.domain.base_entity (correct DDD layer)."""
+        """LlmCallModel imports Base from shared.domain.base_entity (correct DDD layer).
+
+        Post-luana-nicolify migration: Base may come from luana_core_platform.domain.base_entity
+        (P6 unified singleton) or legacy src.shared.domain.base_entity re-export stub.
+        Both are valid during the Story 10 migration window.
+        """
         src = _read(EVAL_SIMULATOR_LLM_CALL_MODEL)
-        assert "from src.shared.domain.base_entity import Base" in src, (
+        assert (
+            "from src.shared.domain.base_entity import Base" in src
+            or "from luana_core_platform.domain.base_entity import Base" in src
+        ), (
             "eval_simulator_llm_call model must import Base from shared.domain.base_entity "
+            "or luana_core_platform.domain.base_entity "
             "(correct DDD pattern — all SQLAlchemy models share the same declarative Base)."
         )
 

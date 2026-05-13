@@ -18,20 +18,19 @@ from typing import TYPE_CHECKING
 
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
-
-from src.modules.analytics.domain.exceptions import ConnectionRevokedError
-from src.modules.analytics.domain.extraction_result import ExtractionResult
-from src.modules.analytics.infrastructure.providers.base import (
+from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
+from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
+from luana_core_analytics_engine.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.shared.links.ports.channel_adapter import create_google_analytics_adapter
+from luana_core_platform.links.ports.channel_adapter import create_google_analytics_adapter
 
 if TYPE_CHECKING:
     from datetime import date
     from uuid import UUID
 
-    from src.modules.connections.infrastructure.channels.google_analytics import (
+    from luana_core_connections.infrastructure.channels.google_analytics import (
         GoogleAnalyticsAdapter,
     )
 

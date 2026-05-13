@@ -10,14 +10,13 @@ from collections import defaultdict
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import func, select, text
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.domain.enums import AggregationType
-from src.modules.analytics.domain.metric_catalog import get_metric_def
-from src.modules.analytics.infrastructure.models.official_metrics_model import (
+from luana_core_analytics_engine.domain.enums import AggregationType
+from luana_core_analytics_engine.domain.metric_catalog import get_metric_def
+from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
     OfficialMetricModel,
 )
+from sqlalchemy import func, select, text
+from sqlalchemy.orm import Session
 
 
 class OfficialMetricsRepository:
@@ -167,7 +166,7 @@ class OfficialMetricsRepository:
         Return channel-level summaries for the given stage and period.
         Delegate to metric_aggregations table for pre-computed data.
         """
-        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+        from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,
         )
 

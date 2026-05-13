@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from src.modules.analytics.domain.event import JourneyEvent
+from luana_core_analytics_engine.domain.event import JourneyEvent
 
 
 class TestJourneyEvent:

@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from src.shared.agent_observability.recording.base_callback_handler import (
+from luana_core_observability.recording.base_callback_handler import (
     BaseAgentCallbackHandler,
 )
 

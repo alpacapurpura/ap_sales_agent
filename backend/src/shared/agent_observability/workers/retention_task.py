@@ -27,13 +27,12 @@ import os
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import text
-
-from src.core.database import SessionLocal
-from src.shared.agent_observability.registry import (
+from luana_core_observability.registry import (
     AgentObservabilitySpec,
     agent_observability_registry,
 )
+from luana_core_platform.core.database import SessionLocal
+from sqlalchemy import text
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

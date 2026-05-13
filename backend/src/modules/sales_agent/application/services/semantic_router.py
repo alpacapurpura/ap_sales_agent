@@ -23,11 +23,10 @@ from typing import TYPE_CHECKING, Self
 
 import numpy as np
 from fastembed import TextEmbedding
-
-from src.modules.sales_agent.application.services.tenant_route_overlay import (
+from luana_core_sales_agent.application.services.tenant_route_overlay import (
     collect_tenant_anchors,
 )
-from src.modules.sales_agent.domain.semantic_routes import SYSTEM_ROUTES
+from luana_core_sales_agent.domain.semantic_routes import SYSTEM_ROUTES
 
 if TYPE_CHECKING:
     from uuid import UUID

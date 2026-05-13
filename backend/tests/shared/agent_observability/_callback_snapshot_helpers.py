@@ -110,7 +110,7 @@ class _FrozenDatetime:
         return FROZEN_NOW
 
 
-_BASE_HANDLER_MODULE = "src.shared.agent_observability.recording.base_callback_handler"
+_BASE_HANDLER_MODULE = "luana_core_observability.recording.base_callback_handler"
 
 
 def freeze_handler_clock(monkeypatch: Any, module_path: str | None = None) -> None:

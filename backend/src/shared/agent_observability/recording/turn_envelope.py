@@ -37,8 +37,7 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 import structlog
-
-from src.shared.agent_observability.recording.sanitization import sanitize_payload, truncate
+from luana_core_observability.recording.sanitization import sanitize_payload, truncate
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator

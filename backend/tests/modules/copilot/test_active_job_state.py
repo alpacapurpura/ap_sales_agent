@@ -6,7 +6,7 @@ Mirror of guided.state tests for the second sibling key stored in
 
 from __future__ import annotations
 
-from src.modules.copilot.application.extraction.active_job_state import (
+from luana_core_copilot.application.extraction.active_job_state import (
     ACTIVE_EXTRACTION_JOB_KEY,
     ActiveExtractionJob,
     load_active_job,

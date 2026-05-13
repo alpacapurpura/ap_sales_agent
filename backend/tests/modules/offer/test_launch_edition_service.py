@@ -6,11 +6,11 @@ from datetime import datetime, timezone
 import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.offer.application.launch_edition_service import (
+from luana_core_offer_studio.application.launch_edition_service import (
     LaunchEditionService,
 )
-from src.modules.offer.domain.launch_edition import EditionStatus
-from src.modules.offer.domain.offer import PricingStructure
+from luana_core_offer_studio.domain.launch_edition import EditionStatus
+from luana_core_offer_studio.domain.offer import PricingStructure
 from tests.modules.offer.conftest import create_product_model
 
 

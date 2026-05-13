@@ -135,7 +135,7 @@ def test_compliance_unwired_set_size_is_stable() -> None:
 
 def test_compliance_service_has_check_method() -> None:
     """ComplianceService must expose check() — public API for S2 wiring."""
-    from src.shared.compliance.application.compliance_service import ComplianceService
+    from luana_core_compliance.application.compliance_service import ComplianceService
 
     assert hasattr(ComplianceService, "check"), (
         "ComplianceService.check() method missing. S2 wiring depends on this signature."
@@ -146,7 +146,7 @@ def test_compliance_policy_protocol_is_runtime_checkable() -> None:
     """CompliancePolicy Protocol must be runtime-checkable for DI validation."""
     import inspect
 
-    from src.shared.compliance.application.compliance_service import CompliancePolicy
+    from luana_core_compliance.application.compliance_service import CompliancePolicy
 
     assert hasattr(CompliancePolicy, "_is_protocol"), "CompliancePolicy must be a Protocol"
     # Check @runtime_checkable decorator applied

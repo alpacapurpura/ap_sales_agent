@@ -20,11 +20,11 @@ Workspace: ``docs/refactors/field-contract-platform/`` Fase 05.
 
 from __future__ import annotations
 
-from src.modules.offer.application.services.offer_completion_service import (
+from luana_core_offer_studio.application.services.offer_completion_service import (
     _SECTION_NARRATIVE_FIELDS,
     _SECTION_VALIDATORS,
 )
-from src.shared.domain.field_contract import FieldStatus, get_module_contracts
+from luana_core_platform.domain.field_contract import FieldStatus, get_module_contracts
 
 
 def _active_contract_paths() -> set[str]:

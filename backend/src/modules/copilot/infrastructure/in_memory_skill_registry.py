@@ -9,7 +9,7 @@ import unicodedata
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.skills.skill_definition import SkillDefinition
+    from luana_core_copilot.domain.skills.skill_definition import SkillDefinition
 
 
 def _fold(text: str) -> str:

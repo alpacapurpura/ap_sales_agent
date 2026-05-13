@@ -22,11 +22,10 @@ from dataclasses import dataclass
 
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
-
-from src.core.enums import ModelRole
-from src.modules.copilot.application.orchestrator.stream_filters import (
+from luana_core_copilot.application.orchestrator.stream_filters import (
     INTERNAL_LLM_CONFIG,
 )
+from luana_core_platform.core.enums import ModelRole
 
 logger = structlog.get_logger()
 
@@ -302,7 +301,7 @@ def analyze(
     )
 
     if llm is None:
-        from src.shared.infrastructure.llm.factory import LLMFactory
+        from luana_core_llm.factory import LLMFactory
 
         llm = LLMFactory.get_service().get_client(ModelRole.FAST)
         llm = llm.bind(temperature=0.3)

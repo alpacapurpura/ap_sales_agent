@@ -17,8 +17,8 @@ from pydantic import ValidationError
 
 TENANT_ID = UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 
-_GET_TENANT_ID = "src.modules.copilot.application.tools.analytics_tools.get_tenant_id"
-_CALL_CHANNEL = "src.modules.copilot.application.tools.analytics_tools._call_channel_dashboard"
+_GET_TENANT_ID = "luana_core_copilot.application.tools.analytics_tools.get_tenant_id"
+_CALL_CHANNEL = "luana_core_copilot.application.tools.analytics_tools._call_channel_dashboard"
 
 
 def _make_channel_dashboard(**kwargs) -> MagicMock:
@@ -41,7 +41,7 @@ class TestGetChannelOverviewHappy:
 
     def test_returns_json_string(self) -> None:
         """Tool returns JSON-decodable string with channel_name and dashboard_kpis."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_channel_overview,
         )
 
@@ -59,7 +59,7 @@ class TestGetChannelOverviewHappy:
 
     def test_all_valid_channel_slugs_accepted(self) -> None:
         """All 5 canonical channel slugs are accepted."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_channel_overview,
         )
 
@@ -90,7 +90,7 @@ class TestGetChannelOverviewValidation:
         """Invalid slug → Pydantic ValidationError at schema level (before tool body)."""
         from pydantic import ValidationError
 
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             ChannelOverviewParams,
         )
 
@@ -99,7 +99,7 @@ class TestGetChannelOverviewValidation:
 
     def test_no_tenant_returns_error(self) -> None:
         """No tenant in context → structured error."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_channel_overview,
         )
 
@@ -111,7 +111,7 @@ class TestGetChannelOverviewValidation:
 
     def test_channel_slug_not_in_pydantic_allows_tenant_override(self) -> None:
         """ChannelOverviewParams extra='forbid' prevents tenant_id injection."""
-        from src.modules.copilot.application.tools._analytics_inputs import (
+        from luana_core_copilot.application.tools._analytics_inputs import (
             ChannelOverviewParams,
         )
 
@@ -124,7 +124,7 @@ class TestGetChannelOverviewTenantIsolation:
 
     def test_tenant_id_sourced_from_context(self) -> None:
         """Tool calls get_tenant_id() and returns data — tenant from context, not payload."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_channel_overview,
         )
 

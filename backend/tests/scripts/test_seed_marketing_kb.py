@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+    from luana_core_copilot.infrastructure.qdrant.marketing_kb_store import (
         KbChunk,
     )
 

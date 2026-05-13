@@ -12,12 +12,11 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, Header, HTTPException
+from luana_core_landing.application.landing_service import LandingService
+from luana_core_landing.domain.content import LandingPageConfig
+from luana_core_platform.core.database import get_db
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.landing.application.landing_service import LandingService
-from src.modules.landing.domain.content import LandingPageConfig
 
 logger = structlog.get_logger()
 

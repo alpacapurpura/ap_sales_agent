@@ -6,8 +6,8 @@ generic queries: clarification, public-web search. They must not import
 from feature modules.
 """
 
-from src.modules.copilot.application.tools.shared_tools.clarify import clarify
-from src.modules.copilot.application.tools.shared_tools.web_research import web_research
+from luana_core_copilot.application.tools.shared_tools.clarify import clarify
+from luana_core_copilot.application.tools.shared_tools.web_research import web_research
 
 SHARED_TOOLS = [clarify, web_research]
 

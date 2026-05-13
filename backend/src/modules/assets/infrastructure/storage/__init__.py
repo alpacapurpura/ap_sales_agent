@@ -7,7 +7,7 @@ from .r2 import R2StorageStrategy
 
 def get_storage_strategy() -> StorageStrategy:
     """Return the configured storage strategy based on STORAGE_PROVIDER setting."""
-    from src.core.config import settings
+    from luana_core_platform.core.config import settings
 
     if settings.STORAGE_PROVIDER.upper() == "R2":
         return R2StorageStrategy()

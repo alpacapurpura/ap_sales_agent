@@ -18,13 +18,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.copilot.domain.workflow import (
+from luana_core_copilot.domain.workflow import (
     Workflow,
     WorkflowNode,
     WorkflowTrigger,
 )
+from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -58,17 +57,17 @@ SETUP_BRAND_MINIMAL = Workflow(
     nodes=(
         WorkflowNode(
             id="probe_brand",
-            handler_ref="src.modules.brand.copilot_provider.workflow_handlers:probe_brand",
+            handler_ref="luana_core_brand_studio.copilot_provider.workflow_handlers:probe_brand",
             next="ask_next_section",
         ),
         WorkflowNode(
             id="ask_next_section",
-            handler_ref="src.modules.brand.copilot_provider.workflow_handlers:ask_next_section",
+            handler_ref="luana_core_brand_studio.copilot_provider.workflow_handlers:ask_next_section",
             next="finalize_summary",
         ),
         WorkflowNode(
             id="finalize_summary",
-            handler_ref="src.modules.brand.copilot_provider.workflow_handlers:finalize_summary",
+            handler_ref="luana_core_brand_studio.copilot_provider.workflow_handlers:finalize_summary",
         ),
     ),
     state_schema=BrandSetupState,

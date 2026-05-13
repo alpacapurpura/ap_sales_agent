@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from src.shared.domain.base_entity import BaseEntity
+from luana_core_platform.domain.base_entity import BaseEntity
 
 
 class Tenant(BaseEntity):

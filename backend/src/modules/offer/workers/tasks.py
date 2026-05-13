@@ -24,13 +24,13 @@ import traceback
 from datetime import UTC, datetime
 from uuid import UUID
 
-from src.modules.offer.application.extraction_routes import (
+from luana_core_offer_studio.application.extraction_routes import (
     NAV_ROUTE_TEMPLATE,
 )
-from src.modules.offer.application.extraction_routes import (
+from luana_core_offer_studio.application.extraction_routes import (
     primary_cta_route as build_primary_cta_route,
 )
-from src.modules.offer.domain.extraction_section_map import (
+from luana_core_offer_studio.domain.extraction_section_map import (
     BACKEND_WAVE_TO_FE_SLUGS,
     fields_to_fe_sections,
     resolve_details_section,
@@ -221,13 +221,13 @@ async def run_offer_extraction(
                 )
 
     try:
-        from src.modules.offer.application.offer_extraction_service import (
+        from luana_core_offer_studio.application.offer_extraction_service import (
             OfferExtractionService,
         )
-        from src.modules.offer.application.offer_extraction_trace import (
+        from luana_core_offer_studio.application.offer_extraction_trace import (
             OfferExtractionTraceCollector,
         )
-        from src.modules.offer.infrastructure.repositories.offer_repository import (
+        from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
             OfferRepository,
         )
 
@@ -385,7 +385,7 @@ def _publish_section_completed_event(
     subscriber can build the correct offer-editor URL without hardcoding routes.
     """
     try:
-        from src.shared.domain.events import (
+        from luana_core_platform.domain.events import (
             EventBus,
             ExtractionSectionCompletedEvent,
         )
@@ -441,7 +441,7 @@ def _publish_completion_events(
     if not conversation_id:
         return
     try:
-        from src.shared.domain.events import (
+        from luana_core_platform.domain.events import (
             EventBus,
             ExtractionJobCompletedEvent,
         )

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.offer.domain.lifecycle import (
+from luana_core_offer_studio.domain.lifecycle import (
     LIFECYCLE_TRANSITIONS,
     InvalidLifecycleTransitionError,
     OfferLifecycleStatus,

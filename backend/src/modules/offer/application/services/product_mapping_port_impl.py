@@ -3,12 +3,11 @@
 import asyncio
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
+from luana_core_offer_studio.infrastructure.repositories.external_product_mapping_repository import (
     ExternalProductMappingRepository,
 )
-from src.shared.domain.ports import ProductMappingPort
+from luana_core_platform.domain.ports import ProductMappingPort
+from sqlalchemy.orm import Session
 
 
 class ProductMappingPortImpl(ProductMappingPort):

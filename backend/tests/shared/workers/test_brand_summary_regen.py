@@ -10,17 +10,17 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.brand.domain import BrandSettings
-from src.modules.brand.domain.identity import BrandIdentity
-from src.modules.brand.domain.positioning import BrandPositioning
-from src.modules.brand.infrastructure.repositories.brand_repository import (
+from luana_core_brand_studio.domain import BrandSettings
+from luana_core_brand_studio.domain.identity import BrandIdentity
+from luana_core_brand_studio.domain.positioning import BrandPositioning
+from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
-from src.modules.brand.infrastructure.repositories.brand_summary_repository import (
+from luana_core_brand_studio.infrastructure.repositories.brand_summary_repository import (
     BrandSummaryRepository,
 )
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.shared.domain.events import EventBus
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.domain.events import EventBus
 from src.shared.workers import brand_summary_regen
 
 
@@ -139,7 +139,7 @@ def test_regen_persists_summary_when_judge_passes(db, monkeypatch) -> None:
     )
 
     # Wire the LLMFactory to return our stub service.
-    from src.shared.infrastructure.llm import factory as factory_module
+    from luana_core_llm import factory as factory_module
 
     monkeypatch.setattr(
         factory_module.LLMFactory,
@@ -207,7 +207,7 @@ def test_regen_retries_when_first_pass_has_voseo(db, monkeypatch) -> None:
 
     monkeypatch.setattr(brand_summary_regen, "_invoke_llm", _stub)
 
-    from src.shared.infrastructure.llm import factory as factory_module
+    from luana_core_llm import factory as factory_module
 
     monkeypatch.setattr(
         factory_module.LLMFactory,
@@ -234,7 +234,7 @@ def test_regen_aborts_when_retry_also_fails(db, monkeypatch) -> None:
         lambda _llm, _prompt: (bad_long, "gpt-4o-mini"),
     )
 
-    from src.shared.infrastructure.llm import factory as factory_module
+    from luana_core_llm import factory as factory_module
 
     monkeypatch.setattr(
         factory_module.LLMFactory,

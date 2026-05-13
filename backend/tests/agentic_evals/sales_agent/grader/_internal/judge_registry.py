@@ -56,7 +56,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import structlog
 
-from src.shared.infrastructure.llm.providers.litellm import LiteLLMService
+from luana_core_llm.providers.litellm import LiteLLMService
 
 if TYPE_CHECKING:
     from tests.agentic_evals.sales_agent.grader.result import JudgeOpinion
@@ -165,7 +165,7 @@ class _JudgeAdapter:
             HumanMessage,
             SystemMessage,
         )
-        from src.core.enums import ModelRole
+        from luana_core_platform.core.enums import ModelRole
 
         role_map: dict[str, type[BaseMessage]] = {
             "system": SystemMessage,

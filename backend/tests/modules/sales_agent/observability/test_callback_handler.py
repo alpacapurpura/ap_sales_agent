@@ -111,7 +111,7 @@ def handler(
     fake_db_session: MagicMock,
 ) -> object:
     """Construct a SalesAgentCallbackHandler with all deps mocked."""
-    from src.modules.sales_agent.observability.recording.callback_handler import (
+    from luana_core_sales_agent.observability.recording.callback_handler import (
         SalesAgentCallbackHandler,
     )
 
@@ -132,10 +132,10 @@ def handler(
 
 class TestInheritance:
     def test_handler_inherits_base_agent_callback_handler(self) -> None:
-        from src.modules.sales_agent.observability.recording.callback_handler import (
+        from luana_core_sales_agent.observability.recording.callback_handler import (
             SalesAgentCallbackHandler,
         )
-        from src.shared.agent_observability.recording.base_callback_handler import (
+        from luana_core_observability.recording.base_callback_handler import (
             BaseAgentCallbackHandler,
         )
 

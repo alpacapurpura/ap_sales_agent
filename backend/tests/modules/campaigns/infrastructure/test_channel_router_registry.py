@@ -20,8 +20,8 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.campaigns.domain.channel_router import ChannelRouter, ChannelSendResult
-from src.modules.campaigns.infrastructure.channels.registry import (
+from luana_core_campaigns.domain.channel_router import ChannelRouter, ChannelSendResult
+from luana_core_campaigns.infrastructure.channels.registry import (
     ChannelRouterRegistry,
     register_default_channels,
 )

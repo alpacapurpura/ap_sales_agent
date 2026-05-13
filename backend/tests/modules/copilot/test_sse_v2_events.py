@@ -19,7 +19,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.chat import (
+from luana_core_copilot.application.orchestrator.chat import (
     CopilotOrchestrator,
     _StreamAccumulator,
 )
@@ -54,7 +54,7 @@ def _make_orchestrator() -> CopilotOrchestrator:
     mock_conv.messages = []
 
     with patch(
-        "src.modules.copilot.application.orchestrator.chat.ConversationRepository",
+        "luana_core_copilot.application.orchestrator.chat.ConversationRepository",
     ) as mock_cls:
         mock_repo = MagicMock()
         mock_repo.get_by_id.return_value = mock_conv
@@ -159,7 +159,7 @@ class TestToolResultToBlock:
 
     def test_search_knowledge_base_returns_citation_blocks(self) -> None:
         """search_knowledge_base output → list of CitationBlock dicts."""
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         result_json = json.dumps(
             [
@@ -184,7 +184,7 @@ class TestToolResultToBlock:
         """search_assets with image asset → ImageBlock."""
         from uuid import uuid4
 
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         asset_id = str(uuid4())
         result_json = json.dumps(
@@ -210,7 +210,7 @@ class TestToolResultToBlock:
         """get_asset with audio asset → AudioBlock."""
         from uuid import uuid4
 
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         asset_id = str(uuid4())
         result_json = json.dumps(
@@ -235,7 +235,7 @@ class TestToolResultToBlock:
         """get_asset with document asset → DocumentBlock."""
         from uuid import uuid4
 
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         asset_id = str(uuid4())
         result_json = json.dumps(
@@ -259,7 +259,7 @@ class TestToolResultToBlock:
         """get_asset with video asset → VideoBlock."""
         from uuid import uuid4
 
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         asset_id = str(uuid4())
         result_json = json.dumps(
@@ -280,28 +280,28 @@ class TestToolResultToBlock:
 
     def test_unknown_tool_returns_none(self) -> None:
         """Tools not mapped to blocks return None (emit only legacy tool_result)."""
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         blocks = _tool_result_to_block("analyze_offer_ladder", '{"result": "ok"}')
         assert blocks is None
 
     def test_invalid_json_returns_none(self) -> None:
         """Malformed JSON from tool → None (safe fallback, no crash)."""
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         blocks = _tool_result_to_block("search_knowledge_base", "not-json")
         assert blocks is None
 
     def test_empty_list_returns_empty_list(self) -> None:
         """search_knowledge_base returning empty list → empty list (not None)."""
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         blocks = _tool_result_to_block("search_knowledge_base", "[]")
         assert blocks == []
 
     def test_search_assets_not_found_error_returns_none(self) -> None:
         """search_assets error response → None."""
-        from src.modules.copilot.application.orchestrator.chat import _tool_result_to_block
+        from luana_core_copilot.application.orchestrator.chat import _tool_result_to_block
 
         blocks = _tool_result_to_block("search_assets", '{"error": "not_found"}')
         assert blocks is None
@@ -531,11 +531,11 @@ async def _run_stream_chat(
 
     with (
         patch(
-            "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+            "luana_core_copilot.application.orchestrator.chat.build_deep_agent_graph",
             return_value=fake_graph,
         ),
         patch(
-            "src.modules.copilot.application.orchestrator.chat.redis_client",
+            "luana_core_copilot.application.orchestrator.chat.redis_client",
             None,
         ),
     ):

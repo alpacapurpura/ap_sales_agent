@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.analytics.infrastructure.repositories.evangelization_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.evangelization_repository import (
     EvangelizationRepository,
 )
 

@@ -28,14 +28,14 @@ class TestVerifyTokenPayload:
         mock_jwks.get_signing_key_from_jwt.return_value = MagicMock(key="fake-key")
 
         with (
-            patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
+            patch("luana_core_iam.application.auth.jwks_client", mock_jwks),
             patch(
-                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "luana_core_iam.application.auth.CLERK_ISSUER",
                 "https://clerk.example.com",
             ),
             patch("jwt.decode", return_value=expected_payload),
         ):
-            from src.modules.iam.application.auth import verify_token_payload
+            from luana_core_iam.application.auth import verify_token_payload
 
             result = verify_token_payload("fake.jwt.token")
 
@@ -50,9 +50,9 @@ class TestVerifyTokenPayload:
         mock_jwks.get_signing_key_from_jwt.return_value = MagicMock(key="fake-key")
 
         with (
-            patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
+            patch("luana_core_iam.application.auth.jwks_client", mock_jwks),
             patch(
-                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "luana_core_iam.application.auth.CLERK_ISSUER",
                 "https://clerk.example.com",
             ),
             patch(
@@ -60,7 +60,7 @@ class TestVerifyTokenPayload:
                 side_effect=pyjwt.exceptions.ExpiredSignatureError("Token expired"),
             ),
         ):
-            from src.modules.iam.application.auth import verify_token_payload
+            from luana_core_iam.application.auth import verify_token_payload
 
             with pytest.raises(HTTPException) as exc_info:
                 verify_token_payload("expired.jwt.token")
@@ -76,9 +76,9 @@ class TestVerifyTokenPayload:
         mock_jwks.get_signing_key_from_jwt.return_value = MagicMock(key="fake-key")
 
         with (
-            patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
+            patch("luana_core_iam.application.auth.jwks_client", mock_jwks),
             patch(
-                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "luana_core_iam.application.auth.CLERK_ISSUER",
                 "https://clerk.example.com",
             ),
             patch(
@@ -88,7 +88,7 @@ class TestVerifyTokenPayload:
                 ),
             ),
         ):
-            from src.modules.iam.application.auth import verify_token_payload
+            from luana_core_iam.application.auth import verify_token_payload
 
             with pytest.raises(HTTPException) as exc_info:
                 verify_token_payload("tampered.jwt.token")
@@ -97,8 +97,8 @@ class TestVerifyTokenPayload:
 
     def test_missing_clerk_issuer_raises_500(self):
         """If CLERK_ISSUER env is not set, the server should return 500."""
-        with patch("src.modules.iam.application.auth.CLERK_ISSUER", None):
-            from src.modules.iam.application.auth import verify_token_payload
+        with patch("luana_core_iam.application.auth.CLERK_ISSUER", None):
+            from luana_core_iam.application.auth import verify_token_payload
 
             with pytest.raises(HTTPException) as exc_info:
                 verify_token_payload("any.jwt.token")
@@ -112,13 +112,13 @@ class TestVerifyTokenPayload:
         mock_jwks.get_signing_key_from_jwt.side_effect = Exception("JWKS unreachable")
 
         with (
-            patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
+            patch("luana_core_iam.application.auth.jwks_client", mock_jwks),
             patch(
-                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "luana_core_iam.application.auth.CLERK_ISSUER",
                 "https://clerk.example.com",
             ),
         ):
-            from src.modules.iam.application.auth import verify_token_payload
+            from luana_core_iam.application.auth import verify_token_payload
 
             with pytest.raises(HTTPException) as exc_info:
                 verify_token_payload("any.jwt.token")
@@ -133,9 +133,9 @@ class TestVerifyTokenPayload:
         mock_jwks.get_signing_key_from_jwt.return_value = MagicMock(key="fake-key")
 
         with (
-            patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
+            patch("luana_core_iam.application.auth.jwks_client", mock_jwks),
             patch(
-                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "luana_core_iam.application.auth.CLERK_ISSUER",
                 "https://clerk.example.com",
             ),
             patch(
@@ -143,7 +143,7 @@ class TestVerifyTokenPayload:
                 side_effect=pyjwt.exceptions.DecodeError("Cannot decode"),
             ),
         ):
-            from src.modules.iam.application.auth import verify_token_payload
+            from luana_core_iam.application.auth import verify_token_payload
 
             with pytest.raises(HTTPException) as exc_info:
                 verify_token_payload("garbage.token")
@@ -161,9 +161,9 @@ class TestAuthRouterEndpoints:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
-        from src.core.database import get_db
-        from src.modules.iam.api.routers.auth_router import router
-        from src.modules.iam.application.auth import verify_clerk_token
+        from luana_core_platform.core.database import get_db
+        from luana_core_iam.api.routers.auth_router import router
+        from luana_core_iam.application.auth import verify_clerk_token
 
         app = FastAPI()
         app.include_router(router, prefix="/users")

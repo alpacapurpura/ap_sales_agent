@@ -15,7 +15,7 @@ Web baseline MUST keep ALL groups (no exclusions) for backward compat.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.tools.registry import (
+from luana_core_copilot.application.tools.registry import (
     TOOL_GROUPS,
     get_tools_for_context,
 )

@@ -4,8 +4,8 @@ import uuid
 
 import pytest
 
-from src.modules.assets.domain.enums import AssetStatus, AssetType, StorageProvider
-from src.modules.assets.infrastructure.models.asset_model import AssetModel
+from luana_core_assets.domain.enums import AssetStatus, AssetType, StorageProvider
+from luana_core_assets.infrastructure.models.asset_model import AssetModel
 
 
 @pytest.fixture

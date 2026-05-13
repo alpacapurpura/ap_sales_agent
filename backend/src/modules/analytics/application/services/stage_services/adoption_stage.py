@@ -7,19 +7,18 @@ TTV, refunds, bottleneck detection.
 from datetime import UTC
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.dto.adoption_dto import (
+from luana_core_analytics_engine.application.dto.adoption_dto import (
     AdoptionDetailDTO,
     AdoptionHeaderKpisDTO,
     OfferHealthDTO,
 )
-from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
-from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
-from src.modules.analytics.domain.period_config import DateRange
-from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.shared.domain.currency import convert_to_usd
+from luana_core_analytics_engine.application.dto.capture_dto import MiniFunnelDTO
+from luana_core_analytics_engine.application.dto.opportunity_dto import BottleneckDTO
+from luana_core_analytics_engine.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.ports import ConnectionPort, OfferReadPort
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_platform.domain.currency import convert_to_usd
+from sqlalchemy.orm import Session
 
 
 def _build_adoption_bottlenecks(
@@ -101,7 +100,7 @@ class AdoptionStageService:
         """
         from datetime import datetime as dt_cls
 
-        from src.modules.analytics.infrastructure.repositories.adoption_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.adoption_repository import (
             AdoptionMetricsRepository,
         )
 

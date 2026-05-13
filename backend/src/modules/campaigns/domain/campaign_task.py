@@ -9,9 +9,8 @@ from __future__ import annotations
 import datetime as dt
 from uuid import UUID
 
+from luana_core_campaigns.domain.enums import TaskStatus
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.modules.campaigns.domain.enums import TaskStatus
 
 
 class CampaignTask(BaseModel):

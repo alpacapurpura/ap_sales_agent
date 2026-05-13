@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.modules.analytics.domain.metric_resolver import (
+from luana_core_analytics_engine.domain.metric_resolver import (
     MetricResolver,
     _extract_multiplier,
     _get_formula_components,
@@ -33,8 +33,8 @@ class TestExtractMultiplier:
 
 class TestGetFormulaComponents:
     def _derived_defn_short(self):
-        from src.modules.analytics.domain.enums import AggregationType
-        from src.modules.analytics.domain.metric_catalog import MetricDefinition
+        from luana_core_analytics_engine.domain.enums import AggregationType
+        from luana_core_analytics_engine.domain.metric_catalog import MetricDefinition
 
         defn = MagicMock()
         defn.aggregation = AggregationType.DERIVED
@@ -42,7 +42,7 @@ class TestGetFormulaComponents:
         return defn
 
     def _weighted_avg_no_weight(self):
-        from src.modules.analytics.domain.enums import AggregationType
+        from luana_core_analytics_engine.domain.enums import AggregationType
 
         defn = MagicMock()
         defn.aggregation = AggregationType.WEIGHTED_AVERAGE
@@ -51,7 +51,7 @@ class TestGetFormulaComponents:
         return defn
 
     def _weighted_avg_no_slash(self):
-        from src.modules.analytics.domain.enums import AggregationType
+        from luana_core_analytics_engine.domain.enums import AggregationType
 
         defn = MagicMock()
         defn.aggregation = AggregationType.WEIGHTED_AVERAGE
@@ -72,7 +72,7 @@ class TestGetFormulaComponents:
         assert _get_formula_components(defn) is None
 
     def test_additive_returns_none(self):
-        from src.modules.analytics.domain.enums import AggregationType
+        from luana_core_analytics_engine.domain.enums import AggregationType
 
         defn = MagicMock()
         defn.aggregation = AggregationType.ADDITIVE
@@ -208,7 +208,7 @@ class TestRecalculateFromComponents:
 
     def test_no_formula_components_returns_none(self):
         resolver = self._resolver()
-        from src.modules.analytics.domain.enums import AggregationType
+        from luana_core_analytics_engine.domain.enums import AggregationType
 
         defn = MagicMock()
         defn.aggregation = AggregationType.DERIVED
@@ -221,7 +221,7 @@ class TestRecalculateFromComponents:
 
     def test_zero_denominator_returns_none(self):
         resolver = self._resolver()
-        from src.modules.analytics.domain.enums import AggregationType
+        from luana_core_analytics_engine.domain.enums import AggregationType
 
         defn = MagicMock()
         defn.aggregation = AggregationType.DERIVED

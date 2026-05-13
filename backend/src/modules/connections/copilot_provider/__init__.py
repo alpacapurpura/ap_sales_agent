@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.modules.connections.copilot_provider.provider import ConnectionsCopilotProvider
+from luana_core_connections.copilot_provider.provider import ConnectionsCopilotProvider
 
 provider: ConnectionsCopilotProvider = ConnectionsCopilotProvider()
 

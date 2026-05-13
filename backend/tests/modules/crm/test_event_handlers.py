@@ -8,7 +8,7 @@ appointment_booked, appointment_completed, and appointment_no_show events.
 import uuid
 from unittest.mock import MagicMock, patch
 
-from src.shared.domain.events import DomainEvent, EventBus
+from luana_core_platform.domain.events import DomainEvent, EventBus
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -42,7 +42,7 @@ class TestRegisterEventHandlers:
     """register_event_handlers subscribes all CRM handlers to EventBus."""
 
     def test_registers_all_six_handlers(self):
-        from src.modules.crm.application.event_handlers import register_event_handlers
+        from luana_core_crm.application.event_handlers import register_event_handlers
 
         EventBus.clear()
         register_event_handlers()
@@ -57,7 +57,7 @@ class TestRegisterEventHandlers:
         EventBus.clear()
 
     def test_handlers_are_callable(self):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_appointment_booked,
             handle_appointment_completed,
             handle_appointment_no_show,
@@ -85,7 +85,7 @@ class TestHandleSaleCompletedEvent:
     """handle_sale_completed_event delegates to LifecycleService."""
 
     def test_calls_lifecycle_service_on_valid_event(self, tenant_id: uuid.UUID):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_sale_completed_event,
         )
 
@@ -104,8 +104,8 @@ class TestHandleSaleCompletedEvent:
         mock_db = _mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_db),
-            patch("src.modules.crm.application.services.lifecycle_service.LifecycleService") as mock_lifecycle,
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_db),
+            patch("luana_core_crm.application.services.lifecycle_service.LifecycleService") as mock_lifecycle,
         ):
             mock_svc = MagicMock()
             mock_lifecycle.return_value = mock_svc
@@ -118,7 +118,7 @@ class TestHandleSaleCompletedEvent:
             mock_db.close.assert_called_once()
 
     def test_rollback_on_lifecycle_service_error(self, tenant_id: uuid.UUID):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_sale_completed_event,
         )
 
@@ -126,9 +126,9 @@ class TestHandleSaleCompletedEvent:
         mock_db = _mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_db),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_db),
             patch(
-                "src.modules.crm.application.services.lifecycle_service.LifecycleService",
+                "luana_core_crm.application.services.lifecycle_service.LifecycleService",
                 side_effect=RuntimeError("db error"),
             ),
         ):
@@ -138,14 +138,14 @@ class TestHandleSaleCompletedEvent:
             mock_db.close.assert_called_once()
 
     def test_logs_exception_on_failure(self, tenant_id: uuid.UUID, caplog):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_sale_completed_event,
         )
 
         event = _make_event("sale_completed", tenant_id, payload={})
 
         with patch(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             side_effect=ImportError("cannot import"),
         ):
             handle_sale_completed_event(event)
@@ -162,7 +162,7 @@ class TestHandleChurnEvent:
     """handle_churn_event delegates to LifecycleService for churn transitions."""
 
     def test_calls_lifecycle_service_on_churn(self, tenant_id: uuid.UUID):
-        from src.modules.crm.application.event_handlers import handle_churn_event
+        from luana_core_crm.application.event_handlers import handle_churn_event
 
         event = _make_event(
             "churn_detected",
@@ -177,8 +177,8 @@ class TestHandleChurnEvent:
         mock_db = _mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_db),
-            patch("src.modules.crm.application.services.lifecycle_service.LifecycleService") as mock_lifecycle,
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_db),
+            patch("luana_core_crm.application.services.lifecycle_service.LifecycleService") as mock_lifecycle,
         ):
             mock_svc = MagicMock()
             mock_lifecycle.return_value = mock_svc
@@ -190,15 +190,15 @@ class TestHandleChurnEvent:
             mock_db.close.assert_called_once()
 
     def test_rollback_on_churn_error(self, tenant_id: uuid.UUID):
-        from src.modules.crm.application.event_handlers import handle_churn_event
+        from luana_core_crm.application.event_handlers import handle_churn_event
 
         event = _make_event("churn_detected", tenant_id, payload={"profile_id": str(uuid.uuid4())})
         mock_db = _mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_db),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_db),
             patch(
-                "src.modules.crm.application.services.lifecycle_service.LifecycleService",
+                "luana_core_crm.application.services.lifecycle_service.LifecycleService",
                 side_effect=ValueError("invalid churn"),
             ),
         ):
@@ -208,7 +208,7 @@ class TestHandleChurnEvent:
             mock_db.close.assert_called_once()
 
     def test_logs_exception_on_churn_failure(self, tenant_id: uuid.UUID, caplog):
-        from src.modules.crm.application.event_handlers import handle_churn_event
+        from luana_core_crm.application.event_handlers import handle_churn_event
 
         profile_id = uuid.uuid4()
         event = _make_event(
@@ -218,7 +218,7 @@ class TestHandleChurnEvent:
         )
 
         with patch(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             side_effect=ImportError("cannot import"),
         ):
             handle_churn_event(event)
@@ -235,7 +235,7 @@ class TestHandleLeadCapturedEvent:
     """handle_lead_captured_event logs lead capture info (analytics-only)."""
 
     def test_logs_lead_capture_details(self, tenant_id: uuid.UUID, caplog):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_lead_captured_event,
         )
 
@@ -251,13 +251,13 @@ class TestHandleLeadCapturedEvent:
 
         import logging
 
-        with caplog.at_level(logging.INFO, logger="src.modules.crm.application.event_handlers"):
+        with caplog.at_level(logging.INFO, logger="luana_core_crm.application.event_handlers"):
             handle_lead_captured_event(event)
 
         assert any("Lead captured:" in r.message for r in caplog.records)
 
     def test_handles_missing_payload_keys(self, tenant_id: uuid.UUID, caplog):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_lead_captured_event,
         )
 
@@ -265,7 +265,7 @@ class TestHandleLeadCapturedEvent:
 
         import logging
 
-        with caplog.at_level(logging.INFO, logger="src.modules.crm.application.event_handlers"):
+        with caplog.at_level(logging.INFO, logger="luana_core_crm.application.event_handlers"):
             handle_lead_captured_event(event)
 
         assert any("Lead captured:" in r.message for r in caplog.records)
@@ -280,7 +280,7 @@ class TestHandleAppointmentBooked:
     """handle_appointment_booked creates meeting_booked journey events."""
 
     def test_creates_journey_event_when_profile_found(self, tenant_id: uuid.UUID):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_appointment_booked,
         )
 
@@ -313,8 +313,8 @@ class TestHandleAppointmentBooked:
         ]
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_db),
-            patch("src.modules.crm.application.services.lifecycle_service.LifecycleService") as mock_lifecycle,
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_db),
+            patch("luana_core_crm.application.services.lifecycle_service.LifecycleService") as mock_lifecycle,
         ):
             mock_lifecycle.return_value = MagicMock()
 
@@ -325,7 +325,7 @@ class TestHandleAppointmentBooked:
             mock_db.close.assert_called_once()
 
     def test_logs_warning_when_no_profile_found(self, tenant_id: uuid.UUID, caplog):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_appointment_booked,
         )
 
@@ -345,7 +345,7 @@ class TestHandleAppointmentBooked:
         mock_db = _mock_session()
         mock_db.execute.return_value.scalar_one_or_none.return_value = mock_lead
 
-        with patch("src.core.database.SessionLocal", return_value=mock_db):
+        with patch("luana_core_platform.core.database.SessionLocal", return_value=mock_db):
             handle_appointment_booked(event)
 
             assert any("without matching profile" in r.message for r in caplog.records)
@@ -353,7 +353,7 @@ class TestHandleAppointmentBooked:
             mock_db.close.assert_called_once()
 
     def test_handles_exception_with_rollback(self, tenant_id: uuid.UUID, caplog):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_appointment_booked,
         )
 
@@ -368,7 +368,7 @@ class TestHandleAppointmentBooked:
         )
 
         with patch(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             side_effect=RuntimeError("db down"),
         ):
             handle_appointment_booked(event)
@@ -385,7 +385,7 @@ class TestHandleAppointmentCompleted:
     """handle_appointment_completed creates meeting_completed journey events."""
 
     def test_passes_correct_journey_event_name(self, tenant_id: uuid.UUID):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_appointment_completed,
         )
 
@@ -401,7 +401,7 @@ class TestHandleAppointmentCompleted:
 
         mock_db = _mock_session()
 
-        with patch("src.core.database.SessionLocal", return_value=mock_db):
+        with patch("luana_core_platform.core.database.SessionLocal", return_value=mock_db):
             handle_appointment_completed(event)
 
             mock_db.commit.assert_called_once()
@@ -417,7 +417,7 @@ class TestHandleAppointmentNoShow:
     """handle_appointment_no_show creates meeting_no_show journey events."""
 
     def test_passes_correct_journey_event_name(self, tenant_id: uuid.UUID):
-        from src.modules.crm.application.event_handlers import (
+        from luana_core_crm.application.event_handlers import (
             handle_appointment_no_show,
         )
 
@@ -433,7 +433,7 @@ class TestHandleAppointmentNoShow:
 
         mock_db = _mock_session()
 
-        with patch("src.core.database.SessionLocal", return_value=mock_db):
+        with patch("luana_core_platform.core.database.SessionLocal", return_value=mock_db):
             handle_appointment_no_show(event)
 
             mock_db.commit.assert_called_once()
@@ -452,7 +452,7 @@ class TestEventBusDispatch:
         EventBus.clear()
 
     def test_handler_exception_does_not_propagate(self, tenant_id: uuid.UUID):
-        from src.modules.crm.application.event_handlers import register_event_handlers
+        from luana_core_crm.application.event_handlers import register_event_handlers
 
         EventBus.clear()
         register_event_handlers()
@@ -460,7 +460,7 @@ class TestEventBusDispatch:
         event = _make_event("sale_completed", tenant_id, payload={})
 
         with patch(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             side_effect=Exception("total failure"),
         ):
             EventBus._dispatch(event)

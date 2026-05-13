@@ -17,7 +17,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.campaigns.infrastructure.channels.telegram import TelegramChannelRouter
+from luana_core_campaigns.infrastructure.channels.telegram import TelegramChannelRouter
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ async def test_resolve_telegram_id_returns_chat_id_on_hit() -> None:
     router = _make_router(session=mock_session)
 
     with patch(
-        "src.modules.campaigns.infrastructure.channels.telegram.get_lead_telegram_id_async",
+        "luana_core_campaigns.infrastructure.channels.telegram.get_lead_telegram_id_async",
         new=AsyncMock(return_value="@alice"),
     ) as mock_fn:
         result = await router._resolve_telegram_id(lead_id, tenant_id)
@@ -64,7 +64,7 @@ async def test_resolve_telegram_id_returns_none_when_no_telegram_id() -> None:
     router = _make_router(session=mock_session)
 
     with patch(
-        "src.modules.campaigns.infrastructure.channels.telegram.get_lead_telegram_id_async",
+        "luana_core_campaigns.infrastructure.channels.telegram.get_lead_telegram_id_async",
         new=AsyncMock(return_value=None),
     ):
         result = await router._resolve_telegram_id(lead_id, tenant_id)
@@ -82,7 +82,7 @@ async def test_resolve_telegram_id_tenant_mismatch_returns_none() -> None:
 
     # Port returns None because tenant_id doesn't match the lead's tenant
     with patch(
-        "src.modules.campaigns.infrastructure.channels.telegram.get_lead_telegram_id_async",
+        "luana_core_campaigns.infrastructure.channels.telegram.get_lead_telegram_id_async",
         new=AsyncMock(return_value=None),
     ) as mock_fn:
         result = await router._resolve_telegram_id(lead_id, wrong_tenant)
@@ -113,7 +113,7 @@ async def test_resolve_telegram_id_port_exception_returns_none() -> None:
     router = _make_router(session=mock_session)
 
     with patch(
-        "src.modules.campaigns.infrastructure.channels.telegram.get_lead_telegram_id_async",
+        "luana_core_campaigns.infrastructure.channels.telegram.get_lead_telegram_id_async",
         new=AsyncMock(side_effect=RuntimeError("DB unavailable")),
     ):
         result = await router._resolve_telegram_id(lead_id, tenant_id)

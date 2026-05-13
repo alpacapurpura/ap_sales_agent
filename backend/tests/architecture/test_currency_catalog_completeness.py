@@ -7,8 +7,8 @@ silently return ``None``. CI fails the moment either invariant breaks.
 
 from __future__ import annotations
 
-from src.shared.domain.currency import EXCHANGE_RATES_TO_USD, SUPPORTED_CURRENCIES
-from src.shared.domain.currency_catalog import CURRENCY_CATALOG
+from luana_core_platform.domain.currency import EXCHANGE_RATES_TO_USD, SUPPORTED_CURRENCIES
+from luana_core_platform.domain.currency_catalog import CURRENCY_CATALOG
 
 
 def test_every_catalog_code_is_supported() -> None:

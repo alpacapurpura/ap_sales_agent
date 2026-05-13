@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.core.context import set_tenant_id
+from luana_core_platform.core.context import set_tenant_id
 
 TENANT_ID = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 ASSET_ID = str(uuid.UUID("cccccccc-cccc-cccc-cccc-cccccccccccc"))
@@ -55,7 +55,7 @@ def mock_arq_pool(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     redis_mock = MagicMock(setex=MagicMock())
 
     for module_path in [
-        "src.modules.copilot.application.tools.extraction_tools",
+        "luana_core_copilot.application.tools.extraction_tools",
     ]:
         try:
             monkeypatch.setattr(f"{module_path}.get_arq_pool", lambda: pool)
@@ -79,13 +79,13 @@ class TestExtractionGroupContractRatchet:
     """Every tool in the extraction group that returns job_id must include all contract keys."""
 
     def test_extraction_group_exists_in_tool_groups(self) -> None:
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         assert "extraction" in TOOL_GROUPS, "The 'extraction' tool group must exist in TOOL_GROUPS."
 
     async def test_extract_from_url_dispatched_has_all_contract_keys(self, mock_arq_pool: MagicMock) -> None:
         """extract_from_url dispatched response must have all REQUIRED_ASYNC_JOB_KEYS."""
-        from src.modules.copilot.application.tools.extraction_tools import (
+        from luana_core_copilot.application.tools.extraction_tools import (
             extract_from_url,
         )
 
@@ -112,7 +112,7 @@ class TestExtractionGroupContractRatchet:
         fake_result.source_documents = []
 
         try:
-            from src.modules.copilot.application.tools.extract_from_doc import (
+            from luana_core_copilot.application.tools.extract_from_doc import (
                 extract_from_doc,
             )
         except ImportError:
@@ -140,7 +140,7 @@ class TestExtractionJobIdPollEndpointConsistency:
     """Verify job_id is present in poll_endpoint."""
 
     async def test_poll_endpoint_contains_job_id(self, mock_arq_pool: MagicMock) -> None:
-        from src.modules.copilot.application.tools.extraction_tools import (
+        from luana_core_copilot.application.tools.extraction_tools import (
             extract_from_url,
         )
 
@@ -154,7 +154,7 @@ class TestExtractionJobIdPollEndpointConsistency:
         )
 
     async def test_source_kind_is_url_for_extract_from_url(self, mock_arq_pool: MagicMock) -> None:
-        from src.modules.copilot.application.tools.extraction_tools import (
+        from luana_core_copilot.application.tools.extraction_tools import (
             extract_from_url,
         )
 

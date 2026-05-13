@@ -10,7 +10,7 @@ from uuid import uuid4
 import httpx
 import pytest
 
-from src.modules.analytics.infrastructure.providers.meta_provider import MetaProvider
+from luana_core_analytics_engine.infrastructure.providers.meta_provider import MetaProvider
 
 TENANT_ID = uuid4()
 CREDS = {
@@ -1270,7 +1270,7 @@ class TestExtractOrganicFromBreakdown:
     """Unit tests for _extract_organic_from_breakdown helper."""
 
     def test_subtracts_ad_value(self):
-        from src.modules.analytics.infrastructure.providers.meta_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.meta_provider import (
             _extract_organic_from_breakdown,
         )
 
@@ -1295,7 +1295,7 @@ class TestExtractOrganicFromBreakdown:
 
     def test_no_ads_running_returns_total(self):
         """When no ads are active, AD doesn't appear in breakdown — return total."""
-        from src.modules.analytics.infrastructure.providers.meta_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.meta_provider import (
             _extract_organic_from_breakdown,
         )
 
@@ -1318,7 +1318,7 @@ class TestExtractOrganicFromBreakdown:
 
     def test_empty_breakdowns_returns_total(self):
         """When breakdowns list is empty, return total_value as-is."""
-        from src.modules.analytics.infrastructure.providers.meta_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.meta_provider import (
             _extract_organic_from_breakdown,
         )
 
@@ -1330,7 +1330,7 @@ class TestExtractOrganicFromBreakdown:
 
     def test_missing_breakdowns_key_returns_total(self):
         """When breakdowns key is missing entirely, return total_value."""
-        from src.modules.analytics.infrastructure.providers.meta_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.meta_provider import (
             _extract_organic_from_breakdown,
         )
 
@@ -1342,7 +1342,7 @@ class TestExtractOrganicFromBreakdown:
 
     def test_all_ad_traffic_returns_zero(self):
         """Edge case: all traffic is from ads."""
-        from src.modules.analytics.infrastructure.providers.meta_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.meta_provider import (
             _extract_organic_from_breakdown,
         )
 
@@ -1364,7 +1364,7 @@ class TestExtractOrganicFromBreakdown:
 
     def test_handles_unknown_media_types(self):
         """Unknown types like CAROUSEL_CONTAINER are preserved (not AD)."""
-        from src.modules.analytics.infrastructure.providers.meta_provider import (
+        from luana_core_analytics_engine.infrastructure.providers.meta_provider import (
             _extract_organic_from_breakdown,
         )
 

@@ -5,23 +5,22 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.attributes import flag_modified
-
-from src.core.database import get_db
-from src.modules.connections.api.dto.common import (
+from luana_core_connections.api.dto.common import (
     ConnectionTestResponse,
     YoutubeUpdateConfigResponse,
 )
-from src.modules.connections.api.dto.youtube import YoutubeStatusResponse
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.api.dto.youtube import YoutubeStatusResponse
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.channels.youtube import YoutubeAdapter
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_iam.infrastructure.models.tenant_model import TenantModel
+from luana_core_platform.core.database import get_db
+from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 router = APIRouter(tags=["youtube"])
 logger = structlog.get_logger()

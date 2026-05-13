@@ -6,17 +6,16 @@ from uuid import UUID, uuid4
 
 import httpx
 import structlog
-from sqlalchemy.orm import Session
-
-from src.modules.tenant_domains.domain.domain_entity import (
+from luana_core_tenant_domains.domain.domain_entity import (
     DomainStatus,
     DomainType,
     TenantDomain,
 )
-from src.modules.tenant_domains.infrastructure.cloudflare_client import CloudflareClient
-from src.modules.tenant_domains.infrastructure.domain_repository_impl import (
+from luana_core_tenant_domains.infrastructure.cloudflare_client import CloudflareClient
+from luana_core_tenant_domains.infrastructure.domain_repository_impl import (
     DomainRepositoryImpl,
 )
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

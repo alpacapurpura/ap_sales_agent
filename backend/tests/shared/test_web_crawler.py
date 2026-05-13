@@ -1,6 +1,6 @@
 """Tests for shared WebCrawler — validates the module moved from brand correctly."""
 
-from src.shared.infrastructure.web.crawler import (
+from luana_core_platform.infrastructure.web.crawler import (
     HIGH_KEYWORDS,
     MEDIUM_KEYWORDS,
     SKIP_EXTENSIONS,
@@ -97,13 +97,13 @@ class TestWebCrawlerClass:
 
     def test_backward_compat_brandcrawler(self):
         """BrandCrawler alias still works."""
-        from src.shared.infrastructure.web.crawler import BrandCrawler
+        from luana_core_platform.infrastructure.web.crawler import BrandCrawler
 
         assert BrandCrawler is WebCrawler
 
     def test_brand_module_reexport(self):
         """Brand module re-export still works."""
-        from src.modules.brand.application.extraction_crawler import BrandCrawler
+        from luana_core_brand_studio.application.extraction_crawler import BrandCrawler
 
         assert BrandCrawler is WebCrawler
 

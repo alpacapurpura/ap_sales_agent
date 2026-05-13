@@ -18,17 +18,17 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.inspirations_layer import (
+from luana_core_copilot.application.orchestrator.inspirations_layer import (
     build_inspirations_layer,
 )
-from src.modules.copilot.infrastructure.repositories.inspiration_repository import (
+from luana_core_copilot.infrastructure.repositories.inspiration_repository import (
     CopilotInspirationRepository,
 )
 
 
 @pytest.fixture(autouse=True)
 def _reset_provider_discovery():
-    from src.modules.copilot.application.discovery import reset_discovery
+    from luana_core_copilot.application.discovery import reset_discovery
 
     reset_discovery()
     yield
@@ -44,15 +44,15 @@ def _stub_db_helpers(monkeypatch):
     layer's own DB hit is exercised for real (in-memory SQLite).
     """
     monkeypatch.setattr(
-        "src.modules.copilot.application.orchestrator.graph._get_completion_snapshot",
+        "luana_core_copilot.application.orchestrator.graph._get_completion_snapshot",
         lambda _tenant_id: "",
     )
     monkeypatch.setattr(
-        "src.modules.copilot.application.orchestrator.graph._get_behavior_summary",
+        "luana_core_copilot.application.orchestrator.graph._get_behavior_summary",
         lambda _tenant_id, _user_id: "",
     )
     monkeypatch.setattr(
-        "src.modules.copilot.domain.schema_introspection.format_all_editable_catalogs_markdown",
+        "luana_core_copilot.domain.schema_introspection.format_all_editable_catalogs_markdown",
         lambda: "",
     )
 
@@ -113,7 +113,7 @@ class TestBuildInspirationsLayer:
         # its own session via SessionLocal in production, which is fine
         # in this unit test as the in-memory SQLite is the test engine.
         monkeypatch.setattr(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             lambda: db,
         )
         # The layer calls .close() — keep the session usable for assertions.
@@ -141,7 +141,7 @@ class TestBuildInspirationsLayer:
         _seed(repo, tenant_id=tenant_id, conversation_id=conversation_id, slug="a")
         db.commit()
         monkeypatch.setattr(
-            "src.core.database.SessionLocal",
+            "luana_core_platform.core.database.SessionLocal",
             lambda: db,
         )
         monkeypatch.setattr(db, "close", lambda: None)
@@ -174,7 +174,7 @@ _LIGHTHOUSE_TEXT = "Marca formación para empresarias LatAm. Promesa: escalar ne
 
 @pytest.fixture
 def stub_summary(monkeypatch):
-    from src.modules.brand.copilot_provider import summary as summary_mod
+    from luana_core_brand_studio.copilot_provider import summary as summary_mod
 
     async def _stub(self, *, tenant_id):
         return _LIGHTHOUSE_TEXT
@@ -203,7 +203,7 @@ class TestSystemPromptOrder:
         )
         db.commit()
 
-        monkeypatch.setattr("src.core.database.SessionLocal", lambda: db)
+        monkeypatch.setattr("luana_core_platform.core.database.SessionLocal", lambda: db)
         monkeypatch.setattr(db, "close", lambda: None)
 
         state = {
@@ -220,7 +220,7 @@ class TestSystemPromptOrder:
             "active_tool_names": [],
         }
 
-        from src.modules.copilot.application.orchestrator.graph import (
+        from luana_core_copilot.application.orchestrator.graph import (
             build_system_prompt,
         )
 
@@ -233,7 +233,7 @@ class TestSystemPromptOrder:
         # in the cacheable prefix, lighthouse comes 3rd, inspirations sit in
         # the volatile tail AFTER the cache boundary marker. Final order is
         #   identity ("Eres ...") < lighthouse < cache boundary < inspirations
-        from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+        from luana_core_copilot.application.orchestrator.system_prompt_layout import (
             CACHE_BOUNDARY_MARKER,
         )
 
@@ -254,7 +254,7 @@ class TestSystemPromptOrder:
         repo = CopilotInspirationRepository(db)
         _seed(repo, tenant_id=tenant_id, conversation_id=conversation_id, slug="x")
         db.commit()
-        monkeypatch.setattr("src.core.database.SessionLocal", lambda: db)
+        monkeypatch.setattr("luana_core_platform.core.database.SessionLocal", lambda: db)
         monkeypatch.setattr(db, "close", lambda: None)
 
         state = {
@@ -271,7 +271,7 @@ class TestSystemPromptOrder:
             "active_tool_names": [],
         }
 
-        from src.modules.copilot.application.orchestrator.deep_agent import (
+        from luana_core_copilot.application.orchestrator.deep_agent import (
             _DEEP_AGENT_SUFFIX_ES,
             _build_combined_system_prompt,
         )
@@ -291,7 +291,7 @@ class TestSystemPromptOrder:
         conversation_id,
     ) -> None:
         # No seed.
-        monkeypatch.setattr("src.core.database.SessionLocal", lambda: db)
+        monkeypatch.setattr("luana_core_platform.core.database.SessionLocal", lambda: db)
         monkeypatch.setattr(db, "close", lambda: None)
         state = {
             "tenant_id": tenant_id,
@@ -306,7 +306,7 @@ class TestSystemPromptOrder:
             },
             "active_tool_names": [],
         }
-        from src.modules.copilot.application.orchestrator.graph import (
+        from luana_core_copilot.application.orchestrator.graph import (
             build_system_prompt,
         )
 

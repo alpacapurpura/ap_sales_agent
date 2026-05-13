@@ -79,26 +79,26 @@ async def test_subscriber_new_creates_message_received_event():
 
     with (
         patch(
-            "src.modules.crm.infrastructure.repositories.customer_repository.CustomerRepository.find_by_trait",
+            "luana_core_crm.infrastructure.repositories.customer_repository.CustomerRepository.find_by_trait",
             return_value=None,
         ),
         patch(
-            "src.modules.crm.application.services.customer_service.CustomerService.identify",
+            "luana_core_crm.application.services.customer_service.CustomerService.identify",
             return_value=profile,
         ),
         patch(
-            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            "luana_core_crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
             return_value=None,
         ),
         patch(
-            "src.modules.analytics.application.services.manychat_metrics_promoter.ManyChatMetricsPromoter.promote_event",
+            "luana_core_analytics_engine.application.services.manychat_metrics_promoter.ManyChatMetricsPromoter.promote_event",
             return_value=None,
         ),
         patch(
-            "src.modules.connections.api.marketing_webhooks.logger",
+            "luana_core_connections.api.marketing_webhooks.logger",
         ),
     ):
-        from src.modules.connections.api.marketing_webhooks import (
+        from luana_core_connections.api.marketing_webhooks import (
             _handle_manychat_event,
         )
 
@@ -135,26 +135,26 @@ async def test_tag_applied_does_not_create_message_received():
 
     with (
         patch(
-            "src.modules.crm.infrastructure.repositories.customer_repository.CustomerRepository.find_by_trait",
+            "luana_core_crm.infrastructure.repositories.customer_repository.CustomerRepository.find_by_trait",
             return_value=None,
         ),
         patch(
-            "src.modules.crm.application.services.customer_service.CustomerService.identify",
+            "luana_core_crm.application.services.customer_service.CustomerService.identify",
             return_value=profile,
         ),
         patch(
-            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            "luana_core_crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
             return_value=None,
         ),
         patch(
-            "src.modules.analytics.application.services.manychat_metrics_promoter.ManyChatMetricsPromoter.promote_event",
+            "luana_core_analytics_engine.application.services.manychat_metrics_promoter.ManyChatMetricsPromoter.promote_event",
             return_value=None,
         ),
         patch(
-            "src.modules.connections.api.marketing_webhooks.logger",
+            "luana_core_connections.api.marketing_webhooks.logger",
         ),
     ):
-        from src.modules.connections.api.marketing_webhooks import (
+        from luana_core_connections.api.marketing_webhooks import (
             _handle_manychat_event,
         )
 

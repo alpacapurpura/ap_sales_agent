@@ -1,7 +1,7 @@
 """Tests for AssetsService._detect_type — pure MIME → AssetType mapping."""
 
-from src.modules.assets.application.assets_service import AssetsService
-from src.modules.assets.domain.enums import AssetType
+from luana_core_assets.application.assets_service import AssetsService
+from luana_core_assets.domain.enums import AssetType
 
 
 def detect_type(mime_type: str) -> AssetType:

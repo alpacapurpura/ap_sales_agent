@@ -5,7 +5,7 @@ PR-6 / PI-1 S2.
 
 from __future__ import annotations
 
-from src.shared.billing.domain.budget_decision import BudgetDecision
+from luana_core_billing.domain.budget_decision import BudgetDecision
 
 
 class BudgetExceeded(Exception):  # noqa: N818 — intentional: domain exception name from CONTRACT, widely consumed

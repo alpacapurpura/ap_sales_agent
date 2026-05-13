@@ -28,7 +28,7 @@ def _run(coro):
 
 def _make_extracted_metric(**overrides):
     """Create a mock ExtractedMetric."""
-    from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+    from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
     defaults = {
         "provider": "meta",
@@ -44,7 +44,7 @@ def _make_extracted_metric(**overrides):
 
 def _make_extraction_result(*metrics):
     """Wrap ExtractedMetric list in ExtractionResult."""
-    from src.modules.analytics.domain.extraction_result import ExtractionResult
+    from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
 
     return ExtractionResult(metrics=list(metrics))
 
@@ -64,8 +64,8 @@ class TestETLPipelineHappyPath:
 
     def test_run_executes_full_pipeline_in_order(self):
         """run() calls extract -> stage -> transform -> upsert -> aggregate -> cache in sequence."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         # Mock all dependencies
         mock_db = MagicMock()
@@ -125,8 +125,8 @@ class TestETLPipelineHappyPath:
 
     def test_run_creates_extraction_run_with_success(self):
         """Happy path creates ExtractionRun and marks SUCCESS with metrics_count."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -174,8 +174,8 @@ class TestETLPipelineFailure:
 
     def test_run_marks_failed_and_rolls_back_on_provider_error(self):
         """Provider error -> ExtractionRun FAILED, DB rollback."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -222,9 +222,9 @@ class TestETLPipelineFailure:
 
     def test_run_marks_failed_on_connection_revoked(self):
         """ConnectionRevokedError -> FAILED, no retry."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.exceptions import ConnectionRevokedError
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -268,14 +268,14 @@ class TestETLPipelineFailure:
 
 def _make_extraction_result_with_failures(metrics, failures):
     """Wrap ExtractedMetric list and SubExtractorFailure list in ExtractionResult."""
-    from src.modules.analytics.domain.extraction_result import ExtractionResult
+    from luana_core_analytics_engine.domain.extraction_result import ExtractionResult
 
     return ExtractionResult(metrics=list(metrics), failures=list(failures))
 
 
 def _make_sub_extractor_failure(extractor_name="instagram_organic", error="Timeout"):
     """Create a SubExtractorFailure instance."""
-    from src.modules.analytics.domain.extraction_result import SubExtractorFailure
+    from luana_core_analytics_engine.domain.extraction_result import SubExtractorFailure
 
     return SubExtractorFailure(
         extractor_name=extractor_name,
@@ -289,8 +289,8 @@ class TestETLPipelinePartialSuccess:
 
     def test_partial_success_when_failures_and_metrics(self):
         """If some sub-extractors fail but metrics are extracted, status = PARTIAL_SUCCESS."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -339,7 +339,7 @@ class TestETLPipelinePartialSuccess:
 
     def test_partial_success_still_invalidates_cache(self):
         """PARTIAL_SUCCESS should still invalidate the tenant cache."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -382,8 +382,8 @@ class TestETLPipelinePartialSuccess:
 
     def test_all_sub_extractors_fail_no_metrics_marks_failed(self):
         """If all sub-extractors fail and no metrics extracted, status = FAILED."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -437,8 +437,8 @@ class TestETLPipelineEmptyExtraction:
 
     def test_zero_metrics_still_succeeds(self):
         """Extraction returning 0 metrics should still be SUCCESS (not FAILED)."""
-        from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -482,7 +482,7 @@ class TestETLPipelineEmptyExtraction:
 
     def test_zero_metrics_still_invalidates_cache(self):
         """Even with 0 metrics, cache should be invalidated (data may have been deleted upstream)."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+        from luana_core_analytics_engine.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()

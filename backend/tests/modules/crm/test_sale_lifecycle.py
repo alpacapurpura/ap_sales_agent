@@ -12,14 +12,14 @@ from unittest.mock import patch
 
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import (
+from luana_core_crm.domain.enums import LifecycleStage
+from luana_core_crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
 )
-from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+from luana_core_crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
-from src.shared.domain.events import EventBus
+from luana_core_platform.domain.events import EventBus
 
 SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
@@ -64,10 +64,10 @@ class TestConversionSale:
     """CONVERSION sale transitions profile to CUSTOMER."""
 
     def test_conversion_sale_triggers_customer_stage(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
-        from src.modules.crm.domain.events import SaleCompletedEvent
+        from luana_core_crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(db, tenant_id, stage=LifecycleStage.SQL)
 
@@ -87,10 +87,10 @@ class TestConversionSale:
         assert profile.lifecycle_stage == LifecycleStage.CUSTOMER
 
     def test_conversion_sets_first_conversion_at(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
-        from src.modules.crm.domain.events import SaleCompletedEvent
+        from luana_core_crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(db, tenant_id, stage=LifecycleStage.SQL)
         assert profile.first_conversion_at is None
@@ -111,10 +111,10 @@ class TestConversionSale:
         assert profile.first_conversion_at is not None
 
     def test_conversion_increments_lifetime_value(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
-        from src.modules.crm.domain.events import SaleCompletedEvent
+        from luana_core_crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(
             db,
@@ -143,10 +143,10 @@ class TestExpansionSale:
     """EXPANSION sale increments lifetime_value and keeps CUSTOMER stage."""
 
     def test_expansion_sale_increments_lifetime_value(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
-        from src.modules.crm.domain.events import SaleCompletedEvent
+        from luana_core_crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(
             db,
@@ -172,10 +172,10 @@ class TestExpansionSale:
         assert profile.lifetime_value == 150.0
 
     def test_expansion_keeps_customer_stage(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
-        from src.modules.crm.domain.events import SaleCompletedEvent
+        from luana_core_crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(
             db,
@@ -205,10 +205,10 @@ class TestChurnedReactivation:
     """CHURNED profile reactivated by new sale becomes CUSTOMER."""
 
     def test_churned_reactivation(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import (
+        from luana_core_crm.application.services.lifecycle_service import (
             LifecycleService,
         )
-        from src.modules.crm.domain.events import SaleCompletedEvent
+        from luana_core_crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(
             db,
@@ -249,8 +249,8 @@ class TestSaleEventEmission:
 
     def test_sale_event_emitted_after_commit(self, db: Session, tenant_id):
         """Verify EventBus.publish called with correct SaleCompletedEvent."""
-        from src.modules.crm.application.services.sale_service import SaleService
-        from src.modules.crm.domain.enums import PaymentMethod
+        from luana_core_crm.application.services.sale_service import SaleService
+        from luana_core_crm.domain.enums import PaymentMethod
 
         # Create a customer profile so the sale can reference it
         profile = _make_profile(db, tenant_id, stage=LifecycleStage.SQL)
@@ -278,7 +278,7 @@ class TestEventHandlerRegistration:
     """Event handlers registered at startup."""
 
     def test_register_event_handlers(self):
-        from src.modules.crm.application.event_handlers import register_event_handlers
+        from luana_core_crm.application.event_handlers import register_event_handlers
 
         EventBus.clear()
         register_event_handlers()

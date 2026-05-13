@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.shared.domain.field_contract import FieldStatus, get_module_contracts
+from luana_core_platform.domain.field_contract import FieldStatus, get_module_contracts
 
 
 def _inactive_offer_paths() -> frozenset[str]:

@@ -1,6 +1,6 @@
 """Factory channel adapter."""
 
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 from .interface import WhatsAppProvider
 from .v1 import EvolutionApiV1

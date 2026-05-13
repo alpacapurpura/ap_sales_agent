@@ -10,8 +10,7 @@ import structlog
 from facebook_business.adobjects.user import User
 from facebook_business.api import FacebookAdsApi
 from facebook_business.session import FacebookSession
-
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 logger = structlog.get_logger(__name__)
 

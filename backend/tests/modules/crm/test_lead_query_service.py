@@ -15,8 +15,8 @@ from sqlalchemy import ColumnElement, true
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.shared.domain.base_entity import Base
-from src.shared.infrastructure.models.crm import LeadModel
+from luana_core_platform.domain.base_entity import Base
+from luana_core_platform.infrastructure.models.crm import LeadModel
 
 TENANT_A = uuid.UUID("00000000-0000-0000-0000-000000000001")
 TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
@@ -85,7 +85,7 @@ class TestListLeadIdsMatching:
     @pytest.mark.asyncio
     async def test_returns_ids_and_total_count(self, async_session: AsyncSession):
         """Count reflects all matching; list is capped by limit."""
-        from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
+        from luana_core_crm.application.services.lead_query_service import LeadQueryServiceImpl
 
         leads = [_make_lead(TENANT_A, whatsapp_id=f"wa-{i}") for i in range(5)]
         async_session.add_all(leads)
@@ -105,7 +105,7 @@ class TestListLeadIdsMatching:
     @pytest.mark.asyncio
     async def test_applies_limit(self, async_session: AsyncSession):
         """Limit=1 returns exactly 1 id even if more match."""
-        from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
+        from luana_core_crm.application.services.lead_query_service import LeadQueryServiceImpl
 
         leads = [_make_lead(TENANT_A, whatsapp_id=f"wa-{i}") for i in range(10)]
         async_session.add_all(leads)
@@ -125,7 +125,7 @@ class TestListLeadIdsMatching:
     @pytest.mark.asyncio
     async def test_tenant_isolation(self, async_session: AsyncSession):
         """Only leads from the requested tenant are returned."""
-        from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
+        from luana_core_crm.application.services.lead_query_service import LeadQueryServiceImpl
 
         async_session.add_all([_make_lead(TENANT_A, whatsapp_id="wa-a1"), _make_lead(TENANT_A, whatsapp_id="wa-a2")])
         async_session.add_all(
@@ -151,7 +151,7 @@ class TestListLeadIdsMatching:
     @pytest.mark.asyncio
     async def test_excludes_deleted_leads(self, async_session: AsyncSession):
         """Leads with deleted_at set are excluded."""
-        from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
+        from luana_core_crm.application.services.lead_query_service import LeadQueryServiceImpl
 
         now = datetime.now(timezone.utc)
         active = _make_lead(TENANT_A, whatsapp_id="wa-active")
@@ -182,7 +182,7 @@ class TestCountLeadsMatching:
 
     @pytest.mark.asyncio
     async def test_counts_all_matching(self, async_session: AsyncSession):
-        from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
+        from luana_core_crm.application.services.lead_query_service import LeadQueryServiceImpl
 
         async_session.add_all([_make_lead(TENANT_A, whatsapp_id=f"wa-{i}") for i in range(7)])
         await async_session.flush()
@@ -199,7 +199,7 @@ class TestCountLeadsMatching:
     @pytest.mark.asyncio
     async def test_tenant_isolation(self, async_session: AsyncSession):
         """Only counts leads from the requested tenant."""
-        from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
+        from luana_core_crm.application.services.lead_query_service import LeadQueryServiceImpl
 
         async_session.add_all([_make_lead(TENANT_A, whatsapp_id="wa-a1"), _make_lead(TENANT_A, whatsapp_id="wa-a2")])
         async_session.add_all([_make_lead(TENANT_B, whatsapp_id="wa-b1")])
@@ -217,7 +217,7 @@ class TestCountLeadsMatching:
     @pytest.mark.asyncio
     async def test_excludes_deleted_leads(self, async_session: AsyncSession):
         """Deleted leads are not counted."""
-        from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
+        from luana_core_crm.application.services.lead_query_service import LeadQueryServiceImpl
 
         now = datetime.now(timezone.utc)
         active = _make_lead(TENANT_A, whatsapp_id="wa-active")
@@ -237,7 +237,7 @@ class TestCountLeadsMatching:
 
     @pytest.mark.asyncio
     async def test_returns_zero_for_empty_tenant(self, async_session: AsyncSession):
-        from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
+        from luana_core_crm.application.services.lead_query_service import LeadQueryServiceImpl
 
         svc = LeadQueryServiceImpl()
         count = await svc.count_leads_matching(

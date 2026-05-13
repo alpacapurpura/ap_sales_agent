@@ -14,9 +14,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.copilot.domain.ports import DataQueryPlan, ModuleData
-from src.modules.crm.copilot_provider.data_access import CrmDataAccessProvider
-from src.modules.crm.copilot_provider.provider import CrmCopilotProvider
+from luana_core_copilot.domain.ports import DataQueryPlan, ModuleData
+from luana_core_crm.copilot_provider.data_access import CrmDataAccessProvider
+from luana_core_crm.copilot_provider.provider import CrmCopilotProvider
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -108,7 +108,7 @@ class TestDataAccessDbFactoryFallback:
         )
 
         with patch(
-            "src.modules.crm.infrastructure.repositories.lead_repository.LeadRepository",
+            "luana_core_crm.infrastructure.repositories.lead_repository.LeadRepository",
             return_value=mock_repo_result,
         ):
             result = await access.execute(tenant_id=TENANT_X, plan=plan)

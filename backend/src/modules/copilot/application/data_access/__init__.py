@@ -6,7 +6,7 @@ Modules that own data outside ``copilot/`` (offer, crm, …) expose their
 directly by the dispatcher because there is no cross-module surface to expose.
 """
 
-from src.modules.copilot.application.data_access.conversation import (
+from luana_core_copilot.application.data_access.conversation import (
     ConversationDataAccessProvider,
 )
 

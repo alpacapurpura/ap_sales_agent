@@ -13,17 +13,17 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.campaigns.application.dtos.campaign_template_dtos import (
+from luana_core_campaigns.application.dtos.campaign_template_dtos import (
     CampaignCreateFromTemplate,
 )
-from src.modules.campaigns.application.services.cache import SimpleTTLCache
-from src.modules.campaigns.application.services.campaign_template_service import (
+from luana_core_campaigns.application.services.cache import SimpleTTLCache
+from luana_core_campaigns.application.services.campaign_template_service import (
     CampaignTemplateNotFoundError,
     CampaignTemplateService,
 )
-from src.modules.campaigns.domain.campaign import Campaign
-from src.modules.campaigns.domain.campaign_template import CampaignTemplate
-from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType, StepType
+from luana_core_campaigns.domain.campaign import Campaign
+from luana_core_campaigns.domain.campaign_template import CampaignTemplate
+from luana_core_campaigns.domain.enums import CampaignStatus, CampaignType, StepType
 
 pytestmark = pytest.mark.asyncio
 

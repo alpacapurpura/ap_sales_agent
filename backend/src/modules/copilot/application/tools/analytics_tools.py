@@ -24,16 +24,15 @@ from typing import TYPE_CHECKING, Any, cast
 
 import structlog
 from langchain_core.tools import tool
-
-from src.core.context import get_tenant_id
-from src.modules.copilot.application.tools._analytics_inputs import (
+from luana_core_copilot.application.tools._analytics_inputs import (
     ChannelOverviewParams,
     StageFilterParams,
     TriggerEtlRefreshParams,
 )
+from luana_core_platform.core.context import get_tenant_id
 
 if TYPE_CHECKING:
-    from src.modules.analytics.application.services.etl_refresh_guard import (
+    from luana_core_analytics_engine.application.services.etl_refresh_guard import (
         EtlRefreshGuard,
         GuardDecision,
     )
@@ -75,10 +74,10 @@ async def _call_stage_overview(
     Isolated as a top-level async function so tests can patch it cleanly
     without instantiating real Redis / DB dependencies.
     """
-    from src.core.database import SessionLocal
-    from src.modules.analytics.application.services.stage_services.overview_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.overview_stage import (
         StageOverviewService,
     )
+    from luana_core_platform.core.database import SessionLocal
 
     db = SessionLocal()
     try:
@@ -96,10 +95,10 @@ async def _call_channel_dashboard(
 
     Isolated as a top-level async function so tests can patch it cleanly.
     """
-    from src.core.database import SessionLocal
-    from src.modules.analytics.application.services.channel_dashboard_service import (
+    from luana_core_analytics_engine.application.services.channel_dashboard_service import (
         ChannelDashboardService,
     )
+    from luana_core_platform.core.database import SessionLocal
 
     db = SessionLocal()
     try:
@@ -116,7 +115,7 @@ def _get_etl_refresh_guard() -> EtlRefreshGuard:
     Returns a guard with a no-op config repo when Redis is unavailable
     (guard soft-fails open per tessl__graceful-degradation).
     """
-    from src.modules.analytics.application.services.etl_refresh_guard import (
+    from luana_core_analytics_engine.application.services.etl_refresh_guard import (
         EtlRefreshGuard,
     )
 
@@ -125,7 +124,7 @@ def _get_etl_refresh_guard() -> EtlRefreshGuard:
             return None
 
     try:
-        from src.core.redis import get_redis_client
+        from luana_core_platform.core.redis import get_redis_client
 
         redis_client = get_redis_client()
     except Exception:  # noqa: BLE001 — fail-open per graceful-degradation
@@ -147,13 +146,12 @@ async def _call_etl_refresh(
     Isolated as a top-level async function so tests can patch it cleanly.
     Returns a dict with at minimum ``{"status": "...", "run_id": "..."}``.
     """
-    from src.modules.analytics.infrastructure.providers.connection_port_impl import (
+    from luana_core_analytics_engine.application.services.etl_service import ETLService
+    from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+    from luana_core_analytics_engine.infrastructure.providers.connection_port_impl import (
         ConnectionPortImpl,
     )
-
-    from src.core.database import SessionLocal
-    from src.modules.analytics.application.services.etl_service import ETLService
-    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+    from luana_core_platform.core.database import SessionLocal
 
     provider_name = _SLUG_TO_PROVIDER.get(channel_slug)
     if not provider_name:

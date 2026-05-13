@@ -4,19 +4,18 @@ from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.marketing_connectors.manychat import (
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_connections.infrastructure.marketing_connectors.manychat import (
     ManyChatConnector,
 )
-from src.modules.connections.infrastructure.repositories import (
+from luana_core_connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_platform.core.database import get_db
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 router = APIRouter()

@@ -24,16 +24,18 @@ The user fills it in and eventually publishes it.
 
 from __future__ import annotations
 
-from datetime import datetime
 from enum import StrEnum
-from typing import Any
-from uuid import UUID
+from typing import TYPE_CHECKING, Any
 
+from luana_core_offer_studio.domain.enums import VariantStructure
+from luana_core_platform.domain.base_entity import BaseEntity
 from pydantic import Field, model_validator
 
-from src.modules.offer.domain.enums import VariantStructure
-from src.modules.offer.domain.offer import PricingStructure
-from src.shared.domain.base_entity import BaseEntity
+if TYPE_CHECKING:
+    from datetime import datetime
+    from uuid import UUID
+
+    from luana_core_offer_studio.domain.offer import PricingStructure
 
 
 class EditionStatus(StrEnum):

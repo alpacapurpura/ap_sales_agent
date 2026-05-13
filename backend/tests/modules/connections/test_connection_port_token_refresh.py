@@ -10,14 +10,14 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.connections.application.services.connection_port_impl import (
+from luana_core_connections.application.services.connection_port_impl import (
     CHILD_PROVIDER_PARENT,
     EXPIRY_BUFFER_SECONDS,
     PROVIDER_TO_CHANNEL_TYPE_ALIAS,
     ConnectionPortImpl,
 )
-from src.modules.connections.domain.enums import ChannelType
-from src.shared.domain.ports import ConnectionRevokedError, TokenRefreshError
+from luana_core_connections.domain.enums import ChannelType
+from luana_core_platform.domain.ports import ConnectionRevokedError, TokenRefreshError
 
 TENANT_ID = uuid4()
 

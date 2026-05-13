@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.modules.analytics.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.period_config import DateRange
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 DATE_RANGE = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
@@ -21,7 +21,7 @@ def _run(coro):
 
 
 def _make_summary_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.summary_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.summary_stage import (
         SummaryStageService,
     )
 
@@ -31,10 +31,10 @@ def _make_summary_svc(cache=None):
 
     with (
         patch(
-            "src.modules.analytics.application.services.stage_services.summary_stage.get_customer_repository"
+            "luana_core_analytics_engine.application.services.stage_services.summary_stage.get_customer_repository"
         ) as MockCustRepo,
         patch(
-            "src.modules.analytics.application.services.stage_services.summary_stage.get_lead_metrics_repository"
+            "luana_core_analytics_engine.application.services.stage_services.summary_stage.get_lead_metrics_repository"
         ) as MockLeadRepo,
     ):
         cust_repo = MagicMock()
@@ -121,7 +121,7 @@ class TestSummaryGetSummaryWithOpportunityCache:
         svc.cache.set = AsyncMock()
 
         with patch(
-            "src.modules.analytics.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
         ) as MockSales:
             MockSales.return_value.get_sales_summary.return_value = []
             result = _run(svc.get_summary(TENANT_ID))
@@ -134,7 +134,7 @@ class TestSummaryGetSummaryWithOpportunityCache:
 
 
 def _make_expansion_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.expansion_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.expansion_stage import (
         ExpansionStageService,
     )
 
@@ -150,7 +150,7 @@ class TestExpansionWithOfferPort:
         svc.offer_port = offer_port
 
         with patch(
-            "src.modules.analytics.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_expansion_sales_grouped.return_value = {"renewals": [], "upsells": []}
@@ -169,7 +169,7 @@ class TestExpansionWithOfferPort:
         svc, _db = _make_expansion_svc()
 
         with patch(
-            "src.modules.analytics.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             # renewals with currency PEN → lines 162-163
@@ -192,7 +192,7 @@ class TestExpansionWithOfferPort:
         svc, _db = _make_expansion_svc()
 
         with patch(
-            "src.modules.analytics.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.expansion_repository.ExpansionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             # no renewals → upsell currency used → line 165
@@ -216,7 +216,7 @@ class TestExpansionWithOfferPort:
 
 
 def _make_adoption_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.adoption_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.adoption_stage import (
         AdoptionStageService,
     )
 
@@ -236,7 +236,7 @@ class TestAdoptionWithOfferPort:
         svc.offer_port = offer_port
 
         with patch(
-            "src.modules.analytics.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
+            "luana_core_analytics_engine.infrastructure.repositories.adoption_repository.AdoptionMetricsRepository"
         ) as MockRepo:
             repo = MockRepo.return_value
             repo.get_total_customers_and_sales.return_value = (0, 0)
@@ -253,7 +253,7 @@ class TestAdoptionWithOfferPort:
 
 
 def _make_nurture_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.nurture_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
         NurtureStageService,
     )
 
@@ -265,7 +265,7 @@ def _make_nurture_svc(cache=None):
 
 class TestNurtureBuildRetargetingMetrics:
     def test_agg_rows_with_extra_dict(self):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -283,7 +283,7 @@ class TestNurtureBuildRetargetingMetrics:
         assert result[0].breakdown == {"age_18_24": 100, "age_25_34": 200}
 
     def test_agg_rows_with_empty_extra_dict(self):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -299,7 +299,7 @@ class TestNurtureBuildRetargetingMetrics:
         assert result[0].breakdown is None
 
     def test_agg_rows_with_no_extra(self):
-        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.nurture_stage import (
             NurtureStageService,
         )
 
@@ -317,10 +317,10 @@ class TestNurtureBuildRetargetingMetrics:
 
 class TestNurtureConnectedChannels:
     def _patch_registry(self):
-        return patch("src.modules.analytics.application.services.stage_services.nurture_stage.ChannelRegistry")
+        return patch("luana_core_analytics_engine.application.services.stage_services.nurture_stage.ChannelRegistry")
 
     def _patch_cost(self):
-        return patch("src.modules.analytics.application.services.stage_services.nurture_stage.StageCostService")
+        return patch("luana_core_analytics_engine.application.services.stage_services.nurture_stage.StageCostService")
 
     def test_connected_channel_appears_in_group(self):
         svc, _db = _make_nurture_svc()
@@ -349,10 +349,10 @@ class TestNurtureConnectedChannels:
 
             with (
                 patch(
-                    "src.modules.analytics.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
+                    "luana_core_analytics_engine.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
                 ) as MockNurtRepo,
                 patch(
-                    "src.modules.analytics.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
+                    "luana_core_analytics_engine.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
                 ) as MockOfficialRepo,
             ):
                 repo = MockNurtRepo.return_value
@@ -383,10 +383,10 @@ class TestNurtureConnectedChannels:
 
             with (
                 patch(
-                    "src.modules.analytics.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
+                    "luana_core_analytics_engine.application.services.stage_services.nurture_stage.NurtureMetricsRepository"
                 ) as MockNurtRepo,
                 patch(
-                    "src.modules.analytics.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
+                    "luana_core_analytics_engine.application.services.stage_services.nurture_stage.OfficialMetricsRepository"
                 ) as MockOfficialRepo,
             ):
                 repo = MockNurtRepo.return_value
@@ -407,7 +407,7 @@ class TestNurtureConnectedChannels:
 
 
 def _make_opp_svc(cache=None):
-    from src.modules.analytics.application.services.stage_services.opportunity_stage import (
+    from luana_core_analytics_engine.application.services.stage_services.opportunity_stage import (
         OpportunityStageService,
     )
 
@@ -418,10 +418,10 @@ def _make_opp_svc(cache=None):
 class TestOpportunityConnectedChannels:
     def _patches(self):
         return (
-            patch("src.modules.analytics.application.services.stage_services.opportunity_stage.ChannelRegistry"),
-            patch("src.modules.analytics.application.services.stage_services.opportunity_stage.StageCostService"),
+            patch("luana_core_analytics_engine.application.services.stage_services.opportunity_stage.ChannelRegistry"),
+            patch("luana_core_analytics_engine.application.services.stage_services.opportunity_stage.StageCostService"),
             patch(
-                "src.modules.analytics.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
             ),
         )
 
@@ -461,18 +461,18 @@ class TestOpportunityConnectedChannels:
         ]
         with (
             patch(
-                "src.modules.analytics.application.services.stage_services.opportunity_stage.ChannelRegistry"
+                "luana_core_analytics_engine.application.services.stage_services.opportunity_stage.ChannelRegistry"
             ) as MockReg,
             patch(
-                "src.modules.analytics.application.services.stage_services.opportunity_stage.StageCostService"
+                "luana_core_analytics_engine.application.services.stage_services.opportunity_stage.StageCostService"
             ) as MockCost,
             patch(
-                "src.modules.analytics.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
             ) as MockOppRepo,
         ):
             self._setup_opp_mocks(MockReg, MockCost, MockOppRepo, connected=connected)
             with patch(
-                "src.modules.analytics.application.services.stage_services.opportunity_stage.OfficialMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.opportunity_stage.OfficialMetricsRepository"
             ) as MockOfficialRepo:
                 MockOfficialRepo.return_value.get_channel_metrics.return_value = {}
                 result = _run(svc.get_metrics(TENANT_ID, DATE_RANGE))
@@ -488,13 +488,13 @@ class TestOpportunityConnectedChannels:
 
         with (
             patch(
-                "src.modules.analytics.application.services.stage_services.opportunity_stage.ChannelRegistry"
+                "luana_core_analytics_engine.application.services.stage_services.opportunity_stage.ChannelRegistry"
             ) as MockReg,
             patch(
-                "src.modules.analytics.application.services.stage_services.opportunity_stage.StageCostService"
+                "luana_core_analytics_engine.application.services.stage_services.opportunity_stage.StageCostService"
             ) as MockCost,
             patch(
-                "src.modules.analytics.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.opportunity_repository.OpportunityMetricsRepository"
             ) as MockOppRepo,
         ):
             self._setup_opp_mocks(MockReg, MockCost, MockOppRepo)
@@ -508,7 +508,7 @@ class TestOpportunityConnectedChannels:
 
 class TestAttractionClassifyError:
     def test_no_error_returns_none(self):
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             AttractionStageService,
         )
 
@@ -516,7 +516,7 @@ class TestAttractionClassifyError:
         assert result is None
 
     def test_known_error_key_returns_message(self):
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             AttractionStageService,
         )
 
@@ -525,7 +525,7 @@ class TestAttractionClassifyError:
         assert isinstance(result, str)
 
     def test_unknown_error_returns_default_message(self):
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             AttractionStageService,
         )
 
@@ -535,7 +535,7 @@ class TestAttractionClassifyError:
 
 class TestAttractionDetectStaleStatus:
     def _svc(self):
-        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.attraction_stage import (
             AttractionStageService,
         )
 
@@ -599,7 +599,7 @@ class TestAttractionDetectStaleStatus:
 
 class TestSalesGroupRawSalesUnsoldOffers:
     def test_unsold_offer_added_to_adquisicion(self):
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             _group_raw_sales,
         )
 
@@ -618,7 +618,7 @@ class TestSalesGroupRawSalesUnsoldOffers:
 
 class TestSalesBuildOfferSaleDtoSubscription:
     def test_subscription_adquisicion_sets_new_subs(self):
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             _build_offer_sale_dto,
         )
 
@@ -639,7 +639,7 @@ class TestSalesBuildOfferSaleDtoSubscription:
         }
 
         with patch(
-            "src.modules.analytics.application.services.stage_services.sales_stage.get_subscription_labels",
+            "luana_core_analytics_engine.application.services.stage_services.sales_stage.get_subscription_labels",
             return_value={"new_label": "Nuevas suscripciones", "renewal_label": "Renovaciones"},
         ):
             result = _build_offer_sale_dto(offer_id, data, offer_map, "adquisicion")
@@ -649,7 +649,7 @@ class TestSalesBuildOfferSaleDtoSubscription:
         assert result.subscription_new_label == "Nuevas suscripciones"
 
     def test_subscription_expansion_sets_renewals(self):
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             _build_offer_sale_dto,
         )
 
@@ -670,7 +670,7 @@ class TestSalesBuildOfferSaleDtoSubscription:
         }
 
         with patch(
-            "src.modules.analytics.application.services.stage_services.sales_stage.get_subscription_labels",
+            "luana_core_analytics_engine.application.services.stage_services.sales_stage.get_subscription_labels",
             return_value={"new_label": "Nuevas suscripciones", "renewal_label": "Renovaciones"},
         ):
             result = _build_offer_sale_dto(offer_id, data, offer_map, "expansion")
@@ -681,7 +681,7 @@ class TestSalesBuildOfferSaleDtoSubscription:
 
 class TestSalesBuildSalesBottlenecksHighCac:
     def test_high_cac_warning_bottleneck(self):
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             _build_sales_bottlenecks,
         )
 
@@ -697,7 +697,7 @@ class TestSalesBuildSalesBottlenecksHighCac:
         assert any(b.type == "high_cac_ratio" and b.severity == "warning" for b in bottlenecks)
 
     def test_high_cac_critical_bottleneck(self):
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             _build_sales_bottlenecks,
         )
 
@@ -714,7 +714,7 @@ class TestSalesBuildSalesBottlenecksHighCac:
 
 class TestSalesWithOfferPort:
     def test_offer_port_called_when_present(self):
-        from src.modules.analytics.application.services.stage_services.sales_stage import (
+        from luana_core_analytics_engine.application.services.stage_services.sales_stage import (
             SalesStageService,
         )
 
@@ -733,13 +733,13 @@ class TestSalesWithOfferPort:
 
         with (
             patch(
-                "src.modules.analytics.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
+                "luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository.SalesMetricsRepository"
             ) as MockSales,
             patch(
-                "src.modules.analytics.application.services.stage_services.sales_stage.StageCostService"
+                "luana_core_analytics_engine.application.services.stage_services.sales_stage.StageCostService"
             ) as MockCostSvc,
             patch(
-                "src.modules.analytics.application.services.stage_services.sales_stage.OfficialMetricsRepository"
+                "luana_core_analytics_engine.application.services.stage_services.sales_stage.OfficialMetricsRepository"
             ) as MockOfficialRepo,
         ):
             MockSales.return_value.get_sales_summary.return_value = []

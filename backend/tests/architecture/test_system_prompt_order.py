@@ -10,7 +10,7 @@ audit trail.
 
 from __future__ import annotations
 
-from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+from luana_core_copilot.application.orchestrator.system_prompt_layout import (
     CACHEABLE_FRAGMENTS,
     PROMPT_FRAGMENT_ORDER,
     VOLATILE_FRAGMENTS,

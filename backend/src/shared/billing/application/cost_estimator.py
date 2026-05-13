@@ -27,8 +27,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
 import structlog
-
-from src.shared.agent_observability.cost.calculator import (
+from luana_core_observability.cost.calculator import (
     _INPUT_TIER_KEY,
     _OUTPUT_TIER_KEY,
     _resolve_tier_rate,
@@ -36,7 +35,7 @@ from src.shared.agent_observability.cost.calculator import (
 )
 
 if TYPE_CHECKING:
-    from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
+    from luana_core_observability.persistence.models.pricing_snapshot_model import (
         ModelPricingSnapshotModel,
     )
 

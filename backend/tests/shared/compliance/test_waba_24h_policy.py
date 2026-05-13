@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.shared.compliance.domain.policies.waba_24h_policy import WABA24hPolicy
+from luana_core_compliance.domain.policies.waba_24h_policy import WABA24hPolicy
 
 pytestmark = pytest.mark.asyncio
 

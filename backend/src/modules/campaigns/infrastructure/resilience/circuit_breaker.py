@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from uuid import UUID
 
-from src.modules.campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
+from luana_core_campaigns.infrastructure.resilience.errors import CircuitBreakerOpenError
 
 
 @runtime_checkable

@@ -13,15 +13,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-
-from src.shared.domain_events.outbox.domain.outbox_entry import OutboxEntry
-from src.shared.domain_events.outbox.infrastructure.repository import OutboxRepositoryImpl
+from luana_core_events.outbox.domain.outbox_entry import OutboxEntry
+from luana_core_events.outbox.infrastructure.repository import OutboxRepositoryImpl
 
 if TYPE_CHECKING:
+    from luana_core_events.outbox.domain.event import DomainEvent
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm import Session
-
-    from src.shared.domain_events.outbox.domain.event import DomainEvent
 
 logger = structlog.get_logger(__name__)
 

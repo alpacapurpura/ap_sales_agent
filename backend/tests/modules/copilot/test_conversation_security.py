@@ -5,10 +5,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.infrastructure.models.conversation_model import (
+from luana_core_copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
 )
-from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+from luana_core_copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
 

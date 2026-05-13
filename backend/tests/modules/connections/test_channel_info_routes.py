@@ -5,12 +5,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.connections.api.channel_info import (
+from luana_core_connections.api.channel_info import (
     _build_details,
     _get_meta_children,
     get_channel_info,
 )
-from src.modules.connections.domain.enums import ChannelType
+from luana_core_connections.domain.enums import ChannelType
 
 TENANT_ID = uuid.uuid4()
 
@@ -174,10 +174,10 @@ class TestGetChannelInfo:
 
         with (
             patch(
-                "src.modules.connections.api.channel_info.get_latest_extraction_run_info", return_value={"status": "ok"}
+                "luana_core_connections.api.channel_info.get_latest_extraction_run_info", return_value={"status": "ok"}
             ),
             patch(
-                "src.modules.connections.api.channel_info.get_provider_data_range", return_value={"min": "2024-01-01"}
+                "luana_core_connections.api.channel_info.get_provider_data_range", return_value={"min": "2024-01-01"}
             ),
         ):
             result = await get_channel_info("shopify", _user(), repo, db)
@@ -195,8 +195,8 @@ class TestGetChannelInfo:
         repo.get_active.return_value = conn
 
         with (
-            patch("src.modules.connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
-            patch("src.modules.connections.api.channel_info.get_provider_data_range", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_provider_data_range", return_value=None),
         ):
             result = await get_channel_info("google_analytics", _user(), repo, db)
 
@@ -215,8 +215,8 @@ class TestGetChannelInfo:
         repo.get_all_by_tenant_and_types.return_value = []
 
         with (
-            patch("src.modules.connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
-            patch("src.modules.connections.api.channel_info.get_provider_data_range", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_provider_data_range", return_value=None),
         ):
             result = await get_channel_info("meta", _user(), repo, db)
 
@@ -234,8 +234,8 @@ class TestGetChannelInfo:
         repo.get_active.return_value = conn
 
         with (
-            patch("src.modules.connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
-            patch("src.modules.connections.api.channel_info.get_provider_data_range", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_provider_data_range", return_value=None),
         ):
             result = await get_channel_info("youtube", _user(), repo, db)
 
@@ -254,10 +254,10 @@ class TestGetChannelInfo:
 
         with (
             patch(
-                "src.modules.connections.api.channel_info.get_latest_extraction_run_info",
+                "luana_core_connections.api.channel_info.get_latest_extraction_run_info",
                 side_effect=Exception("DB error"),
             ),
-            patch("src.modules.connections.api.channel_info.get_provider_data_range", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_provider_data_range", return_value=None),
         ):
             result = await get_channel_info("shopify", _user(), repo, db)
 
@@ -275,9 +275,9 @@ class TestGetChannelInfo:
         repo.get_active.return_value = conn
 
         with (
-            patch("src.modules.connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
             patch(
-                "src.modules.connections.api.channel_info.get_provider_data_range",
+                "luana_core_connections.api.channel_info.get_provider_data_range",
                 side_effect=Exception("network error"),
             ),
         ):
@@ -301,8 +301,8 @@ class TestGetChannelInfo:
         repo.get_active.return_value = conn
 
         with (
-            patch("src.modules.connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
-            patch("src.modules.connections.api.channel_info.get_provider_data_range", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_latest_extraction_run_info", return_value=None),
+            patch("luana_core_connections.api.channel_info.get_provider_data_range", return_value=None),
         ):
             result = await get_channel_info("youtube", _user(), repo, db)
 

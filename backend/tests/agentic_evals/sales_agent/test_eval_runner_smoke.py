@@ -415,7 +415,7 @@ async def test_degraded_output_caught(
     # node (qualifier / product_expert / closer / supervisor) — patching
     # at this seam guarantees the agent's output is "ok" regardless of
     # which specialist runs.
-    from src.shared.infrastructure.llm.router import MultiRoleLLMRouter
+    from luana_core_llm.router import MultiRoleLLMRouter
 
     def _degraded_response(self: object, *args: object, **kwargs: object) -> str:
         del self, args, kwargs
@@ -531,7 +531,7 @@ async def test_no_cross_tenant_leak(
         )
 
     # Lazy import — keep collection cheap on default suite.
-    from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+    from luana_core_sales_agent.observability.persistence.models.trace_event_model import (
         SalesAgentTraceEventModel,
     )
 

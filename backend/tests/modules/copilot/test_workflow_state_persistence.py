@@ -12,8 +12,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.domain.workflow import WorkflowExecutionState
-from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+from luana_core_copilot.domain.workflow import WorkflowExecutionState
+from luana_core_copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
 

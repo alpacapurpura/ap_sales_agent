@@ -8,7 +8,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.shared.compliance.domain.blacklist_entry import ChannelBlacklistEntry
+from luana_core_compliance.domain.blacklist_entry import ChannelBlacklistEntry
 
 
 class ChannelBlacklistRepository(ABC):

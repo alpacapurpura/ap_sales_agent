@@ -4,11 +4,11 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
-from src.modules.offer.infrastructure.repositories.offer_repository import (
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferValueLevel
+from luana_core_offer_studio.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
-from src.shared.domain.datetime_utils import utc_now
+from luana_core_platform.domain.datetime_utils import utc_now
 from tests.modules.offer.conftest import create_product_model
 
 
@@ -341,8 +341,8 @@ class TestHasEditionsRoundtrip:
 
     def test_save_persists_has_editions_false(self, db: Session, tenant_a):
         """Offer.save path — when the wizard creates with has_editions=False."""
-        from src.modules.offer.domain.enums import OfferArchetype
-        from src.modules.offer.domain.offer import Offer
+        from luana_core_offer_studio.domain.enums import OfferArchetype
+        from luana_core_offer_studio.domain.offer import Offer
 
         repo = OfferRepository(db)
         offer = Offer(

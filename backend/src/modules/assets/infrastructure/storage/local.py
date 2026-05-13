@@ -5,7 +5,7 @@ import uuid
 from pathlib import Path
 from typing import BinaryIO
 
-from src.core.config import settings
+from luana_core_platform.core.config import settings
 
 from .base import StorageStrategy
 

@@ -18,7 +18,9 @@ TENANT_ID = UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 OFFER_ID = UUID("cccccccc-cccc-cccc-cccc-cccccccccccc")
 
 # The orchestrator is lazily imported inside extract_all — patch at module level.
-_ORCHESTRATOR_CLASS_PATH = "src.modules.offer.application.offer_extraction_orchestrator.OfferExtractionOrchestrator"
+_ORCHESTRATOR_CLASS_PATH = (
+    "luana_core_offer_studio.application.offer_extraction_orchestrator.OfferExtractionOrchestrator"
+)
 
 
 class TestExtractAllDelegatesToOrchestrator:
@@ -32,7 +34,7 @@ class TestExtractAllDelegatesToOrchestrator:
         mock_orchestrator_instance.run = AsyncMock(return_value=None)
 
         with patch(_ORCHESTRATOR_CLASS_PATH, return_value=mock_orchestrator_instance) as MockOrch:
-            from src.modules.offer.application.offer_extraction_service import (
+            from luana_core_offer_studio.application.offer_extraction_service import (
                 OfferExtractionService,
             )
 
@@ -58,7 +60,7 @@ class TestExtractAllDelegatesToOrchestrator:
         mock_orchestrator_instance.run = AsyncMock(return_value=None)
 
         with patch(_ORCHESTRATOR_CLASS_PATH, return_value=mock_orchestrator_instance):
-            from src.modules.offer.application.offer_extraction_service import (
+            from luana_core_offer_studio.application.offer_extraction_service import (
                 OfferExtractionService,
             )
 
@@ -88,7 +90,7 @@ class TestExtractAllDelegatesToOrchestrator:
         mock_orchestrator_instance.run = AsyncMock(return_value=None)
 
         with patch(_ORCHESTRATOR_CLASS_PATH, return_value=mock_orchestrator_instance):
-            from src.modules.offer.application.offer_extraction_service import (
+            from luana_core_offer_studio.application.offer_extraction_service import (
                 OfferExtractionService,
             )
 
@@ -118,7 +120,7 @@ class TestExtractAllDelegatesToOrchestrator:
             pass
 
         with patch(_ORCHESTRATOR_CLASS_PATH, return_value=mock_orchestrator_instance):
-            from src.modules.offer.application.offer_extraction_service import (
+            from luana_core_offer_studio.application.offer_extraction_service import (
                 OfferExtractionService,
             )
 
@@ -144,7 +146,7 @@ class TestExtractAllDelegatesToOrchestrator:
         mock_orchestrator_instance.run = AsyncMock(return_value=None)
 
         with patch(_ORCHESTRATOR_CLASS_PATH, return_value=mock_orchestrator_instance):
-            from src.modules.offer.application.offer_extraction_service import (
+            from luana_core_offer_studio.application.offer_extraction_service import (
                 OfferExtractionService,
             )
 

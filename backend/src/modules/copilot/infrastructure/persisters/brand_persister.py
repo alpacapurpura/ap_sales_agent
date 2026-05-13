@@ -2,12 +2,11 @@
 
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.brand.domain.aggregates import BrandSettings
-from src.modules.brand.infrastructure.repositories.brand_repository import (
+from luana_core_brand_studio.domain.aggregates import BrandSettings
+from luana_core_brand_studio.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
+from sqlalchemy.orm import Session
 
 
 class BrandPersister:

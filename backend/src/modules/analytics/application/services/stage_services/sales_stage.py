@@ -8,11 +8,9 @@ from collections import defaultdict
 from datetime import UTC
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
-from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
-from src.modules.analytics.application.dto.sales_dto import (
+from luana_core_analytics_engine.application.dto.capture_dto import MiniFunnelDTO
+from luana_core_analytics_engine.application.dto.opportunity_dto import BottleneckDTO
+from luana_core_analytics_engine.application.dto.sales_dto import (
     HIGH_CAC_CRITICAL_RATIO,
     HIGH_CAC_WARNING_RATIO,
     LOW_CONVERSION_THRESHOLDS,
@@ -26,16 +24,17 @@ from src.modules.analytics.application.dto.sales_dto import (
     get_subscription_labels,
     get_tier_for_value_level,
 )
-from src.modules.analytics.application.services.stage_cost_service import (
+from luana_core_analytics_engine.application.services.stage_cost_service import (
     StageCostService,
 )
-from src.modules.analytics.domain.period_config import DateRange
-from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+from luana_core_analytics_engine.domain.period_config import DateRange
+from luana_core_analytics_engine.domain.ports import ConnectionPort, OfferReadPort
+from luana_core_analytics_engine.infrastructure.cache.metrics_cache import MetricsCache
+from luana_core_analytics_engine.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
-from src.shared.domain.currency import convert_to_usd
+from luana_core_platform.domain.currency import convert_to_usd
+from sqlalchemy.orm import Session
 
 _STAGE_KEY_MAP: dict[str, str] = {
     "CONVERSION": "adquisicion",
@@ -362,7 +361,7 @@ class SalesStageService:
         """Return sales-stage (Stage 4) metrics."""
         from datetime import datetime as dt_cls
 
-        from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
+        from luana_core_analytics_engine.infrastructure.repositories.sales_metrics_repository import (
             SalesMetricsRepository,
         )
 

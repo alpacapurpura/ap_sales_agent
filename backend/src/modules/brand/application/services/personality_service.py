@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID  # noqa: TC003 — UUID used in runtime signatures, not type-checking only
 
 import structlog
-
-from src.modules.brand.domain.personality import (
+from luana_core_brand_studio.domain.personality import (
     _NEGATIVE_THRESHOLD,
     PERSONALITY_PRESETS,
     DimensionContract,
@@ -17,27 +16,26 @@ from src.modules.brand.domain.personality import (
     SampleExchange,
     find_nearest_preset,
 )
-from src.modules.brand.infrastructure.repositories.personality_repository import (
+from luana_core_brand_studio.infrastructure.repositories.personality_repository import (
     PersonalityProfileRepository,
 )
-from src.shared.domain.events import PersonalityProfileUpdatedEvent
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_events.outbox.application.event_bus_adapter import (
     adapter_bus as EventBus,  # noqa: N812
 )
+from luana_core_platform.domain.events import PersonalityProfileUpdatedEvent
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
-
-    from src.modules.brand.infrastructure.models.personality_model import (
+    from luana_core_brand_studio.infrastructure.models.personality_model import (
         PersonalityProfileModel,
     )
-    from src.modules.brand.infrastructure.qdrant.style_anchor_store import StyleAnchorStore
+    from luana_core_brand_studio.infrastructure.qdrant.style_anchor_store import StyleAnchorStore
+    from sqlalchemy.orm import Session
 
 # Module-level import of personality_app so tests can patch it at this path:
 # src.modules.brand.application.services.personality_service.personality_app
 # The import is deferred via a try/except to allow unit tests without LangGraph.
 try:
-    from src.modules.brand.application.agents.style_analyzer.graph import (
+    from luana_core_brand_studio.application.agents.style_analyzer.graph import (
         personality_app,
     )
 except Exception:  # noqa: BLE001
@@ -175,7 +173,7 @@ class PersonalityService:
         self._style_store: StyleAnchorStore | None = None
 
         if qdrant_client is not None:
-            from src.modules.brand.infrastructure.qdrant.style_anchor_store import (
+            from luana_core_brand_studio.infrastructure.qdrant.style_anchor_store import (
                 StyleAnchorStore,
             )
 
@@ -428,10 +426,10 @@ class PersonalityService:
             text_input if text_input is not None else file_bytes.decode("utf-8", errors="replace")  # type: ignore[union-attr]
         )
 
-        from src.modules.brand.infrastructure.parsers.base import detect_and_parse
-        from src.modules.brand.infrastructure.parsers.instagram_parser import InstagramParser
-        from src.modules.brand.infrastructure.parsers.telegram_parser import TelegramParser
-        from src.modules.brand.infrastructure.parsers.whatsapp_parser import WhatsAppParser
+        from luana_core_brand_studio.infrastructure.parsers.base import detect_and_parse
+        from luana_core_brand_studio.infrastructure.parsers.instagram_parser import InstagramParser
+        from luana_core_brand_studio.infrastructure.parsers.telegram_parser import TelegramParser
+        from luana_core_brand_studio.infrastructure.parsers.whatsapp_parser import WhatsAppParser
 
         # Detect format
         detected_format = "plain"
@@ -554,7 +552,7 @@ class PersonalityService:
         # raw lines over-estimates real conversational content. Run the same
         # detect_and_parse the LangGraph parser uses; fallback to non-empty
         # lines for plain pastes that don't match WhatsApp/IG/Telegram.
-        from src.modules.brand.infrastructure.parsers.base import detect_and_parse
+        from luana_core_brand_studio.infrastructure.parsers.base import detect_and_parse
 
         try:
             parsed_msgs = detect_and_parse(raw_text)
@@ -711,8 +709,8 @@ class PersonalityService:
         # Build LLM caller using LLMFactory (best-effort, may return None on failure)
         llm_caller = None
         try:
-            from src.core.enums import ModelRole
-            from src.shared.infrastructure.llm.factory import LLMFactory
+            from luana_core_llm.factory import LLMFactory
+            from luana_core_platform.core.enums import ModelRole
 
             llm_service = LLMFactory.get_service()
 

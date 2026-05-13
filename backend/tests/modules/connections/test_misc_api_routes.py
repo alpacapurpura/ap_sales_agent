@@ -9,37 +9,37 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.modules.connections.api.gmail import (
+from luana_core_connections.api.gmail import (
     disconnect,
     get_auth_url,
     get_status,
     oauth_callback,
 )
-from src.modules.connections.api.gmail import test_connection as gmail_test_connection
-from src.modules.connections.api.mailerlite import (
+from luana_core_connections.api.gmail import test_connection as gmail_test_connection
+from luana_core_connections.api.mailerlite import (
     connect_mailerlite,
     disconnect_mailerlite,
     get_mailerlite_status,
 )
-from src.modules.connections.api.mailerlite import test_mailerlite_connection as ml_test_connection
-from src.modules.connections.api.manychat import (
+from luana_core_connections.api.mailerlite import test_mailerlite_connection as ml_test_connection
+from luana_core_connections.api.manychat import (
     connect_manychat,
     disconnect_manychat,
     get_manychat_status,
 )
-from src.modules.connections.api.manychat import test_manychat_connection as mc_test_connection
-from src.modules.connections.api.status import (
+from luana_core_connections.api.manychat import test_manychat_connection as mc_test_connection
+from luana_core_connections.api.status import (
     BatchConnectionStatusResponse,
     _mask_pii,
     get_all_connections_status,
 )
-from src.modules.connections.api.telegram import (
+from luana_core_connections.api.telegram import (
     connect_telegram,
     disconnect_telegram,
     get_telegram_status,
 )
-from src.modules.connections.api.telegram import test_telegram_connection as tg_test_connection
-from src.modules.connections.api.webhook import get_tenant_by_secret, webhook_chat
+from luana_core_connections.api.telegram import test_telegram_connection as tg_test_connection
+from luana_core_connections.api.webhook import get_tenant_by_secret, webhook_chat
 
 TENANT_ID = uuid4()
 
@@ -72,7 +72,7 @@ class TestGmailGetAuthUrl:
     async def test_returns_url_and_state(self):
         user = _user()
         with patch(
-            "src.modules.connections.api.gmail.GmailAdapter.get_authorization_url",
+            "luana_core_connections.api.gmail.GmailAdapter.get_authorization_url",
             return_value=("https://accounts.google.com/auth", "state_123"),
         ):
             result = await get_auth_url(user, redirect_uri=None)
@@ -86,7 +86,7 @@ class TestGmailOAuthCallback:
         repo = _repo(upsert=MagicMock())
         user = _user()
         with (
-            patch("src.modules.connections.api.gmail.GmailAdapter.exchange_code", side_effect=Exception("bad code")),
+            patch("luana_core_connections.api.gmail.GmailAdapter.exchange_code", side_effect=Exception("bad code")),
             pytest.raises(HTTPException) as exc_info,
         ):
             await oauth_callback("bad_code", user, repo, redirect_uri=None)
@@ -98,8 +98,8 @@ class TestGmailOAuthCallback:
         user = _user()
         creds = {"access_token": "at"}
         with (
-            patch("src.modules.connections.api.gmail.GmailAdapter.exchange_code", return_value=creds),
-            patch("src.modules.connections.api.gmail.GmailAdapter") as MockAdapter,
+            patch("luana_core_connections.api.gmail.GmailAdapter.exchange_code", return_value=creds),
+            patch("luana_core_connections.api.gmail.GmailAdapter") as MockAdapter,
         ):
             MockAdapter.return_value.get_profile.side_effect = Exception("API error")
             with pytest.raises(HTTPException) as exc_info:
@@ -112,8 +112,8 @@ class TestGmailOAuthCallback:
         user = _user()
         creds = {"access_token": "at"}
         with (
-            patch("src.modules.connections.api.gmail.GmailAdapter.exchange_code", return_value=creds),
-            patch("src.modules.connections.api.gmail.GmailAdapter") as MockAdapter,
+            patch("luana_core_connections.api.gmail.GmailAdapter.exchange_code", return_value=creds),
+            patch("luana_core_connections.api.gmail.GmailAdapter") as MockAdapter,
         ):
             MockAdapter.return_value.get_profile.return_value = {"emailAddress": "user@gmail.com"}
             result = await oauth_callback("code123", user, repo, redirect_uri=None)
@@ -172,7 +172,7 @@ class TestGmailTestConnection:
         user = _user()
         conn = _conn(credentials={"access_token": "tok"})
         repo = _repo(get_active=MagicMock(return_value=conn))
-        with patch("src.modules.connections.api.gmail.GmailAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.gmail.GmailAdapter") as MockAdapter:
             MockAdapter.return_value.get_profile.return_value = {"emailAddress": "user@gmail.com"}
             result = await gmail_test_connection(user, repo)
         assert result["status"] == "ok"
@@ -182,7 +182,7 @@ class TestGmailTestConnection:
         user = _user()
         conn = _conn(credentials={"access_token": "tok"})
         repo = _repo(get_active=MagicMock(return_value=conn))
-        with patch("src.modules.connections.api.gmail.GmailAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.gmail.GmailAdapter") as MockAdapter:
             MockAdapter.return_value.get_profile.side_effect = Exception("API error")
             result = await gmail_test_connection(user, repo)
         assert result["status"] == "error"
@@ -198,7 +198,7 @@ class TestTelegramGetStatus:
     async def test_not_connected_when_no_connection(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.get_status.return_value = {"is_connected": False}
             result = await get_telegram_status(db, user)
         assert result.is_connected is False
@@ -207,7 +207,7 @@ class TestTelegramGetStatus:
     async def test_connected_returns_status(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.get_status.return_value = {
                 "is_connected": True,
                 "bot_name": "TestBot",
@@ -226,7 +226,7 @@ class TestTelegramConnect:
         payload.token = "bad_token"
         background_tasks = MagicMock()
 
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.connect = AsyncMock(side_effect=ValueError("invalido"))
             with pytest.raises(HTTPException) as exc_info:
                 await connect_telegram(payload, background_tasks, db, user)
@@ -240,7 +240,7 @@ class TestTelegramConnect:
         payload.token = "tok"
         background_tasks = MagicMock()
 
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.connect = AsyncMock(side_effect=RuntimeError("Error conectando"))
             with pytest.raises(HTTPException) as exc_info:
                 await connect_telegram(payload, background_tasks, db, user)
@@ -254,7 +254,7 @@ class TestTelegramConnect:
         payload.token = "tok"
         background_tasks = MagicMock()
 
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.connect = AsyncMock(side_effect=Exception("unexpected"))
             with pytest.raises(HTTPException) as exc_info:
                 await connect_telegram(payload, background_tasks, db, user)
@@ -268,7 +268,7 @@ class TestTelegramConnect:
         payload.token = "valid_token"
         background_tasks = MagicMock()
 
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.connect = AsyncMock(return_value={"status": "connected", "bot": {}})
             result = await connect_telegram(payload, background_tasks, db, user)
         assert result["status"] == "connected"
@@ -279,7 +279,7 @@ class TestTelegramTestConnection:
     async def test_raises_404_on_value_error(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.test_connection = AsyncMock(side_effect=ValueError("No hay conexion"))
             with pytest.raises(HTTPException) as exc_info:
                 await tg_test_connection(db, user)
@@ -289,7 +289,7 @@ class TestTelegramTestConnection:
     async def test_raises_500_on_runtime_error(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.test_connection = AsyncMock(side_effect=RuntimeError("corruptas"))
             with pytest.raises(HTTPException) as exc_info:
                 await tg_test_connection(db, user)
@@ -299,7 +299,7 @@ class TestTelegramTestConnection:
     async def test_returns_error_on_generic_exception(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.test_connection = AsyncMock(side_effect=Exception("unknown"))
             result = await tg_test_connection(db, user)
         assert result["status"] == "error"
@@ -308,7 +308,7 @@ class TestTelegramTestConnection:
     async def test_returns_ok_on_success(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.test_connection = AsyncMock(return_value={"status": "ok"})
             result = await tg_test_connection(db, user)
         assert result["status"] == "ok"
@@ -319,7 +319,7 @@ class TestTelegramDisconnect:
     async def test_raises_404_on_value_error(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.disconnect = AsyncMock(side_effect=ValueError("No hay conexion"))
             with pytest.raises(HTTPException) as exc_info:
                 await disconnect_telegram(db, user)
@@ -329,7 +329,7 @@ class TestTelegramDisconnect:
     async def test_raises_500_on_generic_exception(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.disconnect = AsyncMock(side_effect=Exception("unexpected"))
             with pytest.raises(HTTPException) as exc_info:
                 await disconnect_telegram(db, user)
@@ -339,7 +339,7 @@ class TestTelegramDisconnect:
     async def test_disconnects_successfully(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.telegram.TelegramService") as MockSvc:
+        with patch("luana_core_connections.api.telegram.TelegramService") as MockSvc:
             MockSvc.return_value.disconnect = AsyncMock(return_value={"status": "disconnected"})
             result = await disconnect_telegram(db, user)
         assert result["status"] == "disconnected"
@@ -379,7 +379,7 @@ class TestGetAllConnectionsStatus:
     async def test_returns_empty_when_no_connections(self):
         user = _user()
         db = MagicMock()
-        with patch("src.modules.connections.api.status.ChannelConnectionRepository") as MockRepo:
+        with patch("luana_core_connections.api.status.ChannelConnectionRepository") as MockRepo:
             MockRepo.return_value.get_all_by_tenant.return_value = []
             result = await get_all_connections_status(user, db)
         assert result.connections == []
@@ -399,7 +399,7 @@ class TestGetAllConnectionsStatus:
         conn2.is_active = False
         conn2.config = {"shop_url": "myshop.myshopify.com"}
 
-        with patch("src.modules.connections.api.status.ChannelConnectionRepository") as MockRepo:
+        with patch("luana_core_connections.api.status.ChannelConnectionRepository") as MockRepo:
             MockRepo.return_value.get_all_by_tenant.return_value = [conn1, conn2]
             result = await get_all_connections_status(user, db)
 
@@ -418,7 +418,7 @@ class TestGetAllConnectionsStatus:
         conn.is_active = True
         conn.config = {}
 
-        with patch("src.modules.connections.api.status.ChannelConnectionRepository") as MockRepo:
+        with patch("luana_core_connections.api.status.ChannelConnectionRepository") as MockRepo:
             MockRepo.return_value.get_all_by_tenant.return_value = [conn]
             result = await get_all_connections_status(user, db)
 
@@ -435,7 +435,7 @@ class TestGetAllConnectionsStatus:
         conn.is_active = True
         conn.config = {"shop_url": "myshop", "last_extraction_at": "2024-01-01T00:00:00Z"}
 
-        with patch("src.modules.connections.api.status.ChannelConnectionRepository") as MockRepo:
+        with patch("luana_core_connections.api.status.ChannelConnectionRepository") as MockRepo:
             MockRepo.return_value.get_all_by_tenant.return_value = [conn]
             result = await get_all_connections_status(user, db)
 
@@ -474,7 +474,7 @@ class TestMailerliteConnect:
         request.api_key = "bad_key"
         with (
             patch(
-                "src.modules.connections.api.mailerlite.MailerliteConnector.verify_connection",
+                "luana_core_connections.api.mailerlite.MailerliteConnector.verify_connection",
                 new_callable=AsyncMock,
                 return_value=(False, {"error": "Unauthorized"}),
             ),
@@ -490,7 +490,7 @@ class TestMailerliteConnect:
         request = MagicMock()
         request.api_key = "valid_key"
         with patch(
-            "src.modules.connections.api.mailerlite.MailerliteConnector.verify_connection",
+            "luana_core_connections.api.mailerlite.MailerliteConnector.verify_connection",
             new_callable=AsyncMock,
             return_value=(True, {"account_name": "MyAcc"}),
         ):
@@ -542,7 +542,7 @@ class TestMailerliteTestConnection:
         conn = _conn(credentials={"api_key": "key"})
         repo = _repo(get_active=MagicMock(return_value=conn), update_config=MagicMock())
         with patch(
-            "src.modules.connections.api.mailerlite.MailerliteConnector.verify_connection",
+            "luana_core_connections.api.mailerlite.MailerliteConnector.verify_connection",
             new_callable=AsyncMock,
             return_value=(True, {"account_name": "Acc"}),
         ):
@@ -555,7 +555,7 @@ class TestMailerliteTestConnection:
         conn = _conn(credentials={"api_key": "bad"})
         repo = _repo(get_active=MagicMock(return_value=conn))
         with patch(
-            "src.modules.connections.api.mailerlite.MailerliteConnector.verify_connection",
+            "luana_core_connections.api.mailerlite.MailerliteConnector.verify_connection",
             new_callable=AsyncMock,
             return_value=(False, {"error": "Unauthorized"}),
         ):
@@ -594,7 +594,7 @@ class TestManychatConnect:
         request.api_key = "bad_key"
         with (
             patch(
-                "src.modules.connections.api.manychat.ManyChatConnector.verify_connection",
+                "luana_core_connections.api.manychat.ManyChatConnector.verify_connection",
                 new_callable=AsyncMock,
                 return_value=(False, {"error": "Unauthorized"}),
             ),
@@ -610,7 +610,7 @@ class TestManychatConnect:
         request = MagicMock()
         request.api_key = "valid_key"
         with patch(
-            "src.modules.connections.api.manychat.ManyChatConnector.verify_connection",
+            "luana_core_connections.api.manychat.ManyChatConnector.verify_connection",
             new_callable=AsyncMock,
             return_value=(True, {"page": "MyPage"}),
         ):
@@ -662,7 +662,7 @@ class TestManychatTestConnection:
         conn = _conn(credentials={"api_key": "key"})
         repo = _repo(get_active=MagicMock(return_value=conn), update_config=MagicMock())
         with patch(
-            "src.modules.connections.api.manychat.ManyChatConnector.verify_connection",
+            "luana_core_connections.api.manychat.ManyChatConnector.verify_connection",
             new_callable=AsyncMock,
             return_value=(True, {"page": "P1"}),
         ):
@@ -675,7 +675,7 @@ class TestManychatTestConnection:
         conn = _conn(credentials={"api_key": "bad"})
         repo = _repo(get_active=MagicMock(return_value=conn))
         with patch(
-            "src.modules.connections.api.manychat.ManyChatConnector.verify_connection",
+            "luana_core_connections.api.manychat.ManyChatConnector.verify_connection",
             new_callable=AsyncMock,
             return_value=(False, {"error": "Unauthorized"}),
         ):
@@ -698,8 +698,8 @@ class TestGetTenantBySecret:
         @contextlib.contextmanager
         def _ctx():
             with (
-                _patch("src.modules.connections.api.webhook.select", return_value=MagicMock()),
-                _patch("src.modules.connections.api.webhook.Tenant", MagicMock()),
+                _patch("luana_core_connections.api.webhook.select", return_value=MagicMock()),
+                _patch("luana_core_connections.api.webhook.Tenant", MagicMock()),
             ):
                 yield
 
@@ -727,7 +727,7 @@ class TestGetTenantBySecret:
         tenant.id = uuid4()
         with (
             self._patch_webhook(db, tenant),
-            patch("src.modules.connections.api.webhook.set_tenant_id"),
+            patch("luana_core_connections.api.webhook.set_tenant_id"),
             patch("structlog.contextvars.bind_contextvars"),
         ):
             result = get_tenant_by_secret("valid_secret", db)
@@ -750,7 +750,7 @@ class TestWebhookChat:
         handler = MagicMock()
         handler.process_chat_flow = AsyncMock()
 
-        with patch("src.modules.connections.api.webhook.WebhookAdapter") as MockAdapter:
+        with patch("luana_core_connections.api.webhook.WebhookAdapter") as MockAdapter:
             mock_adapter = MagicMock()
             mock_adapter.responses = ["Hello, how can I help?"]
             MockAdapter.return_value = mock_adapter
@@ -766,6 +766,6 @@ class TestWebhookChat:
         handler = MagicMock()
         handler.process_chat_flow = AsyncMock(side_effect=Exception("agent error"))
 
-        with patch("src.modules.connections.api.webhook.WebhookAdapter"), pytest.raises(HTTPException) as exc_info:
+        with patch("luana_core_connections.api.webhook.WebhookAdapter"), pytest.raises(HTTPException) as exc_info:
             await webhook_chat({"user_id": "u1", "message": "Hi"}, tenant, handler)
         assert exc_info.value.status_code == 500

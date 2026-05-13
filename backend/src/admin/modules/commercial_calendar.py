@@ -2,13 +2,12 @@
 
 import pandas as pd
 import streamlit as st
-
-from src.core.database import SessionLocal
-from src.modules.commercial_calendar.application.calendar_event_service import (
+from luana_core_commercial_calendar.application.calendar_event_service import (
     CalendarEventService,
 )
-from src.modules.commercial_calendar.domain.enums import EventCategory
-from src.shared.domain.datetime_utils import utc_today
+from luana_core_commercial_calendar.domain.enums import EventCategory
+from luana_core_platform.core.database import SessionLocal
+from luana_core_platform.domain.datetime_utils import utc_today
 
 COUNTRIES = {
     "PE": "Perú",

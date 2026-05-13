@@ -18,7 +18,7 @@ import os
 
 import pytest
 
-from src.modules.connections.infrastructure.channels.google_analytics import (
+from luana_core_connections.infrastructure.channels.google_analytics import (
     GoogleAnalyticsAdapter,
 )
 

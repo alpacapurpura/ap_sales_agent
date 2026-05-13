@@ -14,13 +14,13 @@ from unittest.mock import patch
 import pytest
 from jinja2 import Environment, FileSystemLoader
 
-from src.modules.sales_agent.domain.tuning import FOLLOW_UP_CADENCES
+from luana_core_sales_agent.domain.tuning import FOLLOW_UP_CADENCES
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-_TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_node"
+_TRACE_PATCH = "luana_core_sales_agent.infrastructure.monitoring.tracing.trace_node"
 
 TEMPLATES_DIR = str(
     Path(__file__).parent
@@ -298,6 +298,6 @@ class TestFollowUpTuningConstants:
             assert len(config["delays_hours"]) >= 2
 
     def test_max_total_defined(self):
-        from src.modules.sales_agent.domain.tuning import FOLLOW_UP_MAX_TOTAL
+        from luana_core_sales_agent.domain.tuning import FOLLOW_UP_MAX_TOTAL
 
         assert FOLLOW_UP_MAX_TOTAL == 3

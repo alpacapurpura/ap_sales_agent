@@ -27,7 +27,7 @@ _TENANT = uuid4()
 
 
 def _ctx(route: str | None = "brand-studio", tenant_id=None):
-    from src.modules.copilot.domain.suggestion import SuggestionContext
+    from luana_core_copilot.domain.suggestion import SuggestionContext
 
     return SuggestionContext(
         tenant_id=tenant_id or _TENANT,
@@ -43,7 +43,7 @@ def _mock_port(
     personality_present: bool = True,
 ) -> MagicMock:
     """Return a mock BrandDataPort with configurable brand state."""
-    from src.shared.links.ports.brand import BrandKnowledgeDTO
+    from luana_core_platform.links.ports.brand import BrandKnowledgeDTO
 
     port = MagicMock()
     port.get_brand_knowledge.return_value = BrandKnowledgeDTO(
@@ -69,7 +69,7 @@ def _full_brand_data() -> dict:
 class TestBrandProviderMetadata:
     def test_brand_provider_metadata(self) -> None:
         """provider_id, provider_priority, applies_to_routes contract."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
@@ -82,17 +82,17 @@ class TestBrandProviderMetadata:
 class TestBrandProviderRules:
     def test_brand_provider_empty_brand_emits_identity_chip(self) -> None:
         """Empty brand_data (no identity.brand_name) → 'Empieza por tu marca' chip."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
         port = _mock_port(brand_data={}, persona_count=0, personality_present=False)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
             ) as mock_session,
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):
@@ -107,7 +107,7 @@ class TestBrandProviderRules:
 
     def test_brand_provider_missing_uvp_emits_positioning_chip(self) -> None:
         """Brand with identity.brand_name but no positioning.UVP → positioning chip."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
@@ -118,11 +118,11 @@ class TestBrandProviderRules:
         port = _mock_port(brand_data=brand_data, persona_count=1, personality_present=True)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):
@@ -134,7 +134,7 @@ class TestBrandProviderRules:
 
     def test_brand_provider_missing_archetype_emits_archetype_chip(self) -> None:
         """Brand with identity+positioning but no archetype → archetype chip."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
@@ -147,11 +147,11 @@ class TestBrandProviderRules:
         port = _mock_port(brand_data=brand_data, persona_count=1, personality_present=True)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):
@@ -163,7 +163,7 @@ class TestBrandProviderRules:
 
     def test_brand_provider_no_buyer_persona_emits_persona_chip(self) -> None:
         """buyer_persona_count=0 → 'Crea tu buyer persona principal' chip."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
@@ -174,11 +174,11 @@ class TestBrandProviderRules:
         )
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):
@@ -190,7 +190,7 @@ class TestBrandProviderRules:
 
     def test_brand_provider_no_personality_profile_emits_voice_chip(self) -> None:
         """get_active_personality_profile_present=False → 'Configura la voz' chip."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
@@ -201,11 +201,11 @@ class TestBrandProviderRules:
         )
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):
@@ -217,7 +217,7 @@ class TestBrandProviderRules:
 
     def test_brand_provider_full_brand_emits_zero_chips(self) -> None:
         """All blocks complete → returns []."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
@@ -228,11 +228,11 @@ class TestBrandProviderRules:
         )
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):
@@ -243,7 +243,7 @@ class TestBrandProviderRules:
 
     def test_brand_provider_port_exception_returns_empty_list(self) -> None:
         """Port raises → caught + structlog warning + returns []."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
@@ -251,11 +251,11 @@ class TestBrandProviderRules:
         port.get_brand_knowledge.side_effect = RuntimeError("DB unreachable")
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):
@@ -266,7 +266,7 @@ class TestBrandProviderRules:
 
     def test_brand_provider_tenant_isolation(self) -> None:
         """Provider passes tenant_id from ctx to port — no cross-tenant leak."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
@@ -274,11 +274,11 @@ class TestBrandProviderRules:
         port = _mock_port(brand_data=_full_brand_data(), persona_count=1, personality_present=True)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):
@@ -293,18 +293,18 @@ class TestBrandProviderRules:
 class TestBrandProviderSpanishNeutro:
     def test_no_voseo_in_chip_labels_and_prompts(self) -> None:
         """All chip labels and prompts respect Spanish neutro LatAm (no voseo)."""
-        from src.modules.copilot.application.suggestions.providers.brand import (
+        from luana_core_copilot.application.suggestions.providers.brand import (
             BrandSuggestionProvider,
         )
 
         port = _mock_port(brand_data={}, persona_count=0, personality_present=False)
         with (
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.SessionLocal",
+                "luana_core_copilot.application.suggestions.providers.brand.SessionLocal",
                 return_value=MagicMock(),
             ),
             patch(
-                "src.modules.copilot.application.suggestions.providers.brand.create_brand_data_port",
+                "luana_core_copilot.application.suggestions.providers.brand.create_brand_data_port",
                 return_value=port,
             ),
         ):

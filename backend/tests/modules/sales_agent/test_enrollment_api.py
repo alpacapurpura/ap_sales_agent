@@ -9,9 +9,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.sales_agent.api.enrollments import router as enrollments_router
+from luana_core_platform.core.database import get_db
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_sales_agent.api.enrollments import router as enrollments_router
 from tests.modules.offer.conftest import create_product_model
 
 if TYPE_CHECKING:

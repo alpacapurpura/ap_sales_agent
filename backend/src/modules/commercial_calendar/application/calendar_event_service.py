@@ -4,13 +4,12 @@ import uuid
 from datetime import date, timedelta
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.commercial_calendar.domain.calendar_event import CalendarEvent
-from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
+from luana_core_commercial_calendar.domain.calendar_event import CalendarEvent
+from luana_core_commercial_calendar.infrastructure.repositories.calendar_event_repository import (
     CalendarEventRepository,
 )
-from src.shared.domain.datetime_utils import utc_today
+from luana_core_platform.domain.datetime_utils import utc_today
+from sqlalchemy.orm import Session
 
 
 class CalendarEventService:

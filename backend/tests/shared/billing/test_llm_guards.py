@@ -20,12 +20,12 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.shared.billing.application.exceptions import BudgetExceeded
-from src.shared.billing.application.llm_guards import (
+from luana_core_billing.application.exceptions import BudgetExceeded
+from luana_core_billing.application.llm_guards import (
     BudgetGuardingChatModel,
     BudgetGuardingLLMService,
 )
-from src.shared.billing.domain.budget_decision import BudgetDecision
+from luana_core_billing.domain.budget_decision import BudgetDecision
 
 
 def _make_decision(
@@ -261,7 +261,7 @@ class TestEstimateLlmCost:
 
     def test_fallback_rates_when_no_pricing(self) -> None:
         """No pricing accessor → uses conservative fallback rates."""
-        from src.shared.billing.application.cost_estimator import estimate_llm_cost
+        from luana_core_billing.application.cost_estimator import estimate_llm_cost
 
         cost = estimate_llm_cost(
             prompt="hello world",
@@ -275,7 +275,7 @@ class TestEstimateLlmCost:
 
     def test_safety_multiplier_applied(self) -> None:
         """1.10x safety multiplier is applied."""
-        from src.shared.billing.application.cost_estimator import estimate_llm_cost
+        from luana_core_billing.application.cost_estimator import estimate_llm_cost
 
         # With no pricing, same prompt twice → same result (deterministic)
         cost1 = estimate_llm_cost(
@@ -296,7 +296,7 @@ class TestEstimateLlmCost:
 
     def test_larger_prompt_costs_more(self) -> None:
         """Longer prompt → higher cost estimate."""
-        from src.shared.billing.application.cost_estimator import estimate_llm_cost
+        from luana_core_billing.application.cost_estimator import estimate_llm_cost
 
         short = estimate_llm_cost(
             prompt="hi",
@@ -314,7 +314,7 @@ class TestEstimateLlmCost:
 
     def test_with_pricing_snapshot(self) -> None:
         """With pricing snapshot → uses snapshot rates."""
-        from src.shared.billing.application.cost_estimator import estimate_llm_cost
+        from luana_core_billing.application.cost_estimator import estimate_llm_cost
 
         pricing = MagicMock()
         pricing.input_cost_per_token = Decimal("0.000001")
@@ -332,7 +332,7 @@ class TestEstimateLlmCost:
 
     def test_resolve_provider_model_hint(self) -> None:
         """Agent kind → provider/model hint mapping."""
-        from src.shared.billing.application.cost_estimator import resolve_provider_model_hint
+        from luana_core_billing.application.cost_estimator import resolve_provider_model_hint
 
         provider, model = resolve_provider_model_hint("sales_agent")
         assert provider == "deepseek"
@@ -353,12 +353,12 @@ class TestEstimateLlmCost:
 
 class TestMessageToPrompt:
     def test_string_passthrough(self) -> None:
-        from src.shared.billing.application.cost_estimator import _messages_to_prompt
+        from luana_core_billing.application.cost_estimator import _messages_to_prompt
 
         assert _messages_to_prompt("hello") == "hello"
 
     def test_list_of_dicts(self) -> None:
-        from src.shared.billing.application.cost_estimator import _messages_to_prompt
+        from luana_core_billing.application.cost_estimator import _messages_to_prompt
 
         messages = [
             {"role": "system", "content": "You are a helper."},
@@ -369,7 +369,7 @@ class TestMessageToPrompt:
         assert "What is 2+2?" in result
 
     def test_langchain_message_objects(self) -> None:
-        from src.shared.billing.application.cost_estimator import _messages_to_prompt
+        from luana_core_billing.application.cost_estimator import _messages_to_prompt
 
         msg1 = MagicMock()
         msg1.content = "system content"
@@ -381,6 +381,6 @@ class TestMessageToPrompt:
         assert "user content" in result
 
     def test_empty_list(self) -> None:
-        from src.shared.billing.application.cost_estimator import _messages_to_prompt
+        from luana_core_billing.application.cost_estimator import _messages_to_prompt
 
         assert _messages_to_prompt([]) == ""

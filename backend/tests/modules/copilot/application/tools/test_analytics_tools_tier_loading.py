@@ -15,8 +15,8 @@ import pytest
 
 TENANT_ID = UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 
-_GET_TENANT_ID = "src.modules.copilot.application.tools.analytics_tools.get_tenant_id"
-_CALL_STAGE_OV = "src.modules.copilot.application.tools.analytics_tools._call_stage_overview"
+_GET_TENANT_ID = "luana_core_copilot.application.tools.analytics_tools.get_tenant_id"
+_CALL_STAGE_OV = "luana_core_copilot.application.tools.analytics_tools._call_stage_overview"
 
 
 def _make_stage_overview(**kwargs) -> MagicMock:
@@ -35,7 +35,7 @@ class TestTierUsedField:
 
     def test_tier_used_present_in_response(self) -> None:
         """Response always includes tier_used field."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -54,7 +54,7 @@ class TestTierUsedField:
 
     def test_tier_used_is_1_for_overview_response(self) -> None:
         """When calling overview (Tier 1), tier_used should be 1."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -75,7 +75,7 @@ class TestTruncationFlag:
 
     def test_truncated_false_by_default(self) -> None:
         """With 0 channels, truncated=False."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -93,7 +93,7 @@ class TestTruncationFlag:
 
     def test_truncated_true_when_many_channels(self) -> None:
         """When channels list is > 10, truncated=True and breakdown is capped."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 
@@ -123,7 +123,7 @@ class TestStageMetricsResponseShape:
 
     def test_response_has_all_required_fields(self) -> None:
         """All required fields present in successful response."""
-        from src.modules.copilot.application.tools.analytics_tools import (
+        from luana_core_copilot.application.tools.analytics_tools import (
             get_stage_metrics,
         )
 

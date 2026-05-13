@@ -12,16 +12,15 @@ import logging
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from src.modules.sales_agent.application.services.offer_prompt_renderer import (
+from luana_core_platform.links.ports.brand import BrandDataPort, create_brand_data_port
+from luana_core_platform.links.ports.offer import get_offer_repository, get_offer_type_preset
+from luana_core_platform.links.ports.social_proof import resolve_sales_agent_context
+from luana_core_sales_agent.application.services.offer_prompt_renderer import (
     filter_offer_for_prompt,
 )
-from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
-from src.shared.links.ports.brand import BrandDataPort, create_brand_data_port
-from src.shared.links.ports.offer import get_offer_repository, get_offer_type_preset
-from src.shared.links.ports.social_proof import resolve_sales_agent_context
+from luana_core_sales_agent.application.services.semantic_router import SemanticRouter
+from luana_core_sales_agent.infrastructure.prompts.base import prompt_loader
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

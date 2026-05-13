@@ -1,6 +1,6 @@
 """Backward compat — crawler moved to shared/infrastructure/web/crawler.py."""
 
-from src.shared.infrastructure.web.crawler import (
+from luana_core_platform.infrastructure.web.crawler import (
     _HIGH_KEYWORDS,
     _MEDIUM_KEYWORDS,
     _SKIP_EXTENSIONS,

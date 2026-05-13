@@ -8,7 +8,7 @@ TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
 
 def _make_svc():
-    from src.modules.analytics.application.services.channel_dashboard_service import (
+    from luana_core_analytics_engine.application.services.channel_dashboard_service import (
         ChannelDashboardService,
     )
 

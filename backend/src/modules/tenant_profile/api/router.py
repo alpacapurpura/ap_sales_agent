@@ -19,24 +19,23 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.tenant_profile.api.dtos import (
+from luana_core_platform.core.database import get_db
+from luana_core_tenant_profile.api.dtos import (
     TenantProfileResponse,
     UpdateTenantProfileRequest,
     parse_business_types_request,
     profile_to_response,
 )
-from src.modules.tenant_profile.application.services.tenant_profile_service import (
+from luana_core_tenant_profile.application.services.tenant_profile_service import (
     TenantProfileService,
 )
-from src.modules.tenant_profile.domain.exceptions import (
+from luana_core_tenant_profile.domain.exceptions import (
     BusinessTypesChangeRateLimitedError,
 )
-from src.modules.tenant_profile.infrastructure.repositories.tenant_profile_repository import (
+from luana_core_tenant_profile.infrastructure.repositories.tenant_profile_repository import (
     SqlTenantProfileRepository,
 )
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 

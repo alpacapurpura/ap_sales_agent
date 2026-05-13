@@ -7,12 +7,12 @@ will drop the legacy branch.
 """
 
 import streamlit as st
-
-from src.admin.modules._shared import render_tenant_selector
-from src.core.database import SessionLocal
-from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+from luana_core_platform.core.database import SessionLocal
+from luana_core_sales_agent.infrastructure.memory.audit_repository import (
     AuditRepository,
 )
+
+from src.admin.modules._shared import render_tenant_selector
 
 
 def _format_lead_option(lead_tuple: tuple) -> str:
@@ -171,7 +171,7 @@ def render_sales_audit_page() -> None:
                         st.json(new_state, expanded=False)
                     else:
                         # Fallback to legacy ``agent_traces``.
-                        from src.modules.sales_agent.infrastructure.models.agent_trace_model import (
+                        from luana_core_sales_agent.infrastructure.models.agent_trace_model import (
                             AgentTrace,
                         )
 

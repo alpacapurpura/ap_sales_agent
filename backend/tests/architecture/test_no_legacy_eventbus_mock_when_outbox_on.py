@@ -29,11 +29,11 @@ from pathlib import Path
 
 LEGACY_MOCK_TARGETS: frozenset[str] = frozenset(
     {
-        "src.shared.domain.events.EventBus.publish",
+        "luana_core_platform.domain.events.EventBus.publish",
         "shared.domain.events.EventBus.publish",
         "EventBus.publish",
         "LegacyEventBus.publish",
-        "src.shared.domain_events.legacy_event_bus.LegacyEventBus.publish",
+        "luana_core_events.legacy_event_bus.LegacyEventBus.publish",
     }
 )
 

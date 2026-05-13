@@ -3,12 +3,12 @@
 
 class TestCostType:
     def test_has_exactly_four_members(self):
-        from src.modules.analytics.domain.enums import CostType
+        from luana_core_analytics_engine.domain.enums import CostType
 
         assert len(CostType) == 4
 
     def test_values(self):
-        from src.modules.analytics.domain.enums import CostType
+        from luana_core_analytics_engine.domain.enums import CostType
 
         assert CostType.NEUTRAL == "neutral"
         assert CostType.EXPENSE == "expense"
@@ -16,7 +16,7 @@ class TestCostType:
         assert CostType.REVENUE == "revenue"
 
     def test_is_str_enum(self):
-        from src.modules.analytics.domain.enums import CostType
+        from luana_core_analytics_engine.domain.enums import CostType
 
         for member in CostType:
             assert isinstance(member, str)
@@ -25,12 +25,12 @@ class TestCostType:
 
 class TestMetricUnit:
     def test_has_exactly_six_members(self):
-        from src.modules.analytics.domain.enums import MetricUnit
+        from luana_core_analytics_engine.domain.enums import MetricUnit
 
         assert len(MetricUnit) == 6
 
     def test_values(self):
-        from src.modules.analytics.domain.enums import MetricUnit
+        from luana_core_analytics_engine.domain.enums import MetricUnit
 
         assert MetricUnit.COUNT == "count"
         assert MetricUnit.CURRENCY == "currency"
@@ -40,7 +40,7 @@ class TestMetricUnit:
         assert MetricUnit.JSON == "json"
 
     def test_is_str_enum(self):
-        from src.modules.analytics.domain.enums import MetricUnit
+        from luana_core_analytics_engine.domain.enums import MetricUnit
 
         for member in MetricUnit:
             assert isinstance(member, str)
@@ -48,12 +48,12 @@ class TestMetricUnit:
 
 class TestExtractionStatus:
     def test_has_exactly_six_members(self):
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         assert len(ExtractionStatus) == 6
 
     def test_values(self):
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         expected = {
             "pending",
@@ -67,7 +67,7 @@ class TestExtractionStatus:
         assert actual == expected
 
     def test_is_str_enum(self):
-        from src.modules.analytics.domain.enums import ExtractionStatus
+        from luana_core_analytics_engine.domain.enums import ExtractionStatus
 
         for member in ExtractionStatus:
             assert isinstance(member, str)

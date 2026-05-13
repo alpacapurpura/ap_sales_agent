@@ -12,12 +12,11 @@ cache simple and lets React Query de-duplicate across components.
 from __future__ import annotations
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict
-
-from src.modules.offer.domain.offer_ladder_hints import (
+from luana_core_offer_studio.domain.offer_ladder_hints import (
     OFFER_LADDER_HINTS,
     LadderHint,
 )
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
 

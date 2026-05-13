@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.infrastructure.persisters.brand_persister import (
+from luana_core_copilot.infrastructure.persisters.brand_persister import (
     BrandPersister,
 )
-from src.modules.copilot.infrastructure.persisters.buyer_persona_persister import (
+from luana_core_copilot.infrastructure.persisters.buyer_persona_persister import (
     BuyerPersonaPersister,
 )
-from src.modules.copilot.infrastructure.persisters.offer_persister import (
+from luana_core_copilot.infrastructure.persisters.offer_persister import (
     OfferPersister,
 )
 

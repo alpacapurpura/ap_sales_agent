@@ -3,9 +3,8 @@
 import uuid
 from typing import Any
 
+from luana_core_platform.domain.base_entity import BaseEntity
 from pydantic import ConfigDict, Field, model_validator
-
-from src.shared.domain.base_entity import BaseEntity
 
 
 class BrandCompetitor(BaseEntity):

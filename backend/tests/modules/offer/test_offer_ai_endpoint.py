@@ -4,10 +4,10 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_tenant_context
-from src.modules.offer.api.offer_ai import router
-from src.modules.offer.domain.offer_ai_schemas import PsychologyGenerationResponse
+from luana_core_platform.core.database import get_db
+from luana_core_iam.api.dependencies import get_tenant_context
+from luana_core_offer_studio.api.offer_ai import router
+from luana_core_offer_studio.domain.offer_ai_schemas import PsychologyGenerationResponse
 
 
 def _build_client(tenant_id):
@@ -23,7 +23,7 @@ def test_offer_psychology_endpoint_keeps_contract():
     tenant_id = uuid4()
     client = _build_client(tenant_id)
 
-    with patch("src.modules.offer.api.offer_ai.OfferGeneratorService") as service_cls:
+    with patch("luana_core_offer_studio.api.offer_ai.OfferGeneratorService") as service_cls:
         service_instance = MagicMock()
         service_instance.generate_psychology = AsyncMock(
             return_value=PsychologyGenerationResponse(
@@ -54,7 +54,7 @@ def test_offer_psychology_endpoint_maps_value_error_to_404():
     tenant_id = uuid4()
     client = _build_client(tenant_id)
 
-    with patch("src.modules.offer.api.offer_ai.OfferGeneratorService") as service_cls:
+    with patch("luana_core_offer_studio.api.offer_ai.OfferGeneratorService") as service_cls:
         service_instance = MagicMock()
         service_instance.generate_psychology = AsyncMock(
             side_effect=ValueError("Avatar not found in this tenant"),

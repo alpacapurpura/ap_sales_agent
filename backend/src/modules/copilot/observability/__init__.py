@@ -34,14 +34,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.observability.persistence.models.llm_call_model import (
+from luana_core_copilot.observability.persistence.models.llm_call_model import (
     CopilotLlmCallModel,
 )
-from src.modules.copilot.observability.recording.domain_subscribers import (
+from luana_core_copilot.observability.recording.domain_subscribers import (
     register_subscribers,
 )
-from src.modules.copilot.observability.recording.turn_envelope import ObservabilityContext
-from src.shared.agent_observability.registry import (
+from luana_core_copilot.observability.recording.turn_envelope import ObservabilityContext
+from luana_core_observability.registry import (
     AgentObservabilitySpec,
     register_agent_observability,
 )
@@ -49,7 +49,7 @@ from src.shared.agent_observability.registry import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from src.modules.copilot.observability.persistence.trace_event_repository import (
+    from luana_core_copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
 
@@ -85,10 +85,10 @@ def register(*, repo_factory: Callable[[], TraceEventRepository] | None = None) 
 
 def _default_repo_factory() -> TraceEventRepository:
     """Open a short-lived sync ``Session`` and return a bound repository."""
-    from src.core.database import SessionLocal
-    from src.modules.copilot.observability.persistence.trace_event_repository import (
+    from luana_core_copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
+    from luana_core_platform.core.database import SessionLocal
 
     return TraceEventRepository(SessionLocal())
 

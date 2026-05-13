@@ -1,6 +1,6 @@
 """Repositories package."""
 
-from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
+from luana_core_connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
 )
 

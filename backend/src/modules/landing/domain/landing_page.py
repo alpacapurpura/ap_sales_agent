@@ -3,8 +3,8 @@
 from datetime import datetime
 from uuid import UUID
 
-from src.modules.landing.domain.content import LandingPageConfig
-from src.shared.domain.base_entity import BaseEntity
+from luana_core_landing.domain.content import LandingPageConfig
+from luana_core_platform.domain.base_entity import BaseEntity
 
 
 class LandingPage(BaseEntity):

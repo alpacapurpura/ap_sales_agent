@@ -21,8 +21,7 @@ from typing import Any
 
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
-
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 logger = structlog.get_logger()
 
@@ -122,7 +121,7 @@ async def classify_intent(
     tests pass a stub exposing ``invoke([messages])``.
     """
     if llm is None:
-        from src.shared.infrastructure.llm.factory import LLMFactory
+        from luana_core_llm.factory import LLMFactory
 
         llm = LLMFactory.get_service().get_client(ModelRole.NANO)
         llm = llm.bind(temperature=0.0)
@@ -132,7 +131,7 @@ async def classify_intent(
         HumanMessage(content=question),
     ]
     try:
-        from src.modules.copilot.application.orchestrator.stream_filters import (
+        from luana_core_copilot.application.orchestrator.stream_filters import (
             INTERNAL_LLM_CONFIG,
         )
 

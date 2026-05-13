@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from typing import TYPE_CHECKING
 
-from pydantic import HttpUrl, model_validator
-
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     AccommodationType,
     BillingFrequency,
     CommunityPlatform,
@@ -19,7 +17,11 @@ from src.modules.offer.domain.enums import (
     ServiceCategory,
     ServiceFrequency,
 )
-from src.shared.domain.base_entity import BaseEntity
+from luana_core_platform.domain.base_entity import BaseEntity
+from pydantic import HttpUrl, model_validator
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class SessionDetails(BaseEntity):

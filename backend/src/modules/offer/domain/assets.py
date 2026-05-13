@@ -6,14 +6,15 @@ user. Pure Pydantic — no framework imports.
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
+from luana_core_offer_studio.domain.enums import AssetSource, AssetStatus, AssetType
+from luana_core_platform.domain.base_entity import BaseEntity
 from pydantic import Field
 
-from src.modules.offer.domain.enums import AssetSource, AssetStatus, AssetType
-from src.shared.domain.base_entity import BaseEntity
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class OfferAsset(BaseEntity):

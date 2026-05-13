@@ -22,10 +22,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.invoke_result import (
+from luana_core_copilot.application.orchestrator.invoke_result import (
     CopilotInvokeResult,
 )
-from src.modules.copilot.infrastructure.workers import telegram_worker as worker_mod
+from luana_core_copilot.infrastructure.workers import telegram_worker as worker_mod
 
 
 def _make_link_obj():
@@ -95,7 +95,7 @@ async def test_linked_happy_path_invokes_orchestrator_and_sends_response() -> No
         patch.object(worker_mod, "CopilotTelegramBot", return_value=bot_instance),
         patch.object(worker_mod, "ConversationRepository", return_value=conv_repo_mock),
         patch.object(worker_mod, "CopilotOrchestrator", return_value=orchestrator_mock),
-        patch("src.core.database.SessionLocal", session_local_mock),
+        patch("luana_core_platform.core.database.SessionLocal", session_local_mock),
     ):
         await worker_mod.process_copilot_telegram_turn(
             ctx={},

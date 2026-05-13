@@ -17,28 +17,28 @@ Web-only groups: ``navigation``, ``guided``, ``landing``,
 from dataclasses import dataclass, field
 from typing import Final
 
-from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOLS
-from src.modules.copilot.application.tools.ask_tenant_data import ask_tenant_data
-from src.modules.copilot.application.tools.assets_tools import ASSETS_TOOLS  # [COPILOT-OUTBOUND-ASSETS]
-from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
-from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
-from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
-from src.modules.copilot.application.tools.document_tools import DOCUMENT_TOOLS  # [COPILOT-READ-DOCUMENT]
-from src.modules.copilot.application.tools.extraction_tools import EXTRACTION_TOOLS
-from src.modules.copilot.application.tools.fetch_url import fetch_url
-from src.modules.copilot.application.tools.guided import GUIDED_TOOLS
-from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
-from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
-from src.modules.copilot.application.tools.module_tools import MODULE_TOOLS
-from src.modules.copilot.application.tools.mutations import MUTATION_TOOLS
-from src.modules.copilot.application.tools.navigation import NAVIGATION_TOOLS
-from src.modules.copilot.application.tools.offer_ladder_tools import OFFER_LADDER_TOOLS
-from src.modules.copilot.application.tools.offer_section_tools import OFFER_SECTION_TOOLS
-from src.modules.copilot.application.tools.pin_to_memory import pin_to_memory
-from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
-from src.modules.copilot.application.tools.sales_agent_tools import SALES_AGENT_TOOLS
-from src.modules.copilot.application.tools.shared_tools import SHARED_TOOLS
-from src.shared.agent_observability.channels.format_for_channel import format_for_channel
+from luana_core_channels.format_for_channel import format_for_channel
+from luana_core_copilot.application.tools.analytics_tools import ANALYTICS_TOOLS
+from luana_core_copilot.application.tools.ask_tenant_data import ask_tenant_data
+from luana_core_copilot.application.tools.assets_tools import ASSETS_TOOLS  # [COPILOT-OUTBOUND-ASSETS]
+from luana_core_copilot.application.tools.awareness import AWARENESS_TOOLS
+from luana_core_copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
+from luana_core_copilot.application.tools.crm_tools import CRM_TOOLS
+from luana_core_copilot.application.tools.document_tools import DOCUMENT_TOOLS  # [COPILOT-READ-DOCUMENT]
+from luana_core_copilot.application.tools.extraction_tools import EXTRACTION_TOOLS
+from luana_core_copilot.application.tools.fetch_url import fetch_url
+from luana_core_copilot.application.tools.guided import GUIDED_TOOLS
+from luana_core_copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
+from luana_core_copilot.application.tools.landing_tools import LANDING_TOOLS
+from luana_core_copilot.application.tools.module_tools import MODULE_TOOLS
+from luana_core_copilot.application.tools.mutations import MUTATION_TOOLS
+from luana_core_copilot.application.tools.navigation import NAVIGATION_TOOLS
+from luana_core_copilot.application.tools.offer_ladder_tools import OFFER_LADDER_TOOLS
+from luana_core_copilot.application.tools.offer_section_tools import OFFER_SECTION_TOOLS
+from luana_core_copilot.application.tools.pin_to_memory import pin_to_memory
+from luana_core_copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
+from luana_core_copilot.application.tools.sales_agent_tools import SALES_AGENT_TOOLS
+from luana_core_copilot.application.tools.shared_tools import SHARED_TOOLS
 
 
 class ToolNameCollisionError(RuntimeError):
@@ -128,7 +128,7 @@ def _build_tool_groups() -> dict[str, list]:
     """
     # Local import keeps tools/registry import-time light — discovery only
     # runs once per process and tolerates being called repeatedly (lru_cache).
-    from src.modules.copilot.application.discovery import discover_providers
+    from luana_core_copilot.application.discovery import discover_providers
 
     merged: dict[str, list] = {name: list(tools) for name, tools in _BASE_TOOL_GROUPS.items()}
 
@@ -265,7 +265,7 @@ def _build_route_tool_map() -> dict[str, list[str]]:
     """
     # Local import keeps the module-level import graph thin — discovery is
     # cached and tolerates being called repeatedly.
-    from src.modules.copilot.application.discovery import discover_providers
+    from luana_core_copilot.application.discovery import discover_providers
 
     merged: dict[str, list[str]] = {prefix: list(groups) for prefix, groups in _BASE_ROUTE_TOOL_MAP.items()}
 

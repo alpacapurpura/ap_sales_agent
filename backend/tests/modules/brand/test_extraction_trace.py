@@ -3,7 +3,7 @@
 import uuid
 from unittest.mock import MagicMock
 
-from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
+from luana_core_brand_studio.application.extraction_trace import ExtractionTraceCollector
 
 
 class TestExtractionTraceCollector:

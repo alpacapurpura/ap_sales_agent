@@ -40,7 +40,7 @@ class TestCopilotRegistryInvariants:
 
     def test_offer_section_tools_count(self) -> None:
         """OFFER_SECTION_TOOLS must have exactly 17 tools."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             OFFER_SECTION_TOOLS,
         )
 
@@ -51,7 +51,7 @@ class TestCopilotRegistryInvariants:
 
     def test_all_expected_tools_present(self) -> None:
         """Every expected offer-section tool name must appear in OFFER_SECTION_TOOLS."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             OFFER_SECTION_TOOLS,
         )
 
@@ -63,7 +63,7 @@ class TestCopilotRegistryInvariants:
 
     def test_all_tools_are_callable_langchain_tools(self) -> None:
         """Every entry in OFFER_SECTION_TOOLS must have a .name attribute (LangChain tool)."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             OFFER_SECTION_TOOLS,
         )
 
@@ -73,7 +73,7 @@ class TestCopilotRegistryInvariants:
 
     def test_offer_section_group_in_tool_groups(self) -> None:
         """TOOL_GROUPS must contain the 'offer_section' key."""
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         assert "offer_section" in TOOL_GROUPS, (
             "'offer_section' group missing from TOOL_GROUPS in registry.py. Add: 'offer_section': OFFER_SECTION_TOOLS"
@@ -81,10 +81,10 @@ class TestCopilotRegistryInvariants:
 
     def test_offer_section_group_matches_exported_list(self) -> None:
         """TOOL_GROUPS['offer_section'] must be identical to OFFER_SECTION_TOOLS."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             OFFER_SECTION_TOOLS,
         )
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         group_names = {t.name for t in TOOL_GROUPS["offer_section"]}
         exported_names = {t.name for t in OFFER_SECTION_TOOLS}
@@ -95,7 +95,7 @@ class TestCopilotRegistryInvariants:
 
     def test_offer_studio_route_includes_offer_section(self) -> None:
         """The 'offer-studio' route entry must include 'offer_section' group."""
-        from src.modules.copilot.application.tools.registry import ROUTE_TOOL_MAP
+        from luana_core_copilot.application.tools.registry import ROUTE_TOOL_MAP
 
         offer_studio_groups = ROUTE_TOOL_MAP.get("offer-studio", [])
         assert "offer_section" in offer_studio_groups, (
@@ -105,10 +105,10 @@ class TestCopilotRegistryInvariants:
 
     def test_no_offer_section_tool_name_collision_with_other_groups(self) -> None:
         """Offer-section tool names must not collide with tools in other groups."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             OFFER_SECTION_TOOLS,
         )
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+        from luana_core_copilot.application.tools.registry import TOOL_GROUPS
 
         offer_section_names = {t.name for t in OFFER_SECTION_TOOLS}
         collisions: list[str] = []
@@ -126,10 +126,10 @@ class TestCopilotRegistryInvariants:
 
     def test_get_tools_for_offer_studio_includes_offer_section_tools(self) -> None:
         """get_tools_for_route('/tenant/offer-studio/sections/promise') must include ≥1 offer-section tool."""
-        from src.modules.copilot.application.tools.offer_section_tools import (
+        from luana_core_copilot.application.tools.offer_section_tools import (
             OFFER_SECTION_TOOLS,
         )
-        from src.modules.copilot.application.tools.registry import get_tools_for_route
+        from luana_core_copilot.application.tools.registry import get_tools_for_route
 
         tools = get_tools_for_route("/tenant-123/offer-studio/sections/promise")
         tool_names = {t.name for t in tools}

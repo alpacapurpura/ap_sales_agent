@@ -7,8 +7,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.core.database import get_db
-from src.modules.iam.api.dependencies import (
+from luana_core_platform.core.database import get_db
+from luana_core_iam.api.dependencies import (
     _resolve_email_from_clerk_api,
     _resolve_name,
     _sync_clerk_fields,
@@ -17,9 +17,9 @@ from src.modules.iam.api.dependencies import (
     get_optional_current_user,
     get_user_from_token,
 )
-from src.modules.iam.application.auth import verify_clerk_token
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models.user_model import UserModel
+from luana_core_iam.application.auth import verify_clerk_token
+from luana_core_iam.domain.user import User
+from luana_core_iam.infrastructure.models.user_model import UserModel
 
 # ---------------------------------------------------------------------------
 # Helper: minimal FastAPI app for HTTP-level tests
@@ -30,7 +30,7 @@ def _make_app(db_session, token_payload: dict):
     """Build a test app with `get_current_user` dep exercised end-to-end."""
     from fastapi import APIRouter
 
-    from src.modules.iam.api.routers.auth_router import router as auth_router
+    from luana_core_iam.api.routers.auth_router import router as auth_router
 
     app = FastAPI()
 
@@ -126,7 +126,7 @@ class TestResolveEmailFromClerkApi:
                 {"id": "em_2", "email_address": "other@x.com"},
             ],
         }
-        with patch("src.modules.iam.api.dependencies.httpx.get") as mock_get:
+        with patch("luana_core_iam.api.dependencies.httpx.get") as mock_get:
             mock_get.return_value.status_code = 200
             mock_get.return_value.json.return_value = clerk_resp
             email, data = _resolve_email_from_clerk_api("user_1", "sk_secret")
@@ -138,14 +138,14 @@ class TestResolveEmailFromClerkApi:
             "primary_email_address_id": "em_999",
             "email_addresses": [{"id": "em_1", "email_address": "first@x.com"}],
         }
-        with patch("src.modules.iam.api.dependencies.httpx.get") as mock_get:
+        with patch("luana_core_iam.api.dependencies.httpx.get") as mock_get:
             mock_get.return_value.status_code = 200
             mock_get.return_value.json.return_value = clerk_resp
             email, _ = _resolve_email_from_clerk_api("user_1", "sk_secret")
         assert email == "first@x.com"
 
     def test_returns_none_on_non_200(self):
-        with patch("src.modules.iam.api.dependencies.httpx.get") as mock_get:
+        with patch("luana_core_iam.api.dependencies.httpx.get") as mock_get:
             mock_get.return_value.status_code = 404
             email, data = _resolve_email_from_clerk_api("user_1", "sk_secret")
         assert email is None
@@ -153,7 +153,7 @@ class TestResolveEmailFromClerkApi:
 
     def test_returns_none_on_exception(self):
         with patch(
-            "src.modules.iam.api.dependencies.httpx.get",
+            "luana_core_iam.api.dependencies.httpx.get",
             side_effect=ConnectionError("timeout"),
         ):
             email, data = _resolve_email_from_clerk_api("user_1", "sk_secret")
@@ -182,7 +182,7 @@ class TestGetUserFromToken:
             "email_addresses": [{"id": "em_1", "email_address": "alice@example.com"}],
         }
         with (
-            patch("src.modules.iam.api.dependencies.httpx.get") as mock_get,
+            patch("luana_core_iam.api.dependencies.httpx.get") as mock_get,
             patch.dict("os.environ", {"CLERK_SECRET_KEY": "sk_test"}),
         ):
             mock_get.return_value.status_code = 200
@@ -226,7 +226,7 @@ class TestGetCurrentUser:
         return TestClient(app)
 
     def test_resolves_tenant_from_x_tenant_id_header(self, db, seed_user_tenant_link, user_id, tenant_id):
-        from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+        from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
 
         repo = UserRepository(db)
         user = repo.get_by_id(user_id)
@@ -236,7 +236,7 @@ class TestGetCurrentUser:
         assert resp.json()["tenant_id"] == str(tenant_id)
 
     def test_invalid_tenant_id_not_member_returns_403(self, db, seed_user, user_id):
-        from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+        from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
 
         repo = UserRepository(db)
         user = repo.get_by_id(user_id)
@@ -245,7 +245,7 @@ class TestGetCurrentUser:
         assert resp.status_code == 403
 
     def test_resolves_tenant_by_slug(self, db, seed_user_tenant_link, seed_tenant, user_id):
-        from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+        from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
 
         repo = UserRepository(db)
         user = repo.get_by_id(user_id)
@@ -254,7 +254,7 @@ class TestGetCurrentUser:
         assert resp.status_code == 200
 
     def test_invalid_slug_raises_400(self, db, seed_user, user_id):
-        from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+        from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
 
         repo = UserRepository(db)
         user = repo.get_by_id(user_id)
@@ -263,7 +263,7 @@ class TestGetCurrentUser:
         assert resp.status_code == 400
 
     def test_no_header_uses_default_tenant(self, db, seed_user_tenant_link, user_id, tenant_id):
-        from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+        from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
 
         repo = UserRepository(db)
         user = repo.get_by_id(user_id)
@@ -274,7 +274,7 @@ class TestGetCurrentUser:
 
     def test_no_header_no_tenant_returns_403(self, db, seed_user, user_id):
         """User exists but has no tenant link → 403."""
-        from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+        from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
 
         repo = UserRepository(db)
         user = repo.get_by_id(user_id)
@@ -287,7 +287,7 @@ class TestGetCurrentTenantId:
     def test_returns_tenant_id_string(self, db, seed_user_tenant_link, user_id, tenant_id):
         from fastapi import APIRouter
 
-        from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+        from luana_core_iam.infrastructure.repositories.user_repository import UserRepository
 
         repo = UserRepository(db)
         user = repo.get_by_id(user_id)
@@ -328,7 +328,7 @@ class TestGetOptionalCurrentUser:
         assert resp.json()["user"] is None
 
     def test_invalid_token_returns_none(self, db):
-        with patch("src.modules.iam.api.dependencies.verify_token_payload", side_effect=Exception("bad")):
+        with patch("luana_core_iam.api.dependencies.verify_token_payload", side_effect=Exception("bad")):
             from fastapi import APIRouter
 
             app = FastAPI()

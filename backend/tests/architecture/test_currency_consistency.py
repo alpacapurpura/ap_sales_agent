@@ -24,7 +24,7 @@ class TestCurrencyConsistency:
         code, so there's no static list to cross-check. We validate that
         the backend set is well-formed instead.
         """
-        from src.shared.domain.currency import SUPPORTED_CURRENCIES
+        from luana_core_platform.domain.currency import SUPPORTED_CURRENCIES
 
         assert SUPPORTED_CURRENCIES, "SUPPORTED_CURRENCIES must not be empty"
         for code in SUPPORTED_CURRENCIES:
@@ -33,7 +33,7 @@ class TestCurrencyConsistency:
             )
 
     def test_all_supported_currencies_have_exchange_rates(self) -> None:
-        from src.shared.domain.currency import (
+        from luana_core_platform.domain.currency import (
             EXCHANGE_RATES_TO_USD,
             SUPPORTED_CURRENCIES,
         )

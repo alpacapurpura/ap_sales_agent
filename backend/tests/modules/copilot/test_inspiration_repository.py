@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.modules.copilot.infrastructure.repositories.inspiration_repository import (
+from luana_core_copilot.infrastructure.repositories.inspiration_repository import (
     CopilotInspirationRepository,
 )
 

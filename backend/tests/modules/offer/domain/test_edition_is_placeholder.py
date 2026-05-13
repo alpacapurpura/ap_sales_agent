@@ -5,12 +5,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from src.modules.offer.domain.launch_edition import (
+from luana_core_offer_studio.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
     LaunchEdition,
 )
-from src.modules.offer.domain.offer import PricingStructure
+from luana_core_offer_studio.domain.offer import PricingStructure
 
 TENANT = uuid4()
 OFFER = uuid4()

@@ -23,9 +23,9 @@ from uuid import UUID
 
 import pytest
 
-from src.shared.billing.application.exceptions import BudgetExceeded
-from src.shared.billing.application.llm_guards import BudgetGuardingChatModel
-from src.shared.billing.domain.budget_decision import BudgetDecision
+from luana_core_billing.application.exceptions import BudgetExceeded
+from luana_core_billing.application.llm_guards import BudgetGuardingChatModel
+from luana_core_billing.domain.budget_decision import BudgetDecision
 
 TENANT_ID = UUID("cccccccc-dddd-eeee-ffff-000000000001")
 
@@ -311,13 +311,13 @@ class TestBuildDeepAgentGraphBudgetGuardWiring:
         """
         from unittest.mock import MagicMock, patch
 
-        from src.modules.copilot.application.orchestrator.deep_agent import (
+        from luana_core_copilot.application.orchestrator.deep_agent import (
             build_deep_agent_graph,
         )
-        from src.modules.copilot.application.orchestrator.state import (
+        from luana_core_copilot.application.orchestrator.state import (
             create_initial_copilot_state,
         )
-        from src.shared.billing.application.llm_guards import BudgetGuardingChatModel
+        from luana_core_billing.application.llm_guards import BudgetGuardingChatModel
 
         inner_llm = _StubInnerChatModel()
         mock_graph = MagicMock()
@@ -340,11 +340,11 @@ class TestBuildDeepAgentGraphBudgetGuardWiring:
         # - create_deep_agent: deepagents harness that calls model.model_dump()
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.deep_agent._build_combined_system_prompt",
+                "luana_core_copilot.application.orchestrator.deep_agent._build_combined_system_prompt",
                 return_value="[stub system prompt for budget-guard wiring test]",
             ),
             patch(
-                "src.modules.copilot.application.orchestrator.deep_agent.create_deep_agent",
+                "luana_core_copilot.application.orchestrator.deep_agent.create_deep_agent",
                 side_effect=_fake_create_deep_agent,
             ),
         ):

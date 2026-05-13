@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from src.modules.brand.infrastructure.qdrant.style_anchor_store import StyleAnchorStore
+    from luana_core_brand_studio.infrastructure.qdrant.style_anchor_store import StyleAnchorStore
 
 logger = logging.getLogger(__name__)
 

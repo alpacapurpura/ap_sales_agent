@@ -5,15 +5,15 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
-from src.modules.sales_agent.application.services.closer_studio_service import (
+from luana_core_crm.infrastructure.models.customer_model import CustomerProfileModel
+from luana_core_crm.infrastructure.models.lead_model import LeadModel
+from luana_core_sales_agent.application.services.closer_studio_service import (
     CloserStudioService,
 )
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+from luana_core_sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
+from luana_core_sales_agent.infrastructure.models.message_model import MessageModel
 
 TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
 TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")

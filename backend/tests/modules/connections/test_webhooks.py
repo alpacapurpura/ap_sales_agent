@@ -39,7 +39,7 @@ def generate_meta_signature(secret, body):
 @pytest.fixture
 def mock_settings():
     with patch(
-        "src.modules.connections.api.dependencies.webhook_security.settings",
+        "luana_core_connections.api.dependencies.webhook_security.settings",
     ) as mock:
         mock.SHOPIFY_API_SECRET = "test_shopify_secret"
         mock.META_APP_SECRET = "test_meta_secret"
@@ -48,7 +48,7 @@ def mock_settings():
 
 @pytest.fixture
 def mock_db(app):
-    from src.core.database import get_db
+    from luana_core_platform.core.database import get_db
 
     mock_session = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_session

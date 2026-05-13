@@ -3,7 +3,7 @@
 from datetime import date
 from uuid import uuid4
 
-from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
+from luana_core_analytics_engine.infrastructure.etl.aggregations import compute_aggregations
 
 TENANT = uuid4()
 

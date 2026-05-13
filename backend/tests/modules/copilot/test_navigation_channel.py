@@ -8,7 +8,7 @@ Validates URL generation for Growth Studio deep links:
 - Expanded + tab: /growth-studio/{stage}/{slug}?tab={tab}
 """
 
-from src.modules.copilot.application.tools.navigation import navigate_to_channel
+from luana_core_copilot.application.tools.navigation import navigate_to_channel
 
 
 class TestNavigateToChannel:
@@ -96,14 +96,14 @@ class TestNavigateToChannel:
 
     def test_tool_in_navigation_tools(self):
         """navigate_to_channel is part of NAVIGATION_TOOLS."""
-        from src.modules.copilot.application.tools.navigation import NAVIGATION_TOOLS
+        from luana_core_copilot.application.tools.navigation import NAVIGATION_TOOLS
 
         tool_names = [t.name for t in NAVIGATION_TOOLS]
         assert "navigate_to_channel" in tool_names
 
     def test_tool_available_in_growth_studio_route(self):
         """navigate_to_channel is available when on growth-studio routes."""
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             get_tool_names_for_route,
         )
 

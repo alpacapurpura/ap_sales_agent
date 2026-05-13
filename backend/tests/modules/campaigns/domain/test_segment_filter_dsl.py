@@ -12,8 +12,8 @@ import pytest
 from hypothesis import given, settings, strategies as st
 from pydantic import ValidationError
 
-from src.modules.campaigns.domain.enums import SegmentFilterCombinator
-from src.modules.campaigns.domain.segment_filter import (
+from luana_core_campaigns.domain.enums import SegmentFilterCombinator
+from luana_core_campaigns.domain.segment_filter import (
     DateRange,
     PredefinedSegmentFilter,
     ScoreRange,

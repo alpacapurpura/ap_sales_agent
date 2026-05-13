@@ -3,7 +3,7 @@
 import ast
 import inspect
 
-from src.modules.offer.application.offer_generator import OfferGeneratorService
+from luana_core_offer_studio.application.offer_generator import OfferGeneratorService
 
 
 def test_no_copilot_application_import():

@@ -8,11 +8,10 @@ import logging
 from uuid import UUID
 
 import httpx
-
-from src.modules.analytics.infrastructure.providers.meta_campaign_provider import (
+from luana_core_analytics_engine.infrastructure.providers.meta_campaign_provider import (
     MetaCampaignProvider,
 )
-from src.modules.analytics.infrastructure.repositories.campaign_repository import (
+from luana_core_analytics_engine.infrastructure.repositories.campaign_repository import (
     CampaignRepository,
 )
 

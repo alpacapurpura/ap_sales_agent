@@ -8,15 +8,14 @@ from __future__ import annotations
 from uuid import UUID
 
 import structlog
+from luana_core_billing.domain.subscription import TenantSubscription
+from luana_core_billing.domain.subscription_repository import TenantSubscriptionRepository
+from luana_core_billing.infrastructure.models.tenant_subscription_model import (
+    TenantSubscriptionModel,
+)
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
-
-from src.shared.billing.domain.subscription import TenantSubscription
-from src.shared.billing.domain.subscription_repository import TenantSubscriptionRepository
-from src.shared.billing.infrastructure.models.tenant_subscription_model import (
-    TenantSubscriptionModel,
-)
 
 logger = structlog.get_logger(__name__)
 

@@ -55,14 +55,14 @@ def _pricing_snapshot():
 
 
 def _make_handler(db):
-    from src.modules.copilot.observability.persistence.llm_call_repository import LlmCallRepository
-    from src.modules.copilot.observability.persistence.trace_event_repository import (
+    from luana_core_copilot.observability.persistence.llm_call_repository import LlmCallRepository
+    from luana_core_copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
-    from src.modules.copilot.observability.recording.callback_handler import (
+    from luana_core_copilot.observability.recording.callback_handler import (
         ObservabilityCallbackHandler,
     )
-    from src.shared.agent_observability.pricing.resolver import PricingResult
+    from luana_core_observability.pricing.resolver import PricingResult
 
     pricing_resolver = MagicMock()
     pricing_resolver.resolve.return_value = PricingResult(
@@ -119,7 +119,7 @@ class TestUsageFallbacksFromResponseMetadata:
     """When ``usage_metadata`` is missing the handler reads ``response_metadata.token_usage``."""
 
     def test_response_metadata_token_usage_is_used(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 
@@ -165,7 +165,7 @@ class TestUsageFallbacksFromResponseMetadata:
         assert rows[0].cost_usd == expected_cost
 
     def test_cached_tokens_from_response_metadata_propagate(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 
@@ -195,7 +195,7 @@ class TestUsageFallbackFromLLMOutput:
     """``LLMResult.llm_output['token_usage']`` is the last-resort source."""
 
     def test_llm_output_token_usage_is_used_when_message_is_silent(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 
@@ -228,7 +228,7 @@ class TestZeroTokensRemainsLastResort:
     """When every source is empty the handler still records the call honestly."""
 
     def test_no_usage_anywhere_records_zero_without_crashing(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 

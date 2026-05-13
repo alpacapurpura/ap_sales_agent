@@ -49,7 +49,7 @@ def _get_fake_user() -> _FakeUser:
 async def client() -> AsyncClient:  # type: ignore[override]
     """AsyncClient pointed at the FastAPI app with auth overridden."""
     from src.main import app
-    from src.modules.iam.api.dependencies import get_current_user
+    from luana_core_iam.api.dependencies import get_current_user
 
     app.dependency_overrides[get_current_user] = _get_fake_user
 
@@ -127,7 +127,7 @@ class TestGetPipeline:
     @pytest.mark.asyncio
     async def test_pipeline_returns_items(self, client: AsyncClient) -> None:
         """Happy path: returns pipeline items."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -137,7 +137,7 @@ class TestGetPipeline:
         mock_session.execute.return_value.scalars.return_value = mock_scalar_result
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
         ):
@@ -156,7 +156,7 @@ class TestGetPipeline:
     @pytest.mark.asyncio
     async def test_pipeline_empty_returns_empty_list(self, client: AsyncClient) -> None:
         """No leads → empty list."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -165,7 +165,7 @@ class TestGetPipeline:
         mock_session.execute.return_value.scalars.return_value = mock_scalar_result
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
         ):
@@ -191,7 +191,7 @@ class TestOverrideStage:
     @pytest.mark.asyncio
     async def test_override_success(self, client: AsyncClient) -> None:
         """Valid request → 200 + override details."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -201,11 +201,11 @@ class TestOverrideStage:
         mock_session.execute.return_value.scalars.return_value = mock_scalars
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.application.services.lifecycle_service.LifecycleService.force_stage",
+                "luana_core_crm.application.services.lifecycle_service.LifecycleService.force_stage",
             ),
         ):
             app.dependency_overrides[get_db] = lambda: mock_session
@@ -238,7 +238,7 @@ class TestOverrideStage:
     @pytest.mark.asyncio
     async def test_override_profile_not_found(self, client: AsyncClient) -> None:
         """Profile not found → 404."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
@@ -247,7 +247,7 @@ class TestOverrideStage:
         mock_session.execute.return_value.scalars.return_value = mock_scalars
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
         ):
@@ -275,18 +275,18 @@ class TestGetTransitions:
     @pytest.mark.asyncio
     async def test_transitions_returns_records(self, client: AsyncClient) -> None:
         """Happy path: returns transition records."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
         mock_transition = _make_transition()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.infrastructure.repositories.lifecycle_repository.LifecycleRepository.get_transitions_by_profile",
+                "luana_core_crm.infrastructure.repositories.lifecycle_repository.LifecycleRepository.get_transitions_by_profile",
                 return_value=[mock_transition],
             ),
         ):
@@ -308,17 +308,17 @@ class TestGetTransitions:
     @pytest.mark.asyncio
     async def test_transitions_empty_returns_empty_list(self, client: AsyncClient) -> None:
         """No transitions → empty list."""
-        from src.core.database import get_db
+        from luana_core_platform.core.database import get_db
         from src.main import app
 
         mock_session = _make_mock_session()
 
         with (
-            patch("src.core.database.SessionLocal", return_value=mock_session),
+            patch("luana_core_platform.core.database.SessionLocal", return_value=mock_session),
             patch.object(mock_session, "__enter__", return_value=mock_session),
             patch.object(mock_session, "__exit__", return_value=False),
             patch(
-                "src.modules.crm.infrastructure.repositories.lifecycle_repository.LifecycleRepository.get_transitions_by_profile",
+                "luana_core_crm.infrastructure.repositories.lifecycle_repository.LifecycleRepository.get_transitions_by_profile",
                 return_value=[],
             ),
         ):

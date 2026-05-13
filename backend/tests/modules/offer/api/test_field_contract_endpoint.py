@@ -10,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
-from src.modules.offer.domain.field_contract import (
+from luana_core_offer_studio.domain.field_contract import (
     FIELD_CONTRACT_SNAPSHOT,
     PRICING_FIELD_CONTRACTS,
 )

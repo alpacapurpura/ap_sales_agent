@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import numpy as np
 
-from src.modules.sales_agent.application.services.semantic_router import (
+from luana_core_sales_agent.application.services.semantic_router import (
     SYSTEM_ROUTES,
     SemanticRouter,
 )

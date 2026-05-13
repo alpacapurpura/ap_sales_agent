@@ -9,8 +9,8 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from src.modules.copilot.domain.message_blocks import TextBlock
-from src.modules.copilot.infrastructure.repositories.message_codec import (
+from luana_core_copilot.domain.message_blocks import TextBlock
+from luana_core_copilot.infrastructure.repositories.message_codec import (
     _flatten_blocks,
     decode_message,
     encode_message,

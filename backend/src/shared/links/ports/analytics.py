@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 def get_manychat_metrics_promoter(db: Session) -> object:
     """Return a ManyChatMetricsPromoter instance for the given session."""
-    from src.modules.analytics.application.services.manychat_metrics_promoter import (
+    from luana_core_analytics_engine.application.services.manychat_metrics_promoter import (
         ManyChatMetricsPromoter,
     )
 
@@ -32,7 +32,7 @@ def get_latest_extraction_run_info(
     provider: str,
 ) -> dict | None:
     """Return latest ExtractionRun info dict for a provider, or None."""
-    from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+    from luana_core_analytics_engine.infrastructure.repositories.extraction_run_repository import (
         ExtractionRunRepository,
     )
 
@@ -58,11 +58,10 @@ def get_provider_data_range(
     """Return min/max metric_date and record count for a provider, or None."""
     from datetime import date
 
-    from sqlalchemy import func, select
-
-    from src.modules.analytics.infrastructure.models.official_metrics_model import (
+    from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
         OfficialMetricModel,
     )
+    from sqlalchemy import func, select
 
     stmt = select(
         func.min(OfficialMetricModel.metric_date),

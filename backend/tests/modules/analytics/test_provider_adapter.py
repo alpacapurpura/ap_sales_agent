@@ -8,7 +8,7 @@ import pytest
 
 class TestBaseMetricsProvider:
     def test_cannot_instantiate_abc(self):
-        from src.modules.analytics.infrastructure.providers.base import (
+        from luana_core_analytics_engine.infrastructure.providers.base import (
             BaseMetricsProvider,
         )
 
@@ -18,7 +18,7 @@ class TestBaseMetricsProvider:
     def test_concrete_provider_works(self):
         """A concrete DummyProvider implementing all abstract methods can be instantiated."""
 
-        from src.modules.analytics.infrastructure.providers.base import (
+        from luana_core_analytics_engine.infrastructure.providers.base import (
             BaseMetricsProvider,
             ExtractedMetric,
         )
@@ -57,7 +57,7 @@ class TestBaseMetricsProvider:
         """DummyProvider.extract_metrics returns List[ExtractedMetric]."""
         import uuid
 
-        from src.modules.analytics.infrastructure.providers.base import (
+        from luana_core_analytics_engine.infrastructure.providers.base import (
             BaseMetricsProvider,
             ExtractedMetric,
         )
@@ -101,7 +101,7 @@ class TestBaseMetricsProvider:
 
 class TestExtractedMetric:
     def test_validates_required_fields(self):
-        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+        from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
         metric = ExtractedMetric(
             provider="meta",
@@ -115,7 +115,7 @@ class TestExtractedMetric:
         assert metric.value == 1500.0
 
     def test_optional_fields_default_correctly(self):
-        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+        from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
         metric = ExtractedMetric(
             provider="google",
@@ -134,7 +134,7 @@ class TestExtractedMetric:
     def test_rejects_missing_required(self):
         from pydantic import ValidationError
 
-        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+        from luana_core_analytics_engine.infrastructure.providers.base import ExtractedMetric
 
         with pytest.raises(ValidationError):
             ExtractedMetric(

@@ -28,13 +28,12 @@ from functools import wraps
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 import structlog
-
-from src.shared.idempotency.domain.key import IdempotencyKey
+from luana_core_idempotency.domain.key import IdempotencyKey
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-    from src.shared.idempotency.infrastructure.redis_store import IdempotencyStore
+    from luana_core_idempotency.infrastructure.redis_store import IdempotencyStore
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -129,7 +128,7 @@ def idempotent(
 
 def _default_store_factory() -> IdempotencyStore:
     """Default factory — uses the global Redis client from core.database."""
-    from src.core.database import redis_client
-    from src.shared.idempotency.infrastructure.redis_store import RedisIdempotencyStore
+    from luana_core_idempotency.infrastructure.redis_store import RedisIdempotencyStore
+    from luana_core_platform.core.database import redis_client
 
     return RedisIdempotencyStore(redis_client)

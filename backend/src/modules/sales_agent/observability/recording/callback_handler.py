@@ -34,14 +34,14 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from src.modules.sales_agent.observability.persistence.llm_call_repository import (
+from luana_core_observability.recording.base_callback_handler import (
+    BaseAgentCallbackHandler,
+)
+from luana_core_sales_agent.observability.persistence.llm_call_repository import (
     SalesAgentLlmCallRepository,
 )
-from src.modules.sales_agent.observability.persistence.trace_event_repository import (
+from luana_core_sales_agent.observability.persistence.trace_event_repository import (
     SalesAgentTraceEventRepository,
-)
-from src.shared.agent_observability.recording.base_callback_handler import (
-    BaseAgentCallbackHandler,
 )
 
 

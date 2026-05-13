@@ -13,7 +13,7 @@ def _row(**kwargs):
 
 
 def _make_svc_with_db():
-    from src.modules.analytics.application.services.campaign_service import CampaignService
+    from luana_core_analytics_engine.application.services.campaign_service import CampaignService
 
     db = MagicMock()
     return CampaignService(db), db

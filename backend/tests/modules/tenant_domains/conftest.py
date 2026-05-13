@@ -4,7 +4,7 @@ import uuid
 
 import pytest
 
-from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
+from luana_core_tenant_domains.infrastructure.models.tenant_domain_model import (
     TenantDomainModel,
 )
 

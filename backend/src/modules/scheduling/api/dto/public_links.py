@@ -3,12 +3,12 @@
 import datetime
 from typing import Any
 
+from luana_core_platform.links.schemas import (
+    LinkResolveResponse as LinkResolveResponse,  # noqa: PLC0414 — re-export
+)
 from pydantic import BaseModel, EmailStr
 
 from src.modules.scheduling.domain.event_type_schema import EventType
-from src.shared.links.schemas import (
-    LinkResolveResponse as LinkResolveResponse,  # noqa: PLC0414 — re-export
-)
 
 
 class BookingRequest(BaseModel):

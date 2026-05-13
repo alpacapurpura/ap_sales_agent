@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 from langchain_core.messages import AIMessage
 
-from src.modules.copilot.application.observability.judge import (
+from luana_core_copilot.application.observability.judge import (
     CANONICAL_DIMENSIONS,
     DEFAULT_THRESHOLD,
     CopilotJudge,
@@ -148,7 +148,7 @@ def test_invalid_threshold_raises():
 
 def test_system_prompt_lists_4_dimensions_in_alphabetical_order():
     """System prompt must list dims alphabetised — position bias mitigation."""
-    from src.modules.copilot.application.observability.judge import (
+    from luana_core_copilot.application.observability.judge import (
         build_system_prompt,
     )
 
@@ -162,7 +162,7 @@ def test_system_prompt_lists_4_dimensions_in_alphabetical_order():
 
 def test_system_prompt_in_spanish_neutro():
     """Per .claude/rules/spanish-text.md — judge prompt must NOT use voseo."""
-    from src.modules.copilot.application.observability.judge import (
+    from luana_core_copilot.application.observability.judge import (
         build_system_prompt,
     )
 
@@ -194,10 +194,10 @@ def _rag_payload(score: float = 4.0) -> dict[str, dict[str, Any]]:
 
 def test_rag_dimensions_prompt_lists_rag_rubric():
     """Custom dimensions must drive the system prompt rubric (B13-TP7)."""
-    from src.modules.copilot.application.observability.judge import (
+    from luana_core_copilot.application.observability.judge import (
         build_system_prompt,
     )
-    from src.modules.copilot.application.observability.rag_goldens import (
+    from luana_core_copilot.application.observability.rag_goldens import (
         RAG_DIMENSIONS,
     )
 
@@ -212,7 +212,7 @@ def test_rag_dimensions_prompt_lists_rag_rubric():
 
 def test_judge_with_rag_dimensions_returns_scores_not_zeros():
     """B13-TP7: RAG_DIMENSIONS judge must surface real per-dim scores."""
-    from src.modules.copilot.application.observability.rag_goldens import (
+    from luana_core_copilot.application.observability.rag_goldens import (
         RAG_DIMENSIONS,
     )
 
@@ -231,10 +231,10 @@ def test_judge_with_rag_dimensions_returns_scores_not_zeros():
 
 def test_judge_with_rag_dimensions_alphabetical_order_in_prompt():
     """Bias mitigation: RAG dims also must render alphabetically in the prompt."""
-    from src.modules.copilot.application.observability.judge import (
+    from luana_core_copilot.application.observability.judge import (
         build_system_prompt,
     )
-    from src.modules.copilot.application.observability.rag_goldens import (
+    from luana_core_copilot.application.observability.rag_goldens import (
         RAG_DIMENSIONS,
     )
 

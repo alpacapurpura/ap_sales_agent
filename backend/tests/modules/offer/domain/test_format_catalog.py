@@ -18,15 +18,15 @@ from __future__ import annotations
 
 import math
 
-from src.modules.offer.domain.enums import OfferArchetype, OfferDeliveryModel
-from src.modules.offer.domain.format_catalog import (
+from luana_core_offer_studio.domain.enums import OfferArchetype, OfferDeliveryModel
+from luana_core_offer_studio.domain.format_catalog import (
     FORMAT_CATALOG,
     FormatMetadata,
     format_ids_for_archetype,
     get_format_metadata,
     get_formats_suitable_for,
 )
-from src.shared.domain.expert_business_type import ExpertBusinessType
+from luana_core_platform.domain.expert_business_type import ExpertBusinessType
 
 
 class TestFormatCatalogStructure:

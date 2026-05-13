@@ -9,12 +9,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from src.modules.offer.api.launch_editions import (
+from luana_core_offer_studio.api.launch_editions import (
     CloneEditionRequestDTO,
     CloneEditionResponseDTO,
     EditionCloneInputDTO,
 )
-from src.modules.offer.application.edition_clone_service import CloneStrategy
+from luana_core_offer_studio.application.edition_clone_service import CloneStrategy
 
 
 class TestCloneEditionRequestDTO:
@@ -53,7 +53,7 @@ class TestCloneEditionResponseDTO:
     def test_empty_asset_ids_default(self) -> None:
         from uuid import uuid4
 
-        from src.modules.offer.api.launch_editions import LaunchEditionResponse
+        from luana_core_offer_studio.api.launch_editions import LaunchEditionResponse
 
         edition_resp = LaunchEditionResponse(
             id=uuid4(),

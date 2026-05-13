@@ -13,8 +13,8 @@ import structlog
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-    from src.shared.idempotency.domain.key import IdempotencyKey
-    from src.shared.idempotency.infrastructure.redis_store import IdempotencyStore
+    from luana_core_idempotency.domain.key import IdempotencyKey
+    from luana_core_idempotency.infrastructure.redis_store import IdempotencyStore
 
 logger = structlog.get_logger(__name__)
 

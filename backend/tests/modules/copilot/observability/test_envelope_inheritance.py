@@ -37,13 +37,13 @@ def db(db_engine):
 
 
 def _build_ctx(db):
-    from src.modules.copilot.observability.persistence.llm_call_repository import (
+    from luana_core_copilot.observability.persistence.llm_call_repository import (
         LlmCallRepository,
     )
-    from src.modules.copilot.observability.persistence.trace_event_repository import (
+    from luana_core_copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
-    from src.modules.copilot.observability.recording.turn_envelope import ObservabilityContext
+    from luana_core_copilot.observability.recording.turn_envelope import ObservabilityContext
 
     pricing_resolver = MagicMock()
     fx_resolver = MagicMock()
@@ -64,10 +64,10 @@ def _build_ctx(db):
 
 class TestInheritanceContract:
     def test_copilot_context_extends_base(self) -> None:
-        from src.modules.copilot.observability.recording.turn_envelope import (
+        from luana_core_copilot.observability.recording.turn_envelope import (
             CopilotObservabilityContext,
         )
-        from src.shared.agent_observability.recording.turn_envelope import (
+        from luana_core_observability.recording.turn_envelope import (
             BaseObservabilityContext,
         )
 
@@ -75,8 +75,8 @@ class TestInheritanceContract:
 
     def test_observability_context_alias_is_copilot_subclass(self) -> None:
         """4260 conversation import sites depend on this alias."""
-        from src.modules.copilot.observability import ObservabilityContext as PublicAlias
-        from src.modules.copilot.observability.recording.turn_envelope import (
+        from luana_core_copilot.observability import ObservabilityContext as PublicAlias
+        from luana_core_copilot.observability.recording.turn_envelope import (
             CopilotObservabilityContext,
             ObservabilityContext as ModuleAlias,
         )
@@ -88,7 +88,7 @@ class TestInheritanceContract:
         """Locked methods (lifecycle, set_turn_*, langchain_config, _commit_session,
         _write_turn_*) MUST live on the base only — subclass overrides forbidden.
         """
-        from src.modules.copilot.observability.recording.turn_envelope import (
+        from luana_core_copilot.observability.recording.turn_envelope import (
             CopilotObservabilityContext,
         )
 
@@ -112,7 +112,7 @@ class TestInheritanceContract:
 class TestLifecycleParity:
     @pytest.mark.asyncio
     async def test_turn_start_and_turn_end_rows_persist(self, db) -> None:
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
 
@@ -135,7 +135,7 @@ class TestLifecycleParity:
 class TestLegacyCompatKeys:
     def test_legacy_compat_returns_jsonb_shape_streamlit_consumes(self) -> None:
         """Streamlit ``/trazas`` + ``/copilot-routing`` read these keys."""
-        from src.modules.copilot.observability.recording.turn_envelope import (
+        from luana_core_copilot.observability.recording.turn_envelope import (
             CopilotObservabilityContext,
         )
 
@@ -178,7 +178,7 @@ class TestLegacyCompatKeys:
 class TestAggregateTargetsCopilotModel:
     def test_aggregate_totals_executes_against_copilot_llm_call_model(self, db) -> None:
         """Smoke that ``_aggregate_totals`` queries ``copilot_llm_call``."""
-        from src.modules.copilot.observability.persistence.models.llm_call_model import (
+        from luana_core_copilot.observability.persistence.models.llm_call_model import (
             CopilotLlmCallModel,
         )
 
@@ -225,10 +225,10 @@ class TestObserveTurnIsBaseConcrete:
     """Regression for arch invariant — subclass body MUST NOT shadow lifecycle."""
 
     def test_observe_turn_resolves_to_base_class(self) -> None:
-        from src.modules.copilot.observability.recording.turn_envelope import (
+        from luana_core_copilot.observability.recording.turn_envelope import (
             CopilotObservabilityContext,
         )
-        from src.shared.agent_observability.recording.turn_envelope import (
+        from luana_core_observability.recording.turn_envelope import (
             BaseObservabilityContext,
         )
 

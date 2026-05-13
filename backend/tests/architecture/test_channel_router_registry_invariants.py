@@ -24,7 +24,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def _reset_channel_registry_arch() -> object:
     """Reset singleton registry before and after each test in this module."""
-    from src.modules.campaigns.infrastructure.channels.registry import ChannelRouterRegistry
+    from luana_core_campaigns.infrastructure.channels.registry import ChannelRouterRegistry
 
     ChannelRouterRegistry().reset()
     yield
@@ -40,8 +40,8 @@ class TestChannelRouterRegistryInvariants:
         The ChannelRouter Protocol is decorated with @runtime_checkable (PR-3 domain).
         isinstance() check must return True for TelegramChannelRouter instances.
         """
-        from src.modules.campaigns.domain.channel_router import ChannelRouter
-        from src.modules.campaigns.infrastructure.channels.telegram import (
+        from luana_core_campaigns.domain.channel_router import ChannelRouter
+        from luana_core_campaigns.infrastructure.channels.telegram import (
             TelegramChannelRouter,
         )
 
@@ -57,7 +57,7 @@ class TestChannelRouterRegistryInvariants:
 
     def test_register_default_channels_populates_telegram(self) -> None:
         """register_default_channels populates registry with 'telegram' entry."""
-        from src.modules.campaigns.infrastructure.channels.registry import (
+        from luana_core_campaigns.infrastructure.channels.registry import (
             ChannelRouterRegistry,
             register_default_channels,
         )
@@ -76,8 +76,8 @@ class TestChannelRouterRegistryInvariants:
 
     def test_registered_telegram_router_satisfies_protocol(self) -> None:
         """Router returned by registry.get('telegram') satisfies ChannelRouter Protocol."""
-        from src.modules.campaigns.domain.channel_router import ChannelRouter
-        from src.modules.campaigns.infrastructure.channels.registry import (
+        from luana_core_campaigns.domain.channel_router import ChannelRouter
+        from luana_core_campaigns.infrastructure.channels.registry import (
             ChannelRouterRegistry,
             register_default_channels,
         )
@@ -97,7 +97,7 @@ class TestChannelRouterRegistryInvariants:
 
     def test_registry_get_unknown_channel_raises_key_error(self) -> None:
         """registry.get('nonexistent') raises KeyError for unregistered channels."""
-        from src.modules.campaigns.infrastructure.channels.registry import (
+        from luana_core_campaigns.infrastructure.channels.registry import (
             ChannelRouterRegistry,
         )
 
@@ -108,7 +108,7 @@ class TestChannelRouterRegistryInvariants:
 
     def test_registry_is_singleton(self) -> None:
         """ChannelRouterRegistry() always returns the same instance."""
-        from src.modules.campaigns.infrastructure.channels.registry import (
+        from luana_core_campaigns.infrastructure.channels.registry import (
             ChannelRouterRegistry,
         )
 
@@ -122,7 +122,7 @@ class TestChannelRouterRegistryInvariants:
 
     def test_registry_reset_clears_registrations(self) -> None:
         """registry.reset() clears all channel registrations (test utility)."""
-        from src.modules.campaigns.infrastructure.channels.registry import (
+        from luana_core_campaigns.infrastructure.channels.registry import (
             ChannelRouterRegistry,
             register_default_channels,
         )
@@ -142,7 +142,7 @@ class TestChannelRouterRegistryInvariants:
 
     def test_register_invalid_router_raises_type_error(self) -> None:
         """registry.register() raises TypeError for non-Protocol objects."""
-        from src.modules.campaigns.infrastructure.channels.registry import (
+        from luana_core_campaigns.infrastructure.channels.registry import (
             ChannelRouterRegistry,
         )
 

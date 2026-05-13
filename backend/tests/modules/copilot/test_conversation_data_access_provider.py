@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.modules.copilot.application.data_access.conversation import (
+from luana_core_copilot.application.data_access.conversation import (
     ConversationDataAccessProvider,
 )
-from src.modules.copilot.domain.ports import DataQueryPlan
-from src.modules.copilot.infrastructure.models.conversation_model import (
+from luana_core_copilot.domain.ports import DataQueryPlan
+from luana_core_copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
 )
 

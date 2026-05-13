@@ -21,25 +21,24 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
-
-from src.modules.copilot.domain.events import (
+from luana_core_copilot.domain.events import (
     EVENT_CARD_EMITTED,
     EVENT_ROUTING_DECIDED,
     EVENT_SUGGESTION_ACCEPTED,
     EVENT_SUGGESTION_SHOWN,
 )
-from src.shared.agent_observability.recording.sanitization import sanitize_payload, truncate
-from src.shared.domain.events import DomainEvent  # noqa: TC001 — used in runtime handler signatures
-from src.shared.domain_events.outbox.application.event_bus_adapter import (
+from luana_core_events.outbox.application.event_bus_adapter import (
     adapter_bus as EventBus,  # noqa: N812
 )
+from luana_core_observability.recording.sanitization import sanitize_payload, truncate
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from src.modules.copilot.observability.persistence.trace_event_repository import (
+    from luana_core_copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
+    from luana_core_platform.domain.events import DomainEvent
 
 logger = structlog.get_logger()
 
@@ -117,7 +116,7 @@ def _subscribe_once(event_name: str, handler: Callable[[DomainEvent], None]) -> 
     legacy in-memory bus.  The dedup check must therefore query
     ``LegacyEventBus._handlers`` (class attribute on the legacy bus class).
     """
-    from src.shared.domain.events import EventBus as _LegacyEventBus
+    from luana_core_platform.domain.events import EventBus as _LegacyEventBus
 
     existing = _LegacyEventBus._handlers.get(event_name, [])
     target_name = getattr(handler, "__name__", str(handler))

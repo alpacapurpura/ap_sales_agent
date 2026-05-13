@@ -7,23 +7,23 @@ from uuid import uuid4
 
 import pytest
 
-from src.core.context import (
+from luana_core_platform.core.context import (
     set_conversation_id,
     set_tenant_id,
     set_user_id,
 )
-from src.modules.copilot.application.tools.fetch_url import (
+from luana_core_copilot.application.tools.fetch_url import (
     ACTIVE_INSPIRATIONS_CAP,
     MAX_INSPIRATIONS_PER_CONVERSATION,
     _fetch_url_impl,
 )
-from src.modules.copilot.application.tools.url_inspiration_analyzer import (
+from luana_core_copilot.application.tools.url_inspiration_analyzer import (
     InspirationAnalysis,
 )
-from src.modules.copilot.infrastructure.repositories.inspiration_repository import (
+from luana_core_copilot.infrastructure.repositories.inspiration_repository import (
     CopilotInspirationRepository,
 )
-from src.modules.copilot.infrastructure.web.trafilatura_client import (
+from luana_core_copilot.infrastructure.web.trafilatura_client import (
     WebExtractResult,
 )
 
@@ -129,7 +129,7 @@ class TestFetchUrlImpl:
         # Simpler: remove this test — covered by test_trafilatura_client.
         # Keep as smoke that the flow handles invalid URLs gracefully
         # via the FetchUrlError path:
-        from src.modules.copilot.infrastructure.web.trafilatura_client import (
+        from luana_core_copilot.infrastructure.web.trafilatura_client import (
             FetchUrlError,
         )
 

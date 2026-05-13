@@ -44,8 +44,7 @@ from typing import Any
 
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
-
-from src.shared.infrastructure.llm.providers._kwargs import (
+from luana_core_llm.providers._kwargs import (
     normalize_openai_protocol_kwargs,
 )
 

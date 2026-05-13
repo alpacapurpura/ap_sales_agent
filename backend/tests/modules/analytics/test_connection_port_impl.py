@@ -14,11 +14,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.modules.analytics.domain.exceptions import (
+from luana_core_analytics_engine.domain.exceptions import (
     ConnectionRevokedError,
     TokenRefreshError,
 )
-from src.modules.analytics.domain.ports import ConnectionCredentials
+from luana_core_analytics_engine.domain.ports import ConnectionCredentials
 
 # Fixed test UUIDs
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
@@ -46,7 +46,7 @@ class TestConnectionPortImplGetCredentials:
 
     async def test_returns_credentials_for_active_connection_with_valid_token(self):
         """Happy path: active connection exists with non-expired token."""
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
 
@@ -69,7 +69,7 @@ class TestConnectionPortImplGetCredentials:
 
     async def test_raises_connection_revoked_when_no_active_connection(self):
         """No active connection -> ConnectionRevokedError."""
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
 
@@ -87,7 +87,7 @@ class TestConnectionPortImplGetCredentials:
 
     async def test_detects_expired_token_and_refreshes(self):
         """Expired token triggers _refresh_token, persists, returns refreshed credentials."""
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
 
@@ -129,7 +129,7 @@ class TestConnectionPortImplGetCredentials:
 
     async def test_raises_token_refresh_failed_on_refresh_error(self):
         """When _refresh_token fails, raises TokenRefreshError."""
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
 
@@ -166,7 +166,7 @@ class TestConnectionPortImplListActive:
 
     async def test_returns_list_of_credentials_for_active_connections(self):
         """Two active connections -> two ConnectionCredentials."""
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
 
@@ -188,7 +188,7 @@ class TestConnectionPortImplListActive:
 
     async def test_returns_empty_list_when_no_connections(self):
         """No connections -> empty list."""
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
 
@@ -205,7 +205,7 @@ class TestConnectionPortImplListActive:
 
     async def test_filters_inactive_connections(self):
         """Only active connections are returned."""
-        from src.modules.connections.application.services.connection_port_impl import (
+        from luana_core_connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
 

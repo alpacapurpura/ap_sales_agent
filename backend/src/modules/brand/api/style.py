@@ -4,15 +4,14 @@ from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from luana_core_brand_studio.application.agents.style_analyzer.graph import onboarding_app
+from luana_core_iam.api.dependencies import get_current_user
+from luana_core_iam.domain.user import User
+from luana_core_iam.infrastructure.models import UserModel
+from luana_core_platform.core.database import get_db
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from src.core.database import get_db
-from src.modules.brand.application.agents.style_analyzer.graph import onboarding_app
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models import UserModel
 
 logger = structlog.get_logger()
 router = APIRouter()

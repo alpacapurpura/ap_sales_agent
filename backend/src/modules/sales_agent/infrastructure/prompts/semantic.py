@@ -6,13 +6,12 @@ from typing import TYPE_CHECKING
 
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
-
-from src.core.enums import ModelRole
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
-from src.shared.infrastructure.llm.factory import LLMFactory
+from luana_core_llm.factory import LLMFactory
+from luana_core_platform.core.enums import ModelRole
+from luana_core_sales_agent.infrastructure.prompts.base import prompt_loader
 
 if TYPE_CHECKING:
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+    from luana_core_iam.infrastructure.models.tenant_model import TenantModel
 
 logger = structlog.get_logger()
 

@@ -7,8 +7,8 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from src.modules.connections.api.dto.google_analytics import PropertySelectRequest
-from src.modules.connections.api.google_analytics import (
+from luana_core_connections.api.dto.google_analytics import PropertySelectRequest
+from luana_core_connections.api.google_analytics import (
     GoogleAnalyticsConfig,
     disconnect,
     get_auth_url,
@@ -18,10 +18,10 @@ from src.modules.connections.api.google_analytics import (
     save_config,
     select_property,
 )
-from src.modules.connections.api.google_analytics import (
+from luana_core_connections.api.google_analytics import (
     test_connection as ga_test_connection,
 )
-from src.modules.connections.domain.enums import ChannelType
+from luana_core_connections.domain.enums import ChannelType
 
 TENANT_ID = uuid4()
 
@@ -103,7 +103,7 @@ class TestGetAuthUrl:
         conn = _conn()
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.google_analytics._build_adapter") as mock_adapter:
+        with patch("luana_core_connections.api.google_analytics._build_adapter") as mock_adapter:
             mock_adapter.return_value.get_authorization_url.return_value = (
                 "https://accounts.google.com/auth",
                 "state_xyz",
@@ -132,7 +132,7 @@ class TestOauthCallback:
         conn = _conn()
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.google_analytics._build_adapter") as mock_adapter:
+        with patch("luana_core_connections.api.google_analytics._build_adapter") as mock_adapter:
             mock_adapter.return_value.exchange_code.side_effect = Exception("token exchange failed")
             with pytest.raises(HTTPException) as exc_info:
                 await oauth_callback("bad_code", _user(), repo)
@@ -144,7 +144,7 @@ class TestOauthCallback:
         repo = _repo(get_by_tenant_and_type=MagicMock(return_value=conn))
         token_data = {"access_token": "at", "refresh_token": "rt"}
 
-        with patch("src.modules.connections.api.google_analytics._build_adapter") as mock_adapter:
+        with patch("luana_core_connections.api.google_analytics._build_adapter") as mock_adapter:
             mock_adapter.return_value.exchange_code.return_value = token_data
             mock_adapter.return_value.get_flat_properties.return_value = []
             result = await oauth_callback("good_code", _user(), repo)
@@ -208,7 +208,7 @@ class TestGetProperties:
         repo = _repo(get_active=MagicMock(return_value=conn))
         props = [{"property_id": "p/1", "account_name": "Acc", "display_name": "My Site", "account_id": "a/1"}]
 
-        with patch("src.modules.connections.api.google_analytics._build_adapter") as mock_adapter:
+        with patch("luana_core_connections.api.google_analytics._build_adapter") as mock_adapter:
             mock_adapter.return_value.get_flat_properties.return_value = props
             result = await get_properties(_user(), repo)
 
@@ -220,7 +220,7 @@ class TestGetProperties:
         conn = _conn()
         repo = _repo(get_active=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.google_analytics._build_adapter") as mock_adapter:
+        with patch("luana_core_connections.api.google_analytics._build_adapter") as mock_adapter:
             mock_adapter.return_value.get_flat_properties.side_effect = Exception("API error")
             with pytest.raises(HTTPException) as exc_info:
                 await get_properties(_user(), repo)
@@ -247,7 +247,7 @@ class TestSelectProperty:
         repo = _repo(get_active=MagicMock(return_value=conn))
         body = PropertySelectRequest(property_id="properties/123")
 
-        with patch("src.modules.connections.api.google_analytics._build_adapter") as mock_adapter:
+        with patch("luana_core_connections.api.google_analytics._build_adapter") as mock_adapter:
             mock_adapter.return_value.get_flat_properties.return_value = [
                 {"property_id": "properties/123", "display_name": "My Site", "account_name": "Acc", "account_id": "a/1"}
             ]
@@ -300,7 +300,7 @@ class TestTestConnectionGA:
         repo = _repo(get_active=MagicMock(return_value=conn))
         summaries = [{"name": "acc/1", "displayName": "My Account"}]
 
-        with patch("src.modules.connections.api.google_analytics._build_adapter") as mock_adapter:
+        with patch("luana_core_connections.api.google_analytics._build_adapter") as mock_adapter:
             mock_adapter.return_value.get_account_summaries.return_value = summaries
             result = await ga_test_connection(_user(), repo)
 
@@ -311,7 +311,7 @@ class TestTestConnectionGA:
         conn = _conn()
         repo = _repo(get_active=MagicMock(return_value=conn))
 
-        with patch("src.modules.connections.api.google_analytics._build_adapter") as mock_adapter:
+        with patch("luana_core_connections.api.google_analytics._build_adapter") as mock_adapter:
             mock_adapter.return_value.get_account_summaries.side_effect = Exception("network error")
             result = await ga_test_connection(_user(), repo)
 

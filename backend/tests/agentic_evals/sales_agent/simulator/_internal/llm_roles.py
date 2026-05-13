@@ -32,7 +32,7 @@ test time.
 
 from __future__ import annotations
 
-from src.core.enums import ModelRole
+from luana_core_platform.core.enums import ModelRole
 
 # H1 forward-compat — append only. Role removal requires migration entry in
 # ``simulator/_internal/schema_migrations.py`` because golden v1 fixtures may

@@ -2,8 +2,8 @@
 
 import uuid
 
-from src.modules.iam.application.services.tenant_service import TenantService
-from src.modules.iam.domain.tenant import Tenant
+from luana_core_iam.application.services.tenant_service import TenantService
+from luana_core_iam.domain.tenant import Tenant
 
 
 class TestTenantServiceCreateTenant:
@@ -153,7 +153,7 @@ class TestTenantServiceUpdateTenant:
             can_use_keys=False,
             is_active=True,
         )
-        from src.modules.iam.infrastructure.repositories.tenant_repository import (
+        from luana_core_iam.infrastructure.repositories.tenant_repository import (
             TenantRepository,
         )
 
@@ -174,7 +174,7 @@ class TestTenantServiceUpdateTenant:
 
 class TestUserService:
     def test_get_user_tenants_returns_linked_tenants(self, db, seed_user_tenant_link, user_id):
-        from src.modules.iam.application.services.user_service import UserService
+        from luana_core_iam.application.services.user_service import UserService
 
         service = UserService(db)
         tenants = service.get_user_tenants(user_id)
@@ -184,14 +184,14 @@ class TestUserService:
     def test_get_user_tenants_empty_for_unlinked_user(self, db, seed_user, user_id):
         import uuid
 
-        from src.modules.iam.application.services.user_service import UserService
+        from luana_core_iam.application.services.user_service import UserService
 
         service = UserService(db)
         tenants = service.get_user_tenants(uuid.uuid4())
         assert tenants == []
 
     def test_get_user_tenants_has_role(self, db, seed_user_tenant_link, user_id):
-        from src.modules.iam.application.services.user_service import UserService
+        from luana_core_iam.application.services.user_service import UserService
 
         service = UserService(db)
         tenants = service.get_user_tenants(user_id)

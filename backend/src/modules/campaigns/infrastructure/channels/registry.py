@@ -16,8 +16,7 @@ from threading import Lock
 from typing import Self
 
 import structlog
-
-from src.modules.campaigns.domain.channel_router import ChannelRouter
+from luana_core_campaigns.domain.channel_router import ChannelRouter
 
 logger = structlog.get_logger(__name__)
 
@@ -126,7 +125,7 @@ def register_default_channels(*, telegram_token_provider: object) -> None:
     Args:
         telegram_token_provider: Async callable resolving bot token by tenant_id.
     """
-    from src.modules.campaigns.infrastructure.channels.telegram import TelegramChannelRouter
+    from luana_core_campaigns.infrastructure.channels.telegram import TelegramChannelRouter
 
     registry = ChannelRouterRegistry()
     registry.register(

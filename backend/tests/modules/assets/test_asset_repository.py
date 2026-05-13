@@ -4,10 +4,10 @@ import uuid
 
 from sqlalchemy import select
 
-from src.modules.assets.domain.entity import Asset
-from src.modules.assets.domain.enums import AssetStatus, AssetType, StorageProvider
-from src.modules.assets.infrastructure.models.asset_model import AssetModel
-from src.modules.assets.infrastructure.repositories.asset_repository import (
+from luana_core_assets.domain.entity import Asset
+from luana_core_assets.domain.enums import AssetStatus, AssetType, StorageProvider
+from luana_core_assets.infrastructure.models.asset_model import AssetModel
+from luana_core_assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
 

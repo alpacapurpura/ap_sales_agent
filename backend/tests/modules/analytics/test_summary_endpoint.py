@@ -4,7 +4,7 @@ Validates that DTO Pydantic models have all expected fields and
 can be instantiated with valid data. Pure Python — no DB, no async.
 """
 
-from src.modules.analytics.application.dto.attraction_dto import (
+from luana_core_analytics_engine.application.dto.attraction_dto import (
     AttractionDetailDTO,
     AvailableChannelsDTO,
     ChannelMetricDTO,
@@ -12,7 +12,7 @@ from src.modules.analytics.application.dto.attraction_dto import (
     SubSourceDTO,
     TrafficGroupDTO,
 )
-from src.modules.analytics.application.dto.summary_dto import (
+from luana_core_analytics_engine.application.dto.summary_dto import (
     BowtiesSummaryDTO,
     StageSummaryKpiDTO,
 )

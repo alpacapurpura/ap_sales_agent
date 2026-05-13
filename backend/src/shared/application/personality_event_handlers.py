@@ -11,9 +11,8 @@ See ``.claude/rules/sales-agent-brand-voice.md``.
 from __future__ import annotations
 
 import structlog
-
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
-from src.shared.domain.events import DomainEvent, EventBus
+from luana_core_platform.domain.events import DomainEvent, EventBus
+from luana_core_sales_agent.infrastructure.prompts.base import prompt_loader
 
 logger = structlog.get_logger()
 

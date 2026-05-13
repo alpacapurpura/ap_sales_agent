@@ -17,7 +17,7 @@ from unittest.mock import MagicMock
 
 from langchain_core.messages import AIMessage, HumanMessage
 
-from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
+from luana_core_copilot.application.orchestrator.chat import CopilotOrchestrator
 
 
 class TestAttachBlocksToLastAssistant:

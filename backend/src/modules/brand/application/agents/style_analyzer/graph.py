@@ -17,8 +17,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from langgraph.graph import END, START, StateGraph
-
-from src.modules.brand.application.agents.style_analyzer.nodes import (
+from luana_core_brand_studio.application.agents.style_analyzer.nodes import (
     node_architect,
     node_embedder,
     node_janitor,
@@ -26,10 +25,10 @@ from src.modules.brand.application.agents.style_analyzer.nodes import (
     node_psychologist,
     node_simulator,
 )
-from src.modules.brand.application.agents.style_analyzer.nodes_research import (
+from luana_core_brand_studio.application.agents.style_analyzer.nodes_research import (
     node_researcher,
 )
-from src.modules.brand.application.agents.style_analyzer.state import OnboardingState
+from luana_core_brand_studio.application.agents.style_analyzer.state import OnboardingState
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph

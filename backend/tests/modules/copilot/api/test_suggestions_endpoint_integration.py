@@ -14,7 +14,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
+from luana_core_iam.api.dependencies import get_current_user, get_tenant_context
 
 
 @pytest.mark.integration
@@ -23,8 +23,8 @@ class TestSuggestionsIntegration:
 
     def test_e2e_real_engine_real_offer_provider(self) -> None:
         """Tenant sin offers + route='offer-studio' → chip 'Crea tu primera oferta'."""
-        from src.modules.copilot.api.suggestions import router
-        from src.modules.copilot.application.suggestions.registry import _reset_for_tests
+        from luana_core_copilot.api.suggestions import router
+        from luana_core_copilot.application.suggestions.registry import _reset_for_tests
 
         # Reset engine so we get a fresh bootstrap (OfferSuggestionProvider)
         _reset_for_tests()
@@ -64,19 +64,19 @@ class TestSuggestionsIntegration:
 
         from sqlalchemy.orm import sessionmaker
 
-        from src.modules.copilot.api.suggestions import router
-        from src.modules.copilot.application.suggestions.registry import _reset_for_tests
-        from src.modules.copilot.domain.suggestion import Suggestion, SuggestionCategory
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.api.suggestions import router
+        from luana_core_copilot.application.suggestions.registry import _reset_for_tests
+        from luana_core_copilot.domain.suggestion import Suggestion, SuggestionCategory
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
-        from src.shared.domain.events import EventBus
+        from luana_core_platform.domain.events import EventBus
 
         EventBus.clear()
         conn = db_engine.connect()
@@ -108,7 +108,7 @@ class TestSuggestionsIntegration:
 
             client = TestClient(app)
 
-            with patch("src.modules.copilot.api.suggestions.get_default_engine") as mock_fn:
+            with patch("luana_core_copilot.api.suggestions.get_default_engine") as mock_fn:
                 mock_engine = MagicMock()
                 mock_engine.get_suggestions.return_value = ([chip], {"offer": 1}, 5)
                 mock_fn.return_value = mock_engine
@@ -141,17 +141,17 @@ class TestSuggestionsIntegration:
 
         from sqlalchemy.orm import sessionmaker
 
-        from src.modules.copilot.api.suggestions import router
-        from src.modules.copilot.infrastructure.models.trace_event_model import (
+        from luana_core_copilot.api.suggestions import router
+        from luana_core_copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
-        from src.modules.copilot.observability.persistence.trace_event_repository import (
+        from luana_core_copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.modules.copilot.observability.recording.domain_subscribers import (
+        from luana_core_copilot.observability.recording.domain_subscribers import (
             register_subscribers,
         )
-        from src.shared.domain.events import EventBus
+        from luana_core_platform.domain.events import EventBus
 
         EventBus.clear()
         conn = db_engine.connect()

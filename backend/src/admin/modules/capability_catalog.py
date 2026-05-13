@@ -10,17 +10,17 @@ def render_capability_catalog() -> None:
 
     # KPIs — static counts from code
     try:
-        from src.modules.copilot.application.procedures.brand_setup import BRAND_SETUP
-        from src.modules.copilot.application.procedures.first_setup import FIRST_SETUP
-        from src.modules.copilot.application.procedures.offer_creation import (
+        from luana_core_copilot.application.procedures.brand_setup import BRAND_SETUP
+        from luana_core_copilot.application.procedures.first_setup import FIRST_SETUP
+        from luana_core_copilot.application.procedures.offer_creation import (
             OFFER_CREATION,
         )
-        from src.modules.copilot.application.tools.registry import (
+        from luana_core_copilot.application.tools.registry import (
             ROUTE_TOOL_MAP,
             TOOL_GROUPS,
             get_all_tools,
         )
-        from src.modules.copilot.domain.module_registry import get_module_registry
+        from luana_core_copilot.domain.module_registry import get_module_registry
 
         all_tools = get_all_tools()
         procedures = [BRAND_SETUP, FIRST_SETUP, OFFER_CREATION]
@@ -289,10 +289,10 @@ def render_capability_catalog() -> None:
 
         if st.button("Analizar Uso", key="cap_usage_btn"):
             try:
-                from src.core.database import SessionLocal
-                from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+                from luana_core_copilot.infrastructure.repositories.conversation_repository import (
                     ConversationRepository,
                 )
+                from luana_core_platform.core.database import SessionLocal
 
                 db = SessionLocal()
                 try:

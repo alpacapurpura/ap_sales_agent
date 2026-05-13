@@ -7,7 +7,7 @@ that state propagates correctly across supervisor → specialist → signal_accu
 import importlib
 from unittest.mock import MagicMock, patch
 
-from src.modules.sales_agent.application.orchestrator.state import create_initial_state
+from luana_core_sales_agent.application.orchestrator.state import create_initial_state
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -27,7 +27,7 @@ def _make_state(**overrides):
 
 
 # No-op replacement for trace_node to avoid DB connections
-_TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_node"
+_TRACE_PATCH = "luana_core_sales_agent.infrastructure.monitoring.tracing.trace_node"
 
 
 def _noop_trace(name):

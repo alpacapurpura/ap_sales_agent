@@ -33,9 +33,9 @@ See ``docs/refactors/field-contract-platform/DESIGN.md``.
 
 from __future__ import annotations
 
-from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.offer import Offer
-from src.shared.domain.field_contract import (
+from luana_core_offer_studio.domain.enums import OfferArchetype
+from luana_core_offer_studio.domain.offer import Offer
+from luana_core_platform.domain.field_contract import (
     FieldContract,
     FieldContractRegistrySnapshot,
     FieldStatus,
@@ -43,8 +43,8 @@ from src.shared.domain.field_contract import (
     derive_contracts_from_pydantic,
     register_module_contracts,
 )
-from src.shared.domain.field_contract import FieldContractOverride as Override
-from src.shared.domain.field_contract import fields_by_section as _shared_fields_by_section
+from luana_core_platform.domain.field_contract import FieldContractOverride as Override
+from luana_core_platform.domain.field_contract import fields_by_section as _shared_fields_by_section
 
 # ---------------------------------------------------------------------------
 # Ignore paths — system fields not user-facing
@@ -177,7 +177,7 @@ def _build_polymorphic_prefix_map() -> dict[type, PolymorphicVariantSpec]:
     — one per section — so archetype-aware consumers surface the
     correct section without runtime lookup.
     """
-    from src.modules.offer.domain.details import (
+    from luana_core_offer_studio.domain.details import (
         EventDetails,
         ProductDetails,
         ProgramDetails,

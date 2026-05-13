@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from src.shared.domain.events import DomainEvent
+from luana_core_platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
     from uuid import UUID

@@ -12,9 +12,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from luana_core_platform.domain.enums import LifecycleStage
 from pydantic import BaseModel, ConfigDict, Field
-
-from src.shared.domain.enums import LifecycleStage
 
 
 class ContactFilterParams(BaseModel):

@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.offer.domain.enums import (
+from luana_core_offer_studio.domain.enums import (
     KnowledgeSourceStatus,
     KnowledgeSourceType,
 )
-from src.modules.offer.domain.knowledge_source import KnowledgeSource
-from src.modules.offer.infrastructure.repositories.knowledge_source_repository import (
+from luana_core_offer_studio.domain.knowledge_source import KnowledgeSource
+from luana_core_offer_studio.infrastructure.repositories.knowledge_source_repository import (
     KnowledgeSourceRepository,
 )
 from tests.modules.offer.conftest import create_product_model
