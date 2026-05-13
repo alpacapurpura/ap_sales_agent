@@ -20,8 +20,9 @@
 story_id: luana-nicolify-migration
 generated_at: 2026-05-12T18:30Z
 generated_by: /architect (Opus 4.7)
-total_tickets: 14
-estimated_total_hours: 40-44
+total_tickets: 15                          # post-addendum 2026-05-13 §4 (T-2-prep inserted)
+estimated_total_hours: 40.5-44.5            # post-addendum 2026-05-13 §4
+addendum_revision: 03-arch-be-addendum-2026-05-13.md (Pattern P6 — shared-base lift first)
 parallelization_cap: 2
 opus_priority: [T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-13]
 session_5_cost_cap_usd: 5000
@@ -34,13 +35,14 @@ cite_halt_triggers: docs/product/outcomes/luana-platform-migration.md §7.6.2 (1
 
 # ── Summary ─────────────────────────────────────────────────────
 summary:
-  - { id: T-1,  title: "Baseline capture + codemod scripts + new arch fitness tests", wave_position: 0, owner: sonnet,        blocked_by: [],                    blocks: [T-2, T-3, T-4, T-5, T-6, T-7, T-8] }
-  - { id: T-2,  title: "BE imports rewrite — brand + offer (Wave 1A)",                 wave_position: 1, owner: opus,          blocked_by: [T-1],                 blocks: [T-N-final],                          parallelizable_with: [T-3] }
-  - { id: T-3,  title: "BE imports rewrite — landing/assets/connections/scheduling/iam/crm/commercial_calendar (Wave 1B sharded)", wave_position: 1, owner: opus, blocked_by: [T-1], blocks: [T-N-final], parallelizable_with: [T-2] }
-  - { id: T-4,  title: "BE imports rewrite — analytics/campaigns/social_proof/tenant_*/advertising/social_media (Wave 1C sharded)", wave_position: 1, owner: opus, blocked_by: [T-1, T-3], blocks: [T-N-final] }
-  - { id: T-5,  title: "BE imports rewrite — copilot (Wave 2 agentic R23)",            wave_position: 2, owner: opus,          blocked_by: [T-4],                 blocks: [T-7],                                parallelizable_with: [T-6] }
-  - { id: T-6,  title: "BE imports rewrite — sales_agent (Wave 2 agentic R23)",        wave_position: 2, owner: opus,          blocked_by: [T-4],                 blocks: [T-7],                                parallelizable_with: [T-5] }
-  - { id: T-7,  title: "BE imports rewrite — shared/* cross-cutting (Wave 2 sharded 11 subsystems)", wave_position: 2, owner: opus, blocked_by: [T-5, T-6],       blocks: [T-8, T-10] }
+  - { id: T-1,  title: "Baseline capture + codemod scripts + new arch fitness tests", wave_position: 0, owner: sonnet,        blocked_by: [],                    blocks: [T-2-prep, T-2, T-3, T-4, T-5, T-6, T-7, T-8] }
+  - { id: T-2-prep, title: "Shared Base re-export stub (Pattern P6 prologue — fixes SQLA collision class)", wave_position: 0.5, owner: sonnet,     blocked_by: [T-1],                 blocks: [T-2, T-3, T-4, T-5, T-6, T-7] }
+  - { id: T-2,  title: "BE imports rewrite — brand + offer (Wave 1A)",                 wave_position: 1, owner: opus,          blocked_by: [T-1, T-2-prep],       blocks: [T-N-final],                          parallelizable_with: [T-3] }
+  - { id: T-3,  title: "BE imports rewrite — landing/assets/connections/scheduling/iam/crm/commercial_calendar (Wave 1B sharded)", wave_position: 1, owner: opus, blocked_by: [T-1, T-2-prep], blocks: [T-N-final], parallelizable_with: [T-2] }
+  - { id: T-4,  title: "BE imports rewrite — analytics/campaigns/social_proof/tenant_*/advertising/social_media (Wave 1C sharded)", wave_position: 1, owner: opus, blocked_by: [T-1, T-2-prep, T-3], blocks: [T-N-final] }
+  - { id: T-5,  title: "BE imports rewrite — copilot (Wave 2 agentic R23)",            wave_position: 2, owner: opus,          blocked_by: [T-2-prep, T-4],       blocks: [T-7],                                parallelizable_with: [T-6] }
+  - { id: T-6,  title: "BE imports rewrite — sales_agent (Wave 2 agentic R23)",        wave_position: 2, owner: opus,          blocked_by: [T-2-prep, T-4],       blocks: [T-7],                                parallelizable_with: [T-5] }
+  - { id: T-7,  title: "BE imports rewrite — shared/* cross-cutting (Wave 2 sharded 11 subsystems) + Pattern P6 closure (delete base_entity stub)", wave_position: 2, owner: opus, blocked_by: [T-2-prep, T-5, T-6], blocks: [T-8, T-10] }
   - { id: T-8,  title: "FE git mv + workspace registration + jscodeshift imports rewrite", wave_position: 3, owner: opus,      blocked_by: [T-7],                 blocks: [T-9, T-11] }
   - { id: T-9,  title: "Vercel reconfig + CF tunnel verify",                            wave_position: 3, owner: opus,          blocked_by: [T-8],                 blocks: [T-11] }
   - { id: T-10, title: "Fresh nicolify_dev DB + alembic snapshot consolidation",        wave_position: 3, owner: opus,          blocked_by: [T-7],                 blocks: [T-N-final],                          parallelizable_with: [T-8] }
@@ -53,6 +55,7 @@ summary:
 
 tickets:
   - $ref: "#/T1"
+  - $ref: "#/T2prep"                          # NEW addendum 2026-05-13 §4.3
   - $ref: "#/T2"
   - $ref: "#/T3"
   - $ref: "#/T4"
@@ -159,6 +162,106 @@ T1:
   assigned_to: null
 
 # ════════════════════════════════════════════════════════════════
+# NEW addendum 2026-05-13 §4.3 — Pattern P6 prologue (T-2-prep)
+T2prep:
+  id: T-2-prep
+  title: "Shared Base re-export stub (Pattern P6 prologue — fixes SQLA collision class)"
+  type: backend
+  surface: BE
+  wave_position: 0.5                          # between baseline T-1 and Wave 1 T-2
+  production_code: false                      # Single-file re-export stub — zero business logic
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false                      # Anti-duplication scope nuance — needs Claude
+    claude_sonnet: true                       # PREFERRED — mechanical 13-LOC replacement + verification suite
+    claude_opus_required: false               # No agentic surface, no complex DDD reasoning
+  priority: 1                                  # blocks ALL Wave 1+2 tickets
+  estimate_hours: 0.5
+  estimated_cost_usd_range: [30, 50]
+  estimated_duration_minutes: 20-30
+  parallelizable_with: []                     # Sequential — pre-Wave-1
+  decisions_applicable: [D5, D1]               # D5=fix-on-discovery / D1=big-bang scope (T-2-prep is the prologue to atomic Wave 1+2)
+  halt_triggers_applicable: [12]              # NEW Trigger #12 (SQLA collision class — addendum §6.1)
+  repro_verified: true                        # SQLA collision reproduced live 2026-05-13 by architect (addendum §1.1)
+  repro_evidence:
+    command: "cd /home/chris/AISALESHT/backend && git stash apply 'stash@{1}' && .venv/bin/pytest tests/modules/brand/test_brand_repository.py --override-ini=\"addopts=\" -x --tb=short"
+    output: |
+      sqlalchemy.exc.NoReferencedTableError: Foreign key associated with column
+      'sales.offer_id' could not find table 'products' with which to generate
+      a foreign key to target column 'id'
+    diagnosis_validates_handoff: true
+    diagnosis_correction: "Root cause = two Base instances (AISALESHT vs luana). Fix = re-export AISALESHT Base from luana_core_platform.domain.base_entity to unify singleton."
+  inputs:
+    spec: "../01-spec.md §5 Feature 1 (prerequisite for clean Wave 1)"
+    arch_doc: "../03-arch.md §3 Wave 1 (revised by addendum 2026-05-13)"
+    arch_be_doc: "../03-arch-be-addendum-2026-05-13.md §3 + §4.3"
+    guidelines: "../05-guidelines.md §1.5 (skills) — anti-duplication.md migration-window exception"
+    rules:
+      - ".claude/rules/backend-ddd.md"
+      - ".claude/rules/anti-duplication.md"
+      - ".claude/rules/tdd-mandatory.md"
+    domain_skills: ["backend-expert"]
+  description: |
+    Unify SQLAlchemy `Base` singleton across AISALESHT and luana_core_* trees
+    by converting `backend/src/shared/domain/base_entity.py` to a re-export stub
+    from `luana_core_platform.domain.base_entity`. This is the prologue to
+    Wave 1+2 BE imports rewrite — without this stub, every subsequent codemod
+    application produces SQLAlchemy Table/Mapper collisions (verified 2026-05-13
+    Session 6 attempt 4 halt).
+
+    See full design + verification commands in
+    `03-arch-be-addendum-2026-05-13.md §4.3` (T-2-prep ticket spec body).
+
+    **Anti-duplication §0 migration-window exception note** (auditor C2 input):
+    Add row to `.claude/rules/anti-duplication.md` inventory:
+    | `src.shared.domain.base_entity.Base` | re-export stub | shared base singleton unification during multi-ticket lift | DELETED at T-7 — Story 10 migration window only |
+
+  blast_radius:
+    files_affected_count: 1
+    paths:
+      - /home/chris/AISALESHT/backend/src/shared/domain/base_entity.py
+  deliverables:
+    - "src/shared/domain/base_entity.py converted to 5-LOC re-export stub from luana_core_platform.domain.base_entity"
+    - "Sanity smoke: `A.Base is L.Base` returns True (single Python object)"
+    - "pytest --collect-only on iam + brand modules: 0 SQLA InvalidRequestError"
+    - "pytest BE delta=0 vs T-1 baseline (regression check)"
+    - "anti-duplication.md updated with migration-window exception row OR commit body verbatim addendum cite"
+    - "T-2-prep-impl-log.md + T-2-prep-result.md"
+  validators_referenced: [V-NF-1, V-NF-5]     # NEW V-F-1a (Base unification) to be added Part 2 validators revision
+  out_of_scope:
+    - "Any rewrite of model files (deferred T-2+)"
+    - "Any luana-core package modification (read-only on luana tree)"
+    - "Codemod modification (deferred — optional hardening in addendum §5)"
+  acceptance:
+    - id: A1
+      description: "base_entity.py is now ≤10-LOC re-export from luana_core_platform"
+      verifier:
+        type: shell
+        cmd: "grep -q 'from luana_core_platform.domain.base_entity import Base, BaseEntity' /home/chris/AISALESHT/backend/src/shared/domain/base_entity.py && test $(wc -l < /home/chris/AISALESHT/backend/src/shared/domain/base_entity.py) -le 15"
+    - id: A2
+      description: "Base unification verified at Python runtime (single object)"
+      verifier:
+        type: shell
+        cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/python -c \"from src.shared.domain.base_entity import Base as A; from luana_core_platform.domain.base_entity import Base as L; assert A is L\""
+    - id: A3
+      description: "pytest collect-only iam + brand GREEN (no SQLA errors)"
+      verifier:
+        type: shell
+        cmd: "cd /home/chris/AISALESHT/backend && ! (.venv/bin/pytest tests/modules/iam/ tests/modules/brand/ --collect-only -q 2>&1 | grep -E 'error|InvalidRequestError|NoReferencedTableError')"
+    - id: A4
+      description: "pytest full BE suite delta=0 vs baseline (matches baseline-be-tests.json failure count)"
+      verifier:
+        type: shell
+        cmd: "cd /home/chris/AISALESHT/backend && .venv/bin/pytest --tb=no -q 2>&1 | tail -3"
+  quality_gates:
+    - "Single-file commit — `git diff --name-only HEAD~1..HEAD | wc -l` = 1 (plus optional anti-duplication.md row)"
+    - "Commit body cites Pattern P6 + addendum 2026-05-13 + auditor C2 exception"
+    - "anti-duplication.md migration-window exception row added (OR commit body references this addendum verbatim)"
+  depends_on: ["T-1"]
+  blocks: ["T-2", "T-3", "T-4", "T-5", "T-6", "T-7"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
 T2:
   id: T-2
   title: "BE imports rewrite — brand + offer (Wave 1A)"
@@ -249,7 +352,7 @@ T2:
     - "V-F-1, V-F-2, V-F-3 GREEN"
     - "Commit body cites D1+D5+D9 honored"
     - "Single commit: brand+offer prod + tests rewrite (no scope expansion)"
-  depends_on: ["T-1"]
+  depends_on: ["T-1", "T-2-prep"]
   blocks: ["T-N-final"]
   assigned_to: null
 
@@ -335,7 +438,7 @@ T3:
   quality_gates:
     - "V-F-3 cumulative GREEN"
     - "Commit body cites D1+D5 honored + scheduling NICOLIFY-LOCAL rationale"
-  depends_on: ["T-1"]
+  depends_on: ["T-1", "T-2-prep"]
   blocks: ["T-4", "T-N-final"]
   assigned_to: null
 
@@ -414,7 +517,7 @@ T4:
   quality_gates:
     - "V-F-3 cumulative GREEN"
     - "ETL contract preserved (no provider/pipeline changes Story 10)"
-  depends_on: ["T-1", "T-3"]
+  depends_on: ["T-1", "T-2-prep", "T-3"]
   blocks: ["T-5", "T-6", "T-N-final"]
   assigned_to: null
 
@@ -497,7 +600,7 @@ T5:
   quality_gates:
     - "V-F-4, V-F-8 GREEN"
     - "Commit body cites D1+D5 + anti-duplication §0 honored (zero mirrors created)"
-  depends_on: ["T-1", "T-4"]
+  depends_on: ["T-1", "T-2-prep", "T-4"]
   blocks: ["T-7"]
   assigned_to: null
 
@@ -581,7 +684,7 @@ T6:
   quality_gates:
     - "V-F-5, V-F-9 GREEN"
     - "Commit body cites D1+D5+D9 honored + §3 NO TOUCH inventory"
-  depends_on: ["T-1", "T-4"]
+  depends_on: ["T-1", "T-2-prep", "T-4"]
   blocks: ["T-7"]
   assigned_to: null
 
@@ -645,6 +748,13 @@ T7:
     - shared/infrastructure/llm/ modified → re-run all consumer module tests
     - shared/billing/ + shared/compliance/ → re-run sales_agent + campaigns + copilot
 
+    **Step 12 (addendum 2026-05-13 closure — Pattern P6 final):** Delete
+    `backend/src/shared/domain/base_entity.py` migration-window stub created
+    in T-2-prep. After T-7 completes, all AISALESHT shared imports are
+    rewritten to `luana_core_platform.*`, so the stub is no longer
+    transitively imported. Final closure of Pattern P6 migration window.
+    Acceptance A4 below verifies stub is gone.
+
   blast_radius:
     files_affected_count: 134
     paths:
@@ -674,11 +784,12 @@ T7:
     - { id: A1, description: "grep `from src.` shared (excluding workers) = 0", verifier: { type: shell, cmd: "grep -rn 'from src\\.' /home/chris/AISALESHT/backend/src/shared/ 2>/dev/null | grep -v 'src/shared/workers' | wc -l | grep -E '^0$'" } }
     - { id: A2, description: "pytest shared + arch fitness + downstream regression GREEN", verifier: { type: pytest, cmd: "cd backend && .venv/bin/pytest tests/shared/ tests/architecture/ tests/modules/copilot/observability/ tests/modules/sales_agent/observability/ -v --tb=short" } }
     - { id: A3, description: "Anti-duplication §0: zero new mirror files in modules/{copilot,sales_agent}/observability/recording/", verifier: { type: shell, cmd: "find /home/chris/AISALESHT/backend/src/modules/{copilot,sales_agent}/observability/recording/ -name 'turn_envelope.py' -o -name 'callback_handler.py' 2>/dev/null | wc -l | awk '{if ($1 <= 4) exit 0; else exit 1}'" } }
+    - { id: A4, description: "Pattern P6 closure — base_entity.py migration-window stub deleted (addendum 2026-05-13 §4.4)", verifier: { type: shell, cmd: "test ! -f /home/chris/AISALESHT/backend/src/shared/domain/base_entity.py" } }
   quality_gates:
     - "V-F-6 GREEN cumulative"
     - "Auditor C4 downstream regression GREEN"
     - "Commit body cites D1+D5 + anti-duplication §0 inventory verified"
-  depends_on: ["T-1", "T-5", "T-6"]
+  depends_on: ["T-1", "T-2-prep", "T-5", "T-6"]
   blocks: ["T-8", "T-10"]
   assigned_to: null
 

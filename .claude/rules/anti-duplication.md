@@ -34,6 +34,12 @@ Patrón canónico vive en `shared/`. Módulos heredan, NUNCA mirror.
 | Cross-module ports | `shared/links/ports/` | todos cross-domain |
 | **luana-platform Extension SDK** | `core/luana-core-extension-sdk/src/luana_core_extension_sdk/extension_points.py::ExtensionPointRegistry` | ALL vertical brand packages (test-brand, future copilot/sales-agent vertical consumers) |
 
+### Migration-window scoped exceptions (auto-closes)
+
+| Pattern | Path canónico shared | Scope | Auto-closes |
+|---|---|---|---|
+| **Shared Base singleton (Story 10 P6 prologue)** | `luana_core_platform.domain.base_entity::Base` + `BaseEntity` consumed via re-export stub at `backend/src/shared/domain/base_entity.py` | Story 10 luana-nicolify-migration ONLY — re-export stub unifies SQLA `declarative_base()` singleton across AISALESHT + luana-core trees pre-rewrite (Pattern P6 per `03-arch-be-addendum-2026-05-13.md`). NOT a permanent mirror — `class TenantModel(Base)` definitions live in AISALESHT module files registering to unified Base.metadata, preventing `InvalidRequestError: Table 'X' is already defined` collision class during multi-ticket lift. | DELETED at T-7 (shared/* rewrite final wave) — auditor C2 reads "migration-window scoped" attribute + approves migration window. Post-T-7, AISALESHT base_entity.py removed entirely. |
+
 **Shrink-only:** registro NO duplica per-módulo. Patrón nuevo cross-agent → lift shared primer commit.
 
 ## Workflow pre-write
