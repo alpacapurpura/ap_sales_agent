@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-13T15:11:10+00:00
+# Generated at: 2026-05-13T17:11:58+00:00
 
-generated_at: '2026-05-13T15:11:10+00:00'
+generated_at: '2026-05-13T17:11:58+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -311,12 +311,13 @@ buckets:
     state: developing
     title: luana-nicolify-migration
     tags: []
-    last_touched: 2026-05-14
+    last_touched: 2026-05-15
     extra:
       outcome: luana-platform-migration
-      phase: OPTION_C_RESOLVED_T8_T10_DEFERRED
-      next_action: 'Chris ratifies 6 bootstrap questions Sesión 9 (luana-platform branching, Docker dev startup, nicolify/backend
-        lift, docker-compose.dev.yml creation, hot-fix #14 priority, budget cap). Then autonomous T-8 + T-10 + hot-fix #14.'
+      phase: T8_T10_LANDED_T8BIS_T15_PENDING
+      next_action: Chris triggers Sesión 10 autonomous para T-8.bis (Sonnet, codemod extension + @luana/* config gaps) + T-15
+        (Sonnet, post-consolidation test pruning) + T-9 (Opus, Vercel reconfig blocked T-8.bis) + T-11 + T-12 + T-13 + T-14.
+        Cumulative S5-S9 ~$6775-7625, headroom $2375-3225.
       blocked_by:
       - luana-v0-1-0-publish
       priority_override: null
