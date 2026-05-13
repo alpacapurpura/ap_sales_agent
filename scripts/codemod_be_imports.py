@@ -44,12 +44,10 @@ MAPPING: dict[str, str] = {
     "src.modules.tenant_domains": "luana_core_tenant_domains",
     "src.modules.copilot": "luana_core_copilot",
     "src.modules.sales_agent": "luana_core_sales_agent",
-    # Nicolify-local (Phase 0 Option A — stay local, NOT lifted to luana-core yet)
-    # Per architect decision in 03-arch-be.md §1.1: scheduling/advertising/social_media
-    # are Nicolify-vertical-specific. Future Story 14+ may lift.
-    "src.modules.scheduling": "nicolify_backend.modules.scheduling",
-    "src.modules.advertising": "nicolify_backend.modules.advertising",
-    "src.modules.social_media": "nicolify_backend.modules.social_media",
+    # Nicolify-local modules (scheduling/advertising/social_media) — NOT rewritten.
+    # Per architect Phase 0 resolution #7: these stay Nicolify-vertical-specific.
+    # No MAPPING entry = codemod leaves `src.modules.scheduling.X` etc. unchanged.
+    # When Wave 5 moves files to luana-platform/nicolify/backend/, namespace handled there.
     # ===== Shared subsystems (11 subsystems) =====
     # Order matters: more specific prefixes must precede less specific ones.
     "src.shared.agent_observability": "luana_core_observability",
@@ -68,29 +66,15 @@ MAPPING: dict[str, str] = {
     "src.shared.domain.locale": "luana_core_platform.domain.locale",
     "src.shared.domain": "luana_core_platform.domain",
     "src.shared.api": "luana_core_platform.api",
-    # ===== Per-consumer port re-exports (links/ports/) =====
-    # Each luana-core package exposes its ports under links/ports/ subpackage.
-    # Per-consumer mapping per 03-arch-be.md §1.2 architect-resolved Phase 0.
-    "src.shared.links.ports.brand": "luana_core_brand_studio.links.ports.brand",
-    "src.shared.links.ports.offer": "luana_core_offer_studio.links.ports.offer",
-    "src.shared.links.ports.sales_agent": "luana_core_sales_agent.links.ports.sales_agent",
-    "src.shared.links.ports.copilot": "luana_core_copilot.links.ports.copilot",
-    "src.shared.links.ports.crm_repos": "luana_core_crm.links.ports.crm_repos",
-    "src.shared.links.ports.crm_enrichment": "luana_core_crm.links.ports.crm_enrichment",
-    "src.shared.links.ports.analytics": "luana_core_analytics_engine.links.ports.analytics",
-    "src.shared.links.ports.advertising": "nicolify_backend.modules.advertising.links.ports.advertising",
-    "src.shared.links.ports.calendar": "luana_core_commercial_calendar.links.ports.calendar",
-    "src.shared.links.ports.campaigns": "luana_core_campaigns.links.ports.campaigns",
-    "src.shared.links.ports.channel_adapter": "luana_core_channels.links.ports.channel_adapter",
-    "src.shared.links.ports.conversational_channel": "luana_core_channels.links.ports.conversational_channel",
-    "src.shared.links.ports.domain_lookup": "luana_core_platform.links.ports.domain_lookup",
-    "src.shared.links.ports.editable_fields": "luana_core_platform.links.ports.editable_fields",
-    "src.shared.links.ports.edition_landing_clone": "luana_core_landing.links.ports.edition_landing_clone",
-    "src.shared.links.ports.lead_resolution": "luana_core_crm.links.ports.lead_resolution",
-    "src.shared.links.ports.message_handler": "luana_core_channels.links.ports.message_handler",
-    "src.shared.links.ports.payment_connection": "luana_core_connections.links.ports.payment_connection",
-    "src.shared.links.ports.access": "luana_core_iam.links.ports.access",
-    # links (fallback for any remaining shared.links that don't have per-consumer mapping)
+    # ===== Cross-module ports (links/ports/) =====
+    # AUDIT FIX 2026-05-12 (T-1.6 by /pm Opus orchestrator): All cross-module ports
+    # physically live in luana_core_platform/links/ports/ — verified by `ls` of
+    # /home/chris/luana-platform/core/luana-core-platform/src/luana_core_platform/links/ports/.
+    # Original per-consumer MAPPING (architect 03-arch-be.md §1.2) was WRONG — distributed
+    # ports across 10+ packages that don't have links/ports/ subdirs (e.g., luana_core_landing
+    # has no links/, luana_core_brand_studio has no links/). T-2 builder spawn hit Trigger #11
+    # on first invocation. Fix: delete per-consumer entries, rely on catch-all (next line) which
+    # is sorted-by-length-asc but still wins because per-consumer entries removed.
     "src.shared.links": "luana_core_platform.links",
     # ===== DEFERRED — Workers (Story 10b) =====
     # "src.shared.workers": DEFERRED Story 10b — halt if encountered during T-7
@@ -213,16 +197,16 @@ def run_self_check() -> bool:
     expected_rewrites = {
         "src.modules.brand.domain.models": "luana_core_brand_studio.domain.models",
         "src.modules.offer.application.offer_service": "luana_core_offer_studio.application.offer_service",
-        "src.modules.scheduling.application.scheduler": "nicolify_backend.modules.scheduling.application.scheduler",
-        "src.modules.advertising.domain.meta_campaign": "nicolify_backend.modules.advertising.domain.meta_campaign",
+        # scheduling/advertising removed — Nicolify-local, NOT rewritten (verified separately below)
         "src.shared.agent_observability.recording.turn_envelope": "luana_core_observability.recording.turn_envelope",
         "src.shared.domain_events.outbox.model": "luana_core_events.outbox.model",
         "src.shared.domain_events.bus": "luana_core_events.bus",
         "src.shared.infrastructure.llm.router": "luana_core_llm.router",
         "src.shared.application.extraction.base_orchestrator": "luana_core_extraction.base_orchestrator",
         "src.shared.domain.locale": "luana_core_platform.domain.locale",
-        "src.shared.links.ports.brand": "luana_core_brand_studio.links.ports.brand",
-        "src.shared.links.ports.advertising": "nicolify_backend.modules.advertising.links.ports.advertising",
+        # AUDIT FIX T-1.6: ports live in luana_core_platform.links.ports.X (catch-all rewrite)
+        "src.shared.links.ports.brand": "luana_core_platform.links.ports.brand",
+        "src.shared.links.ports.advertising": "luana_core_platform.links.ports.advertising",
     }
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
@@ -246,12 +230,14 @@ def run_self_check() -> bool:
                 f"Rewritten text:\n{rewritten_text}"
             )
 
-        # Verify nicolify-local stay unchanged (scheduling/advertising)
-        assert "nicolify_backend.modules.scheduling" in rewritten_text, (
-            "Expected scheduling to stay nicolify-local"
+        # AUDIT FIX T-1.6: Nicolify-local stay UNCHANGED as `src.modules.X`
+        # (no MAPPING entries → codemod leaves them alone). Wave 5 file moves handle
+        # namespace transition to luana-platform/nicolify/backend/.
+        assert "src.modules.scheduling.application.scheduler" in rewritten_text, (
+            "Expected scheduling to stay src.modules.scheduling (Nicolify-local, unchanged)"
         )
-        assert "nicolify_backend.modules.advertising" in rewritten_text, (
-            "Expected advertising to stay nicolify-local"
+        assert "src.modules.advertising.domain.meta_campaign" in rewritten_text, (
+            "Expected advertising to stay src.modules.advertising (Nicolify-local, unchanged)"
         )
 
         # Verify untouched imports stay untouched
