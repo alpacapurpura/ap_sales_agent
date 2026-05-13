@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-13T06:40:17+00:00`
+> Generated at: `2026-05-13T15:06:57+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -31,7 +31,7 @@
 
 ### 🔨 Developing (2 / cap 3)
 - **luana-platform-migration**
-- **luana-nicolify-migration** — outcome `luana-platform-migration` [FASE_3_HALTED_R14_H6_AWAITING_CHRIS_RATIFICATION]
+- **luana-nicolify-migration** — outcome `luana-platform-migration` [OPTION_C_RESOLVED_PROCEEDING_T8_T10]
 
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_

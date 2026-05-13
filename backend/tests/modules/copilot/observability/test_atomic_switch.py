@@ -79,7 +79,7 @@ class TestChatHotPathImportsNewModule:
     def test_imports_observability_context(self) -> None:
         text = CHAT_PY.read_text()
         assert "ObservabilityContext" in text, "chat.py must import ObservabilityContext from copilot.observability"
-        assert "from src.modules.copilot.observability" in text, "chat.py must use the new observability module"
+        assert "from luana_core_copilot.observability" in text, "chat.py must use the new observability module"
 
     def test_imports_domain_events(self) -> None:
         text = CHAT_PY.read_text()

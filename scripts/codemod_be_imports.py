@@ -327,6 +327,72 @@ class ImportRewriter(cst.CSTTransformer):
         return updated_node
 
 
+class PlainImportRewriter(cst.CSTTransformer):
+    """Reescribe `import src.X.Y as z` y `import src.X.Y` (sin `from`).
+
+    La clase ImportRewriter solo maneja `from X import Y` (nodo ImportFrom).
+    Esta clase maneja `import X.Y.Z as alias` (nodo Import) — casos que
+    aparecen en tests que cargan módulos vía alias para luego aplicar
+    monkeypatch sobre el objeto módulo:
+
+        import src.modules.copilot.application.discovery as disc
+        import src.modules.copilot.application.tools.registry as reg
+
+    Idempotente: solo reescribe imports que empiezan con prefijo "src."
+    que coincidan con una clave de MAPPING. Otros imports quedan sin cambio.
+
+    Casos soportados:
+    - `import src.modules.X.Y as alias` → `import luana_core_X.Y as alias`
+    - `import src.modules.X.Y` → `import luana_core_X.Y`
+    - `import src.modules.X.Y, src.modules.Z.W` → reescribe cada alias
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.changes: list[str] = []
+
+    def leave_Import(
+        self,
+        original_node: cst.Import,
+        updated_node: cst.Import,
+    ) -> cst.Import:
+        # cst.Import.names is either a sequence of ImportAlias or ImportStar.
+        if isinstance(updated_node.names, cst.ImportStar):
+            return updated_node
+
+        new_aliases: list[cst.ImportAlias] = []
+        any_changed = False
+
+        for alias in updated_node.names:
+            # alias.name is an Attribute or Name (dotted module path)
+            if not isinstance(alias.name, (cst.Attribute, cst.Name)):
+                new_aliases.append(alias)
+                continue
+
+            module_str = _dotted_name_to_str(alias.name)
+
+            matched = False
+            for src_prefix, target_prefix in _SORTED_MAPPING:
+                if module_str == src_prefix or module_str.startswith(src_prefix + "."):
+                    suffix = module_str[len(src_prefix):]
+                    new_module_str = target_prefix + suffix
+                    self.changes.append(
+                        f"  import {module_str!r} → {new_module_str!r}"
+                    )
+                    new_name = _str_to_dotted_name(new_module_str)
+                    new_aliases.append(alias.with_changes(name=new_name))
+                    any_changed = True
+                    matched = True
+                    break
+
+            if not matched:
+                new_aliases.append(alias)
+
+        if any_changed:
+            return updated_node.with_changes(names=new_aliases)
+        return updated_node
+
+
 class MockPatchStringRewriter(cst.CSTTransformer):
     """Reescribe `mocker.patch("src.X")` y `patch("src.X")` string literals en tests.
 
@@ -400,16 +466,21 @@ def rewrite_file(path: Path, dry_run: bool = True, repo_root: Path | None = None
         print(f"  PARSE ERROR {path}: {exc}", file=sys.stderr)
         return False, []
 
-    # Pipeline: ImportRewriter primero (from/import AST nodes), luego MockPatchStringRewriter
-    # (string literals en mocker.patch / patch / @patch calls).
+    # Pipeline:
+    # 1. ImportRewriter — `from src.X import Y` (ImportFrom AST nodes)
+    # 2. PlainImportRewriter — `import src.X.Y as z` (Import AST nodes)
+    # 3. MockPatchStringRewriter — string literals in mocker.patch / patch / @patch calls
     import_rewriter = ImportRewriter()
     new_tree = tree.visit(import_rewriter)
+
+    plain_import_rewriter = PlainImportRewriter()
+    new_tree = new_tree.visit(plain_import_rewriter)
 
     mock_rewriter = MockPatchStringRewriter()
     new_tree = new_tree.visit(mock_rewriter)
 
     new_text = new_tree.code
-    all_changes = import_rewriter.changes + mock_rewriter.changes
+    all_changes = import_rewriter.changes + plain_import_rewriter.changes + mock_rewriter.changes
 
     if new_text == original_text:
         return False, []
@@ -732,10 +803,113 @@ def run_self_check() -> bool:
             )
         print(f"  [OK] EXCLUDE_PATHS ({len(EXCLUDE_PATHS)} files) not in DELETE_FILES")
 
+        # -----------------------------------------------------------------------
+        # CHECK 9: PlainImportRewriter — `import src.X.Y as z` rewrite
+        # (Session 8 augmentation — Cat III fix: monkeypatch on old module object)
+        # -----------------------------------------------------------------------
+        plain_import_cases = [
+            (
+                "import src.modules.copilot.application.discovery as disc\n",
+                "import luana_core_copilot.application.discovery as disc\n",
+            ),
+            (
+                "import src.modules.copilot.application.tools.registry as reg\n",
+                "import luana_core_copilot.application.tools.registry as reg\n",
+            ),
+            (
+                "import src.modules.brand.domain.models\n",
+                "import luana_core_brand_studio.domain.models\n",
+            ),
+            (
+                "import src.core.database\n",
+                "import luana_core_platform.core.database\n",
+            ),
+            (
+                "import src.shared.infrastructure.llm.router as llm_router\n",
+                "import luana_core_llm.router as llm_router\n",
+            ),
+        ]
+
+        plain_rewriter = PlainImportRewriter()
+        for input_code, expected_code in plain_import_cases:
+            plain_tree = cst.parse_module(input_code)
+            plain_result = plain_tree.visit(PlainImportRewriter()).code
+            assert plain_result == expected_code, (
+                f"PlainImportRewriter: expected:\n  {expected_code!r}\ngot:\n  {plain_result!r}\n"
+                f"Input: {input_code!r}"
+            )
+        print(f"  [OK] PlainImportRewriter: {len(plain_import_cases)} cases PASSED")
+
+        # CHECK 9b: PlainImportRewriter — Nicolify-local stays unchanged
+        plain_no_change_cases = [
+            "import src.modules.scheduling.application.scheduler as sched\n",  # Nicolify-local
+            "import src.modules.advertising.domain.meta_campaign as meta\n",   # Nicolify-local
+            "import os\n",               # standard library
+            "import structlog\n",        # third party
+        ]
+        for case in plain_no_change_cases:
+            plain_tree_nc = cst.parse_module(case)
+            plain_result_nc = plain_tree_nc.visit(PlainImportRewriter()).code
+            assert plain_result_nc == case, (
+                f"PlainImportRewriter incorrectly modified: {case!r}\n"
+                f"Result: {plain_result_nc!r}"
+            )
+        print(f"  [OK] PlainImportRewriter: {len(plain_no_change_cases)} no-change cases PASSED")
+
+        # CHECK 9c: PlainImportRewriter idempotency — rewriting already-rewritten code
+        already_rewritten_cases = [
+            "import luana_core_copilot.application.discovery as disc\n",
+            "import luana_core_brand_studio.domain.models\n",
+        ]
+        for case in already_rewritten_cases:
+            plain_tree_idem = cst.parse_module(case)
+            plain_result_idem = plain_tree_idem.visit(PlainImportRewriter()).code
+            assert plain_result_idem == case, (
+                f"PlainImportRewriter changed already-rewritten import (not idempotent): {case!r}\n"
+                f"Result: {plain_result_idem!r}"
+            )
+        print(f"  [OK] PlainImportRewriter idempotency: {len(already_rewritten_cases)} cases PASSED")
+
+        # -----------------------------------------------------------------------
+        # CHECK 10: scripts/ directory presence in --all-modules rewrite scope
+        # (Session 8 augmentation — Cat V-seed fix: seed_metrics.py uses lazy src.modules.X imports)
+        # -----------------------------------------------------------------------
+        backend_root = repo_root / "backend"
+        scripts_root = backend_root / "scripts"
+        assert scripts_root.exists(), (
+            f"backend/scripts/ not found at {scripts_root} — "
+            "expected to exist for --all-modules scope extension"
+        )
+        print(f"  [OK] backend/scripts/ exists ({scripts_root})")
+
+        # CHECK 10b: seed_metrics.py contains src.modules.X imports that need rewriting
+        seed_metrics_path = scripts_root / "seed_metrics.py"
+        if seed_metrics_path.exists():
+            seed_text = seed_metrics_path.read_text(encoding="utf-8")
+            # After big-bang the file was NOT rewritten (scripts/ not in --all-modules).
+            # The imports in seed_data() are lazy (inside function body).
+            # Check that PlainImportRewriter + ImportRewriter handles the file correctly.
+            changed_seed, changes_seed = rewrite_file(
+                seed_metrics_path, dry_run=True, repo_root=repo_root
+            )
+            if "src.modules.analytics" in seed_text or "src.core" in seed_text:
+                assert changed_seed, (
+                    "seed_metrics.py contains legacy src.modules.X imports but "
+                    "rewrite_file() reported no changes — check EXCLUDE_PATHS or MAPPING"
+                )
+                print(
+                    f"  [OK] seed_metrics.py dry-run found {len(changes_seed)} legacy imports to rewrite"
+                )
+            else:
+                print("  [OK] seed_metrics.py already fully rewritten (no legacy src.X imports)")
+        else:
+            print(f"  [WARN] seed_metrics.py not found at {seed_metrics_path} (may have been moved)")
+
         print(
             "\nSelf-check PASSED — all assertions green "
             "(DELETE count=83, PRESERVE count=9, no collision, disk exists, "
-            "EXCLUDE_PATHS skip, dry-run count verified, idempotency + rewrites + stay-local)"
+            "EXCLUDE_PATHS skip, dry-run count verified, idempotency + rewrites + stay-local, "
+            "PlainImportRewriter Cat-III, scripts/ scope Cat-V-seed)"
         )
         return True
 
@@ -745,10 +919,13 @@ def run_self_check() -> bool:
 
 
 def run_all_modules_dry_run(repo_root: Path) -> dict[str, dict[str, int]]:
-    """Run dry-run rewrite across entire backend (src/ + tests/).
+    """Run dry-run rewrite across entire backend (src/ + tests/ + scripts/).
 
     Returns per-module summary: {module_name: {"files_changed": N, "files_total": M}}.
     Also outputs per-module delete summary based on DELETE_FILES grouping.
+
+    Session 8 augmentation: scripts/ added to scope (Cat V-seed fix — seed_metrics.py
+    and other backend scripts use lazy src.modules.X imports not covered by src/+tests/).
     """
     backend_root = repo_root / "backend"
     src_root = backend_root / "src"
@@ -797,7 +974,7 @@ def run_all_modules_dry_run(repo_root: Path) -> dict[str, dict[str, int]]:
                     shared_changed += 1
     module_summary["_shared"] = {"files_changed": shared_changed, "files_total": shared_total}
 
-    # Process src/core and tests (architecture, scripts, etc.)
+    # Process src/core
     core_total = 0
     core_changed = 0
     for root in [src_root / "core"]:
@@ -809,6 +986,19 @@ def run_all_modules_dry_run(repo_root: Path) -> dict[str, dict[str, int]]:
                     core_changed += 1
     if core_total > 0:
         module_summary["_core"] = {"files_changed": core_changed, "files_total": core_total}
+
+    # Process backend/scripts/ (Session 8 augmentation — Cat V-seed fix)
+    scripts_root = backend_root / "scripts"
+    scripts_total = 0
+    scripts_changed = 0
+    if scripts_root.exists():
+        for py_file in walk_py_files(scripts_root):
+            scripts_total += 1
+            file_changed, _ = rewrite_file(py_file, dry_run=True, repo_root=repo_root)
+            if file_changed:
+                scripts_changed += 1
+    if scripts_total > 0:
+        module_summary["_scripts"] = {"files_changed": scripts_changed, "files_total": scripts_total}
 
     # Compute delete counts per module from DELETE_FILES
     delete_counts: dict[str, int] = {}
@@ -949,10 +1139,13 @@ def main() -> None:
     search_roots: list[Path] = []
 
     if args.all_modules:
-        # Full backend: src/ + tests/
+        # Full backend: src/ + tests/ + scripts/
+        # scripts/ included because seed_metrics.py and other scripts use lazy
+        # src.modules.X imports that are missed by src/+tests/ scope alone.
         search_roots = [
             backend_root / "src",
             backend_root / "tests",
+            backend_root / "scripts",
         ]
     elif args.paths:
         search_roots = [Path(p) for p in args.paths]

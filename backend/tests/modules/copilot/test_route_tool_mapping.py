@@ -141,8 +141,8 @@ class TestProviderRouteMerging:
     def _patch_discovery_with(self, monkeypatch, provider):
         import importlib
 
-        import src.modules.copilot.application.discovery as disc
-        import src.modules.copilot.application.tools.registry as reg
+        import luana_core_copilot.application.discovery as disc
+        import luana_core_copilot.application.tools.registry as reg
 
         monkeypatch.setattr(disc, "discover_providers", lambda: {provider.module_id: provider})
         importlib.reload(reg)

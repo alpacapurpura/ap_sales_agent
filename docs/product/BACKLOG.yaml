@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-13T06:40:17+00:00
+# Generated at: 2026-05-13T15:06:57+00:00
 
-generated_at: '2026-05-13T06:40:17+00:00'
+generated_at: '2026-05-13T15:06:57+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -311,12 +311,12 @@ buckets:
     state: developing
     title: luana-nicolify-migration
     tags: []
-    last_touched: 2026-05-13
+    last_touched: 2026-05-14
     extra:
       outcome: luana-platform-migration
-      phase: FASE_3_HALTED_R14_H6_AWAITING_CHRIS_RATIFICATION
-      next_action: 'Chris ratifies Option A (codemod aug) / B (expand Decisión 9 deferred) / C (hybrid — RECOMMENDED) / D
-        (rollback). Recommendation Option C: split 13 eval-deferred + 5 NOT-deferred targeted codemod aug ~$200-400 next session.'
+      phase: OPTION_C_RESOLVED_PROCEEDING_T8_T10
+      next_action: T-8 FE imports migration + T-10 DB consolidation autonomous Sesión 8 (Chris ratified Full scope Q4 + $3500
+        headroom Q3). Cumulative cap $10000 → $3500 headroom remaining.
       blocked_by:
       - luana-v0-1-0-publish
       priority_override: null

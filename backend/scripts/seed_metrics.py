@@ -58,13 +58,13 @@ def seed_data(db) -> dict:
     Returns:
         dict with counts of seeded rows.
     """
-    from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+    from luana_core_analytics_engine.infrastructure.models.metric_aggregation_model import (
         MetricAggregationModel,
     )
-    from src.modules.analytics.infrastructure.models.official_metrics_model import (
+    from luana_core_analytics_engine.infrastructure.models.official_metrics_model import (
         OfficialMetricModel,
     )
-    from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+    from luana_core_analytics_engine.infrastructure.models.staging_metrics_model import (
         StagingMetricModel,
     )
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
     sys.path.insert(0, ".")
 
-    from src.core.database import SessionLocal
+    from luana_core_platform.core.database import SessionLocal
 
     db = SessionLocal()
     try:

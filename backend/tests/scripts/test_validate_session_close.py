@@ -220,7 +220,7 @@ def test_quiet_mode_suppresses_warn_output(tmp_path: Path) -> None:
         ("refined", "cap 5"),
         ("ready", "cap 5"),
         ("developing", "cap 3"),
-        ("developed", "cap 2"),
+        ("developed", "cap 10"),
         ("reviewing", "cap 2"),
     ],
 )

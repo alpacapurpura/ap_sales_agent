@@ -71,8 +71,8 @@ class TestOfferExtractionServiceInit:
 
         source = inspect.getfile(OfferExtractionService)
         source_code = Path(source).read_text()
-        assert "from src.shared.infrastructure.web.crawler import" in source_code
-        assert "from src.modules.brand" not in source_code
+        assert "from luana_core_platform.infrastructure.web.crawler import" in source_code
+        assert "from luana_core_brand_studio" not in source_code
 
 
 class TestOfferExtractionServicePromptRendering:

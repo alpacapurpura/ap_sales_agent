@@ -8,7 +8,7 @@ import pytest
 from luana_core_platform.domain.ports import ConnectionCredentials
 
 # Patch targets match the actual source modules (late imports in tasks.py)
-_CONN_PORT = "luana_core_connections.application.services.connection_port_impl.ConnectionPortImpl"
+_CONN_PORT = "luana_core_platform.links.ports.channel_adapter.create_connection_port"
 _PIPELINE = "luana_core_analytics_engine.infrastructure.sync.campaign_sync_pipeline.CampaignSyncPipeline"
 _PROVIDER = "luana_core_analytics_engine.infrastructure.providers.meta_campaign_provider.MetaCampaignProvider"
 _REPO = "luana_core_analytics_engine.infrastructure.repositories.campaign_repository.CampaignRepository"
