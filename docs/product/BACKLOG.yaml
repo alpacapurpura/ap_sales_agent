@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-13T22:34:47+00:00
+# Generated at: 2026-05-13T22:47:31+00:00
 
-generated_at: '2026-05-13T22:34:47+00:00'
+generated_at: '2026-05-13T22:47:31+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -292,7 +292,7 @@ buckets:
     state: developing
     title: luana-platform-migration
     tags: []
-    last_touched: 2026-05-12
+    last_touched: 2026-05-16
     extra:
       story_ids: []
       why_now: null
@@ -306,23 +306,6 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
-  - id: luana-nicolify-migration
-    kind: story
-    state: developing
-    title: luana-nicolify-migration
-    tags: []
-    last_touched: 2026-05-16
-    extra:
-      outcome: luana-platform-migration
-      phase: S10_LANDED_AWAITING_AUDITOR
-      next_action: Chris invokes /auditor Conv 3 for Story 10 verification — verdict APPROVED triggers T-19 (story folder
-        delete + archive luana-platform) + 07-merge.md + state transition reviewing→done. OR drain T-16/T-17/T-18 stubs Sesion
-        11 autonomous before final /auditor. OR park Story 10 + start nicolify-brand-repo extraction (Q2 framework). Sesion
-        10 cumulative ~$5.90 (massive under-spend); S5-S10 total ~$6781-7631.
-      blocked_by:
-      - luana-v0-1-0-publish
-      priority_override: null
-      audit_iterations: 0
   developed: []
   reviewing: []
   done:

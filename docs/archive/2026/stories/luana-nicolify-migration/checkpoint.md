@@ -1,8 +1,8 @@
 ---
 story_id: luana-nicolify-migration
 outcome: luana-platform-migration
-state: developing                                 # 2026-05-16 Session 10 SUBSTANTIVE close — 7 tickets processed (5 done/partial + 1 awaiting_chris). 4 follow-up stubs created (T-16/T-17/T-18/T-19). State stays developing until /auditor Conv 3 transitions to developed→reviewing→done
-phase: S10_LANDED_AWAITING_AUDITOR
+state: done                                       # 2026-05-16 — /auditor APPROVED 27/27 CHECKPOINTS + /pm merge step executed (07-merge.md authored + outcome updated + learnings appended + T-19 archive). Story 10 closed cleanly. Operational items T-14/T-16/T-17/T-18 remain in 06-tickets.yaml as future Sesion 11+ work but Story 10 SSoT is sealed.
+phase: DONE_ARCHIVED
 last_artifact: SESSION-10-CLOSE-2026-05-16.md
 last_modified: 2026-05-16
 next_action: "Chris invokes /auditor Conv 3 for Story 10 verification — verdict APPROVED triggers T-19 (story folder delete + archive luana-platform) + 07-merge.md + state transition reviewing→done. OR drain T-16/T-17/T-18 stubs Sesion 11 autonomous before final /auditor. OR park Story 10 + start nicolify-brand-repo extraction (Q2 framework). Sesion 10 cumulative ~$5.90 (massive under-spend); S5-S10 total ~$6781-7631."

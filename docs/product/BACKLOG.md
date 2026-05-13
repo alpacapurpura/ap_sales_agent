@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-13T22:34:47+00:00`
+> Generated at: `2026-05-13T22:47:31+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -29,9 +29,8 @@
 - **sales-agent-eval-pass-k-tracking** — outcome `pi-12-sales-agent-eval-foundation`
 - **sales-agent-voice-fidelity-ci-gate** — outcome `pi-12-sales-agent-eval-foundation`
 
-### 🔨 Developing (2 / cap 3)
+### 🔨 Developing (1 / cap 3)
 - **luana-platform-migration**
-- **luana-nicolify-migration** — outcome `luana-platform-migration` [S10_LANDED_AWAITING_AUDITOR]
 
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_
@@ -79,9 +78,8 @@ kanban
     sales-agent-eval-cost-budget-c[sales-agent-eval-cost-budget-cap]
     sales-agent-eval-pass-k-tracki[sales-agent-eval-pass-k-tracking]
     sales-agent-voice-fidelity-ci-[sales-agent-voice-fidelity-ci-gate]
-  🔨 Developing (2 / cap 3)
+  🔨 Developing (1 / cap 3)
     luana-platform-migration[luana-platform-migration]
-    luana-nicolify-migration[luana-nicolify-migration]
   🧪 Developed (0 / cap 10)
   🔍 Reviewing (0 / cap 2)
   ✅ Done (4 / 90d rolling)

@@ -784,3 +784,107 @@ Story E builds eval grader infrastructure (3-judge MAJ-EVAL + rubric MD + cache 
 - Story C: ✅ DONE (merged, archived, push 691051f9)
 - Toolkit: 💡 idea in ideas-pool — Chris pickup whenever
 - T-6/T-7: SKIP cement durable, transitions auto-GREEN when toolkit lands
+
+---
+
+## 2026-05-16 — Story 10 luana-nicolify-migration closure (Sesion 10) — 4 decisiones cardinales
+
+**Story 10 closed APPROVED** /auditor 27/27 CHECKPOINTS. Cumulative S5-S10 ~$6781-7631
+(within $10000 hard cap historical). Sesion 10 spent ~$5.90 (-99% vs $1700-3100 estimate).
+
+### 1. "Each brand own deploy" architectural framework (Chris Sesion 10 Q2)
+
+Chris ratified Sesion 10 Q2 free-form: cada marca (nicolify, vitalia, comunify, lupulo)
+eventually owns su propio deploy stack — own VPS, own docker-compose, own Dockerfile,
+own deploy workflow, own CF tunnel, own GHCR namespace, own DNS.
+
+**luana-platform monorepo scope = shared packages only:** `@luana/*` (TS) + `luana_core_*` (Python).
+NO cross-brand deploy unified. NO Vercel (architect's wrong assumption Sesion 5 — Nicolify
+self-hosts via GHCR + GH Actions + Cloudflare Tunnel).
+
+**Implication:** Story 10 dual-state (AISALESHT FE+BE files copied to `luana-platform/nicolify/`)
+is intermediate. Future "nicolify-brand-repo extraction" story will pull `nicolify/` subdir
+from luana-platform into separate repo with brand-specific deploy infra. Same for vitalia,
+comunify, lupulo.
+
+### 2. Sesión 10 re-scoping pattern (-99% cost variance)
+
+Chris-framework-aware re-scoping ratified 3x Sesion 10:
+
+- **T-9 re-scoped no-Vercel** (was Opus $300-500 Vercel reconfig builder spawn → /pm inline $0.50 doc):
+  Detected architect's wrong assumption about deployment platform. Re-scoped to "verify
+  CF tunnel state + document each-brand-own-deploy plan." Re-scope saved Opus builder spawn.
+
+- **T-11 re-scoped to mirror-already-done** (was Sonnet $300-500 smoke spec authoring → /pm inline $0.40 doc):
+  Realized T-8 rsync already delivered all 44 E2E spec files to luana-platform/nicolify/frontend/.
+  No spec authoring work remained. Full smoke execution deferred to T-17 post-T-14 cutover
+  (correct sequencing — running smoke now would validate AISALESHT being archived, not target).
+
+- **T-13 re-scoped rsync-not-git-mv** (was Opus $400-700 atomic git mv → /pm inline $0.30 rsync):
+  Chris Q3=B chose rsync + delete pattern preserving git history both repos (vs atomic git mv
+  losing bisect-friendly cross-repo history). Re-scope reduced complexity 5x.
+
+**Process pattern:** When architect assumption appears wrong OR when prior session deliverable
+covers target scope OR when expensive operation has simpler equivalent, /pm has agency to
+re-scope WITHOUT escalating Chris (so long as re-scope is documented in impl-log + close doc).
+Chris ratifies pattern via "/pm decides Q2" framing.
+
+### 3. Partial_verify acceptance with explicit stubs (precedent)
+
+Sesion 10 introduced `partial_verify` verdict pattern for tickets where:
+- Implementation work substantially complete (≥80% acceptance gates GREEN)
+- Remaining gates require downstream cutover state OR Chris UI manual gate
+- Follow-up stub created in 06-tickets.yaml with explicit acceptance carryover
+
+**Auditor APPROVED partial_verify tickets** (T-8.bis, T-15, T-11, T-13) when:
+1. Cement gates GREEN (anti-regression)
+2. Deferred gates have explicit follow-up stub (T-16/T-17/T-18/T-19)
+3. Deferred gates blocked legitimately (single-source state, irreversible UI action, etc.)
+4. NO laziness or hidden gaps (deferrals are explicit + documented)
+
+**Anti-pattern:** marking ticket "done" when work incomplete. `partial_verify` is honest
+classification — auditor evaluates whether deferrals are legitimate vs hidden gaps.
+
+### 4. Q4=B Chris UI manual gate pattern (irreversible actions)
+
+For irreversible operations (repo archive, DB DROP, external API destructive calls),
+/pm prepares ALL verification + commands but **does NOT execute**. Chris executes via
+external UI when ready (GH Settings, psql client, dashboard).
+
+**Examples Sesion 10:**
+- T-14 GH archive AISALESHT — Chris clicks "Archive this repository" in GH Settings
+- T-14 `DROP DATABASE visionarias_logs` — Chris runs SQL after backup
+- Future: Vercel/CF DNS changes, K8s namespace deletions, etc.
+
+**Implementation:** ticket state = `awaiting_chris`, impl-log documents pre-flight checks +
+exact commands + post-action verification. Story closure can proceed WITHOUT executing
+(Q4=B is pause, not blocker — story state can transition `done` while operational
+action remains deferred).
+
+### Story 10 ticket grid final
+
+| Ticket | State | Verdict | Notes |
+|---|---|---|---|
+| T-1..T-7 | done | done | S5-S7 codemod waves |
+| T-8 | done | partial_a3 | S9 FE rsync cement |
+| T-8.bis | developed | partial_verify | S10 A4+A5 GREEN; A1+A2+A3 → T-16 |
+| T-10 | done | partial H8 | S9 BE rsync + alembic cement |
+| T-15 | developed | partial_verify | S10 A1+A2 GREEN Cat 1+2; A3 → T-16 |
+| T-9 | done | done | S10 re-scoped no-Vercel |
+| T-11 | done_partial | done_partial | S10 specs mirror; exec → T-17 |
+| T-12 | done | done | S10 ci-parity cross-brand |
+| T-13 | done_partial | done_partial | S10 rsync done; delete → T-19 (THIS merge) |
+| T-14 | awaiting_chris | awaiting_chris | Q4=B Chris UI gate |
+| T-16 | draft | — | Sesion 11+ FE/BE polish |
+| T-17 | draft | — | Post-T-14 cutover smoke E2E |
+| T-18 | draft | — | Post-T-14 cutover pre-push migration |
+| T-19 | EXECUTING | — | THIS merge step |
+
+### Unblocked by Story 10 closure
+
+- Story 11 `luana-vitalia-bootstrap` (brand-specific bootstrap)
+- Story 12 `luana-comunify-bootstrap`
+- Story 13 `luana-lupulo-bootstrap`
+- Story 14 `luana-brand-voice-elevation`
+
+10/14 outcome stories done. Outcome `luana-platform-migration` 71% complete.

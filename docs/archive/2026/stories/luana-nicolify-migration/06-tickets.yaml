@@ -1786,7 +1786,7 @@ T19:
   surface: BE
   wave_position: 7
   production_code: false
-  state: draft
+  state: done                                 # 2026-05-16 — /auditor APPROVED 27/27 CHECKPOINTS triggered /pm merge step. Story folder archived BOTH repos to docs/archive/2026/stories/luana-nicolify-migration/. 07-merge.md authored. Outcome doc updated. learnings.md appended.
   origin: "T-13 Sesion 10 — rsync done dual-state, delete deferred to /auditor APPROVED merge ratification"
   owner_eligibility:
     qwen_opencode: false
