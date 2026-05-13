@@ -32,23 +32,54 @@ const MAPPING: Array<[string, string]> = [
   ["@/lib/format", "@luana/format"],
   ["@/lib/tokens", "@luana/design-tokens"],
   ["@/lib/zod-schemas", "@luana/schemas"],
-  // Hooks: specific ones that are lifted to @luana/hooks
-  // Note: useTenantLocale, useTenantConfig etc. → @luana/hooks
-  // Keep specific hook imports that stay Nicolify-local (feature-specific hooks)
-  // T-8 builder audits which hooks are lifted vs stay-local during execution.
+
+  // @/lib/utils/* — GUARD: Nicolify-local subpaths must appear BEFORE @/lib/utils
+  // so they match exact-first and short-circuit before the prefix rule below.
+  // These paths are Nicolify-local (no @luana/* equivalent) — guard returns self,
+  // caller sees rewritten === source.value and skips rewrite.
+  ["@/lib/utils/colors", "@/lib/utils/colors"], // Nicolify-local getContrastColor — guard
+  ["@/lib/utils/assets", "@/lib/utils/assets"], // Nicolify-local — guard
+
+  // @/lib/utils (exact only — cn() → @luana/format). After guards above.
+  // T-8.bis D1: cn() is re-exported from @luana/format main barrel (src/index.ts line 3).
+  ["@/lib/utils", "@luana/format"],
+
+  // Format helpers lifted to @luana/format (T-8.bis D1: same exports verified)
+  ["@/lib/format-money", "@luana/format"],
+  ["@/lib/format-date", "@luana/format"],
+  ["@/lib/case-conversion", "@luana/format"],
+  ["@/lib/constants/currencies", "@luana/format"],
+  ["@/lib/constants/channel-colors", "@luana/format"],
+
+  // Hooks: leaf hooks lifted to @luana/hooks (T-8 T-8.bis)
   ["@/hooks/useTenantLocale", "@luana/hooks"],
   ["@/hooks/useTenantConfig", "@luana/hooks"],
+  ["@/hooks/use-copilot-offset", "@luana/hooks"], // T-8.bis D1: subpath export added
+  ["@/hooks/use-is-mounted", "@luana/hooks"],     // already in @luana/hooks barrel
+  ["@/hooks/use-viewport", "@luana/hooks"],       // already in @luana/hooks barrel
+
   // Extension SDK (TypeScript side of extension points)
   ["@/lib/extension-sdk", "@luana/extension-sdk"],
 
   // ===== STAY LOCAL — Nicolify-specific (NO rewrite) =====
   // The following prefixes must NOT be rewritten — they are Nicolify-vertical-specific:
-  //   @/app/...       — Next.js route segments (Nicolify routes are brand-specific)
-  //   @/features/...  — Nicolify business feature modules
-  //   @/stores/...    — Nicolify-local Zustand stores
-  //   @/components/shared/... — Nicolify layouts and shared UI (NOT lifted to @luana/ui-kit)
+  //   @/app/...                    — Next.js route segments (Nicolify routes are brand-specific)
+  //   @/features/...               — Nicolify business feature modules
+  //   @/stores/...                 — Nicolify-local Zustand stores
+  //   @/components/shared/...      — Nicolify layouts and shared UI (NOT lifted to @luana/ui-kit)
+  //   @/lib/form-runtime/*         — Nicolify form-runtime engine (NOT in @luana/*)
+  //   @/lib/http-client            — Nicolify fetchClient wrapper
+  //   @/lib/config                 — Nicolify app config
+  //   @/lib/edge                   — Nicolify edge runtime utils
+  //   @/lib/api/*                  — Nicolify-local API helpers (connections/settings/buyer-persona/etc)
+  //   @/lib/studio-section-page    — Nicolify lazy-loading factory (NOT in @luana/*)
+  //   @/lib/mock-config            — Nicolify dev mock config (NOT in @luana/*)
+  //   @/lib/utils/colors           — Nicolify getContrastColor (guarded above)
+  //   @/lib/utils/assets           — Nicolify asset helpers (guarded above)
+  //   @/components/form-runtime/*  — Nicolify form-runtime components (NOT in @luana/ui-kit)
+  //   @/hooks/use-shell-mutex      — deferred T-12 (requires @/components/shared + @/stores)
+  //   @/hooks/use-currency-catalog — deferred T-12 (requires @/lib/api)
   // These are excluded from MAPPING intentionally.
-  // T-8 builder must verify no stay-local import accidentally matches a prefix above.
 ];
 
 /**

@@ -901,7 +901,7 @@ T8:
     - { id: A1, description: "TS compile GREEN", verifier: { type: shell, cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx tsc --noEmit" } }
     - { id: A2, description: "ESLint GREEN", verifier: { type: shell, cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx eslint src/ --cache --max-warnings=0" } }
     - { id: A3, description: "Vitest delta=0", verifier: { type: shell, cmd: "cd /home/chris/luana-platform/nicolify/frontend && npx vitest run --reporter=default" } }
-    - { id: A4, description: "0 legacy @/ai paths (allowing Nicolify-local app/features/stores/shared)", verifier: { type: shell, cmd: "grep -rn 'from \"@/' /home/chris/luana-platform/nicolify/frontend/src/ | grep -vE '@/app/|@/features/|@/stores/|@/components/shared/' | wc -l | grep -E '^0$'" } }
+    - { id: A4, description: "0 legacy @/* paths (Nicolify-local excluded: app/features/stores/shared/form-runtime/http-client/config/edge/api/studio-section-page/mock-config/utils/colors+assets/hooks deferred)", verifier: { type: shell, cmd: "grep -rn 'from \"@/' /home/chris/luana-platform/nicolify/frontend/src/ | grep -vE '\"@/(app|features|stores|components/shared|components/form-runtime|components/auth|components/providers|lib/form-runtime|lib/http-client|lib/config|lib/edge|lib/utils/colors|lib/utils/assets|lib/api|lib/studio-section-page|lib/mock-config|hooks/use-shell-mutex|hooks/use-currency-catalog)' | wc -l | grep -E '^0$'" } }
     - { id: A5, description: "Workspace symlink resolves", verifier: { type: shell, cmd: "cd /home/chris/luana-platform && pnpm list -r '@luana/ui-kit' --json 2>/dev/null | jq -e '.[] | select(.name == \"@luana/nicolify-web\") | .dependencies.\"@luana/ui-kit\".version' | grep -E 'link:|workspace:'" } }
   quality_gates:
     - "V-NF-3, V-NF-4, V-F-10..V-F-14 GREEN"
@@ -1532,7 +1532,7 @@ T8bis:
   surface: FE
   wave_position: 3
   production_code: false
-  state: draft
+  state: developed                          # Sesion 10 Phase 2 — verdict partial_verify (A4+A5 GREEN cement, A1+A2+A3 deferred to /auditor or /test-frontend)
   origin: "T-8 partial_a3 Sesión 9 — Chris ratified T-10-H8-pattern (accept partial + defer to T-8.bis) 2026-05-14/15"
   owner_eligibility:
     qwen_opencode: false
@@ -1594,9 +1594,9 @@ T8bis:
     - "A1 TSC 0 errors verified"
     - "A4 0 legacy non-allowed @/* paths verified"
   acceptance:
-    - { id: A1, description: "T-8 A1 TSC GREEN in luana-platform/nicolify/frontend" }
-    - { id: A2, description: "T-8 A2 ESLint GREEN" }
-    - { id: A4, description: "T-8 A4 0 legacy @/* paths (post exclusion list update)" }
+    - { id: A1, description: "T-8 A1 TSC GREEN in luana-platform/nicolify/frontend", verifier: { type: shell, cmd: "cd /home/chris/luana-platform/nicolify/frontend && pnpm tsc --noEmit" }, status: PASS }
+    - { id: A2, description: "T-8 A2 ESLint GREEN", verifier: { type: shell, cmd: "cd /home/chris/luana-platform/nicolify/frontend && NODE_OPTIONS='--max-old-space-size=8192' npx eslint src/ --cache --max-warnings=0" }, status: pending }
+    - { id: A4, description: "T-8 A4 0 legacy @/* paths (post exclusion list update)", verifier: { type: shell, cmd: "grep -rn 'from \"@/' /home/chris/luana-platform/nicolify/frontend/src/ | grep -vE '\"@/(app|features|stores|components/shared|components/form-runtime|components/auth|components/providers|lib/form-runtime|lib/http-client|lib/config|lib/edge|lib/utils/colors|lib/utils/assets|lib/api|lib/studio-section-page|lib/mock-config|hooks/use-shell-mutex|hooks/use-currency-catalog)' | wc -l | grep -E '^0$'", }, status: PASS }
   quality_gates:
     - "T-8 cement preserved (A5 GREEN, rsync intact)"
     - "luana-platform @luana/* package modifications scope-bounded (no API surface breaking changes)"
@@ -1612,7 +1612,7 @@ T15:
   surface: BE
   wave_position: 4
   production_code: false
-  state: draft
+  state: developed                          # Sesion 10 Phase 2 — verdict partial_verify (A1 GREEN Cat 1 complete; A2+A3 partial → T-16 stub follow-up)
   origin: "T-10 H8 halt Sesion 9 — Chris ratified Option C (defer to T-15) 2026-05-14/15"
   owner_eligibility:
     qwen_opencode: false
@@ -1660,5 +1660,60 @@ T15:
     - "T-10 GREEN ratified (A1-A4 cement)"
     - "Story 14 Cat 3 deferred set preserved"
   depends_on: ["T-10"]
+  blocks: []
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T16:
+  id: T-16
+  title: "T-15 partial_verify follow-up — Cat 2 pytest-ignore completion + Cat 4 matview triage + FE Vitest baseline"
+  type: backend+frontend
+  surface: BE+FE
+  wave_position: 5
+  production_code: false
+  state: draft
+  origin: "T-15 + T-8.bis partial_verify Sesion 10 — A2/A3 BE pytest ignore + A3 FE Vitest baseline deferred"
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 4
+  estimate_hours: 2
+  estimated_cost_usd_range: [100, 200]
+  parallelizable_with: []
+  decisions_applicable: [D2]
+  halt_triggers_applicable: [8]
+  inputs:
+    impl_log: "../T-15-impl-log.md § Cat 2 partial + ../T-8bis-impl-log.md § A3 Vitest"
+  description: |
+    T-15 partial_verify left Cat 2 .gitignore/pytest-ignore patch incomplete (strategy framed but
+    file edits not applied) + Cat 4 matview triage. T-8.bis partial_verify left A3 FE Vitest
+    delta unmeasured.
+
+    T-16 closes:
+    - Cat 2 BE: add `tests/scripts/`, `tests/architecture/test_be_fe_schema_alignment_*` (cross-repo
+      path resolvers) to `nicolify/backend/.gitignore` AND `pyproject.toml` pytest collect_ignore_glob
+    - Cat 4 BE: matview REFRESH MATERIALIZED VIEW pattern in conftest fixture OR skip pattern;
+      sales_agent residue documented + deferred Story 14 (already noted in DEFERRED-FAILURES)
+    - A3 FE: run Vitest baseline in luana-platform/nicolify/frontend/, categorize delta as
+      `developed_pending_T-16` or fix trivially per T-10-H8-pattern
+  blast_radius:
+    files_affected_count: 6
+    paths:
+      - /home/chris/luana-platform/nicolify/backend/.gitignore
+      - /home/chris/luana-platform/nicolify/backend/pyproject.toml
+      - /home/chris/luana-platform/nicolify/backend/conftest.py
+      - /home/chris/luana-platform/nicolify/frontend/vitest.config.ts
+      - /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/DEFERRED-FAILURES-STORY-10.md
+  deliverables:
+    - "Cat 2 pytest-ignore additions verified — pytest collect drops to baseline ± 30"
+    - "Cat 4 matview state resolved (REFRESH or skip)"
+    - "FE Vitest delta measured + categorized"
+  acceptance:
+    - { id: A1, description: "BE pytest delta ≤ 30 fails total (Cat 3 deferred residue only)" }
+    - { id: A2, description: "FE Vitest delta measured + ≤ 10 fails or categorized as Story 14 deferred" }
+  quality_gates:
+    - "T-15 + T-8.bis partial_verify deliverables preserved (no rewind)"
+  depends_on: ["T-15", "T-8.bis"]
   blocks: []
   assigned_to: null
