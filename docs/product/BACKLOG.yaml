@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-13T17:11:58+00:00
+# Generated at: 2026-05-13T22:34:47+00:00
 
-generated_at: '2026-05-13T17:11:58+00:00'
+generated_at: '2026-05-13T22:34:47+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -311,13 +311,14 @@ buckets:
     state: developing
     title: luana-nicolify-migration
     tags: []
-    last_touched: 2026-05-15
+    last_touched: 2026-05-16
     extra:
       outcome: luana-platform-migration
-      phase: T8_T10_LANDED_T8BIS_T15_PENDING
-      next_action: Chris triggers Sesión 10 autonomous para T-8.bis (Sonnet, codemod extension + @luana/* config gaps) + T-15
-        (Sonnet, post-consolidation test pruning) + T-9 (Opus, Vercel reconfig blocked T-8.bis) + T-11 + T-12 + T-13 + T-14.
-        Cumulative S5-S9 ~$6775-7625, headroom $2375-3225.
+      phase: S10_LANDED_AWAITING_AUDITOR
+      next_action: Chris invokes /auditor Conv 3 for Story 10 verification — verdict APPROVED triggers T-19 (story folder
+        delete + archive luana-platform) + 07-merge.md + state transition reviewing→done. OR drain T-16/T-17/T-18 stubs Sesion
+        11 autonomous before final /auditor. OR park Story 10 + start nicolify-brand-repo extraction (Q2 framework). Sesion
+        10 cumulative ~$5.90 (massive under-spend); S5-S10 total ~$6781-7631.
       blocked_by:
       - luana-v0-1-0-publish
       priority_override: null

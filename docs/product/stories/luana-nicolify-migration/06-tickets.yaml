@@ -913,16 +913,16 @@ T8:
 # ════════════════════════════════════════════════════════════════
 T9:
   id: T-9
-  title: "Vercel reconfig + CF tunnel verify"
+  title: "Deploy infrastructure verify + per-brand architectural plan (re-scoped from Vercel — never used)"
   type: frontend
   surface: FE
   wave_position: 3
   production_code: false
-  state: draft
+  state: done                                 # Sesion 10 Q2 ratificacion — re-scoped after Chris framework "cada marca su propio deploy"; verdict done (doc + verify inline /pm)
   owner_eligibility:
     qwen_opencode: false
-    claude_sonnet: false                      # Opus per Chris framing — Halt Triggers #3 + #4 high-stakes + Chris manual UI steps coordination
-    claude_opus_required: true
+    claude_sonnet: false                      # Re-scoped to /pm inline (architectural plan + CF tunnel verify); no Opus build needed
+    claude_opus_required: false
   priority: 1
   estimate_hours: 2
   estimated_cost_usd_range: [300, 500]
@@ -1100,7 +1100,7 @@ T11:
   surface: FE
   wave_position: 4
   production_code: false
-  state: draft
+  state: done_partial                       # Sesion 10 — specs surface 44/44 mirror via T-8 rsync. Full execution deferred → T-17 post-T-14 cutover
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: true                       # PREFERRED — mechanical Playwright spec following playwright-expert template
@@ -1186,7 +1186,7 @@ T12:
   surface: BE
   wave_position: 4
   production_code: false
-  state: draft
+  state: done                               # Sesion 10 — Makefile + ci-parity.sh cross-brand scaffolding LANDED luana-platform. Pre-push hook migration → T-18 post-T-14
   owner_eligibility:
     qwen_opencode: false                      # Mostly OK but small enough — Sonnet preferred
     claude_sonnet: true                       # PREFERRED — Makefile + bash scripts mechanical
@@ -1278,7 +1278,7 @@ T13:
   surface: BE
   wave_position: 5
   production_code: false                      # Mechanical mv + path updates — but Chris framing flags Opus mandatory due to high blast radius + halt-and-ask Decisión 4A
-  state: draft
+  state: done_partial                         # Sesion 10 Q3 ratificacion Option B — rsync 42 files mirrored; AISALESHT delete deferred to /auditor Conv 3 merge (T-19 stub)
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: false                      # Opus per Chris framing — "muy cuidadoso" Decisión 4A hardcoded path discovery
@@ -1401,7 +1401,7 @@ T14:
   surface: BE
   wave_position: 5
   production_code: false
-  state: draft
+  state: awaiting_chris                     # Sesion 10 Q4 ratificacion Option B — Chris UI manual gate. Pre-archive verification + drop visionarias_logs SQL + Recommendation Option B (defer archive to brand-extraction) documented in T-14-impl-log.md
   owner_eligibility:
     qwen_opencode: false
     claude_sonnet: true                       # PREFERRED — GitHub API + psql + git mv mechanical closure
@@ -1715,5 +1715,170 @@ T16:
   quality_gates:
     - "T-15 + T-8.bis partial_verify deliverables preserved (no rewind)"
   depends_on: ["T-15", "T-8.bis"]
+  blocks: []
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T17:
+  id: T-17
+  title: "T-11 follow-up — full smoke E2E + visual diff baselines + 9-step Chris journey post-T-14 cutover"
+  type: tests
+  surface: FE
+  wave_position: 6
+  production_code: false
+  state: draft
+  origin: "T-11 done_partial Sesion 10 — specs surface complete via T-8 rsync; full execution deferred to post-T-14 single-source state"
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 2
+  estimate_hours: 4
+  estimated_cost_usd_range: [400, 700]
+  parallelizable_with: []
+  decisions_applicable: [D6]
+  halt_triggers_applicable: [4]
+  inputs:
+    spec: "../01-spec.md §5 Feature 5 Scenarios 5.1-5.4 + V-V-1"
+    predecessor: "../T-11-impl-log.md"
+  description: |
+    Post-T-14 cutover full smoke E2E execution. T-8 rsync delivered 44/44 spec files
+    + playwright.config.ts to luana-platform/nicolify/frontend/. T-17 closes:
+
+    1. Reconfigure docker-compose to mount luana-platform/nicolify/frontend as
+       new `visionarias_client_dev` source (replaces AISALESHT/frontend mount)
+    2. Run `pnpm install` at luana-platform root + restart container
+    3. Execute smoke spec suite: `npx playwright test --project=smoke`
+    4. Validate Clerk auth fixture freshness gate auto-regen via clerk.setup.ts
+    5. Execute 9-step Chris journey spec (signup → brand → offer → sales_agent → conversation → cards → signout)
+    6. Validate cost regression guard (Scenario 5.3): query copilot_llm_call cost_usd > 0 for test tenant
+    7. Validate tenant cross-leak adversarial (Scenario 5.4): T1 + T2 isolation
+    8. Capture visual diff baselines (V-V-1): 5 surfaces vs AISALESHT references
+    9. Run regression + visual + public projects: verify no regression introduced
+  blast_radius:
+    files_affected_count: 8
+    paths:
+      - /home/chris/luana-platform/docker-compose.dev.yml (mount reconfig)
+      - /home/chris/luana-platform/nicolify/frontend/e2e/specs/visual/ (baselines)
+      - /home/chris/luana-platform/nicolify/frontend/playwright/.clerk/user.json (auto-regen)
+  deliverables:
+    - "Smoke + regression + visual + public projects PASS"
+    - "Visual baselines captured for 5 surfaces"
+    - "Cost regression guard validated"
+    - "Tenant cross-leak adversarial validated"
+  acceptance:
+    - { id: A1, description: "All 44 specs PASS" }
+    - { id: A2, description: "Visual diff <1% pixel for 5 surfaces" }
+    - { id: A3, description: "Cost regression query returns ≥ 1 row cost_usd > 0" }
+    - { id: A4, description: "Tenant cross-leak: T2 sees ONLY own offers" }
+  quality_gates:
+    - "T-14 AISALESHT archive complete (single-source FE established)"
+    - "luana-platform/nicolify/frontend mounted as container source"
+  depends_on: ["T-14"]
+  blocks: []
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T19:
+  id: T-19
+  title: "T-13 follow-up — AISALESHT story folder delete + Story 10 archive luana-platform side post-/auditor APPROVED"
+  type: tooling
+  surface: BE
+  wave_position: 7
+  production_code: false
+  state: draft
+  origin: "T-13 Sesion 10 — rsync done dual-state, delete deferred to /auditor APPROVED merge ratification"
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 4
+  estimate_hours: 1
+  estimated_cost_usd_range: [100, 200]
+  parallelizable_with: []
+  decisions_applicable: [D4]
+  halt_triggers_applicable: [10]
+  inputs:
+    spec: "../01-spec.md §5 Feature 4 Scenarios 4.1-4.3"
+    predecessor: "../T-13-impl-log.md"
+  description: |
+    Post-/auditor APPROVED Conv 3 merge:
+    1. Final delta rsync AISALESHT → luana-platform (capture SESSION-10-CLOSE.md + auditor review docs)
+    2. `git rm -r AISALESHT/docs/product/stories/luana-nicolify-migration/`
+    3. Story archive: rsync to `luana-platform/docs/archive/2026/stories/luana-nicolify-migration/`
+    4. Capability promotion: lift relevant capabilities to luana-platform/docs/product/capabilities/ (or keep AISALESHT until brand-extraction)
+    5. 07-merge.md authored at luana-platform side
+    6. State transition: reviewing → done (post-merge)
+  blast_radius:
+    files_affected_count: 50
+    paths:
+      - /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/ (DELETED)
+      - /home/chris/luana-platform/docs/archive/2026/stories/luana-nicolify-migration/ (NEW)
+      - /home/chris/luana-platform/docs/product/stories/luana-nicolify-migration/07-merge.md (NEW)
+  deliverables:
+    - "AISALESHT story folder deleted"
+    - "Story archived luana-platform side"
+    - "07-merge.md authored"
+    - "State transition reviewing → done"
+  acceptance:
+    - { id: A1, description: "AISALESHT story folder NOT present" }
+    - { id: A2, description: "luana-platform archive snapshot present" }
+    - { id: A3, description: "07-merge.md present + signed by /pm" }
+  quality_gates:
+    - "/auditor APPROVED verdict on Story 10"
+    - "T-14 AISALESHT archive complete"
+  depends_on: ["T-14", "auditor-APPROVED"]
+  blocks: []
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
+T18:
+  id: T-18
+  title: "T-12 follow-up — .husky/pre-push migration + ci-parity execution validation post-T-14"
+  type: tooling
+  surface: BE
+  wave_position: 6
+  production_code: false
+  state: draft
+  origin: "T-12 partial — pre-push hook + ci-parity execution validation deferred to luana-platform single-source state"
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 3
+  estimate_hours: 2
+  estimated_cost_usd_range: [200, 400]
+  parallelizable_with: []
+  decisions_applicable: [D8]
+  halt_triggers_applicable: [6]
+  inputs:
+    spec: "../01-spec.md §5 Feature 6 Scenario 6.4"
+    predecessor: "../T-12-impl-log.md"
+  description: |
+    Post-T-14 cutover:
+    1. Author luana-platform/.husky/pre-push wrapper (delegates to scripts/git-hooks/pre-push)
+    2. Author luana-platform/scripts/git-hooks/pre-push (cross-brand marker check)
+    3. Validate `cd luana-platform && make ci-parity-nicolify` builds + runs all 8 gates
+    4. Verify Dockerfile + .env paths resolve correctly cross-brand
+    5. Adapt scripts/validate_ci_parity_mirror.py to cross-brand layout
+    6. Document brand-extraction migration path (when per-brand repo created)
+  blast_radius:
+    files_affected_count: 4
+    paths:
+      - /home/chris/luana-platform/.husky/pre-push
+      - /home/chris/luana-platform/scripts/git-hooks/pre-push
+      - /home/chris/luana-platform/scripts/validate_ci_parity_mirror.py (NEW or adapted)
+      - /home/chris/luana-platform/nicolify/backend/Dockerfile (path verify)
+  deliverables:
+    - "Pre-push hook gates git push origin main with ci-parity marker check"
+    - "Cross-brand ci-parity script runs Nicolify successfully end-to-end"
+    - "Validator script cross-brand aware"
+  acceptance:
+    - { id: A1, description: "`cd luana-platform && git push --dry-run origin main` triggers pre-push hook" }
+    - { id: A2, description: "`cd luana-platform && make ci-parity` exits 0 (GREEN sweep)" }
+  quality_gates:
+    - "T-14 AISALESHT archive complete (luana-platform = single source)"
+    - "luana-platform/nicolify/{backend,frontend}/ runtime-mounted"
+  depends_on: ["T-14"]
   blocks: []
   assigned_to: null
