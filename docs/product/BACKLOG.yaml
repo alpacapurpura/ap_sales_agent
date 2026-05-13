@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-12T22:48:25+00:00
+# Generated at: 2026-05-13T01:16:53+00:00
 
-generated_at: '2026-05-12T22:48:25+00:00'
+generated_at: '2026-05-13T01:16:53+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -215,21 +215,6 @@ buckets:
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
   refined: []
   ready:
-  - id: luana-nicolify-migration
-    kind: story
-    state: ready
-    title: luana-nicolify-migration
-    tags: []
-    last_touched: 2026-05-12
-    extra:
-      outcome: luana-platform-migration
-      phase: PHASE_1B_DONE_READY_FOR_PHASE_2_BUILD
-      next_action: Chris ratification check-in before Phase 2 build spawns — review ready package summary + decide proceed
-        or adjust. T-1 baseline Sonnet next.
-      blocked_by:
-      - luana-v0-1-0-publish
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready
@@ -321,6 +306,21 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
+  - id: luana-nicolify-migration
+    kind: story
+    state: developing
+    title: luana-nicolify-migration
+    tags: []
+    last_touched: 2026-05-12
+    extra:
+      outcome: luana-platform-migration
+      phase: PHASE_2_PAUSED_AWAITING_CHRIS_STRATEGIC_DECISION
+      next_action: 'Chris chooses Session 6 strategy: R1 (proactive lift audit, recommended) | R2 (whack-a-mole continuation)
+        | R3 (accept partial). Detail: SESSION-5-HALT-2026-05-12.md'
+      blocked_by:
+      - luana-v0-1-0-publish
+      priority_override: null
+      audit_iterations: 0
   developed: []
   reviewing: []
   done:

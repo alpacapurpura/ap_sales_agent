@@ -1,11 +1,11 @@
 ---
 story_id: luana-nicolify-migration
 outcome: luana-platform-migration
-state: ready                                     # 2026-05-12 Session 5 Phase 1B — architect-orchestrator emitted 5 files ready package (2 spawns Part 1+2)
-phase: PHASE_1B_DONE_READY_FOR_PHASE_2_BUILD
-last_artifact: 06-tickets.yaml
+state: developing                                 # 2026-05-12 Session 5 Phase 2 paused mid-Wave-1A — T-2 third attempt cut off mid-work
+phase: PHASE_2_PAUSED_AWAITING_CHRIS_STRATEGIC_DECISION
+last_artifact: SESSION-5-HALT-2026-05-12.md
 last_modified: 2026-05-12
-next_action: "Chris ratification check-in before Phase 2 build spawns — review ready package summary + decide proceed or adjust. T-1 baseline Sonnet next."
+next_action: "Chris chooses Session 6 strategy: R1 (proactive lift audit, recommended) | R2 (whack-a-mole continuation) | R3 (accept partial). Detail: SESSION-5-HALT-2026-05-12.md"
 ratified_by_chris: true                          # 2026-05-12 — 10 business decisions §7.6 cemented Session 5 Phase 0
 spawned_at: 2026-05-09
 spawned_by: /pm
@@ -57,3 +57,4 @@ Detail completo: `docs/product/outcomes/luana-platform-migration.md` § 7.6
 - **2026-05-12 Session 5 Phase 0**: /pm spawned. Chris ratified 10 business decisions §7.6. Transition state=parked → refining. /po next.
 - **2026-05-12 Session 5 Phase 1**: /po Opus emitted 01-spec.md (1304 líneas, 9 features × 4 escenarios = 36 Gherkin scenarios). Chris ratified spec + accepted NEW Halt Trigger #11 (test mock missing path). Outcome §7.6.2 updated. Transition state=refining → refined. architect-orchestrator next.
 - **2026-05-12 Session 5 Phase 1B**: architect-orchestrator Opus emitted ready package en 2 spawns (Part 1 = 03-arch + 03-arch-be + 05-guidelines; Part 2 = 04-validators + 06-tickets). Total 5 files: 03-arch.md (639 líneas) + 03-arch-be.md (862 líneas) + 04-validators.yaml (59 validators across 4 cat, 36 scenarios covered) + 05-guidelines.md (535 líneas) + 06-tickets.yaml (14 tickets T-1..T-14 sharded Z1 strategy ≤2 paralelo Wave 1). 10 Opus-mandatory tickets + 4 Sonnet-OK. Transition state=refined → ready. Brief Chris check-in pre-Phase 2 build.
+- **2026-05-12 Session 5 Phase 2 (paused mid-Wave-1A)**: T-1 baseline ✓ done (commit `623b4872`). T-1.5 luana-core editable install ✓ done (`039f4f8e`). T-1.6 codemod MAPPING audit fix ✓ done (`340fd350`). T-2 brand+offer rewrite halted 3 times (Trigger #1 mitigated T-1.5, Trigger #11 false positive mitigated T-1.6, third attempt cut off mid-work post-codemod-apply — builder discovered "4 remaining re-exports needed" indicating lift Stories 1-9 incomplete symbol parity). 226 files modified WIP stashed (`stash@{0}: WIP-T-2-third-attempt-cutoff-need-re-exports`). Transition state=ready → developing (Phase 2 active but paused). Cumulative Session 5 cost ~$2100. Halt-and-ask Chris: R1 proactive lift audit (recommended) | R2 whack-a-mole continuation | R3 accept partial. Detail: SESSION-5-HALT-2026-05-12.md.
