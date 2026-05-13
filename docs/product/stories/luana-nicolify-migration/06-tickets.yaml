@@ -1525,6 +1525,86 @@ T14:
   assigned_to: null
 
 # ════════════════════════════════════════════════════════════════
+T8bis:
+  id: T-8.bis
+  title: "T-8 partial_a3 follow-up — codemod extension + @luana/* config gaps"
+  type: frontend
+  surface: FE
+  wave_position: 3
+  production_code: false
+  state: draft
+  origin: "T-8 partial_a3 Sesión 9 — Chris ratified T-10-H8-pattern (accept partial + defer to T-8.bis) 2026-05-14/15"
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 3
+  estimated_cost_usd_range: [400, 700]
+  parallelizable_with: []
+  decisions_applicable: [D6, D1]
+  halt_triggers_applicable: [1, 3, 8]
+  inputs:
+    impl_log: "../T-8-impl-log.md § Decisions deferred to architect/Chris (D1+D2)"
+  description: |
+    T-8 builder rsync + workspace + codemod LANDED but acceptance gates partial:
+    - A1 TSC 16 errors (4 @luana/hooks missing use-copilot-offset export + 1 @luana/ui-kit missing react-hook-form dep + 11 zod v3/v4 RHF type mismatch)
+    - A4 759 legacy @/* paths (codemod missing @/lib/utils → @luana/format mapping + spec verifier scope gap on Nicolify-local @/lib/{form-runtime,edge,config,api/public})
+    - A2 ESLint not measured
+    - A3 Vitest deferred (blocked by A1)
+
+    T-8.bis closes the gaps:
+
+    **D1 codemod + spec gap resolution:**
+    - Extend `scripts/codemod_fe_imports.ts` MAPPING with `@/lib/utils` → `@luana/format`
+    - Update 06-tickets.yaml T-8 A4 verifier exclusion to include Nicolify-local `@/lib/{form-runtime,edge,config,api/public}/*`
+    - Re-run codemod in luana-platform/nicolify/frontend/
+    - Verify A4 drops to 0 (Nicolify-local stays as-is)
+
+    **D2 @luana/* config gaps:**
+    - Modify `core/@luana/hooks/src/index.ts` to export `use-copilot-offset` (currently commented as "requires @/features/copilot" — verify after T-8 nicolify-web consumes via workspace symlink, the path resolves)
+    - Add `react-hook-form` as peerDep in `core/@luana/ui-kit/package.json` (already used in `form.tsx`)
+    - Coordinate zod versions: bump `@luana/schemas` to zod v4 OR add zod v3 alongside v4 in nicolify-web
+    - Verify A1 drops to 0
+
+    **Verify final state:**
+    - A1 TSC 0 errors
+    - A2 ESLint 0 errors
+    - A3 Vitest delta vs baseline (categorize like T-10 H8 → likely T-15-FE T-16 deferred)
+    - A4 0 legacy @/* paths (after exclusion list updated)
+    - A5 workspace symlinks GREEN (already passing T-8)
+
+  blast_radius:
+    files_affected_count: 8
+    paths:
+      - /home/chris/AISALESHT/scripts/codemod_fe_imports.ts
+      - /home/chris/AISALESHT/docs/product/stories/luana-nicolify-migration/06-tickets.yaml
+      - /home/chris/luana-platform/core/@luana/hooks/src/index.ts
+      - /home/chris/luana-platform/core/@luana/ui-kit/package.json
+      - /home/chris/luana-platform/core/@luana/schemas/package.json
+      - /home/chris/luana-platform/nicolify/frontend/package.json
+      - /home/chris/luana-platform/nicolify/frontend/src/  (codemod re-run scope)
+      - /home/chris/luana-platform/pnpm-lock.yaml
+  deliverables:
+    - "Codemod extended with @/lib/utils → @luana/format mapping"
+    - "A4 verifier exclusion list expanded for Nicolify-local @/lib/*"
+    - "@luana/hooks exports use-copilot-offset"
+    - "@luana/ui-kit declares react-hook-form peerDep"
+    - "zod version coordination (v3 or v4 single source)"
+    - "A1 TSC 0 errors verified"
+    - "A4 0 legacy non-allowed @/* paths verified"
+  acceptance:
+    - { id: A1, description: "T-8 A1 TSC GREEN in luana-platform/nicolify/frontend" }
+    - { id: A2, description: "T-8 A2 ESLint GREEN" }
+    - { id: A4, description: "T-8 A4 0 legacy @/* paths (post exclusion list update)" }
+  quality_gates:
+    - "T-8 cement preserved (A5 GREEN, rsync intact)"
+    - "luana-platform @luana/* package modifications scope-bounded (no API surface breaking changes)"
+  depends_on: ["T-8"]
+  blocks: ["T-9"]
+  assigned_to: null
+
+# ════════════════════════════════════════════════════════════════
 T15:
   id: T-15
   title: "Post-consolidation test pruning (T-10 H8 ratification follow-up)"
