@@ -42,7 +42,7 @@ KNOWN_CROSS_TENANT_QUERY_LINES: frozenset[str] = frozenset(
         # La query GROUP BY tenant_id es intencional (cross-tenant aggregate).
         # Razón documentada en
         # ``src/modules/sales_agent/observability/workers/dual_write_reconciliation_task.py``.
-        "src/modules/sales_agent/observability/workers/dual_write_reconciliation_task.py:76",
+        "src/modules/sales_agent/observability/workers/dual_write_reconciliation_task.py:75",
     },
 )
 
