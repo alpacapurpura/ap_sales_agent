@@ -1,12 +1,13 @@
 ---
 story_id: luana-vitalia-bootstrap
 outcome: luana-platform-migration
-state: developing
-phase: SESION_4_BUILD_ACTIVE                                  # 8/38 done (T-fe-3 GREEN 2026-05-14)
-last_artifact: T-fe-3-result.md
+state: developed                                              # transition developing → developed Sesion 4 close 2026-05-14
+phase: SESION_4_BUILD_DONE_AWAITING_AUDITOR
+last_artifact: SESSION-4-CLOSE-2026-05-14.md
 last_modified: 2026-05-14
-next_action: "T-fe-3 GREEN. Continue Sesion 4 waves — W13 complete, remaining alone waves."
+next_action: "Chris triggers /auditor Conv 3 Sesion 5 for state developed → reviewing → done. Auditor verifies V-AE-18 gap + Postgres integration + Playwright runtime + W9 race postmortem."
 sesion_4_started_at: 2026-05-14
+sesion_4_closed_at: 2026-05-14
 sesion_4_q_decisions:
   Q1_scope: A_FULL_31_tickets
   Q2_parallel: A_cap_2_strict
@@ -14,8 +15,16 @@ sesion_4_q_decisions:
   Q4_close: A_batch_done_or_cap_escalate
   Q5_quality: A_trust_builder_post_batch_auditor_sesion_5
 sesion_4_dag_waves_planned: 18                                # vs 23 originally proposed; denser packing
+sesion_4_dag_waves_executed: 18                               # all W1-W18 GREEN
 sesion_4_target_cost_usd: 105_to_120
+sesion_4_actual_cost_usd: 105.51                              # within budget
 sesion_4_target_wall_hours: 3_to_4
+sesion_4_actual_wall_hours: 5                                 # +25% vs target (W9 race recovery)
+sesion_4_outcome: 31_31_GREEN_ALL_TICKETS_DONE
+halt_triggers_fired_sesion_4: [H_parallel_git_race_W9]
+tickets_done_count: 38                                        # 7 Sesion 3 + 31 Sesion 4 = 100%
+tickets_pending_count: 0
+story_progress_pct: 100.0
 sesion_3_started_at: 2026-05-14
 sesion_3_closed_at: 2026-05-14
 sesion_3_scope: 7_tickets_mixed_be_first_agentic_tool         # Q1=D ratified
