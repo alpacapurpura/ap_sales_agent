@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-13T23:39:23+00:00
+# Generated at: 2026-05-14T00:44:27+00:00
 
-generated_at: '2026-05-13T23:39:23+00:00'
+generated_at: '2026-05-14T00:44:27+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -213,23 +213,23 @@ buckets:
       success_metrics:
       - Cuantitativo TBD (% leads → cita, % citas → cliente)
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
-  refined:
+  refined: []
+  ready:
   - id: luana-vitalia-bootstrap
     kind: story
-    state: refined
+    state: ready
     title: luana-vitalia-bootstrap
     tags: []
     last_touched: 2026-05-13
     extra:
       outcome: luana-platform-migration
-      phase: SPEC_RATIFIED
-      next_action: 'Sesion 2: /ux-agentico drafts 02-design-agentic.md (vertical-medical conversational flows) + /architect
-        orchestrator → 03-arch.md + 04-validators.yaml + 05-guidelines.md + 06-tickets.yaml ready package. State refined →
-        ready.'
+      phase: READY_PACKAGE_DONE
+      next_action: 'Sesion 3: /dev-team picks 06-tickets.yaml ticket-by-ticket autonomous build. Working dir /home/chris/luana-platform/vitalia/.
+        38 atomic tickets (15 AGENTIC opus-mandatory R23 + 23 BE/FE/config Sonnet-OK). Validators 70 (4 categories) executable
+        must_pass:true c/u. State ready → developing.'
       blocked_by: []
       priority_override: null
       audit_iterations: 0
-  ready:
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready

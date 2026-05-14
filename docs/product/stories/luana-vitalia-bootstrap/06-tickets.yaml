@@ -1,0 +1,1877 @@
+# 06-tickets.yaml — Story 11 luana-vitalia-bootstrap
+# Owner: /architect Phase 2 (Opus 4.7) — 2026-05-13
+#
+# 28 tickets per 03-arch.md + 02-design-agentic.md + 01-spec.md ratified.
+# Working directory: /home/chris/luana-platform/vitalia/ (per Phase 0 Q3=B).
+#
+# Conventions (R6 + R8 + R23 + R26):
+#   - decisions_applicable: cite D1..D14 from 05-guidelines.md § 6
+#   - production_code per R23 routing
+#   - owner_eligibility per 05-guidelines.md § 5 matrix
+#   - repro_verified: false — Story 11 is greenfield, NOT hot-fix (R26 N/A)
+#   - Cap paralelización ≤ 2 simultaneous agents (Story 10 precedent)
+#   - Opus mandatory for AGENTIC production tickets (R23 hard rule)
+
+---
+story_id: luana-vitalia-bootstrap
+generated_at: 2026-05-13T18:30Z
+generated_by: /architect (Opus 4.7)
+total_tickets: 38
+estimated_total_hours: 130-150
+parallelization_cap: 2
+opus_priority: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-workflow-1, T-kb-1, T-kb-2, T-kb-3, T-guards-1, T-guards-2, T-guards-3, T-prompts-1, T-extensions-1, T-rubric-1]
+cite_arch: docs/product/stories/luana-vitalia-bootstrap/03-arch.md
+cite_arch_be: docs/product/stories/luana-vitalia-bootstrap/03-arch-be.md
+cite_arch_fe: docs/product/stories/luana-vitalia-bootstrap/03-arch-fe.md
+cite_arch_agentic: docs/product/stories/luana-vitalia-bootstrap/03-arch-agentic.md
+cite_validators: docs/product/stories/luana-vitalia-bootstrap/04-validators.yaml
+cite_guidelines: docs/product/stories/luana-vitalia-bootstrap/05-guidelines.md
+cite_spec: docs/product/stories/luana-vitalia-bootstrap/01-spec.md
+cite_design: docs/product/stories/luana-vitalia-bootstrap/02-design-agentic.md
+cite_halt_triggers: 04-validators.yaml halt_triggers (H1-H13)
+
+# ── Summary table (alto nivel) ─────────────────────────────────
+summary:
+  # Phase 1: Scaffolding + config (Sonnet OK)
+  - { id: T-scaffold-1,   title: "Vitalia subdir bootstrap (workspace integration)",                 surface: full-stack,  owner: sonnet,  estimate_hours: 3,   blocked_by: [],                                                                                                  blocks: [T-config-1, T-be-1, T-fe-1] }
+  - { id: T-config-1,     title: "BrandConfig declarative YAML",                                      surface: config,      owner: sonnet,  estimate_hours: 1,   blocked_by: [T-scaffold-1],                                                                                      blocks: [T-extensions-1, T-be-4, T-fe-3] }
+
+  # Phase 2: BE infra (Sonnet OK) — parallelizable
+  - { id: T-be-1,         title: "Alembic snapshot 001_vitalia_initial_snapshot.py",                  surface: BE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-scaffold-1],                                                                                      blocks: [T-be-2, T-be-3],  parallelizable_with: [T-fe-1] }
+  - { id: T-be-2,         title: "SQLAlchemy 2.0 ORM models (11 models)",                             surface: BE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-be-1],                                                                                            blocks: [T-be-3, T-be-4] }
+  - { id: T-be-3,         title: "Async repositories (7 repos)",                                      surface: BE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-be-2],                                                                                            blocks: [T-be-4, T-be-5, T-be-6] }
+
+  # Phase 3: BE services + endpoints (Sonnet OK)
+  - { id: T-be-4,         title: "BE services Onboarding + ComplianceEvent + PiiScanner",             surface: BE,          owner: sonnet,  estimate_hours: 3,   blocked_by: [T-be-3, T-config-1],                                                                                blocks: [T-be-7] }
+  - { id: T-be-5,         title: "BE services Booking + advisory_locks + idempotency",                surface: BE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-be-3],                                                                                            blocks: [T-be-7, T-payment-1] }
+  - { id: T-be-6,         title: "BE services Consent + TreatmentFollowup + PrepaidPayment",          surface: BE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-be-3],                                                                                            blocks: [T-be-7, T-workflow-1] }
+  - { id: T-be-7,         title: "BE endpoints + DTOs Pydantic v2 + FastAPI routes",                  surface: BE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-be-4, T-be-5, T-be-6],                                                                            blocks: [T-fe-2, T-e2e-1] }
+  - { id: T-be-8,         title: "BE webhook receivers (Stripe + MercadoPago + Clerk + WhatsApp + ManyChat)", surface: BE, owner: sonnet, estimate_hours: 3,   blocked_by: [T-be-5, T-payment-1],                                                                               blocks: [T-e2e-1] }
+
+  # Phase 4: Payment channel adapters (Sonnet OK — lift shared if needed)
+  - { id: T-payment-1,    title: "Lift MercadoPago adapter to @luana/core/channels (if not exists) + vitalia EXTEND", surface: BE, owner: opus, estimate_hours: 4, blocked_by: [T-be-3],                                                                                  blocks: [T-be-8, T-payment-2] }
+  - { id: T-payment-2,    title: "Stripe Connect adapter + Tokenized Recurring adapter",              surface: BE,          owner: sonnet,  estimate_hours: 3,   blocked_by: [T-payment-1],                                                                                       blocks: [T-be-8] }
+
+  # Phase 5: AGENTIC tools (R23 Opus mandatory) — 4 tools in parallel pairs
+  - { id: T-tools-1,      title: "Tool prepaid_payment_check (deterministic SQL read-only)",          surface: AGENTIC,     owner: opus,    estimate_hours: 3,   blocked_by: [T-be-3, T-extensions-1],                                                                            blocks: [T-eval-1],                                  parallelizable_with: [T-tools-2] }
+  - { id: T-tools-2,      title: "Tool medical_consent_request (consent capture + URL sign)",         surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [T-be-6, T-extensions-1],                                                                            blocks: [T-eval-1],                                  parallelizable_with: [T-tools-1] }
+  - { id: T-tools-3,      title: "Tool appointment_reschedule_with_doctor (4 actions + advisory locks)", surface: AGENTIC, owner: opus,    estimate_hours: 4,   blocked_by: [T-be-5, T-extensions-1],                                                                            blocks: [T-eval-1],                                  parallelizable_with: [T-tools-4] }
+  - { id: T-tools-4,      title: "Tool treatment_followup_check (workflow node, classifier LLM)",     surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [T-be-6, T-extensions-1, T-workflow-1],                                                              blocks: [T-eval-1],                                  parallelizable_with: [T-tools-3] }
+
+  # Phase 6: AGENTIC extractors (R23 Opus mandatory) — parallelizable
+  - { id: T-extractors-1, title: "MedicalKBExtractor (extends BaseExtractionOrchestrator)",           surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [T-be-3, T-extensions-1],                                                                            blocks: [T-eval-1],                                  parallelizable_with: [T-extractors-2] }
+  - { id: T-extractors-2, title: "DentalHistoryExtractor (vision-heavy FDI notation)",                surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [T-be-3, T-extensions-1],                                                                            blocks: [T-eval-1],                                  parallelizable_with: [T-extractors-1] }
+
+  # Phase 7: AGENTIC workflow + KB packs (R23 Opus mandatory)
+  - { id: T-workflow-1,   title: "TreatmentFollowupWorkflow LangGraph StateGraph + RedisSaver + cron", surface: AGENTIC,     owner: opus,    estimate_hours: 5,   blocked_by: [T-be-6],                                                                                            blocks: [T-tools-4, T-eval-1] }
+  - { id: T-kb-1,         title: "KB pack medical_kb_dental_v1 (chunks + Qdrant ingestion)",          surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [T-extensions-1],                                                                                    blocks: [T-eval-1],                                  parallelizable_with: [T-kb-2, T-kb-3] }
+  - { id: T-kb-2,         title: "KB pack medical_kb_psychology_v1 (boundary chunks)",                surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [T-extensions-1],                                                                                    blocks: [T-eval-1],                                  parallelizable_with: [T-kb-1, T-kb-3] }
+  - { id: T-kb-3,         title: "KB pack medical_kb_psychiatry_v1 (forced disclaimer chunk)",        surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [T-extensions-1],                                                                                    blocks: [T-eval-1],                                  parallelizable_with: [T-kb-1, T-kb-2] }
+
+  # Phase 8: AGENTIC guardrails + prompts + extensions (R23 Opus mandatory)
+  - { id: T-guards-1,     title: "Guardrail medical_safety_no_diagnosis (input+output layers)",       surface: AGENTIC,     owner: opus,    estimate_hours: 3,   blocked_by: [T-prompts-1, T-kb-3],                                                                                 blocks: [T-eval-1] }
+  - { id: T-guards-2,     title: "Guardrail medical_safety_no_prescription (forced disclaimer chunk retrieval)", surface: AGENTIC, owner: opus, estimate_hours: 3, blocked_by: [T-prompts-1, T-kb-3],                                                                            blocks: [T-eval-1] }
+  - { id: T-guards-3,     title: "Guardrail medical_disclaimer_required + prompt_injection_block reuse", surface: AGENTIC, owner: opus, estimate_hours: 2,   blocked_by: [T-prompts-1],                                                                                       blocks: [T-eval-1] }
+  - { id: T-prompts-1,    title: "Prompt slot architecture 10 slots + Slot 4 NEW + cache_control",    surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [T-config-1, T-extensions-1],                                                                        blocks: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-guards-1, T-guards-2, T-guards-3] }
+  - { id: T-extensions-1, title: "extensions.py register_all EP-1..EP-18 entry point",                surface: AGENTIC,     owner: opus,    estimate_hours: 3,   blocked_by: [T-config-1],                                                                                        blocks: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-kb-1, T-kb-2, T-kb-3, T-prompts-1] }
+  - { id: T-rubric-1,     title: "Vertical-medical-fidelity rubric MD v1 + 6 NEW personas YAML",      surface: AGENTIC,     owner: opus,    estimate_hours: 4,   blocked_by: [],                                                                                                  blocks: [T-eval-1] }
+
+  # Phase 9: FE components + routes + widget (Sonnet OK)
+  - { id: T-fe-1,         title: "Next.js 16 App Router scaffolding + routes structure",              surface: FE,          owner: sonnet,  estimate_hours: 3,   blocked_by: [T-scaffold-1],                                                                                      blocks: [T-fe-2, T-fe-3, T-fe-4, T-fe-5],         parallelizable_with: [T-be-1] }
+  - { id: T-fe-2,         title: "FE hooks React Query + Zod schemas + types (mirror Pydantic)",      surface: FE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-fe-1, T-be-7],                                                                                    blocks: [T-fe-3, T-fe-4, T-fe-5] }
+  - { id: T-fe-3,         title: "FE components reuse @luana/ui + @luana/shared + 7 NEW vitalia-specific", surface: FE, owner: sonnet, estimate_hours: 5,   blocked_by: [T-fe-2, T-config-1],                                                                                  blocks: [T-fe-4, T-fe-5, T-widget-1, T-e2e-1] }
+  - { id: T-fe-4,         title: "FE onboarding wizard 3-step + brand-studio + offer wizard 5-step",  surface: FE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-fe-3],                                                                                            blocks: [T-e2e-1] }
+  - { id: T-fe-5,         title: "FE treatments + patients + appointments + compliance dashboard",    surface: FE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-fe-3],                                                                                            blocks: [T-e2e-1] }
+  - { id: T-widget-1,     title: "Booking widget iframe bundle (Vite UMD + postMessage protocol)",    surface: FE,          owner: sonnet,  estimate_hours: 4,   blocked_by: [T-fe-3, T-be-7],                                                                                    blocks: [T-e2e-1] }
+
+  # Phase 10: E2E + agentic_eval + smoke + observability (Sonnet OK for tests-over-agentic)
+  - { id: T-e2e-1,        title: "Playwright E2E 18 specs + 4 compliance smoke + visual + a11y",      surface: AGENTIC,     owner: sonnet,  estimate_hours: 5,   blocked_by: [T-fe-4, T-fe-5, T-widget-1, T-be-7, T-be-8, T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-workflow-1, T-kb-1, T-kb-2, T-kb-3, T-guards-1, T-guards-2, T-guards-3, T-rubric-1], blocks: [T-eval-1] }
+  - { id: T-eval-1,       title: "Agentic eval suite vertical-medical-fidelity + cost_budget + cache_hit_rate", surface: AGENTIC, owner: sonnet, estimate_hours: 4, blocked_by: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-workflow-1, T-kb-1, T-kb-2, T-kb-3, T-guards-1, T-guards-2, T-guards-3, T-rubric-1, T-e2e-1], blocks: [T-deploy-1] }
+
+  # Phase 11: Deploy infra + docs (Sonnet OK)
+  - { id: T-deploy-1,     title: "K8s manifests + CF tunnel scripts + DNS verification (Chris UI gate per Q4=B)", surface: infra, owner: sonnet, estimate_hours: 3, blocked_by: [T-eval-1],                                                                                blocks: [T-docs-1] }
+  - { id: T-docs-1,       title: "compliance.md + booking-widget-embed.md + seed_fixture_clinics.py", surface: docs,        owner: sonnet,  estimate_hours: 3,   blocked_by: [T-eval-1],                                                                                          blocks: [] }
+
+# ── Detail (one entry per ticket) ──────────────────────────────
+
+tickets:
+  - $ref: "#/Tscaffold1"
+  - $ref: "#/Tconfig1"
+  - $ref: "#/Tbe1"
+  - $ref: "#/Tbe2"
+  - $ref: "#/Tbe3"
+  - $ref: "#/Tbe4"
+  - $ref: "#/Tbe5"
+  - $ref: "#/Tbe6"
+  - $ref: "#/Tbe7"
+  - $ref: "#/Tbe8"
+  - $ref: "#/Tpayment1"
+  - $ref: "#/Tpayment2"
+  - $ref: "#/Ttools1"
+  - $ref: "#/Ttools2"
+  - $ref: "#/Ttools3"
+  - $ref: "#/Ttools4"
+  - $ref: "#/Textractors1"
+  - $ref: "#/Textractors2"
+  - $ref: "#/Tworkflow1"
+  - $ref: "#/Tkb1"
+  - $ref: "#/Tkb2"
+  - $ref: "#/Tkb3"
+  - $ref: "#/Tguards1"
+  - $ref: "#/Tguards2"
+  - $ref: "#/Tguards3"
+  - $ref: "#/Tprompts1"
+  - $ref: "#/Textensions1"
+  - $ref: "#/Trubric1"
+  - $ref: "#/Tfe1"
+  - $ref: "#/Tfe2"
+  - $ref: "#/Tfe3"
+  - $ref: "#/Tfe4"
+  - $ref: "#/Tfe5"
+  - $ref: "#/Twidget1"
+  - $ref: "#/Te2e1"
+  - $ref: "#/Teval1"
+  - $ref: "#/Tdeploy1"
+  - $ref: "#/Tdocs1"
+
+# ═══════════════════════════════════════════════════════════════
+Tscaffold1:
+  id: T-scaffold-1
+  title: "Vitalia subdir bootstrap (workspace integration uv + pnpm)"
+  type: scaffolding
+  surface: full-stack
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 1
+  estimate_hours: 3
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md § 2"
+    arch_doc: "../03-arch.md § 5"
+    guidelines: "../05-guidelines.md § 3.2"
+    rules: [".claude/rules/backend-ddd.md", ".claude/rules/frontend-fsd.md", ".claude/rules/anti-duplication.md"]
+    domain_skills: ["backend-expert", "frontend-expert"]
+  description: |
+    Bootstrap vitalia/ subdir scaffolding inside luana-platform monorepo:
+    - vitalia/backend/ + vitalia/frontend/ + vitalia/config/ + vitalia/deploy/ + vitalia/docs/ + vitalia/scripts/
+    - pyproject.toml workspace member registration
+    - package.json @luana/vitalia FE workspace member
+    - .venv setup for vitalia/backend/
+    - pnpm install + uv sync verify
+    - Empty test suite runnable (pytest + vitest)
+    - README.md skeleton
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/pyproject.toml"
+    - "/home/chris/luana-platform/vitalia/backend/Makefile"
+    - "/home/chris/luana-platform/vitalia/backend/conftest.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/__init__.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/__init__.py"
+    - "/home/chris/luana-platform/vitalia/frontend/package.json"
+    - "/home/chris/luana-platform/vitalia/frontend/next.config.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/tsconfig.json"
+    - "/home/chris/luana-platform/vitalia/frontend/eslint.config.mjs"
+    - "/home/chris/luana-platform/vitalia/frontend/vitest.config.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/playwright.config.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/tailwind.config.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/layout.tsx"
+    - "/home/chris/luana-platform/pyproject.toml (modify — add vitalia/backend workspace member)"
+    - "/home/chris/luana-platform/pnpm-workspace.yaml (modify — add vitalia/frontend)"
+    - "/home/chris/luana-platform/vitalia/README.md"
+  acceptance:
+    - { id: A1, description: "uv sync passes workspace with vitalia/backend member registered", verifier: { type: bash, cmd: "cd /home/chris/luana-platform && uv sync" } }
+    - { id: A2, description: "pnpm install passes workspace with @luana/vitalia FE member registered", verifier: { type: bash, cmd: "cd /home/chris/luana-platform && pnpm install --frozen-lockfile" } }
+    - { id: A3, description: "Empty BE test suite runs without error", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/backend && .venv/bin/pytest --collect-only" } }
+    - { id: A4, description: "Empty FE Vitest suite runs without error", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest --run --reporter=default" } }
+  validators_pass: [V-NF-11, V-NF-12]
+  out_of_scope: ["BrandConfig YAML (T-config-1)", "Any business logic", "K8s manifests (T-deploy-1)"]
+  depends_on: []
+  blocks: ["T-config-1", "T-be-1", "T-fe-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tconfig1:
+  id: T-config-1
+  title: "BrandConfig declarative YAML (vitalia/config/brand.yaml)"
+  type: config
+  surface: config
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 2
+  estimate_hours: 1
+  decisions_applicable: [D7, D8, D9, D12, D13, D14]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md § 17"
+    arch_doc: "../03-arch-be.md § 10"
+    guidelines: "../05-guidelines.md"
+  description: |
+    Materialize BrandConfig declarative YAML per 03-arch-be.md § 10:
+    - brand_slug=vitalia, compliance_level=hipaa_lite, voice_cloning_enabled=false
+    - features (10 flags incl multi_site=false, insurance=false, wellness_deep=false per Q2/Q3/Q7)
+    - brand_studio enabled_sections=[identity, contact, team, testimonials]
+    - offer_studio preset_pack=medical_services_v1
+    - booking deposit defaults + currency per country mapping
+    - payment_gateways=[mercadopago, stripe_connect, tokenized_recurring]
+    - medical_kb_packs, agentic_tools, extractors, workflows, guardrails inventory
+    - plan_tiers (solo_doctor / clinic / multi_site)
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/config/brand.yaml"
+  acceptance:
+    - { id: A1, description: "YAML parseable + schema valid", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/backend && .venv/bin/python -c 'import yaml; yaml.safe_load(open(\"../config/brand.yaml\"))'" } }
+  validators_pass: []
+  out_of_scope: ["extensions.py register_all (T-extensions-1)"]
+  depends_on: ["T-scaffold-1"]
+  blocks: ["T-extensions-1", "T-be-4", "T-fe-3"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tbe1:
+  id: T-be-1
+  title: "Alembic snapshot 001_vitalia_initial_snapshot.py (11 tables idempotent)"
+  type: migration
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 3
+  estimate_hours: 4
+  decisions_applicable: [D1, D7]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 5 + § 4 (model schemas)"
+    rules: [".claude/rules/backend-migrations.md", ".claude/rules/tenant-isolation.md", ".claude/rules/master-data.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    Single consolidated Alembic snapshot per Story 10 T-10 cement pattern.
+    11 tables idempotent IF NOT EXISTS raw SQL:
+    vitalia_bookings, vitalia_treatment_followups, vitalia_consent_records,
+    vitalia_medical_audit_log, vitalia_payment_intents, vitalia_payment_schedules,
+    vitalia_adherence_records, vitalia_doctor_extensions, vitalia_patient_medical_histories,
+    vitalia_patient_dental_histories, vitalia_plan_tier_configs.
+    NEVER op.create_table / sa.Enum(create_type=True). Indexes per 03-arch-be.md.
+    depends_on alembic head Story 10 consolidated snapshot.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/alembic/versions/001_vitalia_initial_snapshot.py"
+    - "/home/chris/luana-platform/vitalia/backend/alembic/env.py (modify — register vitalia metadata)"
+    - "/home/chris/luana-platform/vitalia/backend/alembic.ini"
+  acceptance:
+    - { id: A1, description: "Migration upgrade head twice without error (idempotent)", verifier: { type: bash, cmd: "docker exec luana_platform_dev alembic upgrade head && docker exec luana_platform_dev alembic upgrade head" } }
+    - { id: A2, description: "Downgrade -1 then upgrade head succeeds", verifier: { type: bash, cmd: "docker exec luana_platform_dev alembic downgrade -1 && docker exec luana_platform_dev alembic upgrade head" } }
+    - { id: A3, description: "All 11 tables present post-upgrade", verifier: { type: bash, cmd: "docker exec luana_platform_dev psql -c '\\dt vitalia_*' | grep -c vitalia_ | grep -E '^11$'" } }
+  validators_pass: [V-NF-9, V-NF-10]
+  out_of_scope: ["ORM models (T-be-2)", "Repos (T-be-3)"]
+  depends_on: ["T-scaffold-1"]
+  blocks: ["T-be-2", "T-be-3"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tbe2:
+  id: T-be-2
+  title: "SQLAlchemy 2.0 ORM models (11 Mapped[] models)"
+  type: model
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 3
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 4"
+    rules: [".claude/rules/backend-ddd.md", ".claude/rules/tenant-isolation.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    11 SQLAlchemy 2.0 ORM models with Mapped[] columns per 03-arch-be.md § 4:
+    VitaliaBookingModel, VitaliaTreatmentFollowupModel, VitaliaConsentRecordModel,
+    VitaliaMedicalAuditLogModel, VitaliaPaymentIntentModel, VitaliaPaymentScheduleModel,
+    VitaliaAdherenceRecordModel, VitaliaDoctorExtensionModel,
+    VitaliaPatientMedicalHistoryModel, VitaliaPatientDentalHistoryModel,
+    VitaliaPlanTierConfigModel.
+    All inherit from Base (luana_core_platform.domain.base_entity.Base post Story 10).
+    tenant_id NOT NULL + index on every tenant-scoped model.
+    deleted_at column for soft delete (except medical_audit_log immutable).
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/booking_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/treatment_followup_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/consent_record_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/medical_audit_log_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/payment_intent_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/payment_schedule_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/adherence_record_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/doctor_extension_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/medical_history_model.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/models/plan_tier_config_model.py"
+  acceptance:
+    - { id: A1, description: "All 11 models importable + register to Base.metadata", verifier: { type: pytest, path: "tests/unit/test_models_import.py" } }
+    - { id: A2, description: "All models have tenant_id index (except plan_tier cross-tenant)", verifier: { type: pytest, path: "tests/architecture/test_vitalia_no_query_without_tenant_filter.py" } }
+  validators_pass: [V-NF-1, V-NF-2, V-NF-5]
+  out_of_scope: ["Repositories (T-be-3)", "Services (T-be-4..6)"]
+  depends_on: ["T-be-1"]
+  blocks: ["T-be-3", "T-be-4"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tbe3:
+  id: T-be-3
+  title: "Async repositories (7 repos with tenant_id filter mandatory)"
+  type: repository
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 3
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 8"
+    rules: [".claude/rules/backend-ddd.md", ".claude/rules/tenant-isolation.md", ".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    7 async repositories per 03-arch-be.md § 8.2:
+    BookingRepository, TreatmentFollowupRepository, ConsentRepository,
+    PaymentIntentRepository, MedicalAuditLogRepository,
+    DoctorExtensionRepository, PatientMedicalHistoryRepository.
+    Plus PlanTierConfigRepository (cross-tenant catalog — no tenant_id filter).
+    All constructor receives tenant_id required param. select().where() pattern.
+    TDD RED → GREEN with integration tests against real Postgres.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/repositories/booking_repository.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/repositories/treatment_followup_repository.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/repositories/consent_repository.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/repositories/payment_intent_repository.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/repositories/medical_audit_log_repository.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/repositories/doctor_extension_repository.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/repositories/patient_medical_history_repository.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/advisory_locks.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/integration/test_booking_repository.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/integration/test_advisory_locks.py"
+    # + tests for other repos
+  acceptance:
+    - { id: A1, description: "Cross-tenant query returns empty (tenant_A repo cannot read tenant_B)", verifier: { type: pytest, path: "tests/integration/test_booking_repository.py::test_cross_tenant_isolation" } }
+    - { id: A2, description: "Advisory lock prevents slot race", verifier: { type: pytest, path: "tests/integration/test_advisory_locks.py::test_slot_race_prevented" } }
+    - { id: A3, description: "Arch fitness test_vitalia_no_query_without_tenant_filter passes", verifier: { type: pytest, path: "tests/architecture/test_vitalia_no_query_without_tenant_filter.py" } }
+  validators_pass: [V-NF-5, V-F-4, V-F-13]
+  out_of_scope: ["Services (T-be-4..6)"]
+  depends_on: ["T-be-2"]
+  blocks: ["T-be-4", "T-be-5", "T-be-6"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tbe4:
+  id: T-be-4
+  title: "BE services Onboarding + ComplianceEvent + PiiScanner"
+  type: service
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 4
+  estimate_hours: 3
+  decisions_applicable: [D1, D7]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 9.1 + 9.6 + 9.7"
+    rules: [".claude/rules/backend-ddd.md", ".claude/rules/tenant-isolation.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    OnboardingService (clinic profile creation + Clerk app #2 tenant mapping + BrandConfig init).
+    ComplianceEventService (best-effort medical_audit_log writes + sanitize_payload).
+    PiiScannerService (offer description + testimonial input scan per Tessl rule + medical extension).
+    Idempotent via shared.idempotency.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/application/services/onboarding_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/application/services/compliance_event_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/application/services/pii_scanner_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/unit/application/test_onboarding_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/unit/application/test_compliance_event_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/unit/application/test_pii_scanner_service.py"
+  acceptance:
+    - { id: A1, description: "OnboardingService idempotent same clerk_user_id within 1s", verifier: { type: pytest, path: "tests/unit/application/test_onboarding_service.py::test_idempotency" } }
+    - { id: A2, description: "ComplianceEventService never raises on persist failure (best-effort)", verifier: { type: pytest, path: "tests/unit/application/test_compliance_event_service.py::test_never_raises" } }
+    - { id: A3, description: "PiiScannerService detects AR DNI / CL RUT / MX RFC / email / phone", verifier: { type: pytest, path: "tests/unit/application/test_pii_scanner_service.py::test_detects_all_pii_categories" } }
+  validators_pass: [V-F-2, V-F-14, V-AE-2]
+  out_of_scope: ["BookingService (T-be-5)", "TreatmentFollowupService (T-be-6)"]
+  depends_on: ["T-be-3", "T-config-1"]
+  blocks: ["T-be-7"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tbe5:
+  id: T-be-5
+  title: "BE services Booking + advisory_locks + idempotency"
+  type: service
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 4
+  estimate_hours: 4
+  decisions_applicable: [D1, D2]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 9.2"
+    rules: [".claude/rules/backend-ddd.md", ".claude/rules/tenant-isolation.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    BookingService — atomic create_booking with pg_advisory_lock(hash(doctor_id, slot_iso)).
+    Idempotency key (patient_id, doctor_id, target_slot) 60s window via shared.idempotency.
+    Handles consent_required flow (status=awaiting_consent) + prepay_required (status=pending_payment).
+    Race detection + auto-refund coordination.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/application/services/booking_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/unit/application/test_booking_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/integration/test_booking_service_advisory_lock.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/e2e/test_slot_race_double_booking_e2e.py"
+  acceptance:
+    - { id: A1, description: "Slot race: 2 concurrent create_booking same slot → 1 success + 1 SlotTakenError", verifier: { type: pytest, path: "tests/e2e/test_slot_race_double_booking_e2e.py" } }
+    - { id: A2, description: "Idempotency: re-invoke within 60s returns existing booking", verifier: { type: pytest, path: "tests/unit/application/test_booking_service.py::test_idempotency_window" } }
+    - { id: A3, description: "Status routing: requires_consent → awaiting_consent, requires_prepay → pending_payment", verifier: { type: pytest, path: "tests/unit/application/test_booking_service.py::test_status_routing" } }
+  validators_pass: [V-F-2, V-F-8, V-F-13]
+  out_of_scope: ["PrepaidPaymentService (T-be-6)", "Endpoints (T-be-7)"]
+  depends_on: ["T-be-3"]
+  blocks: ["T-be-7", "T-payment-1", "T-tools-3"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tbe6:
+  id: T-be-6
+  title: "BE services Consent + TreatmentFollowup + PrepaidPayment"
+  type: service
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 4
+  estimate_hours: 4
+  decisions_applicable: [D1, D2]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 9.3 + 9.4 + 9.5"
+    rules: [".claude/rules/backend-ddd.md", ".claude/rules/tenant-isolation.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    ConsentService — request_consent + sign_consent (signature + IP + UA capture + URL HMAC).
+    TreatmentFollowupService — start_followup (register LangGraph workflow + cron ticks D+5/14/90).
+    PrepaidPaymentService — routes MercadoPago vs Stripe per BrandConfig + tenant country.
+    All emit domain events via outbox pattern.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/application/services/consent_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/application/services/treatment_followup_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/application/services/prepaid_payment_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/unit/application/test_consent_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/unit/application/test_treatment_followup_service.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/unit/application/test_prepaid_payment_service.py"
+  acceptance:
+    - { id: A1, description: "Consent URL HMAC verifies + 24h expiry default", verifier: { type: pytest, path: "tests/unit/application/test_consent_service.py::test_hmac_verify" } }
+    - { id: A2, description: "TreatmentFollowupService schedules cron ticks D+5/14/90 in tenant TZ", verifier: { type: pytest, path: "tests/unit/application/test_treatment_followup_service.py::test_cron_ticks_scheduled" } }
+    - { id: A3, description: "PrepaidPaymentService routes MP for AR tenants + Stripe for US tenants", verifier: { type: pytest, path: "tests/unit/application/test_prepaid_payment_service.py::test_gateway_routing" } }
+  validators_pass: [V-F-2]
+  out_of_scope: ["Workflow LangGraph (T-workflow-1)", "Tools (T-tools-*)"]
+  depends_on: ["T-be-3"]
+  blocks: ["T-be-7", "T-workflow-1", "T-tools-2", "T-tools-4"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tbe7:
+  id: T-be-7
+  title: "BE endpoints + DTOs Pydantic v2 + FastAPI routes (response_model mandatory)"
+  type: endpoint
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 5
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 6 + § 7"
+    spec: "../01-spec.md § 7.1"
+    rules: [".claude/rules/backend-quality.md", ".tessl/RULES.md (pii-sanitisation)"]
+    domain_skills: ["backend-expert"]
+    tessl_skills: ["tessl__fastapi", "tessl__pytest-api-testing"]
+  description: |
+    All REST endpoints per spec § 7.1 + 03-arch-be.md § 6 (excluding webhooks T-be-8):
+    Onboarding (3 endpoints), Offer preset (1), Booking (6), Treatments (5), Patients (3),
+    Compliance (2). FastAPI APIRouter with redirect_slashes=False per arch test.
+    All endpoints response_model= Pydantic v2 + Clerk JWT auth + tenant_id middleware.
+    PII masked in response DTOs per Tessl rule.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/api/routes.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/api/dtos/onboarding_dtos.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/api/dtos/booking_dtos.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/api/dtos/consent_dtos.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/api/dtos/treatment_dtos.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/api/dtos/compliance_dtos.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/main.py (modify — mount vitalia router)"
+    - "/home/chris/luana-platform/vitalia/backend/tests/e2e/test_onboarding_dental_e2e.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/e2e/test_booking_prepaid_dental_e2e.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/e2e/test_cross_tenant_isolation_e2e.py"
+  acceptance:
+    - { id: A1, description: "All endpoints have response_model= (arch test)", verifier: { type: pytest, path: "tests/architecture/test_vitalia_response_models_required.py" } }
+    - { id: A2, description: "Cross-tenant request returns 403 or empty (not leak)", verifier: { type: pytest, path: "tests/e2e/test_cross_tenant_isolation_e2e.py" } }
+    - { id: A3, description: "Spec § 3.1.A happy onboarding dental passes E2E", verifier: { type: pytest, path: "tests/e2e/test_onboarding_dental_e2e.py::test_happy_path" } }
+    - { id: A4, description: "Patient PII masked in response (phone/email)", verifier: { type: pytest, path: "tests/unit/api/test_patient_dtos.py::test_pii_masked" } }
+  validators_pass: [V-NF-5, V-F-3, V-F-5, V-F-6, V-F-9]
+  out_of_scope: ["Webhooks (T-be-8)", "FE consumer (T-fe-2)"]
+  depends_on: ["T-be-4", "T-be-5", "T-be-6"]
+  blocks: ["T-fe-2", "T-e2e-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tbe8:
+  id: T-be-8
+  title: "BE webhook receivers (Stripe + MercadoPago + Clerk + WhatsApp + ManyChat)"
+  type: endpoint
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 5
+  estimate_hours: 3
+  decisions_applicable: [D1, D11]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 6.8"
+    rules: [".claude/rules/backend-quality.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    5 webhook receivers with HMAC signature verification + idempotency:
+    - /api/v1/vitalia/webhooks/stripe (payment_intent.succeeded/failed)
+    - /api/v1/vitalia/webhooks/mercadopago (IPN notifications)
+    - /api/v1/vitalia/webhooks/clerk (signup.completed → tenant create)
+    - /api/v1/vitalia/webhooks/whatsapp/inbound (Business API messages)
+    - /api/v1/vitalia/webhooks/manychat/inbound (IG DM via ManyChat)
+    All audit_log replay attempts. Idempotency via gateway payment_id + clerk user_id.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/api/webhook_routes.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/adapters/clerk_webhook_adapter.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/infrastructure/adapters/manychat_webhook_adapter.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/integration/test_stripe_webhook.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/integration/test_mercadopago_webhook.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/integration/test_clerk_webhook.py"
+  acceptance:
+    - { id: A1, description: "Stripe webhook HMAC verify + idempotency", verifier: { type: pytest, path: "tests/integration/test_stripe_webhook.py::test_hmac_verify_idempotent" } }
+    - { id: A2, description: "Replay attack blocked + audit_log webhook_replay_detected", verifier: { type: pytest, path: "tests/integration/test_stripe_webhook.py::test_replay_blocked" } }
+  validators_pass: [V-F-12]
+  out_of_scope: ["Payment adapters (T-payment-1/2)"]
+  depends_on: ["T-be-5", "T-payment-1"]
+  blocks: ["T-e2e-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tpayment1:
+  id: T-payment-1
+  title: "Lift MercadoPago adapter to @luana/core/channels (if not exists) + vitalia EXTEND"
+  type: service
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false                       # Anti-duplication shared lift → judgment call, prefer Opus
+    claude_opus_required: true
+  priority: 4
+  estimate_hours: 4
+  decisions_applicable: [D4]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 11.2 + § 2 pre-flight grep"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/backend-ddd.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    First-step verification per anti-duplication.md:
+    1. Grep `@luana/core/channels/payment/MercadoPago*` — if exists, EXTEND.
+    2. If NOT exists, LIFT SHARED:
+       - Create `core/luana-core-channels/src/luana_core_channels/payment/mercadopago_adapter.py`
+       - Migrate code from `nicolify/backend/src/modules/sales_agent/application/tools/payment/providers.py::MercadoPagoPaymentProvider` (existing AISALESHT consumer)
+       - Update `nicolify/backend/` to consume @luana/core if Nicolify uses MP currently
+       - Vitalia EXTEND core base in `vitalia/backend/src/modules/vitalia/payment/mercadopago_adapter.py`
+    3. R3 downstream regression: run nicolify sales_agent payment tests post-lift.
+  files_in_scope:
+    - "/home/chris/luana-platform/core/luana-core-channels/src/luana_core_channels/payment/mercadopago_adapter.py (NEW if not exists)"
+    - "/home/chris/luana-platform/core/luana-core-channels/tests/payment/test_mercadopago_adapter.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/payment/mercadopago_adapter.py (EXTENDS)"
+    - "/home/chris/luana-platform/nicolify/backend/src/modules/sales_agent/application/tools/payment/providers.py (MAYBE modify to consume core)"
+    - ".claude/rules/auditor-downstream-regression.md (append vitalia + nicolify-payment SSoT row)"
+  acceptance:
+    - { id: A1, description: "Anti-duplication grep verified before write (cite evidence in commit body)", verifier: { type: bash, cmd: "grep -rln 'class.*MercadoPago' /home/chris/luana-platform/core/" } }
+    - { id: A2, description: "Vitalia adapter EXTENDS core base (inheritance check)", verifier: { type: pytest, path: "tests/architecture/test_vitalia_extractors_inherit_base_orchestrator.py" } }
+    - { id: A3, description: "Nicolify downstream sales_agent payment tests still GREEN", verifier: { type: pytest, path: "/home/chris/luana-platform/nicolify/backend/tests/modules/sales_agent/application/tools/payment/" } }
+  validators_pass: []
+  out_of_scope: ["Stripe + Tokenized adapters (T-payment-2)"]
+  depends_on: ["T-be-3"]
+  blocks: ["T-be-8", "T-payment-2"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tpayment2:
+  id: T-payment-2
+  title: "Stripe Connect adapter + Tokenized Recurring adapter"
+  type: service
+  surface: BE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 4
+  estimate_hours: 3
+  decisions_applicable: [D7]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-be.md § 11.1 + § 11.3"
+    rules: [".claude/rules/backend-ddd.md", ".claude/rules/anti-duplication.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    Stripe Connect adapter (NO Healthcare flag per Q6=B):
+    - compliance_level=hipaa_lite metadata + contains_phi=false
+    - idempotency_key=booking_id
+    - HMAC webhook verify
+    Tokenized Recurring adapter (paquetes 4 sesiones + treatment installments):
+    - Wraps MP customer + payment_method primitives OR Stripe Customer
+    - Cron job processes next installment due
+    - Idempotency (patient_id, treatment_id, installment_n)
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/payment/stripe_connect_adapter.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/payment/tokenized_recurring_adapter.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/integration/test_stripe_connect_adapter.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/integration/test_tokenized_recurring_adapter.py"
+  acceptance:
+    - { id: A1, description: "Stripe payment_intent metadata.compliance_level=hipaa_lite always", verifier: { type: pytest, path: "tests/integration/test_stripe_connect_adapter.py::test_compliance_metadata" } }
+    - { id: A2, description: "Tokenized installment idempotent (re-run same installment_n no double-charge)", verifier: { type: pytest, path: "tests/integration/test_tokenized_recurring_adapter.py::test_installment_idempotent" } }
+  validators_pass: [V-F-4]
+  out_of_scope: ["MercadoPago (T-payment-1)"]
+  depends_on: ["T-payment-1"]
+  blocks: ["T-be-8"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Ttools1:
+  id: T-tools-1
+  title: "Tool prepaid_payment_check (deterministic SQL read-only)"
+  type: tool
+  surface: AGENTIC
+  production_code: true                          # R23 AGENTIC
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false                          # ⛔ R23 hard rule
+    claude_opus_required: true                    # ✅ Opus 4.7 mandatory
+  priority: 5
+  estimate_hours: 3
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 4.1"
+    agentic_design: "../02-design-agentic.md § 6.1"
+    rules: [".claude/rules/copilot-resilience.md", ".claude/rules/copilot-observability.md", ".claude/rules/tenant-isolation.md"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+    tessl_skills: ["tessl__langgraph", "claude-api"]
+  description: |
+    Tool prepaid_payment_check per 02-design § 6.1:
+    - Pydantic input (booking_id only — tenant_id injected via ctx)
+    - Pydantic output (paid + amount + currency + payment_method + retry_after)
+    - Read-only SQL (2-table query bookings + payment_intents)
+    - Idempotent natural (read-only)
+    - Register via @register_tool decorator
+    - Trace event + observability writes try/except + warning
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/tools/prepaid_payment_check.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/tools/test_prepaid_payment_check.py"
+  acceptance:
+    - { id: A1, description: "Tool returns paid=true post-succeeded payment_intent", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_prepaid_payment_check.py::test_paid_true" } }
+    - { id: A2, description: "Tool returns paid=false + retry_after_seconds when processing", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_prepaid_payment_check.py::test_processing_retry" } }
+    - { id: A3, description: "tenant_id NOT in input schema (injected via ctx)", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_prepaid_payment_check.py::test_tenant_id_not_in_schema" } }
+    - { id: A4, description: "Latency p99 <250ms", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_prepaid_payment_check.py::test_latency_p99" } }
+  validators_pass: [V-AE-5, V-AE-18]
+  out_of_scope: ["Other 3 tools"]
+  depends_on: ["T-be-3", "T-extensions-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Ttools2:
+  id: T-tools-2
+  title: "Tool medical_consent_request (consent capture + URL HMAC sign)"
+  type: tool
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 5
+  estimate_hours: 4
+  decisions_applicable: [D1, D7]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 4.3"
+    agentic_design: "../02-design-agentic.md § 6.3 + § 5.1"
+    rules: [".claude/rules/copilot-resilience.md", ".claude/rules/copilot-observability.md"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+  description: |
+    Tool medical_consent_request per 02-design § 6.3:
+    - Validates offer.requires_informed_consent=true
+    - Persists consent_record + template snapshot
+    - Generates signed URL HMAC tenant_id + consent_id + 24h expiry
+    - Dispatches WhatsApp + email channels async
+    - Idempotency key (booking_id OR patient_id, consent_template_slug, sales_agent_turn_id) 1h window
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/tools/medical_consent_request.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/tools/test_medical_consent_request.py"
+  acceptance:
+    - { id: A1, description: "Tool persists consent_record + audit_log consent_requested", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_medical_consent_request.py::test_persists_audit_logs" } }
+    - { id: A2, description: "Tool returns error if offer.requires_informed_consent=false", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_medical_consent_request.py::test_offer_validation" } }
+    - { id: A3, description: "Idempotency 1h window same (booking_id, slug) returns existing consent_id", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_medical_consent_request.py::test_idempotency" } }
+  validators_pass: [V-AE-5, V-AE-18]
+  out_of_scope: ["Consent signature webhook handler (T-be-8)"]
+  depends_on: ["T-be-6", "T-extensions-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Ttools3:
+  id: T-tools-3
+  title: "Tool appointment_reschedule_with_doctor (4 actions + advisory locks + extensions)"
+  type: tool
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 5
+  estimate_hours: 4
+  decisions_applicable: [D1, D2]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 4.4"
+    agentic_design: "../02-design-agentic.md § 6.4 + § 5.2"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/copilot-resilience.md"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+  description: |
+    Tool appointment_reschedule_with_doctor per 02-design § 6.4:
+    - 4 actions: list_slots / propose_and_book / reschedule_existing / cancel
+    - EXTENDS @luana/core/scheduling.calendar (Q4=A — anti-duplication)
+    - Vitalia-specific extensions: appointment_type compat + treatment_room_assignment + max_concurrent_per_doctor
+    - Idempotency per action (e.g., propose_and_book key (patient_id, doctor_id, target_slot) 60s)
+    - Audit_log appointment_booked/rescheduled/cancelled
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/tools/appointment_reschedule_with_doctor.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/tools/test_appointment_reschedule_with_doctor.py"
+  acceptance:
+    - { id: A1, description: "list_slots returns slots filtered by appointment_type + treatment_room + max_concurrent", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_appointment_reschedule_with_doctor.py::test_list_slots_filters" } }
+    - { id: A2, description: "propose_and_book atomic with advisory lock", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_appointment_reschedule_with_doctor.py::test_atomic_book" } }
+    - { id: A3, description: "reschedule releases old slot + reserves new", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_appointment_reschedule_with_doctor.py::test_reschedule_atomic" } }
+  validators_pass: [V-AE-5]
+  out_of_scope: ["Other tools"]
+  depends_on: ["T-be-5", "T-extensions-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Ttools4:
+  id: T-tools-4
+  title: "Tool treatment_followup_check (workflow node + Haiku classifier)"
+  type: tool
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 6
+  estimate_hours: 4
+  decisions_applicable: [D1, D3]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 4.2"
+    agentic_design: "../02-design-agentic.md § 6.2 + § 5.4"
+    rules: [".claude/rules/copilot-resilience.md", ".claude/rules/copilot-observability.md"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+    tessl_skills: ["tessl__langgraph", "claude-api"]
+  description: |
+    Tool treatment_followup_check per 02-design § 6.2:
+    - 7 actions: initial_d5/d14/d90_ping + record_d5/d14/d90_response + snapshot_status
+    - record_* actions run adherence classifier (Haiku) + sentiment classifier (Haiku) + safety keyword scan
+    - If safety_triggered → workflow transition to paused_safety_escalation
+    - Side effects: persist adherence_records + update treatment_followups.current_step + schedule next cron tick
+    - NOT user-callable — workflow internal node
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/tools/treatment_followup_check.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/tools/test_treatment_followup_check.py"
+  acceptance:
+    - { id: A1, description: "record_d5 with safety keyword → workflow transitions paused_safety_escalation", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_treatment_followup_check.py::test_safety_escalation" } }
+    - { id: A2, description: "Cost per record_* call ≤$0.003 (Haiku classifier)", verifier: { type: pytest, path: "tests/agentic_evals/tools/test_treatment_followup_check.py::test_cost_budget" } }
+  validators_pass: [V-AE-5, V-AE-15]
+  out_of_scope: ["Workflow (T-workflow-1)"]
+  depends_on: ["T-be-6", "T-extensions-1", "T-workflow-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Textractors1:
+  id: T-extractors-1
+  title: "MedicalKBExtractor (extends BaseExtractionOrchestrator + 4 waves vision)"
+  type: extractor
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 6
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 5.1"
+    agentic_design: "../02-design-agentic.md § 7.1"
+    rules: [".claude/rules/anti-duplication.md", ".claude/rules/copilot-resilience.md"]
+    domain_skills: ["copilot-expert", "sales-agent-expert"]
+    tessl_skills: ["claude-api"]
+  description: |
+    MedicalKBExtractor per 02-design § 7.1:
+    - EXTENDS shared.application.extraction.base_orchestrator.BaseExtractionOrchestrator
+    - 4 waves: allergies_and_medications (Sonnet vision) + conditions_and_surgeries (Sonnet vision) + family_and_vitals (Haiku vision) + validate_and_merge (Sonnet)
+    - Output schema MedicalHistoryV1 (allergies + conditions + medications + surgeries + family + vitals + confidence_score + warnings)
+    - Cost ceiling ≤$0.15 USD per PDF
+    - Latency p50 25s / p99 70s (ASYNC)
+    - Persist patient_medical_histories + Qdrant index per-tenant
+    - Emit MedicalHistoryExtractedV1 event
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/extractors/medical_kb_extractor.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/extractors/_schemas.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/extractors/_prompts/medical_extract_*.j2"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/extractors/test_medical_kb_extractor.py"
+  acceptance:
+    - { id: A1, description: "Subclass of BaseExtractionOrchestrator (arch fitness)", verifier: { type: pytest, path: "tests/architecture/test_extraction_orchestrator_inheritance.py" } }
+    - { id: A2, description: "4 waves complete + merge produces MedicalHistoryV1 with confidence_score", verifier: { type: pytest, path: "tests/agentic_evals/extractors/test_medical_kb_extractor.py::test_4_wave_pipeline" } }
+    - { id: A3, description: "Cost per PDF ≤$0.15 USD", verifier: { type: pytest, path: "tests/agentic_evals/extractors/test_medical_kb_extractor.py::test_cost_budget" } }
+  validators_pass: [V-AE-6, V-AE-16]
+  out_of_scope: ["DentalHistoryExtractor (T-extractors-2)"]
+  depends_on: ["T-be-3", "T-extensions-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Textractors2:
+  id: T-extractors-2
+  title: "DentalHistoryExtractor (FDI notation + chart image extraction)"
+  type: extractor
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 6
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 5.2"
+    agentic_design: "../02-design-agentic.md § 7.2"
+    rules: [".claude/rules/anti-duplication.md"]
+    domain_skills: ["copilot-expert"]
+  description: |
+    DentalHistoryExtractor per 02-design § 7.2:
+    - EXTENDS BaseExtractionOrchestrator (same pattern as MedicalKBExtractor)
+    - 4 waves vision-heavy: missing_pieces_chart + restorations_and_periodontal + bite_and_radiographs + validate_and_merge
+    - Output schema DentalHistoryV1 (missing_pieces FDI 11-48 + restorations + periodontal + bite + radiographs)
+    - Cost ceiling ≤$0.18 USD per PDF
+    - Emit DentalChartReadyV1 event consumed by Aurora TreatmentFollowupWorkflow
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/extractors/dental_history_extractor.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/extractors/_prompts/dental_extract_*.j2"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/extractors/test_dental_history_extractor.py"
+  acceptance:
+    - { id: A1, description: "FDI notation correctly parsed for missing_pieces", verifier: { type: pytest, path: "tests/agentic_evals/extractors/test_dental_history_extractor.py::test_fdi_notation" } }
+    - { id: A2, description: "Cost per PDF ≤$0.18 USD (vision-heavy bar)", verifier: { type: pytest, path: "tests/agentic_evals/extractors/test_dental_history_extractor.py::test_cost_budget" } }
+  validators_pass: [V-AE-6, V-AE-16]
+  out_of_scope: ["MedicalKBExtractor (T-extractors-1)"]
+  depends_on: ["T-be-3", "T-extensions-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tworkflow1:
+  id: T-workflow-1
+  title: "TreatmentFollowupWorkflow LangGraph StateGraph + RedisSaver + cron handler"
+  type: workflow
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 5
+  estimate_hours: 5
+  decisions_applicable: [D3, D10]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 6"
+    agentic_design: "../02-design-agentic.md § 4 + § 8"
+    rules: [".claude/rules/copilot-resilience.md", ".claude/rules/copilot-observability.md"]
+    domain_skills: ["copilot-expert"]
+    tessl_skills: ["tessl__langgraph", "tessl__graceful-degradation", "claude-api"]
+  description: |
+    TreatmentFollowupWorkflow per 02-design § 4:
+    - LangGraph 2.0 StateGraph with 10 nodes + 17 transitions
+    - 5 main states (D0_init / D5_check / D5_complete / D14_check / D14_complete / D90_check / completed) + 3 paused branches + 1 dropped terminal
+    - RedisSaver checkpointer cross-brand (D10 ratified)
+    - State key composite (tenant_id, treatment_id)
+    - Cron scheduler integration via @luana/core/scheduling.cron_worker.register_cron_handler
+    - ModuleDescriptor registration with cron_schedule_rules D+5/14/90 8am tenant TZ
+    - Timeout policy per state (48h / 7d / 14d / 24h escalation)
+    - cost_budget_per_workflow_run=0.25 USD
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/workflows/treatment_followup_workflow.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/workflows/cron_handler.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/module_registry_entry.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/workflows/test_treatment_followup_workflow_d0_to_d90_happy.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/workflows/test_treatment_followup_workflow_safety_escalation.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/workflows/test_treatment_followup_workflow_paused_awaiting_clinic.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/workflows/test_treatment_followup_workflow_resume_from_checkpoint.py"
+  acceptance:
+    - { id: A1, description: "D0→D90 happy path completes via cron ticks", verifier: { type: pytest, path: "tests/agentic_evals/workflows/test_treatment_followup_workflow_d0_to_d90_happy.py" } }
+    - { id: A2, description: "Safety keyword triggers paused_safety_escalation", verifier: { type: pytest, path: "tests/agentic_evals/workflows/test_treatment_followup_workflow_safety_escalation.py" } }
+    - { id: A3, description: "Resume from RedisSaver checkpoint reconstructs state correctly", verifier: { type: pytest, path: "tests/agentic_evals/workflows/test_treatment_followup_workflow_resume_from_checkpoint.py" } }
+    - { id: A4, description: "Total D0→D90 cost ≤$0.25 USD per workflow run", verifier: { type: pytest, path: "tests/agentic_evals/workflows/test_treatment_followup_workflow_d0_to_d90_happy.py::test_total_cost_budget" } }
+  validators_pass: [V-AE-7]
+  out_of_scope: ["Tools (T-tools-*)"]
+  depends_on: ["T-be-6"]
+  blocks: ["T-tools-4", "T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tkb1:
+  id: T-kb-1
+  title: "KB pack medical_kb_dental_v1 (150 chunks + Qdrant ingestion)"
+  type: kb_pack
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 7
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 7.1"
+    agentic_design: "../02-design-agentic.md § 9.1"
+    rules: [".claude/rules/tenant-isolation.md"]
+    domain_skills: ["copilot-expert"]
+  description: |
+    medical_kb_dental_v1 per 02-design § 9.1:
+    - ~150 chunks bootstrap (procedures + materials + recovery + common questions + complications)
+    - Qdrant collection vitalia_medical_kb_dental_v1 (1536 dim text-embedding-3-large)
+    - Tenant_id payload filter (tenant_id=null = generic visible all dental tenants)
+    - Citation contract chunk_id in trace_event.context_used
+    - Ingestion script idempotent
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/kb/medical_kb_dental_v1/*.md (chunks)"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/kb/medical_kb_dental_v1/manifest.yaml"
+    - "/home/chris/luana-platform/vitalia/backend/scripts/seed_medical_kb.py (modify — add dental)"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/kb_packs/test_medical_kb_dental_retrieval.py"
+  acceptance:
+    - { id: A1, description: "Qdrant collection vitalia_medical_kb_dental_v1 has ≥150 chunks post-seed", verifier: { type: pytest, path: "tests/agentic_evals/kb_packs/test_medical_kb_dental_retrieval.py::test_chunk_count" } }
+    - { id: A2, description: "Tenant_id payload filter at query returns generic + tenant-specific chunks", verifier: { type: pytest, path: "tests/agentic_evals/kb_packs/test_medical_kb_dental_retrieval.py::test_tenant_filter" } }
+    - { id: A3, description: "RAG retrieval top-5 + similarity ≥0.72 + citation in trace_event", verifier: { type: pytest, path: "tests/agentic_evals/kb_packs/test_medical_kb_dental_retrieval.py::test_citation_contract" } }
+  validators_pass: [V-AE-9]
+  out_of_scope: ["Psychology + Psychiatry KB packs"]
+  depends_on: ["T-extensions-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tkb2:
+  id: T-kb-2
+  title: "KB pack medical_kb_psychology_v1 (200 chunks + boundary refer-out)"
+  type: kb_pack
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 7
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 7.1"
+    agentic_design: "../02-design-agentic.md § 9.2"
+    rules: [".claude/rules/tenant-isolation.md"]
+    domain_skills: ["copilot-expert"]
+  description: |
+    medical_kb_psychology_v1 per 02-design § 9.2:
+    - ~200 chunks (therapy approaches CBT/systemic/gestalt + condition descriptions + boundaries)
+    - Special boundary_refer_out_* chunks high priority retrieval on crisis keywords
+    - Per-country emergency referral chunks (crisis_line_AR/CL/MX/CO/PE/BR)
+    - Same Qdrant pattern as dental
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/kb/medical_kb_psychology_v1/*.md"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/kb/medical_kb_psychology_v1/manifest.yaml"
+    - "/home/chris/luana-platform/vitalia/backend/scripts/seed_medical_kb.py (modify — add psychology)"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/kb_packs/test_medical_kb_psychology_boundary_chunks.py"
+  acceptance:
+    - { id: A1, description: "Crisis keyword triggers boundary_refer_out_* chunk forced retrieval", verifier: { type: pytest, path: "tests/agentic_evals/kb_packs/test_medical_kb_psychology_boundary_chunks.py::test_crisis_refer_out" } }
+    - { id: A2, description: "Per-country emergency line returned based on tenant country", verifier: { type: pytest, path: "tests/agentic_evals/kb_packs/test_medical_kb_psychology_boundary_chunks.py::test_per_country_referral" } }
+  validators_pass: [V-AE-9]
+  out_of_scope: ["Dental + Psychiatry KB packs"]
+  depends_on: ["T-extensions-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tkb3:
+  id: T-kb-3
+  title: "KB pack medical_kb_psychiatry_v1 (120 chunks + forced disclaimer)"
+  type: kb_pack
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 7
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 7.1"
+    agentic_design: "../02-design-agentic.md § 9.3"
+    rules: [".claude/rules/tenant-isolation.md"]
+    domain_skills: ["copilot-expert"]
+  description: |
+    medical_kb_psychiatry_v1 per 02-design § 9.3:
+    - ~120 chunks (medication classes SSRIs/anxiolytics/antipsychotics + side effects + drug-drug interactions)
+    - SPECIAL chunk disclaimer_psychiatric_prescription_only — forced top-1 priority on medication query
+    - 200+ medication INN names + brand names embedded (per _pii_patterns.py medication_names)
+    - sales_agent prompt template MUST quote disclaimer chunk verbatim in response
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/kb/medical_kb_psychiatry_v1/*.md"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/copilot/kb/medical_kb_psychiatry_v1/manifest.yaml"
+    - "/home/chris/luana-platform/vitalia/backend/scripts/seed_medical_kb.py (modify — add psychiatry)"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/kb_packs/test_medical_kb_psychiatry_forced_disclaimer.py"
+  acceptance:
+    - { id: A1, description: "Medication query triggers forced top-1 disclaimer chunk", verifier: { type: pytest, path: "tests/agentic_evals/kb_packs/test_medical_kb_psychiatry_forced_disclaimer.py::test_forced_disclaimer" } }
+    - { id: A2, description: "200+ medication names recognized for medication query detection", verifier: { type: pytest, path: "tests/agentic_evals/kb_packs/test_medical_kb_psychiatry_forced_disclaimer.py::test_medication_name_recognition" } }
+  validators_pass: [V-AE-9]
+  out_of_scope: ["Dental + Psychology KB packs"]
+  depends_on: ["T-extensions-1"]
+  blocks: ["T-eval-1", "T-guards-1", "T-guards-2"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tguards1:
+  id: T-guards-1
+  title: "Guardrail medical_safety_no_diagnosis (input+output layers)"
+  type: guardrail
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 7
+  estimate_hours: 3
+  decisions_applicable: [D5, D6]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 10"
+    agentic_design: "../02-design-agentic.md § 17.1"
+    rules: [".claude/rules/sales-agent-brand-voice.md", ".claude/rules/copilot-resilience.md"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+    tessl_skills: ["claude-api"]
+  description: |
+    Guardrail medical_safety_no_diagnosis per 02-design § 17.1:
+    - Runtime layer: Both input + output
+    - Input trigger regex `(tengo|tendré|sufro|padezco).*(cáncer|diabetes|VIH|infarto|covid|trastorno|síndrome)` + Haiku classifier fallback
+    - Output trigger regex `(tienes|sufres|padeces|te diagnostico).*(condición|enfermedad)` + Haiku classifier
+    - Input action: Slot 4 safety reminder + disclaimer + derive to doctor + emergency line
+    - Output action: BLOCK + regenerate + retry 1x + fallback "Te derivo con el {doctor_specialty}..."
+    - Audit_log medical_safety_no_diagnosis_fired (severity medium)
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/guardrails/medical_safety_no_diagnosis.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/guardrails/test_medical_safety_no_diagnosis.py"
+  acceptance:
+    - { id: A1, description: "Input regex + classifier fire on diagnosis request", verifier: { type: pytest, path: "tests/agentic_evals/guardrails/test_medical_safety_no_diagnosis.py::test_input_fires" } }
+    - { id: A2, description: "Output diagnosis phrase blocked + regenerated", verifier: { type: pytest, path: "tests/agentic_evals/guardrails/test_medical_safety_no_diagnosis.py::test_output_blocks" } }
+    - { id: A3, description: "Adversarial diagnosis persona pass^5 ≥0.95", verifier: { type: pytest, path: "tests/agentic_evals/grader/test_vertical_medical_fidelity_adversarial.py::test_diagnosis_safety" } }
+  validators_pass: [V-AE-8, V-AE-11]
+  out_of_scope: ["Other 3 guardrails"]
+  depends_on: ["T-prompts-1", "T-kb-3"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tguards2:
+  id: T-guards-2
+  title: "Guardrail medical_safety_no_prescription (forced disclaimer retrieval)"
+  type: guardrail
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 7
+  estimate_hours: 3
+  decisions_applicable: [D5, D6]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 10"
+    agentic_design: "../02-design-agentic.md § 17.2"
+    rules: [".claude/rules/sales-agent-brand-voice.md", ".claude/rules/copilot-resilience.md"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+  description: |
+    Guardrail medical_safety_no_prescription per 02-design § 17.2:
+    - Runtime layer: Both input + output
+    - Input trigger keyword scan medication_names (200+) + verbs (tomar|aumentar|disminuir|cambiar)
+    - Action input: Forced top-1 retrieval disclaimer_psychiatric_prescription_only chunk + Slot 4 reminder + sales_agent inserts disclaimer verbatim + derives to psychiatrist
+    - Action output: BLOCK + regenerate + fallback "Solo un psiquiatra puede recetar..."
+    - Audit_log medical_safety_no_prescription_fired (severity high — production-critical psychiatry)
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/guardrails/medical_safety_no_prescription.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/guardrails/test_medical_safety_no_prescription.py"
+  acceptance:
+    - { id: A1, description: "Medication keyword + verb triggers forced disclaimer chunk retrieval", verifier: { type: pytest, path: "tests/agentic_evals/guardrails/test_medical_safety_no_prescription.py::test_forced_disclaimer_retrieval" } }
+    - { id: A2, description: "Adversarial medication persona pass^5 ≥0.95", verifier: { type: pytest, path: "tests/agentic_evals/grader/test_vertical_medical_fidelity_adversarial.py::test_prescription_safety" } }
+  validators_pass: [V-AE-8, V-AE-11]
+  out_of_scope: ["Other 3 guardrails"]
+  depends_on: ["T-prompts-1", "T-kb-3"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tguards3:
+  id: T-guards-3
+  title: "Guardrail medical_disclaimer_required + prompt_injection_block reuse"
+  type: guardrail
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 7
+  estimate_hours: 2
+  decisions_applicable: [D5]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 10"
+    agentic_design: "../02-design-agentic.md § 17.3 + § 17.4"
+    rules: [".claude/rules/sales-agent-brand-voice.md"]
+    domain_skills: ["sales-agent-expert"]
+  description: |
+    medical_disclaimer_required (output decorator post-LLM, pre-channel-send):
+    - Trigger: response touches procedure/medication/condition
+    - Action: INSERTS disclaimer suffix "Esto no reemplaza consulta médica profesional"
+    - Idempotency: if disclaimer already present → NO duplicate insertion
+    - Audit_log disclaimer_inserted (severity info)
+    prompt_injection_block reuse Story E base pattern:
+    - Re-registers existing guard, no new code
+    - Sandbox markers <<TRANSCRIPT_BEGIN>>...<<TRANSCRIPT_END>> Slot 4
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/guardrails/medical_disclaimer_required.py"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/guardrails/prompt_injection_block_reuse.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/guardrails/test_medical_disclaimer_required.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/guardrails/test_prompt_injection_block.py"
+  acceptance:
+    - { id: A1, description: "Disclaimer inserted on procedure mention + idempotent", verifier: { type: pytest, path: "tests/agentic_evals/guardrails/test_medical_disclaimer_required.py::test_inserted_idempotent" } }
+    - { id: A2, description: "Adversarial prompt injection persona pass^5 ≥0.95", verifier: { type: pytest, path: "tests/agentic_evals/grader/test_vertical_medical_fidelity_adversarial.py::test_prompt_injection" } }
+    - { id: A3, description: "Sandbox markers present in Slot 4 prompt", verifier: { type: pytest, path: "tests/architecture/test_vitalia_slot_4_safety_markers_present.py" } }
+  validators_pass: [V-AE-1, V-AE-4, V-AE-8]
+  out_of_scope: ["Other 2 guardrails"]
+  depends_on: ["T-prompts-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tprompts1:
+  id: T-prompts-1
+  title: "Prompt slot architecture 10 slots + Slot 4 NEW MEDICAL_SAFETY_RAILS + cache_control"
+  type: prompts
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 6
+  estimate_hours: 4
+  decisions_applicable: [D5, D9]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 8 + § 9"
+    agentic_design: "../02-design-agentic.md § 10 + § 11"
+    rules: [".claude/rules/sales-agent-brand-voice.md"]
+    domain_skills: ["sales-agent-expert"]
+    tessl_skills: ["claude-api"]
+  description: |
+    Prompt slot architecture per 02-design § 10:
+    - 10 slots: Slot 1 STATIC_IDENTITY, Slot 2 STATIC_TOOLS_HINT, Slot 3 SALES_PLAYBOOK_VERTICAL_MEDICAL,
+      Slot 4 NEW MEDICAL_SAFETY_RAILS (vertical-specific overlay), Slot 5 BRAND_VOICE (per tenant),
+      Slot 6 CHANNEL_FORMAT_HINT, Slot 7 KB_CONTEXT_RAG (not cached), Slot 8 TASK_SPECIFIC (not cached),
+      Slot 9 CONVERSATION_HISTORY (not cached), Slot 10 USER_INPUT (not cached)
+    - Anthropic cache_control: ephemeral markers slots 1-6
+    - Per-tenant cache_key prompt_cache_key=str(tenant_id) for Slot 5 isolation
+    - Slot 4 includes sandbox markers DQ2 <<TRANSCRIPT_BEGIN>>...<<TRANSCRIPT_END>>
+    - Per-turn micro-anchor 28 tokens "respondes como {brand_name}, asistente vertical-medical..."
+    - Forbidden in cache prefix: no {tenant_name} / timestamps / patient PII
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/prompts/slot_4_medical_safety_rails.j2"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/prompts/slot_3_sales_playbook_vertical_medical.j2"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/prompts/micro_anchor_per_turn.j2"
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/agentic/prompts/compose.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/architecture/test_vitalia_slot_4_safety_markers_present.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/architecture/test_vitalia_no_pii_in_cacheable_slots.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/cache/test_cache_hit_rate.py"
+  acceptance:
+    - { id: A1, description: "Slot 4 contains sandbox markers <<TRANSCRIPT_BEGIN>> + ASÍ HABLAS/ASÍ NO blocks", verifier: { type: pytest, path: "tests/architecture/test_vitalia_slot_4_safety_markers_present.py" } }
+    - { id: A2, description: "No {tenant_name} / patient PII in slots 1-4 + 6 (cacheable)", verifier: { type: pytest, path: "tests/architecture/test_vitalia_no_pii_in_cacheable_slots.py" } }
+    - { id: A3, description: "Cache hit rate ≥85% slots 1-6 measured via cache_read/creation ratio", verifier: { type: pytest, path: "tests/agentic_evals/cache/test_cache_hit_rate.py" } }
+  validators_pass: [V-AE-22]
+  out_of_scope: ["Guardrails (T-guards-*)", "Tools (T-tools-*)"]
+  depends_on: ["T-config-1", "T-extensions-1"]
+  blocks: ["T-tools-1", "T-tools-2", "T-tools-3", "T-tools-4", "T-guards-1", "T-guards-2", "T-guards-3"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Textensions1:
+  id: T-extensions-1
+  title: "extensions.py register_all EP-1..EP-18 entry point"
+  type: tool
+  surface: AGENTIC
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: false
+    claude_opus_required: true
+  priority: 4
+  estimate_hours: 3
+  decisions_applicable: [D1, D7]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch.md § 4 + ../03-arch-agentic.md § 3.2"
+    agentic_design: "../02-design-agentic.md § 18.3"
+    rules: [".claude/rules/anti-duplication.md"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+  description: |
+    Single entry point vitalia/backend/src/modules/vitalia/extensions.py.
+    ExtensionPointRegistry.register_all() with brand_slug=vitalia + config dict:
+    - tools.agentic: [4 tools]
+    - extractors.copilot: [2 extractors]
+    - workflows.copilot: [TreatmentFollowupWorkflow]
+    - kb_packs: [3 packs]
+    - guardrails: [4 guards]
+    - channels.payment: [3 adapters]
+    - rubrics: [vertical-medical-fidelity]
+    - brand_studio.enabled_sections, offer_studio.preset_pack, compliance_level=hipaa_lite
+    Validates against EP-1..EP-18 immutable contract per Story 9 cement.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/src/modules/vitalia/extensions.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/test_extensions_register_all.py"
+  acceptance:
+    - { id: A1, description: "register_all succeeds without exception", verifier: { type: pytest, path: "tests/test_extensions_register_all.py::test_register_all_succeeds" } }
+    - { id: A2, description: "Docs extension_points.md completeness arch fitness GREEN", verifier: { type: pytest, path: "/home/chris/luana-platform/core/tests/architecture/test_docs_extension_points_completeness.py" } }
+  validators_pass: [V-NF-13]
+  out_of_scope: ["Tools / extractors / workflow implementation (T-tools-* / T-extractors-* / T-workflow-1)"]
+  depends_on: ["T-config-1"]
+  blocks: ["T-tools-1", "T-tools-2", "T-tools-3", "T-tools-4", "T-extractors-1", "T-extractors-2", "T-kb-1", "T-kb-2", "T-kb-3", "T-prompts-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Trubric1:
+  id: T-rubric-1
+  title: "vertical-medical-fidelity rubric MD v1 + 6 NEW personas YAML archetype-aware"
+  type: docs                                     # rubric+personas are eval spec docs (non-runtime)
+  surface: AGENTIC
+  production_code: false                         # MD + YAML — rubric spec + persona fixtures
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true                          # OK Sonnet — rubric MD + YAML materialization
+    claude_opus_required: false                  # Opus override fine but not required (eval spec authoring)
+  priority: 5
+  estimate_hours: 4
+  decisions_applicable: [D5, D6]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 13"
+    agentic_design: "../02-design-agentic.md § 13"
+    rules: [".claude/rules/sales-agent-brand-voice.md", ".claude/rules/auditor-downstream-regression.md", ".claude/rules/spanish-text.md"]
+    domain_skills: ["sales-agent-expert", "copilot-expert"]
+  description: |
+    Two artifacts:
+    1. NEW rubric MD v1: docs/specs/rubrics/vertical-medical-fidelity.md
+       - Frontmatter (id, version=1, applies_to, modules, verticals, threshold_default=0.85, ssot list)
+       - 5 assertions A1-A5 with weights (0.30 + 0.25 + 0.20 + 0.15 + 0.10)
+       - Scoring formula + threshold ≥0.85
+       - rubric_version=1 cement (bump invalidates cached grades Story E D16 pattern)
+    2. 6 NEW personas YAML (replicate Story C archetype-aware pattern):
+       - patient-anxious-dental-ar.yaml (es-AR voseo, magic comment line 2)
+       - patient-depressed-psych-cl.yaml (es-CL tuteo)
+       - patient-unresponsive-followup-mx.yaml (es-MX tuteo)
+       - patient-adversarial-diagnosis-mx.yaml (es-MX tuteo)
+       - patient-prompt-injection-attempt.yaml (es-MX tuteo)
+       - patient-medication-recommendation-mx.yaml (es-MX tuteo)
+  files_in_scope:
+    - "/home/chris/AISALESHT/docs/specs/rubrics/vertical-medical-fidelity.md"
+    - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/patient-anxious-dental-ar.yaml"
+    - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/patient-depressed-psych-cl.yaml"
+    - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/patient-unresponsive-followup-mx.yaml"
+    - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/patient-adversarial-diagnosis-mx.yaml"
+    - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/patient-prompt-injection-attempt.yaml"
+    - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/patient-medication-recommendation-mx.yaml"
+  acceptance:
+    - { id: A1, description: "Rubric MD v1 schema valid (frontmatter + 5 assertions + scoring)", verifier: { type: pytest, path: "tests/architecture/test_vitalia_rubric_md_v1_schema.py" } }
+    - { id: A2, description: "6 personas YAML completeness + voseo magic comment AR personas", verifier: { type: pytest, path: "tests/architecture/test_vitalia_personas_yaml_completeness.py" } }
+  validators_pass: [V-AE-20, V-AE-21]
+  out_of_scope: ["Grader runtime test code (T-eval-1)"]
+  depends_on: []
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tfe1:
+  id: T-fe-1
+  title: "Next.js 16 App Router scaffolding + routes structure"
+  type: component
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 3
+  estimate_hours: 3
+  decisions_applicable: [D1, D9]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-fe.md § 3"
+    rules: [".claude/rules/frontend-fsd.md", ".claude/rules/frontend-quality.md"]
+    domain_skills: ["frontend-expert"]
+    tessl_skills: ["tessl__nextjs-app-router-modularization", "tessl__shadcn-ui", "tessl__tailwind"]
+  description: |
+    Next.js 16 App Router scaffolding per 03-arch-fe.md § 3.1:
+    - Root layout + ClerkProvider + QueryProvider + Toaster
+    - Routes structure: app/(auth)/, app/onboarding/, app/(dashboard)/, app/public/
+    - Server Components default + *Client.tsx pattern per Tessl nextjs-app-router-modularization
+    - tsconfig.json strict + eslint.config.mjs FSD-Lite boundaries plugin
+    - tailwind.config.ts with @luana/ui tokens
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/layout.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(auth)/sign-in/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(auth)/sign-up/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/onboarding/layout.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/onboarding/step-1/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/onboarding/step-2/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/onboarding/step-3/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/layout.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/brand-studio/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/brand-studio/[section]/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/offers/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/offers/new/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/offers/[id]/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/bookings/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/bookings/[id]/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/treatments/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/treatments/[id]/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/treatments/[id]/followup/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/patients/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/patients/[id]/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/appointments/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/(dashboard)/medical-compliance/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/public/[clinic-slug]/page.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/app/public/[clinic-slug]/booking/page.tsx"
+  acceptance:
+    - { id: A1, description: "All 21 routes mountable + tsc passes", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx tsc --noEmit" } }
+    - { id: A2, description: "ESLint FSD-Lite boundaries 0 errors", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx eslint src/" } }
+  validators_pass: [V-NF-3, V-NF-4]
+  out_of_scope: ["Components content (T-fe-3)", "Hooks (T-fe-2)"]
+  depends_on: ["T-scaffold-1"]
+  blocks: ["T-fe-2", "T-fe-3", "T-fe-4", "T-fe-5"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tfe2:
+  id: T-fe-2
+  title: "FE hooks React Query + Zod schemas + TypeScript types (mirror Pydantic)"
+  type: hook
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 4
+  estimate_hours: 4
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-fe.md § 6 + § 7 + § 8"
+    rules: [".claude/rules/frontend-fsd.md", ".claude/rules/tenant-isolation.md"]
+    domain_skills: ["frontend-expert"]
+    tessl_skills: ["tessl__zod", "tessl__react-patterns"]
+  description: |
+    19 React Query hooks per spec § 7.2 (use-clinic-profile-create / use-plan-tiers / use-offer-create / etc).
+    9 Zod schemas per § 7.4 (clinic profile / offer wizard / booking / consent / handoff / compliance / etc).
+    TypeScript types mirror Pydantic Response DTOs via openapi-typescript (vitalia-api-spec workspace package).
+    fetchClient auto-injects X-Tenant-ID from Clerk session_claims.public_metadata.active_tenant_id.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/api/use-clinic-profile-create.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/api/use-offer-create.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/api/use-booking-create.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/api/* (15 more hooks)"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/schemas/clinic-profile-schema.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/schemas/* (8 more schemas)"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/types/* (6 type files)"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/api/query-keys.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/tests/unit/features/vitalia/schemas/*.test.ts"
+  acceptance:
+    - { id: A1, description: "All 9 Zod schemas pass schema validation tests", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run tests/unit/features/vitalia/schemas/" } }
+    - { id: A2, description: "fetchClient X-Tenant-ID auto-injection verified", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run tests/unit/features/vitalia/api/test-tenant-isolation.test.ts" } }
+  validators_pass: [V-F-11]
+  out_of_scope: ["Components (T-fe-3)"]
+  depends_on: ["T-fe-1", "T-be-7"]
+  blocks: ["T-fe-3", "T-fe-4", "T-fe-5"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tfe3:
+  id: T-fe-3
+  title: "FE components reuse @luana/ui + @luana/shared + 7 NEW vitalia-specific"
+  type: component
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 4
+  estimate_hours: 5
+  decisions_applicable: [D9]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-fe.md § 5 + spec § 6"
+    rules: [".claude/rules/frontend-quality.md", ".claude/rules/spanish-text.md", ".claude/rules/anti-duplication.md"]
+    domain_skills: ["frontend-expert"]
+    tessl_skills: ["tessl__shadcn-ui", "tessl__tailwind", "tessl__react-patterns"]
+  description: |
+    7 NEW vitalia-specific components per spec § 6.3 + 03-arch-fe.md § 5.3:
+    - ClinicTypePicker (radio + icons + suitability hints)
+    - MedicalServicesOfferWizardSteps (5-step preset-specific)
+    - TreatmentTimeline (D0/D5/D14/D90 milestones + adherence)
+    - ConsentSignatureModal (scrollable terms + signature pad/typed)
+    - ComplianceStatsCards (HIPAA-lite metrics aggregation)
+    - DoctorAvatarPicker (specialties tooltip + availability badge)
+    - MedicalDisclaimerBanner (contextual reminder)
+    Plus integration components consuming @luana/ui + @luana/shared.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/clinic-type-picker.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/medical-services-offer-wizard-steps.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/treatment-timeline.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/consent-signature-modal.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/compliance-stats-cards.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/doctor-avatar-picker.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/medical-disclaimer-banner.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/config/microcopy.ts (mirror spec § 8)"
+    - "/home/chris/luana-platform/vitalia/frontend/tests/unit/features/vitalia/components/*.test.tsx"
+  acceptance:
+    - { id: A1, description: "All 7 components render with provided props + no console errors", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run tests/unit/features/vitalia/components/" } }
+    - { id: A2, description: "Microcopy = spec § 8 SSoT (no voseo verbs)", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run src/__tests__/architecture/test-vitalia-ui-strings-no-voseo.test.ts" } }
+  validators_pass: [V-NF-3, V-NF-4, V-NF-6, V-F-11]
+  out_of_scope: ["Wizards (T-fe-4)", "Dashboards (T-fe-5)"]
+  depends_on: ["T-fe-2", "T-config-1"]
+  blocks: ["T-fe-4", "T-fe-5", "T-widget-1", "T-e2e-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tfe4:
+  id: T-fe-4
+  title: "FE onboarding wizard 3-step + brand-studio + offer wizard 5-step"
+  type: component
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 5
+  estimate_hours: 4
+  decisions_applicable: [D9]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-fe.md § 5"
+    spec: "../01-spec.md § 3.1 + § 3.2 + § 3.3 + § 4.1 + § 4.2 + § 4.3 + § 8.1 + § 8.2 + § 8.3"
+    rules: [".claude/rules/frontend-fsd.md", ".claude/rules/form-runtime-array.md"]
+    domain_skills: ["frontend-expert", "brand-expert"]
+  description: |
+    Onboarding wizard 3-step (clinic profile + plan tier + offer launch).
+    Brand Studio section nav + 4 sections (identity / contact / team / testimonials) + autosave.
+    Offer wizard 5-step medical_services preset (tipo / paciente / precio / consentimiento / duración+profesional).
+    Spec § 8 microcopy SSoT.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/onboarding-step-1-client.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/onboarding-step-2-client.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/onboarding-step-3-client.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/brand-studio-section-client.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/offer-wizard-client.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/tests/integration/onboarding-wizard-flow.test.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/tests/integration/offer-wizard-flow.test.tsx"
+  acceptance:
+    - { id: A1, description: "Onboarding wizard 3-step flow integration green", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run tests/integration/onboarding-wizard-flow.test.tsx" } }
+    - { id: A2, description: "Brand Studio autosave on-change verified", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run tests/integration/brand-studio-autosave.test.tsx" } }
+    - { id: A3, description: "Offer wizard 5-step preset medical_services_v1 integration green", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run tests/integration/offer-wizard-flow.test.tsx" } }
+  validators_pass: [V-F-11]
+  out_of_scope: ["Treatments + Patients + Compliance dashboards (T-fe-5)"]
+  depends_on: ["T-fe-3"]
+  blocks: ["T-e2e-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tfe5:
+  id: T-fe-5
+  title: "FE treatments + patients + appointments + medical-compliance dashboards"
+  type: component
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 5
+  estimate_hours: 4
+  decisions_applicable: [D9]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-fe.md § 5 + § 10"
+    spec: "../01-spec.md § 3.5 + § 3.6 + § 4.4 + § 4.5 + § 8.5 + § 8.6"
+    rules: [".claude/rules/frontend-fsd.md"]
+    domain_skills: ["frontend-expert"]
+  description: |
+    Treatments list + detail + followup dashboard (timeline + chat history + next action + manual handoff CTA).
+    Patients list + detail (CDP medical-flavor + medical PDF upload).
+    Appointments calendar (consume @luana/core/scheduling).
+    Medical-compliance dashboard (stats + table + CSV export per spec § 4.5).
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/treatment-followup-dashboard-client.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/treatment-list-table.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/patient-list-table.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/patient-detail-panel.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/patient-medical-pdf-upload.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/appointments-calendar-client.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/compliance-page-client.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/src/features/vitalia/components/compliance-event-row.tsx"
+  acceptance:
+    - { id: A1, description: "Treatment followup dashboard renders timeline + chat + manual handoff CTA", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run tests/unit/features/vitalia/components/treatment-followup-dashboard-client.test.tsx" } }
+    - { id: A2, description: "Compliance dashboard renders stats + CSV export functional", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx vitest run tests/unit/features/vitalia/components/compliance-page-client.test.tsx" } }
+  validators_pass: [V-F-11]
+  out_of_scope: ["Onboarding + offer wizard (T-fe-4)", "Widget (T-widget-1)"]
+  depends_on: ["T-fe-3"]
+  blocks: ["T-e2e-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Twidget1:
+  id: T-widget-1
+  title: "Booking widget iframe bundle (Vite UMD + postMessage protocol)"
+  type: component
+  surface: FE
+  production_code: true
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 6
+  estimate_hours: 4
+  decisions_applicable: [D11]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-fe.md § 9"
+    spec: "../01-spec.md § 5.4 + § 17 Q5=B"
+    rules: [".claude/rules/frontend-fsd.md", ".claude/rules/frontend-quality.md"]
+    domain_skills: ["frontend-expert"]
+    tessl_skills: ["tessl__tailwind", "tessl__react-patterns"]
+  description: |
+    Embeddable iframe widget per spec § 17 Q5=B + 03-arch-fe.md § 9:
+    - Vite builds UMD bundle (widget.umd.js + widget.css)
+    - postMessage protocol: widget:resize / widget:loaded / widget:booking-confirmed / widget:payment-redirect
+    - Origin validation + signed patient JWT for public booking flow
+    - Calendar slot picker + consent step + payment step (Stripe/MP iframe redirect)
+    - Hosted at cdn.vitalia.health/widget/
+    - Canonical URL alternative app/public/[clinic-slug]/booking/page.tsx
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/frontend/widget/src/widget-entry.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/widget/src/components/BookingWidgetRoot.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/widget/src/components/CalendarSlotPicker.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/widget/src/components/ConsentStep.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/widget/src/components/PaymentStep.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/widget/src/components/SuccessStep.tsx"
+    - "/home/chris/luana-platform/vitalia/frontend/widget/src/postmessage-protocol.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/widget/vite.config.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/widget/tests/integration/booking-widget-flow.test.tsx"
+  acceptance:
+    - { id: A1, description: "Vite UMD bundle builds successfully", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend/widget && npx vite build" } }
+    - { id: A2, description: "postMessage origin validation prevents spoofing", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend/widget && npx vitest run tests/integration/booking-widget-flow.test.tsx" } }
+  validators_pass: [V-F-11]
+  out_of_scope: ["E2E specs (T-e2e-1)"]
+  depends_on: ["T-fe-3", "T-be-7"]
+  blocks: ["T-e2e-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Te2e1:
+  id: T-e2e-1
+  title: "Playwright E2E 18 specs + 4 compliance smoke + visual + a11y"
+  type: e2e
+  surface: AGENTIC
+  production_code: false                         # E2E tests over runtime — Sonnet OK per R23 tests-over-agentic exempt
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 8
+  estimate_hours: 5
+  decisions_applicable: [D9]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-fe.md § 11.2"
+    spec: "../01-spec.md § 13.3 + § 15"
+    rules: [".claude/rules/e2e-testing.md", ".claude/rules/tdd-mandatory.md"]
+    domain_skills: ["playwright-expert"]
+  description: |
+    18 Playwright E2E specs per spec § 13.3 matrix (3 fixtures × 6 flows):
+    onboarding + brand-studio + offer-wizard + booking + treatment-followup + compliance per fixture.
+    Plus 4 compliance smoke tests (prompt_injection / pii_detection / cross_tenant / hipaa_disclaimer).
+    Responsive (mobile/tablet/desktop) + a11y (axe-core).
+    NEVER make e2e* Docker (crashes WSL2 — playwright-expert SSoT).
+    Run native: E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke.
+    Use auth.fixture.ts per playwright-expert (Clerk testing token + freshness gate + retry).
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/frontend/e2e/fixtures/aurora-dental-ar.fixture.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/e2e/fixtures/mindful-psych-cl.fixture.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/e2e/fixtures/sanare-latam-mx.fixture.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/e2e/auth.fixture.ts"
+    - "/home/chris/luana-platform/vitalia/frontend/e2e/specs/vitalia/* (18 specs)"
+    - "/home/chris/luana-platform/vitalia/frontend/e2e/specs/vitalia/responsive/*"
+    - "/home/chris/luana-platform/vitalia/frontend/e2e/specs/vitalia/a11y/*"
+  acceptance:
+    - { id: A1, description: "18 E2E specs all green native WSL", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke e2e/specs/vitalia/" } }
+    - { id: A2, description: "Responsive 3 breakpoints pass", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx playwright test e2e/specs/vitalia/responsive/ --project=mobile,tablet,desktop" } }
+    - { id: A3, description: "a11y critical/serious violations = 0", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/frontend && npx playwright test e2e/specs/vitalia/a11y/" } }
+  validators_pass: [V-V-1, V-V-2, V-V-3, V-V-4, V-V-5, V-V-6, V-V-7, V-V-8, V-V-9, V-V-10, V-V-11, V-V-12, V-V-13, V-V-14, V-V-15, V-V-16, V-V-17, V-V-18, V-V-19, V-V-20]
+  out_of_scope: ["Agentic eval grader (T-eval-1)"]
+  depends_on: ["T-fe-4", "T-fe-5", "T-widget-1", "T-be-7", "T-be-8", "T-tools-1", "T-tools-2", "T-tools-3", "T-tools-4", "T-extractors-1", "T-extractors-2", "T-workflow-1", "T-kb-1", "T-kb-2", "T-kb-3", "T-guards-1", "T-guards-2", "T-guards-3", "T-rubric-1"]
+  blocks: ["T-eval-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Teval1:
+  id: T-eval-1
+  title: "Agentic eval suite vertical-medical-fidelity + cost_budget + cache_hit_rate + smoke tests"
+  type: smoke
+  surface: AGENTIC
+  production_code: false                         # Tests over agentic runtime — Sonnet OK per R23
+  state: draft
+  owner_eligibility:
+    qwen_opencode: false
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 9
+  estimate_hours: 4
+  decisions_applicable: [D6]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch-agentic.md § 13 + § 14 + § 16"
+    agentic_design: "../02-design-agentic.md § 13 + § 14 + § 15"
+    rules: [".claude/rules/auditor-downstream-regression.md", ".claude/rules/copilot-observability.md"]
+    domain_skills: ["copilot-expert", "sales-agent-expert"]
+  description: |
+    Comprehensive agentic eval suite:
+    - Vertical-medical-fidelity grader (happy pass^3 ≥0.75, adversarial pass^5 ≥0.95)
+    - 4 compliance smoke tests (prompt_injection / pii_detection / cross_tenant / hipaa_disclaimer)
+    - Cost budget assertions (booking ≤$0.08, followup ≤$0.025, PDF ≤$0.15-$0.18)
+    - Cache hit rate ≥85% slots 1-6
+    - Voice fidelity per fixture ≥0.80
+    - No-hallucination citation grader ≥0.90
+    - Cost bucket separation arch fitness (eval_simulator_llm_call vs copilot_llm_call)
+    - Append R3 downstream regression entries to .claude/rules/auditor-downstream-regression.md SSoT
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/smoke/smoke_prompt_injection.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/smoke/smoke_pii_detection.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/smoke/smoke_cross_tenant.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/smoke/smoke_hipaa_disclaimer.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/grader/test_vertical_medical_fidelity_happy.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/grader/test_vertical_medical_fidelity_adversarial.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/grader/test_voice_fidelity_per_fixture.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/grader/test_no_hallucination.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/cost_budget/test_cost_budget_booking_conversation.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/cost_budget/test_cost_budget_followup_turn.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/cost_budget/test_cost_budget_pdf_extraction.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/agentic_evals/observability/test_trace_invariants.py"
+    - "/home/chris/luana-platform/vitalia/backend/tests/architecture/test_vitalia_cost_bucket_invariant.py"
+    - "/home/chris/AISALESHT/.claude/rules/auditor-downstream-regression.md (append vitalia surfaces SSoT rows)"
+  acceptance:
+    - { id: A1, description: "4 compliance smoke tests all green", verifier: { type: pytest, path: "tests/agentic_evals/smoke/" } }
+    - { id: A2, description: "Adversarial vertical-medical-fidelity pass^5 ≥0.95", verifier: { type: pytest, path: "tests/agentic_evals/grader/test_vertical_medical_fidelity_adversarial.py" } }
+    - { id: A3, description: "Cost budget assertions all green", verifier: { type: pytest, path: "tests/agentic_evals/cost_budget/" } }
+    - { id: A4, description: "Cache hit rate ≥85% measured slots 1-6", verifier: { type: pytest, path: "tests/agentic_evals/cache/test_cache_hit_rate.py" } }
+    - { id: A5, description: "Cost bucket invariant (production vs eval) green", verifier: { type: pytest, path: "tests/architecture/test_vitalia_cost_bucket_invariant.py" } }
+  validators_pass: [V-AE-1, V-AE-2, V-AE-3, V-AE-4, V-AE-10, V-AE-11, V-AE-12, V-AE-13, V-AE-14, V-AE-15, V-AE-16, V-AE-17, V-AE-18, V-AE-19, V-AE-22]
+  out_of_scope: ["K8s + docs (T-deploy-1, T-docs-1)"]
+  depends_on: ["T-tools-1", "T-tools-2", "T-tools-3", "T-tools-4", "T-extractors-1", "T-extractors-2", "T-workflow-1", "T-kb-1", "T-kb-2", "T-kb-3", "T-guards-1", "T-guards-2", "T-guards-3", "T-rubric-1", "T-e2e-1"]
+  blocks: ["T-deploy-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tdeploy1:
+  id: T-deploy-1
+  title: "K8s manifests + CF tunnel scripts + DNS verification (Chris UI gate per Q4=B)"
+  type: k8s
+  surface: infra
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 10
+  estimate_hours: 3
+  decisions_applicable: [D1]
+  repro_verified: false
+  inputs:
+    arch_doc: "../03-arch.md § 5.3 + § 5.4 + § 5.5"
+    rules: []
+    domain_skills: ["backend-expert"]
+  description: |
+    Chris UI gate per Q4=B — /dev-team autonomous scope:
+    - K8s manifests deployment + service + ingress YAML (vitalia/deploy/k8s/)
+    - Helm chart skeleton (optional vitalia/deploy/k8s/helm/)
+    - Cloudflare Tunnel config script (vitalia/deploy/cloudflared/config.yml)
+    - DNS records spec markdown (Chris executes via Cloudflare dashboard)
+    - Clerk app #2 webhook endpoint config (Chris signs up Clerk dashboard)
+    - Stripe Connect + MercadoPago sandbox keys env template (Chris provisions production keys)
+    Chris executes irreversible operations via UI; /dev-team prepares all manifests + scripts.
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/deploy/k8s/deployment.yaml"
+    - "/home/chris/luana-platform/vitalia/deploy/k8s/service.yaml"
+    - "/home/chris/luana-platform/vitalia/deploy/k8s/ingress.yaml"
+    - "/home/chris/luana-platform/vitalia/deploy/k8s/configmap.yaml"
+    - "/home/chris/luana-platform/vitalia/deploy/k8s/secrets.template.yaml"
+    - "/home/chris/luana-platform/vitalia/deploy/cloudflared/config.yml"
+    - "/home/chris/luana-platform/vitalia/deploy/cloudflared/setup-tunnel.sh"
+    - "/home/chris/luana-platform/vitalia/deploy/DNS-RECORDS.md (Chris executes via Cloudflare dashboard)"
+    - "/home/chris/luana-platform/vitalia/deploy/CLERK-APP-SETUP.md (Chris executes via Clerk dashboard)"
+    - "/home/chris/luana-platform/vitalia/deploy/.env.template"
+  acceptance:
+    - { id: A1, description: "K8s manifests YAML valid (kubectl --dry-run)", verifier: { type: bash, cmd: "kubectl apply --dry-run=client -f /home/chris/luana-platform/vitalia/deploy/k8s/" } }
+    - { id: A2, description: "DNS-RECORDS.md + CLERK-APP-SETUP.md present (Chris gate docs)", verifier: { type: bash, cmd: "test -f /home/chris/luana-platform/vitalia/deploy/DNS-RECORDS.md && test -f /home/chris/luana-platform/vitalia/deploy/CLERK-APP-SETUP.md" } }
+  validators_pass: []
+  out_of_scope: ["Docs (T-docs-1)", "Actual cluster provisioning (Chris UI gate)"]
+  depends_on: ["T-eval-1"]
+  blocks: ["T-docs-1"]
+  assigned_to: null
+
+# ═══════════════════════════════════════════════════════════════
+Tdocs1:
+  id: T-docs-1
+  title: "compliance.md + booking-widget-embed.md + seed_fixture_clinics.py"
+  type: docs
+  surface: docs
+  production_code: false
+  state: draft
+  owner_eligibility:
+    qwen_opencode: true
+    claude_sonnet: true
+    claude_opus_required: false
+  priority: 11
+  estimate_hours: 3
+  decisions_applicable: [D7, D11]
+  repro_verified: false
+  inputs:
+    spec: "../01-spec.md § 14 + § 17 Q5 + § 17 Q6"
+    rules: [".claude/rules/spanish-text.md"]
+    domain_skills: ["backend-expert"]
+  description: |
+    Three deliverables:
+    1. vitalia/docs/compliance.md — HIPAA-lite distinction + LatAm laws (Ley 25.326 AR, LGPD BR, LFPDPPP MX, etc) + audit log retention 7 years
+    2. vitalia/docs/booking-widget-embed.md — Copy-paste snippet for clinic_owners + postMessage protocol explainer + canonical URL alternative
+    3. vitalia/backend/scripts/seed_fixture_clinics.py — Idempotent seed 3 LatAm fixture clinics (Aurora dental AR / Mindful Santiago CL / Sanaré LATAM MX) per spec § 2
+  files_in_scope:
+    - "/home/chris/luana-platform/vitalia/docs/compliance.md"
+    - "/home/chris/luana-platform/vitalia/docs/booking-widget-embed.md"
+    - "/home/chris/luana-platform/vitalia/backend/scripts/seed_fixture_clinics.py"
+    - "/home/chris/luana-platform/vitalia/README.md (update post-build)"
+  acceptance:
+    - { id: A1, description: "seed_fixture_clinics.py idempotent (re-run safe)", verifier: { type: bash, cmd: "cd /home/chris/luana-platform/vitalia/backend && .venv/bin/python scripts/seed_fixture_clinics.py --check" } }
+    - { id: A2, description: "compliance.md + booking-widget-embed.md present + Spanish neutro tuteo", verifier: { type: bash, cmd: "test -f /home/chris/luana-platform/vitalia/docs/compliance.md && test -f /home/chris/luana-platform/vitalia/docs/booking-widget-embed.md" } }
+  validators_pass: [V-F-15]
+  out_of_scope: []
+  depends_on: ["T-eval-1"]
+  blocks: []
+  assigned_to: null

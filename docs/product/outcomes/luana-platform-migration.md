@@ -7,7 +7,7 @@ created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-13
 stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios, luana-copilot-engine, luana-sales-agent-engine, luana-campaigns-extension-sdk, luana-v0-1-0-publish, luana-nicolify-migration]   # 2026-05-16 — Story 10 done /auditor APPROVED 27/27 CHECKPOINTS Sesion 10 close. 10/14 stories done. Unblocks vitalia/comunify/lupulo bootstrap + brand-voice-elevation.
-stories_active: [luana-vitalia-bootstrap]   # 2026-05-13 Sesion 1 — Story 11 state=refined (spec ratified Chris); Sesion 2 awaits /ux-agentico + /architect
+stories_active: [luana-vitalia-bootstrap]   # 2026-05-13 Sesion 2 close — Story 11 state=ready (02-design-agentic + 03-arch consolidado + per-surface BE/FE/AGENTIC + 04-validators 70 + 05-guidelines + 06-tickets 38 atomic); Sesion 3 awaits /dev-team autonomous build pickup
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/
