@@ -1,11 +1,22 @@
 ---
 story_id: luana-vitalia-bootstrap
 outcome: luana-platform-migration
-state: ready
-phase: READY_PACKAGE_DONE
-last_artifact: 06-tickets.yaml
-last_modified: 2026-05-13
-next_action: "Sesion 3: /dev-team picks 06-tickets.yaml ticket-by-ticket autonomous build. Working dir /home/chris/luana-platform/vitalia/. 38 atomic tickets (15 AGENTIC opus-mandatory R23 + 23 BE/FE/config Sonnet-OK). Validators 70 (4 categories) executable must_pass:true c/u. State ready → developing."
+state: developing
+phase: BUILD_WAVE_1
+last_artifact: T-be-3
+last_modified: 2026-05-14
+t_be_3_state: done
+t_be_3_commit_luana_platform: d96e4ce
+t_be_3_tests: "93 passed (unit+arch) + 13 skipped integration (Postgres unavailable)"
+next_action: "Sesion 3 W4 done (T-be-3). Next: W5 T-tools-1 (Opus R23 — agentic tools)."
+sesion_3_started_at: 2026-05-14
+sesion_3_scope: 7_tickets_mixed_be_first_agentic_tool         # T-scaffold-1 + T-config-1 + T-be-1 + T-be-2 + T-be-3 + T-extensions-1 + T-tools-1
+sesion_3_dag_waves:
+  W1: [T-scaffold-1]
+  W2: [T-config-1, T-be-1]                                    # parallel cap 2
+  W3: [T-be-2, T-extensions-1]                                # parallel cap 2
+  W4: [T-be-3]
+  W5: [T-tools-1]                                             # Opus R23
 ratified_by_chris: true
 phase0_ratified_by_chris: true
 design_agentic_drafted: true                    # Sesion 2 Phase 1 (2026-05-13)

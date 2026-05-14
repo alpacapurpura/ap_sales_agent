@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-14T01:06:35+00:00
+# Generated at: 2026-05-14T01:40:15+00:00
 
-generated_at: '2026-05-14T01:06:35+00:00'
+generated_at: '2026-05-14T01:40:15+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -315,8 +315,7 @@ buckets:
     extra:
       outcome: luana-platform-migration
       phase: BUILD_WAVE_1
-      next_action: Sesion 3 active. Q1=D batch (7 tickets) + Q2=B parallel cap 2 + Q3=A iter cap 3 + Q4=A close on done/cap.
-        W1 T-scaffold-1 spawn pending.
+      next_action: 'Sesion 3 W4 done (T-be-3). Next: W5 T-tools-1 (Opus R23 — agentic tools).'
       blocked_by: []
       priority_override: null
       audit_iterations: 0
