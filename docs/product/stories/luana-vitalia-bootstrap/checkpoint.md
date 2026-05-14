@@ -2,10 +2,20 @@
 story_id: luana-vitalia-bootstrap
 outcome: luana-platform-migration
 state: developing
-phase: SESION_3_CLOSED_PARTIAL                                # 7/38 tickets done — 31 pending Sesion 4+
-last_artifact: SESSION-3-CLOSE-2026-05-14.md
+phase: SESION_4_BUILD_ACTIVE                                  # 8/38 done (T-fe-3 GREEN 2026-05-14)
+last_artifact: T-fe-3-result.md
 last_modified: 2026-05-14
-next_action: "Sesion 4 pickup: continue 06-tickets.yaml. Next ready batch per DAG: T-be-4 (services Onboarding+Compliance+PiiScanner) + T-be-5 (Booking+advisory_locks) + T-be-6 (Consent+TreatmentFollowup+PrepaidPayment) parallel cap 2 OR jump T-prompts-1 (Opus R23, blocked_by T-config-1+T-extensions-1 — both done) to unblock 7 AGENTIC downstream tickets."
+next_action: "T-fe-3 GREEN. Continue Sesion 4 waves — W13 complete, remaining alone waves."
+sesion_4_started_at: 2026-05-14
+sesion_4_q_decisions:
+  Q1_scope: A_FULL_31_tickets
+  Q2_parallel: A_cap_2_strict
+  Q3_iter_cap: A_3_iterations
+  Q4_close: A_batch_done_or_cap_escalate
+  Q5_quality: A_trust_builder_post_batch_auditor_sesion_5
+sesion_4_dag_waves_planned: 18                                # vs 23 originally proposed; denser packing
+sesion_4_target_cost_usd: 105_to_120
+sesion_4_target_wall_hours: 3_to_4
 sesion_3_started_at: 2026-05-14
 sesion_3_closed_at: 2026-05-14
 sesion_3_scope: 7_tickets_mixed_be_first_agentic_tool         # Q1=D ratified
