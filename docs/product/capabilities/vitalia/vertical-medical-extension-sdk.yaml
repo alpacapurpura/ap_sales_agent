@@ -1,0 +1,38 @@
+---
+capability_id: vitalia-vertical-medical-extension-sdk
+module: vitalia
+slug: vertical-medical-extension-sdk
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-vitalia-bootstrap
+package_version: 0.1.0
+package_path: vitalia/backend/src/modules/vitalia
+license: proprietary
+---
+
+# vitalia-vertical-medical-extension-sdk
+
+Vertical-medical brand extension mounting on `luana-platform` Extension SDK via `extensions.py register_all` (EP-1..EP-18). Implements first vertical consumer of `core/luana-core-extension-sdk/` (Story 6).
+
+## Surface
+
+- **extensions.py:** register_all entrypoint mounting EP-1..EP-18 (BrandConfig + tools + extractors + workflows + guardrails + KB packs + offer presets + slot 4 medical_safety_rails)
+- **BrandConfig YAML:** `vitalia/config/brand.yaml` declarative (no Python code per brand) — frontmatter + identity + offer ladder + tools registry + extractors + workflows + guards + KB packs
+- **Extension mounting verified:** 18/18 extension points filled (T-extensions-1)
+
+## Test coverage
+
+- T-extensions-1 result: register_all surface complete EP-1..EP-18 mounted
+- Arch fitness: BrandContext 9-field frozen dataclass + brand_slug namespace allowlist enforced via `core/tests/architecture/`
+
+## Dependencies
+
+- luana-core-extension-sdk (EP registry + adapters + BrandContext)
+- luana-core-platform (Base + events)
+- luana-core-iam (tenant context)
+
+## Scenarios live
+
+- vitalia/config/brand.yaml validates against Extension SDK schema
+- register_all completes without ExtensionPointError
+- Extensions visible via ExtensionPointRegistry public API surface

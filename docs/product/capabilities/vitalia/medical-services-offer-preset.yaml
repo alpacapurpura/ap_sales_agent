@@ -1,0 +1,46 @@
+---
+capability_id: vitalia-medical-services-offer-preset
+module: vitalia
+slug: medical-services-offer-preset
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-vitalia-bootstrap
+package_version: 0.1.0
+package_path: vitalia/backend/src/modules/vitalia
+license: proprietary
+---
+
+# vitalia-medical-services-offer-preset
+
+Vitalia offer presets for medical services: prepaid payment (MercadoPago LIFT shared) + Stripe Connect tokenized recurring + booking flow with advisory_locks.
+
+## Surface
+
+- **MercadoPagoAdapter LIFT SHARED** (T-payment-1): lifted to `@luana/core/channels` from nicolify; vitalia extends `VitaliaMercadoPagoAdapter(MercadoPagoAdapter)` for medical-specific payment metadata (treatment_id, doctor_id, consent_required)
+- **Stripe Connect + Tokenized Recurring** (T-payment-2): adapter for cross-border + recurring follow-up payments
+- **BookingService + advisory_locks** (T-be-5): prevents double-booking of doctor slots via Postgres advisory locks
+- **PrepaidPaymentService** (T-be-6): manages patient prepaid balances + quota deduction per procedure
+- **5 webhook receivers HMAC + idempotency** (T-be-8): payment confirmations, refunds, chargebacks, reschedules, cancellations
+
+## Test coverage
+
+- T-payment-1: 38/38 + 100/100 core regression
+- T-payment-2: 16/16 (skip integration — Postgres)
+- T-be-5: 9/9 unit (6 integration skip — Postgres)
+- T-be-6: 25/25 PASS
+- T-be-8: 21/21 V-F-12 webhook HMAC + idempotency
+
+## Dependencies
+
+- luana-core-channels (MercadoPagoAdapter base — Story 11 LIFT)
+- luana-core-payments (Stripe Connect base — Story 9?)
+- luana-core-platform (advisory_locks helpers)
+- vitalia/backend repositories
+
+## Scenarios live
+
+- Patient books appointment → BookingService checks doctor slot + advisory_lock acquired → prevents race
+- Patient pays prepaid via MercadoPago → MercadoPago webhook → HMAC verified + idempotency → balance updated
+- Recurring follow-up payment via Stripe Connect tokenized → cross-border + auto-debit
+- Patient cancels → refund webhook + advisory_lock released
+- Chargeback received → ComplianceEvent recorded + admin notified

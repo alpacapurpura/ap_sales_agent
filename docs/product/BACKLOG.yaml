@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-14T08:00:55+00:00
+# Generated at: 2026-05-14T14:01:09+00:00
 
-generated_at: '2026-05-14T08:00:55+00:00'
+generated_at: '2026-05-14T14:01:09+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -292,7 +292,7 @@ buckets:
     state: developing
     title: luana-platform-migration
     tags: []
-    last_touched: 2026-05-13
+    last_touched: 2026-05-14
     extra:
       story_ids: []
       why_now: null
@@ -306,21 +306,7 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
-  developed:
-  - id: luana-vitalia-bootstrap
-    kind: story
-    state: developed
-    title: luana-vitalia-bootstrap
-    tags: []
-    last_touched: 2026-05-14
-    extra:
-      outcome: luana-platform-migration
-      phase: SESION_4_BUILD_DONE_AWAITING_AUDITOR
-      next_action: Chris triggers /auditor Conv 3 Sesion 5 for state developed → reviewing → done. Auditor verifies V-AE-18
-        gap + Postgres integration + Playwright runtime + W9 race postmortem.
-      blocked_by: []
-      priority_override: null
-      audit_iterations: 0
+  developed: []
   reviewing: []
   done:
   - id: growth-copilot-layout-unification
@@ -682,3 +668,9 @@ capabilities:
   planned: 0
   deprecated: 0
   total: 1
+- module: vitalia
+  live: 8
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 8

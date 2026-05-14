@@ -1,0 +1,46 @@
+---
+capability_id: vitalia-medical-followup-workflow
+module: vitalia
+slug: medical-followup-workflow
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-vitalia-bootstrap
+package_version: 0.1.0
+package_path: vitalia/backend/src/modules/vitalia
+license: proprietary
+---
+
+# vitalia-medical-followup-workflow
+
+LangGraph 2.0 TreatmentFollowupWorkflow orchestrates multi-step medical follow-ups (cron-driven) + 4 AGENTIC tools for patient interaction during follow-up sequences.
+
+## Surface
+
+- **TreatmentFollowupWorkflow** (T-workflow-1): LangGraph 2.0 + RedisSaver-ready + cron worker integration (`@luana/core/scheduling.cron_worker`)
+- **4 AGENTIC tools:**
+  - prepaid_payment_check (T-tools-1 Sesion 3): verify prepaid balance/quota for upcoming treatment
+  - medical_consent_request (T-tools-2): generate consent form + send to patient + record signature
+  - appointment_reschedule_with_doctor (T-tools-3): 4 actions (search slots, hold, confirm, notify)
+  - treatment_followup_check (T-tools-4): 7 actions covering full follow-up loop
+
+## Test coverage
+
+- T-workflow-1: 12/12 V-AE-7 + 510 downstream
+- T-tools-1: per Sesion 3 R23 Opus
+- T-tools-2: 13/13 + 121 downstream
+- T-tools-3: 15/15 A1+A2+A3
+- T-tools-4: 24/24 + 62/62 V-AE-5
+
+## Dependencies
+
+- luana-core-platform (LangGraph 2.0 base + RedisSaver)
+- luana-core-scheduling (cron_worker + calendar EXTEND)
+- luana-core-llm (LLM router for tool reasoning)
+
+## Scenarios live
+
+- Cron triggers follow-up sequence for treatment plan
+- Workflow checks prepaid payment → if low, prompts top-up
+- Workflow requests consent for next procedure → patient signs
+- Workflow detects reschedule need → finds doctor slot → notifies all parties
+- Follow-up check loop covers 7 actions (status, vitals, adherence, side-effects, satisfaction, next steps, escalation)

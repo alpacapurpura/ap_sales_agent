@@ -1,0 +1,46 @@
+---
+capability_id: vitalia-medical-kb-rag
+module: vitalia
+slug: medical-kb-rag
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-vitalia-bootstrap
+package_version: 0.1.0
+package_path: vitalia/backend/src/modules/vitalia
+license: proprietary
+---
+
+# vitalia-medical-kb-rag
+
+3 medical knowledge base packs (~481 chunks total) with Qdrant tenant filtering: dental, psychology (with crisis boundary), psychiatry (with forced disclaimer).
+
+## Surface
+
+- **medical_kb_dental_v1** (T-kb-1): ~150 chunks covering dental procedures, treatments, post-op care
+- **medical_kb_psychology_v1** (T-kb-2): ~200 chunks + crisis boundary protocol (e.g., suicidal ideation → escalate)
+- **medical_kb_psychiatry_v1** (T-kb-3): 131 chunks + forced disclaimer (every reply includes "consult licensed psychiatrist")
+- **2 PDF extractors** (T-extractors-1/2):
+  - MedicalKBExtractor: 4-wave vision-based extraction (generic medical PDFs)
+  - DentalHistoryExtractor: FDI dental notation 4-wave (dental-specific)
+
+## Test coverage
+
+- T-kb-1: 13/13 + 32/32 joint kb_packs
+- T-kb-2: 19/19 PASS
+- T-kb-3: 37/37 + 69/69 kb_packs + 310 broader vitalia
+- T-extractors-1: 25/25 PASS
+- T-extractors-2: 10/10 + 353/353 downstream
+
+## Dependencies
+
+- luana-core-platform (Qdrant adapter + tenant filtering)
+- luana-core-llm (LLM router for extraction)
+- shared/application/extraction/base_orchestrator.py (BaseExtractionOrchestrator EXTEND, no mirror)
+
+## Scenarios live
+
+- Dental consult retrieves dental KB chunks tenant-filtered
+- Psychology consult crisis pattern detected → boundary protocol triggered
+- Psychiatry consult always appends forced disclaimer
+- Doctor uploads PDF medical record → extractor produces 4-wave structured output
+- Dentist uploads dental history → FDI notation extracted per tooth

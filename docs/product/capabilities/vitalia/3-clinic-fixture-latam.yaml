@@ -1,0 +1,42 @@
+---
+capability_id: vitalia-3-clinic-fixture-latam
+module: vitalia
+slug: 3-clinic-fixture-latam
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-vitalia-bootstrap
+package_version: 0.1.0
+package_path: vitalia/docs
+license: proprietary
+---
+
+# vitalia-3-clinic-fixture-latam
+
+3 research-driven LATAM clinic fixtures for pilot tenants representing common verticals: dental AR, psychology CL, wellness MX.
+
+## Surface
+
+- **Aurora Dental (AR):** dental clinic Buenos Aires, MercadoPago payment, FDI dental notation
+- **Mindful Psicología (CL):** psychology practice Santiago, crisis boundary protocol, Stripe Connect
+- **Sanaré Wellness (MX):** wellness center Ciudad de México, MercadoPago + recurring follow-ups
+- **seed_fixture_clinics.py** (T-docs-1): seeder for development + demo environments
+- **fixtures cover:** brand identity, offer ladder, payment configs, KB packs, doctor profiles, sample appointments
+
+## Test coverage
+
+- T-docs-1: V-F-15 + Spanish neutro + lint PASS
+- Seeder verified per A1 fixture rows present
+
+## Dependencies
+
+- vitalia application services (Onboarding + Booking + PrepaidPayment)
+- vitalia agentic (3 KB packs)
+- luana-core-iam (tenant provisioning)
+
+## Scenarios live
+
+- Dev env seeded → 3 demo clinics ratificable
+- Aurora Dental demo flow: patient books → MercadoPago → dental KB consult
+- Mindful Psicología demo flow: patient session → crisis boundary detection → safe redirect
+- Sanaré Wellness demo flow: subscription wellness program → tokenized recurring + follow-up sequence
+- Spanish neutro respected per fixture (no voseo in chrome UI)

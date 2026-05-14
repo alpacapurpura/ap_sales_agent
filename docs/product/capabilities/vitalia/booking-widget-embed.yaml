@@ -1,0 +1,41 @@
+---
+capability_id: vitalia-booking-widget-embed
+module: vitalia
+slug: booking-widget-embed
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-vitalia-bootstrap
+package_version: 0.1.0
+package_path: vitalia/frontend
+license: proprietary
+---
+
+# vitalia-booking-widget-embed
+
+UMD-bundled booking widget embeddable on clinic websites via iframe + postMessage protocol. Origin validator + 8 edge cases tested.
+
+## Surface
+
+- **Vite UMD bundle** (T-widget-1): `vitalia/frontend/widget/dist/widget.umd.js` (594.84 kB) + `widget.css` (0.52 kB) + sourcemap
+- **postMessage iframe protocol:** parent-child communication for booking flow within external sites
+- **Origin validator:** 8 edge cases (wildcard, subdomain, port, scheme) tested per A2 of T-widget-1
+- **Documentation:** `vitalia/docs/booking-widget-embed.md` (T-docs-1)
+
+## Test coverage
+
+- T-widget-1: 25/25 vitest + UMD bundle build verified
+- A1 dist artifacts emitted (UMD + CSS + sourcemap)
+- A2 origin validator 8 edge cases PASS
+
+## Dependencies
+
+- vitalia/frontend (React Query hooks + Zod schemas)
+- luana-core-platform (tenant_id via fetchClient)
+
+## Scenarios live
+
+- Clinic embeds `<script src="widget.umd.js">` + `<div id="vitalia-booking">` on their site
+- Widget loads in iframe → postMessage handshake with parent
+- Patient books appointment within widget → API call with tenant_id auto-injected
+- Origin validator rejects unauthorized embeds
+- Widget responsive on mobile + desktop

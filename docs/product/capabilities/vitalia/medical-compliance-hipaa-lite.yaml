@@ -1,0 +1,40 @@
+---
+capability_id: vitalia-medical-compliance-hipaa-lite
+module: vitalia
+slug: medical-compliance-hipaa-lite
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-vitalia-bootstrap
+package_version: 0.1.0
+package_path: vitalia/backend/src/modules/vitalia
+license: proprietary
+---
+
+# vitalia-medical-compliance-hipaa-lite
+
+HIPAA-lite + LATAM medical compliance posture: PII sanitization, response_model PII masking, audit logging for sensitive operations, consent workflow integration.
+
+## Surface
+
+- **PiiScanner service** (T-be-4): scans medical record fields for PHI patterns before persistence
+- **PII masking response models** (T-be-7): `phone_masked`, `email_masked`, `name_last_initial` enforced on Patient/Doctor DTOs
+- **ComplianceEvent service** (T-be-4): audit trail for sensitive ops (medical record access, consent granted/revoked, prescription view)
+- **Documentation:** `vitalia/docs/compliance.md` (T-docs-1)
+
+## Test coverage
+
+- T-be-4 result: ComplianceEvent + PiiScanner services unit tests PASS
+- T-be-7 result: 23/24 routes `response_model=` mandatory + PII masking patterns confirmed
+
+## Dependencies
+
+- luana-core-platform (audit/observability base)
+- vitalia.application.services.compliance
+- vitalia.application.services.pii_scanner
+
+## Scenarios live
+
+- PHI detected → PII pattern flagged before persistence
+- Patient/Doctor responses masked (phone, email, name)
+- ComplianceEvent recorded on medical record access
+- compliance.md documents LATAM HIPAA-lite posture

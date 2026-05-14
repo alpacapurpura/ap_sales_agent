@@ -1,0 +1,41 @@
+---
+capability_id: vitalia-medical-safety-guardrails
+module: vitalia
+slug: medical-safety-guardrails
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-vitalia-bootstrap
+package_version: 0.1.0
+package_path: vitalia/backend/src/modules/vitalia
+license: proprietary
+---
+
+# vitalia-medical-safety-guardrails
+
+4 input+output guardrails enforcing medical safety boundaries: prompt injection block (reused from Story E), no diagnosis, no prescription, medical disclaimer required.
+
+## Surface
+
+- **medical_safety_no_diagnosis** (T-guards-1): input+output guardrail blocks LLM from offering medical diagnoses
+- **medical_safety_no_prescription** (T-guards-2): blocks LLM from prescribing medications or dosages
+- **medical_disclaimer_required** (T-guards-3): enforces disclaimer presence when discussing treatments
+- **prompt_injection_block reuse** (T-guards-3): registers Story E `prompt_injection_block` base (extend, no mirror per R10 anti-duplication)
+
+## Test coverage
+
+- T-guards-1: 47/47 + 99/99 V-AE-8 + 18/18 downstream
+- T-guards-2: tests GREEN per W10 close
+- T-guards-3: 64/64 + 367 regression
+- All 4 guardrails verified by auditor-agentic R23 Opus EXCLUSIVE
+
+## Dependencies
+
+- luana-core-sales-agent (BaseGuardrail Story E sandbox markers)
+- luana-core-platform (events for guard hits)
+
+## Scenarios live
+
+- LLM attempts medical diagnosis → blocked + safe fallback
+- LLM attempts prescription → blocked + redirect to doctor consultation
+- LLM treatment discussion lacks disclaimer → output guard appends mandatory disclaimer
+- Prompt injection attempts (Scenario 4 jailbreak) → blocked via Story E sandbox markers
