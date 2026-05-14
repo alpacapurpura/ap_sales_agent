@@ -117,8 +117,30 @@ def _load_yaml_files(directory: Path) -> list[tuple[Path, dict[str, object]]]:
     return results
 
 
+# Vitalia (Story 11) personas live in the same directory but are owned by a
+# separate vertical (luana-platform/vitalia). They follow the basename pattern
+# ``patient-*.yaml`` and are gated by their own arch fitness suite at
+# ``luana-platform/vitalia/backend/tests/architecture/test_vitalia_personas_yaml_completeness.py``.
+# Story C cement (15 personas / 5-tenant SSoT / 5-archetype SSoT) applies
+# ONLY to the original Story C scope — vitalia personas are scoped out here
+# and gated independently.
+_VITALIA_PERSONA_BASENAME_PREFIX = "patient-"
+
+
+def _is_vitalia_persona(path: Path) -> bool:
+    """Return True if the persona file basename matches vitalia ``patient-*.yaml`` pattern."""
+    return path.name.startswith(_VITALIA_PERSONA_BASENAME_PREFIX)
+
+
 def _get_archetype_aware_files() -> list[tuple[Path, dict[str, object]]]:
-    return _load_yaml_files(_ARCHETYPE_AWARE_DIR)
+    """Return Story C archetype-aware persona files (excludes vitalia ``patient-*.yaml``).
+
+    Vitalia (Story 11) personas live alongside Story C personas in the same
+    directory but are gated by their own arch fitness suite. This function
+    scopes to Story C personas only — see ``test_vitalia_personas_yaml_completeness.py``
+    in the vitalia package for vitalia-scoped invariants.
+    """
+    return [(path, data) for (path, data) in _load_yaml_files(_ARCHETYPE_AWARE_DIR) if not _is_vitalia_persona(path)]
 
 
 def _get_legacy_files() -> list[tuple[Path, dict[str, object]]]:
@@ -165,15 +187,19 @@ def test_legacy_directory_exists() -> None:
 
 
 def test_archetype_aware_count_is_15() -> None:
-    """EXACTLY 15 YAML files MUST exist in ``archetype-aware/``.
+    """EXACTLY 15 Story C archetype-aware YAML files MUST exist (excludes vitalia patient-*.yaml).
 
     3 persona_kinds (happy, nurture, unqualified) x 5 tenant archetypes = 15.
-    Adding or removing files without updating this gate fails the ratchet.
+    Vitalia (Story 11) personas (``patient-*.yaml``) live alongside Story C
+    personas in the same directory but are scoped out — they have their own
+    cement gate at ``luana-platform/vitalia/backend/tests/architecture/test_vitalia_personas_yaml_completeness.py``.
+
+    Adding or removing Story C files without updating this gate fails the ratchet.
     """
-    files = list(_ARCHETYPE_AWARE_DIR.glob("*.yaml"))
+    files = [f for f in _ARCHETYPE_AWARE_DIR.glob("*.yaml") if not _is_vitalia_persona(f)]
     assert len(files) == 15, (
-        f"archetype-aware/ MUST contain exactly 15 YAML files; found {len(files)}. "
-        f"Files present: {sorted(f.name for f in files)}."
+        f"archetype-aware/ MUST contain exactly 15 Story C YAML files (excluding vitalia patient-*.yaml); "
+        f"found {len(files)}. Files present: {sorted(f.name for f in files)}."
     )
 
 

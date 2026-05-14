@@ -1,0 +1,30 @@
+id: patient-depressed-psych-cl
+schema_version: 2
+name: "Sofía Reyes — paciente con cuadro depresivo busca orientativa"
+actor_goal: "Agendar primera sesión orientativa con psicóloga para hablar de cuadro de bajo ánimo prolongado; quiere algo de baja fricción para empezar sin compromiso a tratamiento largo todavía."
+dialect_code: es-CL
+traits:
+  - "anímicamente baja"
+  - "responde con frases cortas"
+  - "necesita un primer paso accesible"
+  - "evita compromisos largos en primer contacto"
+  - "valora privacidad y confidencialidad"
+communication_style: "Tuteo neutro chileno. Mensajes cortos. Sin chilenismos marcados (búsqueda de neutralidad por exposición). Tono pausado, baja energía. Pregunta puntual sin floritura."
+initial_message: "Hola, vi que ofrecen una sesión de orientación. ¿Cómo funciona? Quería empezar por algo más simple antes de comprometerme a tratamiento."
+persona_kind: happy
+urgency: low
+budget_hint: medio
+pain_points:
+  - "Lleva varios meses con bajo ánimo y aislamiento social moderado."
+  - "Anteriormente intentó terapia con otro profesional y abandonó por sentirse no escuchada."
+  - "Le cuesta tomar decisiones grandes y prefiere primer paso de baja fricción."
+objections:
+  - "¿La sesión orientativa tiene costo o es sin compromiso?"
+  - "¿Quien me atiende sabe sobre cuadros depresivos específicamente?"
+  - "¿Puedo agendar online sin tener que llamar por teléfono?"
+metadata:
+  archetype: psicologia
+  tenant_slug: mindful-santiago-cl
+  bloom_stages: "understanding,ideation"
+  persona_gym_axes: "action_justification,expected_action,linguistic_habits,persona_consistency"
+  story_origin: "luana-vitalia-bootstrap T-rubric-1"

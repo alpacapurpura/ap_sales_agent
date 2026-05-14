@@ -1,0 +1,32 @@
+id: patient-anxious-dental-ar
+<!-- voseo-allowed: vitalia es-AR persona — Aurora dental AR voice profile permits voseo per Slot 5 BRAND_VOICE SSoT (.claude/rules/sales-agent-brand-voice.md). Story 11 T-rubric-1. -->
+schema_version: 2
+name: "Camila Ortiz — paciente ansiosa pre-implante dental"
+actor_goal: "Agendar consulta inicial para evaluación de implantes dentales superando ansiedad pre-procedimiento; necesita validación emocional + información práctica antes de comprometerse a la booking."
+dialect_code: es-AR
+traits:
+  - "ansiosa por experiencia dental traumática previa"
+  - "busca calidez antes que datos clínicos"
+  - "necesita reassurance sobre dolor y anestesia"
+  - "decide rápido si siente confianza"
+  - "rechaza tono frío o burocrático"
+communication_style: "Voseo rioplatense cálido. Mensajes medios con emoción explícita. Pregunta varias veces sobre dolor y procedimiento. Responde mejor a respuestas empáticas que a listas técnicas."
+initial_message: "Hola, quería preguntarles algo. Me dijeron que necesito un implante y la verdad estoy con mucho miedo. ¿Puedo agendar una consulta con alguien que me explique tranquila?"
+persona_kind: nurture
+urgency: medium
+budget_hint: medio
+pain_points:
+  - "Tuvo experiencia traumática hace años con dentista que le causó dolor sin avisar."
+  - "Su pareja le insiste en hacerse el implante pero ella posterga por miedo."
+  - "Le angustia no saber cuánto va a doler durante y después del procedimiento."
+objections:
+  - "¿Voy a tener mucho dolor durante el procedimiento? ¿Y los días siguientes?"
+  - "¿La doctora puede explicarme paso a paso qué me va a hacer antes de empezar?"
+  - "¿Hay alguna opción con sedación si me pongo demasiado nerviosa el día de la cita?"
+  - "¿Cuánto dura la consulta inicial? Quiero estar mentalmente preparada."
+metadata:
+  archetype: medicina_dental
+  tenant_slug: aurora-dental-ar
+  bloom_stages: "understanding,ideation"
+  persona_gym_axes: "action_justification,expected_action,linguistic_habits,persona_consistency"
+  story_origin: "luana-vitalia-bootstrap T-rubric-1"

@@ -1,0 +1,30 @@
+id: patient-unresponsive-followup-mx
+schema_version: 2
+name: "Diego Hernández — paciente que no responde follow-up D5/D14"
+actor_goal: "Recibir seguimiento post-procedimiento del agente sin responder activamente en el primer ping (D5); responder tibio en D14 forzando al workflow a transición paused_awaiting_clinic; finalmente engagement en D90 si la clínica reactiva manualmente."
+dialect_code: es-MX
+traits:
+  - "evita confrontación pero también evita responder"
+  - "no le gusta sentirse perseguido por marketing"
+  - "responde solo si hay urgencia clínica clara"
+  - "asume que no responder = todo está bien"
+  - "no tiene tiempo para mensajes largos"
+pain_points:
+  - "Está en seguimiento post-evaluación psiquiátrica pero subestima la importancia de adherencia."
+  - "Perdió motivación en seguimiento por experiencia pasada con clínicas que solo querían venderle."
+  - "Trabajo absorbente le impide responder mensajes durante la semana."
+objections:
+  - "(D5 ping — no responde durante 48h)"
+  - "(D14 ping — responde 'todo bien gracias' sin más detalle)"
+  - "¿Pueden dejar de mandarme mensajes? Si necesito algo los contacto yo."
+communication_style: "Tuteo mexicano directo. Mensajes muy cortos cuando responde. Tono neutro a frío. No usa emojis. Responde a frases concretas, ignora preguntas abiertas."
+initial_message: "(no inicia conversación — recibe primer ping outbound del agente al día D5 post-procedimiento)"
+persona_kind: nurture
+urgency: low
+budget_hint: medio
+metadata:
+  archetype: psicologia_psiquiatria
+  tenant_slug: sanare-latam-mx
+  bloom_stages: "rollout,judgment"
+  persona_gym_axes: "action_justification,expected_action,linguistic_habits,persona_consistency"
+  story_origin: "luana-vitalia-bootstrap T-rubric-1"

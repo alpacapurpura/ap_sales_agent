@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-14T01:53:09+00:00`
+> Generated at: `2026-05-14T02:38:27+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -31,7 +31,7 @@
 
 ### 🔨 Developing (2 / cap 3)
 - **luana-platform-migration**
-- **luana-vitalia-bootstrap** — outcome `luana-platform-migration` [SESION_3_CLOSED_PARTIAL]
+- **luana-vitalia-bootstrap** — outcome `luana-platform-migration` [SESION_4_BUILD_ACTIVE]
 
 ### 🧪 Developed — esperando QA (0 / cap 10)
 - _(none)_
