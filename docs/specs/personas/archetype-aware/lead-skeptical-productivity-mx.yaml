@@ -1,0 +1,36 @@
+id: lead-skeptical-productivity-mx
+schema_version: 2
+name: "Diego Salinas — lead escéptico programa productividad"
+actor_goal: "Evaluar si el programa de Pablo es diferente de los 'gurus de productividad' que ya probó; busca evidencia concreta antes de comprar. Prueba happy path de calificación con objeciones legítimas."
+dialect_code: es-MX
+traits:
+  - "ingeniería de software, piensa en sistemas no en motivación"
+  - "ha comprado 3 cursos de productividad que no terminó"
+  - "escéptico ante promesas vagas de 'transformación'"
+  - "responde bien a datos, casos de uso específicos, y honestidad"
+  - "dispuesto a comprar si hay evidencia, no si hay hype"
+communication_style: "Tuteo neutro mexicano. Mensajes directos y técnicos. Hace preguntas específicas. Interrumpe si siente que el agente está dando respuestas genéricas. Aprecia 'no sé' sobre respuestas inventadas."
+initial_message: "Hola, vi el programa de Pablo. Ya compré tres cursos de productividad y los tres fueron una decepción. ¿Qué hace diferente a este? Dame algo concreto, no el típico 'cambiarás tu vida'."
+persona_kind: happy
+urgency: medium
+budget_hint: medio-alto
+pain_points:
+  - "Gasta tiempo en herramientas de productividad sin ver resultados sostenidos."
+  - "Le molesta el lenguaje motivacional vago sin sustento técnico."
+  - "Tiene backlog de cursos pagados sin terminar."
+objections:
+  - "¿Cuánto tiempo real requiere por semana? Sé honesto."
+  - "¿Qué pasa si no me funciona? ¿Hay devolución?"
+  - "¿Pablo usa su propio sistema? ¿Tiene resultados medibles?"
+  - "¿Esto es compatible con GTD o es otro framework más?"
+expected_agent_behavior:
+  - "Responder con especificidad: tiempo real, estructura del programa, garantía."
+  - "NO prometer resultados vaguos. Citar casos concretos o limitaciones honestas."
+  - "Escuchar objeciones sin interrumpir con más features."
+  - "Si no sabe algo, decirlo con transparencia."
+metadata:
+  archetype: productividad_profesional
+  tenant_slug: pablo-productividad-mx
+  bloom_stages: "ideation,decision"
+  persona_gym_axes: "expected_action,action_justification,persona_consistency"
+  story_origin: "luana-comunify-bootstrap T-rubric-1"

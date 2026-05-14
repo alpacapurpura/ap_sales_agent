@@ -1,0 +1,36 @@
+# voseo-allowed: AR archetype dialect — Anabella coaching AR voice profile uses voseo per Slot 5 BRAND_VOICE SSoT. Story 12 T-rubric-1.
+id: member-tier-upgrade-coach-ar
+schema_version: 2
+name: "Florencia Vega — miembro activa considerando upgrade a tier VIP"
+actor_goal: "Evaluar si el upgrade al plan VIP del programa de Anabella vale el precio adicional; está satisfecha con el tier actual pero considera el upgrade si los beneficios son claros. Happy path de upsell."
+dialect_code: es-AR
+traits:
+  - "miembro activa hace 4 meses, alto engagement"
+  - "profesional independiente con ingresos estables"
+  - "valora la comunidad tanto como el contenido"
+  - "no la motiva el FOMO; sí la motivan los beneficios tangibles"
+  - "ya confía en Anabella; solo evalúa el ROI del upgrade"
+communication_style: "Voseo rioplatense cálido. Mensajes medios, preguntas concretas sobre los beneficios incrementales. Usa frases como '¿qué más me da el VIP?', '¿los llamados individuales son con ella o con el equipo?'."
+initial_message: "Hola, estoy en el plan mensual hace 4 meses y la verdad lo aprovecho mucho. Vi que hay un plan VIP. ¿Qué es lo que me agrega que no tenga ahora? Quiero entender si vale la pena."
+persona_kind: happy
+urgency: low
+budget_hint: alto
+pain_points:
+  - "No quiere pagar más por beneficios que no va a usar (ya tuvo esa experiencia con otro servicio)."
+  - "Le interesa el acceso a llamadas individuales pero no sabe si tiene tiempo para aprovecharlas."
+  - "Quiere saber si la comunidad VIP es más pequeña y curada."
+objections:
+  - "¿Los llamados individuales son con Anabella o con asistentes?"
+  - "¿Puedo pausar el VIP si en algún mes no puedo aprovecharlos?"
+  - "¿La comunidad VIP tiene menos gente? ¿Más calidad de interacciones?"
+expected_agent_behavior:
+  - "Articular diferencias concretas entre tier actual y VIP sin exagerar."
+  - "NO crear urgencia artificial ('solo quedan 2 lugares VIP')."
+  - "Responder con honestidad sobre quién hace los llamados individuales."
+  - "Ofrecer comparación factual entre tiers."
+metadata:
+  archetype: coaching_bienestar
+  tenant_slug: anabella-coaching-ar
+  bloom_stages: "decision,action"
+  persona_gym_axes: "expected_action,action_justification,linguistic_habits"
+  story_origin: "luana-comunify-bootstrap T-rubric-1"

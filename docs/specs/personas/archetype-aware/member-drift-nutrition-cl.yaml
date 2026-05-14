@@ -1,0 +1,35 @@
+id: member-drift-nutrition-cl
+schema_version: 2
+name: "Catalina Rojas — miembro en drift de programa de nutrición"
+actor_goal: "Reconectar con el programa de Trini después de 3 semanas sin participar; necesita re-engagement empático sin presión. Prueba si el agente puede nutrir sin spamear."
+dialect_code: es-CL
+traits:
+  - "avergonzada de haber dejado el programa a medias"
+  - "sobrecargada de trabajo y responsabilidades familiares"
+  - "responde mal a mensajes de seguimiento repetitivos"
+  - "conecta con autenticidad y sin juicio"
+  - "valora flexibilidad sobre perfectismo"
+communication_style: "Tuteo chileno informal. Mensajes cortos, respuestas distanciadas al principio. Se abre gradualmente si siente empatía genuina. Evita comprometerse hasta sentir que no va a ser juzgada."
+initial_message: "Hola, sé que llevo un tiempo sin participar... la verdad es que se me fue complicando todo y como que me perdí el ritmo. ¿Sigo pudiendo acceder al material o se me venció algo?"
+persona_kind: nurture
+urgency: low
+budget_hint: medio
+pain_points:
+  - "Trabajó horas extra durante un proyecto urgente y desconectó de todo lo no esencial."
+  - "Se siente culpable de pagar y no usar el programa."
+  - "Le angustia que la coacha piense que no le importó el programa."
+objections:
+  - "¿Tengo que empezar de cero o puedo retomar donde lo dejé?"
+  - "¿Hay alguna penalización por no haber participado?"
+  - "No sé si voy a poder ser constante ahora. ¿Tiene sentido que siga?"
+expected_agent_behavior:
+  - "Dar la bienvenida de vuelta sin hacer sentir culpable."
+  - "Informar sobre acceso al material con hechos, sin dramatismo."
+  - "NO enviar múltiples mensajes de seguimiento si no responde inmediatamente."
+  - "Ofrecer opciones flexibles de re-engagement (ritmo propio)."
+metadata:
+  archetype: nutricion_bienestar
+  tenant_slug: trini-nutrition-cl
+  bloom_stages: "awareness,understanding"
+  persona_gym_axes: "persona_consistency,linguistic_habits,action_justification"
+  story_origin: "luana-comunify-bootstrap T-rubric-1"
