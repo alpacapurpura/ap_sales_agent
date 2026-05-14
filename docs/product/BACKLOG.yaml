@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-14T00:44:27+00:00
+# Generated at: 2026-05-14T01:06:35+00:00
 
-generated_at: '2026-05-14T00:44:27+00:00'
+generated_at: '2026-05-14T01:06:35+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -215,21 +215,6 @@ buckets:
       - 'Cualitativo: ''el agente cierra solo, ya no necesito tomar las riendas'''
   refined: []
   ready:
-  - id: luana-vitalia-bootstrap
-    kind: story
-    state: ready
-    title: luana-vitalia-bootstrap
-    tags: []
-    last_touched: 2026-05-13
-    extra:
-      outcome: luana-platform-migration
-      phase: READY_PACKAGE_DONE
-      next_action: 'Sesion 3: /dev-team picks 06-tickets.yaml ticket-by-ticket autonomous build. Working dir /home/chris/luana-platform/vitalia/.
-        38 atomic tickets (15 AGENTIC opus-mandatory R23 + 23 BE/FE/config Sonnet-OK). Validators 70 (4 categories) executable
-        must_pass:true c/u. State ready → developing.'
-      blocked_by: []
-      priority_override: null
-      audit_iterations: 0
   - id: sales-agent-adversarial-jailbreak-suite
     kind: story
     state: ready
@@ -321,6 +306,20 @@ buckets:
       - Each brand deployed to isolated K8s cluster + Postgres + Qdrant with own Clerk app
       - Operating cost stays within $1100-1400/mo budget
       - Zero core code branches conditional on brand identity (arch fitness enforced)
+  - id: luana-vitalia-bootstrap
+    kind: story
+    state: developing
+    title: luana-vitalia-bootstrap
+    tags: []
+    last_touched: 2026-05-14
+    extra:
+      outcome: luana-platform-migration
+      phase: BUILD_WAVE_1
+      next_action: Sesion 3 active. Q1=D batch (7 tickets) + Q2=B parallel cap 2 + Q3=A iter cap 3 + Q4=A close on done/cap.
+        W1 T-scaffold-1 spawn pending.
+      blocked_by: []
+      priority_override: null
+      audit_iterations: 0
   developed: []
   reviewing: []
   done:
