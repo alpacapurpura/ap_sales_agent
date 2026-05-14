@@ -1,0 +1,41 @@
+---
+capability_id: comunify-creator-economy-kb-rag
+module: comunify
+slug: creator-economy-kb-rag
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/src/modules/comunify/agentic/kb
+license: proprietary
+---
+
+# comunify-creator-economy-kb-rag
+
+Qdrant-backed knowledge base for creator economy domain: pricing strategies, community building, offer ladders, audience growth, content repurposing, cohort design. ~180 chunks per brand-scope pack with tenant-filtered retrieval. Registered via EP-14 `copilot_kb_pack_register`. Forced disclosure: agent must cite KB source when answering creator strategy questions.
+
+## Surface
+
+- **KbPackDef registration:** `comunify/backend/src/modules/comunify/agentic/kb/creator_economy_kb_pack.py` — EP-14 registration with pack_id=`creator_economy_kb_v1`, tenant_scope=`brand`, qdrant_collection_name=`comunify_kb_v1`
+- **KB documents:** `comunify/backend/data/kb/creator_economy/` — ~180 YAML/MD chunks (pricing models + cohort design + offer ladder patterns + audience growth + community moderation best practices)
+- **Retrieval integration:** `comunify/backend/src/modules/comunify/agentic/tools/query_creator_kb_tool.py` — semantic search + forced disclosure injection (T-kb-1)
+- **Tests:** `comunify/backend/tests/agentic_evals/kb/test_kb_retrieval_*.py` — chunk retrieval + tenant isolation + disclosure enforcement
+
+## Test coverage
+
+- T-kb-1 result: creator_economy_kb_v1 registration + retrieval smoke PASS
+- Tenant isolation: Qdrant filter `tenant_id` in all retrieval queries verified
+- Forced disclosure: agent response includes source citation when KB chunk retrieved (arch fitness test)
+
+## Dependencies
+
+- luana-core-extension-sdk (EP-14 KbPackDef interface)
+- luana-core-qdrant (Qdrant client + tenant-filtered search)
+- luana-core-llm (embedding model for chunk ingestion)
+
+## Scenarios live
+
+- Creator asks about pricing strategy → KB retrieval → response cites source document
+- Cross-tenant: KB query scoped to brand namespace only (no cross-creator data leak)
+- Background warm-up: KB pack loaded lazily post-startup (EP-14 lazy-load pattern)
+- 3 LATAM fixtures (Anabella AR + Trini CL + Pablo MX) use same brand-scope KB pack

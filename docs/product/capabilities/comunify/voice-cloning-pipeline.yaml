@@ -1,0 +1,45 @@
+---
+capability_id: comunify-voice-cloning-pipeline
+module: comunify
+slug: voice-cloning-pipeline
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/src/modules/comunify/agentic/voice
+license: proprietary
+---
+
+# comunify-voice-cloning-pipeline
+
+NEW Story 12 capability — 4-wave voice distillation pipeline that extracts the creator's authentic brand voice from uploaded samples (text/audio transcripts) and compiles it into a `CompiledVoice` dataclass used by the AI agent. Implements `VoiceDistillationOrchestrator` extending `BaseExtractionOrchestrator` (R10 anti-duplication enforced). Slot 5 cache invalidation triggered on voice update.
+
+## Surface
+
+- **VoiceDistillationOrchestrator:** `comunify/backend/src/modules/comunify/agentic/voice/voice_distillation_orchestrator.py` — extends `BaseExtractionOrchestrator`, 4 waves: analyze → extract_patterns → synthesize → validate
+- **CompiledVoice dataclass:** `comunify/backend/src/modules/comunify/agentic/voice/compiled_voice.py` — frozen, includes voice_signature + tone_markers + forbidden_phrases + voseo_flag
+- **VoiceExtractor wave 1-4:** `comunify/backend/src/modules/comunify/agentic/extractors/voice_sample_extractor.py`
+- **Slot 5 invalidation hook:** `comunify/backend/src/modules/comunify/agentic/prompts/slot_5_brand_voice.py` — invalidates prompt cache on CompiledVoice update (per-tenant cache_key)
+- **Tests:** `comunify/backend/tests/agentic_evals/voice/` — 4 wave tests + CompiledVoice schema + cache invalidation contract
+
+## Test coverage
+
+- T-voice-1 result: Wave 1 analyze — sample ingestion + token budget
+- T-voice-2 result: Wave 2 extract_patterns — tone + forbidden phrase extraction
+- T-voice-3 result: Wave 3 synthesize — CompiledVoice assembly + frozen dataclass validation
+- T-voice-4 result: Wave 4 validate + Slot 5 invalidation trigger
+- Arch fitness: `test_voice_distillation_inherits_base` + `test_no_pii_in_cacheable_slots` (voice slots PII-clean)
+
+## Dependencies
+
+- luana-core-extraction (BaseExtractionOrchestrator wave orchestration)
+- luana-core-prompt-cache (Slot 5 BRAND_VOICE per-tenant cache_key)
+- luana-core-llm (LiteLLM Proxy dispatch for wave LLM calls)
+- luana-core-observability (cost bucket: agentic eval writes eval_simulator_llm_call, production writes copilot_llm_call)
+
+## Scenarios live
+
+- Creator uploads voice samples → pipeline runs 4-wave distillation → CompiledVoice stored per tenant
+- CompiledVoice update → Slot 5 cache key invalidated → next agent turn recompiles from fresh voice
+- PII absent from all cacheable slots (arch fitness enforced)
+- AR fixture (Anabella): voseo_flag=true → agent output respects voseo (magic comment exemption)

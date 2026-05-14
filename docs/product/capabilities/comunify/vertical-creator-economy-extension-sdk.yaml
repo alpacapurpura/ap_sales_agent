@@ -1,0 +1,42 @@
+---
+capability_id: comunify-vertical-creator-economy-extension-sdk
+module: comunify
+slug: vertical-creator-economy-extension-sdk
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/src/modules/comunify
+license: proprietary
+---
+
+# comunify-vertical-creator-economy-extension-sdk
+
+Vertical-creator-economy brand extension mounting on `luana-platform` Extension SDK via `extensions.py register_all` (EP-1..EP-18). Implements second vertical consumer of `core/luana-core-extension-sdk/` after Vitalia (Story 11). Creator economy domain: cohort management, community moderation, offer ladder advisory, authority vault, recurring subscriptions.
+
+## Surface
+
+- **extensions.py:** register_all entrypoint mounting EP-1..EP-18 (BrandConfig + tools + extractors + workflows + guardrails + KB pack + offer presets + slot 4 community_safety_rails)
+- **BrandConfig YAML:** `comunify/config/brand.yaml` declarative — frontmatter + identity + offer ladder (3-tier: membership / cohort / flagship) + tools registry + extractors + workflows + guards + KB pack + voice cloning config
+- **Extension mounting verified:** 18/18 extension points filled (T-extensions-1)
+
+## Test coverage
+
+- T-extensions-1 result: register_all surface complete EP-1..EP-18 mounted
+- Arch fitness: BrandContext 9-field frozen dataclass + `comunify.*` namespace allowlist enforced
+- Anti-duplication R10: Step 0 GATE grep evidenced — no mirrors of shared abstractions
+
+## Dependencies
+
+- luana-core-extension-sdk (EP registry + adapters + BrandContext)
+- luana-core-platform (Base + events)
+- luana-core-iam (tenant context)
+- luana-core-brand-studio (VoiceDistillationOrchestrator BaseExtractionOrchestrator)
+
+## Scenarios live
+
+- comunify/config/brand.yaml validates against Extension SDK schema
+- register_all completes without ExtensionPointError
+- Extensions visible via ExtensionPointRegistry public API surface
+- EP-13 guardrails: 4 community safety rails active (spam/nsfw/doxxing/prompt_injection)
+- EP-14 KB pack: creator_economy_kb_v1 ~180 chunks Qdrant tenant-filtered

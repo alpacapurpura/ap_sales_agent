@@ -1,0 +1,46 @@
+---
+capability_id: comunify-recurring-subscriptions-dunning
+module: comunify
+slug: recurring-subscriptions-dunning
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/src/modules/comunify
+license: proprietary
+---
+
+# comunify-recurring-subscriptions-dunning
+
+Recurring subscription engine for creator economy: 3 plan tiers (membership / cohort / flagship), tokenized recurring payments via MercadoPago + Stripe Connect, and an embedded `DunningWorkflow` (LangGraph) that handles failed payment retries with escalating outreach. Registered via EP-17 `tenant_plan_tier_register` (override mode — each creator defines their own pricing).
+
+## Surface
+
+- **Plan tier registration:** `comunify/backend/src/modules/comunify/agentic/subscriptions/plan_tier_def.py` — EP-17 override with 3 default tiers (creator configures prices via FE)
+- **Subscription service:** `comunify/backend/src/modules/comunify/application/services/subscription_service.py` — create/cancel/pause + tokenized recurring (T-be-7)
+- **DunningWorkflow:** `comunify/backend/src/modules/comunify/agentic/workflows/dunning_workflow.py` — LangGraph 2.0 StateGraph, nodes: detect_failed → retry_charge → notify_member → escalate → cancel (T-workflows-2)
+- **Payment integration:** `comunify/backend/src/modules/comunify/infrastructure/payments/` — MercadoPago tokenized recurring + Stripe Connect (T-payment-1 LIFT shared pattern)
+- **Webhook handlers:** HMAC signature validation + idempotency keys (reuses luana-core-idempotency)
+- **Tests:** `comunify/backend/tests/modules/comunify/test_subscription_*.py` + `test_dunning_workflow_*.py`
+
+## Test coverage
+
+- T-be-7 result: subscription CRUD + plan tier + tokenized charge unit tests PASS
+- T-workflows-2 result: DunningWorkflow 5-node LangGraph + retry logic + escalation PASS
+- T-payment-1 result: MercadoPago + Stripe shared LIFT — regression tests PASS (cross-brand)
+
+## Dependencies
+
+- luana-core-extension-sdk (EP-17 plan tier override interface)
+- luana-core-payments (MercadoPago + Stripe shared infra lifted)
+- luana-core-idempotency (webhook idempotency keys)
+- luana-core-scheduling (DunningWorkflow cron trigger)
+- LangGraph 2.0 + RedisSaver checkpointer (DunningWorkflow persistence)
+
+## Scenarios live
+
+- Student subscribes to monthly cohort → tokenized charge → CohortEnrollment created
+- Charge fails → DunningWorkflow triggered → 3 retry attempts → member notified via WhatsApp/email
+- After 3 failed retries → escalate to creator → member status = payment_overdue
+- Creator cancels subscription → proration calculated → refund issued
+- EP-17 override: creator sets own prices (MXN/ARS/CLP) per plan tier via FE

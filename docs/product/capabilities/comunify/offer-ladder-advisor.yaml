@@ -1,0 +1,43 @@
+---
+capability_id: comunify-offer-ladder-advisor
+module: comunify
+slug: offer-ladder-advisor
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/src/modules/comunify/agentic/extractors
+license: proprietary
+---
+
+# comunify-offer-ladder-advisor
+
+4-wave LLM advisor that analyzes the creator's current offer portfolio, detects gaps in the offer ladder (missing entry/mid/high-ticket tiers), and generates recommendations with pricing anchors for the LATAM creator economy market. Companion FE ladder visualizer shows gap heatmap. Reuses `BaseExtractionOrchestrator` wave pattern (R10 anti-duplication).
+
+## Surface
+
+- **OfferLadderExtractor:** `comunify/backend/src/modules/comunify/agentic/extractors/offer_ladder_extractor.py` — 4-wave orchestrator (analyze_portfolio → detect_gaps → generate_recommendations → validate_pricing) (T-extractors-1)
+- **Gap detection service:** `comunify/backend/src/modules/comunify/application/services/offer_gap_service.py` — tier coverage matrix + price anchoring LATAM
+- **Ladder visualizer FE:** `comunify/frontend/src/features/offer-ladder/components/LadderVisualizerPanel.tsx` — gap heatmap + DTO-driven currency (T-fe-5, iter 1 fix: `offer.currency` from DTO not hardcoded `$`)
+- **API route:** `comunify/backend/src/modules/comunify/api/offer_ladder_router.py`
+- **Tests:** `comunify/backend/tests/modules/comunify/test_offer_ladder_*.py`
+
+## Test coverage
+
+- T-extractors-1 result: OfferLadderExtractor 4-wave PASS + gap detection unit tests
+- T-fe-5 result: LadderVisualizerPanel Vitest PASS (currency from DTO — audit iter 1 fix applied)
+- Audit C4 currency fix: hardcoded `$` replaced with `offer.currency` from DTO (iter 1 self-fix)
+
+## Dependencies
+
+- luana-core-extraction (BaseExtractionOrchestrator base wave orchestration)
+- luana-core-llm (LiteLLM Proxy wave LLM calls)
+- luana-core-offer (offer catalog DAG — archetype/value_level/format from OfferTypePreset)
+- React Query + Zod (FE hooks + schema)
+
+## Scenarios live
+
+- Creator has free lead magnet + $997 flagship → advisor detects missing mid-tier → recommends $197 cohort
+- Price anchoring: USD/MXN/ARS/CLP ranges per tier from KB patterns
+- FE ladder shows 3-column heatmap: entry / mid / flagship with gap indicator
+- Currency displayed from DTO (no hardcoded symbol — multi-currency LATAM)

@@ -1,6 +1,6 @@
 # Nicolify Backlog (auto-generated)
 
-> Generated at: `2026-05-14T16:36:48+00:00`
+> Generated at: `2026-05-14T23:27:22+00:00`
 > DO NOT EDIT MANUALLY — modify source artifacts.
 > Regenerate: `python scripts/generate_backlog.py`
 
@@ -102,6 +102,7 @@ kanban
 | brand | 5 | 0 | 0 | 0 | 5 |
 | campaigns | 4 | 0 | 0 | 0 | 4 |
 | commercial-calendar | 1 | 0 | 0 | 0 | 1 |
+| comunify | 10 | 0 | 0 | 0 | 10 |
 | connections | 3 | 1 | 0 | 0 | 4 |
 | copilot | 4 | 0 | 0 | 0 | 4 |
 | crm | 2 | 0 | 0 | 0 | 2 |
@@ -114,5 +115,5 @@ kanban
 | social-media | 2 | 0 | 0 | 0 | 2 |
 | tenant-domains | 1 | 0 | 0 | 0 | 1 |
 | vitalia | 8 | 0 | 0 | 0 | 8 |
-| **TOTAL** | **65** | **3** | **1** | **0** | **69** |
+| **TOTAL** | **75** | **3** | **1** | **0** | **79** |
 

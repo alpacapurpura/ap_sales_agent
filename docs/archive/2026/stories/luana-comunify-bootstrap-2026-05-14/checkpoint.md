@@ -1,10 +1,10 @@
 ---
 story_id: luana-comunify-bootstrap
 outcome: luana-platform-migration
-state: ready                                       # ★ Phase 3 attempt 1 halted at 1/39 — see SESSION-HALT.md ★
-last_artifact: T-be-4-result.md
+state: done                                        # developing → reviewing → done (Sesion 12 autonomous full-cycle close 2026-05-14)
+last_artifact: SESSION-FULL-CYCLE-CLOSE-2026-05-14.md
 last_modified: 2026-05-14
-next_action: "Phase 3 resume — pick T-be-5 (OnboardingRouter + CreatorProfileRouter). T-be-4 done (6/39). DAG unblocked."
+next_action: "DONE — archived. Post-merge follow-ups in Story 12.bis or capability backlog per CHECKPOINTS.md."
 ratified_by_chris: true                            # ★ ratified 2026-05-14 Sesion 12 Q1-Q4 Fase A
 spawned_at: 2026-05-09
 spawned_by: /pm
@@ -74,7 +74,7 @@ phase_log:
       DAG explicit blocked_by per ticket. Critical path: scaffold→config→be-1..3→be-4..7→be-8→eval-1.
       Estimated total hours: 145-170. Parallelization cap: 1 (Q3=C ratified — safer serial).
 
-### Phase 3 — Building serial (IN PROGRESS — 6/39 done)
+### Phase 3 — Building serial (DONE — 39/39)
 
 **Attempt 1 (2026-05-14 — orchestrator-direct, halted):**
 - T-scaffold-1 → done (17 files created, A1-A4 + V-NF-11 + V-NF-12 PASS; see T-scaffold-1-result.md)
@@ -95,14 +95,20 @@ phase_log:
 4. TDD per validators GREEN per ticket
 5. → state=ready→developing on next commit; →developed when all 39 GREEN
 
-### Phase 4 — Auditing (PENDING)
-- /auditor spawns auditor-{be,fe,agentic}
-- CHECKPOINTS.md C1-C5 × 3 surface grid
-- → state=developed→reviewing
+### Phase 4 — Auditing (DONE — APPROVED)
+- /auditor spawned auditor-{be,fe,agentic} — 3 REVIEW-*.md produced
+- CHECKPOINTS.md 15/15 PASS or PASS-equivalent (0 CRITICAL, 0 security HIGH, 2 HIGH non-security documented post-merge)
+- 2 self-fix iterations: iter 1 (tenantId antipattern + USD hardcoded) + iter 2 (X-Tenant-ID userId pattern)
+- → state=developed→reviewing (APPROVED)
 
-### Phase 5 — Merge + archive (PENDING)
-- APPROVED → /pm caps promotion + module doc + outcome update + BACKLOG regen + archive
-- Haiku commit+push
+### Phase 5 — Merge + archive (DONE — 2026-05-14)
+- 10 caps promoted to docs/product/capabilities/comunify/
+- Module doc created: docs/product/modules/comunify.md
+- Outcome updated: 12/14 stories done, stories_active=[]
+- Story archived: docs/archive/2026/stories/luana-comunify-bootstrap-2026-05-14/
+- SESSION-FULL-CYCLE-CLOSE-2026-05-14.md written
+- BACKLOG regen + reconcile_capabilities attempted (result in close doc)
+- Haiku commit+push → git push origin development
 - → state=reviewing→done
 
 ## Halt triggers active (Fase B autonomous)

@@ -1,0 +1,43 @@
+---
+capability_id: comunify-cohort-management
+module: comunify
+slug: cohort-management
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/src/modules/comunify
+license: proprietary
+---
+
+# comunify-cohort-management
+
+Full cohort lifecycle management for creator economy: create cohorts with capacity limits, enroll members with advisory_locks preventing double-enrollment, broadcast messages to cohort members, and track cohort progress. Tenant-isolated CRUD + enrollment engine.
+
+## Surface
+
+- **Cohort entity + repository:** `comunify/backend/src/modules/comunify/persistence/models/cohort.py` + `cohort_enrollment.py` — PostgreSQL advisory locks prevent double-enrollment (T-be-3)
+- **CohortService:** `comunify/backend/src/modules/comunify/application/services/cohort_service.py` — enroll/unenroll/broadcast + capacity enforcement
+- **API routes:** `comunify/backend/src/modules/comunify/api/cohort_router.py` — CRUD + enrollment + broadcast endpoints (T-be-5)
+- **FE cohort feature:** `comunify/frontend/src/features/cohorts/` — hooks + components + Zod schemas (T-fe-3)
+- **Tests:** `comunify/backend/tests/modules/comunify/test_cohort_*.py` — advisory lock cross-tenant isolation unit tests
+
+## Test coverage
+
+- T-be-3 result: Cohort entity + CohortEnrollment + advisory_lock integration — tests PASS
+- T-be-5 result: OnboardingRouter + CreatorProfileRouter + CohortRouter endpoints
+- T-fe-3 result: Cohort FE feature — hooks + components + 26 Vitest pass
+
+## Dependencies
+
+- luana-core-platform (Base entity + tenant context)
+- luana-core-iam (tenant_id enforcement)
+- PostgreSQL advisory locks (pg_advisory_xact_lock per cohort_id + tenant_id composite key)
+
+## Scenarios live
+
+- Creator creates cohort with capacity=50, type=monthly_membership
+- Student enrolls → advisory_lock acquired → enrollment atomic → lock released
+- Double-enrollment attempt → 409 Conflict (lock prevents race)
+- Broadcast message to cohort → all active members receive via channel
+- Cross-tenant isolation: cohort queries always filter tenant_id (arch fitness enforced)

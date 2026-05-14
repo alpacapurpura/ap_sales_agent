@@ -1,0 +1,44 @@
+---
+capability_id: comunify-authority-vault
+module: comunify
+slug: authority-vault
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/src/modules/comunify
+license: proprietary
+---
+
+# comunify-authority-vault
+
+Multi-subsection Brand Studio editor for creator positioning: stores testimonials, case studies, media appearances, certifications, and authority proof points. LLM extractor (AuthorityVaultExtractor) distills raw content into structured authority signals used by the AI agent to communicate creator credibility naturally. Companion FE editor with autosave on-change.
+
+## Surface
+
+- **AuthorityVaultExtractor:** `comunify/backend/src/modules/comunify/agentic/extractors/authority_vault_extractor.py` — wave-based extraction from raw uploads (testimonials/case studies/media) → structured `AuthorityProfile` (T-extractors-2)
+- **AuthorityVault entity:** `comunify/backend/src/modules/comunify/persistence/models/authority_vault.py` — multi-subsection (testimonials + case_studies + media_appearances + certifications) (T-be-7)
+- **AuthorityVaultService:** `comunify/backend/src/modules/comunify/application/services/authority_vault_service.py` — CRUD + extraction trigger
+- **FE editor:** `comunify/frontend/src/features/brand-studio/components/AuthorityVaultEditor.tsx` — multi-section tabs + autosave (T-fe-5)
+- **API route:** `comunify/backend/src/modules/comunify/api/authority_vault_router.py`
+- **Tests:** `comunify/backend/tests/modules/comunify/test_authority_vault_*.py`
+
+## Test coverage
+
+- T-extractors-2 result: AuthorityVaultExtractor wave extraction PASS + AuthorityProfile schema
+- T-be-7 result: AuthorityVault CRUD + multi-subsection storage PASS
+- T-fe-5 result: AuthorityVaultEditor Vitest PASS — autosave on-change preserved
+
+## Dependencies
+
+- luana-core-extraction (BaseExtractionOrchestrator wave pattern)
+- luana-core-brand-studio (form-runtime array field — autosave on-change invariant)
+- luana-core-llm (LiteLLM Proxy wave LLM calls)
+
+## Scenarios live
+
+- Creator uploads testimonial video transcript → AuthorityVaultExtractor → AuthorityProfile stored
+- AI agent answers "why trust this creator?" → retrieves authority signals → natural response
+- Multi-subsection FE editor: testimonials tab + case studies tab + media appearances tab
+- Autosave on-change: no explicit "Save" button (form-runtime invariant)
+- New testimonial added → extraction re-triggered → AuthorityProfile updated → Slot 5 invalidated

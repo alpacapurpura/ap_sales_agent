@@ -1,0 +1,46 @@
+---
+capability_id: comunify-community-moderation-rails
+module: comunify
+slug: community-moderation-rails
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/src/modules/comunify/agentic/guardrails
+license: proprietary
+---
+
+# comunify-community-moderation-rails
+
+4 AI guardrails enforcing community safety for creator economy: spam detection, NSFW content filter, doxxing prevention, and prompt-injection block. All registered via EP-13 `sales_agent_guardrail_register`. Slot 4 `community_safety_rails` in 10-slot prompt architecture. Post-merge follow-up: lift `prompt_injection_block` to shared when Lupulo (Story 13) introduces same pattern (N=2→3 threshold).
+
+## Surface
+
+- **spam_detection_guardrail.py:** `comunify/backend/src/modules/comunify/agentic/guardrails/spam_detection.py` — pattern match + LLM pre-send check (T-guards-1)
+- **nsfw_content_guardrail.py:** `comunify/backend/src/modules/comunify/agentic/guardrails/nsfw_content.py` — keyword + embedding similarity pre-send (T-guards-2)
+- **doxxing_prevention_guardrail.py:** `comunify/backend/src/modules/comunify/agentic/guardrails/doxxing_prevention.py` — PII pattern detection (email/phone/address regex, reuses `_pii_patterns.py`) (T-guards-3)
+- **prompt_injection_guardrail.py:** `comunify/backend/src/modules/comunify/agentic/guardrails/prompt_injection_block.py` — reuse Vitalia pattern (N=2; lift to shared when N=3 Story 13) (T-guards-4)
+- **Slot 4:** `comunify/backend/src/modules/comunify/agentic/prompts/slot_4_community_safety_rails.py` — 10-slot architecture extension (arch fitness: `test_slot_4_safety_markers_present`)
+- **Tests:** `comunify/backend/tests/agentic_evals/guardrails/` — 47+47+64 tests across 3 guard types + prompt_injection smoke
+
+## Test coverage
+
+- T-guards-1 result: spam_detection — 47 tests PASS
+- T-guards-2 result: nsfw_content — 47 tests PASS
+- T-guards-3 result: doxxing_prevention — 64 tests PASS (PII patterns from shared `_pii_patterns.py`)
+- T-guards-4 result: prompt_injection — smoke + adversarial PASS
+- Arch fitness: `test_slot_4_safety_markers_present` PASS
+
+## Dependencies
+
+- luana-core-extension-sdk (EP-13 guardrail register interface)
+- shared `_pii_patterns.py` (doxxing guard reuses 9-category regex SSoT)
+- Vitalia `prompt_injection_block` (N=2 mirror, deferred lift to shared at N=3)
+
+## Scenarios live
+
+- Spam post attempt → pre-send check → blocked (mode=block)
+- NSFW content in community → pre-send → blocked + audit_log event
+- Doxxing attempt (phone/email in post) → PII pattern match → blocked + warning
+- Prompt injection via user message → injection block → blocked, no system leak
+- All 4 guardrails active in Slot 4 composite — ordered by priority field

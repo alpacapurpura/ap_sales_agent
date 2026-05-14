@@ -1,13 +1,13 @@
 ---
 outcome_id: luana-platform-migration
 slug: luana-platform-migration
-state: developing                               # 10-state v4 — Story 1 done 2026-05-11, Phase B Story 2 in flight
-phase: story_5_done_phase_c_active
+state: developing                               # 10-state v4 — 12/14 stories done 2026-05-14; Story 13 Lupulo next
+phase: story_12_done_stories_13_14_remaining
 created_at: 2026-05-09
 created_by: chris + claude-opus-4-7
 last_modified: 2026-05-14
-stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios, luana-copilot-engine, luana-sales-agent-engine, luana-campaigns-extension-sdk, luana-v0-1-0-publish, luana-nicolify-migration, luana-vitalia-bootstrap]   # 2026-05-14 — Story 11 done /auditor APPROVED 15/15 CHECKPOINTS Sesion 5 close (38/38 tickets GREEN cross-surface, 8 caps promoted, archived). 11/14 stories done. Unblocks comunify/lupulo bootstrap + brand-voice-elevation.
-stories_active: []   # 2026-05-14 Story 11 vitalia-bootstrap merged → done. Next pickup: Story 12 Comunify (vertical-community) — awaits Chris refining trigger.
+stories_done: [luana-foundation, luana-shared-lift, luana-iam-tenancy-content, luana-crm-analytics-landing-connections, luana-brand-offer-studios, luana-copilot-engine, luana-sales-agent-engine, luana-campaigns-extension-sdk, luana-v0-1-0-publish, luana-nicolify-migration, luana-vitalia-bootstrap, luana-comunify-bootstrap]   # 2026-05-14 — Story 12 done /auditor APPROVED 15/15 CHECKPOINTS Sesion 12 autonomous full-cycle close (39/39 tickets GREEN cross-surface, 10 caps promoted, archived). 12/14 stories done. Unblocks Story 13 Lupulo + Story 14 brand-voice-elevation.
+stories_active: []   # 2026-05-14 Story 12 comunify-bootstrap merged → done. Next pickup: Story 13 Lupulo (vertical-gastronomy) — awaits Chris refining trigger.
 target_close_window: 2026-09-15                # 14-16 sem migration + 4 sem stabilization (1 Claude sequential, no parallel)
 priority: P0                                    # blocks all other product work
 repo_topology: monorepo                         # ★ ratified 2026-05-10 ★ alpacapurpura/luana-platform single repo with subfolders core/ + nicolify/ + vitalia/ + comunify/ + lupulo/
@@ -47,6 +47,8 @@ Migrar de **single-repo Nicolify multi-tenant** a **multi-brand Vertical SaaS ar
 **Mecánica:** `luana-core` publica packages versionados (semver) a GitHub Packages. Cada brand consume `luana-core-*` (Python) + `@luana/*` (TypeScript). Brands materializan divergencia via (a) `BrandConfig` declarativo o (b) extension points formales. Cero `if (brand === ...)` en core (arch fitness enforce).
 
 **Por qué este outcome:** sin esta migración, agregar brand #2 (Vitalia) crea fork-pain o lasagna de condicionales. Con migration completada, brand #5 marginal cost decrece (skeleton + extension registration). SSoT real = mejoras al copilot + sales_agent rippean a 4 brands automáticamente.
+
+**Progreso 2026-05-14:** 12/14 stories done (86% complete). Stories 1-12 closed con CHECKPOINTS.md APPROVED audit. Story 13 Lupulo (vertical-gastronomy) + Story 14 brand-voice-elevation desbloqueadas para próxima sesión autónoma. Story 13 requiere refining trigger Chris.
 
 ## 2. Stories propuestas (14 stories — DAG)
 

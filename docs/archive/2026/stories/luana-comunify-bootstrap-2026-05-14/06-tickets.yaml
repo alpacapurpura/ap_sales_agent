@@ -1,0 +1,1263 @@
+# 06-tickets.yaml — Story 12 luana-comunify-bootstrap
+# Owner: /architect Phase 2 (Opus 4.7) — 2026-05-14
+#
+# 39 tickets per 03-arch.md + 02-design-agentic.md + 01-spec.md ratified.
+# Working directory: /home/chris/luana-platform/comunify/ (per Phase 0 Q3=B Story 11 verbatim).
+#
+# Conventions (R6 + R8 + R23 + R26):
+#   - decisions_applicable: cite D1..D20 from 05-guidelines.md § 6
+#   - production_code per R23 routing
+#   - owner_eligibility per 05-guidelines.md § 5 matrix
+#   - repro_verified: false — Story 12 greenfield NOT hot-fix
+#   - Cap paralelización ≤1 (Q3=C Story 12 ratified serial)
+#   - Opus mandatory for AGENTIC production (R23 hard rule)
+
+---
+story_id: luana-comunify-bootstrap
+generated_at: 2026-05-14T18:30Z
+generated_by: /architect (Opus 4.7)
+total_tickets: 39
+estimated_total_hours: 145-170
+parallelization_cap: 1                    # Q3=C ratified Story 12 serial mode
+opus_priority:
+  - T-tools-1
+  - T-tools-2
+  - T-tools-3
+  - T-tools-4
+  - T-extractors-1
+  - T-extractors-2
+  - T-workflows-1
+  - T-workflows-2
+  - T-kb-1
+  - T-guards-1
+  - T-guards-2
+  - T-guards-3
+  - T-guards-4
+  - T-prompts-1
+  - T-extensions-1
+  - T-voice-1
+  - T-voice-2
+  - T-voice-3
+  - T-voice-4
+  - T-rubric-1
+cite_arch: docs/product/stories/luana-comunify-bootstrap/03-arch.md
+cite_arch_be: docs/product/stories/luana-comunify-bootstrap/03-arch-be.md
+cite_arch_fe: docs/product/stories/luana-comunify-bootstrap/03-arch-fe.md
+cite_arch_agentic: docs/product/stories/luana-comunify-bootstrap/03-arch-agentic.md
+cite_validators: docs/product/stories/luana-comunify-bootstrap/04-validators.yaml
+cite_guidelines: docs/product/stories/luana-comunify-bootstrap/05-guidelines.md
+cite_spec: docs/product/stories/luana-comunify-bootstrap/01-spec.md
+cite_design: docs/product/stories/luana-comunify-bootstrap/02-design-agentic.md
+cite_halt_triggers: 04-validators.yaml halt_triggers (H1-H13)
+
+# ── Summary table (alto nivel) ─────────────────────────────────
+summary:
+  # Phase 1: Scaffolding + config (Sonnet OK)
+  - { id: T-scaffold-1,   title: "Comunify subdir bootstrap (workspace integration)",                surface: full-stack, owner: sonnet, estimate_hours: 3, blocked_by: [],                                       blocks: [T-config-1, T-be-1, T-fe-1] }
+  - { id: T-config-1,     title: "BrandConfig declarative YAML",                                     surface: config,     owner: sonnet, estimate_hours: 1, blocked_by: [T-scaffold-1],                           blocks: [T-extensions-1, T-be-4, T-fe-3] }
+
+  # Phase 2: BE infra (Sonnet OK)
+  - { id: T-be-1,         title: "Alembic snapshot 001_comunify_initial_snapshot.py (15 tables)",    surface: BE,         owner: sonnet, estimate_hours: 4, blocked_by: [T-scaffold-1],                           blocks: [T-be-2, T-be-3] }
+  - { id: T-be-2,         title: "SQLAlchemy 2.0 ORM models (15 Mapped[] models)",                   surface: BE,         owner: sonnet, estimate_hours: 4, blocked_by: [T-be-1],                                  blocks: [T-be-3, T-be-4] }
+  - { id: T-be-3,         title: "Async repositories (13 + advisory_locks)",                          surface: BE,         owner: sonnet, estimate_hours: 4, blocked_by: [T-be-2],                                  blocks: [T-be-4, T-be-5, T-be-6, T-be-7] }
+
+  # Phase 3: BE services (Sonnet OK)
+  - { id: T-be-4,         title: "BE services Onboarding + ComplianceEvent + PiiScanner",            surface: BE,         owner: sonnet, estimate_hours: 3, blocked_by: [T-be-3, T-config-1],                     blocks: [T-be-8] }
+  - { id: T-be-5,         title: "BE services Cohort + advisory_locks (enrollment race)",            surface: BE,         owner: sonnet, estimate_hours: 4, blocked_by: [T-be-3],                                  blocks: [T-be-8, T-tools-1, T-tools-2] }
+  - { id: T-be-6,         title: "BE services Community + CommunityModeration",                       surface: BE,         owner: sonnet, estimate_hours: 4, blocked_by: [T-be-3],                                  blocks: [T-be-8, T-guards-1] }
+  - { id: T-be-7,         title: "BE services Subscription + Dunning + OfferLadder + AuthorityVault + VoiceCloning",  surface: BE, owner: sonnet, estimate_hours: 5, blocked_by: [T-be-3],                blocks: [T-be-8, T-workflows-2, T-voice-1] }
+
+  # Phase 4: BE endpoints + webhooks (Sonnet OK)
+  - { id: T-be-8,         title: "BE endpoints + DTOs Pydantic v2 + FastAPI routes (40+ endpoints)",  surface: BE,         owner: sonnet, estimate_hours: 5, blocked_by: [T-be-4, T-be-5, T-be-6, T-be-7],          blocks: [T-fe-2, T-e2e-1] }
+  - { id: T-be-9,         title: "BE webhook receivers (Stripe + MercadoPago + Clerk + WhatsApp + ManyChat)", surface: BE, owner: sonnet, estimate_hours: 3, blocked_by: [T-be-5, T-payment-1],                    blocks: [T-e2e-1] }
+
+  # Phase 5: Payment channel adapters (Sonnet OK — consume Story 11 lifts)
+  - { id: T-payment-1,    title: "Payment adapters consume Story 11 lifts (verify + extend overlay)", surface: BE,         owner: sonnet, estimate_hours: 3, blocked_by: [T-be-3],                                  blocks: [T-be-9, T-workflows-2] }
+
+  # Phase 6: AGENTIC voice cloning pipeline (R23 Opus mandatory — NEW Story 12)
+  - { id: T-voice-1,      title: "VoiceDistillationOrchestrator (extends BaseExtractionOrchestrator) + 4 waves",  surface: AGENTIC, owner: opus, estimate_hours: 5, blocked_by: [T-be-7, T-extensions-1],          blocks: [T-voice-2, T-voice-3, T-voice-4] }
+  - { id: T-voice-2,      title: "Voice samples ingestion (WhatsApp ZIP parser + Whisper transcription + PII sanitize)", surface: AGENTIC, owner: opus, estimate_hours: 4, blocked_by: [T-voice-1],          blocks: [T-voice-4] }
+  - { id: T-voice-3,      title: "Voice compiler integration bridge (→ PersonalityCompiler v2 → Slot 5 cache invalidate)", surface: AGENTIC, owner: opus, estimate_hours: 4, blocked_by: [T-voice-1, T-prompts-1], blocks: [T-voice-4] }
+  - { id: T-voice-4,      title: "Voice cloning end-to-end pipeline tests (3 fixtures AR/CL/MX) + arch tests", surface: AGENTIC, owner: opus, estimate_hours: 4, blocked_by: [T-voice-2, T-voice-3],          blocks: [T-eval-1] }
+
+  # Phase 7: AGENTIC tools (R23 Opus mandatory)
+  - { id: T-tools-1,      title: "Tool qualify_for_cohort (LLM scoring + lead_qualification_records)", surface: AGENTIC, owner: opus, estimate_hours: 4, blocked_by: [T-be-5, T-extensions-1],                  blocks: [T-eval-1] }
+  - { id: T-tools-2,      title: "Tool link_to_community (signed invite URL HMAC + 4 actions)",        surface: AGENTIC, owner: opus, estimate_hours: 3, blocked_by: [T-be-5, T-extensions-1],                  blocks: [T-eval-1] }
+  - { id: T-tools-3,      title: "Tool nurture_via_authority_content (read-only authority_vault matcher)", surface: AGENTIC, owner: opus, estimate_hours: 3, blocked_by: [T-be-7, T-extensions-1],          blocks: [T-eval-1] }
+  - { id: T-tools-4,      title: "Tool book_discovery_call (EXTENDS @luana/core/scheduling Q4=A)",      surface: AGENTIC, owner: opus, estimate_hours: 4, blocked_by: [T-extensions-1],                          blocks: [T-eval-1] }
+
+  # Phase 8: AGENTIC extractors (R23 Opus mandatory)
+  - { id: T-extractors-1, title: "OfferLadderAdvisor (extends BaseExtractionOrchestrator 4 waves)",   surface: AGENTIC,    owner: opus,   estimate_hours: 4, blocked_by: [T-be-3, T-extensions-1],                blocks: [T-eval-1] }
+  - { id: T-extractors-2, title: "AuthorityVaultExtractor (extends Base 4 waves bio/LinkedIn parse)", surface: AGENTIC,    owner: opus,   estimate_hours: 4, blocked_by: [T-be-3, T-extensions-1],                blocks: [T-eval-1] }
+
+  # Phase 9: AGENTIC workflows (R23 Opus mandatory)
+  - { id: T-workflows-1,  title: "CommunityEngagementWorkflow LangGraph + RedisSaver + cron",         surface: AGENTIC,    owner: opus,   estimate_hours: 5, blocked_by: [T-be-6, T-tools-1, T-tools-2],          blocks: [T-eval-1] }
+  - { id: T-workflows-2,  title: "CohortEnrollmentWorkflow + DunningWorkflow embedded LangGraph",     surface: AGENTIC,    owner: opus,   estimate_hours: 5, blocked_by: [T-be-7, T-payment-1, T-tools-1],        blocks: [T-eval-1] }
+
+  # Phase 10: AGENTIC KB pack (R23 Opus mandatory)
+  - { id: T-kb-1,         title: "KB pack creator_economy_kb_v1 (~250 chunks + Qdrant ingestion + vulnerable_disclosure forced)", surface: AGENTIC, owner: opus, estimate_hours: 5, blocked_by: [T-extensions-1], blocks: [T-eval-1] }
+
+  # Phase 11: AGENTIC guardrails + prompts + extensions (R23 Opus mandatory)
+  - { id: T-guards-1,     title: "Guardrail community_safety_no_spam (input+output layers)",          surface: AGENTIC,    owner: opus,   estimate_hours: 3, blocked_by: [T-prompts-1, T-be-6],                   blocks: [T-eval-1] }
+  - { id: T-guards-2,     title: "Guardrail community_safety_no_nsfw (vision classifier + text)",     surface: AGENTIC,    owner: opus,   estimate_hours: 3, blocked_by: [T-prompts-1, T-be-6],                   blocks: [T-eval-1] }
+  - { id: T-guards-3,     title: "Guardrail community_safety_no_doxxing (cross-ref cohort_members)",  surface: AGENTIC,    owner: opus,   estimate_hours: 3, blocked_by: [T-prompts-1, T-be-6],                   blocks: [T-eval-1] }
+  - { id: T-guards-4,     title: "Guardrail prompt_injection_block reuse Story E base",                surface: AGENTIC,    owner: opus,   estimate_hours: 2, blocked_by: [T-prompts-1],                            blocks: [T-eval-1] }
+  - { id: T-prompts-1,    title: "Prompt slot architecture 10 slots + Slot 4 NEW + cache_control + micro_anchor", surface: AGENTIC, owner: opus, estimate_hours: 4, blocked_by: [T-config-1, T-extensions-1],     blocks: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-guards-1, T-guards-2, T-guards-3, T-guards-4, T-voice-3] }
+  - { id: T-extensions-1, title: "extensions.py register_all EP-1..EP-18 entry point",                surface: AGENTIC,    owner: opus,   estimate_hours: 3, blocked_by: [T-config-1],                             blocks: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-kb-1, T-prompts-1, T-voice-1] }
+  - { id: T-rubric-1,     title: "Vertical-creator-economy-fidelity rubric MD v1 + 8 NEW personas YAML", surface: AGENTIC, owner: opus, estimate_hours: 4, blocked_by: [],                                       blocks: [T-eval-1] }
+
+  # Phase 12: FE (Sonnet OK)
+  - { id: T-fe-1,         title: "Next.js 16 App Router scaffolding + 13 routes structure",            surface: FE,         owner: sonnet, estimate_hours: 3, blocked_by: [T-scaffold-1],                          blocks: [T-fe-2, T-fe-3, T-fe-4, T-fe-5, T-fe-6] }
+  - { id: T-fe-2,         title: "FE hooks React Query (35+ hooks) + Zod schemas (14) + types",        surface: FE,         owner: sonnet, estimate_hours: 5, blocked_by: [T-fe-1, T-be-8],                       blocks: [T-fe-3, T-fe-4, T-fe-5, T-fe-6] }
+  - { id: T-fe-3,         title: "FE components reuse @luana/ui + @luana/shared + 11 NEW comunify-specific", surface: FE, owner: sonnet, estimate_hours: 6, blocked_by: [T-fe-2, T-config-1],                   blocks: [T-fe-4, T-fe-5, T-fe-6, T-widget-1, T-e2e-1] }
+  - { id: T-fe-4,         title: "FE onboarding wizard 4-step + brand-studio 10 sections + voice UX",  surface: FE,         owner: sonnet, estimate_hours: 5, blocked_by: [T-fe-3],                                blocks: [T-e2e-1] }
+  - { id: T-fe-5,         title: "FE offers + ladder visualizer drag-drop + authority vault editor",   surface: FE,         owner: sonnet, estimate_hours: 5, blocked_by: [T-fe-3],                                blocks: [T-e2e-1] }
+  - { id: T-fe-6,         title: "FE cohorts + community + subscriptions + audit dashboards",          surface: FE,         owner: sonnet, estimate_hours: 5, blocked_by: [T-fe-3],                                blocks: [T-e2e-1] }
+  - { id: T-widget-1,     title: "Subscription widget iframe bundle (Vite UMD + postMessage protocol)", surface: FE,         owner: sonnet, estimate_hours: 4, blocked_by: [T-fe-3, T-be-8],                       blocks: [T-e2e-1] }
+
+  # Phase 13: E2E + agentic_eval + smoke + observability (Sonnet OK for tests-over-agentic)
+  - { id: T-e2e-1,        title: "Playwright E2E 24 specs + 6 compliance smoke + visual + a11y",        surface: AGENTIC,    owner: sonnet, estimate_hours: 6, blocked_by: [T-fe-4, T-fe-5, T-fe-6, T-widget-1, T-be-8, T-be-9, T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-workflows-1, T-workflows-2, T-kb-1, T-guards-1, T-guards-2, T-guards-3, T-guards-4, T-voice-4, T-rubric-1], blocks: [T-eval-1] }
+  - { id: T-eval-1,       title: "Agentic eval suite vertical-creator-economy-fidelity + cost_budget + cache_hit_rate", surface: AGENTIC, owner: sonnet, estimate_hours: 5, blocked_by: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-workflows-1, T-workflows-2, T-kb-1, T-guards-1, T-guards-2, T-guards-3, T-guards-4, T-voice-4, T-rubric-1, T-e2e-1], blocks: [T-deploy-1] }
+
+  # Phase 14: Deploy infra + docs (Sonnet OK)
+  - { id: T-deploy-1,     title: "K8s manifests + CF tunnel scripts + DNS verification (Chris UI gate)", surface: infra,    owner: sonnet, estimate_hours: 3, blocked_by: [T-eval-1],                              blocks: [T-docs-1] }
+  - { id: T-docs-1,       title: "community-safety.md + widget-embed.md + voice-cloning-guide.md + seed_fixture_creators.py", surface: docs, owner: sonnet, estimate_hours: 4, blocked_by: [T-eval-1],         blocks: [] }
+
+# ── Detail (one entry per ticket) ──────────────────────────────
+
+tickets:
+
+  # ═══════════════════════════════════════════════════════════════
+  Tscaffold1:
+    id: T-scaffold-1
+    title: "Comunify subdir bootstrap (workspace integration uv + pnpm)"
+    type: scaffolding
+    surface: full-stack
+    production_code: false
+    state: draft
+    owner_eligibility: [opus, sonnet]
+    priority: 1
+    estimate_hours: 3
+    decisions_applicable: [D1]
+    repro_verified: false
+    inputs:
+      spec: "../01-spec.md § 2"
+      arch_doc: "../03-arch.md § 5"
+      rules: [".claude/rules/backend-ddd.md", ".claude/rules/frontend-fsd.md", ".claude/rules/anti-duplication.md"]
+      domain_skills: ["backend-expert", "frontend-expert"]
+    description: |
+      Bootstrap comunify/ subdir inside luana-platform monorepo:
+      - comunify/backend/ + comunify/frontend/ + comunify/config/ + comunify/deploy/ + comunify/docs/ + comunify/scripts/
+      - pyproject.toml workspace member
+      - package.json @luana/comunify FE workspace member
+      - .venv setup
+      - pnpm install + uv sync verify
+      - Empty test suites runnable
+      - README.md skeleton
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/pyproject.toml"
+      - "/home/chris/luana-platform/comunify/backend/Makefile"
+      - "/home/chris/luana-platform/comunify/backend/conftest.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/__init__.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/__init__.py"
+      - "/home/chris/luana-platform/comunify/frontend/package.json"
+      - "/home/chris/luana-platform/comunify/frontend/next.config.ts"
+      - "/home/chris/luana-platform/comunify/frontend/tsconfig.json"
+      - "/home/chris/luana-platform/comunify/frontend/eslint.config.mjs"
+      - "/home/chris/luana-platform/comunify/frontend/vitest.config.ts"
+      - "/home/chris/luana-platform/comunify/frontend/playwright.config.ts"
+      - "/home/chris/luana-platform/comunify/frontend/tailwind.config.ts"
+      - "/home/chris/luana-platform/comunify/frontend/src/app/layout.tsx"
+      - "/home/chris/luana-platform/pyproject.toml (modify — add comunify/backend)"
+      - "/home/chris/luana-platform/pnpm-workspace.yaml (modify — add comunify/frontend)"
+      - "/home/chris/luana-platform/comunify/README.md"
+    acceptance:
+      - { id: A1, description: "uv sync passes workspace with comunify/backend registered", verifier: "cd /home/chris/luana-platform && uv sync" }
+      - { id: A2, description: "pnpm install passes workspace with @luana/comunify registered", verifier: "cd /home/chris/luana-platform && pnpm install --frozen-lockfile" }
+      - { id: A3, description: "Empty BE test suite runs", verifier: "cd /home/chris/luana-platform/comunify/backend && .venv/bin/pytest --collect-only" }
+      - { id: A4, description: "Empty FE Vitest suite runs", verifier: "cd /home/chris/luana-platform/comunify/frontend && npx vitest --run --reporter=default" }
+    validators_pass: [V-NF-11, V-NF-12]
+    blocks: [T-config-1, T-be-1, T-fe-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tconfig1:
+    id: T-config-1
+    title: "BrandConfig declarative YAML (comunify/config/brand.yaml)"
+    type: config
+    surface: config
+    production_code: false
+    owner_eligibility: [opus, sonnet]
+    priority: 2
+    estimate_hours: 1
+    decisions_applicable: [D7, D8, D9, D11, D12, D13, D15, D16, D17, D18, D19]
+    description: |
+      Materialize BrandConfig YAML per 03-arch-be.md § 10:
+      - brand_slug=comunify, compliance_level=creator_economy, voice_cloning_enabled=true
+      - features (15 flags incl voice_cloning + 4 deferred 12.bis)
+      - brand_studio enabled_sections=10 + required=[authority_vault] + buyer_persona.min_count=3
+      - offer_studio preset_pack=coaching_offers_v1
+      - ladder levels + conversion baselines
+      - subscriptions plan_tiers (creator/pro/agency) + features per tier
+      - community_safety thresholds
+      - payment_gateways + kb_packs + agentic_tools + extractors + workflows + guardrails inventory
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/config/brand.yaml"
+    acceptance:
+      - { id: A1, description: "YAML parseable + schema valid", verifier: "python -c 'import yaml; yaml.safe_load(open(\"config/brand.yaml\"))'" }
+    depends_on: [T-scaffold-1]
+    blocks: [T-extensions-1, T-be-4, T-fe-3]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe1:
+    id: T-be-1
+    title: "Alembic snapshot 001_comunify_initial_snapshot.py (15 tables idempotent)"
+    type: migration
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 4
+    decisions_applicable: [D1, D7, D15, D18]
+    inputs:
+      arch_doc: "../03-arch-be.md § 5 + § 4 model schemas"
+      rules: [".claude/rules/backend-migrations.md", ".claude/rules/tenant-isolation.md"]
+      domain_skills: ["backend-expert"]
+    description: |
+      Single consolidated Alembic snapshot per Story 10/11 T-10 pattern.
+      15 tables idempotent IF NOT EXISTS raw SQL:
+      comunify_cohorts, comunify_cohort_members, comunify_cohort_broadcasts,
+      comunify_cohort_broadcast_recipients, comunify_community_posts,
+      comunify_community_post_attachments, comunify_community_moderation_events,
+      comunify_subscriptions, comunify_subscription_charges, comunify_offer_ladders,
+      comunify_voice_cloning_samples, comunify_voice_distillation_jobs,
+      comunify_authority_vault_items, comunify_lead_qualification_records,
+      comunify_community_audit_log, comunify_plan_tier_configs.
+      NEVER op.create_table / sa.Enum(create_type=True). Indexes per 03-arch-be.md.
+      depends_on alembic head Story 11 consolidated snapshot.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/alembic/versions/001_comunify_initial_snapshot.py"
+      - "/home/chris/luana-platform/comunify/backend/alembic/env.py (modify)"
+      - "/home/chris/luana-platform/comunify/backend/alembic.ini"
+    acceptance:
+      - { id: A1, description: "Migration upgrade head twice without error (idempotent)", verifier: "docker exec luana_platform_dev alembic upgrade head && docker exec luana_platform_dev alembic upgrade head" }
+      - { id: A2, description: "Downgrade -1 + upgrade head succeeds" }
+      - { id: A3, description: "All 15 tables present post-upgrade", verifier: "docker exec luana_platform_dev psql -c '\\dt comunify_*' | grep -c comunify_ | grep -E '^15$'" }
+    validators_pass: [V-NF-9, V-NF-10]
+    depends_on: [T-scaffold-1]
+    blocks: [T-be-2, T-be-3]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe2:
+    id: T-be-2
+    title: "SQLAlchemy 2.0 ORM models (15 Mapped[] models)"
+    type: model
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 4
+    decisions_applicable: [D1]
+    description: |
+      15 SQLAlchemy 2.0 ORM models with Mapped[] per 03-arch-be.md § 4.
+      All inherit from Base (luana_core_platform.domain.base_entity.Base post Story 10).
+      tenant_id NOT NULL + index on every tenant-scoped model.
+      deleted_at column for soft delete (except community_audit_log immutable).
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/infrastructure/models/*.py (15 files)"
+    acceptance:
+      - { id: A1, description: "All 15 models importable + register to Base.metadata" }
+      - { id: A2, description: "All tenant-scoped models have tenant_id index" }
+    validators_pass: [V-NF-1, V-NF-2, V-NF-5]
+    depends_on: [T-be-1]
+    blocks: [T-be-3, T-be-4]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe3:
+    id: T-be-3
+    title: "Async repositories (13 + PlanTierConfigRepository cross-tenant + advisory_locks)"
+    type: repository
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 4
+    decisions_applicable: [D1]
+    description: |
+      13 async repositories per 03-arch-be.md § 8 + advisory_locks helper.
+      All constructor receives tenant_id required param. select().where() pattern.
+      TDD RED → GREEN with integration tests.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/infrastructure/repositories/*.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/infrastructure/advisory_locks.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/integration/test_*_repository.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/integration/test_cohort_enrollment_advisory_lock.py"
+    acceptance:
+      - { id: A1, description: "Cross-tenant query returns empty (tenant_A repo cannot read tenant_B)" }
+      - { id: A2, description: "Advisory lock prevents cohort enrollment race" }
+      - { id: A3, description: "Arch fitness test_comunify_no_query_without_tenant_filter passes" }
+    validators_pass: [V-NF-5, V-F-4, V-F-16]
+    depends_on: [T-be-2]
+    blocks: [T-be-4, T-be-5, T-be-6, T-be-7]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe4:
+    id: T-be-4
+    title: "BE services Onboarding + ComplianceEvent + PiiScanner"
+    type: service
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 3
+    decisions_applicable: [D1, D7]
+    description: |
+      OnboardingService (creator profile + handle uniqueness + niche + plan tier + first offer).
+      ComplianceEventService (best-effort community_audit_log writes + sanitize_payload).
+      PiiScannerService (offer description + testimonial + voice samples PII scan).
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/onboarding_service.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/compliance_event_service.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/pii_scanner_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/unit/application/test_onboarding_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/unit/application/test_compliance_event_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/unit/application/test_pii_scanner_service.py"
+    validators_pass: [V-F-2, V-F-17, V-AE-25]
+    depends_on: [T-be-3, T-config-1]
+    blocks: [T-be-8]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe5:
+    id: T-be-5
+    title: "BE services Cohort + CohortBroadcast + advisory_locks + idempotency"
+    type: service
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 4
+    decisions_applicable: [D1]
+    description: |
+      CohortService — atomic enroll_member with pg_advisory_lock(hash(cohort_id)).
+      Idempotency key (cohort_id, subscriber_id) via shared.idempotency.
+      Capacity check + waitlist routing.
+      CohortBroadcastService — rate-limit pre-flight WhatsApp tier + dispatch + recipient tracking.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/cohort_service.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/cohort_broadcast_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/unit/application/test_cohort_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/unit/application/test_cohort_broadcast_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/e2e/test_cohort_enrollment_e2e.py"
+    validators_pass: [V-F-2, V-F-8, V-F-16]
+    depends_on: [T-be-3]
+    blocks: [T-be-8, T-tools-1, T-tools-2]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe6:
+    id: T-be-6
+    title: "BE services Community + CommunityModeration (classifier dispatch)"
+    type: service
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 4
+    decisions_applicable: [D1, D7, D16, D18]
+    description: |
+      CommunityPostService — create + moderation routing + pre-moderation new member counter decrement.
+      CommunityModerationService — classifier dispatch (Haiku 4.5) + creator action handling.
+      Status routing: auto_approve | pending_moderation | rejected_doxxing | rejected_nsfw.
+      Persists moderation_event row + emits domain event.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/community_post_service.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/community_moderation_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/unit/application/test_community_post_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/unit/application/test_community_moderation_service.py"
+    validators_pass: [V-F-2, V-F-9]
+    depends_on: [T-be-3]
+    blocks: [T-be-8, T-guards-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe7:
+    id: T-be-7
+    title: "BE services Subscription + Dunning + OfferLadder + AuthorityVault + VoiceCloning"
+    type: service
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 5
+    decisions_applicable: [D1, D14, D15, D19, D20]
+    description: |
+      SubscriptionService — create + cancel + tier upgrade + tokenize payment.
+      DunningService — LangGraph DunningWorkflow state machine (active → past_due → suspended → cancelled).
+      OfferLadderService — 4-level ladder CRUD + gap detection + completeness.
+      AuthorityVaultService — CRUD subsections + URL validation async.
+      VoiceCloningService — samples upload + distillation kick + ratify + Slot 5 invalidate event.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/subscription_service.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/dunning_service.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/offer_ladder_service.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/authority_vault_service.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/services/voice_cloning_service.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/unit/application/test_*_service.py (5)"
+    validators_pass: [V-F-2]
+    depends_on: [T-be-3]
+    blocks: [T-be-8, T-workflows-2, T-voice-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe8:
+    id: T-be-8
+    title: "BE endpoints + DTOs Pydantic v2 + FastAPI routes (40+ endpoints)"
+    type: endpoint
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 5
+    decisions_applicable: [D1]
+    description: |
+      All REST endpoints per spec § 7.1 + 03-arch-be.md § 6 (excluding webhooks T-be-9):
+      Onboarding (5), Brand Studio (2 — consumes core), Voice Cloning (5),
+      Authority Vault (6), Offer + Ladder (5), Cohort (7), Community (4),
+      Subscription (5), Compliance (2). FastAPI redirect_slashes=False.
+      All endpoints response_model= Pydantic v2 + Clerk JWT + tenant_id middleware.
+      PII masked per Tessl.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/api/routes.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/api/dtos/*.py (8 files)"
+      - "/home/chris/luana-platform/comunify/backend/src/main.py (modify — mount comunify router)"
+      - "/home/chris/luana-platform/comunify/backend/tests/e2e/test_onboarding_creator_e2e.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/e2e/test_cross_tenant_isolation_e2e.py"
+    validators_pass: [V-NF-5, V-F-3, V-F-5, V-F-11]
+    depends_on: [T-be-4, T-be-5, T-be-6, T-be-7]
+    blocks: [T-fe-2, T-e2e-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tbe9:
+    id: T-be-9
+    title: "BE webhook receivers (Stripe + MercadoPago + Clerk + WhatsApp + ManyChat)"
+    type: webhook
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 3
+    decisions_applicable: [D1, D11]
+    description: |
+      5 webhook receivers with HMAC signature + idempotency:
+      - /api/v1/comunify/webhooks/stripe (payment_intent + subscription)
+      - /api/v1/comunify/webhooks/mercadopago (IPN)
+      - /api/v1/comunify/webhooks/clerk (signup → tenant create)
+      - /api/v1/comunify/webhooks/whatsapp/inbound
+      - /api/v1/comunify/webhooks/manychat/inbound
+      All audit_log replay attempts.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/api/webhook_routes.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/infrastructure/adapters/*.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/integration/test_*_webhook.py"
+    validators_pass: [V-F-15]
+    depends_on: [T-be-5, T-payment-1]
+    blocks: [T-e2e-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tpayment1:
+    id: T-payment-1
+    title: "Payment adapters consume Story 11 lifts (verify + comunify overlay)"
+    type: payment_adapter
+    surface: BE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 3
+    decisions_applicable: [D4]
+    description: |
+      Verify Story 11 lifts present at @luana/core/channels/payment/:
+        - MercadoPagoAdapter, StripeConnectAdapter, TokenizedRecurringAdapter.
+      If verified → EXTEND with comunify overlay:
+        - ComunifyStripeConnectAdapter (metadata.compliance_level=creator_economy + application_fee per plan_tier)
+        - ComunifyMercadoPagoAdapter (subscriber tokenization for monthly + AR primary country)
+        - ComunifyTokenizedRecurringAdapter (cohort installments + monthly subscriptions)
+      If NOT lifted by Story 11 → ESCALATE (Story 11 should have lifted).
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/payment/stripe_connect_adapter.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/payment/mercadopago_adapter.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/payment/tokenized_recurring_adapter.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/integration/test_payment_adapters.py"
+    depends_on: [T-be-3]
+    blocks: [T-be-9, T-workflows-2]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tvoice1:
+    id: T-voice-1
+    title: "VoiceDistillationOrchestrator (extends BaseExtractionOrchestrator) + 4 waves"
+    type: agentic_pipeline
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]                # R23 mandatory
+    estimate_hours: 5
+    decisions_applicable: [D8, D15]
+    description: |
+      VoiceDistillationOrchestrator extends BaseExtractionOrchestrator (anti-duplication.md SSoT row).
+      4-wave pipeline per 03-arch-agentic.md § 5.3:
+        - Wave 1: dialect_detection (Haiku 4.5)
+        - Wave 2: vocabulary_anchors_extraction (Sonnet 4.6)
+        - Wave 3: register_tone_profile (Sonnet 4.6)
+        - Wave 4: validate_and_compile_v2 (Sonnet 4.6)
+      Output schema CompiledVoice (6 bloques).
+      _merge_and_save → persist comunify_voice_distillation_jobs.compiled_blocks +
+        PII sanitize + DELETE raw samples post-success (D15).
+      Cost budget ≤$0.18 USD/50 chats.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/brand/voice_cloning/voice_distillation_orchestrator.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/brand/voice_cloning/waves/*.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/brand/voice_cloning/prompts/*.j2"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/voice_cloning/test_voice_distillation_orchestrator_smoke.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/architecture/test_comunify_voice_distillation_inherits_base_orchestrator.py"
+    validators_pass: [V-AE-9, V-AE-21, V-AE-30]
+    depends_on: [T-be-7, T-extensions-1]
+    blocks: [T-voice-2, T-voice-3, T-voice-4]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tvoice2:
+    id: T-voice-2
+    title: "Voice samples ingestion (WhatsApp ZIP parser + Whisper transcription + PII sanitize)"
+    type: agentic_pipeline
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 4
+    decisions_applicable: [D15]
+    description: |
+      Voice samples upload BE-side processing:
+      - WhatsApp ZIP parser (extract distinct conversations per subscriber)
+      - Voice notes Whisper transcription via LiteLLM proxy
+      - PII sanitize raw text (strip phone/email/patterns)
+      - Persist comunify_voice_cloning_samples row (counts only)
+      - Async worker pattern (ARQ or shared.scheduling)
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/tasks/voice_samples_ingest_worker.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/brand/voice_cloning/samples_parser.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/voice_cloning/test_voice_samples_pii_sanitized.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/architecture/test_comunify_no_pii_in_voice_samples_persistence.py"
+    validators_pass: [V-F-17, V-AE-28]
+    depends_on: [T-voice-1]
+    blocks: [T-voice-4]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tvoice3:
+    id: T-voice-3
+    title: "Voice compiler integration bridge (→ PersonalityCompiler v2 → Slot 5 cache invalidate)"
+    type: agentic_pipeline
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 4
+    decisions_applicable: [D8]
+    description: |
+      Bridge from VoiceDistillationOrchestrator output (CompiledVoice) to
+      existing @luana/core/sales-agent PersonalityCompiler v2.
+      compose_v2(compiled_voice) → system_instruction string.
+      UPDATE personality_profiles SET system_instruction WHERE tenant_id.
+      Emit VoiceRatifiedV1 event → handler invalidates Slot 5 BRAND_VOICE cache for tenant.
+      NEVER re-implement PersonalityCompiler v2 — bridge only.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/brand/voice_cloning/compiler_integration.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/application/event_handlers/voice_ratified_handler.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/voice_cloning/test_voice_compiler_integration.py"
+    validators_pass: [V-AE-29]
+    depends_on: [T-voice-1, T-prompts-1]
+    blocks: [T-voice-4]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tvoice4:
+    id: T-voice-4
+    title: "Voice cloning end-to-end pipeline tests (3 fixtures AR/CL/MX) + arch tests"
+    type: agentic_test
+    surface: AGENTIC
+    production_code: false
+    owner_eligibility: [opus, sonnet]      # tests-over-agentic OK Sonnet
+    estimate_hours: 4
+    decisions_applicable: [D8, D15]
+    description: |
+      Per-fixture distillation tests:
+      - Anabella AR 50 sample chats → distilled compiled v2 → es-AR voseo detected
+      - Trini CL 50 sample chats → es-CL tuteo chileno detected
+      - Pablo MX 50 sample chats → es-MX neutro broad detected
+      Low confidence (<0.65) → creator notification test.
+      PII sanitization arch test (no raw chats post-distill).
+      Cost budget assertions (≤$0.18 USD/50 chats).
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/voice_cloning/test_voice_distillation_anabella_ar.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/voice_cloning/test_voice_distillation_trini_cl.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/voice_cloning/test_voice_distillation_pablo_mx.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/voice_cloning/test_voice_distillation_low_confidence.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/smoke/smoke_voice_distillation.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/cost_budget/test_cost_budget_voice_distillation.py"
+    validators_pass: [V-AE-6, V-AE-9, V-AE-21, V-AE-28, V-AE-29, V-AE-30, V-F-12]
+    depends_on: [T-voice-2, T-voice-3]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Ttools1:
+    id: T-tools-1
+    title: "Tool qualify_for_cohort (LLM scoring + lead_qualification_records)"
+    type: tool
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]                # R23 mandatory
+    estimate_hours: 4
+    decisions_applicable: [D1]
+    description: |
+      Tool qualify_for_cohort per 03-arch-agentic.md § 4.1:
+      - Pydantic Input/Output schemas
+      - @register_tool decorator + idempotency_via + forbidden_in_contexts
+      - LLM scoring (Sonnet 4.6 fit assessment)
+      - Persists comunify_lead_qualification_records
+      - Emits LeadQualified domain event → triggers CohortEnrollmentWorkflow
+      - tenant_id injected via ctx (NOT input schema)
+      - Cost budget $0.006-0.012 per invocation
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/tools/qualify_for_cohort.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/tools/test_qualify_for_cohort.py"
+    validators_pass: [V-AE-7]
+    depends_on: [T-be-5, T-extensions-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Ttools2:
+    id: T-tools-2
+    title: "Tool link_to_community (signed invite URL HMAC + 4 actions)"
+    type: tool
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 3
+    decisions_applicable: [D1]
+    description: |
+      Tool link_to_community per 03-arch-agentic.md § 4.2:
+      - 4 actions: generate_invite | resend_invite | suggest_path | verify_access
+      - Signed URL HMAC (tenant_id + subscriber_id + expiry)
+      - Idempotency 5min window
+      - Persists comunify_community_invites
+      - Audit_log community_access_granted_or_renewed
+      - Cost $0 LLM for generate; $0.003 Haiku for suggest_path
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/tools/link_to_community.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/tools/test_link_to_community.py"
+    validators_pass: [V-AE-7]
+    depends_on: [T-be-5, T-extensions-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Ttools3:
+    id: T-tools-3
+    title: "Tool nurture_via_authority_content (read-only authority_vault matcher)"
+    type: tool
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 3
+    decisions_applicable: [D1]
+    description: |
+      Tool nurture_via_authority_content per 03-arch-agentic.md § 4.3:
+      - intent_category matcher (pricing_guilt/imposter/scaling_overload/burnout/general)
+      - Reads comunify_authority_vault_items
+      - Returns 1-3 relevant URLs + next_step recommendation
+      - NO side effects (read-only)
+      - Cost ~$0.002 (Haiku for matching)
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/tools/nurture_via_authority_content.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/tools/test_nurture_via_authority_content.py"
+    validators_pass: [V-AE-7]
+    depends_on: [T-be-7, T-extensions-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Ttools4:
+    id: T-tools-4
+    title: "Tool book_discovery_call (EXTENDS @luana/core/scheduling Q4=A)"
+    type: tool
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 4
+    decisions_applicable: [D2]
+    description: |
+      Tool book_discovery_call per 03-arch-agentic.md § 4.4:
+      - 4 actions: list_slots | confirm_slot | reschedule_existing | cancel
+      - EXTENDS @luana/core/scheduling.calendar (Q4=A reuse Story 11 lift)
+      - appointment_type=discovery_call (NEW vertical-creator-economy)
+      - Advisory lock per (creator_id, slot_iso) on confirm
+      - Idempotency 60s window
+      - Cost $0 LLM (deterministic)
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/tools/book_discovery_call.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/tools/test_book_discovery_call.py"
+    validators_pass: [V-AE-7]
+    depends_on: [T-extensions-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Textractors1:
+    id: T-extractors-1
+    title: "OfferLadderAdvisor (extends BaseExtractionOrchestrator 4 waves)"
+    type: extractor
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 4
+    decisions_applicable: [D1]
+    description: |
+      OfferLadderAdvisor per 03-arch-agentic.md § 5.1:
+      - EXTENDS BaseExtractionOrchestrator (anti-duplication.md)
+      - 4 waves: analyze_current_offers (Sonnet) + detect_ladder_gaps (Sonnet) + generate_suggestions (Haiku) + validate_merge (Sonnet)
+      - Output OfferLadderAdviceV1 (ladder_gaps + suggested_offers + tier_optimization + confidence)
+      - Cost ≤$0.10 USD per advice run
+      - ASYNC pattern
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/extractors/offer_ladder_advisor.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/extractors/test_offer_ladder_advisor.py"
+    validators_pass: [V-AE-8]
+    depends_on: [T-be-3, T-extensions-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Textractors2:
+    id: T-extractors-2
+    title: "AuthorityVaultExtractor (extends Base 4 waves bio/LinkedIn parse)"
+    type: extractor
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 4
+    decisions_applicable: [D1]
+    description: |
+      AuthorityVaultExtractor per 03-arch-agentic.md § 5.2:
+      - EXTENDS BaseExtractionOrchestrator
+      - 4 waves: credentials_awards (Sonnet) + case_studies (Sonnet) + press_social_proof (Haiku) + validate_merge (Sonnet)
+      - Output AuthorityVaultExtractedV1
+      - Pre-fills authority_vault editor (creator ratifies)
+      - Cost ≤$0.08 USD per extraction
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/extractors/authority_vault_extractor.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/extractors/test_authority_vault_extractor.py"
+    validators_pass: [V-AE-8]
+    depends_on: [T-be-3, T-extensions-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tworkflows1:
+    id: T-workflows-1
+    title: "CommunityEngagementWorkflow LangGraph + RedisSaver + cron drift detection"
+    type: workflow
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 5
+    decisions_applicable: [D3, D10]
+    description: |
+      CommunityEngagementWorkflow per 03-arch-agentic.md § 6.1:
+      - LangGraph StateGraph: active → drift_detected → re_engaged | escalated | dropped_silent
+      - RedisSaver checkpointer (D10) — cross-brand, state key = (tenant_id, subscriber_id)
+      - Cron handler tick 9am tenant TZ (no_activity 14d threshold)
+      - Per state nodes implementation
+      - ModuleDescriptor registration
+      - cost_budget_per_workflow_run=0.10 USD
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/workflows/community_engagement_workflow.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/workflows/cron_handler.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/module_registry_entry.py (modify — add descriptor)"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/workflows/test_community_engagement_*.py"
+    validators_pass: [V-AE-10]
+    depends_on: [T-be-6, T-tools-1, T-tools-2]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tworkflows2:
+    id: T-workflows-2
+    title: "CohortEnrollmentWorkflow + DunningWorkflow embedded LangGraph"
+    type: workflow
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 5
+    decisions_applicable: [D3, D10, D19]
+    description: |
+      CohortEnrollmentWorkflow per 03-arch-agentic.md § 6.2:
+      - LangGraph StateGraph: qualification → discovery_call_scheduled → terms_presentation → payment_pending → enrolled
+      - Embedded DunningWorkflow state (per D19): active → past_due → retry_1 → retry_2 → suspended → cancelled
+      - RedisSaver checkpointer
+      - Cron triggers payment_followup_24h/48h + dunning retries
+      - cost_budget=0.20 USD
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/workflows/cohort_enrollment_workflow.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/module_registry_entry.py (modify)"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/workflows/test_cohort_enrollment_*.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/e2e/test_subscription_recurring_dunning_e2e.py"
+    validators_pass: [V-AE-10, V-F-10]
+    depends_on: [T-be-7, T-payment-1, T-tools-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tkb1:
+    id: T-kb-1
+    title: "KB pack creator_economy_kb_v1 (~250 chunks + Qdrant + vulnerable_disclosure forced)"
+    type: kb_pack
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 5
+    decisions_applicable: [D17]
+    description: |
+      KB pack creator_economy_kb_v1 per 03-arch-agentic.md § 7:
+      - Qdrant collection comunify_creator_economy_kb_v1 (3072 dim text-embedding-3-large)
+      - ~250 chunks bootstrap (frameworks/terminology/cohort_design/community_engagement/voice_cloning_tips)
+      - Tenant_id filter at query (null = generic, tenant_id = creator-specific)
+      - Forced retrieval VULNERABLE_DISCLOSURE_PLAYBOOK_CHUNK_ID on vulnerability keywords
+      - Citation contract: chunk_id in copilot_trace_event.context_used
+      - Ingestion script idempotent
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/kb/creator_economy_kb_v1/*.md (~250 files)"
+      - "/home/chris/luana-platform/comunify/backend/scripts/seed_creator_economy_kb.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/copilot/extractors/_kb_seed_loader.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/kb_pack/test_*.py"
+    validators_pass: [V-AE-12]
+    depends_on: [T-extensions-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tguards1:
+    id: T-guards-1
+    title: "Guardrail community_safety_no_spam (input+output layers + Haiku classifier)"
+    type: guardrail
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 3
+    decisions_applicable: [D16]
+    description: |
+      Guardrail community_safety_no_spam per 03-arch-agentic.md § 10.2:
+      - INPUT_PATTERNS regex (external promo links + click-bait domains)
+      - LLM classifier fallback (Haiku 4.5, score >0.85 = spam)
+      - INPUT action: pending_moderation
+      - OUTPUT layer: anti-pivot to spam content (data exfil prevention)
+      - Audit_log community_safety_no_spam_fired (medium severity)
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/guardrails/community_safety_no_spam.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/guardrails/test_community_safety_no_spam.py"
+    validators_pass: [V-AE-2, V-AE-11]
+    depends_on: [T-prompts-1, T-be-6]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tguards2:
+    id: T-guards-2
+    title: "Guardrail community_safety_no_nsfw (vision classifier + text)"
+    type: guardrail
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 3
+    decisions_applicable: [D16]
+    description: |
+      Guardrail community_safety_no_nsfw per 03-arch-agentic.md § 10:
+      - Image vision classifier (score >0.85 = block pre-persist)
+      - Text NSFW classifier (Haiku 4.5, score >0.80)
+      - INPUT layer block + form error to user
+      - Audit_log nsfw_blocked (medium severity)
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/guardrails/community_safety_no_nsfw.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/guardrails/test_community_safety_no_nsfw.py"
+    validators_pass: [V-AE-3, V-AE-11]
+    depends_on: [T-prompts-1, T-be-6]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tguards3:
+    id: T-guards-3
+    title: "Guardrail community_safety_no_doxxing (cross-ref cohort_members)"
+    type: guardrail
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 3
+    decisions_applicable: [D16]
+    description: |
+      Guardrail community_safety_no_doxxing per 03-arch-agentic.md § 10:
+      - Phone pattern detection + cross-ref cohort_members.phone (other-member only)
+      - Email pattern detection + cross-ref cohort_members.email
+      - Full name + city patterns
+      - Action: block + warn author + notify target privately + audit_log
+      - High severity
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/guardrails/community_safety_no_doxxing.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/guardrails/test_community_safety_no_doxxing.py"
+    validators_pass: [V-AE-4, V-AE-11]
+    depends_on: [T-prompts-1, T-be-6]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tguards4:
+    id: T-guards-4
+    title: "Guardrail prompt_injection_block reuse Story E base"
+    type: guardrail
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 2
+    decisions_applicable: [D1]
+    description: |
+      Reuse Story E prompt_injection_block — register canonical pattern via extensions.py.
+      Sandbox markers <<TRANSCRIPT_BEGIN>>...<<TRANSCRIPT_END>> in Slot 4.
+      Pattern detection: ignore prompt / system extraction / role swap / data exfil.
+      Action: refuse politely + audit_log + NO system prompt leak.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/guardrails/prompt_injection_block_reuse.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/guardrails/test_prompt_injection_block.py"
+    validators_pass: [V-AE-1, V-AE-11]
+    depends_on: [T-prompts-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tprompts1:
+    id: T-prompts-1
+    title: "Prompt slot architecture 10 slots + Slot 4 NEW + cache_control + micro_anchor"
+    type: prompts
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 4
+    decisions_applicable: [D5]
+    description: |
+      Prompt slot architecture per 03-arch-agentic.md § 8:
+      - 10 slots (Slot 4 COMMUNITY_SAFETY_RAILS NEW vs Vitalia MEDICAL_SAFETY_RAILS)
+      - Anthropic cache_control: ephemeral markers slots 1-6
+      - Slot 5 prompt_cache_key=tenant_id (BRAND_VOICE per-tenant)
+      - compose_messages() + LiteLLM completion call
+      - Slot invalidation triggers (voice_cloning_ratified for Slot 5)
+      - Per-turn micro_anchor envelope (~30 tokens)
+      - Forbidden: no PII / no timestamps in cacheable slots
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/prompts/compose.py"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/prompts/slot_3_sales_playbook_creator_economy.j2"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/prompts/slot_4_community_safety_rails.j2"
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/agentic/prompts/micro_anchor_per_turn.j2"
+      - "/home/chris/luana-platform/comunify/backend/tests/architecture/test_comunify_no_pii_in_cacheable_slots.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/architecture/test_comunify_slot_4_safety_markers_present.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/cache/test_cache_hit_rate.py"
+    validators_pass: [V-AE-27]
+    depends_on: [T-config-1, T-extensions-1]
+    blocks: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-guards-1, T-guards-2, T-guards-3, T-guards-4, T-voice-3]
+
+  # ═══════════════════════════════════════════════════════════════
+  Textensions1:
+    id: T-extensions-1
+    title: "extensions.py register_all EP-1..EP-18 entry point"
+    type: agentic_mounting
+    surface: AGENTIC
+    production_code: true
+    owner_eligibility: [opus]
+    estimate_hours: 3
+    decisions_applicable: [D1, D8]
+    description: |
+      Single register_all entry per 03-arch.md § 4.1:
+      - tools (4) + extractors (2) + workflows (2) + kb_packs (1) + guardrails (4) + channels.payment (3) + rubrics (1)
+      - brand_studio.enabled_sections (10) + required (authority_vault) + field_overrides (buyer_persona.min_count=3)
+      - brand_studio.features (voice_cloning_pipeline)
+      - offer.entities (OfferLadder) + preset_pack (coaching_offers_v1)
+      - compliance_level=creator_economy
+      - subscriptions.enabled=true + plan_tiers
+      - voice_cloning_orchestrators (VoiceDistillationOrchestrator)
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/src/modules/comunify/extensions.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/test_extensions_register_all.py"
+    validators_pass: [V-NF-13]
+    depends_on: [T-config-1]
+    blocks: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-kb-1, T-prompts-1, T-voice-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Trubric1:
+    id: T-rubric-1
+    title: "Vertical-creator-economy-fidelity rubric MD v1 + 8 NEW personas YAML"
+    type: rubric
+    surface: AGENTIC
+    production_code: false
+    owner_eligibility: [opus, sonnet]      # rubric MD + personas YAML OK Sonnet
+    estimate_hours: 4
+    decisions_applicable: [D6]
+    description: |
+      Materialize rubric + personas per 03-arch-agentic.md § 13:
+      - docs/specs/rubrics/vertical-creator-economy-fidelity.md v1 (5 assertions A1-A5 + scoring 0.85)
+      - 8 NEW personas YAML in docs/specs/personas/archetype-aware/
+      - voseo magic comment line 2 for AR personas
+      - pass^k thresholds per category (happy/nurture 3 ≥0.75, adv-light 4 ≥0.85, adv 5 ≥0.95)
+    files_in_scope:
+      - "/home/chris/AISALESHT/docs/specs/rubrics/vertical-creator-economy-fidelity.md"
+      - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/lead-pricing-guilt-coach-ar.yaml"
+      - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/member-drift-nutrition-cl.yaml"
+      - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/lead-skeptical-productivity-mx.yaml"
+      - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/member-tier-upgrade-coach-ar.yaml"
+      - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/lead-prompt-injection-attempt.yaml"
+      - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/community-spammer-mx.yaml"
+      - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/community-doxxing-attempt-cl.yaml"
+      - "/home/chris/AISALESHT/docs/specs/personas/archetype-aware/member-vulnerable-disclosure-cl.yaml"
+      - "/home/chris/luana-platform/comunify/backend/tests/architecture/test_comunify_personas_yaml_completeness.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/architecture/test_comunify_rubric_md_v1_schema.py"
+    validators_pass: [V-AE-25, V-AE-26]
+    depends_on: []
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tfe1:
+    id: T-fe-1
+    title: "Next.js 16 App Router scaffolding + 13 routes structure"
+    type: scaffolding
+    surface: FE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 3
+    decisions_applicable: [D1]
+    description: |
+      Bootstrap Next.js 16 App Router per 03-arch-fe.md § 3:
+      - Root layout + ClerkProvider + QueryProvider
+      - (auth)/sign-in + sign-up
+      - onboarding/step-1..4
+      - (dashboard)/{brand-studio,offers,ladder,cohorts,community,authority,subscriptions,voice,community-audit}/page.tsx
+      - public/[creator-handle]/page.tsx + subscribe/page.tsx
+      - 13 routes total
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/frontend/src/app/**/*.tsx (route shells)"
+    depends_on: [T-scaffold-1]
+    blocks: [T-fe-2, T-fe-3, T-fe-4, T-fe-5, T-fe-6]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tfe2:
+    id: T-fe-2
+    title: "FE hooks React Query (35+ hooks) + Zod schemas (14) + types"
+    type: hooks
+    surface: FE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 5
+    decisions_applicable: [D1]
+    description: |
+      35+ React Query hooks per 03-arch-fe.md § 4.1 features/comunify/api/.
+      14 Zod schemas per § 7.2.
+      TypeScript types mirror Pydantic Response DTOs via openapi-typescript.
+      Query keys catalog comunifyQueryKeys per § 6.1.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/api/*.ts (35+)"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/schemas/*.ts (14)"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/types/*.ts (8)"
+    validators_pass: [V-NF-3, V-NF-4, V-F-14]
+    depends_on: [T-fe-1, T-be-8]
+    blocks: [T-fe-3, T-fe-4, T-fe-5, T-fe-6]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tfe3:
+    id: T-fe-3
+    title: "FE components reuse @luana/ui + @luana/shared + 11 NEW comunify-specific"
+    type: component
+    surface: FE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 6
+    decisions_applicable: [D1]
+    description: |
+      11 NEW comunify-specific components per 03-arch-fe.md § 5.3 (each justified):
+      CreatorNichePicker, VoiceSamplesUploader, VoiceDistilledPreview, LadderVisualizer,
+      AuthorityVaultEditor, CohortRosterTable, CohortBroadcastComposer,
+      CommunityModerationCard, SubscriptionMetricsCards, DunningActiveBanner,
+      CreatorLandingHero.
+      Reuse 16 @luana/ui + 10 @luana/shared (incl FileUploadZone + AsyncJobStatus).
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/*.tsx (11 NEW)"
+      - "/home/chris/luana-platform/comunify/frontend/tests/unit/features/comunify/components/*.test.tsx"
+    validators_pass: [V-NF-4, V-NF-6, V-F-14]
+    depends_on: [T-fe-2, T-config-1]
+    blocks: [T-fe-4, T-fe-5, T-fe-6, T-widget-1, T-e2e-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tfe4:
+    id: T-fe-4
+    title: "FE onboarding wizard 4-step + brand-studio 10 sections + voice UX"
+    type: feature_ui
+    surface: FE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 5
+    decisions_applicable: [D8, D9]
+    description: |
+      Onboarding 4-step wizard (creator profile + niche + plan + first offer ladder seed).
+      Brand Studio 10 sections (incluye /voz voice cloning UX completo).
+      Voice samples upload + distillation polling 5s + ratify preview.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/onboarding-step-{1..4}-client.tsx"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/brand-studio-section-client.tsx"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/voice-cloning-client.tsx"
+    validators_pass: [V-NF-4, V-NF-6]
+    depends_on: [T-fe-3]
+    blocks: [T-e2e-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tfe5:
+    id: T-fe-5
+    title: "FE offers + ladder visualizer drag-drop + authority vault editor"
+    type: feature_ui
+    surface: FE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 5
+    decisions_applicable: [D14]
+    description: |
+      Offer wizard 5-step (coaching_offers preset).
+      Ladder visualizer 4-column DAG drag-drop (@dnd-kit/core).
+      Authority vault editor multi-subsection + URL validation.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/offer-wizard-client.tsx"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/ladder-visualizer.tsx (uses NEW LadderVisualizer)"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/authority-vault-editor.tsx (NEW)"
+    validators_pass: [V-NF-4]
+    depends_on: [T-fe-3]
+    blocks: [T-e2e-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tfe6:
+    id: T-fe-6
+    title: "FE cohorts + community + subscriptions + audit dashboards"
+    type: feature_ui
+    surface: FE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 5
+    decisions_applicable: [D19]
+    description: |
+      Cohort detail + roster + broadcast composer + community feed + moderation inbox +
+      Subscriptions admin (MRR + active + churn + dunning banner) +
+      Community audit log dashboard.
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/cohort-detail-client.tsx"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/community-feed-client.tsx"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/community-moderation-client.tsx"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/subscriptions-admin-client.tsx"
+      - "/home/chris/luana-platform/comunify/frontend/src/features/comunify/components/community-audit-client.tsx"
+    validators_pass: [V-NF-4, V-NF-6]
+    depends_on: [T-fe-3]
+    blocks: [T-e2e-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Twidget1:
+    id: T-widget-1
+    title: "Subscription widget iframe bundle (Vite UMD + postMessage protocol)"
+    type: widget
+    surface: FE
+    production_code: true
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 4
+    decisions_applicable: [D11]
+    description: |
+      Subscription widget bundle per 03-arch-fe.md § 9:
+      - Vite UMD bundle (widget.umd.js + widget.css)
+      - postMessage protocol (widget:resize, widget:loaded, widget:booking-confirmed, widget:payment-redirect)
+      - Embed snippet for creator copy-paste
+      - Canonical alternative at landing.comunify.io/{handle}/subscribe
+      - HMAC subscriber token validation
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/frontend/widget/src/*.tsx"
+      - "/home/chris/luana-platform/comunify/frontend/widget/vite.config.ts"
+    depends_on: [T-fe-3, T-be-8]
+    blocks: [T-e2e-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Te2e1:
+    id: T-e2e-1
+    title: "Playwright E2E 24 specs + 6 compliance smoke + visual + a11y"
+    type: e2e
+    surface: AGENTIC
+    production_code: false                      # tests over agentic
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 6
+    decisions_applicable: [D9, D11]
+    description: |
+      24 Playwright E2E specs per 03-arch-fe.md § 10.2 (3 fixtures × 8 flows):
+      onboarding, brand-studio, voice-cloning, ladder, cohort-create, broadcast,
+      community-moderation × 3 vectors, subscription-create/dunning/cancel,
+      discovery-call-booking, cross-tenant, public-landing.
+      6 compliance smoke tests per spec § 15 (prompt_injection + spam + nsfw + doxxing + cross-tenant + voice_distillation).
+      Responsive + a11y suites.
+      Native WSL (NEVER make e2e* — playwright-expert SSoT).
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/frontend/e2e/specs/comunify/*.spec.ts (24)"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/smoke/*.py (6)"
+      - "/home/chris/luana-platform/comunify/frontend/e2e/fixtures/{anabella,trini,pablo}-*.fixture.ts"
+    validators_pass: [V-V-1..V-V-26, V-AE-1..V-AE-6]
+    depends_on: [T-fe-4, T-fe-5, T-fe-6, T-widget-1, T-be-8, T-be-9, T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-workflows-1, T-workflows-2, T-kb-1, T-guards-1, T-guards-2, T-guards-3, T-guards-4, T-voice-4, T-rubric-1]
+    blocks: [T-eval-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Teval1:
+    id: T-eval-1
+    title: "Agentic eval suite vertical-creator-economy-fidelity + cost_budget + cache_hit_rate"
+    type: agentic_eval
+    surface: AGENTIC
+    production_code: false                      # tests over agentic
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 5
+    decisions_applicable: [D6]
+    description: |
+      Complete agentic eval suite per 03-arch-agentic.md § 15:
+      - vertical-creator-economy-fidelity grader (happy 3 ≥0.75, adv-light 4 ≥0.85, adv 5 ≥0.95)
+      - voice fidelity per fixture grader (≥0.80)
+      - no-hallucination grader (≥0.90)
+      - cost_budget assertions (lead qualif, drift, moderation, voice_distill)
+      - cache_hit_rate (≥0.85 slots 1-6)
+      - cost_bucket_invariant arch test
+      - observability trace_invariants
+      - adversarial suite combined
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/grader/*.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/cost_budget/*.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/cache/test_cache_hit_rate.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/agentic_evals/observability/test_trace_invariants.py"
+      - "/home/chris/luana-platform/comunify/backend/tests/architecture/test_comunify_cost_bucket_invariant.py"
+    validators_pass: [V-AE-13..V-AE-30]
+    depends_on: [T-tools-1, T-tools-2, T-tools-3, T-tools-4, T-extractors-1, T-extractors-2, T-workflows-1, T-workflows-2, T-kb-1, T-guards-1, T-guards-2, T-guards-3, T-guards-4, T-voice-4, T-rubric-1, T-e2e-1]
+    blocks: [T-deploy-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tdeploy1:
+    id: T-deploy-1
+    title: "K8s manifests + CF tunnel scripts + DNS verification (Chris UI gate)"
+    type: deploy
+    surface: infra
+    production_code: false                      # config
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 3
+    decisions_applicable: [D1]
+    description: |
+      Generate K8s manifest YAML (deployment + service + ingress).
+      Cloudflared tunnel config.
+      DNS records list (comunify.io + dashboard + landing + cdn).
+      Chris UI manual ops documented (cluster provision + registry push + Cloudflare + Clerk #3 + MP/Stripe production keys).
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/deploy/k8s/{deployment,service,ingress}.yaml"
+      - "/home/chris/luana-platform/comunify/deploy/cloudflared/config.yml"
+      - "/home/chris/luana-platform/comunify/deploy/DNS-RECORDS.md"
+      - "/home/chris/luana-platform/comunify/deploy/CLERK-APP-SETUP.md"
+    depends_on: [T-eval-1]
+    blocks: [T-docs-1]
+
+  # ═══════════════════════════════════════════════════════════════
+  Tdocs1:
+    id: T-docs-1
+    title: "community-safety.md + widget-embed.md + voice-cloning-guide.md + seed_fixture_creators.py"
+    type: docs
+    surface: docs
+    production_code: false
+    owner_eligibility: [opus, sonnet]
+    estimate_hours: 4
+    decisions_applicable: [D7, D8, D11, D15, D17, D18]
+    description: |
+      Documentation + fixture seed:
+      - community-safety.md (4 guardrails + creator_economy compliance vs HIPAA-lite distinction)
+      - widget-embed.md (copy-paste iframe snippet for creator-own landing pages)
+      - voice-cloning-guide.md (50+ chats requirements + distillation flow + ratify UX)
+      - seed_fixture_creators.py (3 LATAM creators idempotent seed per spec § 2)
+    files_in_scope:
+      - "/home/chris/luana-platform/comunify/docs/community-safety.md"
+      - "/home/chris/luana-platform/comunify/docs/widget-embed.md"
+      - "/home/chris/luana-platform/comunify/docs/voice-cloning-guide.md"
+      - "/home/chris/luana-platform/comunify/backend/scripts/seed_fixture_creators.py"
+    validators_pass: [V-F-18]
+    depends_on: [T-eval-1]
+    blocks: []

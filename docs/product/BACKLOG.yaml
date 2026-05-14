@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-14T16:36:48+00:00
+# Generated at: 2026-05-14T23:27:22+00:00
 
-generated_at: '2026-05-14T16:36:48+00:00'
+generated_at: '2026-05-14T23:27:22+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -588,6 +588,12 @@ capabilities:
   planned: 0
   deprecated: 0
   total: 1
+- module: comunify
+  live: 10
+  in_progress: 0
+  planned: 0
+  deprecated: 0
+  total: 10
 - module: connections
   live: 3
   in_progress: 1

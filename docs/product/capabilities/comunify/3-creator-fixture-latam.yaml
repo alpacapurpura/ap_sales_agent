@@ -1,0 +1,43 @@
+---
+capability_id: comunify-3-creator-fixture-latam
+module: comunify
+slug: 3-creator-fixture-latam
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/scripts/seed
+license: proprietary
+---
+
+# comunify-3-creator-fixture-latam
+
+3 realistic LATAM creator tenant fixtures for development, testing, and eval: Anabella (AR — life coaching + voseo brand voice), Trini (CL + tuteo brand voice — photography education), Pablo (MX + tuteo — gastronomy content creator). Each fixture includes complete tenant data: creator profile, offer ladder, cohorts, community posts, authority vault entries, and voice samples.
+
+## Surface
+
+- **Seed script:** `comunify/backend/scripts/seed_fixture_creators.py` — idempotent, creates 3 tenant rows + all related entities (T-docs-1)
+- **Fixture data:** `comunify/backend/data/fixtures/` — `anabella_ar.yaml`, `trini_cl.yaml`, `pablo_mx.yaml` (per-tenant YAML with offer ladder + cohorts + posts + voice samples)
+- **Persona YAML (eval):** `comunify/backend/tests/agentic_evals/personas/` — 8 buyer personas (per 02-design-agentic.md eval policy: 3 fixture tenants × happy/nurture/unqualified + 2 adversarial)
+- **Voice samples:** `comunify/backend/data/fixtures/voice_samples/` — AR voseo samples for Anabella (magic comment exempt), CL/MX tuteo samples
+
+## Test coverage
+
+- T-docs-1 result: seed_fixture_creators.py runs idempotent — 3 tenants + full data PASS
+- Eval smoke: 8 personas loaded via `load_actor_profile_for_tenant()` (archetype-aware loader per Story 12 D-AG-1)
+- Voseo magic comment: Anabella AR fixture files `# voseo-allowed: AR creator voice` (pre-commit hook exempt)
+
+## Dependencies
+
+- luana-core-platform (Base entity + tenant setup)
+- luana-core-iam (tenant provisioning)
+- SQLAlchemy 2.0 AsyncSession (idempotent inserts)
+- comunify-cohort-management + comunify-authority-vault + comunify-voice-cloning-pipeline (full fixture data)
+
+## Scenarios live
+
+- `python seed_fixture_creators.py --env dev` → 3 tenants seeded idempotently
+- Anabella AR: life coaching, $497 MXN monthly cohort, voseo brand voice (magic comment)
+- Trini CL: photography education, $35 USD flagship course, tuteo voice
+- Pablo MX: gastronomy content, $97 MXN community membership, tuteo voice
+- Re-run idempotent: no duplicate records (UPSERT on tenant slug)

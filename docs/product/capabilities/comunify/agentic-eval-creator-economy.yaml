@@ -1,0 +1,44 @@
+---
+capability_id: comunify-agentic-eval-creator-economy
+module: comunify
+slug: agentic-eval-creator-economy
+status: live
+date_introduced: 2026-05-14
+story_introduced: luana-comunify-bootstrap
+package_version: 0.1.0
+package_path: comunify/backend/tests/agentic_evals
+license: proprietary
+---
+
+# comunify-agentic-eval-creator-economy
+
+Agentic eval suite for the Comunify AI agent: rubric MD v1 (qualification accuracy for creator economy domain), 8 buyer personas (happy/nurture/unqualified across 3 LATAM fixtures + 2 adversarial), MAJ-EVAL grader suite (pass^k threshold per rubric dimension), and cost budget gate. Reuses luana-platform eval framework from Stories D-E (sales_agent eval foundation).
+
+## Surface
+
+- **Rubric MD v1:** `comunify/backend/tests/agentic_evals/rubric/creator-economy-qualification-accuracy.md` — 8 dimensions: intent_detection / offer_recommendation / voice_fidelity / community_safety / pricing_accuracy / cohort_match / escalation_triggers / pb_handling (T-rubric-1)
+- **8 buyer personas:** `comunify/backend/tests/agentic_evals/personas/` — Anabella × 3 (happy/nurture/unqualified) + Trini × 2 (happy/unqualified) + Pablo × 2 (happy/nurture) + 1 adversarial (prompt injection attempt)
+- **Grader suite:** `comunify/backend/tests/agentic_evals/grader/` — MAJ-EVAL 3-judge debate + pass^k=2/3 threshold per dimension (T-eval-1)
+- **Eval simulator integration:** `comunify/backend/tests/agentic_evals/smoke/` — 5 compliance smoke tests (community_safety + voice_fidelity + pricing + cohort_match + no_pii_leak)
+- **Cost budget gate:** V-AE-30 — per-turn eval cost capped at $0.15 (Sonnet budget)
+
+## Test coverage
+
+- T-rubric-1 result: rubric MD v1 schema valid + 8 dimensions declared + grader_cache_key assigned
+- T-eval-1 result: MAJ-EVAL grader suite smoke PASS + 5 compliance smoke PASS
+- Arch fitness: `test_grader_writes_eval_only_bucket` + `test_cost_bucket_invariant` PASS (eval writes eval_simulator_llm_call, not copilot_llm_call)
+
+## Dependencies
+
+- luana-platform eval framework (MAJ-EVAL state machine + judge prompts + grader cache — Stories D-E)
+- comunify-3-creator-fixture-latam (persona YAML + tenant data)
+- comunify-voice-cloning-pipeline (voice_fidelity dimension requires CompiledVoice)
+- luana-core-observability (eval cost bucket separation)
+
+## Scenarios live
+
+- Persona Anabella-happy: intent=close → agent recommends $497 cohort → pass^k rubric qualification_accuracy
+- Persona adversarial: prompt injection attempt → community_safety guardrail blocks → eval records BLOCKED
+- Grader: 3-judge debate on voice_fidelity → variance < 0.15 → Round 1 verdict → pass^k=2/3
+- Cost budget: eval turn < $0.15 (V-AE-30) — hard gate, fails if exceeded
+- Rubric update → cache_key changes → full re-grade triggered (cache invalidation cement)
