@@ -1,11 +1,21 @@
 ---
 story_id: luana-vitalia-bootstrap
 outcome: luana-platform-migration
-state: developed                                              # transition developing → developed Sesion 4 close 2026-05-14
-phase: SESION_4_BUILD_DONE_AWAITING_AUDITOR
-last_artifact: SESSION-4-CLOSE-2026-05-14.md
+state: done                                                   # transition reviewing → done Sesion 5 close 2026-05-14 APPROVED
+phase: SESION_5_AUDIT_APPROVED_MERGED_ARCHIVED
+last_artifact: SESSION-5-CLOSE-2026-05-14.md
 last_modified: 2026-05-14
-next_action: "Chris triggers /auditor Conv 3 Sesion 5 for state developed → reviewing → done. Auditor verifies V-AE-18 gap + Postgres integration + Playwright runtime + W9 race postmortem."
+next_action: "Story 11 done. Outcome luana-platform-migration 11/14 stories complete. Story 12 (Comunify) ready pickup."
+archive_path: docs/archive/2026/stories/luana-vitalia-bootstrap-2026-05-14/
+audit_verdict: APPROVED
+audit_summary_cells: 15_15_PASS_0_FAIL_2_WARN_informational_deferred
+sesion_5_started_at: 2026-05-14
+sesion_5_q_decisions:
+  Q1_scope: A_FULL_38_tickets_cross_surface
+  Q2_routing: B_serial_one_at_a_time              # cheaper opus footprint per audit
+  Q3_followups: A_auditor_verifies_all_4
+  Q4_verdict: A_approved_pm_merge_immediate
+  Q5_promotion: A_full_promotion_archive_module_doc
 sesion_4_started_at: 2026-05-14
 sesion_4_closed_at: 2026-05-14
 sesion_4_q_decisions:
