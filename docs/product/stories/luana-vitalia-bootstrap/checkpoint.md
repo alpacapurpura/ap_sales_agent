@@ -2,21 +2,29 @@
 story_id: luana-vitalia-bootstrap
 outcome: luana-platform-migration
 state: developing
-phase: BUILD_WAVE_1
-last_artifact: T-be-3
+phase: SESION_3_CLOSED_PARTIAL                                # 7/38 tickets done — 31 pending Sesion 4+
+last_artifact: SESSION-3-CLOSE-2026-05-14.md
 last_modified: 2026-05-14
-t_be_3_state: done
-t_be_3_commit_luana_platform: d96e4ce
-t_be_3_tests: "93 passed (unit+arch) + 13 skipped integration (Postgres unavailable)"
-next_action: "Sesion 3 W4 done (T-be-3). Next: W5 T-tools-1 (Opus R23 — agentic tools)."
+next_action: "Sesion 4 pickup: continue 06-tickets.yaml. Next ready batch per DAG: T-be-4 (services Onboarding+Compliance+PiiScanner) + T-be-5 (Booking+advisory_locks) + T-be-6 (Consent+TreatmentFollowup+PrepaidPayment) parallel cap 2 OR jump T-prompts-1 (Opus R23, blocked_by T-config-1+T-extensions-1 — both done) to unblock 7 AGENTIC downstream tickets."
 sesion_3_started_at: 2026-05-14
-sesion_3_scope: 7_tickets_mixed_be_first_agentic_tool         # T-scaffold-1 + T-config-1 + T-be-1 + T-be-2 + T-be-3 + T-extensions-1 + T-tools-1
+sesion_3_closed_at: 2026-05-14
+sesion_3_scope: 7_tickets_mixed_be_first_agentic_tool         # Q1=D ratified
+sesion_3_q_decisions:
+  Q1_scope: D_mixed_7_tickets                                 # T-scaffold-1 + T-config-1 + T-be-1 + T-be-2 + T-be-3 + T-extensions-1 + T-tools-1
+  Q2_parallel: B_parallel_cap_2_deps_permit
+  Q3_iter_cap: A_3_iterations
+  Q4_close: A_batch_done_or_cap
 sesion_3_dag_waves:
-  W1: [T-scaffold-1]
-  W2: [T-config-1, T-be-1]                                    # parallel cap 2
-  W3: [T-be-2, T-extensions-1]                                # parallel cap 2
-  W4: [T-be-3]
-  W5: [T-tools-1]                                             # Opus R23
+  W1: [T-scaffold-1]                                          # done — fad62d0
+  W2: [T-config-1, T-be-1]                                    # both done — a91388d + e3d4dc7
+  W3: [T-be-2, T-extensions-1]                                # both done — 3aea95a + f6e41be (Opus)
+  W4: [T-be-3]                                                # done — d96e4ce
+  W5: [T-tools-1]                                             # done — 21b0f91 (Opus R23)
+sesion_3_outcome: 7_7_GREEN                                   # 100% batch success, 0 cap reached, 0 blocked, 0 halts fired
+tickets_done_count: 7
+tickets_pending_count: 31
+story_progress_pct: 18.4                                      # 7/38
+halt_triggers_fired_sesion_3: []                              # H1-H13 all clean
 ratified_by_chris: true
 phase0_ratified_by_chris: true
 design_agentic_drafted: true                    # Sesion 2 Phase 1 (2026-05-13)

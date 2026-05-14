@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-14T01:40:15+00:00
+# Generated at: 2026-05-14T01:53:09+00:00
 
-generated_at: '2026-05-14T01:40:15+00:00'
+generated_at: '2026-05-14T01:53:09+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -314,8 +314,10 @@ buckets:
     last_touched: 2026-05-14
     extra:
       outcome: luana-platform-migration
-      phase: BUILD_WAVE_1
-      next_action: 'Sesion 3 W4 done (T-be-3). Next: W5 T-tools-1 (Opus R23 — agentic tools).'
+      phase: SESION_3_CLOSED_PARTIAL
+      next_action: 'Sesion 4 pickup: continue 06-tickets.yaml. Next ready batch per DAG: T-be-4 (services Onboarding+Compliance+PiiScanner)
+        + T-be-5 (Booking+advisory_locks) + T-be-6 (Consent+TreatmentFollowup+PrepaidPayment) parallel cap 2 OR jump T-prompts-1
+        (Opus R23, blocked_by T-config-1+T-extensions-1 — both done) to unblock 7 AGENTIC downstream tickets.'
       blocked_by: []
       priority_override: null
       audit_iterations: 0
