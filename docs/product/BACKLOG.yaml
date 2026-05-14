@@ -1,9 +1,9 @@
 # docs/product/BACKLOG.yaml — auto-generated SSoT machine-readable
 # DO NOT EDIT MANUALLY — modify source artifacts instead.
 # Regenerate: python scripts/generate_backlog.py
-# Generated at: 2026-05-14T14:01:09+00:00
+# Generated at: 2026-05-14T16:36:48+00:00
 
-generated_at: '2026-05-14T14:01:09+00:00'
+generated_at: '2026-05-14T16:36:48+00:00'
 caps:
   refining_max: 3
   refined_max: 5
@@ -455,20 +455,6 @@ buckets:
         queda inconsistencia visual detectable cross-studio → unparkear → /po-ux refina. Probable que NO se ejecute (Chris
         2026-05-06: ''visualmente si se ve bien'').'
       blocked_by: null
-      priority_override: null
-      audit_iterations: 0
-  - id: luana-comunify-bootstrap
-    kind: story
-    state: parked
-    title: luana-comunify-bootstrap
-    tags: []
-    last_touched: 2026-05-09
-    extra:
-      outcome: luana-platform-migration
-      phase: null
-      next_action: /po-ux opens 01-spec.md after Story 10 done. Parallel-safe with stories 11, 13, 14
-      blocked_by:
-      - luana-nicolify-migration
       priority_override: null
       audit_iterations: 0
   - id: luana-lupulo-bootstrap
